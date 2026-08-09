@@ -108,6 +108,8 @@ const VIEWS = [
 
   { id: 'fshare', sec: 'tool', label: 'Fshare Bulk Copy', desc: 'Collect download links in bulk',
     icon: 'tool', href: 'fshare-tool/' },
+  { id: 'course-registration', sec: 'tool', label: 'Course Registration', desc: 'Explore NTT classes and schedules',
+    icon: 'tool', href: 'course-registration/' },
 
   { id: 'guide', sec: 'about', label: 'Guide', desc: 'Site structure & syntax', icon: 'guide',
     md: GUIDE_MD },

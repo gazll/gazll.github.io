@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-src 'none'; form-action 'none'; worker-src 'none'; upgrade-insecure-requests">
+  <title>NTT Course Registration Explorer</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="../">GAZLL</a>
+    <div>
+      <h1>Course Registration Explorer</h1>
+      <p>Available classes, schedules and lecturers</p>
+    </div>
+    <span id="connectionBadge" class="badge off">Bridge disconnected</span>
+  </header>
+
+  <main>
+    <section class="card setup" id="setupCard">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow">ONE-TIME SETUP</span>
+          <h2>Connect your NTT session</h2>
+        </div>
+        <span class="shield">No cookie input</span>
+      </div>
+      <ol>
+        <li>Drag the button below to your browser bookmarks bar.</li>
+        <li>Sign in and open <code>phongdaotao.ntt.edu.vn/dang-ky-hoc-phan.html</code>.</li>
+        <li>Click the saved bookmark. It opens this explorer with a secure in-browser bridge.</li>
+      </ol>
+      <div class="setup-actions">
+        <a id="bookmarklet" class="button primary" href="#">NTT Course Explorer</a>
+        <button id="copyBridge" class="button secondary" type="button">Copy bridge script</button>
+      </div>
+      <p class="security-note">Your NTT cookie stays inside the NTT tab. This app never reads, stores or uploads it. Keep that tab open while crawling.</p>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow">QUERY</span>
+          <h2>Registration parameters</h2>
+        </div>
+      </div>
+      <form id="queryForm">
+        <div class="course-picker">
+          <button id="loadCoursesButton" class="button secondary" type="button">Load available courses</button>
+          <select id="coursePicker" disabled aria-label="Available course">
+            <option value="">Load the course list first</option>
+          </select>
+          <span id="coursePickerStatus">Uses the current registration period and type</span>
+        </div>
+        <div class="form-grid">
+          <label>
+            <span>Registration period ID</span>
+            <input id="periodId" name="periodId" value="64" required autocomplete="off">
+          </label>
+          <label>
+            <span>Course code</span>
+            <input id="courseCode" name="courseCode" value="078520" required autocomplete="off">
+          </label>
+          <label class="wide">
+            <span>Eligible course-part codes</span>
+            <input id="eligibleCodes" name="eligibleCodes" value="0101078520,0110078520,0123078520,0124078520" required autocomplete="off">
+          </label>
+          <label>
+            <span>Registration type</span>
+            <input id="registrationType" name="registrationType" value="1" required autocomplete="off">
+          </label>
+          <label>
+            <span>Parent course code</span>
+            <input id="parentCourse" name="parentCourse" value="" autocomplete="off">
+          </label>
+          <label>
+            <span>Parallel requests</span>
+            <input id="concurrency" name="concurrency" type="number" value="2" min="1" max="4" required>
+          </label>
+          <label>
+            <span>Maximum attempts</span>
+            <input id="maxAttempts" name="maxAttempts" type="number" value="5" min="1" max="10" required>
+          </label>
+        </div>
+        <label class="check-row">
+          <input id="avoidConflicts" name="avoidConflicts" type="checkbox" checked>
+          <span>Only return classes that do not conflict with the current timetable</span>
+        </label>
+        <div class="run-actions">
+          <button id="runButton" class="button primary" type="submit">Load registration data</button>
+          <button id="stopButton" class="button danger" type="button" disabled>Stop</button>
+          <button id="retryButton" class="button secondary" type="button" hidden>Retry failed requests</button>
+          <button id="exportButton" class="button secondary" type="button" disabled>Export JSON</button>
+        </div>
+      </form>
+    </section>
+
+    <section id="progressCard" class="card progress-card" hidden aria-live="polite">
+      <div class="progress-copy">
+        <strong id="progressTitle">Waiting</strong>
+        <span id="progressDetail"></span>
+      </div>
+      <div class="progress-track"><span id="progressBar"></span></div>
+    </section>
+
+    <section id="summary" class="summary" hidden aria-live="polite"></section>
+    <section id="registeredSection" class="card registered" hidden>
+      <div class="section-head">
+        <div>
+          <span class="eyebrow">REGISTERED</span>
+          <h2>Registered courses</h2>
+        </div>
+        <span id="registeredCount" class="shield"></span>
+      </div>
+      <div id="registeredContent"></div>
+    </section>
+    <section id="results" class="results" aria-label="Available classes"></section>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
