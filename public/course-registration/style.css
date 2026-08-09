@@ -141,7 +141,26 @@ input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(53,89,214,
 .check-row input { width: 17px; min-height: 17px; accent-color: var(--accent); }
 .check-row span { margin: 0; }
 
-.progress-card { padding: 18px 22px; }
+/* Sticks under the sticky header; --topbar-h is measured at runtime because
+   the header wraps to two rows on narrow screens. */
+.progress-card {
+  position: sticky;
+  top: var(--topbar-h, 76px);
+  z-index: 4;
+  padding: 14px 20px;
+  border-color: var(--accent);
+  box-shadow: 0 6px 20px rgba(24, 39, 75, .1);
+}
+.progress-card::before {
+  content: '';
+  position: absolute;
+  inset: -1px -1px auto;
+  height: 10px;
+  border-radius: 18px 18px 0 0;
+  /* Covers the gap above the card so content does not show through while scrolling. */
+  background: var(--bg);
+  transform: translateY(-10px);
+}
 .progress-copy { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
 .progress-copy span { color: var(--muted); font-size: 13px; }
 .progress-track { height: 7px; overflow: hidden; border-radius: 99px; background: var(--panel-2); }
@@ -279,6 +298,12 @@ input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(53,89,214,
   .topbar .badge { grid-column: 1 / -1; justify-self: start; }
   main { width: min(100% - 20px, 1180px); margin-top: 14px; }
   .card { padding: 18px; border-radius: 14px; }
+  /* The header eats more height here, so the pinned card stays tight. */
+  .progress-card { padding: 11px 14px; }
+  .progress-copy { flex-direction: column; gap: 2px; margin-bottom: 9px; }
+  .detail-progress { margin-top: 11px; padding-top: 11px; }
+  .detail-counts { gap: 6px 12px; margin-bottom: 8px; }
+  .detail-current { margin-top: 7px; }
   .form-grid, .summary { grid-template-columns: 1fr 1fr; }
   .session-table { display: block; overflow-x: auto; }
 }

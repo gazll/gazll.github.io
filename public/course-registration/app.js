@@ -1172,3 +1172,20 @@ showTab('classes');
 renderFreshness();
 // Keeps the "x min ago" label honest without refetching anything.
 setInterval(renderFreshness, 30000);
+
+// The sticky progress card offsets by the real header height, which changes
+// when the header wraps to two rows.
+function measureTopbar() {
+  const topbar = document.querySelector('.topbar');
+  if (!topbar) return;
+  document.documentElement.style.setProperty(
+    '--topbar-h', `${Math.round(topbar.getBoundingClientRect().height)}px`);
+}
+
+measureTopbar();
+const topbarElement = document.querySelector('.topbar');
+if (topbarElement && typeof ResizeObserver === 'function') {
+  new ResizeObserver(measureTopbar).observe(topbarElement);
+} else {
+  addEventListener('resize', measureTopbar);
+}

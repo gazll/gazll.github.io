@@ -19,6 +19,24 @@
   </header>
 
   <main>
+    <section id="progressCard" class="card progress-card" hidden aria-live="polite">
+      <div class="progress-copy">
+        <strong id="progressTitle">Đang chờ</strong>
+        <span id="progressDetail"></span>
+      </div>
+      <div class="progress-track"><span id="progressBar"></span></div>
+      <div id="detailProgress" class="detail-progress" hidden>
+        <div class="detail-counts">
+          <span><strong id="detailDone">0</strong> xong</span>
+          <span><strong id="detailFailed">0</strong> lỗi</span>
+          <span><strong id="detailRemaining">0</strong> còn lại</span>
+          <span id="detailPercent" class="detail-percent">0%</span>
+        </div>
+        <div class="progress-track"><span id="detailBar"></span></div>
+        <span id="detailCurrent" class="detail-current"></span>
+      </div>
+    </section>
+
     <section class="card setup" id="setupCard">
       <div class="section-head">
         <div>
@@ -98,24 +116,6 @@
           <button id="exportButton" class="button secondary" type="button" disabled>Xuất JSON</button>
         </div>
       </form>
-    </section>
-
-    <section id="progressCard" class="card progress-card" hidden aria-live="polite">
-      <div class="progress-copy">
-        <strong id="progressTitle">Đang chờ</strong>
-        <span id="progressDetail"></span>
-      </div>
-      <div class="progress-track"><span id="progressBar"></span></div>
-      <div id="detailProgress" class="detail-progress" hidden>
-        <div class="detail-counts">
-          <span><strong id="detailDone">0</strong> xong</span>
-          <span><strong id="detailFailed">0</strong> lỗi</span>
-          <span><strong id="detailRemaining">0</strong> còn lại</span>
-          <span id="detailPercent" class="detail-percent">0%</span>
-        </div>
-        <div class="progress-track"><span id="detailBar"></span></div>
-        <span id="detailCurrent" class="detail-current"></span>
-      </div>
     </section>
 
     <section id="summary" class="summary" hidden aria-live="polite"></section>

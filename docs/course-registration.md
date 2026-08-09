@@ -258,7 +258,13 @@ Web hiện cung cấp:
 - Tick box **Hide classes that clash with my timetable** (`IsLHPKhongTrungLich`):
   bật để chỉ lấy lớp không trùng lịch, tắt để lấy toàn bộ lớp kể cả lớp trùng.
 - Điều chỉnh concurrency và số lần retry.
-- Thanh tiến trình tổng.
+- Thanh tiến trình tổng, **ghim (sticky) ngay dưới header** và nằm trên cùng
+  của `<main>`, nên khi cuộn xuống xem danh sách lớp vẫn thấy tiến độ. Offset
+  dùng biến `--topbar-h` được đo bằng `ResizeObserver` lúc chạy, vì header cao
+  thêm một dòng ở màn hình ≤ 760px; giá trị dự phòng trong CSS (`76px`) khớp
+  đúng `min-height` của `.topbar`. `z-index` của card là 4 — dưới header (5) và
+  dưới toast (10). Lưu ý: `main`/`body` không được đặt `overflow`, nếu không
+  `position: sticky` sẽ mất tác dụng.
 - Thanh tiến trình riêng cho bước tải chi tiết lớp: số lớp xong / lỗi / còn lại,
   phần trăm và tên lớp đang gọi. Panel này không bị message retry ghi đè, nên
   luôn thấy được đã chạy tới đâu.
