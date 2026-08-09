@@ -1,116 +1,116 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="referrer" content="no-referrer">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-src 'none'; form-action 'none'; worker-src 'none'; upgrade-insecure-requests">
-  <title>NTT Course Registration Explorer</title>
+  <title>Tra cứu đăng ký học phần NTT</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header class="topbar">
     <a class="brand" href="../">GAZLL</a>
     <div>
-      <h1>Course Registration Explorer</h1>
-      <p>Available classes, schedules and lecturers</p>
+      <h1>Tra cứu đăng ký học phần</h1>
+      <p>Lớp học phần, lịch học và giảng viên</p>
     </div>
-    <span id="connectionBadge" class="badge off">Bridge disconnected</span>
+    <span id="connectionBadge" class="badge off">Chưa kết nối</span>
   </header>
 
   <main>
     <section class="card setup" id="setupCard">
       <div class="section-head">
         <div>
-          <span class="eyebrow">ONE-TIME SETUP</span>
-          <h2>Connect your NTT session</h2>
+          <span class="eyebrow">CÀI ĐẶT MỘT LẦN</span>
+          <h2>Kết nối phiên NTT của bạn</h2>
         </div>
-        <span class="shield">No cookie input</span>
+        <span class="shield">Không cần nhập cookie</span>
       </div>
       <ol>
-        <li>Drag the button below to your browser bookmarks bar.</li>
-        <li>Sign in and open <code>phongdaotao.ntt.edu.vn/dang-ky-hoc-phan.html</code>.</li>
-        <li>Click the saved bookmark. It opens this explorer with a secure in-browser bridge.</li>
+        <li>Kéo nút bên dưới lên thanh bookmark của trình duyệt.</li>
+        <li>Đăng nhập và mở <code>phongdaotao.ntt.edu.vn/dang-ky-hoc-phan.html</code>.</li>
+        <li>Bấm bookmark đã lưu. Trang này sẽ mở kèm một bridge an toàn trong trình duyệt.</li>
       </ol>
       <div class="setup-actions">
         <a id="bookmarklet" class="button primary" href="#">NTT Course Explorer</a>
-        <button id="copyBridge" class="button secondary" type="button">Copy bridge script</button>
+        <button id="copyBridge" class="button secondary" type="button">Chép script bridge</button>
       </div>
-      <p class="security-note">Your NTT cookie stays inside the NTT tab. This app never reads, stores or uploads it. Keep that tab open while crawling.</p>
+      <p class="security-note">Cookie NTT của bạn nằm nguyên trong tab NTT. Trang này không đọc, không lưu và không gửi nó đi đâu. Giữ tab đó mở trong lúc tải dữ liệu.</p>
     </section>
 
     <section class="card">
       <div class="section-head">
         <div>
-          <span class="eyebrow">QUERY</span>
-          <h2>Registration parameters</h2>
+          <span class="eyebrow">THAM SỐ</span>
+          <h2>Tham số đăng ký học phần</h2>
         </div>
       </div>
       <form id="queryForm">
         <div class="course-picker">
-          <button id="loadCoursesButton" class="button secondary" type="button">Load available courses</button>
-          <select id="coursePicker" disabled aria-label="Available course">
-            <option value="">Load the course list first</option>
+          <button id="loadCoursesButton" class="button secondary" type="button">Tải danh sách môn</button>
+          <select id="coursePicker" disabled aria-label="Môn chờ đăng ký">
+            <option value="">Hãy tải danh sách môn trước</option>
           </select>
-          <span id="coursePickerStatus">Uses the current registration period and type</span>
+          <span id="coursePickerStatus">Dùng đợt đăng ký và loại đăng ký hiện tại</span>
         </div>
         <div class="form-grid">
           <label>
-            <span>Registration period ID</span>
+            <span>Đợt đăng ký (IDDotDangKy)</span>
             <input id="periodId" name="periodId" value="64" required autocomplete="off">
           </label>
           <label>
-            <span>Course code</span>
+            <span>Mã môn học (MaMonHoc)</span>
             <input id="courseCode" name="courseCode" value="078520" required autocomplete="off">
           </label>
           <label class="wide">
-            <span>Eligible course-part codes</span>
+            <span>Học phần được học (DSHocPhanDuocHoc)</span>
             <input id="eligibleCodes" name="eligibleCodes" value="0101078520,0110078520,0123078520,0124078520" required autocomplete="off">
           </label>
           <label>
-            <span>Registration type</span>
+            <span>Loại đăng ký (LoaiDKHP)</span>
             <input id="registrationType" name="registrationType" value="1" required autocomplete="off">
           </label>
           <label>
-            <span>Parent course code</span>
+            <span>Mã môn cha (MaMonCha)</span>
             <input id="parentCourse" name="parentCourse" value="" autocomplete="off">
           </label>
           <label>
-            <span>Parallel requests</span>
+            <span>Số request song song</span>
             <input id="concurrency" name="concurrency" type="number" value="2" min="1" max="4" required>
           </label>
           <label>
-            <span>Maximum attempts</span>
+            <span>Số lần thử lại tối đa</span>
             <input id="maxAttempts" name="maxAttempts" type="number" value="5" min="1" max="10" required>
           </label>
         </div>
         <label class="check-row option-row">
           <input id="avoidConflicts" name="avoidConflicts" type="checkbox" checked>
           <span>
-            <strong>Hide classes that clash with my timetable</strong>
-            <em>Sends <code>IsLHPKhongTrungLich</code>. Untick to list every class, including conflicting ones.</em>
+            <strong>Chỉ hiện lớp học phần không trùng lịch</strong>
+            <em>Gửi <code>IsLHPKhongTrungLich</code>. Bỏ tick để xem tất cả lớp, kể cả lớp trùng lịch.</em>
           </span>
         </label>
         <div class="run-actions">
-          <button id="runButton" class="button primary" type="submit">Load registration data</button>
-          <button id="stopButton" class="button danger" type="button" disabled>Stop</button>
-          <button id="retryButton" class="button secondary" type="button" hidden>Retry failed requests</button>
-          <button id="exportButton" class="button secondary" type="button" disabled>Export JSON</button>
+          <button id="runButton" class="button primary" type="submit">Tải dữ liệu đăng ký</button>
+          <button id="stopButton" class="button danger" type="button" disabled>Dừng</button>
+          <button id="retryButton" class="button secondary" type="button" hidden>Thử lại các request lỗi</button>
+          <button id="exportButton" class="button secondary" type="button" disabled>Xuất JSON</button>
         </div>
       </form>
     </section>
 
     <section id="progressCard" class="card progress-card" hidden aria-live="polite">
       <div class="progress-copy">
-        <strong id="progressTitle">Waiting</strong>
+        <strong id="progressTitle">Đang chờ</strong>
         <span id="progressDetail"></span>
       </div>
       <div class="progress-track"><span id="progressBar"></span></div>
       <div id="detailProgress" class="detail-progress" hidden>
         <div class="detail-counts">
-          <span><strong id="detailDone">0</strong> done</span>
-          <span><strong id="detailFailed">0</strong> failed</span>
-          <span><strong id="detailRemaining">0</strong> left</span>
+          <span><strong id="detailDone">0</strong> xong</span>
+          <span><strong id="detailFailed">0</strong> lỗi</span>
+          <span><strong id="detailRemaining">0</strong> còn lại</span>
           <span id="detailPercent" class="detail-percent">0%</span>
         </div>
         <div class="progress-track"><span id="detailBar"></span></div>
@@ -120,34 +120,34 @@
 
     <section id="summary" class="summary" hidden aria-live="polite"></section>
 
-    <div class="tabs" role="tablist" aria-label="Result views">
+    <div class="tabs" role="tablist" aria-label="Khu vực kết quả">
       <button id="classesTab" class="tab" type="button" role="tab"
               aria-selected="true" aria-controls="classesPanel">
-        Available classes <span id="classesCount" class="tab-count"></span>
+        Lớp học phần <span id="classesCount" class="tab-count"></span>
       </button>
       <button id="enrolledTab" class="tab" type="button" role="tab"
               aria-selected="false" aria-controls="enrolledPanel">
-        My enrolled classes <span id="enrolledCount" class="tab-count"></span>
+        Lớp đã đăng ký <span id="enrolledCount" class="tab-count"></span>
       </button>
       <button id="registeredTab" class="tab" type="button" role="tab"
               aria-selected="false" aria-controls="registeredPanel">
-        Registered courses <span id="registeredCount" class="tab-count"></span>
+        Học phần đã đăng ký <span id="registeredCount" class="tab-count"></span>
       </button>
     </div>
 
     <section id="classesPanel" role="tabpanel" aria-labelledby="classesTab">
       <div class="freshness-bar">
-        <span id="detailsFreshness" class="freshness">Class details not loaded yet</span>
+        <span id="detailsFreshness" class="freshness">Chưa tải chi tiết lớp</span>
         <button id="refreshDetails" class="button secondary" type="button" disabled>
-          Refresh class details
+          Tải lại chi tiết lớp
         </button>
       </div>
-      <div id="results" class="results" aria-label="Available classes"></div>
+      <div id="results" class="results" aria-label="Lớp học phần"></div>
     </section>
 
     <section id="enrolledPanel" class="card" role="tabpanel" aria-labelledby="enrolledTab" hidden>
       <div class="registered-head">
-        <p class="registered-hint">Classes whose status shows you are enrolled, matched from the loaded class list.</p>
+        <p class="registered-hint">Các lớp khớp với học phần đã đăng ký của bạn, đối chiếu từ danh sách lớp đã tải.</p>
       </div>
       <div id="enrolledContent"></div>
     </section>
@@ -155,8 +155,8 @@
     <section id="registeredPanel" class="card registered" role="tabpanel"
              aria-labelledby="registeredTab" hidden>
       <div class="registered-head">
-        <p class="registered-hint">Loaded with each crawl. Refresh it on its own when you need the latest.</p>
-        <button id="refreshRegistered" class="button secondary" type="button">Refresh registered</button>
+        <p class="registered-hint">Được tải cùng mỗi lần crawl. Bấm tải lại khi cần số liệu mới nhất.</p>
+        <button id="refreshRegistered" class="button secondary" type="button">Tải lại</button>
       </div>
       <div id="registeredContent"></div>
     </section>

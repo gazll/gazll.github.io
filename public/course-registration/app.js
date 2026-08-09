@@ -73,7 +73,7 @@ function bridgeBootstrap(appUrl) {
     '/SinhVienDangKy/ChiTietLopHocPhanChoDangKy'
   ]);
   if (location.origin !== nttOrigin) {
-    alert('Open the NTT course registration page before using this bookmark.');
+    alert('Hãy mở trang đăng ký học phần NTT trước khi dùng bookmark này.');
     return;
   }
 
@@ -83,7 +83,7 @@ function bridgeBootstrap(appUrl) {
   target.hash = 'bridge=' + encodeURIComponent(channel);
   const popup = window.open(target.href, 'ntt-course-registration');
   if (!popup) {
-    alert('Allow pop-ups for this page, then click the bookmark again.');
+    alert('Hãy cho phép pop-up cho trang này, rồi bấm lại bookmark.');
     return;
   }
 
@@ -158,15 +158,15 @@ const bridgeScript = `javascript:(${bridgeBootstrap.toString()})(${JSON.stringif
 elements.bookmarklet.href = bridgeScript;
 elements.bookmarklet.addEventListener('click', event => {
   event.preventDefault();
-  showToast('Drag this button to the bookmarks bar, then use it on the NTT page.');
+  showToast('Kéo nút này lên thanh bookmark, rồi bấm nó khi đang ở trang NTT.');
 });
 
 elements.copyBridge.addEventListener('click', async () => {
   try {
     await navigator.clipboard.writeText(bridgeScript);
-    showToast('Bridge script copied. Save it as a browser bookmark URL.');
+    showToast('Đã chép script. Lưu làm URL của một bookmark.');
   } catch {
-    showToast('Clipboard access was blocked. Drag the bookmark button instead.');
+    showToast('Trình duyệt chặn clipboard. Hãy kéo nút bookmark thay thế.');
   }
 });
 
@@ -179,7 +179,7 @@ function showToast(message) {
 
 function setConnected(value) {
   connected = value;
-  elements.badge.textContent = value ? 'NTT bridge connected' : 'Bridge disconnected';
+  elements.badge.textContent = value ? 'Đã kết nối NTT' : 'Chưa kết nối';
   elements.badge.className = `badge ${value ? 'on' : 'off'}`;
 }
 
@@ -220,7 +220,7 @@ setInterval(() => {
 function bridgeRequest(path, fields) {
   if (!connected || !window.opener || window.opener.closed) {
     // A dead bridge never recovers by retrying — stop the whole crawl instead.
-    const error = new Error('NTT bridge is not connected. Click the bookmarklet on the NTT tab again.');
+    const error = new Error('Chưa kết nối NTT. Bấm lại bookmarklet trên tab NTT.');
     error.permanent = true;
     error.fatal = true;
     return Promise.reject(error);
@@ -233,7 +233,7 @@ function bridgeRequest(path, fields) {
   return new Promise((resolve, reject) => {
     const timeout = setTimeout(() => {
       pending.delete(id);
-      reject(new Error('The NTT bridge did not respond in time.'));
+      reject(new Error('Bridge NTT không phản hồi kịp.'));
     }, 52000);
     pending.set(id, { resolve, reject, timeout });
     window.opener.postMessage({
@@ -277,13 +277,13 @@ function looksLikeLogin(html) {
 async function requestHtml(path, fields, maxAttempts, label) {
   let lastError;
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
-    if (stopped) throw new Error('Crawl stopped.');
+    if (stopped) throw new Error('Đã dừng.');
     let response = null;
     try {
       response = await bridgeRequest(path, fields);
       if (response.ok) {
         if (looksLikeLogin(response.html)) {
-          const authError = new Error('The NTT session has expired. Sign in again and reconnect the bridge.');
+          const authError = new Error('Phiên đăng nhập NTT đã hết hạn. Đăng nhập lại rồi kết nối lại bridge.');
           authError.permanent = true;
           authError.fatal = true;
           throw authError;
@@ -297,13 +297,13 @@ async function requestHtml(path, fields, maxAttempts, label) {
       }
       lastError = new Error(`${label}: HTTP ${response.status}`);
     } catch (error) {
-      if (error.permanent || error.message === 'Crawl stopped.') throw error;
+      if (error.permanent || error.message === 'Đã dừng.') throw error;
       lastError = error;
     }
 
     if (attempt === maxAttempts) break;
     const delay = retryDelay(response, attempt);
-    setProgress('Retrying temporary error', `${label} · attempt ${attempt + 1}/${maxAttempts} in ${Math.ceil(delay / 1000)}s`);
+    setProgress('Lỗi tạm thời, đang thử lại', `${label} · lần ${attempt + 1}/${maxAttempts} sau ${Math.ceil(delay / 1000)}s`);
     await sleep(delay);
   }
   throw new Error(`${lastError ? lastError.message : label} after ${maxAttempts} attempts`);
@@ -491,28 +491,45 @@ function parseNotes(document_) {
   return [...new Map(notes.map(note => [note.text, note])).values()];
 }
 
+// The <thead> carries the class status and the overall cap.
+function parseDetailHeader(document_) {
+  const head = cleanText(
+    (document_.querySelector('#tbChiTietDKHP thead') || { textContent: '' }).textContent
+  );
+  const status = head.match(/Trạng thái:\s*(.*?)\s*(?=Nhóm|Sĩ số tối đa|$)/i);
+  const maxSeats = head.match(/Sĩ số tối đa:\s*(\d+)/i);
+  return {
+    detailStatus: status ? cleanText(status[1]) : '',
+    maxSeats: maxSeats ? Number(maxSeats[1]) : null
+  };
+}
+
 function parseDetail(html) {
   const document_ = parseHtml(html);
-  const detailRows = [...document_.querySelectorAll('tr')]
-    .map(directCells)
-    .filter(cells => cells.length);
+  const rows = [...document_.querySelectorAll('tr')];
+  const detailRows = rows.map(directCells).filter(cells => cells.length);
   const notes = parseNotes(document_);
   const sessions = [];
 
-  detailRows.forEach(cells => {
+  rows.forEach(row => {
+    const cells = directCells(row);
     const scheduleCell = cells.find(cell => /^Lịch học:/i.test(cell));
     const lecturerCell = cells.find(cell => /^GV:/i.test(cell));
     if (!scheduleCell && !lecturerCell) return;
-    const group = cells.find(cell => /^\d+$/.test(cell));
+    // data-nhomth is authoritative; the numeric cell is only a fallback.
+    const groupAttribute = cleanText(row.getAttribute('data-nhomth') || '');
+    const groupCell = cells.find(cell => /^\d+$/.test(cell));
     sessions.push({
       ...(scheduleCell ? parseSchedule(scheduleCell) : {}),
-      group: group || '',
+      group: groupAttribute || groupCell || '',
+      selectable: row.getAttribute('data-chonnhom') === 'true',
+      registrationGuid: cleanText(row.getAttribute('data-guididdk') || ''),
       ...(lecturerCell ? parseLecturer(lecturerCell) : {})
     });
   });
 
   const teachers = [...new Set(sessions.map(session => session.teacher).filter(Boolean))];
-  return { detailRows, sessions, teachers, notes };
+  return { detailRows, sessions, teachers, notes, ...parseDetailHeader(document_) };
 }
 
 function readQuery() {
@@ -602,7 +619,7 @@ function populateCoursePicker(catalog, selectedCode = '') {
   const placeholder = node(
     'option',
     '',
-    catalog.courses.length ? 'Select an available course' : 'No course could be parsed'
+    catalog.courses.length ? 'Chọn môn cần xem' : 'Không đọc được môn nào'
   );
   placeholder.value = '';
   const options = catalog.courses.map(course => {
@@ -645,7 +662,7 @@ async function fetchCourseCatalog(query) {
     COURSE_LIST_PATH,
     courseListFields(query),
     query.maxAttempts,
-    'Available courses'
+    'Danh sách môn'
   );
   return parseCourseList(html);
 }
@@ -653,7 +670,7 @@ async function fetchCourseCatalog(query) {
 async function loadCoursePicker() {
   if (running) return;
   if (!connected) {
-    showToast('Connect the NTT bridge before loading courses.');
+    showToast('Hãy kết nối bridge NTT trước khi tải môn.');
     return;
   }
   const query = readQuery();
@@ -661,10 +678,10 @@ async function loadCoursePicker() {
   setRunning(true);
   elements.loadCourses.disabled = true;
   try {
-    setProgress('Loading available courses', 'Requesting courses waiting for registration');
+    setProgress('Đang tải môn chờ đăng ký', 'Gọi API danh sách môn');
     courseCatalog = await fetchCourseCatalog(query);
     populateCoursePicker(courseCatalog, query.courseCode);
-    setProgress('Available courses loaded', `${courseCatalog.courses.length} courses found`);
+    setProgress('Đã tải môn chờ đăng ký', `Tìm thấy ${courseCatalog.courses.length} môn`);
     if (result) {
       result.availableCourses = courseCatalog;
       renderResult();
@@ -672,7 +689,7 @@ async function loadCoursePicker() {
   } catch (error) {
     courseCatalog = { tables: [], rowCount: 0, courses: [], message: '', error: error.message };
     populateCoursePicker(courseCatalog);
-    setProgress('Unable to load available courses', error.message);
+    setProgress('Không tải được danh sách môn', error.message);
   } finally {
     elements.loadCourses.disabled = false;
     setRunning(false);
@@ -684,7 +701,7 @@ async function loadDetails(classes, query) {
   let completed = 0;
   let failed = 0;
 
-  setDetailProgress({ done: 0, failed: 0, total: classes.length, current: 'Starting…' });
+  setDetailProgress({ done: 0, failed: 0, total: classes.length, current: 'Bắt đầu…' });
 
   async function worker() {
     while (!stopped && next < classes.length) {
@@ -692,7 +709,7 @@ async function loadDetails(classes, query) {
       const label = class_.classCode || class_.guid;
       setDetailProgress({
         done: completed, failed, total: classes.length,
-        current: `Fetching ${label}`
+        current: `Đang tải ${label}`
       });
       try {
         const html = await requestHtml(
@@ -708,10 +725,10 @@ async function loadDetails(classes, query) {
         if (error.fatal) stopped = true;
       }
       completed += 1;
-      setProgress('Loading class details', `${completed}/${classes.length} completed`, completed, classes.length);
+      setProgress('Đang tải chi tiết lớp', `${completed}/${classes.length} lớp`, completed, classes.length);
       setDetailProgress({
         done: completed, failed, total: classes.length,
-        current: stopped ? 'Stopping…' : `Last: ${label}`
+        current: stopped ? 'Đang dừng…' : `Vừa xong: ${label}`
       });
       renderResult();
       if (!stopped) await sleep(250);
@@ -725,7 +742,7 @@ async function loadDetails(classes, query) {
 
   setDetailProgress({
     done: completed, failed, total: classes.length,
-    current: stopped ? 'Stopped before finishing.' : 'All class details processed.'
+    current: stopped ? 'Đã dừng giữa chừng.' : 'Đã xử lý xong tất cả lớp.'
   });
   if (result && completed > failed) result.detailsFetchedAt = new Date().toISOString();
   renderFreshness();
@@ -734,7 +751,7 @@ async function loadDetails(classes, query) {
 async function startCrawl() {
   if (running) return;
   if (!connected) {
-    showToast('Connect the NTT bridge before loading classes.');
+    showToast('Hãy kết nối bridge NTT trước khi tải lớp.');
     return;
   }
   const query = readQuery();
@@ -748,7 +765,7 @@ async function startCrawl() {
   hideDetailProgress();
 
   try {
-    setProgress('Loading available courses', 'Requesting courses waiting for registration');
+    setProgress('Đang tải môn chờ đăng ký', 'Gọi API danh sách môn');
     try {
       courseCatalog = await fetchCourseCatalog(query);
       populateCoursePicker(courseCatalog, query.courseCode);
@@ -761,13 +778,13 @@ async function startCrawl() {
     }
 
     let registered;
-    setProgress('Loading registered courses', 'Requesting the current registration list');
+    setProgress('Đang tải học phần đã đăng ký', 'Gọi API học phần đã đăng ký');
     try {
       const registeredHtml = await requestHtml(
         REGISTERED_PATH,
         registeredFields(query),
         query.maxAttempts,
-        'Registered courses'
+        'Học phần đã đăng ký'
       );
       registered = parseRegistered(registeredHtml);
     } catch (error) {
@@ -775,8 +792,8 @@ async function startCrawl() {
       registered = { tables: [], rowCount: 0, message: '', error: error.message };
     }
 
-    setProgress('Loading available classes', 'Requesting the NTT class list');
-    const html = await requestHtml(LIST_PATH, listFields(query), query.maxAttempts, 'Class list');
+    setProgress('Đang tải danh sách lớp', 'Gọi API lớp học phần');
+    const html = await requestHtml(LIST_PATH, listFields(query), query.maxAttempts, 'Danh sách lớp');
     const classes = parseClasses(html);
     result = {
       generatedAt: '',
@@ -790,7 +807,7 @@ async function startCrawl() {
     if (classes.length) await loadDetails(classes, query);
     finishResult();
   } catch (error) {
-    setProgress('Unable to load classes', error.message);
+    setProgress('Không tải được danh sách lớp', error.message);
   } finally {
     setRunning(false);
   }
@@ -806,7 +823,7 @@ async function retryFailed() {
   setRunning(true);
   try {
     if (retryCourseCatalog) {
-      setProgress('Retrying available courses', 'Requesting courses waiting for registration');
+      setProgress('Thử lại danh sách môn', 'Gọi API danh sách môn');
       try {
         result.availableCourses = await fetchCourseCatalog(result.query);
         courseCatalog = result.availableCourses;
@@ -818,13 +835,13 @@ async function retryFailed() {
       renderResult();
     }
     if (!stopped && retryRegistered) {
-      setProgress('Retrying registered courses', 'Requesting the current registration list');
+      setProgress('Thử lại học phần đã đăng ký', 'Gọi API học phần đã đăng ký');
       try {
         const html = await requestHtml(
           REGISTERED_PATH,
           registeredFields(result.query),
           result.query.maxAttempts,
-          'Registered courses'
+          'Học phần đã đăng ký'
         );
         result.registered = parseRegistered(html);
       } catch (error) {
@@ -834,7 +851,7 @@ async function retryFailed() {
       renderResult();
     }
     if (!stopped && failed.length) {
-      setProgress('Retrying failed classes', `${failed.length} classes queued`, 0, failed.length);
+      setProgress('Thử lại các lớp lỗi', `${failed.length} lớp`, 0, failed.length);
       await loadDetails(failed, result.query);
     }
     finishResult();
@@ -849,8 +866,8 @@ function finishResult() {
   result.teachers = [...new Set(result.classes.flatMap(class_ => class_.teachers))];
   const failed = result.classes.filter(class_ => class_.error).length;
   setProgress(
-    stopped ? 'Crawl stopped' : 'Crawl complete',
-    `${result.classes.length - failed}/${result.classes.length} class details loaded`,
+    stopped ? 'Đã dừng' : 'Hoàn tất',
+    `Đã tải ${result.classes.length - failed}/${result.classes.length} lớp`,
     result.classes.length - failed,
     result.classes.length
   );
@@ -879,12 +896,12 @@ function renderSummary() {
   const failed = result.classes.filter(class_ => class_.error).length;
   const sessions = result.classes.reduce((sum, class_) => sum + class_.sessions.length, 0);
   elements.summary.replaceChildren(
-    metric(result.availableCourses.courses.length, 'Available courses'),
-    metric(result.registered.rowCount, 'Registered courses'),
-    metric(result.classes.length, 'Available classes'),
-    metric(result.teachers.length, 'Unique lecturers'),
-    metric(sessions, 'Schedule entries'),
-    metric(failed, 'Failed details')
+    metric(result.availableCourses.courses.length, 'Môn chờ đăng ký'),
+    metric(result.registered.rowCount, 'Học phần đã đăng ký'),
+    metric(result.classes.length, 'Lớp học phần'),
+    metric(result.teachers.length, 'Giảng viên'),
+    metric(sessions, 'Lịch học'),
+    metric(failed, 'Lỗi tải chi tiết')
   );
   elements.summary.hidden = false;
 }
@@ -899,7 +916,7 @@ function registeredTable(tableData) {
   const head = node('thead');
   const headRow = node('tr');
   for (let index = 0; index < columnCount; index += 1) {
-    cell(headRow, 'th', tableData.headers[index] || `Column ${index + 1}`);
+    cell(headRow, 'th', tableData.headers[index] || `Cột ${index + 1}`);
   }
   head.appendChild(headRow);
   const body = node('tbody');
@@ -916,20 +933,20 @@ function registeredTable(tableData) {
 }
 
 function relativeTime(iso) {
-  if (!iso) return 'never';
+  if (!iso) return 'chưa có';
   const seconds = Math.round((Date.now() - Date.parse(iso)) / 1000);
-  if (seconds < 60) return 'just now';
-  if (seconds < 3600) return `${Math.floor(seconds / 60)} min ago`;
-  if (seconds < 86400) return `${Math.floor(seconds / 3600)} h ago`;
-  return `${Math.floor(seconds / 86400)} d ago`;
+  if (seconds < 60) return 'vừa xong';
+  if (seconds < 3600) return `${Math.floor(seconds / 60)} phút trước`;
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)} giờ trước`;
+  return `${Math.floor(seconds / 86400)} ngày trước`;
 }
 
 // Seat counts move slowly, so the age of the data is shown instead of refetching.
 function renderFreshness() {
   const at = result && result.detailsFetchedAt;
   elements.detailsFreshness.textContent = at
-    ? `Class details fetched ${relativeTime(at)} · ${new Date(at).toLocaleTimeString()}`
-    : 'Class details not loaded yet';
+    ? `Chi tiết lớp lấy lúc ${new Date(at).toLocaleTimeString()} · ${relativeTime(at)}`
+    : 'Chưa tải chi tiết lớp';
   elements.detailsFreshness.classList.toggle('stale',
     Boolean(at) && Date.now() - Date.parse(at) > 15 * 60 * 1000);
   elements.refreshDetails.disabled = running || !result || !result.classes.length;
@@ -939,13 +956,13 @@ function renderFreshness() {
 async function refreshDetails() {
   if (running || !result || !result.classes.length) return;
   if (!connected) {
-    showToast('Connect the NTT bridge first.');
+    showToast('Hãy kết nối bridge NTT trước.');
     return;
   }
   stopped = false;
   setRunning(true);
   try {
-    setProgress('Refreshing class details', `${result.classes.length} classes queued`);
+    setProgress('Đang tải lại chi tiết lớp', `${result.classes.length} lớp`);
     await loadDetails(result.classes, result.query);
     finishResult();
   } finally {
@@ -989,8 +1006,8 @@ function renderEnrolled() {
       ? enrolled.map(classCard)
       : [node('p', 'registered-empty',
           result.registered.rowCount
-            ? 'No loaded class matches a registered course yet.'
-            : 'Load the registered courses tab first to match your enrolments.')])
+            ? 'Chưa có lớp nào khớp với học phần đã đăng ký.'
+            : 'Hãy tải tab học phần đã đăng ký để đối chiếu.')])
   );
 }
 
@@ -1007,7 +1024,7 @@ function renderRegistered() {
     elements.registeredContent.appendChild(node(
       'p',
       'registered-empty',
-      registered.message || 'No registered courses were returned.'
+      registered.message || 'Không có học phần đã đăng ký.'
     ));
   }
 }
@@ -1015,7 +1032,7 @@ function renderRegistered() {
 // Registered courses change rarely, so they refresh on their own without a crawl.
 async function refreshRegistered() {
   if (running || !connected) {
-    showToast(running ? 'Wait for the current crawl to finish.' : 'Connect the NTT bridge first.');
+    showToast(running ? 'Đang chạy, vui lòng đợi.' : 'Hãy kết nối bridge NTT trước.');
     return;
   }
   const query = result ? result.query : readQuery();
@@ -1026,7 +1043,7 @@ async function refreshRegistered() {
       REGISTERED_PATH,
       registeredFields(query),
       query.maxAttempts,
-      'Registered courses'
+      'Học phần đã đăng ký'
     );
     const registered = parseRegistered(html);
     if (result) result.registered = registered;
@@ -1036,7 +1053,7 @@ async function refreshRegistered() {
     };
     renderRegistered();
     renderSummary();
-    showToast(`${registered.rowCount} registered rows loaded.`);
+    showToast(`Đã tải ${registered.rowCount} dòng học phần đã đăng ký.`);
   } catch (error) {
     if (result) result.registered.error = error.message;
     elements.registeredContent.replaceChildren(node('p', 'registered-error', error.message));
@@ -1054,7 +1071,9 @@ function sessionTable(sessions) {
   const table = node('table', 'session-table');
   const head = node('thead');
   const headRow = node('tr');
-  ['Type', 'Day / periods', 'Room', 'Group', 'Lecturer', 'Dates', 'Seats'].forEach(label => cell(headRow, 'th', label));
+  // Wording mirrors the NTT page (lang="dkhp-*") so the two read the same.
+  ['Loại', 'Lịch học', 'Cơ sở / Dãy nhà / Phòng', 'Nhóm', 'GV', 'Thời gian', 'Sĩ số']
+    .forEach(label => cell(headRow, 'th', label));
   head.appendChild(headRow);
   const body = node('tbody');
 
@@ -1087,13 +1106,15 @@ function classCard(class_) {
   const copy = node('div');
   copy.appendChild(node('h3', 'class-title', class_.classCode || class_.cohort || class_.guid));
   const meta = node('div', 'class-meta');
-  [class_.courseName, class_.cohort, class_.status, class_.guid]
+  const status = class_.detailStatus || class_.status;
+  [class_.courseName, class_.cohort, status && `Trạng thái: ${status}`,
+    class_.maxSeats ? `Sĩ số tối đa: ${class_.maxSeats}` : '']
     .filter(Boolean)
     .forEach(value => meta.appendChild(node('span', '', value)));
   copy.appendChild(meta);
   const capacity = class_.enrolled === null
-    ? 'Seats unavailable'
-    : `${class_.enrolled} / ${class_.capacity} enrolled`;
+    ? 'Chưa có sĩ số'
+    : `Sĩ số ${class_.enrolled}/${class_.capacity}`;
   head.append(copy, node('span', 'capacity', capacity));
   card.appendChild(head);
   if (class_.error) card.appendChild(node('div', 'error', class_.error));
@@ -1140,7 +1161,7 @@ elements.coursePicker.addEventListener('change', () => {
 elements.stop.addEventListener('click', () => {
   stopped = true;
   elements.stop.disabled = true;
-  setProgress('Stopping crawl', 'Waiting for active requests to finish');
+  setProgress('Đang dừng', 'Chờ các request đang chạy kết thúc');
 });
 elements.retry.addEventListener('click', retryFailed);
 elements.export.addEventListener('click', exportResult);

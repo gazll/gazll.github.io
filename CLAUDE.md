@@ -15,6 +15,14 @@ step, no package.json — vanilla ES modules served straight to the browser.
    and there should not be one. (`lib/api.js` matches Vietnamese *and* English
    in its `authExpired` regex — `apps-script/Code.gs` answers in Vietnamese.)
 
+   **One deliberate exception: `public/course-registration/`.** That sibling
+   tool is entirely Vietnamese, and stays that way. It mirrors a Vietnamese
+   source system (`phongdaotao.ntt.edu.vn`), so its labels reuse NTT's own
+   wording — `Lịch học`, `Cơ sở`, `Dãy nhà`, `Phòng`, `Nhóm`, `GV`, `Sĩ số`,
+   `Trạng thái` — taken from the `lang="dkhp-*"` attributes in NTT's markup.
+   Translating those to English would make the tool read differently from the
+   page it mirrors. This exception does not extend to the study site.
+
 2. **The study material has an `EN`/`VI` switch in the header**, right of the
    progress ring. It was in the nav panel first and nobody could find it.
    English is the default language and each topic's base file; the complete

@@ -124,6 +124,19 @@ Ngoài bảng lịch học, response chi tiết còn có các cảnh báo dạng
 thực hành, vui lòng chọn lịch có nhóm.</p>
 ```
 
+Bảng chi tiết còn mang dữ liệu trong thuộc tính mà bản parse cũ bỏ qua:
+
+- `data-nhomth` — số nhóm thực hành, **là nguồn chuẩn**. Ô số trong bảng chỉ dùng
+  làm fallback, vì dòng LT có ô nhóm rỗng và `directCells` loại bỏ ô rỗng.
+- `data-chonnhom` — lớp có bắt buộc chọn nhóm hay không.
+- `data-guididdk` — GUID dùng khi đăng ký.
+- `<thead>` chứa `Trạng thái` (ví dụ `Mở lớp`) và `Sĩ số tối đa` của cả lớp;
+  `parseDetailHeader` tách riêng hai giá trị này.
+
+Đã kiểm tra với mẫu HTML thật: 4/4 dòng parse đúng (1 dòng LT không nhóm, 3 dòng
+TH nhóm 1/2/3 với sĩ số riêng), trạng thái `Mở lớp`, sĩ số tối đa 100. Thực thể
+HTML (`Đ&#224;o` → `Đào`) được `textContent` giải mã sẵn.
+
 `parseDetail` chỉ duyệt `<tr>/<td>` nên trước đây bỏ sót hoàn toàn phần này.
 `parseNotes` bắt riêng các `<p>` đó và gắn vào `class.notes`, hiển thị thành
 banner cảnh báo trên card lớp. Khóa nhận diện là thuộc tính `lang` (ổn định),
@@ -265,7 +278,24 @@ Web hiện cung cấp:
 - Dừng crawl.
 - Xuất kết quả JSON.
 
-Theo quy ước chung của dự án, phần giao diện được viết bằng tiếng Anh; tài liệu này dùng tiếng Việt để thuận tiện cho việc vận hành và phát triển tiếp.
+Giao diện của tool này dùng **tiếng Việt**, là ngoại lệ có chủ ý so với quy ước
+"UI luôn tiếng Anh" của study site (đã ghi trong `CLAUDE.md`). Lý do: tool phản
+ánh một hệ thống nguồn tiếng Việt, nên từ ngữ lấy đúng theo web NTT gốc, dựa vào
+các thuộc tính `lang="dkhp-*"` trong markup của NTT:
+
+| `lang`                          | Nhãn dùng trong tool |
+| ------------------------------- | -------------------- |
+| `dkhp-lichhoc`                  | Lịch học             |
+| `dkhp-coso`                     | Cơ sở                |
+| `dkhp-daynha`                   | Dãy nhà              |
+| `dkhp-phong`                    | Phòng                |
+| `dkhp-nhom`                     | Nhóm                 |
+| `dkhp-gv`                       | GV                   |
+| `siso-nhom` / `dkhp-sisomax`    | Sĩ số / Sĩ số tối đa |
+| `dkhp-trangthai`                | Trạng thái           |
+| `ctlhpchodangky-tabletitle`     | Chi tiết lớp học phần |
+
+Ngoại lệ này chỉ áp dụng cho `public/course-registration/`.
 
 Giao diện dùng tone sáng (nền trắng). Toàn bộ màu khai báo bằng CSS custom
 property ở `:root`, kèm `--hairline`/`--tint` thay cho các lớp phủ
