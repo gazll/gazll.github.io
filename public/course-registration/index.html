@@ -84,9 +84,12 @@
             <input id="maxAttempts" name="maxAttempts" type="number" value="5" min="1" max="10" required>
           </label>
         </div>
-        <label class="check-row">
+        <label class="check-row option-row">
           <input id="avoidConflicts" name="avoidConflicts" type="checkbox" checked>
-          <span>Only return classes that do not conflict with the current timetable</span>
+          <span>
+            <strong>Hide classes that clash with my timetable</strong>
+            <em>Sends <code>IsLHPKhongTrungLich</code>. Untick to list every class, including conflicting ones.</em>
+          </span>
         </label>
         <div class="run-actions">
           <button id="runButton" class="button primary" type="submit">Load registration data</button>
@@ -103,20 +106,60 @@
         <span id="progressDetail"></span>
       </div>
       <div class="progress-track"><span id="progressBar"></span></div>
+      <div id="detailProgress" class="detail-progress" hidden>
+        <div class="detail-counts">
+          <span><strong id="detailDone">0</strong> done</span>
+          <span><strong id="detailFailed">0</strong> failed</span>
+          <span><strong id="detailRemaining">0</strong> left</span>
+          <span id="detailPercent" class="detail-percent">0%</span>
+        </div>
+        <div class="progress-track"><span id="detailBar"></span></div>
+        <span id="detailCurrent" class="detail-current"></span>
+      </div>
     </section>
 
     <section id="summary" class="summary" hidden aria-live="polite"></section>
-    <section id="registeredSection" class="card registered" hidden>
-      <div class="section-head">
-        <div>
-          <span class="eyebrow">REGISTERED</span>
-          <h2>Registered courses</h2>
-        </div>
-        <span id="registeredCount" class="shield"></span>
+
+    <div class="tabs" role="tablist" aria-label="Result views">
+      <button id="classesTab" class="tab" type="button" role="tab"
+              aria-selected="true" aria-controls="classesPanel">
+        Available classes <span id="classesCount" class="tab-count"></span>
+      </button>
+      <button id="enrolledTab" class="tab" type="button" role="tab"
+              aria-selected="false" aria-controls="enrolledPanel">
+        My enrolled classes <span id="enrolledCount" class="tab-count"></span>
+      </button>
+      <button id="registeredTab" class="tab" type="button" role="tab"
+              aria-selected="false" aria-controls="registeredPanel">
+        Registered courses <span id="registeredCount" class="tab-count"></span>
+      </button>
+    </div>
+
+    <section id="classesPanel" role="tabpanel" aria-labelledby="classesTab">
+      <div class="freshness-bar">
+        <span id="detailsFreshness" class="freshness">Class details not loaded yet</span>
+        <button id="refreshDetails" class="button secondary" type="button" disabled>
+          Refresh class details
+        </button>
+      </div>
+      <div id="results" class="results" aria-label="Available classes"></div>
+    </section>
+
+    <section id="enrolledPanel" class="card" role="tabpanel" aria-labelledby="enrolledTab" hidden>
+      <div class="registered-head">
+        <p class="registered-hint">Classes whose status shows you are enrolled, matched from the loaded class list.</p>
+      </div>
+      <div id="enrolledContent"></div>
+    </section>
+
+    <section id="registeredPanel" class="card registered" role="tabpanel"
+             aria-labelledby="registeredTab" hidden>
+      <div class="registered-head">
+        <p class="registered-hint">Loaded with each crawl. Refresh it on its own when you need the latest.</p>
+        <button id="refreshRegistered" class="button secondary" type="button">Refresh registered</button>
       </div>
       <div id="registeredContent"></div>
     </section>
-    <section id="results" class="results" aria-label="Available classes"></section>
   </main>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>

@@ -20,15 +20,36 @@ const elements = {
   progressTitle: document.getElementById('progressTitle'),
   progressDetail: document.getElementById('progressDetail'),
   progressBar: document.getElementById('progressBar'),
+  detailProgress: document.getElementById('detailProgress'),
+  detailDone: document.getElementById('detailDone'),
+  detailFailed: document.getElementById('detailFailed'),
+  detailRemaining: document.getElementById('detailRemaining'),
+  detailPercent: document.getElementById('detailPercent'),
+  detailBar: document.getElementById('detailBar'),
+  detailCurrent: document.getElementById('detailCurrent'),
   summary: document.getElementById('summary'),
-  registeredSection: document.getElementById('registeredSection'),
+  classesTab: document.getElementById('classesTab'),
+  enrolledTab: document.getElementById('enrolledTab'),
+  registeredTab: document.getElementById('registeredTab'),
+  classesPanel: document.getElementById('classesPanel'),
+  enrolledPanel: document.getElementById('enrolledPanel'),
+  registeredPanel: document.getElementById('registeredPanel'),
+  classesCount: document.getElementById('classesCount'),
+  enrolledCount: document.getElementById('enrolledCount'),
+  enrolledContent: document.getElementById('enrolledContent'),
+  detailsFreshness: document.getElementById('detailsFreshness'),
+  refreshDetails: document.getElementById('refreshDetails'),
   registeredCount: document.getElementById('registeredCount'),
   registeredContent: document.getElementById('registeredContent'),
+  refreshRegistered: document.getElementById('refreshRegistered'),
   results: document.getElementById('results'),
   toast: document.getElementById('toast')
 };
 
-let bridgeChannel = new URLSearchParams(location.hash.slice(1)).get('bridge') || '';
+// Channel survives a reload; the hash is cleared so it never leaks into history.
+const BRIDGE_KEY = 'ntt.bridge.channel';
+let bridgeChannel = new URLSearchParams(location.hash.slice(1)).get('bridge') ||
+  sessionStorage.getItem(BRIDGE_KEY) || '';
 let connected = false;
 let lastBridgeAck = 0;
 let running = false;
@@ -38,7 +59,10 @@ let courseCatalog = { tables: [], rowCount: 0, courses: [], message: '', error: 
 let toastTimer = 0;
 const pending = new Map();
 
-if (bridgeChannel) history.replaceState(null, '', location.pathname + location.search);
+if (bridgeChannel) {
+  sessionStorage.setItem(BRIDGE_KEY, bridgeChannel);
+  history.replaceState(null, '', location.pathname + location.search);
+}
 
 function bridgeBootstrap(appUrl) {
   const nttOrigin = 'https://phongdaotao.ntt.edu.vn';
@@ -195,7 +219,11 @@ setInterval(() => {
 
 function bridgeRequest(path, fields) {
   if (!connected || !window.opener || window.opener.closed) {
-    return Promise.reject(new Error('NTT bridge is not connected.'));
+    // A dead bridge never recovers by retrying — stop the whole crawl instead.
+    const error = new Error('NTT bridge is not connected. Click the bookmarklet on the NTT tab again.');
+    error.permanent = true;
+    error.fatal = true;
+    return Promise.reject(error);
   }
 
   const id = crypto.randomUUID();
@@ -239,16 +267,18 @@ function retryDelay(response, attempt) {
   return Math.min(1000 * 2 ** (attempt - 1) + Math.random() * 800, 30000);
 }
 
+// Only real login markup counts: NTT's site chrome links to /dang-nhap on every
+// page, so matching that text flagged healthy detail fragments as expired.
 function looksLikeLogin(html) {
-  return /type=["']password["']/i.test(html) ||
-    /(?:dang[- ]?nhap|đăng nhập|login)/i.test(html.slice(0, 2500));
+  return /<input[^>]+type=["']?password["']?/i.test(html) ||
+    /<form[^>]+action=["'][^"']*(?:dang-nhap|login|account\/login)/i.test(html);
 }
 
 async function requestHtml(path, fields, maxAttempts, label) {
   let lastError;
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     if (stopped) throw new Error('Crawl stopped.');
-    let response;
+    let response = null;
     try {
       response = await bridgeRequest(path, fields);
       if (response.ok) {
@@ -415,6 +445,7 @@ function parseClasses(html) {
       teachers: [],
       sessions: [],
       detailRows: [],
+      notes: [],
       error: ''
     };
   }).filter(Boolean);
@@ -448,11 +479,24 @@ function parseLecturer(value) {
   };
 }
 
+// NTT prints warnings ("lớp có chia nhóm thực hành") as <p> outside the table,
+// so the row walker never sees them. The lang attribute is the stable hook.
+function parseNotes(document_) {
+  const notes = [...document_.querySelectorAll('p[lang], p.bold, div.mb-10 p')]
+    .map(element => ({
+      key: cleanText(element.getAttribute('lang') || ''),
+      text: cleanText(element.textContent)
+    }))
+    .filter(note => note.text);
+  return [...new Map(notes.map(note => [note.text, note])).values()];
+}
+
 function parseDetail(html) {
   const document_ = parseHtml(html);
   const detailRows = [...document_.querySelectorAll('tr')]
     .map(directCells)
     .filter(cells => cells.length);
+  const notes = parseNotes(document_);
   const sessions = [];
 
   detailRows.forEach(cells => {
@@ -468,7 +512,7 @@ function parseDetail(html) {
   });
 
   const teachers = [...new Set(sessions.map(session => session.teacher).filter(Boolean))];
-  return { detailRows, sessions, teachers };
+  return { detailRows, sessions, teachers, notes };
 }
 
 function readQuery() {
@@ -524,6 +568,26 @@ function setProgress(title, detail, current = null, total = null) {
       ? `${Math.round(current / total * 100)}%`
       : '100%';
   }
+}
+
+// Survives retry messages overwriting the main progress line.
+function setDetailProgress({ done, failed, total, current }) {
+  elements.detailProgress.hidden = false;
+  elements.detailDone.textContent = String(done - failed);
+  elements.detailFailed.textContent = String(failed);
+  elements.detailRemaining.textContent = String(total - done);
+  const percent = total ? Math.round(done / total * 100) : 0;
+  elements.detailPercent.textContent = `${percent}%`;
+  elements.detailBar.style.width = `${percent}%`;
+  elements.detailProgress.classList.toggle('has-failures', failed > 0);
+  if (current !== undefined) elements.detailCurrent.textContent = current;
+}
+
+function hideDetailProgress() {
+  elements.detailProgress.hidden = true;
+  elements.detailProgress.classList.remove('has-failures');
+  elements.detailBar.style.width = '0%';
+  elements.detailCurrent.textContent = '';
 }
 
 function courseLabel(course) {
@@ -618,11 +682,18 @@ async function loadCoursePicker() {
 async function loadDetails(classes, query) {
   let next = 0;
   let completed = 0;
+  let failed = 0;
+
+  setDetailProgress({ done: 0, failed: 0, total: classes.length, current: 'Starting…' });
 
   async function worker() {
     while (!stopped && next < classes.length) {
       const class_ = classes[next++];
       const label = class_.classCode || class_.guid;
+      setDetailProgress({
+        done: completed, failed, total: classes.length,
+        current: `Fetching ${label}`
+      });
       try {
         const html = await requestHtml(
           DETAIL_PATH,
@@ -633,10 +704,15 @@ async function loadDetails(classes, query) {
         Object.assign(class_, parseDetail(html), { error: '' });
       } catch (error) {
         class_.error = error.message;
+        failed += 1;
         if (error.fatal) stopped = true;
       }
       completed += 1;
       setProgress('Loading class details', `${completed}/${classes.length} completed`, completed, classes.length);
+      setDetailProgress({
+        done: completed, failed, total: classes.length,
+        current: stopped ? 'Stopping…' : `Last: ${label}`
+      });
       renderResult();
       if (!stopped) await sleep(250);
     }
@@ -646,6 +722,13 @@ async function loadDetails(classes, query) {
     { length: Math.min(query.concurrency, classes.length) },
     () => worker()
   ));
+
+  setDetailProgress({
+    done: completed, failed, total: classes.length,
+    current: stopped ? 'Stopped before finishing.' : 'All class details processed.'
+  });
+  if (result && completed > failed) result.detailsFetchedAt = new Date().toISOString();
+  renderFreshness();
 }
 
 async function startCrawl() {
@@ -659,10 +742,10 @@ async function startCrawl() {
   setRunning(true);
   elements.results.replaceChildren();
   elements.summary.hidden = true;
-  elements.registeredSection.hidden = true;
   elements.export.disabled = true;
   elements.retry.hidden = true;
   elements.progressBar.style.width = '0%';
+  hideDetailProgress();
 
   try {
     setProgress('Loading available courses', 'Requesting courses waiting for registration');
@@ -832,10 +915,89 @@ function registeredTable(tableData) {
   return wrap;
 }
 
+function relativeTime(iso) {
+  if (!iso) return 'never';
+  const seconds = Math.round((Date.now() - Date.parse(iso)) / 1000);
+  if (seconds < 60) return 'just now';
+  if (seconds < 3600) return `${Math.floor(seconds / 60)} min ago`;
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)} h ago`;
+  return `${Math.floor(seconds / 86400)} d ago`;
+}
+
+// Seat counts move slowly, so the age of the data is shown instead of refetching.
+function renderFreshness() {
+  const at = result && result.detailsFetchedAt;
+  elements.detailsFreshness.textContent = at
+    ? `Class details fetched ${relativeTime(at)} · ${new Date(at).toLocaleTimeString()}`
+    : 'Class details not loaded yet';
+  elements.detailsFreshness.classList.toggle('stale',
+    Boolean(at) && Date.now() - Date.parse(at) > 15 * 60 * 1000);
+  elements.refreshDetails.disabled = running || !result || !result.classes.length;
+}
+
+// Re-fetches every class detail on demand; the crawl itself is not repeated.
+async function refreshDetails() {
+  if (running || !result || !result.classes.length) return;
+  if (!connected) {
+    showToast('Connect the NTT bridge first.');
+    return;
+  }
+  stopped = false;
+  setRunning(true);
+  try {
+    setProgress('Refreshing class details', `${result.classes.length} classes queued`);
+    await loadDetails(result.classes, result.query);
+    finishResult();
+  } finally {
+    setRunning(false);
+    renderFreshness();
+  }
+}
+
+const TABS = [
+  ['classes', 'classesTab', 'classesPanel'],
+  ['enrolled', 'enrolledTab', 'enrolledPanel'],
+  ['registered', 'registeredTab', 'registeredPanel']
+];
+
+function showTab(name) {
+  TABS.forEach(([id, tab, panel]) => {
+    const active = id === name;
+    elements[panel].hidden = !active;
+    elements[tab].setAttribute('aria-selected', String(active));
+    elements[tab].classList.toggle('active', active);
+  });
+}
+
+// The registered table is authoritative; class codes appearing in it are enrolled.
+function enrolledClasses() {
+  if (!result) return [];
+  const registeredText = result.registered.tables
+    .flatMap(table => table.rows.flat())
+    .join(' | ');
+  if (!registeredText) return [];
+  return result.classes.filter(class_ =>
+    class_.classCode && registeredText.includes(class_.classCode));
+}
+
+function renderEnrolled() {
+  if (!result) return;
+  const enrolled = enrolledClasses();
+  elements.enrolledCount.textContent = enrolled.length ? String(enrolled.length) : '';
+  elements.enrolledContent.replaceChildren(
+    ...(enrolled.length
+      ? enrolled.map(classCard)
+      : [node('p', 'registered-empty',
+          result.registered.rowCount
+            ? 'No loaded class matches a registered course yet.'
+            : 'Load the registered courses tab first to match your enrolments.')])
+  );
+}
+
 function renderRegistered() {
   if (!result) return;
   const registered = result.registered;
-  elements.registeredCount.textContent = `${registered.rowCount} rows`;
+  elements.registeredCount.textContent = registered.rowCount ? String(registered.rowCount) : '';
   elements.registeredContent.replaceChildren();
   if (registered.error) {
     elements.registeredContent.appendChild(node('p', 'registered-error', registered.error));
@@ -848,7 +1010,40 @@ function renderRegistered() {
       registered.message || 'No registered courses were returned.'
     ));
   }
-  elements.registeredSection.hidden = false;
+}
+
+// Registered courses change rarely, so they refresh on their own without a crawl.
+async function refreshRegistered() {
+  if (running || !connected) {
+    showToast(running ? 'Wait for the current crawl to finish.' : 'Connect the NTT bridge first.');
+    return;
+  }
+  const query = result ? result.query : readQuery();
+  stopped = false;
+  elements.refreshRegistered.disabled = true;
+  try {
+    const html = await requestHtml(
+      REGISTERED_PATH,
+      registeredFields(query),
+      query.maxAttempts,
+      'Registered courses'
+    );
+    const registered = parseRegistered(html);
+    if (result) result.registered = registered;
+    else result = {
+      generatedAt: '', query, availableCourses: courseCatalog,
+      registered, teachers: [], classes: []
+    };
+    renderRegistered();
+    renderSummary();
+    showToast(`${registered.rowCount} registered rows loaded.`);
+  } catch (error) {
+    if (result) result.registered.error = error.message;
+    elements.registeredContent.replaceChildren(node('p', 'registered-error', error.message));
+    showToast(error.message);
+  } finally {
+    elements.refreshRegistered.disabled = false;
+  }
 }
 
 function cell(row, tag, text, className = '') {
@@ -902,6 +1097,12 @@ function classCard(class_) {
   head.append(copy, node('span', 'capacity', capacity));
   card.appendChild(head);
   if (class_.error) card.appendChild(node('div', 'error', class_.error));
+  (class_.notes || []).forEach(note => {
+    const banner = node('p', 'class-note');
+    banner.append(node('span', 'class-note-icon', '!'), node('span', '', note.text));
+    if (note.key) banner.dataset.noteKey = note.key;
+    card.appendChild(banner);
+  });
   if (class_.sessions.length) card.appendChild(sessionTable(class_.sessions));
   return card;
 }
@@ -911,7 +1112,10 @@ function renderResult() {
   result.teachers = [...new Set(result.classes.flatMap(class_ => class_.teachers))];
   renderSummary();
   renderRegistered();
+  elements.classesCount.textContent = result.classes.length ? String(result.classes.length) : '';
   elements.results.replaceChildren(...result.classes.map(classCard));
+  renderEnrolled();
+  renderFreshness();
 }
 
 function exportResult() {
@@ -940,3 +1144,10 @@ elements.stop.addEventListener('click', () => {
 });
 elements.retry.addEventListener('click', retryFailed);
 elements.export.addEventListener('click', exportResult);
+TABS.forEach(([id, tab]) => elements[tab].addEventListener('click', () => showTab(id)));
+elements.refreshRegistered.addEventListener('click', refreshRegistered);
+elements.refreshDetails.addEventListener('click', refreshDetails);
+showTab('classes');
+renderFreshness();
+// Keeps the "x min ago" label honest without refetching anything.
+setInterval(renderFreshness, 30000);
