@@ -13,6 +13,7 @@
     --gutter:24px;
   }
   *{box-sizing:border-box}
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
   /* stable gutter so locking scroll for the drawer cannot shift the header */
   html{scroll-behavior:smooth;scrollbar-gutter:stable}
   body.nav-open{overflow:hidden}
@@ -531,11 +532,29 @@
   .sd-case-card:hover .sd-case-art img{transform:scale(1.04)}
 
   .sd-article{max-width:1180px;margin:0 auto}
-  .sd-article-head{margin:0 0 30px;padding-top:8px}
+  /* The head is aligned to the body column, not the grid edge: the TOC rail is
+     chrome, so a title starting left of it reads as a layout slip. */
+  .sd-article-head{margin:0 0 30px;padding:8px 0 0 calc(var(--sd-rail,210px) + 28px);transition:padding-left .22s ease}
+  .sd-article.toc-collapsed .sd-article-head{--sd-rail:44px}
   .sd-article-head .cs-tags{margin-top:18px}
-  .sd-article-grid{display:grid;grid-template-columns:210px minmax(0,1fr);gap:28px;align-items:start}
+  .sd-article-grid{display:grid;grid-template-columns:var(--sd-rail,210px) minmax(0,1fr);gap:28px;align-items:start;
+    transition:grid-template-columns .22s ease}
+  .sd-article.toc-collapsed .sd-article-grid{--sd-rail:44px}
   .sd-toc{position:sticky;top:calc(var(--hdr-h,64px) + 18px);border-right:1px solid var(--line);padding:7px 16px 8px 0;max-height:calc(100vh - var(--hdr-h,64px) - 36px);overflow-y:auto}
-  .sd-toc>p{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin:0 0 9px}
+  .sd-toc-head{display:flex;align-items:center;gap:8px;margin-bottom:9px}
+  .sd-toc>.sd-toc-head>p{flex:1 1 auto;min-width:0;font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:1px;
+    text-transform:uppercase;color:var(--muted);margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sd-toc-toggle{flex:none;display:grid;place-items:center;width:26px;height:26px;padding:0;cursor:pointer;
+    border:1px solid var(--line);border-radius:7px;background:var(--surface);color:var(--muted);transition:.16s ease}
+  .sd-toc-toggle:hover{border-color:var(--line-strong);color:var(--indigo);background:var(--indigo-soft)}
+  .sd-toc-toggle:focus-visible{outline:2px solid var(--indigo);outline-offset:2px}
+  /* chevron drawn in CSS so the button carries no markup that could be styled elsewhere */
+  .sd-toc-toggle>span[aria-hidden]{width:7px;height:7px;border-left:2px solid currentColor;border-bottom:2px solid currentColor;
+    transform:rotate(45deg);margin-right:-3px;transition:transform .22s ease}
+  .sd-article.toc-collapsed .sd-toc-toggle>span[aria-hidden]{transform:rotate(-135deg);margin:0 -3px 0 0}
+  .sd-article.toc-collapsed .sd-toc{padding-right:9px}
+  .sd-article.toc-collapsed .sd-toc-head{margin-bottom:0}
+  .sd-article.toc-collapsed .sd-toc-head>p,.sd-article.toc-collapsed .sd-toc>nav{display:none}
   .sd-toc nav,.sd-toc-mobile nav{display:flex;flex-direction:column;gap:1px}
   .sd-toc a,.sd-toc-mobile a{font-size:12px;line-height:1.35;color:var(--ink-soft);text-decoration:none;padding:5px 7px;border-radius:6px}
   .sd-toc a:hover,.sd-toc-mobile a:hover{color:var(--indigo);background:var(--indigo-soft)}
@@ -557,13 +576,30 @@
   .sd-requirements h3,.sd-case-guide h3{font-family:"Space Grotesk",sans-serif;font-size:17px;color:var(--ink);margin:0 0 9px}
   .sd-requirements ul{margin:0;padding-left:19px}.sd-requirements li{margin:6px 0;color:var(--ink-soft);line-height:1.55}
   .sd-requirements li::marker{color:var(--indigo)}
-  .sd-comparison-wrap{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:11px;background:#FAFBFD}
-  .sd-comparison{width:100%;min-width:620px;border-collapse:collapse;table-layout:fixed}
-  .sd-comparison th,.sd-comparison td{padding:13px 15px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line);line-height:1.58}
-  .sd-comparison thead th{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.45px;text-transform:uppercase;color:var(--indigo);background:var(--indigo-soft)}
-  .sd-comparison tbody th{width:31%;font-family:"Space Grotesk",sans-serif;font-size:14px;color:var(--ink);background:var(--surface)}
-  .sd-comparison tbody td{font-size:13.5px;color:var(--ink-soft)}
-  .sd-comparison tbody tr:last-child th,.sd-comparison tbody tr:last-child td{border-bottom:0}
+  /* Stacked, not tabular: names run 7-40 chars and details 120-570, so a fixed
+     name column left half the width empty against a cramped detail cell. */
+  .sd-comparison-wrap{width:100%;border:1px solid var(--line);border-radius:11px;background:#FAFBFD;overflow:hidden}
+  .sd-decision-legend{display:flex;gap:6px;flex-wrap:wrap;padding:9px 15px;border-bottom:1px solid var(--line);
+    background:var(--indigo-soft);font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.45px;
+    text-transform:uppercase;color:var(--indigo)}
+  .sd-decision-legend span+span::before{content:"/ ";opacity:.55}
+  .sd-decision-rows{display:flex;flex-direction:column}
+  .sd-decision-row{padding:14px 16px;border-bottom:1px solid var(--line)}
+  .sd-decision-row:last-child{border-bottom:0}
+  .sd-decision-row:nth-child(even){background:var(--surface)}
+  .sd-decision-name{display:flex;align-items:baseline;gap:9px;margin:0;
+    font-family:"Space Grotesk",sans-serif;font-size:15.5px;line-height:1.4;color:var(--ink)}
+  .sd-decision-name>span{flex:none;font-family:"IBM Plex Mono",monospace;font-size:10px;font-weight:600;
+    color:var(--indigo);background:var(--indigo-soft);border-radius:5px;padding:2px 6px;line-height:1.5}
+  /* indented under the name, with a rule marking the continuation */
+  .sd-decision-detail{margin:7px 0 0;padding-left:12px;border-left:2px solid var(--line-strong);
+    margin-left:31px;font-size:14px;line-height:1.72;color:var(--ink-soft)}
+
+  /* Three tones. Nothing else in the article body may set these colours, or the
+     emphasis stops meaning anything. */
+  .sd-article-body .sd-crit{color:var(--clay);font-weight:600}
+  .sd-article-body .sd-note{color:var(--emerald-deep);font-weight:600}
+  .sd-article-body .sd-num{color:var(--ink);font-weight:700;font-variant-numeric:tabular-nums}
   .sd-decision-checks{margin-top:12px;padding:14px 15px;border:1px solid #dce2f2;border-radius:10px;background:var(--indigo-soft)}
   .sd-decision-checks>strong{display:block;margin-bottom:9px;font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.45px;text-transform:uppercase;color:var(--indigo)}
   .sd-decision-checks ul{display:flex;flex-wrap:wrap;gap:7px;margin:0;padding:0;list-style:none}
@@ -571,7 +607,9 @@
   .sd-tradeoff-list{display:grid;gap:9px}
   .sd-tradeoff-list article{display:grid;grid-template-columns:32px minmax(0,1fr);gap:11px;align-items:start;padding:13px 15px;border:1px solid var(--line);border-radius:10px;background:#FAFBFD}
   .sd-tradeoff-list article>span{display:grid;place-items:center;width:28px;height:28px;border-radius:8px;background:var(--clay-soft);color:var(--clay);font-family:"IBM Plex Mono",monospace;font-size:10px;font-weight:600}
-  .sd-tradeoff-list p{margin:2px 0 0;color:var(--ink-soft);font-size:14px;line-height:1.65}
+  .sd-tradeoff-list article>div{min-width:0}
+  .sd-tradeoff-list strong{display:block;font-family:"Space Grotesk",sans-serif;font-size:15px;line-height:1.4;color:var(--ink)}
+  .sd-tradeoff-list p{margin:6px 0 0;color:var(--ink-soft);font-size:14px;line-height:1.7}
   .sd-research>p{font-size:13px;color:var(--muted);font-family:"IBM Plex Mono",monospace}
   .sd-research-pack{margin-top:16px;border:1px solid #cdd5ef;border-radius:13px;background:#FBFCFE;overflow:hidden}
   .sd-research-pack>header{padding:17px 18px;border-bottom:1px solid #dce2f2;background:var(--indigo-soft)}
@@ -880,6 +918,7 @@
     .sd-hero{padding:30px 22px}
     .sd-hero>p:not(.cs-eyebrow),.sd-article-head>p:not(.cs-eyebrow){font-size:15px}
     .sd-list{grid-template-columns:1fr}
+    /* the rail is gone here, so the head returns to the full width */
     .sd-article-head{padding:2px 2px 0}
     .sd-article-head h1{font-size:36px}
     .sd-article-grid{display:block}
@@ -890,7 +929,8 @@
     .sd-article-body{padding:30px 20px 38px}
     .sd-section{margin-bottom:38px}
     .sd-section>h2{font-size:25px}
-    .sd-comparison{min-width:540px}
+    .sd-decision-row{padding:12px 13px}
+    .sd-decision-detail{margin-left:0;padding-left:10px}
     .sd-research-grid{grid-template-columns:1fr}
     .sd-research-grid article{border-right:0;border-bottom:1px solid var(--line)}
     .sd-research-grid article:last-child{border-bottom:0}

@@ -37,7 +37,8 @@ const COPY = {
     historicalNote: 'The preserved article reflects the system, constraints and technology available at publication time.',
     legacyDiagram: 'The former drawing is consolidated into the editable Mermaid architecture above.',
     problem: 'Problem', coreIdea: 'Core idea', outcome: 'Outcome', sourceLabel: 'Source',
-    original: 'Original article', toc: 'On this page', loading: 'Loading the System Design library…',
+    original: 'Original article', toc: 'On this page', tocToggle: 'Collapse contents',
+    loading: 'Loading the System Design library…',
     unavailable: 'Could not load System Design', missing: 'Design not found', retry: 'Back to the library'
   },
   vi: {
@@ -67,13 +68,24 @@ const COPY = {
     historicalNote: 'Bài gốc phản ánh hệ thống, ràng buộc và công nghệ ở thời điểm được xuất bản.',
     legacyDiagram: 'Sơ đồ cũ đã được gom vào kiến trúc Mermaid có thể chỉnh sửa ở phía trên.',
     problem: 'Bài toán', coreIdea: 'Ý tưởng chính', outcome: 'Kết quả', sourceLabel: 'Nguồn',
-    original: 'Bài viết gốc', toc: 'Trong bài này', loading: 'Đang tải thư viện System Design…',
+    original: 'Bài viết gốc', toc: 'Trong bài này', tocToggle: 'Thu gọn mục lục',
+    loading: 'Đang tải thư viện System Design…',
     unavailable: 'Không thể tải System Design', missing: 'Không tìm thấy bài thiết kế', retry: 'Quay lại thư viện'
   }
 };
 
 const text = () => COPY[Content.lang] || COPY.en;
 const numberLabel = n => String(n).padStart(2, '0');
+
+/* Desktop-only preference. The mobile <details> TOC must stay unaffected by it,
+   so nothing here touches .sd-toc-mobile. */
+const TOC_KEY = 'gazl.sd.toc';
+function tocCollapsed() {
+  try { return localStorage.getItem(TOC_KEY) === '0'; } catch (error) { return false; }
+}
+function storeTocCollapsed(collapsed) {
+  try { localStorage.setItem(TOC_KEY, collapsed ? '0' : '1'); } catch (error) {}
+}
 // Attribution is the publisher URL and nothing else, so an unexpected host is
 // never rendered as a link — it falls back to the publication's own root.
 const sourceHref = url => /^https:\/\/engineering\.tiki\.vn\//.test(url || '') ? url : 'https://engineering.tiki.vn/';
@@ -119,7 +131,7 @@ function renderLibrary(collection) {
 }
 
 function list(items) {
-  return '<ul>' + (items || []).map(item => '<li>' + escapeHtml(item) + '</li>').join('') + '</ul>';
+  return '<ul>' + (items || []).map(item => '<li>' + emphasize(item) + '</li>').join('') + '</ul>';
 }
 
 function diagramBlock(title, diagram) {
@@ -139,6 +151,42 @@ function detailRows(title, rows, id) {
     + title + '</h2>' + list(rows) + '</section>';
 }
 
+/* Three tones over escaped text: clay = the cost, emerald = the rule, ink-bold
+   = quantities. Narrow phrases, not keyword lists — bare verbs lit a dozen
+   spans per paragraph and buried the lines that matter. See CLAUDE.md. */
+const CRITICAL = /(?:\b(?:never safe|not safe for|is not safe|unsafe|must not|does not help|cannot fix|no longer optional|blast radius|hot[- ]?key|bottleneck|single point of failure|data loss|the mistake|goes wrong|breaks? down|silently)\b|(?:không an toàn|không bao giờ|không giúp|không sửa được|cái giá|trả giá|sai lầm|chọn sai|điểm nghẽn|mất dữ liệu|âm thầm))/giu;
+const NOTABLE = /(?:\b(?:the rule is|rule of thumb|as a rule|the correct first move|simplest viable|cheapest correctness|reversible|prefer\b|by default|only when|exactly once)\b|(?:nguyên tắc|quy tắc|nước đi đầu tiên|đơn giản nhất|rẻ nhất|đảo ngược được|mặc định|chỉ khi|đúng một lần))/giu;
+/* Entities are already in the escaped string, so &#39; must not be read as a
+   number — hence the (?<!&#) guard. */
+const UNIT = '(?:\\s?(?:triệu|nghìn|tỷ|[kKmM](?![\\w-])|rps|qps|ms|GB|MB|TB|%))?';
+/* A range is one quantity, so "1-10 triệu" is matched whole rather than as two
+   spans with a bare hyphen between them. */
+const QUANTITY = new RegExp('(?<!&#)\\b\\d[\\d.,]*' + UNIT + '(?:\\s?[-–—]\\s?\\d[\\d.,]*' + UNIT + ')?', 'gu');
+
+/* Slot indexes use private-use digits U+E010-E019, never ASCII: QUANTITY runs
+   last and would otherwise eat the digits of an earlier pattern's slot. */
+const SLOT_OPEN = String.fromCharCode(0xE001);
+const SLOT_CLOSE = String.fromCharCode(0xE002);
+const slotDigits = n => String(n).replace(/\d/g, d => String.fromCharCode(0xE010 + Number(d)));
+const SLOT_RE = new RegExp(SLOT_OPEN + '([\\uE010-\\uE019]+)' + SLOT_CLOSE, 'g');
+
+function emphasize(value) {
+  const escaped = escapeHtml(String(value || ''));
+  const held = [];
+  // Park each match behind a sentinel so a later pattern cannot match inside
+  // markup an earlier one already emitted.
+  const park = html => {
+    held.push(html);
+    return SLOT_OPEN + slotDigits(held.length - 1) + SLOT_CLOSE;
+  };
+  return escaped
+    .replace(CRITICAL, m => park('<b class="sd-crit">' + m + '</b>'))
+    .replace(NOTABLE, m => park('<b class="sd-note">' + m + '</b>'))
+    .replace(QUANTITY, m => park('<b class="sd-num">' + m + '</b>'))
+    .replace(SLOT_RE, (_, digits) => held[Number(
+      [...digits].map(ch => ch.charCodeAt(0) - 0xE010).join(''))]);
+}
+
 function splitDecision(value) {
   const source = String(value || '');
   const separator = source.search(/(?:\s[—–]\s|:\s)/);
@@ -150,14 +198,19 @@ function splitDecision(value) {
   return { name: source.slice(0, separator), detail: source.slice(separator + delimiter.length) };
 }
 
+/* Stacked, not tabular: a fixed name column wasted half the width on 7-char
+   names. .sd-comparison-wrap stays as the outer class — tests pin it. */
 function comparisonTable(rows, labels, className) {
-  const body = (rows || []).map(value => {
+  const body = (rows || []).map((value, index) => {
     const row = splitDecision(value);
-    return '<tr><th scope="row">' + escapeHtml(row.name) + '</th><td>'
-      + escapeHtml(row.detail || row.name) + '</td></tr>';
+    return '<div class="sd-decision-row"><p class="sd-decision-name"><span>' + numberLabel(index + 1)
+      + '</span>' + emphasize(row.name) + '</p>'
+      + (row.detail && row.detail !== row.name
+        ? '<p class="sd-decision-detail">' + emphasize(row.detail) + '</p>' : '') + '</div>';
   }).join('');
-  return '<div class="sd-comparison-wrap"><table class="sd-comparison ' + className + '"><thead><tr><th scope="col">'
-    + escapeHtml(labels[0]) + '</th><th scope="col">' + escapeHtml(labels[1]) + '</th></tr></thead><tbody>' + body + '</tbody></table></div>';
+  return '<div class="sd-comparison-wrap ' + className + '"><div class="sd-decision-legend"><span>'
+    + escapeHtml(labels[0]) + '</span><span>' + escapeHtml(labels[1]) + '</span></div>'
+    + '<div class="sd-decision-rows">' + body + '</div></div>';
 }
 
 function decisionChecks(title, checks) {
@@ -167,16 +220,20 @@ function decisionChecks(title, checks) {
 
 function decisionSection(title, intro, rows, labels, checksTitle, checks, id, className) {
   return '<section class="sd-section sd-decision-section ' + className + '"><h2 id="' + id + '">' + title + '</h2>'
-    + '<p class="sd-section-intro">' + escapeHtml(intro) + '</p>'
+    + '<p class="sd-section-intro">' + emphasize(intro) + '</p>'
     + comparisonTable(rows, labels, className + '-table')
     + decisionChecks(checksTitle, checks) + '</section>';
 }
 
 function tradeoffSection(rows) {
-  const cards = (rows || []).map((row, index) => '<article><span>' + numberLabel(index + 1) + '</span><p>'
-    + escapeHtml(row) + '</p></article>').join('');
+  const cards = (rows || []).map((row, index) => {
+    const parts = splitDecision(row);
+    return '<article><span>' + numberLabel(index + 1) + '</span><div><strong>' + emphasize(parts.name)
+      + '</strong>' + (parts.detail && parts.detail !== parts.name
+        ? '<p>' + emphasize(parts.detail) + '</p>' : '') + '</div></article>';
+  }).join('');
   return '<section class="sd-section sd-tradeoff-review"><h2 id="tradeoffs-failure-review">' + text().tradeoffs + '</h2>'
-    + '<p class="sd-section-intro">' + escapeHtml(text().tradeoffIntro) + '</p><div class="sd-tradeoff-list">'
+    + '<p class="sd-section-intro">' + emphasize(text().tradeoffIntro) + '</p><div class="sd-tradeoff-list">'
     + cards + '</div>' + decisionChecks(text().consequence, text().failureChecks) + '</section>';
 }
 
@@ -231,10 +288,18 @@ function renderSourceNotes(design) {
       + '</button></div>' + renderSourceAnswer(note.a) + '</div></details>').join('') + '</section>';
 }
 
+/* Collapses to an icon rail rather than unmounting, so the body never reflows
+   mid-read. State is per reader, not per article. */
 function articleShell(header, body) {
-  return '<div class="sd-article">' + header + '<details class="sd-toc-mobile"><summary>' + text().toc
+  const collapsed = tocCollapsed();
+  return '<div class="sd-article' + (collapsed ? ' toc-collapsed' : '') + '" data-sd-article>'
+    + header + '<details class="sd-toc-mobile"><summary>' + text().toc
     + '</summary><nav data-sd-toc-mobile></nav></details><div class="sd-article-grid">'
-    + '<aside class="sd-toc"><p>' + text().toc + '</p><nav data-sd-toc></nav></aside>' + body + '</div></div>';
+    + '<aside class="sd-toc"><div class="sd-toc-head"><p>' + text().toc + '</p>'
+    + '<button type="button" class="sd-toc-toggle" data-sd-toc-toggle aria-expanded="' + (collapsed ? 'false' : 'true')
+    + '" title="' + text().tocToggle + '"><span aria-hidden="true"></span>'
+    + '<span class="sr-only">' + text().tocToggle + '</span></button></div>'
+    + '<nav data-sd-toc></nav></aside>' + body + '</div></div>';
 }
 
 function renderDesignArticle(design) {
@@ -243,7 +308,7 @@ function renderDesignArticle(design) {
     + '<p class="cs-eyebrow">Blueprint ' + numberLabel(design.n) + ' · ' + escapeHtml(design.effort || '45 min') + '</p>'
     + '<h1>' + escapeHtml(design.title) + '</h1><p>' + escapeHtml(design.excerpt) + '</p><div class="cs-tags">' + tags + '</div></header>';
   const body = '<article class="sd-article-body" data-sd-body>'
-    + '<section class="sd-section sd-scope"><h2 id="problem-framing">' + text().scope + '</h2><p>' + escapeHtml(design.scope) + '</p></section>'
+    + '<section class="sd-section sd-scope"><h2 id="problem-framing">' + text().scope + '</h2><p>' + emphasize(design.scope) + '</p></section>'
     + '<section class="sd-section sd-requirements"><h2 id="requirements">' + text().requirements + '</h2><div><article><h3>'
     + text().functional + '</h3>' + list(design.functional) + '</article><article><h3>' + text().quality + '</h3>'
     + list(design.quality) + '</article></div></section>'
@@ -298,6 +363,13 @@ function buildToc(root) {
     root.querySelector('#' + link.dataset.sdSection)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     link.closest('.sd-toc-mobile')?.removeAttribute('open');
   }));
+
+  const article = root.querySelector('[data-sd-article]');
+  root.querySelector('[data-sd-toc-toggle]')?.addEventListener('click', event => {
+    const collapsed = article.classList.toggle('toc-collapsed');
+    event.currentTarget.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+    storeTocCollapsed(collapsed);
+  });
 }
 
 function wireDiagramTools(root) {

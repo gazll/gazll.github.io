@@ -255,6 +255,42 @@ test('Experience routing, Case Studies migration and Mermaid security are wired 
   assert.match(styles, /\.sd-toc-mobile:not\(\[open\]\)>nav\{display:none\}/);
 });
 
+/* Two ways emphasis corrupts text silently rather than failing the build: the
+   numeric pattern eating an earlier pattern's sentinel digits, and it reading
+   the "39" of &#39; as a quantity. */
+test('the three-tone emphasis never corrupts the text it highlights', async () => {
+  const source = await readFile(path.join(publicRoot, 'views/system-design.js'), 'utf8');
+  const block = source.slice(source.indexOf('/* Three tones'), source.indexOf('function splitDecision'));
+  const escapeHtml = value => String(value).replace(/[&<>"']/g, character =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
+  const emphasize = new Function('escapeHtml', block + '\nreturn emphasize;')(escapeHtml);
+
+  assert.equal(emphasize("it's 1M"), "it&#39;s <b class=\"sd-num\">1M</b>");
+
+  let spans = 0;
+  let rows = 0;
+  for (const design of catalog.designs) {
+    for (const lang of ['en', 'vi']) {
+      for (const field of ['data_model', 'stack', 'tradeoffs', 'capacity', 'functional', 'quality']) {
+        for (const row of design[lang][field]) {
+          const out = emphasize(row);
+          const label = `${design.slug}.${lang}.${field}`;
+          assert.doesNotMatch(out, /[\uE000-\uE01F]/, `${label}: sentinel leaked into the output`);
+          assert.doesNotMatch(out, /<b[^>]*><b/, `${label}: nested emphasis`);
+          assert.doesNotMatch(out, /&#?\w*<b/, `${label}: an entity was split by a tag`);
+          assert.equal(out.replace(/<\/?b(?: class="sd-(?:crit|note|num)")?>/g, ''), escapeHtml(row),
+            `${label}: emphasis changed the text`);
+          spans += (out.match(/<b /g) || []).length;
+          rows++;
+        }
+      }
+    }
+  }
+  // Emphasis only works if it stays rare; a keyword-list pattern pushed this
+  // past 3 and every paragraph turned into a ransom note.
+  assert.ok(spans / rows < 1, `emphasis is too dense: ${(spans / rows).toFixed(2)} spans per row`);
+});
+
 /* The controls that sit beside a question must not be nested inside .qhead:
    a <button> inside a <button> makes the browser close the outer one early and
    silently reparent the answer. Both are real buttons now, so the guarantee is

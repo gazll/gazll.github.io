@@ -258,6 +258,48 @@ secret/              GITIGNORED. Personal setup notes and credentials
   are the `systems-architecture` rows handed over by Case Studies; each needs a
   `case_overviews` entry, and the pairing is checked in both directions.
 
+- **IMPORTANT — the blueprint reading format is reviewed and settled. Do not
+  re-flatten it.** These four decisions were made together against a real
+  blueprint (`scaling-1m-to-10m-requests`) and each one replaced something that
+  had already been tried and read badly. Changing one in isolation reintroduces
+  the problem it fixed.
+
+  1. **Decision rows stack; they are not a table.** `data_model` and `stack`
+     names run 7–42 characters while their details run 120–570. The old
+     `<table class="sd-comparison">` gave the name a fixed `width:31%`, so a
+     seven-character name held half the row while the detail was squeezed into
+     the rest. `comparisonTable()` now emits `.sd-decision-row`: name on its own
+     line with a number chip, detail beneath it, indented under a left rule and
+     free to use the full width. **`.sd-comparison-wrap` is kept as the outer
+     class on purpose** — `tests/system-design.test.mjs` pins it.
+  2. **A `:` or `—` in a catalog row is a structural break, not punctuation.**
+     `splitDecision()` splits there, and both halves render on their own line.
+     Never render the raw string — the label runs straight into the body text,
+     which is the "dính chữ" this replaced. The same split drives the trade-off
+     cards (`<strong>` + `<p>`), so they match.
+  3. **Three tones, and they must stay rare.** `emphasize()` in
+     `views/system-design.js` is the only thing that colours body text:
+     `.sd-crit` clay = the cost or what breaks, `.sd-note` emerald = the rule
+     that settles a choice, `.sd-num` ink-bold = quantities. The patterns are
+     **narrow multi-word phrases, deliberately not keyword lists** — an earlier
+     pass matched bare verbs (`use`/`choose`/`dùng`/`chỉ`) and lit a dozen spans
+     per paragraph, which reads as noise and buries the two lines that matter.
+     The test fails above 1 span/row (currently ~0.36). Two traps it guards, both
+     of which corrupt text silently rather than failing the build: `QUANTITY`
+     runs last and must not eat the digits of a sentinel an earlier pattern
+     wrote (hence the private-use digits U+E010–E019, never ASCII), and it must
+     not read the `39` of `&#39;` as a number (hence the `(?<!&#)` guard).
+     Ranges match whole, so `1-10 triệu` is one span.
+  4. **The article head is padded to the body column, and the TOC collapses in
+     place.** `.sd-article-head` carries `padding-left: var(--sd-rail) + 28px`
+     so the title starts level with the article body instead of hanging off the
+     left edge past the TOC rail. The desktop TOC collapses to a 44px icon rail
+     rather than unmounting — the grid column keeps its place, so collapsing
+     never reflows the body mid-read, and `--sd-rail` drives the head padding
+     and the grid together. State persists in `gazl.sd.toc`. Per the Case
+     Studies rule, this **must not touch the mobile `<details>` TOC**: below the
+     breakpoint the rail is gone and the head padding resets.
+
 - **Mermaid is vendored, pinned by directory name, and loaded lazily.** The CSP
   is `script-src 'self'`, so a CDN was never an option — `public/vendor/
   mermaid-11.16.1/` is upstream's own build, committed unmodified. Never edit
