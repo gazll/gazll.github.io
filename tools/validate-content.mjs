@@ -255,6 +255,7 @@ if (!catalog) {
     designNumbers.add(design.n);
 
     if (!categoryIds.has(design.category)) sd(id, `unknown category "${design.category}"`);
+    if (!String(design.effort || '').trim()) sd(id, 'missing effort');
     if (!String(design.diagram || '').trim()) sd(id, 'missing Mermaid diagram');
     bilingual(id, design, DESIGN_LANG_KEYS, DESIGN_LANG_LISTS);
 

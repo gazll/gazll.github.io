@@ -4,6 +4,37 @@
     {
       "date": "2026-08-10",
       "en": {
+        "title": "A high-traffic booking and search blueprint, and diagrams that render"
+      },
+      "vi": {
+        "title": "Blueprint booking và search tải cao, cùng sơ đồ đã hiển thị được"
+      },
+      "changes": [
+        {
+          "kind": "feature",
+          "target": "system-design",
+          "en": {
+            "text": "Blueprint 15 designs a booking and search platform at one million requests a day: a read-heavy search path split from a correctness-critical booking path, Kafka carrying payment, notification and indexing asynchronously, and inventory sharded so contention for one unit stays inside one shard. It argues the peak-to-average ratio rather than the headline request count, and says plainly where microservices and sharding buy isolation instead of throughput."
+          },
+          "vi": {
+            "text": "Blueprint 15 thiết kế nền tảng booking và search ở mức một triệu request mỗi ngày: tách đường search đọc nhiều khỏi đường booking đòi hỏi tính đúng đắn, dùng Kafka đưa payment, notification và indexing sang bất đồng bộ, và shard tồn kho để tranh chấp một đơn vị nằm gọn trong một shard. Bài lập luận theo tỷ lệ đỉnh trên trung bình chứ không theo con số request, và nói thẳng chỗ nào microservice và sharding mua sự cô lập chứ không phải throughput."
+          }
+        },
+        {
+          "kind": "fix",
+          "target": "system-design",
+          "en": {
+            "text": "Mermaid diagrams were rendering as empty frames: the vendored renderer was missing dagre, its default layout engine, which is loaded through a dynamic import and so was invisible to the check that walked static imports only. The four missing modules are now vendored and the check follows what a browser actually requests. Diagrams also size to their own content instead of a fixed minimum height."
+          },
+          "vi": {
+            "text": "Sơ đồ Mermaid hiển thị ra khung trống: bản renderer vendored thiếu dagre — engine layout mặc định — vốn được nạp qua dynamic import nên không lộ ra với phép kiểm tra chỉ đi theo static import. Bốn module thiếu đã được bổ sung và phép kiểm tra giờ bám theo đúng những gì trình duyệt thực sự tải. Sơ đồ cũng co giãn theo nội dung thay vì bị ép một chiều cao tối thiểu."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-10",
+      "en": {
         "title": "System Design becomes a dedicated Experience library"
       },
       "vi": {

@@ -26,8 +26,12 @@ async function movedSourceIds() {
 
 test('the catalog is a complete bilingual System Design library', () => {
   assert.equal(catalog.version, 1);
-  assert.equal(catalog.designs.length, 14);
-  assert.deepEqual(catalog.designs.map(design => design.n), Array.from({ length: 14 }, (_, index) => index + 1));
+  // Numbering is contiguous from 1, not a fixed count: adding a blueprint is
+  // routine and must not require editing this test.
+  assert.ok(catalog.designs.length > 0);
+  assert.deepEqual(
+    catalog.designs.map(design => design.n),
+    Array.from({ length: catalog.designs.length }, (_, index) => index + 1));
 
   const categoryIds = catalog.categories.map(category => category.id);
   const slugs = catalog.designs.map(design => design.slug);
@@ -51,7 +55,10 @@ test('the catalog is a complete bilingual System Design library', () => {
     assert.ok(design.effort);
     assert.match(design.diagram, /^flowchart\s+(?:LR|RL|TB|BT|TD)\n/);
     assert.doesNotMatch(design.diagram, /<svg|<script/i);
-    assert.ok(design.source_items.length > 0, `${design.slug}: no migrated notes`);
+    // source_items is optional: a design migrated from the Study Track carries
+    // them, one written directly for this library has none. validate-content
+    // checks the ids themselves when they are present.
+    assert.ok(Array.isArray(design.source_items), `${design.slug}: source_items must be an array`);
     for (const lang of ['en', 'vi']) {
       for (const field of scalarFields) assert.ok(design[lang][field]?.trim(), `${design.slug}: empty ${lang}.${field}`);
       for (const field of listFields) {
@@ -94,28 +101,32 @@ test('all Systems & Architecture at Scale cases moved into System Design with Me
   }
 });
 
-test('the vendored Mermaid flowchart module graph is complete', async () => {
+/* Which chunks a flowchart needs cannot be derived by reading imports. Static
+   ones understate it — dagre, the default layout engine, arrives through a
+   dynamic import() inside a lazily-registered loader, and an earlier vendor set
+   shipped without it: the module loaded, then every diagram failed at render
+   time. Following dynamic ones too overstates it, pulling in katex and other
+   families that only load conditionally.
+
+   So the set is pinned to what a real browser actually requested while
+   rendering every diagram in the catalog (see the vendored README). This test
+   guards that list; regenerate it the same way when upgrading Mermaid. */
+const FLOWCHART_RUNTIME = [
+  'mermaid.esm.min.mjs',
+  'chunks/mermaid.esm.min/flowDiagram-BWE6NHOH.mjs',
+  'chunks/mermaid.esm.min/dagre-K64A6Z3X.mjs',
+  ...['2AEHWXPW', '2SREHG4O', '5IMINLNL', '5VCL7Z4A', '6BELYETK', '6L755F7B', '7CWYLC5S',
+    '7FYTHRHK', 'A7VWPJGB', 'AQ6EADP3', 'AZZRMDJM', 'KRXBNO2N', 'LIEV3EAG', 'NLANEA3F',
+    'PE7DX7ZZ', 'Q67WD55A', 'STOV2HOB', 'SZD42YQK', 'TGVD4F4B', 'UAT7B5JY', 'VE5CLXGZ',
+    'VY5UBI4V', 'W44A43WB', 'WJBAP47W'].map(id => `chunks/mermaid.esm.min/chunk-${id}.mjs`)
+];
+
+test('the vendored Mermaid flowchart runtime is complete', async () => {
   const vendorRoot = path.join(publicRoot, 'vendor/mermaid-11.16.1');
-  const pending = [
-    path.join(vendorRoot, 'mermaid.esm.min.mjs'),
-    path.join(vendorRoot, 'chunks/mermaid.esm.min/flowDiagram-BWE6NHOH.mjs')
-  ];
-  const visited = new Set();
-
-  while (pending.length) {
-    const filename = pending.pop();
-    if (visited.has(filename)) continue;
-    visited.add(filename);
-    const source = await readFile(filename, 'utf8');
-    const imports = source.matchAll(/(?:from\s*|import\s*)["'](\.{1,2}\/[^"']+)["']/g);
-    for (const match of imports) {
-      const dependency = path.resolve(path.dirname(filename), match[1]);
-      await access(dependency);
-      pending.push(dependency);
-    }
+  for (const relative of FLOWCHART_RUNTIME) {
+    await access(path.join(vendorRoot, relative));
   }
-
-  assert.ok(visited.size > 20, 'expected the pinned flowchart runtime and its dependencies');
+  assert.equal(FLOWCHART_RUNTIME.length, 27);
 });
 
 test('the shared loader resolves migrated notes and switches the whole collection in memory', async () => {
@@ -148,7 +159,13 @@ test('the shared loader resolves migrated notes and switches the whole collectio
     await SystemDesign.load('en');
 
     assert.equal(Content.topics.length, manifest.topics.length - movedRows.length);
-    assert.equal(SystemDesign.designs.length, 14);
+    assert.equal(SystemDesign.designs.length, catalog.designs.length);
+    // effort must survive apply(): the view falls back to a hardcoded "45 min",
+    // so a dropped field shows a plausible wrong number rather than nothing.
+    for (const design of SystemDesign.designs) {
+      const source = catalog.designs.find(row => row.slug === design.slug);
+      assert.equal(design.effort, source.effort, `${design.slug}: effort lost in apply()`);
+    }
     assert.equal(SystemDesign.cases.length, 4);
     assert.equal(SystemDesign.designs.flatMap(design => design.sourceNotes).length, 33);
     const itemId = catalog.designs[4].source_items[0];

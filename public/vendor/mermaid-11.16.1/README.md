@@ -33,6 +33,16 @@ to prove no chunk is missing), run `node tools/check.mjs`, and delete the old
 directory in the same commit.
 
 Only the chunks the flowchart renderer actually reaches are vendored, which is
-why this is ~800K rather than the full package. The test above is what proves
-the set is complete — if a chunk is missing, it fails there rather than as a
-blank diagram in the browser.
+why this is ~890K rather than the full package.
+
+## Determining the file set
+
+Do not derive it by reading static imports: `dagre`, the default flowchart
+layout engine, is reached through `await import("./dagre-K64A6Z3X.mjs")` inside
+a lazily-registered loader. An earlier vendor set followed only static `from`
+specifiers and shipped without it — the module loaded, then every diagram
+failed at render time with `Failed to fetch dynamically imported module`.
+
+The reliable method is to serve the complete upstream `dist/`, render every
+diagram in `data/system-design/catalog.json` in a real browser, and record
+which `.mjs` files are actually requested. That produced this set of 27.

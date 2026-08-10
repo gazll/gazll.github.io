@@ -50,6 +50,7 @@ export const SystemDesign = {
         n: row.n,
         slug: row.slug,
         category: row.category,
+        effort: row.effort,
         diagram: row.diagram,
         source_items: [...(row.source_items || [])],
         ...localized,

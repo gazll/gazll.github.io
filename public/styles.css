@@ -564,8 +564,13 @@
     background:var(--surface);color:var(--indigo);padding:5px 8px;text-decoration:none;cursor:pointer}
   .sd-diagram button:hover,.sd-diagram>figcaption a:hover,.sd-diagram button.is-copied{border-color:var(--indigo);background:#F2F4FC}
   .sd-diagram button:focus-visible,.sd-diagram>figcaption a:focus-visible{outline:2px solid var(--indigo);outline-offset:2px}
+  /* min-height only reserves space for the un-rendered source; once a diagram
+     is drawn the frame sizes to it, so a one-row flowchart is not padded out. */
   .sd-diagram>.mermaid{margin:0;padding:24px 18px;min-height:180px;display:grid;place-items:center;overflow-x:auto;background:#fff;white-space:pre}
-  .sd-diagram>.mermaid svg{display:block;max-width:100%;height:auto}
+  .sd-diagram>.mermaid[data-processed]{min-height:0}
+  /* useMaxWidth keeps the SVG responsive, but its intrinsic width is the text
+     extent — without a floor a short flowchart renders as a thin strip. */
+  .sd-diagram>.mermaid svg{display:block;width:100%;min-width:min(560px,100%);max-width:100%;height:auto}
   .sd-mermaid-status{margin:0!important;padding:10px 14px;background:#faf5e9;color:#70582f!important;font-family:"IBM Plex Mono",monospace;font-size:11px!important}
   .sd-mermaid-source{border-top:1px solid var(--line);background:#F7F9FC}
   .sd-mermaid-source summary{cursor:pointer;padding:8px 14px;font-family:"IBM Plex Mono",monospace;font-size:10px;color:var(--muted)}
