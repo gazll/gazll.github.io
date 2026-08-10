@@ -4,10 +4,10 @@
     {
       "date": "2026-08-10",
       "en": {
-        "title": "A high-traffic booking and search blueprint, and diagrams that render"
+        "title": "Two blueprints on designing for load, and diagrams that render"
       },
       "vi": {
-        "title": "Blueprint booking và search tải cao, cùng sơ đồ đã hiển thị được"
+        "title": "Hai blueprint về thiết kế theo tải, cùng sơ đồ đã hiển thị được"
       },
       "changes": [
         {
@@ -18,6 +18,16 @@
           },
           "vi": {
             "text": "Blueprint 15 thiết kế nền tảng booking và search ở mức một triệu request mỗi ngày: tách đường search đọc nhiều khỏi đường booking đòi hỏi tính đúng đắn, dùng Kafka đưa payment, notification và indexing sang bất đồng bộ, và shard tồn kho để tranh chấp một đơn vị nằm gọn trong một shard. Bài lập luận theo tỷ lệ đỉnh trên trung bình chứ không theo con số request, và nói thẳng chỗ nào microservice và sharding mua sự cô lập chứ không phải throughput."
+          }
+        },
+        {
+          "kind": "feature",
+          "target": "system-design",
+          "en": {
+            "text": "Blueprint 16 compares the same product at 1M and 10M requests a day, sorting the stack into what stays untouched, what is only a larger number, and the few components with a real ceiling. Each upgrade is priced in complexity and operational burden, with the argument that sharding is the least reversible decision and belongs last."
+          },
+          "vi": {
+            "text": "Blueprint 16 so sánh cùng một sản phẩm ở mức 1 triệu và 10 triệu request mỗi ngày, phân loại hệ thống thành phần giữ nguyên, phần chỉ là con số lớn hơn, và số ít thành phần có trần thật sự. Mỗi nâng cấp đều được định giá bằng độ phức tạp và gánh nặng vận hành, kèm lập luận rằng sharding là quyết định khó đảo ngược nhất nên phải làm sau cùng."
           }
         },
         {

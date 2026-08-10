@@ -1569,6 +1569,120 @@
           "Idempotency"
         ]
       }
+    },
+    {
+      "n": 16,
+      "slug": "scaling-1m-to-10m-requests",
+      "category": "foundations",
+      "effort": "45 min",
+      "source_items": [],
+      "diagram": "flowchart TB\n  subgraph A[1M per day: about 12 rps average, 150-250 rps peak]\n    A1[Stateless app tier] --> A2[(Primary + read replicas)]\n    A1 --> A3[(Cache)]\n    A1 --> A4[Kafka]\n    A4 --> A5[Async consumers]\n  end\n  subgraph B[10M per day: about 116 rps average, 1.5-2.5k rps peak]\n    B0[CDN and edge] --> B1[Regional app tier]\n    B1 --> B3[(Multi-tier cache)]\n    B1 --> B2[(Sharded primaries)]\n    B2 --> B6[(Per-shard replicas)]\n    B1 --> B4[Kafka: partitioned by key]\n    B4 --> B5[Consumer groups per concern]\n    B4 --> B7[(Cold storage and lake)]\n  end\n  A -.->|What actually forced the change| B",
+      "en": {
+        "title": "1M vs 10M requests a day: what actually has to change",
+        "excerpt": "A side-by-side of the same product at ten times the load — which components survive untouched, which must be replaced, and what each upgrade costs in complexity and operational burden.",
+        "scope": "Take the booking-and-search platform from Blueprint 15 and ask what a tenfold increase really forces. The useful answer is not 'scale everything up'. Most of the stack is unchanged; a small number of components hit a hard limit, and each fix buys throughput with complexity you then have to operate. This design is about telling those two groups apart and being able to defend the boundary.",
+        "functional": [
+          "State both loads in the same units so they can be compared: 1M/day is about 12 rps average, 10M/day about 116 rps.",
+          "Identify which components are already horizontally scalable and therefore change only in instance count.",
+          "Identify the components with a genuine ceiling — single write primary, cache node capacity, partition count — and what replaces them.",
+          "Attach a cost to each upgrade: added latency, added failure modes, added operational surface, added spend."
+        ],
+        "quality": [
+          "Every claim is arithmetic before it is architecture: peak rps, working-set size and write rate decide, not the headline number.",
+          "An upgrade is only justified when a measured limit is reached — anticipated growth is a reason to keep the option open, not to build it now.",
+          "Correctness invariants are identical at both scales; only the mechanisms that preserve them change.",
+          "Every added tier must have an explicit owner, a failure mode and a way to remove it again."
+        ],
+        "capacity": [
+          "1M/day: about 12 rps average, 150-250 rps at a 10-20x peak. A handful of app instances and one well-indexed primary with replicas is genuinely enough.",
+          "10M/day: about 116 rps average, 1.5-2.5k rps at the same peak ratio. Read scaling is still routine; the write path is where the ceiling appears.",
+          "Writes are the real signal: at a 100:1 read-to-write ratio that is roughly 2-5 writes/sec versus 20-50 writes/sec — still small, so measure before sharding.",
+          "Data volume often forces the change before request rate does: ten times the traffic means ten times the rows, backups, index size and restore time."
+        ],
+        "diagram_title": "The same product at both scales, with the forcing boundary between them",
+        "data_model": [
+          "Unchanged: the entities, their invariants and their idempotency keys are identical — scale never changes what correct means.",
+          "Sharding key becomes a design decision at 10M: chosen so the hot entity's transactions stay single-shard, otherwise every write becomes distributed.",
+          "Read models multiply: one search index at 1M often becomes per-region or per-tenant projections at 10M to bound rebuild time.",
+          "Retention splits: hot rows stay in the operational store while history moves to cold storage, because backup and restore time scales with the table, not the traffic.",
+          "Aggregates get pre-computed at 10M — counters and rollups that were cheap on-demand queries become their own write path."
+        ],
+        "stack": [
+          "Unchanged at both scales: stateless app tier, Kafka as the event backbone, the outbox pattern, idempotent consumers, the same observability stack.",
+          "More of the same, no redesign: app instances, read replicas, cache nodes and Kafka partitions are all a capacity number rather than an architectural change.",
+          "Genuinely different at 10M: a single write primary becomes sharded or distributed SQL, and one cache tier becomes local plus shared to cut network round trips.",
+          "New at 10M: CDN and edge caching for the read path, consumer groups split per concern so a slow consumer cannot lag the rest, and cold storage behind the hot store.",
+          "Sometimes needed, sometimes not: multi-region. It is driven by latency and availability targets, not by request volume — 10M/day in one region is unremarkable."
+        ],
+        "tradeoffs": [
+          "In favour of staying at the 1M shape: one primary means real transactions, trivial joins, no cross-shard reasoning and an on-call rotation anyone can hold. Vertical scaling and read replicas are the cheapest throughput you will ever buy. The cost is a ceiling you cannot cross and a single failure domain for writes.",
+          "In favour of the 10M shape: no single write ceiling, blast radius contained per shard, and independent scaling per workload. The cost is distributed transactions or a hard constraint that they never occur, resharding as a project rather than a config change, and debugging that now spans several services.",
+          "Sharding is the least reversible decision here. The key is effectively permanent — choosing it wrongly is a data migration, not a refactor — so it should be the last upgrade applied, after replicas, caching and read models have been exhausted.",
+          "Caching is the highest leverage and the most underrated risk: it turns the read ceiling into a non-issue and simultaneously introduces staleness, stampedes and a cold-start failure mode that only appears during an incident.",
+          "Failure review: at 1M the realistic outage is the primary failing over. At 10M it is a partial failure — one shard down, one consumer group lagging, one region stale — which is harder to detect and far harder to reason about. Budget for that operational cost explicitly, because it is paid every week, not once at build time."
+        ],
+        "tags": [
+          "Scaling",
+          "Sharding",
+          "Caching",
+          "Trade-offs",
+          "Capacity",
+          "Kafka"
+        ]
+      },
+      "vi": {
+        "title": "1 triệu và 10 triệu request mỗi ngày: thực sự phải đổi những gì",
+        "excerpt": "So sánh song song cùng một sản phẩm ở mức tải gấp mười lần — thành phần nào giữ nguyên, thành phần nào buộc phải thay, và mỗi lần nâng cấp trả giá bằng độ phức tạp cùng gánh nặng vận hành ra sao.",
+        "scope": "Lấy nền tảng booking và search ở Blueprint 15 rồi hỏi: tăng gấp mười lần thực sự ép ta phải làm gì. Câu trả lời hữu ích không phải là 'scale mọi thứ lên'. Phần lớn hệ thống không đổi; chỉ một số ít thành phần chạm trần thật sự, và mỗi cách khắc phục đều mua throughput bằng độ phức tạp mà sau đó ta phải vận hành. Bài này nói về việc phân biệt hai nhóm đó và bảo vệ được ranh giới giữa chúng.",
+        "functional": [
+          "Quy cả hai mức tải về cùng đơn vị để so sánh được: 1 triệu/ngày là khoảng 12 rps trung bình, 10 triệu/ngày khoảng 116 rps.",
+          "Chỉ ra thành phần nào vốn đã scale ngang được, nên chỉ thay đổi ở số lượng instance.",
+          "Chỉ ra thành phần có trần thật sự — một write primary duy nhất, dung lượng node cache, số partition — và cái gì sẽ thay thế.",
+          "Gắn chi phí cho từng nâng cấp: thêm độ trễ, thêm kiểu lỗi, thêm bề mặt vận hành, thêm tiền."
+        ],
+        "quality": [
+          "Mọi khẳng định phải là số học trước khi là kiến trúc: rps đỉnh, kích thước working set và tốc độ ghi mới quyết định, không phải con số tổng.",
+          "Chỉ nâng cấp khi đã chạm một giới hạn đo được — tăng trưởng dự kiến là lý do để giữ đường lui, không phải để xây ngay.",
+          "Các bất biến về tính đúng đắn giống hệt nhau ở cả hai mức; chỉ cơ chế bảo vệ chúng là thay đổi.",
+          "Mỗi tầng thêm vào đều phải có chủ sở hữu rõ ràng, kiểu lỗi rõ ràng và một đường để gỡ bỏ lại."
+        ],
+        "capacity": [
+          "1 triệu/ngày: khoảng 12 rps trung bình, 150-250 rps ở đỉnh gấp 10-20 lần. Vài instance ứng dụng cùng một primary đánh index tốt kèm replica là thực sự đủ.",
+          "10 triệu/ngày: khoảng 116 rps trung bình, 1.5-2.5 nghìn rps ở cùng tỷ lệ đỉnh. Scale đọc vẫn là chuyện thường; trần xuất hiện ở đường ghi.",
+          "Ghi mới là tín hiệu thật: với tỷ lệ đọc/ghi 100:1 thì đó là khoảng 2-5 write/giây so với 20-50 write/giây — vẫn nhỏ, nên hãy đo trước khi shard.",
+          "Khối lượng dữ liệu thường ép thay đổi trước cả tốc độ request: tải gấp mười lần nghĩa là gấp mười lần số dòng, bản backup, kích thước index và thời gian restore."
+        ],
+        "diagram_title": "Cùng một sản phẩm ở hai mức tải, với ranh giới ép phải thay đổi",
+        "data_model": [
+          "Không đổi: các thực thể, bất biến và idempotency key giống hệt nhau — quy mô không bao giờ làm thay đổi định nghĩa thế nào là đúng.",
+          "Khoá shard trở thành quyết định thiết kế ở mức 10 triệu: chọn sao cho giao dịch của thực thể nóng nằm gọn trong một shard, nếu không mọi write đều thành phân tán.",
+          "Read model nhân lên: một search index ở mức 1 triệu thường thành các projection theo vùng hoặc theo tenant ở mức 10 triệu để giới hạn thời gian dựng lại.",
+          "Retention tách đôi: dòng nóng ở lại store vận hành còn lịch sử chuyển sang cold storage, vì thời gian backup và restore tỷ lệ với bảng chứ không với lưu lượng.",
+          "Aggregate được tính sẵn ở mức 10 triệu — các counter và rollup vốn là truy vấn rẻ tính tại chỗ nay trở thành một đường ghi riêng."
+        ],
+        "stack": [
+          "Không đổi ở cả hai mức: tầng ứng dụng stateless, Kafka làm xương sống sự kiện, outbox pattern, consumer idempotent, cùng một bộ observability.",
+          "Chỉ thêm số lượng, không thiết kế lại: instance ứng dụng, read replica, node cache và partition Kafka đều là con số dung lượng chứ không phải thay đổi kiến trúc.",
+          "Thực sự khác ở mức 10 triệu: một write primary duy nhất trở thành sharded hoặc distributed SQL, và một tầng cache trở thành local cộng shared để bớt vòng gọi mạng.",
+          "Mới ở mức 10 triệu: CDN và edge cache cho đường đọc, tách consumer group theo từng mối quan tâm để một consumer chậm không kéo lùi phần còn lại, và cold storage phía sau store nóng.",
+          "Có khi cần, có khi không: multi-region. Nó do mục tiêu độ trễ và tính sẵn sàng quyết định, không do lưu lượng — 10 triệu/ngày trong một vùng là chuyện bình thường."
+        ],
+        "tradeoffs": [
+          "Ủng hộ việc giữ hình dạng 1 triệu: một primary nghĩa là transaction thật, join đơn giản, không phải suy luận liên shard, và một ca trực mà ai cũng gánh được. Scale dọc cùng read replica là throughput rẻ nhất bạn từng mua. Cái giá là một cái trần không vượt qua được và một miền lỗi duy nhất cho ghi.",
+          "Ủng hộ hình dạng 10 triệu: không còn trần ghi đơn lẻ, bán kính ảnh hưởng gói trong từng shard, và mỗi loại tải scale độc lập. Cái giá là giao dịch phân tán hoặc một ràng buộc cứng rằng chúng không bao giờ xảy ra, reshard thành cả một dự án chứ không phải đổi config, và việc debug nay trải trên nhiều service.",
+          "Sharding là quyết định khó đảo ngược nhất ở đây. Khoá shard gần như vĩnh viễn — chọn sai là một cuộc di trú dữ liệu chứ không phải refactor — nên nó phải là nâng cấp cuối cùng, sau khi đã vắt kiệt replica, cache và read model.",
+          "Cache có đòn bẩy cao nhất và rủi ro bị xem nhẹ nhất: nó biến trần đọc thành chuyện không đáng bàn, đồng thời mang vào dữ liệu cũ, stampede và một kiểu lỗi cold-start chỉ lộ ra đúng lúc đang có sự cố.",
+          "Review lỗi: ở mức 1 triệu, sự cố thực tế là primary failover. Ở mức 10 triệu, đó là lỗi cục bộ — một shard chết, một consumer group tụt lại, một vùng dữ liệu cũ — khó phát hiện hơn nhiều và khó suy luận hơn hẳn. Hãy tính hẳn chi phí vận hành đó, vì nó trả hằng tuần chứ không trả một lần lúc xây."
+        ],
+        "tags": [
+          "Scaling",
+          "Sharding",
+          "Caching",
+          "Trade-off",
+          "Capacity",
+          "Kafka"
+        ]
+      }
     }
   ],
   "case_overviews": {
