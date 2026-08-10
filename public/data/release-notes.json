@@ -2,9 +2,245 @@
   "version": 1,
   "releases": [
     {
+      "date": "2026-08-10",
+      "items_added": 21,
+      "en": {
+        "title": "Testing gets its own topic, and security grows past OAuth2"
+      },
+      "vi": {
+        "title": "Testing thành một topic riêng, và Security vượt ra ngoài OAuth2"
+      },
+      "changes": [
+        {
+          "kind": "topic",
+          "target": "26-testing-strategy",
+          "count": 4,
+          "en": {
+            "section": "What a test is for",
+            "text": "A new topic, starting with what a test is actually for: why mock-heavy tests break on every refactor, which double to reach for, the bugs unit tests structurally cannot see, and building test data that stays readable."
+          },
+          "vi": {
+            "section": "Test để làm gì",
+            "text": "Một topic mới, mở đầu bằng chuyện test sinh ra để làm gì: vì sao test mock dày đặc cứ refactor là đỏ, chọn test double nào, những bug mà unit test về bản chất không thấy được, và dựng test data sao cho còn đọc nổi."
+          }
+        },
+        {
+          "kind": "topic",
+          "target": "26-testing-strategy",
+          "count": 4,
+          "en": {
+            "section": "Integration tests that tell the truth",
+            "text": "Where a green suite lies to you: H2 versus the real engine, why @Transactional on a test hides flush-time failures, the context cache that turns a suite into fourteen minutes, and contract tests between two teams."
+          },
+          "vi": {
+            "section": "Integration test nói thật",
+            "text": "Chỗ mà một bộ test xanh nói dối bạn: H2 so với engine thật, vì sao @Transactional trên test che mất lỗi lúc flush, cache context biến bộ test thành mười bốn phút, và contract test giữa hai team."
+          }
+        },
+        {
+          "kind": "topic",
+          "target": "26-testing-strategy",
+          "count": 5,
+          "en": {
+            "section": "Testing what usually breaks",
+            "text": "Testing the parts that actually break in production: time and time zones, races you can reproduce, injected failure for retries and circuit breakers, load tests that lie, and a policy for flaky tests."
+          },
+          "vi": {
+            "section": "Test đúng chỗ hay hỏng",
+            "text": "Test đúng những chỗ thật sự hỏng trên production: thời gian và múi giờ, race tái hiện được, tiêm lỗi cho retry và circuit breaker, load test nói dối, và chính sách xử lý test flaky."
+          }
+        },
+        {
+          "kind": "topic",
+          "target": "13-security-oauth2",
+          "count": 4,
+          "en": {
+            "section": "Secure coding at the boundary",
+            "text": "Security beyond the login flow: injection everywhere a string is assembled rather than bound, mass assignment that lets a user set their own role, parsers that turn input into code execution, and SSRF through any URL a user supplies."
+          },
+          "vi": {
+            "section": "Viết code an toàn ở biên",
+            "text": "Bảo mật ngoài luồng đăng nhập: injection ở mọi chỗ chuỗi bị ghép thay vì bind, mass assignment cho phép người dùng tự đặt role, parser biến input thành thực thi code, và SSRF qua mọi URL người dùng nhập."
+          }
+        },
+        {
+          "kind": "topic",
+          "target": "13-security-oauth2",
+          "count": 4,
+          "en": {
+            "section": "Protecting the data you store",
+            "text": "What \"encrypted at rest\" actually stops, where sensitive data really leaks, how deletion requests and an immutable audit trail coexist, and keeping dependencies from becoming the breach."
+          },
+          "vi": {
+            "section": "Bảo vệ dữ liệu đã lưu",
+            "text": "Câu \"đã mã hoá at rest\" thật sự chặn được gì, dữ liệu nhạy cảm rò ở đâu, yêu cầu xoá dữ liệu sống chung với audit trail bất biến ra sao, và giữ cho dependency không thành lỗ hổng."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-10",
+      "items_added": 17,
+      "en": {
+        "title": "Filling the gaps the roadmap exposed"
+      },
+      "vi": {
+        "title": "Lấp những khoảng trống mà roadmap chỉ ra"
+      },
+      "changes": [
+        {
+          "kind": "topic",
+          "target": "01-java-core-jvm",
+          "count": 2,
+          "en": {
+            "section": "Language fundamentals",
+            "text": "Time, properly: which java.time type belongs where and why LocalDateTime cannot store when something happened, then which clock to read in production and what breaks when the machine's clock moves."
+          },
+          "vi": {
+            "section": "Nền tảng ngôn ngữ",
+            "text": "Thời gian, làm cho tử tế: kiểu java.time nào dùng ở đâu và vì sao LocalDateTime không lưu được thời điểm một việc đã xảy ra, rồi đọc đồng hồ nào trên production và cái gì hỏng khi đồng hồ máy bị dịch."
+          }
+        },
+        {
+          "kind": "topic",
+          "target": "03-spring-boot-deep-build",
+          "count": 2,
+          "en": {
+            "section": "IoC container & transactions",
+            "text": "Spring application events around a transaction — including the trap in the AFTER_COMMIT default — and which Spring Cache defaults hurt once there are ten pods and a rolling deploy."
+          },
+          "vi": {
+            "section": "IoC container & transaction",
+            "text": "Spring application event quanh một transaction — kể cả cái bẫy nằm trong default AFTER_COMMIT — và default nào của Spring Cache gây đau khi đã có mười pod cùng một lần rolling deploy."
+          }
+        },
+        {
+          "kind": "topic",
+          "target": "03-spring-boot-deep-build",
+          "count": 1,
+          "en": {
+            "section": "Bean lifecycle & request flow",
+            "text": "The JSON boundary as a contract: which ObjectMapper defaults quietly become breaking changes, and the three separate bugs in serializing a JPA entity straight out."
+          },
+          "vi": {
+            "section": "Vòng đời bean & luồng request",
+            "text": "Biên JSON như một contract: default nào của ObjectMapper âm thầm trở thành breaking change, và ba bug riêng biệt khi serialize thẳng một entity JPA."
+          }
+        },
+        {
+          "kind": "topic",
+          "target": "05-db-core-index-lock",
+          "count": 2,
+          "en": {
+            "section": "Modelling the schema",
+            "text": "A new section on schema design: why a database constraint is stronger than the same rule in application code, and which modelling decisions — keys, soft delete, enums, nullable columns — are hardest to reverse."
+          },
+          "vi": {
+            "section": "Thiết kế schema",
+            "text": "Một section mới về thiết kế schema: vì sao constraint ở database mạnh hơn chính luật đó trong code, và quyết định mô hình hoá nào — key, soft delete, enum, cột nullable — khó đảo ngược nhất."
+          }
+        },
+        {
+          "kind": "topic",
+          "target": "18-query-optimization",
+          "count": 1,
+          "en": {
+            "section": "Rewriting the query & reshaping the model",
+            "text": "Writing at volume: chunks and checkpoints instead of one transaction around two million rows, and FOR UPDATE SKIP LOCKED turning a table into a work queue."
+          },
+          "vi": {
+            "section": "Viết lại query & chỉnh mô hình",
+            "text": "Ghi dữ liệu khối lượng lớn: chunk và checkpoint thay cho một transaction bao trọn hai triệu dòng, và FOR UPDATE SKIP LOCKED biến một bảng thành hàng đợi công việc."
+          }
+        },
+        {
+          "kind": "topic",
+          "target": "08-message-queue",
+          "count": 2,
+          "en": {
+            "section": "Reliability & delivery semantics",
+            "text": "The rebalance loop explained by the two liveness clocks a consumer answers to, and designing an event you can evolve without breaking consumers you do not control."
+          },
+          "vi": {
+            "section": "Độ tin cậy & ngữ nghĩa",
+            "text": "Vòng lặp rebalance giải thích bằng hai đồng hồ liveness mà consumer phải trả lời, và thiết kế event sao cho tiến hoá được mà không phá consumer mình không kiểm soát."
+          }
+        },
+        {
+          "kind": "topic",
+          "target": "10-system-design-rate-limit",
+          "count": 1,
+          "en": {
+            "section": "Framework & building blocks",
+            "text": "Local cache, distributed cache or both — and what a rolling deploy does when old and new code share one Redis."
+          },
+          "vi": {
+            "section": "Khung & building blocks",
+            "text": "Cache local, cache phân tán hay cả hai — và rolling deploy gây ra chuyện gì khi code cũ và code mới dùng chung một Redis."
+          }
+        },
+        {
+          "kind": "topic",
+          "target": "17-rest-api-design",
+          "count": 2,
+          "en": {
+            "section": "Contracts, errors & lifecycle",
+            "text": "Webhooks in both directions: delivering to endpoints you do not control, and what an inbound handler must do before it trusts a single field."
+          },
+          "vi": {
+            "section": "Hợp đồng, lỗi & vòng đời",
+            "text": "Webhook cả hai chiều: gửi tới những endpoint mình không kiểm soát, và handler nhận vào phải làm gì trước khi tin dù chỉ một field."
+          }
+        },
+        {
+          "kind": "topic",
+          "target": "25-microservice",
+          "count": 1,
+          "en": {
+            "section": "08 · Operational Concerns",
+            "text": "Scheduled and background jobs across N replicas: duplicate runs, a lease that expires mid-run, overlap, missed runs, and the silent failure of a job that simply stopped."
+          },
+          "vi": {
+            "section": "08 · Operational Concerns",
+            "text": "Job theo lịch và job nền khi chạy N replica: chạy trùng, lease hết hạn giữa chừng, chồng lấn, lỡ lượt, và kiểu hỏng im lặng khi job ngừng chạy hẳn."
+          }
+        },
+        {
+          "kind": "topic",
+          "target": "07-sql-nosql-db-engines",
+          "count": 1,
+          "en": {
+            "section": "Engine by engine",
+            "text": "When a search engine earns its place next to the database, how the index gets fed without a dual write, and what it must never own."
+          },
+          "vi": {
+            "section": "So sánh các engine",
+            "text": "Khi nào một search engine xứng đáng đứng cạnh database, index được nạp thế nào mà không dual write, và nó tuyệt đối không được sở hữu cái gì."
+          }
+        },
+        {
+          "kind": "topic",
+          "target": "16-project-concurrency-whiteboard",
+          "count": 2,
+          "en": {
+            "section": "Technical storytelling & fundamentals",
+            "text": "Writing a design doc or ADR that gets a decision made — and reviewing other people's work, plus arguing for engineering investment in terms a business will fund."
+          },
+          "vi": {
+            "section": "Kể chuyện kỹ thuật & nền tảng",
+            "text": "Viết design doc hay ADR chốt được quyết định — và review công việc của người khác, cùng cách bảo vệ khoản đầu tư kỹ thuật bằng ngôn ngữ mà bên kinh doanh chịu chi."
+          }
+        }
+      ]
+    },
+    {
       "date": "2026-08-09",
-      "en": { "title": "The 15 DSA patterns now animate" },
-      "vi": { "title": "15 dạng bài DSA giờ có animation" },
+      "en": {
+        "title": "The 15 DSA patterns now animate"
+      },
+      "vi": {
+        "title": "15 dạng bài DSA giờ có animation"
+      },
       "changes": [
         {
           "kind": "feature",
@@ -23,8 +259,12 @@
     },
     {
       "date": "2026-08-09",
-      "en": { "title": "Release notes became bilingual, and group by day" },
-      "vi": { "title": "Release note thành song ngữ, và gom theo ngày" },
+      "en": {
+        "title": "Release notes became bilingual, and group by day"
+      },
+      "vi": {
+        "title": "Release note thành song ngữ, và gom theo ngày"
+      },
       "changes": [
         {
           "kind": "feature",
@@ -51,8 +291,12 @@
     {
       "date": "2026-08-08",
       "items_added": 21,
-      "en": { "title": "Keycloak, and the 15 patterns traced step by step" },
-      "vi": { "title": "Keycloak, và 15 dạng bài được lần theo từng bước" },
+      "en": {
+        "title": "Keycloak, and the 15 patterns traced step by step"
+      },
+      "vi": {
+        "title": "Keycloak, và 15 dạng bài được lần theo từng bước"
+      },
       "changes": [
         {
           "kind": "topic",
@@ -84,8 +328,12 @@
     },
     {
       "date": "2026-08-05",
-      "en": { "title": "Case Studies library and versioned assets" },
-      "vi": { "title": "Thư viện Case Study và asset có version" },
+      "en": {
+        "title": "Case Studies library and versioned assets"
+      },
+      "vi": {
+        "title": "Thư viện Case Study và asset có version"
+      },
       "changes": [
         {
           "kind": "feature",
@@ -112,8 +360,12 @@
     },
     {
       "date": "2026-08-04",
-      "en": { "title": "Editorial pass over every topic" },
-      "vi": { "title": "Rà soát biên tập toàn bộ topic" },
+      "en": {
+        "title": "Editorial pass over every topic"
+      },
+      "vi": {
+        "title": "Rà soát biên tập toàn bộ topic"
+      },
       "changes": [
         {
           "kind": "content",
@@ -130,8 +382,12 @@
     {
       "date": "2026-08-03",
       "items_added": 3,
-      "en": { "title": "SQL vs NoSQL depth, and a concurrency deep dive" },
-      "vi": { "title": "Đào sâu SQL vs NoSQL, và một deep dive concurrency" },
+      "en": {
+        "title": "SQL vs NoSQL depth, and a concurrency deep dive"
+      },
+      "vi": {
+        "title": "Đào sâu SQL vs NoSQL, và một deep dive concurrency"
+      },
       "changes": [
         {
           "kind": "topic",
@@ -159,8 +415,12 @@
     },
     {
       "date": "2026-08-01",
-      "en": { "title": "Content language switch moved to the header" },
-      "vi": { "title": "Chuyển công tắc ngôn ngữ lên header" },
+      "en": {
+        "title": "Content language switch moved to the header"
+      },
+      "vi": {
+        "title": "Chuyển công tắc ngôn ngữ lên header"
+      },
       "changes": [
         {
           "kind": "feature",

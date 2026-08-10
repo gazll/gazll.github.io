@@ -39,7 +39,7 @@ public/
   index.html         shell; loads the version-aware boot.js module
   boot.js            fetches version.json no-store, then loads matching CSS + app graph
   version.json       local "dev" release; deploy overwrites it with commit SHA + timestamp
-  app.js             entry: hash router, topic track view (all 25 topics, including Microservices)
+  app.js             entry: hash router, topic track view (all 26 topics, including Microservices)
   config.js          GITIGNORED. Generated at deploy time from repo variables
   config.example.js  template to copy for local dev
   lib/
@@ -62,9 +62,9 @@ public/
     release-notes.js bilingual changelog of the material; chrome stays English
     dsa-player.js    play/pause/step control for the DSA animations
   data/
-    manifest.json       ordered list of every topic (n, topic_type, file) — 25 rows, Microservices is n=25
+    manifest.json       ordered list of every topic (n, topic_type, file) — 26 rows, Microservices is n=25
     meta.json            label/title/intro/tags/key/topic_type per topic, VI + EN in one file
-    topics/NN-slug.json     complete English base, one file per topic (360 items total across 25 files)
+    topics/NN-slug.json     complete English base, one file per topic (398 items total across 26 files)
     topics/NN-slug.vi.json  complete Vietnamese companion, same shape and item IDs
     release-notes.json   dated changelog of the material, VI + EN in one file
     dsa-animations.json  step frames for topic 19's 15 patterns; shared frames, per-language captions
@@ -107,7 +107,7 @@ secret/              GITIGNORED. Personal setup notes and credentials
   title, orphans every row already in the Sheet for that topic.
 
 - **The progress ring counts every topic, Microservices included.**
-  `Content.topicItemIds` / `Content.totalTopicItems` cover all 25 topics —
+  `Content.topicItemIds` / `Content.totalTopicItems` cover all 26 topics —
   there is no separate "track" vs "standalone" split anymore. The
   denominator is derived, never hardcoded.
 
@@ -119,7 +119,7 @@ secret/              GITIGNORED. Personal setup notes and credentials
   re-typing the list. The colours are the `[data-topic-type="…"]`
   custom-property blocks in `styles.css`. A topic with an unknown
   `topic_type` renders with no accent colour and drops out of the filter
-  bar. Every item needs a `difficulty` the same way (`core` · `hard` · `ext`,
+  bar. Every item needs a `difficulty` the same way (`core` · `advanced` · `extra`,
   `DIFFICULTIES` in `lib/constants.js`) — it drives the ESSENTIAL/ADVANCED/EXTRA
   badge. `lib/constants.js`'s `label` is UI chrome (always English, per the
   "interface is always English" rule above); its `vi` field is reference

@@ -59,7 +59,7 @@ test('English is the default language and every topic loads, including microserv
   const { Content } = await load();
   assert.equal(Content.lang, 'en');
   await Content.load();
-  assert.equal(Content.topics.length, 25);
+  assert.equal(Content.topics.length, MANIFEST.topics.length);
   assert.equal(topic(Content, 25).topic_type, 'microservice');
 });
 
@@ -110,7 +110,7 @@ test('a stored language choice is honoured, and both languages are fetched upfro
 test('a missing .vi.json degrades to the English base instead of throwing', async () => {
   const { Content } = await load({ dropVi: true });
   await Content.load();
-  assert.equal(Content.topics.length, 25);
+  assert.equal(Content.topics.length, MANIFEST.topics.length);
 
   await Content.setLang('vi');
   // No VI file fetched successfully, so VI uses the complete English base.

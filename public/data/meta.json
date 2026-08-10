@@ -13,7 +13,9 @@
           "Virtual threads",
           "ConcurrentHashMap",
           "JIT",
-          "Escape analysis"
+          "Escape analysis",
+          "java.time",
+          "Clock & skew"
         ]
       },
       "en": {
@@ -26,7 +28,9 @@
           "Virtual threads",
           "ConcurrentHashMap",
           "JIT",
-          "Escape analysis"
+          "Escape analysis",
+          "java.time",
+          "Clock & skew"
         ]
       }
     },
@@ -78,7 +82,10 @@
           "Actuator",
           "AOP",
           "Bean lifecycle",
-          "DispatcherServlet"
+          "DispatcherServlet",
+          "JSON contract",
+          "Application events",
+          "Spring Cache"
         ]
       },
       "en": {
@@ -94,7 +101,10 @@
           "Actuator",
           "AOP",
           "Bean lifecycle",
-          "DispatcherServlet"
+          "DispatcherServlet",
+          "JSON contract",
+          "Application events",
+          "Spring Cache"
         ]
       }
     },
@@ -144,7 +154,9 @@
           "Next-key lock",
           "Deadlock",
           "EXPLAIN",
-          "LSM-tree"
+          "LSM-tree",
+          "Schema design",
+          "Constraints"
         ]
       },
       "en": {
@@ -158,7 +170,9 @@
           "Next-key lock",
           "Deadlock",
           "EXPLAIN",
-          "LSM-tree"
+          "LSM-tree",
+          "Schema design",
+          "Constraints"
         ]
       }
     },
@@ -210,7 +224,8 @@
           "Oracle vs MySQL",
           "Data integrity",
           "CAP (C/A/P)",
-          "Redis"
+          "Redis",
+          "Search engine"
         ]
       },
       "en": {
@@ -226,7 +241,8 @@
           "Oracle vs MySQL",
           "Data integrity",
           "CAP (C/A/P)",
-          "Redis"
+          "Redis",
+          "Search engine"
         ]
       }
     },
@@ -244,7 +260,9 @@
           "Publisher confirms",
           "DLQ",
           "Exactly-once",
-          "Event sourcing"
+          "Event sourcing",
+          "Consumer tuning",
+          "Schema Registry"
         ]
       },
       "en": {
@@ -258,7 +276,9 @@
           "Publisher confirms",
           "DLQ",
           "Exactly-once",
-          "Event sourcing"
+          "Event sourcing",
+          "Consumer tuning",
+          "Schema Registry"
         ]
       }
     },
@@ -310,7 +330,8 @@
           "Token/Leaky bucket",
           "Sliding window",
           "Backpressure",
-          "Load shedding"
+          "Load shedding",
+          "Cache topology"
         ]
       },
       "en": {
@@ -324,7 +345,8 @@
           "Token/Leaky bucket",
           "Sliding window",
           "Backpressure",
-          "Load shedding"
+          "Load shedding",
+          "Cache topology"
         ]
       }
     },
@@ -406,7 +428,7 @@
       "vi": {
         "label": "Security & OAuth2",
         "title": "Security: OAuth2, OIDC, JWT & thiết kế hệ auth",
-        "intro": "Auth là phần không thể sai trong fintech. Nắm vững OAuth2/OIDC, cấu trúc & xác thực JWT, và cách thiết kế một hệ thống xác thực/uỷ quyền cho micro-services.",
+        "intro": "Auth là phần không thể sai trong fintech. Nắm vững OAuth2/OIDC, cấu trúc & xác thực JWT, cách thiết kế xác thực/uỷ quyền cho micro-services — rồi tới phần code chạm input không tin cậy (injection, mass assignment, deserialization, SSRF) và bảo vệ dữ liệu đã lưu.",
         "tags": [
           "OAuth2 grant",
           "PKCE",
@@ -416,13 +438,18 @@
           "mTLS",
           "OWASP",
           "Secrets",
-          "Keycloak"
+          "Keycloak",
+          "Injection",
+          "Mass assignment",
+          "SSRF",
+          "Data protection",
+          "Supply chain"
         ]
       },
       "en": {
         "label": "Security & OAuth2",
         "title": "Security: OAuth2, OIDC, JWT & designing an auth system",
-        "intro": "Auth is the part you cannot get wrong in fintech. Know OAuth2/OIDC, how a JWT is built and verified, and how to design authentication and authorisation across micro-services.",
+        "intro": "Auth is the part you cannot get wrong in fintech. Know OAuth2/OIDC, how a JWT is built and verified, and how to design authentication and authorisation across micro-services — then the code that touches untrusted input (injection, mass assignment, deserialization, SSRF) and how stored data is protected.",
         "tags": [
           "OAuth2 grant",
           "PKCE",
@@ -432,7 +459,12 @@
           "mTLS",
           "OWASP",
           "Secrets",
-          "Keycloak"
+          "Keycloak",
+          "Injection",
+          "Mass assignment",
+          "SSRF",
+          "Data protection",
+          "Supply chain"
         ]
       }
     },
@@ -518,7 +550,9 @@
           "Realtime pricing",
           "Saga booking",
           "Whiteboard",
-          "DSA edge cases"
+          "DSA edge cases",
+          "ADR / design doc",
+          "Code review"
         ]
       },
       "en": {
@@ -532,7 +566,9 @@
           "Realtime pricing",
           "Saga booking",
           "Whiteboard",
-          "DSA edge cases"
+          "DSA edge cases",
+          "ADR / design doc",
+          "Code review"
         ]
       }
     },
@@ -550,7 +586,8 @@
           "PATCH",
           "Async 202",
           "Sunset header",
-          "Bulk API"
+          "Bulk API",
+          "Webhooks"
         ]
       },
       "en": {
@@ -564,7 +601,8 @@
           "PATCH",
           "Async 202",
           "Sunset header",
-          "Bulk API"
+          "Bulk API",
+          "Webhooks"
         ]
       }
     },
@@ -582,7 +620,9 @@
           "Plan regression",
           "Materialized view",
           "Keyset",
-          "pg_stat_statements"
+          "pg_stat_statements",
+          "Bulk writes",
+          "SKIP LOCKED"
         ]
       },
       "en": {
@@ -596,7 +636,9 @@
           "Plan regression",
           "Materialized view",
           "Keyset",
-          "pg_stat_statements"
+          "pg_stat_statements",
+          "Bulk writes",
+          "SKIP LOCKED"
         ]
       }
     },
@@ -815,7 +857,8 @@
           "Kafka / RabbitMQ",
           "Caching",
           "Idempotency",
-          "System design"
+          "System design",
+          "Scheduled jobs"
         ],
         "label": "Microservices at Scale — Technical Mastery Track"
       },
@@ -829,9 +872,42 @@
           "Kafka / RabbitMQ",
           "Caching",
           "Idempotency",
-          "System design"
+          "System design",
+          "Scheduled jobs"
         ],
         "label": "Microservices at Scale — Technical Mastery Track"
+      }
+    },
+    "26": {
+      "topic_type": "core",
+      "key": "26-testing-strategy",
+      "vi": {
+        "label": "Testing",
+        "title": "Testing — cái gì chứng minh hệ thống chạy đúng, cái gì chỉ trông giống bằng chứng",
+        "intro": "Mọi topic khác nói về việc xây; topic này nói về việc biết nó thật sự chạy. Test double chọn thế nào, vì sao H2 và @Transactional trên test nói dối, làm sao tái hiện một race, tiêm lỗi vào retry/circuit breaker/compensation, và vì sao coverage cao vẫn không bắt được bug.",
+        "tags": [
+          "Test doubles",
+          "Testcontainers",
+          "Contract testing",
+          "Fault injection",
+          "Clock",
+          "Flaky tests",
+          "Mutation testing"
+        ]
+      },
+      "en": {
+        "label": "Testing",
+        "title": "Testing — what proves the system works, and what only looks like proof",
+        "intro": "Every other topic is about building it; this one is about knowing it works. Which test double to reach for, why H2 and a @Transactional test lie to you, how to reproduce a race, how to inject failure into retries, breakers and compensation, and why high coverage still misses bugs.",
+        "tags": [
+          "Test doubles",
+          "Testcontainers",
+          "Contract testing",
+          "Fault injection",
+          "Clock",
+          "Flaky tests",
+          "Mutation testing"
+        ]
       }
     }
   }

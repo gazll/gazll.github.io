@@ -125,6 +125,11 @@
       "n": 25,
       "topic_type": "microservice",
       "file": "topics/25-microservice.json"
+    },
+    {
+      "n": 26,
+      "file": "topics/26-testing-strategy.json",
+      "topic_type": "core"
     }
   ]
 }
