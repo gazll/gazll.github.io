@@ -24,10 +24,20 @@
           "kind": "feature",
           "target": "system-design",
           "en": {
-            "text": "Blueprint 16 compares the same product at 1M and 10M requests a day, sorting the stack into what stays untouched, what is only a larger number, and the few components with a real ceiling. Each upgrade is priced in complexity and operational burden, with the argument that sharding is the least reversible decision and belongs last."
+            "text": "Blueprint 16 now runs the same product through 1M, 10M and 100M requests a day, naming the binding constraint at each step and pricing every upgrade in complexity and on-call surface. It argues that a single primary absorbs all three write rates, so sharding must be justified by data volume or blast radius rather than by request count."
           },
           "vi": {
-            "text": "Blueprint 16 so sánh cùng một sản phẩm ở mức 1 triệu và 10 triệu request mỗi ngày, phân loại hệ thống thành phần giữ nguyên, phần chỉ là con số lớn hơn, và số ít thành phần có trần thật sự. Mỗi nâng cấp đều được định giá bằng độ phức tạp và gánh nặng vận hành, kèm lập luận rằng sharding là quyết định khó đảo ngược nhất nên phải làm sau cùng."
+            "text": "Blueprint 16 giờ đưa cùng một sản phẩm qua ba mức 1 triệu, 10 triệu và 100 triệu request mỗi ngày, gọi tên ràng buộc đang chặn ở từng bước và định giá mỗi nâng cấp bằng độ phức tạp cùng bề mặt trực. Bài lập luận rằng một primary duy nhất kham được cả ba mức ghi, nên sharding phải được biện minh bằng khối lượng dữ liệu hoặc bán kính ảnh hưởng chứ không phải bằng số request."
+          }
+        },
+        {
+          "kind": "feature",
+          "target": "system-design",
+          "en": {
+            "text": "Blueprint 17 is the technique catalogue behind it: replicas, Redis versus Memcached, local cache tiers, distributed locks, RabbitMQ versus Kafka, sharding, bulkheads and backpressure. Each entry states the limit it removes, the limit it leaves untouched, the failure mode it introduces, and the cheaper option to exhaust first — including why a distributed lock is never a correctness mechanism."
+          },
+          "vi": {
+            "text": "Blueprint 17 là danh mục kỹ thuật phía sau nó: replica, Redis so với Memcached, các tầng cache local, distributed lock, RabbitMQ so với Kafka, sharding, bulkhead và backpressure. Mỗi mục nêu rõ giới hạn nó gỡ, giới hạn nó để nguyên, kiểu lỗi nó mang vào, và lựa chọn rẻ hơn cần vắt kiệt trước — bao gồm cả lý do distributed lock không bao giờ là cơ chế bảo đảm tính đúng đắn."
           }
         },
         {

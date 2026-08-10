@@ -1574,113 +1574,247 @@
       "n": 16,
       "slug": "scaling-1m-to-10m-requests",
       "category": "foundations",
-      "effort": "45 min",
+      "effort": "75 min",
       "source_items": [],
-      "diagram": "flowchart TB\n  subgraph A[1M per day: about 12 rps average, 150-250 rps peak]\n    A1[Stateless app tier] --> A2[(Primary + read replicas)]\n    A1 --> A3[(Cache)]\n    A1 --> A4[Kafka]\n    A4 --> A5[Async consumers]\n  end\n  subgraph B[10M per day: about 116 rps average, 1.5-2.5k rps peak]\n    B0[CDN and edge] --> B1[Regional app tier]\n    B1 --> B3[(Multi-tier cache)]\n    B1 --> B2[(Sharded primaries)]\n    B2 --> B6[(Per-shard replicas)]\n    B1 --> B4[Kafka: partitioned by key]\n    B4 --> B5[Consumer groups per concern]\n    B4 --> B7[(Cold storage and lake)]\n  end\n  A -.->|What actually forced the change| B",
+      "diagram": "flowchart TB\n  subgraph S1[1M per day: 12 rps average, 150-250 rps peak]\n    A1[App instances] --> A2[(Primary)]\n    A2 --> A3[(Read replicas)]\n    A1 --> A4[(Redis: cache + locks)]\n    A1 --> A5[Kafka or RabbitMQ]\n  end\n  subgraph S2[10M per day: 116 rps average, 1.5-2.5k rps peak]\n    B0[CDN] --> B1[App instances]\n    B1 --> B3[(Local cache)]\n    B3 --> B4[(Redis cluster)]\n    B1 --> B2[(Sharded primaries)]\n    B2 --> B5[(Replicas per shard)]\n    B1 --> B6[Kafka: partitioned]\n    B6 --> B7[Consumer groups]\n  end\n  subgraph S3[100M per day: 1.2k rps average, 15-25k rps peak]\n    C0[CDN + edge compute] --> C1[Regional cells]\n    C1 --> C2[(Cell-local storage)]\n    C1 --> C3[(Tiered cache)]\n    C2 --> C4[CDC stream]\n    C4 --> C5[Kafka: multi-cluster]\n    C5 --> C6[(Lake + OLAP)]\n  end\n  S1 -->|Write ceiling and cache misses| S2\n  S2 -->|Blast radius and coordination cost| S3",
       "en": {
-        "title": "1M vs 10M requests a day: what actually has to change",
-        "excerpt": "A side-by-side of the same product at ten times the load — which components survive untouched, which must be replaced, and what each upgrade costs in complexity and operational burden.",
-        "scope": "Take the booking-and-search platform from Blueprint 15 and ask what a tenfold increase really forces. The useful answer is not 'scale everything up'. Most of the stack is unchanged; a small number of components hit a hard limit, and each fix buys throughput with complexity you then have to operate. This design is about telling those two groups apart and being able to defend the boundary.",
+        "title": "1M, 10M and 100M requests a day: what each technique actually buys",
+        "excerpt": "The same product at three scales, technique by technique — replicas, Redis, Memcached, distributed locks, Kafka, RabbitMQ, sharding and cells — with what each one solves, what it costs, and the point at which it stops being optional.",
+        "scope": "Take the booking-and-search platform from Blueprint 15 and walk it through ten and then a hundred times the load. The goal is not a shopping list of technologies but a decision order: at each scale, which limit is actually binding, which technique removes it, and what that technique costs to run. Most components never change. A small number hit a hard ceiling, and each fix buys throughput with complexity you then operate forever. Being able to name the binding constraint — and refuse the upgrades that do not address it — is the whole skill.",
         "functional": [
-          "State both loads in the same units so they can be compared: 1M/day is about 12 rps average, 10M/day about 116 rps.",
-          "Identify which components are already horizontally scalable and therefore change only in instance count.",
-          "Identify the components with a genuine ceiling — single write primary, cache node capacity, partition count — and what replaces them.",
-          "Attach a cost to each upgrade: added latency, added failure modes, added operational surface, added spend."
+          "State all three loads in one unit: 1M/day is about 12 rps, 10M/day about 116 rps, 100M/day about 1,157 rps average.",
+          "For each scale, name the single binding constraint before naming any technology — read throughput, write throughput, working-set size, data volume or coordination cost.",
+          "For each technique, state what it removes and what new failure mode it introduces; a technique with no new failure mode is usually not doing anything.",
+          "Give an explicit adoption order, so that a technique is only reached for once the cheaper one below it has been exhausted and measured."
         ],
         "quality": [
-          "Every claim is arithmetic before it is architecture: peak rps, working-set size and write rate decide, not the headline number.",
-          "An upgrade is only justified when a measured limit is reached — anticipated growth is a reason to keep the option open, not to build it now.",
-          "Correctness invariants are identical at both scales; only the mechanisms that preserve them change.",
-          "Every added tier must have an explicit owner, a failure mode and a way to remove it again."
+          "Arithmetic precedes architecture: peak rps, read/write ratio, working-set size and row count decide, never the headline request number.",
+          "Correctness invariants are identical at all three scales; only the mechanisms that preserve them change, and each mechanism is weaker than the one it replaced.",
+          "Every added tier must have a named owner, a stated failure mode, and a documented way to remove it again.",
+          "Reversibility is a first-class criterion: prefer the technique that can be undone in an afternoon over the one that cannot be undone at all."
         ],
         "capacity": [
-          "1M/day: about 12 rps average, 150-250 rps at a 10-20x peak. A handful of app instances and one well-indexed primary with replicas is genuinely enough.",
-          "10M/day: about 116 rps average, 1.5-2.5k rps at the same peak ratio. Read scaling is still routine; the write path is where the ceiling appears.",
-          "Writes are the real signal: at a 100:1 read-to-write ratio that is roughly 2-5 writes/sec versus 20-50 writes/sec — still small, so measure before sharding.",
-          "Data volume often forces the change before request rate does: ten times the traffic means ten times the rows, backups, index size and restore time."
+          "1M/day = 12 rps average, 150-250 rps at a 10-20x peak. One well-indexed primary plus a few app instances genuinely suffices; most of this scale is solved by an index and a connection pool.",
+          "10M/day = 116 rps average, 1.5-2.5k rps at peak. Reads are still easy; the binding constraint becomes cache-miss rate against a working set that no longer fits one node.",
+          "100M/day = 1,157 rps average, 15-25k rps at peak. Now the constraints are write throughput, coordination cost across services, and the fact that a single deploy or bad key can take out everything at once.",
+          "At a 100:1 read/write ratio the write path runs at roughly 2-5, 20-50 and 200-500 writes/sec respectively — a single Postgres primary handles all three comfortably, which is exactly why sharding must be justified by data volume or blast radius, not rps.",
+          "Data volume usually forces change before request rate: ten times the traffic is ten times the rows, index size, backup window and restore time — restore time is the number that ends the single-primary era."
         ],
-        "diagram_title": "The same product at both scales, with the forcing boundary between them",
+        "diagram_title": "Three scales, and the constraint that forces each transition",
         "data_model": [
-          "Unchanged: the entities, their invariants and their idempotency keys are identical — scale never changes what correct means.",
-          "Sharding key becomes a design decision at 10M: chosen so the hot entity's transactions stay single-shard, otherwise every write becomes distributed.",
-          "Read models multiply: one search index at 1M often becomes per-region or per-tenant projections at 10M to bound rebuild time.",
-          "Retention splits: hot rows stay in the operational store while history moves to cold storage, because backup and restore time scales with the table, not the traffic.",
-          "Aggregates get pre-computed at 10M — counters and rollups that were cheap on-demand queries become their own write path."
+          "Unchanged everywhere: entities, invariants and idempotency keys. Scale never changes what correct means, only how expensive it is to guarantee.",
+          "1M — one normalized schema, real foreign keys, joins done in the database. This is the cheapest correctness you will ever have; spend it before optimizing.",
+          "10M — read models split from the write model. A denormalized search projection, rebuilt from events, so the transactional store is never queried by the read path.",
+          "100M — the shard key becomes the most important line of design in the system. Chosen so the hot entity's transactions stay single-shard; chosen wrongly it is a data migration, not a refactor.",
+          "Retention tiers at every scale above 1M: hot rows in the operational store, history in cold storage or a lake, because backup and restore scale with table size, not traffic."
         ],
         "stack": [
-          "Unchanged at both scales: stateless app tier, Kafka as the event backbone, the outbox pattern, idempotent consumers, the same observability stack.",
-          "More of the same, no redesign: app instances, read replicas, cache nodes and Kafka partitions are all a capacity number rather than an architectural change.",
-          "Genuinely different at 10M: a single write primary becomes sharded or distributed SQL, and one cache tier becomes local plus shared to cut network round trips.",
-          "New at 10M: CDN and edge caching for the read path, consumer groups split per concern so a slow consumer cannot lag the rest, and cold storage behind the hot store.",
-          "Sometimes needed, sometimes not: multi-region. It is driven by latency and availability targets, not by request volume — 10M/day in one region is unremarkable."
+          "Read replicas (1M, first upgrade) — buys read throughput and nothing else. Cheap, reversible, and the correct first move. Cost: replication lag, so any read that must be correct right after a write has to be pinned to the primary. Does not help writes at all, which is the mistake people make when they add replicas to fix a write problem.",
+          "Memcached vs Redis (1M-10M) — Memcached is a pure LRU cache: multithreaded, slightly faster per node for plain key-value, and it forgets things. Redis is a data-structure server: sorted sets, counters, streams, Lua, persistence, replication. Choose Memcached only when you genuinely want a dumb cache and nothing else; choose Redis when you will also want rate limiting, leaderboards, queues or locks — which is almost always. Running one Redis rather than Memcached plus something else is usually the simpler operation.",
+          "Cache topology (10M) — one shared Redis becomes local in-process cache in front of shared Redis. The local tier removes a network round trip per hit and absorbs hot keys that would otherwise make one Redis node a hotspot. Cost: two levels of staleness, and invalidation that is now a distributed problem. Use short local TTLs rather than trying to invalidate precisely.",
+          "Distributed locks (any scale, used sparingly) — Redis SETNX with a token and TTL is fine for best-effort mutual exclusion such as 'only one worker runs this cron'. It is not safe for correctness: a GC pause or network partition lets two holders believe they own it, and Redlock does not fix this. For money and inventory, use the database instead — a unique constraint, SELECT FOR UPDATE, or an optimistic version column. The rule: locks for efficiency, database constraints for correctness.",
+          "RabbitMQ vs Kafka (1M-10M) — RabbitMQ is a broker for task queues: per-message acks, requeue, priorities, complex routing, and messages disappear once consumed. Kafka is a replayable partitioned log: ordered per key, retained for days, and many independent consumer groups read the same stream. Choose RabbitMQ for job dispatch where each message is work to be done once; choose Kafka when events have several consumers, need ordering per entity, or must be replayable after a bug. This system wants Kafka precisely because booking events feed payment, notification, indexing and analytics at once.",
+          "Sharding and distributed SQL (10M-100M) — removes the single write ceiling and contains blast radius. Distributed SQL such as CockroachDB, TiDB or Yugabyte keeps SQL semantics at the price of cross-shard latency; application-level sharding is faster but pushes routing, resharding and cross-shard queries into your code. Either way single-shard transactions must be the overwhelming default, which is a data-model decision made before any of this.",
+          "CDN and edge (10M+) — the cheapest throughput available for anything cacheable and public. Search result pages and static assets should never reach your origin. Cost: cache invalidation on a network you do not control, so version your URLs rather than purging.",
+          "Cells and multi-region (100M) — partition the whole stack into independent cells, each serving a slice of users end to end. This is bought for blast radius and regional latency, not throughput: it means one bad deploy or poison key affects one cell. Cost: the highest operational complexity in this list — routing, per-cell capacity, cross-cell data and a much harder mental model. Multi-region specifically is driven by latency and availability targets, never by request volume; 100M/day in one region is unremarkable."
         ],
         "tradeoffs": [
-          "In favour of staying at the 1M shape: one primary means real transactions, trivial joins, no cross-shard reasoning and an on-call rotation anyone can hold. Vertical scaling and read replicas are the cheapest throughput you will ever buy. The cost is a ceiling you cannot cross and a single failure domain for writes.",
-          "In favour of the 10M shape: no single write ceiling, blast radius contained per shard, and independent scaling per workload. The cost is distributed transactions or a hard constraint that they never occur, resharding as a project rather than a config change, and debugging that now spans several services.",
-          "Sharding is the least reversible decision here. The key is effectively permanent — choosing it wrongly is a data migration, not a refactor — so it should be the last upgrade applied, after replicas, caching and read models have been exhausted.",
-          "Caching is the highest leverage and the most underrated risk: it turns the read ceiling into a non-issue and simultaneously introduces staleness, stampedes and a cold-start failure mode that only appears during an incident.",
-          "Failure review: at 1M the realistic outage is the primary failing over. At 10M it is a partial failure — one shard down, one consumer group lagging, one region stale — which is harder to detect and far harder to reason about. Budget for that operational cost explicitly, because it is paid every week, not once at build time."
+          "Adoption order, cheapest and most reversible first: index and query tuning, connection pooling, read replicas, caching, async offload via a queue, read models, then sharding, then cells. Each step should be taken only after the previous one is measured and exhausted. Skipping to sharding because the number is large is the classic failure — a single primary handles all three write rates in this design.",
+          "In favour of staying at the 1M shape: one primary means real transactions, trivial joins, no cross-shard reasoning, and an on-call rotation anyone can hold. Vertical scaling and replicas are the cheapest throughput you will ever buy. The cost is a hard write ceiling and one failure domain.",
+          "In favour of the 10M shape: caching and read models remove the read ceiling entirely, and async offload keeps slow work off the request path. The cost is staleness everywhere, plus cache stampedes and cold-start behaviour that only appear during an incident — precisely when you can least afford them.",
+          "In favour of the 100M shape: no single write ceiling, blast radius contained per shard or cell, independent scaling per workload. The cost is distributed transactions or a hard rule that they never occur, resharding as a project rather than a config change, and debugging that spans services, shards and regions.",
+          "Sharding is the least reversible decision in the system. The key is effectively permanent, so it comes last, after replicas, caching, read models and async offload have all been measured and exhausted. Everything above it can be undone in an afternoon; this cannot be undone at all.",
+          "Caching has the highest leverage and the most underrated risk: it turns the read ceiling into a non-issue while introducing staleness, stampedes and a cold-start failure mode. Always pair a cache with request coalescing and a jittered TTL, or the first restart after an incident becomes a second incident.",
+          "Failure review by scale: at 1M the realistic outage is a primary failover. At 10M it is cache-related — a stampede, a hot key, or a consumer group lagging until the index is visibly stale. At 100M it is partial and ambiguous: one shard down, one cell degraded, one region serving old data. Detection, not repair, is the hard part, and that operational cost is paid every week rather than once at build time."
         ],
         "tags": [
           "Scaling",
+          "Redis",
+          "Kafka",
           "Sharding",
           "Caching",
-          "Trade-offs",
-          "Capacity",
-          "Kafka"
+          "Trade-offs"
         ]
       },
       "vi": {
-        "title": "1 triệu và 10 triệu request mỗi ngày: thực sự phải đổi những gì",
-        "excerpt": "So sánh song song cùng một sản phẩm ở mức tải gấp mười lần — thành phần nào giữ nguyên, thành phần nào buộc phải thay, và mỗi lần nâng cấp trả giá bằng độ phức tạp cùng gánh nặng vận hành ra sao.",
-        "scope": "Lấy nền tảng booking và search ở Blueprint 15 rồi hỏi: tăng gấp mười lần thực sự ép ta phải làm gì. Câu trả lời hữu ích không phải là 'scale mọi thứ lên'. Phần lớn hệ thống không đổi; chỉ một số ít thành phần chạm trần thật sự, và mỗi cách khắc phục đều mua throughput bằng độ phức tạp mà sau đó ta phải vận hành. Bài này nói về việc phân biệt hai nhóm đó và bảo vệ được ranh giới giữa chúng.",
+        "title": "1 triệu, 10 triệu và 100 triệu request mỗi ngày: mỗi kỹ thuật thực sự mua được gì",
+        "excerpt": "Cùng một sản phẩm ở ba mức tải, đi theo từng kỹ thuật — replica, Redis, Memcached, distributed lock, Kafka, RabbitMQ, sharding và cell — kèm việc mỗi thứ giải quyết được gì, trả giá bằng gì, và đến lúc nào thì không còn là tuỳ chọn.",
+        "scope": "Lấy nền tảng booking và search ở Blueprint 15 rồi đưa nó qua mức tải gấp mười và gấp trăm lần. Mục tiêu không phải một danh sách công nghệ mà là thứ tự ra quyết định: ở mỗi mức, giới hạn nào mới thực sự đang chặn, kỹ thuật nào gỡ được nó, và kỹ thuật đó tốn gì để vận hành. Phần lớn thành phần không bao giờ đổi. Một số ít chạm trần thật, và mỗi cách khắc phục đều mua throughput bằng độ phức tạp mà sau đó bạn phải nuôi mãi. Gọi tên được ràng buộc đang chặn — và từ chối những nâng cấp không nhắm vào nó — chính là toàn bộ kỹ năng ở đây.",
         "functional": [
-          "Quy cả hai mức tải về cùng đơn vị để so sánh được: 1 triệu/ngày là khoảng 12 rps trung bình, 10 triệu/ngày khoảng 116 rps.",
-          "Chỉ ra thành phần nào vốn đã scale ngang được, nên chỉ thay đổi ở số lượng instance.",
-          "Chỉ ra thành phần có trần thật sự — một write primary duy nhất, dung lượng node cache, số partition — và cái gì sẽ thay thế.",
-          "Gắn chi phí cho từng nâng cấp: thêm độ trễ, thêm kiểu lỗi, thêm bề mặt vận hành, thêm tiền."
+          "Quy cả ba mức tải về một đơn vị: 1 triệu/ngày khoảng 12 rps, 10 triệu/ngày khoảng 116 rps, 100 triệu/ngày khoảng 1.157 rps trung bình.",
+          "Ở mỗi mức, gọi tên ràng buộc đang chặn trước khi gọi tên bất kỳ công nghệ nào — throughput đọc, throughput ghi, kích thước working set, khối lượng dữ liệu hay chi phí phối hợp.",
+          "Với mỗi kỹ thuật, nêu rõ nó gỡ bỏ điều gì và mang vào kiểu lỗi mới nào; một kỹ thuật không sinh ra kiểu lỗi mới thì thường là nó chẳng làm gì cả.",
+          "Đưa ra thứ tự áp dụng tường minh, để chỉ với tới một kỹ thuật khi kỹ thuật rẻ hơn bên dưới đã được đo và vắt kiệt."
         ],
         "quality": [
-          "Mọi khẳng định phải là số học trước khi là kiến trúc: rps đỉnh, kích thước working set và tốc độ ghi mới quyết định, không phải con số tổng.",
-          "Chỉ nâng cấp khi đã chạm một giới hạn đo được — tăng trưởng dự kiến là lý do để giữ đường lui, không phải để xây ngay.",
-          "Các bất biến về tính đúng đắn giống hệt nhau ở cả hai mức; chỉ cơ chế bảo vệ chúng là thay đổi.",
-          "Mỗi tầng thêm vào đều phải có chủ sở hữu rõ ràng, kiểu lỗi rõ ràng và một đường để gỡ bỏ lại."
+          "Số học đi trước kiến trúc: rps đỉnh, tỷ lệ đọc/ghi, kích thước working set và số dòng mới quyết định, không bao giờ là con số tổng.",
+          "Bất biến về tính đúng đắn giống hệt nhau ở cả ba mức; chỉ cơ chế bảo vệ chúng thay đổi, và mỗi cơ chế mới đều yếu hơn cái nó thay thế.",
+          "Mỗi tầng thêm vào phải có người sở hữu rõ ràng, kiểu lỗi rõ ràng, và một đường gỡ bỏ đã ghi lại.",
+          "Khả năng đảo ngược là tiêu chí hạng nhất: ưu tiên kỹ thuật gỡ được trong một buổi chiều hơn kỹ thuật không bao giờ gỡ được."
         ],
         "capacity": [
-          "1 triệu/ngày: khoảng 12 rps trung bình, 150-250 rps ở đỉnh gấp 10-20 lần. Vài instance ứng dụng cùng một primary đánh index tốt kèm replica là thực sự đủ.",
-          "10 triệu/ngày: khoảng 116 rps trung bình, 1.5-2.5 nghìn rps ở cùng tỷ lệ đỉnh. Scale đọc vẫn là chuyện thường; trần xuất hiện ở đường ghi.",
-          "Ghi mới là tín hiệu thật: với tỷ lệ đọc/ghi 100:1 thì đó là khoảng 2-5 write/giây so với 20-50 write/giây — vẫn nhỏ, nên hãy đo trước khi shard.",
-          "Khối lượng dữ liệu thường ép thay đổi trước cả tốc độ request: tải gấp mười lần nghĩa là gấp mười lần số dòng, bản backup, kích thước index và thời gian restore."
+          "1 triệu/ngày = 12 rps trung bình, 150-250 rps ở đỉnh gấp 10-20 lần. Một primary đánh index tốt cùng vài instance ứng dụng là thực sự đủ; phần lớn mức này giải quyết bằng một cái index và một connection pool.",
+          "10 triệu/ngày = 116 rps trung bình, 1,5-2,5 nghìn rps ở đỉnh. Đọc vẫn dễ; ràng buộc chặn trở thành tỷ lệ cache miss trên một working set không còn vừa một node.",
+          "100 triệu/ngày = 1.157 rps trung bình, 15-25 nghìn rps ở đỉnh. Lúc này ràng buộc là throughput ghi, chi phí phối hợp giữa các service, và việc một lần deploy hỏng hay một key xấu có thể hạ toàn bộ cùng lúc.",
+          "Với tỷ lệ đọc/ghi 100:1, đường ghi chạy ở khoảng 2-5, 20-50 và 200-500 write/giây tương ứng — một primary Postgres kham cả ba mức thoải mái, đó chính là lý do sharding phải được biện minh bằng khối lượng dữ liệu hoặc bán kính ảnh hưởng, không phải bằng rps.",
+          "Khối lượng dữ liệu thường ép thay đổi trước tốc độ request: tải gấp mười lần là gấp mười lần số dòng, kích thước index, cửa sổ backup và thời gian restore — thời gian restore mới là con số kết thúc thời kỳ một primary."
         ],
-        "diagram_title": "Cùng một sản phẩm ở hai mức tải, với ranh giới ép phải thay đổi",
+        "diagram_title": "Ba mức tải, và ràng buộc ép mỗi lần chuyển giai đoạn",
         "data_model": [
-          "Không đổi: các thực thể, bất biến và idempotency key giống hệt nhau — quy mô không bao giờ làm thay đổi định nghĩa thế nào là đúng.",
-          "Khoá shard trở thành quyết định thiết kế ở mức 10 triệu: chọn sao cho giao dịch của thực thể nóng nằm gọn trong một shard, nếu không mọi write đều thành phân tán.",
-          "Read model nhân lên: một search index ở mức 1 triệu thường thành các projection theo vùng hoặc theo tenant ở mức 10 triệu để giới hạn thời gian dựng lại.",
-          "Retention tách đôi: dòng nóng ở lại store vận hành còn lịch sử chuyển sang cold storage, vì thời gian backup và restore tỷ lệ với bảng chứ không với lưu lượng.",
-          "Aggregate được tính sẵn ở mức 10 triệu — các counter và rollup vốn là truy vấn rẻ tính tại chỗ nay trở thành một đường ghi riêng."
+          "Không đổi ở mọi mức: thực thể, bất biến và idempotency key. Quy mô không làm thay đổi định nghĩa thế nào là đúng, chỉ làm việc bảo đảm nó đắt hơn.",
+          "1 triệu — một schema chuẩn hoá, khoá ngoại thật, join làm trong database. Đây là mức đúng đắn rẻ nhất bạn từng có; hãy tiêu nó trước khi tối ưu.",
+          "10 triệu — tách read model khỏi write model. Một search projection denormalized, dựng lại từ event, để đường đọc không bao giờ chạm vào store giao dịch.",
+          "100 triệu — khoá shard trở thành dòng thiết kế quan trọng nhất hệ thống. Chọn sao cho giao dịch của thực thể nóng nằm trong một shard; chọn sai thì đó là di trú dữ liệu chứ không phải refactor.",
+          "Phân tầng retention ở mọi mức trên 1 triệu: dòng nóng ở store vận hành, lịch sử sang cold storage hoặc lake, vì backup và restore tỷ lệ với kích thước bảng chứ không với lưu lượng."
         ],
         "stack": [
-          "Không đổi ở cả hai mức: tầng ứng dụng stateless, Kafka làm xương sống sự kiện, outbox pattern, consumer idempotent, cùng một bộ observability.",
-          "Chỉ thêm số lượng, không thiết kế lại: instance ứng dụng, read replica, node cache và partition Kafka đều là con số dung lượng chứ không phải thay đổi kiến trúc.",
-          "Thực sự khác ở mức 10 triệu: một write primary duy nhất trở thành sharded hoặc distributed SQL, và một tầng cache trở thành local cộng shared để bớt vòng gọi mạng.",
-          "Mới ở mức 10 triệu: CDN và edge cache cho đường đọc, tách consumer group theo từng mối quan tâm để một consumer chậm không kéo lùi phần còn lại, và cold storage phía sau store nóng.",
-          "Có khi cần, có khi không: multi-region. Nó do mục tiêu độ trễ và tính sẵn sàng quyết định, không do lưu lượng — 10 triệu/ngày trong một vùng là chuyện bình thường."
+          "Read replica (1 triệu, nâng cấp đầu tiên) — mua throughput đọc và chỉ vậy thôi. Rẻ, đảo ngược được, và là nước đi đầu tiên đúng đắn. Cái giá: độ trễ replication, nên mọi truy vấn cần đọc đúng ngay sau khi ghi đều phải ghim vào primary. Nó không giúp gì cho ghi, và đó là sai lầm người ta hay mắc khi thêm replica để chữa vấn đề ghi.",
+          "Memcached và Redis (1-10 triệu) — Memcached là cache LRU thuần: đa luồng, mỗi node nhanh hơn chút với key-value đơn giản, và nó quên. Redis là một server cấu trúc dữ liệu: sorted set, counter, stream, Lua, persistence, replication. Chỉ chọn Memcached khi bạn thực sự chỉ muốn một cache ngu và không gì khác; chọn Redis khi rồi bạn sẽ còn cần rate limiting, leaderboard, hàng đợi hay lock — tức là gần như luôn luôn. Chạy một Redis thay vì Memcached cộng thêm thứ khác thường là vận hành đơn giản hơn.",
+          "Topology cache (10 triệu) — một Redis dùng chung trở thành cache local trong tiến trình đặt trước Redis dùng chung. Tầng local bỏ được một vòng gọi mạng cho mỗi lần hit và hấp thụ các key nóng vốn sẽ biến một node Redis thành điểm nghẽn. Cái giá: hai mức dữ liệu cũ, và invalidation nay là bài toán phân tán. Hãy dùng TTL local ngắn thay vì cố invalidate thật chính xác.",
+          "Distributed lock (mọi mức, dùng dè dặt) — Redis SETNX kèm token và TTL là đủ cho loại trừ lẫn nhau kiểu best-effort, ví dụ 'chỉ một worker chạy cron này'. Nó không an toàn cho tính đúng đắn: một lần GC pause hay phân mảnh mạng là hai bên cùng tin mình đang giữ lock, và Redlock không sửa được điều đó. Với tiền và tồn kho, hãy dùng database — unique constraint, SELECT FOR UPDATE, hoặc cột version optimistic. Nguyên tắc: lock để tăng hiệu quả, ràng buộc database để bảo đảm đúng đắn.",
+          "RabbitMQ và Kafka (1-10 triệu) — RabbitMQ là broker cho task queue: ack theo từng message, requeue, priority, routing phức tạp, và message biến mất sau khi được tiêu thụ. Kafka là log phân vùng phát lại được: có thứ tự theo key, giữ nhiều ngày, và nhiều consumer group độc lập cùng đọc một stream. Chọn RabbitMQ cho việc phân phát job mà mỗi message là một việc cần làm đúng một lần; chọn Kafka khi sự kiện có nhiều bên tiêu thụ, cần thứ tự theo thực thể, hoặc phải phát lại được sau khi sửa bug. Hệ thống này muốn Kafka chính vì sự kiện booking cùng lúc nuôi payment, notification, indexing và analytics.",
+          "Sharding và distributed SQL (10-100 triệu) — gỡ trần ghi đơn lẻ và gói bán kính ảnh hưởng. Distributed SQL như CockroachDB, TiDB hay Yugabyte giữ được ngữ nghĩa SQL với cái giá là độ trễ liên shard; shard ở tầng ứng dụng thì nhanh hơn nhưng đẩy việc định tuyến, reshard và truy vấn liên shard vào code của bạn. Dù cách nào, giao dịch một shard phải là mặc định áp đảo, và đó là quyết định mô hình dữ liệu phải chốt trước tất cả những thứ này.",
+          "CDN và edge (từ 10 triệu) — throughput rẻ nhất có thể mua cho mọi thứ cache được và công khai. Trang kết quả search và tài nguyên tĩnh không bao giờ nên chạm tới origin. Cái giá: invalidate cache trên một mạng bạn không kiểm soát, nên hãy đánh version vào URL thay vì đi purge.",
+          "Cell và multi-region (100 triệu) — chia toàn bộ hệ thống thành các cell độc lập, mỗi cell phục vụ trọn vẹn một nhóm người dùng. Thứ này mua bán kính ảnh hưởng và độ trễ theo vùng, không phải throughput: một lần deploy hỏng hay một key độc chỉ ảnh hưởng một cell. Cái giá: độ phức tạp vận hành cao nhất trong danh sách này — định tuyến, dung lượng từng cell, dữ liệu liên cell và một mô hình tư duy khó hơn hẳn. Riêng multi-region thì do mục tiêu độ trễ và tính sẵn sàng quyết định, không bao giờ do lưu lượng; 100 triệu/ngày trong một vùng là chuyện bình thường."
         ],
         "tradeoffs": [
-          "Ủng hộ việc giữ hình dạng 1 triệu: một primary nghĩa là transaction thật, join đơn giản, không phải suy luận liên shard, và một ca trực mà ai cũng gánh được. Scale dọc cùng read replica là throughput rẻ nhất bạn từng mua. Cái giá là một cái trần không vượt qua được và một miền lỗi duy nhất cho ghi.",
-          "Ủng hộ hình dạng 10 triệu: không còn trần ghi đơn lẻ, bán kính ảnh hưởng gói trong từng shard, và mỗi loại tải scale độc lập. Cái giá là giao dịch phân tán hoặc một ràng buộc cứng rằng chúng không bao giờ xảy ra, reshard thành cả một dự án chứ không phải đổi config, và việc debug nay trải trên nhiều service.",
-          "Sharding là quyết định khó đảo ngược nhất ở đây. Khoá shard gần như vĩnh viễn — chọn sai là một cuộc di trú dữ liệu chứ không phải refactor — nên nó phải là nâng cấp cuối cùng, sau khi đã vắt kiệt replica, cache và read model.",
-          "Cache có đòn bẩy cao nhất và rủi ro bị xem nhẹ nhất: nó biến trần đọc thành chuyện không đáng bàn, đồng thời mang vào dữ liệu cũ, stampede và một kiểu lỗi cold-start chỉ lộ ra đúng lúc đang có sự cố.",
-          "Review lỗi: ở mức 1 triệu, sự cố thực tế là primary failover. Ở mức 10 triệu, đó là lỗi cục bộ — một shard chết, một consumer group tụt lại, một vùng dữ liệu cũ — khó phát hiện hơn nhiều và khó suy luận hơn hẳn. Hãy tính hẳn chi phí vận hành đó, vì nó trả hằng tuần chứ không trả một lần lúc xây."
+          "Thứ tự áp dụng, rẻ và dễ đảo ngược trước: tối ưu index và truy vấn, connection pooling, read replica, cache, đẩy việc sang bất đồng bộ bằng hàng đợi, read model, rồi mới sharding, rồi mới cell. Mỗi bước chỉ nên làm sau khi bước trước đã được đo và vắt kiệt. Nhảy thẳng tới sharding vì thấy con số lớn là sai lầm kinh điển — một primary duy nhất kham được cả ba mức ghi trong thiết kế này.",
+          "Ủng hộ giữ hình dạng 1 triệu: một primary nghĩa là transaction thật, join đơn giản, không phải suy luận liên shard, và một ca trực ai cũng gánh được. Scale dọc cùng replica là throughput rẻ nhất bạn từng mua. Cái giá là một trần ghi cứng và một miền lỗi duy nhất.",
+          "Ủng hộ hình dạng 10 triệu: cache và read model gỡ hẳn trần đọc, còn việc đẩy sang bất đồng bộ giữ các tác vụ chậm ra khỏi đường request. Cái giá là dữ liệu cũ ở khắp nơi, cộng thêm cache stampede và hành vi cold-start chỉ lộ ra khi đang có sự cố — đúng lúc bạn ít chịu nổi nhất.",
+          "Ủng hộ hình dạng 100 triệu: không còn trần ghi đơn lẻ, bán kính ảnh hưởng gói trong từng shard hoặc cell, mỗi loại tải scale độc lập. Cái giá là giao dịch phân tán hoặc một luật cứng rằng chúng không bao giờ xảy ra, reshard thành cả một dự án chứ không phải đổi config, và việc debug trải trên nhiều service, nhiều shard và nhiều vùng.",
+          "Sharding là quyết định khó đảo ngược nhất hệ thống. Khoá shard gần như vĩnh viễn, nên nó phải làm sau cùng, sau khi replica, cache, read model và bất đồng bộ đều đã đo và vắt kiệt. Mọi thứ phía trên nó gỡ được trong một buổi chiều; riêng nó thì không bao giờ gỡ được.",
+          "Cache có đòn bẩy cao nhất và rủi ro bị xem nhẹ nhất: nó biến trần đọc thành chuyện không đáng bàn đồng thời mang vào dữ liệu cũ, stampede và kiểu lỗi cold-start. Luôn đi kèm cache với request coalescing và TTL có jitter, nếu không lần khởi động lại đầu tiên sau sự cố sẽ thành sự cố thứ hai.",
+          "Review lỗi theo từng mức: ở 1 triệu, sự cố thực tế là primary failover. Ở 10 triệu, nó liên quan tới cache — stampede, key nóng, hoặc một consumer group tụt lại tới mức index cũ thấy rõ. Ở 100 triệu, nó cục bộ và mơ hồ: một shard chết, một cell suy giảm, một vùng phục vụ dữ liệu cũ. Phần khó là phát hiện chứ không phải sửa, và chi phí vận hành đó trả hằng tuần chứ không trả một lần lúc xây."
         ],
         "tags": [
           "Scaling",
+          "Redis",
+          "Kafka",
           "Sharding",
           "Caching",
-          "Trade-off",
-          "Capacity",
-          "Kafka"
+          "Trade-off"
+        ]
+      }
+    },
+    {
+      "n": 17,
+      "slug": "scaling-technique-catalogue",
+      "category": "foundations",
+      "effort": "60 min",
+      "source_items": [],
+      "diagram": "flowchart TB\n  Q{What is actually slow or failing?}\n  Q -->|Reads| R1[Index and query tuning]\n  R1 --> R2[Read replicas]\n  R2 --> R3[Cache: local then Redis]\n  R3 --> R4[CDN for public reads]\n  Q -->|Writes| W1[Batching and connection pool]\n  W1 --> W2[Async offload: queue]\n  W2 --> W3[Partition by key]\n  W3 --> W4[Shard or distributed SQL]\n  Q -->|Slow dependency| A1[Timeout and circuit breaker]\n  A1 --> A2[Queue the work]\n  A2 --> A3[Bulkhead per dependency]\n  Q -->|Contention on one row| L1[DB constraint or version]\n  L1 --> L2[Serialize by key in one partition]\n  L2 --> L3[Lock only for efficiency]",
+      "en": {
+        "title": "The scaling technique catalogue: which tool for which bottleneck",
+        "excerpt": "A reference for the individual techniques — replicas, cache tiers, locks, queues, partitioning, bulkheads and backpressure — each with the one problem it solves, the failure it introduces, and the cheaper thing to try first.",
+        "scope": "Blueprint 16 asks what changes between scales. This one is the reference behind it: a technique-by-technique catalogue you can read on its own. Each entry answers four questions — what limit does this remove, what does it cost, what does it NOT fix, and what should you have tried before reaching for it. The organising principle is that every technique is a trade, and naming what you gave up is what separates a design from a list of technologies.",
+        "functional": [
+          "Start from the symptom, never the technology: slow reads, slow writes, a slow dependency, or contention on a single row each have different answers.",
+          "For each technique, state the limit it removes and the limit it leaves untouched — most production mistakes are a technique applied to the wrong bottleneck.",
+          "Give the cheaper alternative that should be exhausted first, so the catalogue reads as an order rather than a menu.",
+          "Name the new failure mode each technique introduces, because that is the ongoing cost you will actually operate."
+        ],
+        "quality": [
+          "A technique is only correct if it targets the measured bottleneck; adding replicas to fix write latency is a common and expensive category error.",
+          "Correctness mechanisms and performance mechanisms must never be confused — distributed locks are performance, database constraints are correctness.",
+          "Every asynchronous boundary makes the caller's success ambiguous, so idempotency is not optional once a queue enters the design.",
+          "Prefer the technique whose failure mode you can detect: a slow system you can see beats a fast one that is silently wrong."
+        ],
+        "capacity": [
+          "Measure before choosing: p99 latency by endpoint, read/write split, cache hit rate, working-set size, and the slowest dependency's timeout budget.",
+          "A single modern Postgres primary handles thousands of simple writes per second — most systems reaching for sharding have a query problem, not a scale problem.",
+          "Cache effectiveness is set by working-set size versus memory, not by request rate; a 99 percent hit rate and a 90 percent hit rate differ tenfold in origin load.",
+          "Queue sizing is about burst absorption and drain rate, not throughput: the useful number is how long the backlog takes to clear after an incident."
+        ],
+        "diagram_title": "From symptom to technique, cheapest option first",
+        "data_model": [
+          "Idempotency key — the precondition for every retry, queue and at-least-once consumer in the catalogue; without it, none of the async techniques are safe.",
+          "Version or sequence column — optimistic concurrency, and the correctness alternative to a distributed lock for contended rows.",
+          "Outbox table — the only sound way to publish an event and commit a transaction together; dual writes lose messages exactly when it matters.",
+          "Denormalized read model — the artefact that makes caching and replicas effective, because it removes the joins that made reads expensive.",
+          "Partition or shard key — the one field that determines whether future transactions stay local; decide it before it becomes load-bearing."
+        ],
+        "stack": [
+          "Read replicas — removes read throughput limits. Does not help writes, and introduces replication lag, so read-your-own-writes must be pinned to the primary. Try index and query tuning first; a missing index is cheaper than a new server.",
+          "Redis — a data-structure server, not just a cache. Buys sub-millisecond reads, counters, sorted sets for leaderboards, token buckets for rate limiting, streams for lightweight queues. Costs an extra failure domain and a stale-data policy. Prefer it over Memcached unless you truly want only an LRU cache, because you will eventually want the other structures.",
+          "Memcached — a pure multithreaded LRU cache. Marginally faster per node for plain key-value and simpler to reason about because it has no persistence and no semantics. Choose it when the cache is genuinely disposable and you want no temptation to store state in it.",
+          "Local in-process cache — removes the network round trip that Redis still costs, and absorbs hot keys before they concentrate on one Redis node. Costs a second staleness window; keep TTLs short rather than attempting precise invalidation across instances.",
+          "Distributed lock (Redis SETNX with token and TTL) — mutual exclusion for efficiency: run one cron, avoid duplicated work. Not safe for correctness, because a GC pause or partition allows two holders; Redlock does not close this. For inventory and money use a unique constraint, SELECT FOR UPDATE, or an optimistic version.",
+          "RabbitMQ — a task broker: per-message ack, requeue, dead-letter, priorities and rich routing. Right when each message is a unit of work consumed once and low latency dispatch matters. Wrong when several independent consumers need the same event, or when replay after a bug is required.",
+          "Kafka — a partitioned, replayable log with ordering per key and independent consumer groups. Right for event backbones, CDC, fan-out to several concerns, and reprocessing history. Costs partition-count planning, consumer lag as a permanent operational metric, and at-least-once semantics you must absorb with idempotency.",
+          "Circuit breakers, bulkheads and backpressure — the controls that keep one slow dependency from consuming every thread. A breaker fails fast when a dependency is unhealthy, a bulkhead caps concurrency per dependency so it cannot starve the rest, and bounded queues with load shedding keep latency finite under overload. These are the cheapest reliability wins in the catalogue and are almost always missing."
+        ],
+        "tradeoffs": [
+          "The order is the point: index and query tuning, then connection pooling, then replicas, then caching, then async offload, then read models, then partitioning, then sharding, then cells. Each is cheaper and more reversible than the next, and skipping ahead buys permanent complexity to solve a temporary problem.",
+          "Caching versus replicas: a cache removes load from the database entirely, a replica moves it. Caching is higher leverage and higher risk; replicas are boring and predictable. Prefer replicas when reads must be fresh, caching when they may be slightly stale.",
+          "Kafka versus RabbitMQ is a data-shape question, not a performance one. Ask whether the message is work to be done once or an event several parties care about. Choosing Kafka for simple job dispatch adds partition planning you did not need; choosing RabbitMQ for an event backbone means the second consumer forces a redesign.",
+          "Distributed locks are the most commonly misused item here. They look like correctness and are not. If losing the lock would corrupt data rather than merely duplicate work, the answer is a database constraint — every time.",
+          "Async offload trades a clear synchronous failure for an ambiguous asynchronous one. The user gets a fast pending response, and you inherit retries, duplicates, dead letters, ordering questions and a backlog that must be monitored. Only cross that boundary when the work genuinely does not belong in the request.",
+          "Every technique here adds a component that can fail independently. The honest accounting is not throughput gained but on-call surface added: each one is a dashboard, an alert, a runbook and a failure mode someone must understand at three in the morning."
+        ],
+        "tags": [
+          "Redis",
+          "Kafka",
+          "RabbitMQ",
+          "Locks",
+          "Backpressure",
+          "Caching"
+        ]
+      },
+      "vi": {
+        "title": "Danh mục kỹ thuật scaling: dùng công cụ nào cho nút thắt nào",
+        "excerpt": "Tài liệu tra cứu cho từng kỹ thuật — replica, các tầng cache, lock, hàng đợi, phân vùng, bulkhead và backpressure — mỗi thứ kèm đúng một bài toán nó giải, kiểu lỗi nó mang vào, và thứ rẻ hơn nên thử trước.",
+        "scope": "Blueprint 16 hỏi cái gì thay đổi giữa các mức tải. Bài này là tài liệu tra cứu phía sau nó: một danh mục theo từng kỹ thuật, đọc riêng cũng được. Mỗi mục trả lời bốn câu — kỹ thuật này gỡ bỏ giới hạn nào, tốn gì, KHÔNG sửa được gì, và lẽ ra nên thử gì trước khi với tới nó. Nguyên tắc xuyên suốt: mọi kỹ thuật đều là một cuộc đổi chác, và gọi tên được thứ mình đã đánh đổi mới là điều phân biệt một thiết kế với một danh sách công nghệ.",
+        "functional": [
+          "Xuất phát từ triệu chứng, đừng bao giờ từ công nghệ: đọc chậm, ghi chậm, một dependency chậm, hay tranh chấp trên một dòng dữ liệu đều có câu trả lời khác nhau.",
+          "Với mỗi kỹ thuật, nêu rõ giới hạn nó gỡ và giới hạn nó để nguyên — phần lớn sai lầm production là áp một kỹ thuật vào sai nút thắt.",
+          "Đưa ra lựa chọn rẻ hơn cần vắt kiệt trước, để danh mục đọc như một thứ tự chứ không phải một thực đơn.",
+          "Gọi tên kiểu lỗi mới mà mỗi kỹ thuật mang vào, vì đó mới là chi phí lâu dài bạn thực sự phải vận hành."
+        ],
+        "quality": [
+          "Một kỹ thuật chỉ đúng khi nó nhắm vào nút thắt đã đo được; thêm replica để chữa độ trễ ghi là lỗi phân loại phổ biến và đắt đỏ.",
+          "Không bao giờ được lẫn lộn cơ chế đúng đắn với cơ chế hiệu năng — distributed lock là hiệu năng, ràng buộc database mới là đúng đắn.",
+          "Mọi ranh giới bất đồng bộ đều làm kết quả của bên gọi trở nên mơ hồ, nên idempotency không còn là tuỳ chọn một khi hàng đợi bước vào thiết kế.",
+          "Ưu tiên kỹ thuật mà bạn phát hiện được kiểu lỗi của nó: một hệ thống chậm mà thấy được vẫn hơn một hệ thống nhanh mà sai trong im lặng."
+        ],
+        "capacity": [
+          "Đo trước khi chọn: p99 theo từng endpoint, tỷ lệ đọc/ghi, tỷ lệ cache hit, kích thước working set, và ngân sách timeout của dependency chậm nhất.",
+          "Một primary Postgres hiện đại kham được hàng nghìn write đơn giản mỗi giây — phần lớn hệ thống với tới sharding thực ra đang có vấn đề truy vấn, không phải vấn đề quy mô.",
+          "Hiệu quả của cache do kích thước working set so với bộ nhớ quyết định, không do tốc độ request; hit rate 99 phần trăm và 90 phần trăm chênh nhau mười lần tải xuống origin.",
+          "Tính dung lượng hàng đợi là chuyện hấp thụ đột biến và tốc độ rút, không phải throughput: con số hữu ích là backlog mất bao lâu để giải toả sau sự cố."
+        ],
+        "diagram_title": "Từ triệu chứng tới kỹ thuật, rẻ nhất trước",
+        "data_model": [
+          "Idempotency key — điều kiện tiên quyết cho mọi retry, hàng đợi và consumer at-least-once trong danh mục này; thiếu nó thì không kỹ thuật bất đồng bộ nào an toàn.",
+          "Cột version hoặc sequence — optimistic concurrency, và là phương án đúng đắn thay cho distributed lock ở những dòng bị tranh chấp.",
+          "Bảng outbox — cách duy nhất chắc chắn để vừa phát event vừa commit transaction; dual write mất message đúng vào lúc quan trọng nhất.",
+          "Read model denormalized — thứ làm cho cache và replica trở nên hiệu quả, vì nó bỏ đi những phép join vốn khiến đọc trở nên đắt.",
+          "Khoá phân vùng hoặc shard — trường duy nhất quyết định giao dịch tương lai có nằm cục bộ hay không; hãy chốt nó trước khi nó thành thứ chịu lực."
+        ],
+        "stack": [
+          "Read replica — gỡ giới hạn throughput đọc. Không giúp gì cho ghi, và mang vào độ trễ replication, nên đọc lại chính cái mình vừa ghi phải ghim vào primary. Hãy tối ưu index và truy vấn trước; một index còn thiếu rẻ hơn một server mới.",
+          "Redis — một server cấu trúc dữ liệu, không chỉ là cache. Mua được đọc dưới một mili giây, counter, sorted set cho leaderboard, token bucket cho rate limiting, stream cho hàng đợi nhẹ. Tốn thêm một miền lỗi và một chính sách dữ liệu cũ. Ưu tiên nó hơn Memcached trừ khi bạn thực sự chỉ muốn một cache LRU, vì rồi bạn sẽ cần tới các cấu trúc kia.",
+          "Memcached — cache LRU đa luồng thuần tuý. Mỗi node nhanh hơn chút với key-value đơn giản và dễ suy luận hơn vì nó không có persistence, không có ngữ nghĩa. Chọn nó khi cache thực sự có thể vứt đi và bạn muốn không bị cám dỗ lưu trạng thái vào đó.",
+          "Cache local trong tiến trình — bỏ được vòng gọi mạng mà Redis vẫn tốn, và hấp thụ key nóng trước khi chúng dồn vào một node Redis. Tốn thêm một cửa sổ dữ liệu cũ; hãy giữ TTL ngắn thay vì cố invalidate thật chính xác giữa các instance.",
+          "Distributed lock (Redis SETNX kèm token và TTL) — loại trừ lẫn nhau để tăng hiệu quả: chạy một cron, tránh làm trùng việc. Không an toàn cho tính đúng đắn, vì một lần GC pause hay phân mảnh mạng là có hai bên cùng giữ; Redlock không bịt được lỗ này. Với tồn kho và tiền, hãy dùng unique constraint, SELECT FOR UPDATE, hoặc một cột version optimistic.",
+          "RabbitMQ — broker cho task: ack từng message, requeue, dead-letter, priority và routing phong phú. Đúng khi mỗi message là một đơn vị công việc tiêu thụ đúng một lần và cần phân phát độ trễ thấp. Sai khi nhiều consumer độc lập cùng cần một event, hoặc khi phải phát lại sau khi sửa bug.",
+          "Kafka — log phân vùng, phát lại được, có thứ tự theo key và các consumer group độc lập. Đúng cho xương sống sự kiện, CDC, fan-out tới nhiều mối quan tâm, và xử lý lại lịch sử. Tốn công hoạch định số partition, biến consumer lag thành chỉ số vận hành vĩnh viễn, và ngữ nghĩa at-least-once mà bạn phải hấp thụ bằng idempotency.",
+          "Circuit breaker, bulkhead và backpressure — những cơ chế giữ cho một dependency chậm không nuốt hết thread. Breaker fail nhanh khi dependency không khoẻ, bulkhead giới hạn concurrency cho từng dependency để nó không bỏ đói phần còn lại, và hàng đợi có chặn kèm load shedding giữ độ trễ hữu hạn khi quá tải. Đây là những khoản lợi về độ tin cậy rẻ nhất trong danh mục và gần như luôn bị thiếu."
+        ],
+        "tradeoffs": [
+          "Thứ tự mới là điều quan trọng: tối ưu index và truy vấn, rồi connection pooling, rồi replica, rồi cache, rồi bất đồng bộ, rồi read model, rồi phân vùng, rồi sharding, rồi cell. Mỗi bước rẻ hơn và dễ đảo ngược hơn bước sau, và nhảy cóc là mua độ phức tạp vĩnh viễn để giải một vấn đề tạm thời.",
+          "Cache so với replica: cache gỡ hẳn tải khỏi database, replica chỉ dời tải đi. Cache đòn bẩy cao hơn và rủi ro cao hơn; replica thì buồn tẻ và dễ đoán. Ưu tiên replica khi dữ liệu đọc phải mới, ưu tiên cache khi được phép hơi cũ.",
+          "Kafka so với RabbitMQ là câu hỏi về hình dạng dữ liệu, không phải về hiệu năng. Hãy hỏi message này là một việc cần làm một lần hay một sự kiện mà nhiều bên quan tâm. Chọn Kafka cho việc phân phát job đơn giản là ôm thêm việc hoạch định partition không cần thiết; chọn RabbitMQ cho một xương sống sự kiện thì tới consumer thứ hai là phải thiết kế lại.",
+          "Distributed lock là món bị dùng sai nhiều nhất ở đây. Nó trông như đúng đắn nhưng không phải. Nếu mất lock dẫn tới hỏng dữ liệu chứ không chỉ làm trùng việc, thì câu trả lời là ràng buộc database — không có ngoại lệ.",
+          "Đẩy sang bất đồng bộ là đổi một lỗi đồng bộ rõ ràng lấy một lỗi bất đồng bộ mơ hồ. Người dùng nhận phản hồi pending thật nhanh, còn bạn thừa hưởng retry, bản trùng, dead letter, câu hỏi về thứ tự và một backlog phải theo dõi. Chỉ vượt ranh giới đó khi công việc thực sự không thuộc về request.",
+          "Mỗi kỹ thuật ở đây đều thêm một thành phần có thể hỏng độc lập. Cách hạch toán trung thực không phải là throughput thu được mà là bề mặt trực thêm vào: mỗi thứ là một dashboard, một cảnh báo, một runbook và một kiểu lỗi mà ai đó phải hiểu lúc ba giờ sáng."
+        ],
+        "tags": [
+          "Redis",
+          "Kafka",
+          "RabbitMQ",
+          "Lock",
+          "Backpressure",
+          "Caching"
         ]
       }
     }
