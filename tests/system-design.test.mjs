@@ -266,6 +266,7 @@ test('the three-tone emphasis never corrupts the text it highlights', async () =
   const emphasize = new Function('escapeHtml', block + '\nreturn emphasize;')(escapeHtml);
 
   assert.equal(emphasize("it's 1M"), "it&#39;s <b class=\"sd-num\">1M</b>");
+  assert.equal(emphasize('&'), '&amp;');
 
   let spans = 0;
   let rows = 0;
@@ -289,6 +290,55 @@ test('the three-tone emphasis never corrupts the text it highlights', async () =
   // Emphasis only works if it stays rare; a keyword-list pattern pushed this
   // past 3 and every paragraph turned into a ransom note.
   assert.ok(spans / rows < 1, `emphasis is too dense: ${(spans / rows).toFixed(2)} spans per row`);
+});
+
+/* renderScope and listRow restructure prose for readability, which means they
+   are the two places a rewrite can silently swallow a sentence or a colon.
+   Compared whitespace-insensitively: the transforms legitimately move text
+   across block boundaries, but must never drop or invent a character. */
+test('breaking prose into paragraphs and labels never loses text', async () => {
+  const source = await readFile(path.join(publicRoot, 'views/system-design.js'), 'utf8');
+  const block = source.slice(source.indexOf('/* Three tones'), source.indexOf('function splitDecision'));
+  const escapeHtml = value => String(value).replace(/[&<>"']/g, character =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
+  const { renderScope, listRow } = new Function('escapeHtml',
+    block + '\nreturn { renderScope, listRow };')(escapeHtml);
+  const bare = html => html.replace(/<[^>]+>/g, '').replace(/\s+/g, '');
+
+  let broken = 0;
+  let labelled = 0;
+  let listRows = 0;
+  for (const design of catalog.designs) {
+    for (const lang of ['en', 'vi']) {
+      const scope = renderScope(design[lang].scope);
+      assert.equal(bare(scope), bare(escapeHtml(design[lang].scope)),
+        `${design.slug}.${lang}: renderScope changed the text`);
+      // one <p> per break, and the thesis is always last when present
+      assert.match(scope, /^<p/, `${design.slug}.${lang}: scope must start with a paragraph`);
+      if (scope.includes('sd-thesis')) {
+        assert.match(scope, /<p class="sd-thesis">[\s\S]*<\/p>$/, `${design.slug}: thesis must close the scope`);
+        broken++;
+      }
+      for (const field of ['functional', 'quality', 'capacity']) {
+        for (const row of design[lang][field]) {
+          const out = listRow(row);
+          assert.equal(bare(out), bare(escapeHtml(row)), `${design.slug}.${field}: listRow changed the text`);
+          assert.match(out, /^<li/);
+          if (out.includes('sd-row-label')) {
+            // the colon rides with the label rather than being deleted
+            assert.match(out, /<b class="sd-row-label">[^<]*:<\/b>|:<\/b>/, `${design.slug}: label lost its colon`);
+            labelled++;
+          }
+          listRows++;
+        }
+      }
+    }
+  }
+  // Short scopes must stay a single paragraph — breaking a two-sentence intro
+  // into a lead and a pull-quote reads as noise.
+  assert.ok(broken > 0 && broken < catalog.designs.length * 2, `thesis extraction fired ${broken} times`);
+  assert.ok(labelled > 0 && labelled < listRows / 2,
+    `label promotion should stay the exception: ${labelled}/${listRows}`);
 });
 
 /* The controls that sit beside a question must not be nested inside .qhead:

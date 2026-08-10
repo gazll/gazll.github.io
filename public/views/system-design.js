@@ -131,7 +131,7 @@ function renderLibrary(collection) {
 }
 
 function list(items) {
-  return '<ul>' + (items || []).map(item => '<li>' + emphasize(item) + '</li>').join('') + '</ul>';
+  return '<ul>' + (items || []).map(listRow).join('') + '</ul>';
 }
 
 function diagramBlock(title, diagram) {
@@ -185,6 +185,46 @@ function emphasize(value) {
     .replace(QUANTITY, m => park('<b class="sd-num">' + m + '</b>'))
     .replace(SLOT_RE, (_, digits) => held[Number(
       [...digits].map(ch => ch.charCodeAt(0) - 0xE010).join(''))]);
+}
+
+/* Sentence break for EN and VI. VI has no different rule here, but the
+   lookahead must accept accented capitals or it splits mid-sentence. */
+const SENTENCE = /(?<=[.?!])\s+(?=[A-ZĐÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚÝ0-9"“(])/u;
+
+/* Scope runs 1-5 sentences (median 2), so a fixed split would mangle the short
+   ones. Only prose long enough to read as a wall is broken up, and the closing
+   sentence is pulled out as the thesis when it is a standalone claim. */
+function renderScope(value) {
+  const source = String(value || '').trim();
+  const sentences = source.split(SENTENCE).filter(Boolean);
+  if (source.length < 260 || sentences.length < 3) {
+    return '<p>' + emphasize(source) + '</p>';
+  }
+
+  const lead = sentences[0];
+  const rest = sentences.slice(1);
+  // A short final sentence that makes a claim reads as the takeaway; a long one
+  // is still body text and stays in the paragraph.
+  const closing = rest.length > 1 && rest[rest.length - 1].length <= 160 ? rest.pop() : '';
+
+  return '<p class="sd-lead">' + emphasize(lead) + '</p>'
+    + (rest.length ? '<p>' + emphasize(rest.join(' ')) + '</p>' : '')
+    + (closing ? '<p class="sd-thesis">' + emphasize(closing) + '</p>' : '');
+}
+
+/* 9% of list rows open with "label: rest". Promoting the label to its own line
+   is what stops it running into the body text; the other 91% render unchanged,
+   so this must degrade to a plain <li>. */
+const ROW_LABEL = /^([^:—–]{4,60}):\s+(?=\S)/u;
+
+function listRow(value) {
+  const source = String(value || '').trim();
+  const match = source.match(ROW_LABEL);
+  if (!match) return '<li>' + emphasize(source) + '</li>';
+  // The colon rides with the label: dropping it would delete source text, and
+  // the label is a heading here, not a fragment of the sentence below it.
+  return '<li class="has-label"><b class="sd-row-label">' + emphasize(match[1]) + ':</b>'
+    + emphasize(source.slice(match[0].length)) + '</li>';
 }
 
 function splitDecision(value) {
@@ -308,7 +348,8 @@ function renderDesignArticle(design) {
     + '<p class="cs-eyebrow">Blueprint ' + numberLabel(design.n) + ' · ' + escapeHtml(design.effort || '45 min') + '</p>'
     + '<h1>' + escapeHtml(design.title) + '</h1><p>' + escapeHtml(design.excerpt) + '</p><div class="cs-tags">' + tags + '</div></header>';
   const body = '<article class="sd-article-body" data-sd-body>'
-    + '<section class="sd-section sd-scope"><h2 id="problem-framing">' + text().scope + '</h2><p>' + emphasize(design.scope) + '</p></section>'
+    + '<section class="sd-section sd-scope"><h2 id="problem-framing">' + text().scope + '</h2>'
+    + renderScope(design.scope) + '</section>'
     + '<section class="sd-section sd-requirements"><h2 id="requirements">' + text().requirements + '</h2><div><article><h3>'
     + text().functional + '</h3>' + list(design.functional) + '</article><article><h3>' + text().quality + '</h3>'
     + list(design.quality) + '</article></div></section>'
@@ -329,9 +370,9 @@ function renderCaseGuide(article) {
   const guide = article.guide;
   if (!guide) return '';
   return '<section class="sd-section sd-case-guide"><h2 id="design-review">' + text().production + '</h2>'
-    + '<div><article><h3>' + text().problem + '</h3><p>' + escapeHtml(guide.problem) + '</p></article>'
-    + '<article><h3>' + text().coreIdea + '</h3><p>' + escapeHtml(guide.core_idea) + '</p></article>'
-    + '<article><h3>' + text().outcome + '</h3><p>' + escapeHtml(guide.outcome) + '</p></article></div></section>';
+    + '<div><article><h3>' + text().problem + '</h3><p>' + emphasize(guide.problem) + '</p></article>'
+    + '<article><h3>' + text().coreIdea + '</h3><p>' + emphasize(guide.core_idea) + '</p></article>'
+    + '<article><h3>' + text().outcome + '</h3><p>' + emphasize(guide.outcome) + '</p></article></div></section>';
 }
 
 function renderProductionArticle(article, overview, archivedBody) {
@@ -342,8 +383,8 @@ function renderProductionArticle(article, overview, archivedBody) {
     + '<p>' + escapeHtml(article.excerpt) + '</p><div class="cs-tags">' + tags + '</div>'
     + '<div class="cs-archive-note"><b>' + text().historical + '</b><span>' + text().historicalNote + '</span></div></header>';
   const body = '<article class="sd-article-body" data-sd-body>'
-    + '<section class="sd-section sd-scope"><h2 id="architecture-lens">' + text().architecture + '</h2><p>'
-    + escapeHtml(overview?.lens || article.excerpt) + '</p>'
+    + '<section class="sd-section sd-scope"><h2 id="architecture-lens">' + text().architecture + '</h2>'
+    + renderScope(overview?.lens || article.excerpt)
     + (overview?.diagram ? diagramBlock(overview.title || text().architecture, overview.diagram) : '') + '</section>'
     + renderCaseGuide(article)
     + '<section class="sd-section sd-archive"><h2 id="preserved-article">' + text().original + '</h2>'
