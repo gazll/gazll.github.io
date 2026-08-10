@@ -4,6 +4,27 @@
     {
       "date": "2026-08-10",
       "en": {
+        "title": "Flash-sale inventory gets a capacity-first failure analysis"
+      },
+      "vi": {
+        "title": "Inventory mùa flash sale có bài phân tích lỗi theo capacity"
+      },
+      "changes": [
+        {
+          "kind": "feature",
+          "target": "system-design",
+          "en": {
+            "text": "Blueprint 18 dissects the synchronous Book → Inventory lock → Payment bottleneck in the supplied e-commerce architecture. It quantifies read amplification, per-hot-SKU serialization and connection-pool limits, then replaces unbounded contention with an edge waiting room, admission control, atomic expiring holds, an asynchronous payment saga and reconciliation. Every threshold is labeled as a planning assumption and paired with a production-shaped benchmark procedure."
+          },
+          "vi": {
+            "text": "Blueprint 18 mổ xẻ bottleneck synchronous Book → lock Inventory → Payment trong kiến trúc e-commerce được cung cấp. Bài định lượng read amplification, giới hạn serialization theo hot SKU và connection pool, rồi thay contention vô hạn bằng edge waiting room, admission control, hold atomic có expiry, payment saga bất đồng bộ và reconciliation. Mọi threshold đều được ghi là planning assumption và đi kèm cách benchmark giống production."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-10",
+      "en": {
         "title": "Two blueprints on designing for load, and diagrams that render"
       },
       "vi": {

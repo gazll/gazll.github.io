@@ -66,6 +66,12 @@ test('the catalog is a complete bilingual System Design library', () => {
           `${design.slug}: empty ${lang}.${field}`);
         assert.ok(design[lang][field].every(value => String(value).trim()), `${design.slug}: blank ${lang}.${field} row`);
       }
+      for (const field of ['data_model', 'stack', 'tradeoffs']) {
+        assert.ok(design[lang][field].length >= 3, `${design.slug}: ${lang}.${field} needs comparable alternatives`);
+      }
+      const decisionDepth = ['data_model', 'stack', 'tradeoffs']
+        .flatMap(field => design[lang][field]).reduce((total, value) => total + value.length, 0);
+      assert.ok(decisionDepth >= 700, `${design.slug}: ${lang} decision sections are too shallow`);
     }
   }
 });
@@ -97,6 +103,34 @@ test('all Systems & Architecture at Scale cases moved into System Design with Me
     for (const lang of ['en', 'vi']) {
       assert.ok(overview[lang].title?.trim(), `${slug}: no ${lang} title`);
       assert.ok(overview[lang].lens?.trim(), `${slug}: no ${lang} architecture lens`);
+    }
+  }
+});
+
+test('every blueprint has bilingual research lenses backed by primary sources', async () => {
+  const { SYSTEM_DESIGN_RESEARCH: research } = await import(pathToFileURL(
+    path.join(dataRoot, 'system-design/research.js')).href);
+  const allowedOrigins = new Set([
+    'https://sre.google', 'https://docs.aws.amazon.com', 'https://developers.cloudflare.com',
+    'https://redis.io', 'https://docs.stripe.com', 'https://www.postgresql.org',
+    'https://kafka.apache.org', 'https://learn.microsoft.com', 'https://www.elastic.co',
+    'https://opentelemetry.io'
+  ]);
+
+  assert.deepEqual(Object.keys(research.assignments).sort(), catalog.designs.map(row => row.slug).sort());
+  for (const design of catalog.designs) {
+    const packIds = research.assignments[design.slug];
+    assert.ok(packIds.length >= 2, `${design.slug}: needs at least two research lenses`);
+    for (const id of packIds) assert.ok(research.packs[id], `${design.slug}: unknown research pack ${id}`);
+  }
+  for (const [id, pack] of Object.entries(research.packs)) {
+    assert.ok(pack.sources.length >= 2, `${id}: needs primary sources`);
+    for (const [, href] of pack.sources) assert.ok(allowedOrigins.has(new URL(href).origin), `${id}: untrusted source`);
+    for (const lang of ['en', 'vi']) {
+      assert.ok(pack[lang].title && pack[lang].intro, `${id}: incomplete ${lang}`);
+      assert.equal(pack[lang].sections.length, 3, `${id}: expected three deep-dive sections`);
+      assert.ok(pack[lang].sections.every(section => section.title && section.items.length >= 2),
+        `${id}: shallow ${lang} section`);
     }
   }
 });
@@ -201,6 +235,10 @@ test('Experience routing, Case Studies migration and Mermaid security are wired 
   assert.match(systemView, /data-copy-mermaid/);
   assert.match(systemView, /data-copy-sd-question/);
   assert.match(systemView, /revealLinkedSource/);
+  assert.match(systemView, /comparisonTable\(rows, labels/);
+  assert.match(systemView, /tradeoffSection\(design\.tradeoffs\)/);
+  assert.match(systemView, /renderResearch\(design\)/);
+  assert.match(systemView, /closest\('\.sd-toc-mobile'\)\?\.removeAttribute\('open'\)/);
   assert.match(caseView, /MOVED_TO_SYSTEM_DESIGN = 'systems-architecture'/);
   assert.match(caseView, /filter\(article => article\.category !== MOVED_TO_SYSTEM_DESIGN\)/);
   assert.match(mermaid, /vendor\/mermaid-11\.16\.1\/mermaid\.esm\.min\.mjs/);
@@ -213,6 +251,8 @@ test('Experience routing, Case Studies migration and Mermaid security are wired 
   await readFile(path.join(publicRoot, 'vendor/mermaid-11.16.1/LICENSE'), 'utf8');
   assert.match(styles, /\.sd-diagram/);
   assert.match(styles, /\.sd-notes details\.link-target/);
+  assert.match(styles, /\.sd-comparison-wrap/);
+  assert.match(styles, /\.sd-toc-mobile:not\(\[open\]\)>nav\{display:none\}/);
 });
 
 /* The controls that sit beside a question must not be nested inside .qhead:

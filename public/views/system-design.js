@@ -5,6 +5,7 @@ import { SystemDesign } from '../lib/system-design.js';
 import { CaseStudies } from '../lib/case-studies.js';
 import { mountMermaidDiagrams } from '../lib/mermaid.js';
 import { systemDesignQuestionUrl } from '../lib/question-links.js';
+import { SYSTEM_DESIGN_RESEARCH } from '../data/system-design/research.js';
 
 let mountToken = 0;
 
@@ -16,6 +17,19 @@ const COPY = {
     functional: 'Functional requirements',
     quality: 'Quality attributes', capacity: 'Capacity & constraints', architecture: 'High-level architecture',
     data: 'Data model', stack: 'Technology choices', tradeoffs: 'Trade-offs & failure review',
+    dataIntro: 'Compare records by ownership and responsibility before choosing storage. A record is authoritative, operational or derived; mixing those roles creates unclear consistency boundaries.',
+    dataName: 'Record / model', dataRole: 'Fields, ownership and responsibility',
+    dataChecksTitle: 'Compare the models on',
+    dataChecks: ['transaction boundary and invariant', 'read/write path and indexes', 'partition key and hot-key risk', 'retention, audit and privacy', 'whether it can be rebuilt after loss'],
+    stackIntro: 'Treat this as a decision map, not a shopping list. Each component must solve a named constraint and carry an explicit operational cost.',
+    stackLayer: 'Layer / option', stackReason: 'Choice, purpose and boundary',
+    stackChecksTitle: 'Challenge every choice with',
+    stackChecks: ['simplest viable alternative', 'consistency and latency impact', 'failure and degraded mode', 'team/on-call capability', 'migration and exit trigger'],
+    tradeoffIntro: 'Each row is a tension the design accepts—not a universal best practice. Review both sides and record the condition that would reverse the decision.',
+    decision: 'Decision tension', consequence: 'Failure-review questions',
+    failureChecks: ['What invariant can break?', 'Which metric detects it first?', 'How is the blast radius contained?', 'Can retry duplicate or reorder work?', 'How do we repair, reconcile and prove recovery?'],
+    research: 'Engineering deep dives', researched: 'Current practice distilled from primary documentation. Validate version-specific details against the linked sources before implementation.',
+    furtherReading: 'Primary sources',
     migrated: 'Migrated deep-dive notes', migratedNote: 'Preserved from Study Track topics 10–11 and the overlapping Topic 16 sections.',
     source: 'Mermaid source', copy: 'Copy Mermaid', copyLink: 'Copy link', copied: 'Copied', visualizer: 'Open visualizer',
     diagramUnavailable: 'Diagram renderer unavailable. The editable Mermaid source is still available below.',
@@ -33,6 +47,19 @@ const COPY = {
     functional: 'Yêu cầu chức năng', quality: 'Thuộc tính chất lượng', capacity: 'Tải & ràng buộc',
     architecture: 'Kiến trúc tổng thể', data: 'Mô hình dữ liệu', stack: 'Lựa chọn công nghệ',
     tradeoffs: 'Trade-off & review lỗi', migrated: 'Ghi chú chuyên sâu đã chuyển',
+    dataIntro: 'So sánh record theo quyền sở hữu và trách nhiệm trước khi chọn storage. Mỗi record nên là authoritative, operational hoặc derived; trộn các vai trò này sẽ làm boundary consistency mơ hồ.',
+    dataName: 'Record / mô hình', dataRole: 'Field, ownership và trách nhiệm',
+    dataChecksTitle: 'So sánh các mô hình theo',
+    dataChecks: ['transaction boundary và invariant', 'read/write path và index', 'partition key và rủi ro hot key', 'retention, audit và privacy', 'khả năng rebuild sau khi mất dữ liệu'],
+    stackIntro: 'Xem đây là bản đồ quyết định, không phải danh sách công nghệ. Mỗi component phải giải một constraint cụ thể và có operational cost rõ ràng.',
+    stackLayer: 'Layer / phương án', stackReason: 'Lựa chọn, mục đích và boundary',
+    stackChecksTitle: 'Cần chất vấn mỗi lựa chọn bằng',
+    stackChecks: ['phương án đơn giản nhất có thể dùng', 'ảnh hưởng consistency và latency', 'failure mode và degraded mode', 'năng lực team/on-call', 'migration và trigger để thay đổi'],
+    tradeoffIntro: 'Mỗi dòng là một mâu thuẫn mà thiết kế chấp nhận, không phải best practice đúng cho mọi hệ thống. Cần review cả hai phía và ghi điều kiện khiến quyết định phải đảo chiều.',
+    decision: 'Mâu thuẫn cần quyết định', consequence: 'Câu hỏi review lỗi',
+    failureChecks: ['Invariant nào có thể vỡ?', 'Metric nào phát hiện sớm nhất?', 'Giới hạn blast radius thế nào?', 'Retry có duplicate hoặc đảo thứ tự không?', 'Repair, reconcile và chứng minh recovery thế nào?'],
+    research: 'Nghiên cứu kỹ thuật chuyên sâu', researched: 'Best practice hiện tại được tổng hợp từ tài liệu gốc. Cần kiểm tra chi tiết theo version trong nguồn liên kết trước khi triển khai.',
+    furtherReading: 'Nguồn chính thống',
     migratedNote: 'Được giữ nguyên từ Topic 10–11 và các phần trùng thuộc Topic 16 trong Study Track.', source: 'Source Mermaid',
     copy: 'Copy Mermaid', copyLink: 'Copy link', copied: 'Đã copy', visualizer: 'Mở visualizer',
     diagramUnavailable: 'Không tải được renderer. Source Mermaid có thể chỉnh sửa vẫn nằm ngay bên dưới.',
@@ -112,6 +139,82 @@ function detailRows(title, rows, id) {
     + title + '</h2>' + list(rows) + '</section>';
 }
 
+function splitDecision(value) {
+  const source = String(value || '');
+  const separator = source.search(/(?:\s[—–]\s|:\s)/);
+  if (separator < 0) {
+    const words = source.split(/\s+/);
+    return { name: words.slice(0, 6).join(' ') + (words.length > 6 ? '…' : ''), detail: source };
+  }
+  const delimiter = source.slice(separator).match(/^(?:\s[—–]\s|:\s)/)?.[0] || '';
+  return { name: source.slice(0, separator), detail: source.slice(separator + delimiter.length) };
+}
+
+function comparisonTable(rows, labels, className) {
+  const body = (rows || []).map(value => {
+    const row = splitDecision(value);
+    return '<tr><th scope="row">' + escapeHtml(row.name) + '</th><td>'
+      + escapeHtml(row.detail || row.name) + '</td></tr>';
+  }).join('');
+  return '<div class="sd-comparison-wrap"><table class="sd-comparison ' + className + '"><thead><tr><th scope="col">'
+    + escapeHtml(labels[0]) + '</th><th scope="col">' + escapeHtml(labels[1]) + '</th></tr></thead><tbody>' + body + '</tbody></table></div>';
+}
+
+function decisionChecks(title, checks) {
+  return '<aside class="sd-decision-checks"><strong>' + escapeHtml(title) + '</strong><ul>'
+    + checks.map(check => '<li>' + escapeHtml(check) + '</li>').join('') + '</ul></aside>';
+}
+
+function decisionSection(title, intro, rows, labels, checksTitle, checks, id, className) {
+  return '<section class="sd-section sd-decision-section ' + className + '"><h2 id="' + id + '">' + title + '</h2>'
+    + '<p class="sd-section-intro">' + escapeHtml(intro) + '</p>'
+    + comparisonTable(rows, labels, className + '-table')
+    + decisionChecks(checksTitle, checks) + '</section>';
+}
+
+function tradeoffSection(rows) {
+  const cards = (rows || []).map((row, index) => '<article><span>' + numberLabel(index + 1) + '</span><p>'
+    + escapeHtml(row) + '</p></article>').join('');
+  return '<section class="sd-section sd-tradeoff-review"><h2 id="tradeoffs-failure-review">' + text().tradeoffs + '</h2>'
+    + '<p class="sd-section-intro">' + escapeHtml(text().tradeoffIntro) + '</p><div class="sd-tradeoff-list">'
+    + cards + '</div>' + decisionChecks(text().consequence, text().failureChecks) + '</section>';
+}
+
+const RESEARCH_ORIGINS = new Set([
+  'https://sre.google', 'https://docs.aws.amazon.com', 'https://developers.cloudflare.com',
+  'https://redis.io', 'https://docs.stripe.com', 'https://www.postgresql.org',
+  'https://kafka.apache.org', 'https://learn.microsoft.com', 'https://www.elastic.co',
+  'https://opentelemetry.io'
+]);
+
+function safeResearchHref(value) {
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:' && RESEARCH_ORIGINS.has(url.origin) ? url.href : '';
+  } catch (error) { return ''; }
+}
+
+function renderResearch(design) {
+  const ids = SYSTEM_DESIGN_RESEARCH.assignments[design.slug] || [];
+  const packs = ids.map(id => SYSTEM_DESIGN_RESEARCH.packs[id]).filter(Boolean);
+  if (!packs.length) return '';
+  const body = packs.map(pack => {
+    const localized = pack[Content.lang] || pack.en;
+    const sections = localized.sections.map(section => '<article><h3>' + escapeHtml(section.title) + '</h3>'
+      + list(section.items) + '</article>').join('');
+    const sources = pack.sources.map(([label, href]) => {
+      const safe = safeResearchHref(href);
+      return safe ? '<a href="' + escapeHtml(safe) + '" target="_blank" rel="noopener noreferrer">'
+        + escapeHtml(label) + ' ↗</a>' : '';
+    }).join('');
+    return '<section class="sd-research-pack"><header><h3>' + escapeHtml(localized.title) + '</h3><p>'
+      + escapeHtml(localized.intro) + '</p></header><div class="sd-research-grid">' + sections + '</div>'
+      + '<footer><strong>' + text().furtherReading + '</strong>' + sources + '</footer></section>';
+  }).join('');
+  return '<section class="sd-section sd-research"><h2 id="engineering-deep-dives">' + text().research + '</h2><p>'
+    + text().researched + '</p>' + body + '</section>';
+}
+
 function renderSourceAnswer(markdown) {
   const replacement = '<p class="sd-legacy-diagram-note">' + escapeHtml(text().legacyDiagram) + '</p>';
   return renderMarkdown(markdown).replace(/<figure\s+class=['"]dgm['"][\s\S]*?<\/figure>/gi, replacement);
@@ -147,9 +250,12 @@ function renderDesignArticle(design) {
     + detailRows(text().capacity, design.capacity, 'capacity-constraints')
     + '<section class="sd-section"><h2 id="architecture">' + text().architecture + '</h2>'
     + diagramBlock(design.diagram_title || text().architecture, design.diagram) + '</section>'
-    + detailRows(text().data, design.data_model, 'data-model')
-    + detailRows(text().stack, design.stack, 'technology-choices')
-    + detailRows(text().tradeoffs, design.tradeoffs, 'tradeoffs-failure-review')
+    + decisionSection(text().data, text().dataIntro, design.data_model, [text().dataName, text().dataRole],
+      text().dataChecksTitle, text().dataChecks, 'data-model', 'sd-data-decision')
+    + decisionSection(text().stack, text().stackIntro, design.stack, [text().stackLayer, text().stackReason],
+      text().stackChecksTitle, text().stackChecks, 'technology-choices', 'sd-stack-decision')
+    + tradeoffSection(design.tradeoffs)
+    + renderResearch(design)
     + renderSourceNotes(design) + '</article>';
   return articleShell(header, body);
 }
@@ -190,6 +296,7 @@ function buildToc(root) {
   root.querySelectorAll('[data-sd-section]').forEach(link => link.addEventListener('click', event => {
     event.preventDefault();
     root.querySelector('#' + link.dataset.sdSection)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    link.closest('.sd-toc-mobile')?.removeAttribute('open');
   }));
 }
 

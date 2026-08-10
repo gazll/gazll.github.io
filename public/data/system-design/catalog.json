@@ -1817,6 +1817,144 @@
           "Caching"
         ]
       }
+    },
+    {
+      "n": 18,
+      "slug": "flash-sale-booking-inventory-bottleneck",
+      "category": "product-systems",
+      "effort": "75 min",
+      "source_items": [],
+      "diagram": "flowchart LR\n  C[Web / App] --> W[Edge waiting room]\n  W --> G[API Gateway]\n  G --> S[Search and product read model]\n  S --> CA[(Cache / Search index)]\n  G --> A[Checkout admission control]\n  A --> R[Reservation API]\n  R --> IA[Inventory authority]\n  IA --> DB[(Partitioned inventory and holds)]\n  R --> O[(Order and outbox)]\n  O --> Q[Event log / queue]\n  Q --> P[Payment orchestrator]\n  P --> X[PSP]\n  Q --> E[Availability projection]\n  E --> CA\n  H[Hold expiry and reconciliation] --> IA\n  H --> P",
+      "en": {
+        "title": "Flash-sale booking and inventory: finding and removing the hot-stock bottleneck",
+        "excerpt": "Diagnose why the synchronous Book → Inventory lock → Payment path collapses during double-day promotions, calculate the hot-SKU threshold, and redesign admission, holds and payment for bounded load.",
+        "scope": "The pictured architecture serves one million daily users and roughly ten times normal promotional traffic, but the dangerous number is not daily users or total requests. Product pages multiply reads into inventory checks, while every buyer of one discounted SKU contends on the same stock record or Redis lock. The synchronous Book → Inventory → Payment chain holds scarce connections and inventory ownership across network calls, so latency, retries and payment timeouts feed back into more contention. This design makes the bottleneck measurable, preserves one authoritative reservation decision and lets search, payment and downstream work scale independently.",
+        "functional": [
+          "Serve product/search availability from a versioned projection; revalidate only when creating an authoritative hold.",
+          "Admit a bounded number of checkout attempts per campaign/SKU and return sold-out, queued or retry-after responses before the inventory authority saturates.",
+          "Create an idempotent hold with quantity, fencing version and expiry using one atomic conditional write; never keep a database transaction open while calling payment.",
+          "Run authorize/capture and order confirmation as a durable saga, release expired or failed holds and reconcile unknown PSP outcomes.",
+          "Expose campaign state, queue position and truthful pending/sold-out results so clients do not poll inventory aggressively."
+        ],
+        "quality": [
+          "Confirmed plus active-held quantity never exceeds sellable stock; Redis cache or lock loss cannot violate this invariant.",
+          "Search remains available during checkout overload, and overload for one campaign/SKU cannot consume every DB connection or worker.",
+          "The API is idempotent across client retry, gateway retry, queue redelivery and payment callback duplication.",
+          "p99 hold latency stays within the admission deadline; once the queue cannot drain inside the business window, reject rather than hide demand in an unbounded backlog.",
+          "Every hold, expiry, payment and compensation transition is auditable and can be replayed or reconciled without mutating history."
+        ],
+        "capacity": [
+          "Baseline: 1M DAU does not imply high throughput—uniform traffic is only 11.6 user arrivals/s. Model the launch window: 50k users refreshing five times in 60 seconds produces about 4,167 edge requests/s before images and retries.",
+          "Read amplification: if a page checks 20 SKUs separately, 4,000 page requests/s becomes 80,000 inventory lookups/s. Batch the read, serve a denormalized projection/cache, and remove authoritative inventory from the browse path.",
+          "Hot-SKU serialization: capacity is approximately 1 / critical-section time. A 12 ms atomic reservation has a theoretical ceiling near 83 reservations/s for one serialized key; operate around 60–70% (about 50–58/s) to leave failover and variance headroom.",
+          "If lock/transaction time rises to 25 ms under WAL, replication or index pressure, the same SKU falls to 40/s theoretical and roughly 24–28/s safe. Ten application replicas do not raise this per-key limit; they only create more waiters.",
+          "Connection bound: 120 usable DB connections with 40 ms average transaction time suggests 3,000 tx/s only when work is independent. One hot row remains limited by its serial service time; if synchronous payment holds each connection for 0.8 s, the same pool has a theoretical ceiling of only 150 checkout/s.",
+          "Example admission: benchmark p99 atomic hold at 12 ms, choose 50 hold attempts/s per hot SKU, cap the waiting room at 10 seconds (500 admitted attempts), and reject/mark sold-out beyond it. These are planning numbers, not product guarantees.",
+          "Find the real knee with a production-shaped pgbench/custom load test: Poisson arrivals plus a flash burst, realistic hot-SKU skew, WAL/replica settings and indexes. Increase target rate until schedule lag, p99 lock wait, serialization retry or error budget rises non-linearly; set the production limit below that point.",
+          "Capacity SLOs: DB pool below 70%, p99 lock wait below 20 ms, hold success response below 250 ms, oldest admitted request below 2 s, payment pending age bounded by provider SLA, and zero negative inventory."
+        ],
+        "diagram_title": "Bounded flash-sale path with authoritative holds",
+        "data_model": [
+          "Campaign/SKU policy — campaign_id, sku_id, sellable quota, per-user limit, admission rate, burst, start/end time and policy version.",
+          "Inventory position — sku/warehouse partition key, on_hand, reserved, sold, safety stock and monotonic version; enforce reserved + sold ≤ sellable in the authoritative transaction.",
+          "Hold — hold_id, sku, user, quantity, state, idempotency key/fingerprint, fencing version and expires_at; one active hold per business key where policy requires it.",
+          "Order saga — order state, hold reference, payment reference, attempt/deadline and next action; pending and unknown are explicit states.",
+          "Outbox/inbox — stable event ID, aggregate/version, payload schema and publish/consume status for idempotent propagation.",
+          "Availability projection — campaign/SKU, approximate remaining band, version and observed_at; optimized for browse and never authoritative for confirmation."
+        ],
+        "stack": [
+          "Edge waiting room/CDN — absorbs synchronized refreshes and releases signed admission tokens at a rate the checkout path has measured it can sustain; alternative is immediate 429/sold-out for very short campaigns.",
+          "API gateway limiter — limits per campaign, SKU, account and device/API key; weighted checkout cost is more useful than IP-only request count behind NAT or bot networks.",
+          "PostgreSQL/MySQL inventory authority — conditional UPDATE or short SELECT FOR UPDATE transaction with unique constraints; preferred when oversell is unacceptable because correctness survives cache loss.",
+          "Redis — excellent for waiting-room counters, admission tokens, cached availability and optional atomic reservation when bounded loss/repair is explicitly accepted; a TTL lock alone is not the stock source of truth.",
+          "Kafka/RabbitMQ plus transactional outbox — payment, notification, projection and analytics leave the reservation transaction; consumers are idempotent and expose oldest-message age and DLQ ownership.",
+          "Durable workflow/orchestrator — owns hold → payment → confirm/release deadlines and status queries; cron-only compensation is simpler but reacts slowly and hides per-order progress.",
+          "Observability — trace admission-to-hold-to-payment, measure per-SKU lock wait/attempt/success without SKU as an unbounded metric label, and log sampled high-cardinality campaign/SKU details."
+        ],
+        "tradeoffs": [
+          "Synchronous payment gives a final response but holds threads, connections and possibly stock during the slowest dependency. A saga returns pending sooner and adds idempotency, reconciliation and a more complex user contract.",
+          "Database conditional updates give the clearest invariant and a per-hot-key serial ceiling. Redis atomic scripts are faster but move durability, failover and repair assumptions into application correctness.",
+          "A waiting room protects the system and improves fairness, but exact queue position is expensive and misleading under abandonment; return a band or estimated wait instead.",
+          "A longer hold TTL improves checkout completion while reducing inventory utilization and enabling hoarding. Use a short base TTL, per-user caps and policy-controlled extension after payment authorization begins.",
+          "Partitioning by SKU spreads different products but never scales one viral SKU. For that key, reduce critical-section time, pre-split a quota into fenced buckets or serialize commands in one partition and accept bounded throughput.",
+          "Pre-allocating stock to cells/regions removes a global write hop and contains failure, but stranded quota can show sold-out in one cell while another has stock; rebalance only through fenced quota transfer.",
+          "Queueing smooths a burst only when drain rate exceeds sustainable arrivals soon enough. If 2,000 attempts/s enter a 50/s hot-SKU worker, backlog grows 1,950/s; after ten seconds it already needs about 390 seconds to drain, so rejection is the honest response.",
+          "Failure review: test Redis loss, DB primary failover, an expired hold racing with payment success, duplicated payment callbacks, outbox lag, bot-distributed identities and a client retry storm after a gateway timeout."
+        ],
+        "tags": [
+          "Flash sale",
+          "Hot SKU",
+          "Inventory",
+          "Admission control",
+          "Queueing",
+          "Capacity"
+        ]
+      },
+      "vi": {
+        "title": "Booking và inventory mùa flash sale: tìm và gỡ bottleneck tồn kho nóng",
+        "excerpt": "Phân tích vì sao đường synchronous Book → lock Inventory → Payment sụp khi chạy khuyến mãi/ngày đôi, tính ngưỡng hot SKU và thiết kế lại admission, hold, payment theo tải hữu hạn.",
+        "scope": "Kiến trúc trong hình phục vụ một triệu người dùng hằng ngày và khoảng mười lần traffic khi khuyến mãi, nhưng con số nguy hiểm không phải DAU hay tổng request. Trang sản phẩm khuếch đại read thành nhiều inventory check, trong khi mọi buyer của một SKU giảm giá cùng tranh chấp một stock row hoặc Redis lock. Chuỗi synchronous Book → Inventory → Payment giữ connection và quyền sở hữu inventory qua network call, khiến latency, retry và payment timeout tạo positive feedback làm contention nặng hơn. Thiết kế này biến bottleneck thành số đo được, giữ một quyết định reservation authoritative và cho search, payment, downstream scale độc lập.",
+        "functional": [
+          "Serve availability cho product/search từ projection có version; chỉ revalidate khi tạo hold authoritative.",
+          "Admit số checkout attempt hữu hạn theo campaign/SKU và trả sold-out, queued hoặc retry-after trước khi inventory authority saturation.",
+          "Tạo hold idempotent có quantity, fencing version và expiry bằng một atomic conditional write; không giữ database transaction khi gọi payment.",
+          "Chạy authorize/capture và order confirmation bằng durable saga, release hold hết hạn/thất bại và reconcile PSP outcome mơ hồ.",
+          "Expose campaign state, queue position và pending/sold-out trung thực để client không poll inventory hung hãn."
+        ],
+        "quality": [
+          "Tổng confirmed và active-held không vượt sellable stock; mất Redis cache/lock không được làm vỡ invariant này.",
+          "Search vẫn available khi checkout overload, và overload của một campaign/SKU không ăn hết DB connection hoặc worker.",
+          "API idempotent qua client retry, gateway retry, queue redelivery và payment callback duplicate.",
+          "p99 hold latency nằm trong admission deadline; khi queue không drain kịp business window phải reject thay vì giấu demand trong backlog vô hạn.",
+          "Mọi transition hold, expiry, payment và compensation đều audit/replay/reconcile được mà không mutate history."
+        ],
+        "capacity": [
+          "Baseline: 1M DAU không đồng nghĩa throughput cao — nếu đều chỉ là 11,6 user arrival/s. Cần model launch window: 50k user refresh năm lần trong 60 giây tạo khoảng 4.167 edge request/s, chưa tính image và retry.",
+          "Read amplification: nếu mỗi page check riêng 20 SKU, 4.000 page request/s biến thành 80.000 inventory lookup/s. Phải batch read, serve projection/cache denormalized và bỏ inventory authoritative khỏi browse path.",
+          "Hot-SKU serialization: capacity xấp xỉ 1 / thời gian critical section. Atomic reservation 12 ms có trần lý thuyết gần 83 reservation/s cho một key serialized; chỉ vận hành 60–70% (khoảng 50–58/s) để chừa headroom cho variance/failover.",
+          "Nếu lock/transaction tăng lên 25 ms do WAL, replication hoặc index pressure, cùng SKU chỉ còn 40/s lý thuyết và khoảng 24–28/s an toàn. Mười app replica không tăng per-key limit; chúng chỉ tạo thêm waiter.",
+          "Connection bound: 120 DB connection dùng được với transaction trung bình 40 ms gợi ý 3.000 tx/s chỉ khi work độc lập. Một hot row vẫn bị giới hạn bởi serial service time; nếu synchronous payment giữ mỗi connection 0,8 giây thì cùng pool chỉ còn trần lý thuyết 150 checkout/s.",
+          "Ví dụ admission: benchmark p99 atomic hold 12 ms, chọn 50 hold attempt/s cho mỗi hot SKU, cap waiting room 10 giây (500 attempt đã admit), reject/mark sold-out phần vượt. Đây là planning number, không phải guarantee chung.",
+          "Tìm knee thật bằng pgbench/custom load test giống production: Poisson arrival cộng flash burst, hot-SKU skew thật, WAL/replica/index thật. Tăng target rate tới khi schedule lag, p99 lock wait, serialization retry hoặc error budget tăng phi tuyến; đặt production limit thấp hơn điểm đó.",
+          "Capacity SLO: DB pool dưới 70%, p99 lock wait dưới 20 ms, hold response dưới 250 ms, oldest admitted request dưới 2 giây, payment pending age theo provider SLA và zero negative inventory."
+        ],
+        "diagram_title": "Flash-sale path hữu hạn với hold authoritative",
+        "data_model": [
+          "Campaign/SKU policy — campaign_id, sku_id, sellable quota, per-user limit, admission rate/burst, start/end và policy version.",
+          "Inventory position — partition key sku/warehouse, on_hand, reserved, sold, safety stock và monotonic version; enforce reserved + sold ≤ sellable trong transaction authoritative.",
+          "Hold — hold_id, sku, user, quantity, state, idempotency key/fingerprint, fencing version và expires_at; một active hold trên mỗi business key khi policy yêu cầu.",
+          "Order saga — order state, hold/payment reference, attempt/deadline và next action; pending/unknown là state rõ ràng.",
+          "Outbox/inbox — stable event ID, aggregate/version, payload schema và publish/consume status cho propagation idempotent.",
+          "Availability projection — campaign/SKU, approximate remaining band, version và observed_at; tối ưu browse và không authoritative khi confirm."
+        ],
+        "stack": [
+          "Edge waiting room/CDN — hấp thụ synchronized refresh và phát signed admission token theo rate checkout path đã đo là chịu được; campaign rất ngắn có thể chọn 429/sold-out ngay.",
+          "API gateway limiter — limit theo campaign, SKU, account và device/API key; weighted checkout cost hữu ích hơn IP-only count sau NAT hoặc bot network.",
+          "PostgreSQL/MySQL inventory authority — conditional UPDATE hoặc transaction SELECT FOR UPDATE rất ngắn kèm unique constraint; phù hợp khi không chấp nhận oversell vì correctness sống qua cache loss.",
+          "Redis — phù hợp cho waiting-room counter, admission token, cached availability và optional atomic reservation nếu bounded loss/repair được chấp nhận rõ; TTL lock đơn lẻ không phải stock source of truth.",
+          "Kafka/RabbitMQ + transactional outbox — đưa payment, notification, projection và analytics ra khỏi reservation transaction; consumer idempotent, quan sát oldest-message age và có DLQ owner.",
+          "Durable workflow/orchestrator — sở hữu deadline hold → payment → confirm/release và status query; cron-only compensation đơn giản hơn nhưng phản ứng chậm, giấu progress từng order.",
+          "Observability — trace admission-to-hold-to-payment, đo lock wait/attempt/success theo SKU mà không dùng SKU làm metric label vô hạn, log high-cardinality campaign/SKU theo sampling."
+        ],
+        "tradeoffs": [
+          "Synchronous payment trả final response nhưng giữ thread, connection và có thể cả stock qua dependency chậm nhất. Saga trả pending sớm hơn nhưng thêm idempotency, reconciliation và user contract phức tạp.",
+          "Database conditional update cho invariant rõ nhất và có serial ceiling theo hot key. Redis atomic script nhanh hơn nhưng đưa assumption durability, failover và repair vào correctness của application.",
+          "Waiting room bảo vệ hệ thống và tăng fairness, nhưng exact queue position đắt và gây hiểu nhầm khi user abandon; nên trả range hoặc estimated wait.",
+          "Hold TTL dài tăng checkout completion nhưng giảm inventory utilization và tạo cơ hội hoarding. Dùng base TTL ngắn, per-user cap và chỉ extend theo policy sau khi bắt đầu payment authorization.",
+          "Partition theo SKU phân tán các product khác nhau nhưng không scale một viral SKU. Với key đó phải giảm critical-section time, pre-split quota thành fenced bucket hoặc serialize command trong một partition và chấp nhận bounded throughput.",
+          "Pre-allocate stock theo cell/region bỏ global write hop và giới hạn blast radius, nhưng quota có thể mắc kẹt khiến một cell báo sold-out trong khi cell khác còn hàng; chỉ rebalance qua fenced quota transfer.",
+          "Queue chỉ làm phẳng burst nếu drain rate sớm vượt sustainable arrival. Nếu 2.000 attempt/s vào worker hot-SKU 50/s, backlog tăng 1.950/s; sau 10 giây đã cần khoảng 390 giây để drain, vì vậy reject mới là phản hồi trung thực.",
+          "Failure review: test Redis loss, DB primary failover, expired hold race với payment success, duplicate payment callback, outbox lag, bot dùng distributed identity và client retry storm sau gateway timeout."
+        ],
+        "tags": [
+          "Flash sale",
+          "Hot SKU",
+          "Inventory",
+          "Admission control",
+          "Queueing",
+          "Capacity"
+        ]
+      }
     }
   ],
   "case_overviews": {
