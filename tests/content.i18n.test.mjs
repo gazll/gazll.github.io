@@ -18,6 +18,8 @@ const pub = path.join(root, 'public');
 
 const MANIFEST = JSON.parse(await readFile(path.join(pub, 'data/manifest.json'), 'utf8'));
 const META = JSON.parse(await readFile(path.join(pub, 'data/meta.json'), 'utf8'));
+const TRACK_ROWS = MANIFEST.topics.filter(row => !row.surface || row.surface === 'track');
+const PARTIAL_SYSTEM_DESIGN_IDS = MANIFEST.topics.flatMap(row => row.system_design_items || []);
 const TOPIC_FILES = new Map();
 const TOPIC_VI_FILES = new Map();
 for (const row of MANIFEST.topics) {
@@ -55,12 +57,34 @@ const topic = (Content, n) => Content.topics.find(t => t.n === n);
 
 beforeEach(() => { delete globalThis.fetch; });
 
-test('English is the default language and every topic loads, including microservice', async () => {
+test('English is the default language and every Study Track topic loads, including microservice', async () => {
   const { Content } = await load();
   assert.equal(Content.lang, 'en');
   await Content.load();
-  assert.equal(Content.topics.length, MANIFEST.topics.length);
+  assert.equal(Content.topics.length, TRACK_ROWS.length);
   assert.equal(topic(Content, 25).topic_type, 'microservice');
+});
+
+test('moved System Design sources leave the Study Track but remain available by immutable item id', async () => {
+  const { Content } = await load();
+  await Content.load();
+
+  assert.equal(topic(Content, 10), undefined);
+  assert.equal(topic(Content, 11), undefined);
+  for (const row of MANIFEST.topics.filter(candidate => candidate.surface === 'system-design')) {
+    const source = TOPIC_FILES.get('data/' + row.file);
+    for (const item of source.sections.flatMap(section => section.items)) {
+      const pair = Content.itemPair(item.id);
+      assert.equal(pair.en.q, item.q, item.id);
+      assert.ok(pair.vi?.q, `${item.id} lost its Vietnamese companion`);
+    }
+  }
+  const visibleTopic16Ids = topic(Content, 16).sections.flatMap(section => section.items.map(item => item.id));
+  for (const id of PARTIAL_SYSTEM_DESIGN_IDS) {
+    assert.equal(visibleTopic16Ids.includes(id), false, `${id} still appears in Study Track`);
+    assert.ok(Content.itemPair(id)?.en?.q, `${id} is no longer addressable by immutable id`);
+    assert.ok(Content.itemPair(id)?.vi?.q, `${id} lost its Vietnamese companion`);
+  }
 });
 
 test('every bilingual item uses the final four-key schema', () => {
@@ -110,7 +134,7 @@ test('a stored language choice is honoured, and both languages are fetched upfro
 test('a missing .vi.json degrades to the English base instead of throwing', async () => {
   const { Content } = await load({ dropVi: true });
   await Content.load();
-  assert.equal(Content.topics.length, MANIFEST.topics.length);
+  assert.equal(Content.topics.length, TRACK_ROWS.length);
 
   await Content.setLang('vi');
   // No VI file fetched successfully, so VI uses the complete English base.

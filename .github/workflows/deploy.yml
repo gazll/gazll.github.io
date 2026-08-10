@@ -44,11 +44,6 @@ jobs:
             exit 1
           fi
 
-          if grep -RInE 'console\.(log|info|warn|error|debug)|Logger\.log' public apps-script; then
-            echo "::error::Runtime console logging is disabled to prevent accidental data leaks."
-            exit 1
-          fi
-
       # Read from Secrets. Note these are not actually secret — the browser
       # needs both, so they are readable in the deployed page source. Storing
       # them here only keeps them out of the repo; real protection is the ID
@@ -76,33 +71,12 @@ jobs:
             echo "export const SCRIPT_URL = $(jq -rn --arg v "$SCRIPT_URL" '$v | @json');"
           } > public/config.js
 
-      # No build step, so this is the only guard against a typo shipping.
-      # stdin + --input-type=module: states ESM instead of relying on the
-      # runner's Node version auto-detecting it.
-      - name: Check JavaScript syntax
-        run: |
-          fail=0
-          for f in $(find public -name '*.js' | sort); do
-            node --input-type=module --check < "$f" || { echo "FAIL $f"; fail=1; }
-          done
-          [ "$fail" -eq 0 ] || exit 1
-
-      - name: Validate content.json
-        run: node tools/validate-content.mjs
-
-      - name: Run regression tests
-        env:
-          NODE_NO_WARNINGS: '1'
-        run: |
-          node --experimental-vm-modules --test \
-            tests/security.test.mjs \
-            tests/interviews.merge.test.mjs \
-            tests/auth.state.test.mjs \
-            tests/content.i18n.test.mjs \
-            tests/case-studies.test.mjs \
-            tests/assets.version.test.mjs \
-            tests/release-notes.test.mjs \
-            tests/dsa-anim.test.mjs
+      # One entrypoint, shared with local development: content validation,
+      # ESM syntax of every shipped module, the console-logging ban and every
+      # tests/*.test.mjs. Test files are discovered from disk, so adding one
+      # does not also require editing this workflow.
+      - name: Run checks
+        run: node tools/check.mjs
 
       # Stamp only the artifact that will be uploaded. Tests intentionally run
       # against the source module paths before their deploy-only ?v= query.
@@ -111,13 +85,10 @@ jobs:
           GAZL_DEPLOY_SHA: ${{ github.sha }}
         run: node tools/stamp-assets.mjs "$GAZL_DEPLOY_SHA"
 
+      # Re-parse after stamping: the rewrite touches every import specifier,
+      # so a bad substitution would otherwise ship as a blank page.
       - name: Check stamped JavaScript syntax
-        run: |
-          fail=0
-          for f in $(find public -name '*.js' | sort); do
-            node --input-type=module --check < "$f" || { echo "FAIL $f"; fail=1; }
-          done
-          [ "$fail" -eq 0 ] || exit 1
+        run: node tools/check.mjs --only syntax
 
       - uses: actions/configure-pages@v6
 

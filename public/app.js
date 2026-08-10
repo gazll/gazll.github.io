@@ -11,12 +11,22 @@
 import { renderMarkdown, escapeHtml } from './lib/markdown.js';
 import { chevSVG, BADGE, debounce } from './lib/ui.js';
 import { Content } from './lib/content.js';
+import { copyText } from './lib/clipboard.js';
+import {
+  findQuestion,
+  questionHash,
+  questionIdFromRoute,
+  questionUrl,
+  systemDesignQuestionHash
+} from './lib/question-links.js';
+import { SystemDesign } from './lib/system-design.js';
 import { TOPIC_TYPES, TOPIC_TYPE_LABEL } from './lib/constants.js';
 import { Store } from './lib/store.js';
 import { Auth, mountAuthUI } from './lib/auth.js';
 import { renderInterviews, mountInterviews } from './views/interviews.js';
 import { renderStats, mountStats } from './views/stats.js';
 import { renderAdmin, mountAdmin } from './views/admin.js';
+import { renderSystemDesign, mountSystemDesign } from './views/system-design.js';
 import { renderCaseStudies, mountCaseStudies } from './views/case-studies.js';
 import { renderReleaseNotes, mountReleaseNotes } from './views/release-notes.js';
 import { mountDsaPlayers, stopDsaPlayers } from './views/dsa-player.js';
@@ -46,6 +56,11 @@ const LANG_FLAG = {
 const panel = document.getElementById('panel');
 const dots = document.getElementById('dots');
 
+const COPY_LINK_SVG = '<svg class="qcopy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"'
+  + ' stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+  + '<path d="M10.5 13.5a4.5 4.5 0 0 0 6.4.1l2.2-2.2A4.5 4.5 0 0 0 12.7 5l-1.3 1.3"/>'
+  + '<path d="M13.5 10.5a4.5 4.5 0 0 0-6.4-.1l-2.2 2.2A4.5 4.5 0 0 0 11.3 19l1.3-1.3"/></svg>';
+
 /* ---------- Views / navigation ---------- */
 const GUIDE_MD = [
   'This is an **all-in-one** site. The ☰ button opens the **navigation panel**, grouped into `Technical` (study & practice), `Experience` (real-world case studies), `Tools` (standalone utilities) and `Other`. Every view has its own URL (e.g. `#/guide`), so any of them can be shared or bookmarked.',
@@ -64,13 +79,15 @@ const GUIDE_MD = [
   ':::deep Storage and languages',
   'Progress, notes and the interview journal are written to `localStorage` immediately, then synced to a **Google Sheet** through Apps Script once you are signed in with Google. Losing the network or closing the tab mid-save costs nothing — the queue lives in `localStorage` and is resent on the next visit.',
   '',
-  'The study material lives under `data/` (JSON + Markdown): `data/manifest.json` lists every topic — including the Microservices track, filed as topic_type `microservice` like any other — and points at its `data/topics/NN-slug.json` file; `data/meta.json` holds each topic\'s label/title/intro/tags. Supported syntax: **bold**, *italic*, `code`, `-` lists, and three callout blocks — `:::tip Label`, `:::warn Label`, `:::deep`.',
+  'The study material lives under `data/` (JSON + Markdown): `data/manifest.json` lists every numbered source and points at its `data/topics/NN-slug.json` file; `data/meta.json` holds each topic\'s label/title/intro/tags. A manifest row with `surface: "system-design"` remains available for stable references but is presented in the dedicated Experience library instead of Study Track. Supported syntax: **bold**, *italic*, `code`, `-` lists, and three callout blocks — `:::tip Label`, `:::warn Label`, `:::deep`.',
   '',
   'The interface is always English. The **material** has an `EN`/`VI` switch in the header. Every topic\'s base file (`data/topics/NN-slug.json`) is complete English and every `NN-slug.vi.json` companion is complete Vietnamese. Both are loaded up front, and the header switch selects which complete version to read. If a Vietnamese companion cannot be loaded, VI mode gracefully displays the English base instead of failing.',
   '',
   'Every topic carries a `topic_type` field (`core` · `data` · `design` · `platform` · `algorithm` · `microservice`, from `lib/constants.js`) — that is what drives the filter chips in the topic picker. Every item carries a `difficulty` (`core` · `hard` · `ext`) — the ESSENTIAL/ADVANCED/EXTRA badge.',
   '',
   'Raw HTML (SVG diagrams, tables) can be embedded straight into the Markdown. To update content: edit the topic\'s file under `data/topics/`, then `git push` — GitHub Actions deploys it.',
+  '',
+  '**System Design** is a long-form Experience library driven by `data/system-design/catalog.json`. Each blueprint follows the same review shape — framing, functional and quality requirements, capacity, architecture, data model, technology choices and trade-offs — and keeps its diagram as editable Mermaid source. Topic 10–11 deep dives plus the OTA/whiteboard overlap from Topic 16 are mapped into these articles by immutable item id; the architecture category moved from Case Studies is preserved there as production evidence.',
   '',
   'The 15 patterns in **DSA & LeetCode** are *animated*: press play and each step runs in turn, or scrub and arrow-key through them. Frames live in `data/dsa-animations.json` and were produced by running the real algorithm, so the animation cannot disagree with the code beside it. The drawing is shared between languages and only the step captions are translated.',
   '',
@@ -103,7 +120,9 @@ const VIEWS = [
   { id: 'admin', sec: 'technical', label: 'Admin', desc: 'All-user overview', icon: 'admin',
     render: renderAdmin, mount: mountAdmin, when: () => Auth.isAdmin },
 
-  { id: 'case-studies', sec: 'experience', label: 'Case Studies', desc: 'Real systems, trade-offs & growth', icon: 'case',
+  { id: 'system-design', sec: 'experience', label: 'System Design', desc: 'Blueprints, diagrams & trade-offs', icon: 'design',
+    render: renderSystemDesign, mount: mountSystemDesign },
+  { id: 'case-studies', sec: 'experience', label: 'Case Studies', desc: 'Data, mobile & engineering stories', icon: 'case',
     render: renderCaseStudies, mount: mountCaseStudies },
 
   { id: 'fshare', sec: 'tool', label: 'Fshare Bulk Copy', desc: 'Collect download links in bulk',
@@ -124,6 +143,7 @@ const ICONS = {
   journal: '<path d="M5 4h11l3 3v13H5z"/><path d="M8 10h8M8 14h5"/>',
   stats: '<path d="M5 19V10M12 19V5M19 19v-6"/>',
   admin: '<path d="M12 3l7 3v5c0 4.2-2.8 7.6-7 10-4.2-2.4-7-5.8-7-10V6z"/>',
+  design: '<path d="M4 5h6v5H4zM14 5h6v5h-6zM9 15h6v5H9z"/><path d="M7 10v2.5h10V10M12 12.5V15"/>',
   case: '<path d="M5 5h14v14H5z"/><path d="M8 9h8M8 13h5M9 5V3h6v2"/>',
   tool: '<path d="M14.5 3.5a5 5 0 0 0-6.1 6.7L3.5 15v5.5H9l4.8-4.9a5 5 0 0 0 6.7-6.1L17 12l-2.5-.5L14 9z"/>',
   guide: '<circle cx="12" cy="12" r="8.5"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.2 3.1c-.6.3-.8.7-.8 1.4"/><path d="M12 17h.01"/>',
@@ -175,24 +195,42 @@ function qcard(it) {
   const done = Store.reviewed.has(it.id) ? ' done' : '';
   // Show the trailing qN, not the whole id — the full string is the Sheet key, too long to read here.
   const seq = (/\.q(\d+)$/.exec(it.id) || [, '?'])[1];
-  // Not a <button>: it's inside .qhead, which is one — nested buttons make the browser silently close the outer one.
   const pair = Content.itemPair(it.id);
+  const safeId = escapeHtml(it.id);
   const langBtn = (pair && pair.vi)
-    ? '<span class="langswitch qlangbtn" role="switch" tabindex="0" data-item-lang="' + Content.lang + '" '
+    ? '<button class="langswitch qlangbtn" type="button" role="switch" data-item-lang="' + Content.lang + '" '
       + 'aria-checked="' + (Content.lang === 'vi') + '" aria-label="Show this question in the other language">'
       + '<span class="lang-label" data-lang="en">EN</span>'
       + '<span class="lang-track" aria-hidden="true"><span class="lang-knob">' + LANG_FLAG[Content.lang] + '</span></span>'
-      + '<span class="lang-label" data-lang="vi">VI</span></span>'
+      + '<span class="lang-label" data-lang="vi">VI</span></button>'
     : '';
-  return '<div class="qcard' + diffClass + done + '" data-qid="' + it.id + '">'
-    + '<button class="qhead" aria-expanded="false">'
-    + '<span class="qid" title="' + it.id + '">Q' + seq + '</span>'
+  const copyBtn = '<button class="qcopy" type="button" data-copy-qid="' + safeId + '"'
+    + ' aria-label="Copy link to this question" title="Copy link to this question">'
+    + COPY_LINK_SVG + '<span class="qcopy-label">Copy link</span></button>';
+  return '<div class="qcard' + diffClass + done + '" id="question-' + safeId + '" data-qid="' + safeId + '">'
+    + '<div class="qtop"><button class="qhead" aria-expanded="false">'
+    + '<span class="qid" title="' + safeId + '">Q' + seq + '</span>'
     + badge
     + '<span class="qtext">' + it.q + '</span>'
-    + '<span class="qmeta">' + langBtn + chevSVG + '</span></button>'
+    + chevSVG + '</button><div class="qmeta">' + copyBtn + langBtn + '</div></div>'
     + '<div class="qbody"><div class="qbody-inner"><div class="answer">'
     + '<div class="answer-body">' + renderMarkdown(it.a) + '</div>' + noteBox(it.id)
     + '</div></div></div></div>';
+}
+
+function showCopyFeedback(button) {
+  const label = button.querySelector('.qcopy-label');
+  button.classList.add('is-copied');
+  button.setAttribute('aria-label', 'Link copied');
+  button.title = 'Link copied';
+  if (label) label.textContent = 'Copied';
+  clearTimeout(button._copyReset);
+  button._copyReset = setTimeout(() => {
+    button.classList.remove('is-copied');
+    button.setAttribute('aria-label', 'Copy link to this question');
+    button.title = 'Copy link to this question';
+    if (label) label.textContent = 'Copy link';
+  }, 1800);
 }
 
 /** Collapse toggling; first open is what marks an item reviewed. */
@@ -213,6 +251,23 @@ function wireQcards(root, onMark) {
         stopDsaPlayers(card);
       }
     });
+
+    const copyBtn = card.querySelector('.qcopy');
+    if (copyBtn) {
+      const activate = async () => {
+        const url = questionUrl(window.location.href, copyBtn.dataset.copyQid);
+        try {
+          await copyText(url);
+          showCopyFeedback(copyBtn);
+        } catch (e) {
+          window.prompt('Copy this link:', url);
+        }
+      };
+      copyBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        activate();
+      });
+    }
 
     const langBtn = card.querySelector('.qlangbtn');
     if (langBtn) {
@@ -235,13 +290,6 @@ function wireQcards(root, onMark) {
         if (knob) knob.innerHTML = LANG_FLAG[next];
       };
       langBtn.addEventListener('click', e => {
-        e.stopPropagation();   // don't also toggle open/close
-        activate();
-      });
-      // role="switch" has no built-in keyboard handling, unlike a real control.
-      langBtn.addEventListener('keydown', e => {
-        if (e.key !== 'Enter' && e.key !== ' ') return;
-        e.preventDefault();    // Space must not also scroll the page
         e.stopPropagation();
         activate();
       });
@@ -452,8 +500,11 @@ function showView(id, routeParts = []) {
   if (v0) document.title = v0.label + ' · Backend Engineering';
   const track = document.getElementById('view-track');
   const host = document.getElementById('view-host');
+  let linkedCard = null;
   if (id === 'track') {
     track.hidden = false; host.hidden = true;
+    linkedCard = showLinkedQuestion(routeParts);
+    if (!linkedCard) redirectMovedQuestion(routeParts);
   } else {
     track.hidden = true; host.hidden = false;
     const v = VIEWS.find(x => x.id === id);
@@ -464,6 +515,23 @@ function showView(id, routeParts = []) {
   }
   paintLangSwitch();
   window.scrollTo({ top: 0 });
+  if (linkedCard) {
+    requestAnimationFrame(() => linkedCard.scrollIntoView({ block: 'start', inline: 'nearest' }));
+  }
+}
+
+/** Preserve shared links after Study Track topics 10–11 moved into System Design. */
+async function redirectMovedQuestion(routeParts) {
+  const questionId = questionIdFromRoute(routeParts);
+  if (!questionId) return;
+  try {
+    const collection = await SystemDesign.load(Content.lang);
+    if (location.hash !== questionHash(questionId)) return;
+    const design = collection.designForSourceItem(questionId);
+    if (!design) return;
+    history.replaceState(null, '', systemDesignQuestionHash(design.slug, questionId));
+    route();
+  } catch (error) {}
 }
 
 /* ---------------------------------------------------------------------
@@ -681,6 +749,27 @@ function renderDay() {
   nextBtn.textContent = current === TOPICS.length - 1 ? 'Finished ✓' : 'Next topic →';
 }
 
+/** Select and reveal the topic named by a question deep link. */
+function showLinkedQuestion(routeParts) {
+  const questionId = questionIdFromRoute(routeParts);
+  const found = findQuestion(TOPICS, questionId);
+  if (!found) return null;
+
+  if (current !== found.topicIndex) {
+    current = found.topicIndex;
+    dots.querySelectorAll('.pdot').forEach((dot, index) => dot.classList.toggle('on', index === current));
+    renderDay();
+    paintTopicButton();
+    paintLangSwitch();
+  }
+
+  const card = [...panel.querySelectorAll('.qcard')]
+    .find(candidate => candidate.dataset.qid === questionId);
+  panel.querySelectorAll('.qcard.link-target').forEach(candidate => candidate.classList.remove('link-target'));
+  if (card) card.classList.add('link-target');
+  return card || null;
+}
+
 function syncToggleAllLabel() {
   const cards = [...panel.querySelectorAll('.qcard')];
   const allOpen = cards.length && cards.every(c => c.classList.contains('open'));
@@ -698,6 +787,9 @@ function updateProgress() {
 
 function goTo(i) {
   if (i < 0 || i >= TOPICS.length) return;
+  if (isTrackActive() && questionIdFromRoute(currentRoute().parts)) {
+    history.replaceState(null, '', '#/track');
+  }
   current = i;
   dots.querySelectorAll('.pdot').forEach((dt, idx) => dt.classList.toggle('on', idx === current));
   renderDay();
@@ -823,7 +915,12 @@ async function init() {
 
 /** Repaints the open view so new data shows (checkmarks, note contents). */
 function refreshCurrentView() {
-  if (isTrackActive()) { renderDay(); updateProgress(); paintTopicButton(); }
+  if (isTrackActive()) {
+    renderDay();
+    updateProgress();
+    paintTopicButton();
+    showLinkedQuestion(currentRoute().parts);
+  }
   else route();
 }
 

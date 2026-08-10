@@ -39,6 +39,7 @@ const COPY = {
 };
 
 const text = () => COPY[Content.lang] || COPY.en;
+const MOVED_TO_SYSTEM_DESIGN = 'systems-architecture';
 const numberLabel = article => String(article.n).padStart(2, '0');
 const languageLabel = article => article.is_translation ? text().translation : text().original;
 
@@ -69,8 +70,10 @@ function renderCard(article, category) {
 }
 
 function renderLibrary(collection) {
-  const articles = collection.articles || [];
-  const categories = collection.categories || [];
+  // Architecture cases now live in the dedicated System Design library.
+  // Direct legacy article URLs remain routable for existing bookmarks.
+  const articles = (collection.articles || []).filter(article => article.category !== MOVED_TO_SYSTEM_DESIGN);
+  const categories = (collection.categories || []).filter(category => category.id !== MOVED_TO_SYSTEM_DESIGN);
   const groups = categories.map(category => {
     const rows = articles.filter(article => article.category === category.id);
     if (!rows.length) return '';

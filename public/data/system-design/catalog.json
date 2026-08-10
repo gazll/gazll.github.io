@@ -1,0 +1,634 @@
+{
+  "version": 1,
+  "library": {
+    "en": {
+      "eyebrow": "Experience · Design from constraints",
+      "title": "System Design Library",
+      "intro": "End-to-end blueprints for turning a product prompt into requirements, capacity ranges, APIs, data ownership, architecture, technology choices and explicit trade-offs. Each design includes editable Mermaid source and the deep-dive notes moved from Study Track."
+    },
+    "vi": {
+      "eyebrow": "Kinh nghiệm · Thiết kế từ ràng buộc",
+      "title": "Thư viện System Design",
+      "intro": "Các blueprint end-to-end để biến một đề bài sản phẩm thành requirements, khoảng tải, API, quyền sở hữu dữ liệu, kiến trúc, lựa chọn công nghệ và trade-off rõ ràng. Mỗi bài có source Mermaid chỉnh sửa được cùng ghi chú chuyên sâu chuyển từ Study Track."
+    }
+  },
+  "production": {
+    "en": {
+      "label": "Systems & Architecture at Scale",
+      "description": "Production evidence from Tiki Engineering, moved here from Case Studies and paired with an editable Mermaid architecture lens."
+    },
+    "vi": {
+      "label": "Hệ thống & Kiến trúc ở quy mô",
+      "description": "Bằng chứng production từ Tiki Engineering, được chuyển từ Case Studies sang đây và bổ sung góc nhìn kiến trúc bằng Mermaid có thể chỉnh sửa."
+    }
+  },
+  "categories": [
+    {
+      "id": "foundations",
+      "en": { "label": "Design Method & Load", "description": "A repeatable review method, the traffic path and the controls that keep a system useful under overload." },
+      "vi": { "label": "Phương pháp thiết kế & Tải", "description": "Khung review lặp lại được, đường đi của traffic và các control giúp hệ thống vẫn hữu ích khi quá tải." }
+    },
+    {
+      "id": "product-systems",
+      "en": { "label": "Product System Blueprints", "description": "Classic product prompts designed through data ownership, critical flows, failure modes and evolution thresholds." },
+      "vi": { "label": "Blueprint hệ thống sản phẩm", "description": "Các đề bài sản phẩm kinh điển được thiết kế qua data ownership, critical flow, failure mode và ngưỡng tiến hoá." }
+    }
+  ],
+  "designs": [
+    {
+      "n": 1,
+      "slug": "design-review-framework",
+      "category": "foundations",
+      "effort": "30–45 min",
+      "source_items": [
+        "10-system-design-rate-limit.framework-building-blocks.q1",
+        "10-system-design-rate-limit.framework-building-blocks.q2",
+        "11-system-design-cases.the-big-prompts.q12"
+      ],
+      "diagram": "flowchart LR\n  R[Requirements] --> E[Capacity range]\n  E --> C[Contracts and data]\n  C --> H[High-level design]\n  H --> D[Critical deep dives]\n  D --> F[Failure and operations]\n  F --> T[Trade-offs and evolution]",
+      "en": {
+        "title": "A repeatable system-design and review framework",
+        "excerpt": "A decision-first workflow that keeps an interview or design review anchored to constraints instead of drifting into a catalogue of technologies.",
+        "scope": "Start with the user journeys, invariants and non-goals. The output is not one perfect diagram; it is a defensible chain from workload and failure model to decisions, consequences and the evidence that would make the team revisit them.",
+        "functional": ["Name the actors, critical journeys and API contracts before drawing services.", "Identify the source of truth and the state transition each write is allowed to perform.", "End with migration, rollback and an explicit list of unresolved questions."],
+        "quality": ["State latency, availability, durability, consistency and recovery targets per journey.", "Separate a correctness invariant from a freshness or performance preference.", "Review operability: ownership, observability, capacity triggers and failure drills."],
+        "capacity": ["Use ranges for active users, peak requests, payload size, retention and hot-key skew.", "Carry units through every estimate and include indexes, replicas, logs, backups and growth.", "Turn the estimate into a benchmark or scaling trigger; arithmetic is input, not proof."],
+        "diagram_title": "The review loop",
+        "data_model": ["Decision record — context, options, choice, consequences and review trigger.", "Workload envelope — average, peak, burst duration, skew and growth assumptions.", "Risk register — invariant, failure mode, detection, mitigation, owner and residual risk."],
+        "stack": ["Diagram: Mermaid source in version control so architecture changes are reviewable as text.", "Decision log: ADRs or RFCs linked to rollout metrics and operational runbooks.", "Validation: load tests, failure injection, schema/contract tests and restore drills chosen from the stated risks."],
+        "tradeoffs": ["A detailed diagram with unstated assumptions is weaker than a small design with explicit boundaries.", "Do not add sharding, multi-region or a broker without naming the measured constraint it solves.", "Every rejected option needs a real advantage; avoid strawmen used only to justify the preferred stack.", "Revisit a choice when workload, regulation, outage cost or team capability crosses a recorded threshold."],
+        "tags": ["Framework", "Capacity", "ADR", "Failure review", "Trade-offs"]
+      },
+      "vi": {
+        "title": "Khung system design và review có thể tái sử dụng",
+        "excerpt": "Workflow bắt đầu từ quyết định, giữ buổi phỏng vấn hoặc design review bám vào ràng buộc thay vì trôi thành danh mục công nghệ.",
+        "scope": "Bắt đầu bằng user journey, invariant và non-goal. Đầu ra không phải một diagram hoàn hảo, mà là chuỗi lập luận bảo vệ được từ workload và failure model tới quyết định, hệ quả và bằng chứng khiến team phải xem lại quyết định đó.",
+        "functional": ["Nêu actor, critical journey và API contract trước khi vẽ service.", "Xác định source of truth cùng state transition mà mỗi write được phép thực hiện.", "Kết thúc bằng migration, rollback và danh sách câu hỏi chưa đóng rõ ràng."],
+        "quality": ["Đặt mục tiêu latency, availability, durability, consistency và recovery theo từng journey.", "Tách correctness invariant khỏi preference về freshness hay performance.", "Review operability: ownership, observability, capacity trigger và failure drill."],
+        "capacity": ["Dùng khoảng cho active user, peak request, payload, retention và hot-key skew.", "Giữ đơn vị trong mọi phép tính và cộng index, replica, log, backup cùng tăng trưởng.", "Biến estimate thành benchmark hoặc scaling trigger; phép tính chỉ là input, không phải bằng chứng."],
+        "diagram_title": "Vòng lặp review",
+        "data_model": ["Decision record — context, option, lựa chọn, consequence và review trigger.", "Workload envelope — average, peak, burst duration, skew và growth assumption.", "Risk register — invariant, failure mode, detection, mitigation, owner và residual risk."],
+        "stack": ["Diagram: source Mermaid trong version control để thay đổi kiến trúc review được như text.", "Decision log: ADR/RFC liên kết với rollout metric và runbook vận hành.", "Validation: load test, failure injection, schema/contract test và restore drill xuất phát từ risk đã nêu."],
+        "tradeoffs": ["Diagram nhiều chi tiết nhưng giấu assumption yếu hơn một design nhỏ có boundary rõ.", "Không thêm sharding, multi-region hay broker nếu chưa nêu measured constraint mà nó giải quyết.", "Option bị loại phải có ưu điểm thật; không dựng strawman chỉ để hợp thức hóa stack yêu thích.", "Review lại khi workload, regulation, outage cost hoặc năng lực team vượt ngưỡng đã ghi."],
+        "tags": ["Framework", "Capacity", "ADR", "Failure review", "Trade-off"]
+      }
+    },
+    {
+      "n": 2,
+      "slug": "traffic-caching-building-blocks",
+      "category": "foundations",
+      "effort": "35 min",
+      "source_items": [
+        "10-system-design-rate-limit.framework-building-blocks.q3",
+        "10-system-design-rate-limit.framework-building-blocks.q4",
+        "10-system-design-rate-limit.framework-building-blocks.q5",
+        "10-system-design-rate-limit.framework-building-blocks.q6"
+      ],
+      "diagram": "flowchart LR\n  U[Client] --> CDN[CDN / edge cache]\n  CDN --> LB[L7 load balancer]\n  LB --> API[Stateless API]\n  API --> L1[Local L1 cache]\n  L1 --> L2[(Distributed L2 cache)]\n  L2 --> DB[(Source of truth)]\n  API -. invalidation .-> L2\n  L2 -. pub/sub .-> L1",
+      "en": {
+        "title": "Traffic distribution and a defensible caching topology",
+        "excerpt": "Place CDN, load balancing, local cache and distributed cache by ownership and consistency needs—not by a generic request-path template.",
+        "scope": "Design the read path for a horizontally scaled service. Decide which responses may be cached, where each copy lives, how it expires or is invalidated, and what happens when cache or origin is slow or unavailable.",
+        "functional": ["Route traffic across healthy instances while preserving required affinity only where justified.", "Serve safe static or public content at the edge and hot application data from bounded caches.", "Propagate invalidation or version keys when several pods keep local copies."],
+        "quality": ["Define acceptable staleness per field or journey, not one TTL for the service.", "Prevent stampede with request coalescing, jitter, stale-while-revalidate or prewarming.", "Bound cache memory, key cardinality and fallback load on the source of truth."],
+        "capacity": ["Estimate hit rate at CDN, L1 and L2 separately; each miss becomes downstream traffic.", "Model a cold deploy and full cache outage, not only steady-state hit rate.", "Track hot-key share, object size, eviction rate and origin headroom."],
+        "diagram_title": "Layered read path and invalidation",
+        "data_model": ["Cache key — namespace, schema version, tenant/authorization dimensions and stable identifier.", "Cache value — compact payload, creation/version metadata and bounded lifetime.", "Invalidation event — entity id, new version, affected cache names and deduplication id."],
+        "stack": ["Edge: CDN for public/static objects with explicit cache-control and purge strategy.", "L1: bounded Caffeine/in-process cache for the hottest safe-to-stale keys.", "L2: Redis-compatible shared cache; relational/document database remains the source of truth."],
+        "tradeoffs": ["L1 removes a network hop but N pods can hold N stale versions.", "L2 centralizes invalidation but becomes a network dependency and an overload amplifier on failure.", "Cache-aside is simple but permits stale repopulation around concurrent writes.", "Never cache balances, authorization decisions or checkout prices unless the business invariant explicitly tolerates the copy."],
+        "tags": ["CDN", "Load balancing", "Redis", "Caffeine", "Invalidation"]
+      },
+      "vi": {
+        "title": "Phân phối traffic và topology cache bảo vệ được",
+        "excerpt": "Đặt CDN, load balancer, cache local và cache phân tán theo ownership cùng consistency — không theo một template request path chung chung.",
+        "scope": "Thiết kế read path cho service scale ngang. Quyết định response nào được cache, mỗi bản sao sống ở đâu, hết hạn hoặc invalidate thế nào và chuyện gì xảy ra khi cache hay origin chậm hoặc chết.",
+        "functional": ["Phân phối traffic qua instance khỏe, chỉ giữ affinity khi thật sự có lý do.", "Phục vụ nội dung public/static an toàn ở edge và hot application data từ cache có giới hạn.", "Phát invalidation hoặc version key khi nhiều pod giữ local copy."],
+        "quality": ["Đặt staleness chấp nhận được theo field/journey, không dùng một TTL cho cả service.", "Chống stampede bằng request coalescing, jitter, stale-while-revalidate hoặc prewarm.", "Giới hạn cache memory, key cardinality và fallback load lên source of truth."],
+        "capacity": ["Estimate hit rate riêng ở CDN, L1 và L2; mỗi miss trở thành downstream traffic.", "Mô hình hóa cold deploy và cache outage toàn phần, không chỉ steady-state hit rate.", "Theo dõi hot-key share, object size, eviction rate và origin headroom."],
+        "diagram_title": "Read path nhiều tầng và invalidation",
+        "data_model": ["Cache key — namespace, schema version, chiều tenant/authorization và stable identifier.", "Cache value — payload nhỏ, metadata version/tạo và lifetime hữu hạn.", "Invalidation event — entity id, version mới, cache name bị ảnh hưởng và deduplication id."],
+        "stack": ["Edge: CDN cho object public/static với cache-control và purge strategy rõ.", "L1: Caffeine/in-process cache có giới hạn cho key nóng nhất và cho phép stale.", "L2: Redis-compatible shared cache; relational/document database vẫn là source of truth."],
+        "tradeoffs": ["L1 bỏ network hop nhưng N pod có thể giữ N phiên bản stale.", "L2 gom invalidation nhưng thành network dependency và khuếch đại overload khi chết.", "Cache-aside đơn giản nhưng cho phép stale repopulation quanh concurrent write.", "Không cache balance, authorization decision hay checkout price nếu business invariant không chấp nhận bản sao."],
+        "tags": ["CDN", "Load balancing", "Redis", "Caffeine", "Invalidation"]
+      }
+    },
+    {
+      "n": 3,
+      "slug": "surviving-high-load",
+      "category": "foundations",
+      "effort": "35 min",
+      "source_items": [
+        "10-system-design-rate-limit.surviving-high-load.q1",
+        "10-system-design-rate-limit.surviving-high-load.q2",
+        "10-system-design-rate-limit.surviving-high-load.q3",
+        "10-system-design-rate-limit.surviving-high-load.q4"
+      ],
+      "diagram": "flowchart LR\n  C[Clients] --> A{Admission control}\n  S[Capacity and priority signals] --> A\n  A -->|accepted| Q[Bounded queue]\n  A -->|policy limit| R429[429 + retry policy]\n  A -->|capacity exhausted| R503[503 + load shedding]\n  Q --> W[Worker pool]\n  W --> D[Downstream dependency]\n  D -. latency and saturation .-> S",
+      "en": {
+        "title": "Surviving overload with bounded work",
+        "excerpt": "Protect useful throughput with admission control, backpressure, bounded queues, deadlines and load shedding before every dependency collapses together.",
+        "scope": "Design overload behavior for a service whose incoming work can exceed CPU, connection pools, queues or downstream capacity. The goal is bounded latency and predictable degradation, not accepting every request.",
+        "functional": ["Classify work by tenant, endpoint, cost and business priority before admission.", "Reject, defer or degrade excess work with a contract clients can safely follow.", "Cancel expired work and release resources across every hop."],
+        "quality": ["Bound concurrency and queue age at the earliest boundary that knows request cost.", "Reserve capacity for critical journeys and prevent one tenant from consuming it all.", "Keep retries within budgets with exponential backoff, jitter and end-to-end deadlines."],
+        "capacity": ["Measure service time and safe concurrency for the actual workload mix.", "Include startup lag and dependency budgets before using autoscaling as a response.", "Load-test step spikes, ramps, slow dependencies, queue saturation and recovery."],
+        "diagram_title": "Admission before resource exhaustion",
+        "data_model": ["Admission policy — scope, limit, priority class, cost weight and enforcement mode.", "Request budget — deadline, retry count, idempotency key and cancellation state.", "Overload event — reason, rejected class, saturation signal and recovery timestamp."],
+        "stack": ["Gateway/service limiter for tenant and endpoint policy; concurrency limiter near scarce pools.", "Bounded broker or in-memory queue with visible depth and oldest-message age.", "Metrics and tracing around admitted/rejected work, saturation, deadline expiry and retry amplification."],
+        "tradeoffs": ["A large queue increases apparent acceptance while converting overload into unbounded latency.", "Fail-open may preserve availability but can destroy the dependency the control was protecting.", "Adaptive limits follow workload cost but are control loops that still need hard bounds.", "Autoscaling adds capacity after detection and warmup; headroom or pre-scaling handles known bursts."],
+        "tags": ["Backpressure", "Load shedding", "Bounded queues", "Deadlines", "Autoscaling"]
+      },
+      "vi": {
+        "title": "Sống sót qua overload bằng lượng việc hữu hạn",
+        "excerpt": "Bảo vệ useful throughput bằng admission control, backpressure, bounded queue, deadline và load shedding trước khi mọi dependency cùng sập.",
+        "scope": "Thiết kế hành vi overload cho service có lượng việc tới vượt CPU, connection pool, queue hoặc downstream capacity. Mục tiêu là latency hữu hạn và degradation dự đoán được, không phải nhận mọi request.",
+        "functional": ["Phân loại việc theo tenant, endpoint, cost và business priority trước admission.", "Reject, defer hoặc degrade phần dư bằng contract mà client theo được an toàn.", "Huỷ việc đã hết deadline và giải phóng resource xuyên mọi hop."],
+        "quality": ["Giới hạn concurrency và queue age ở boundary sớm nhất biết cost của request.", "Dành capacity cho critical journey và không để một tenant lấy hết.", "Giữ retry trong budget với exponential backoff, jitter và end-to-end deadline."],
+        "capacity": ["Đo service time và safe concurrency trên workload mix thật.", "Tính startup lag cùng dependency budget trước khi dùng autoscaling làm phản ứng.", "Load-test step spike, ramp, dependency chậm, queue saturation và recovery."],
+        "diagram_title": "Admission trước khi cạn resource",
+        "data_model": ["Admission policy — scope, limit, priority class, cost weight và enforcement mode.", "Request budget — deadline, retry count, idempotency key và cancellation state.", "Overload event — reason, rejected class, saturation signal và recovery timestamp."],
+        "stack": ["Gateway/service limiter cho policy tenant/endpoint; concurrency limiter gần pool khan hiếm.", "Broker hoặc in-memory queue có giới hạn, quan sát được depth và oldest-message age.", "Metrics/tracing cho admitted/rejected work, saturation, deadline expiry và retry amplification."],
+        "tradeoffs": ["Queue lớn làm tăng acceptance bề ngoài nhưng biến overload thành latency vô hạn.", "Fail-open có thể giữ availability nhưng phá dependency mà control đang bảo vệ.", "Adaptive limit theo workload cost nhưng vẫn là control loop cần hard bound.", "Autoscaling thêm capacity sau detection và warmup; headroom/pre-scaling xử lý burst biết trước."],
+        "tags": ["Backpressure", "Load shedding", "Bounded queue", "Deadline", "Autoscaling"]
+      }
+    },
+    {
+      "n": 4,
+      "slug": "distributed-rate-limiter",
+      "category": "product-systems",
+      "effort": "45 min",
+      "source_items": [
+        "10-system-design-rate-limit.rate-limiting-in-depth.q1",
+        "10-system-design-rate-limit.rate-limiting-in-depth.q2",
+        "10-system-design-rate-limit.rate-limiting-in-depth.q3",
+        "10-system-design-rate-limit.rate-limiting-in-depth.q4",
+        "10-system-design-rate-limit.rate-limiting-in-depth.q5",
+        "11-system-design-cases.the-big-prompts.q5",
+        "16-project-concurrency-whiteboard.whiteboard-dsa.q1"
+      ],
+      "diagram": "flowchart LR\n  C[Client] --> G[API gateway]\n  G --> L[Rate-limit agent]\n  P[Policy service] --> L\n  L --> R[(Redis cluster)]\n  L -->|allowed| S[Application service]\n  L -->|blocked| X[429 + Retry-After]\n  L --> M[Decision metrics]\n  R -. degraded mode .-> L",
+      "en": {
+        "title": "Distributed rate limiter as a shared service",
+        "excerpt": "An atomic, partition-aware limiter with explicit scopes, burst semantics, policy rollout and a deliberate fail-open or fail-closed mode.",
+        "scope": "Protect shared APIs across many gateway and service instances. Limits may apply to a user, tenant, credential, IP, endpoint or weighted cost, and must behave predictably under concurrency and Redis failure.",
+        "functional": ["Evaluate versioned policies and return allow/deny plus remaining budget and reset hints.", "Support token bucket for controlled bursts and sliding windows where accuracy justifies cost.", "Expose shadow mode so a new policy can be measured before enforcement."],
+        "quality": ["Keep the decision atomic and bound clock-skew effects across instances.", "Prevent a hot tenant or key from concentrating all work on one Redis shard.", "Define degraded behavior separately for security, billing and best-effort traffic."],
+        "capacity": ["Estimate decision QPS as the sum of every protected request, including retries.", "Size key count from active scopes times policies and include expiry churn.", "Benchmark Lua/function execution, hot keys, failover and cross-region latency."],
+        "diagram_title": "Shared enforcement and policy plane",
+        "data_model": ["Policy — scope selector, algorithm, rate, burst, cost weights, mode and version.", "Counter/bucket — composite scope key, token/count state, timestamp and TTL.", "Decision event — policy version, scope class, allow/deny, remaining budget and bounded reason."],
+        "stack": ["Redis-compatible cluster with server-side atomic script/function for the decision.", "Gateway sidecar/library for low-hop enforcement and a control-plane policy service.", "Metrics stream for shadow decisions, rejections, Redis latency, hot keys and degraded-mode activation."],
+        "tradeoffs": ["Token bucket models bursts naturally; sliding log is more exact and far more expensive.", "Local pre-allocation lowers Redis traffic but permits bounded overshoot across instances.", "Fail-open preserves traffic but removes protection; fail-closed can turn a Redis outage into an application outage.", "One global limiter adds latency; hierarchical global plus local limits trade precision for survivability."],
+        "tags": ["Token bucket", "Sliding window", "Redis", "Atomicity", "Gateway"]
+      },
+      "vi": {
+        "title": "Distributed rate limiter dạng shared service",
+        "excerpt": "Limiter atomic, hiểu partition với scope, burst semantics, policy rollout và chế độ fail-open/fail-closed được quyết định rõ.",
+        "scope": "Bảo vệ API dùng chung qua nhiều gateway và service instance. Limit có thể theo user, tenant, credential, IP, endpoint hay weighted cost và phải hành xử dự đoán được dưới concurrency cùng Redis failure.",
+        "functional": ["Đánh giá policy có version và trả allow/deny cùng remaining budget/reset hint.", "Hỗ trợ token bucket cho burst có kiểm soát và sliding window khi độ chính xác đáng chi phí.", "Có shadow mode để đo policy mới trước khi enforce."],
+        "quality": ["Giữ decision atomic và giới hạn ảnh hưởng clock skew giữa instance.", "Không để hot tenant/key dồn toàn bộ việc vào một Redis shard.", "Định nghĩa degraded behavior riêng cho security, billing và best-effort traffic."],
+        "capacity": ["Estimate decision QPS bằng tổng mọi request được bảo vệ, kể cả retry.", "Sizing key count từ active scope nhân policy và tính expiry churn.", "Benchmark Lua/function, hot key, failover và cross-region latency."],
+        "diagram_title": "Shared enforcement và policy plane",
+        "data_model": ["Policy — scope selector, algorithm, rate, burst, cost weight, mode và version.", "Counter/bucket — composite scope key, token/count state, timestamp và TTL.", "Decision event — policy version, scope class, allow/deny, remaining budget và reason hữu hạn."],
+        "stack": ["Redis-compatible cluster với server-side atomic script/function cho decision.", "Gateway sidecar/library để enforce ít hop và control-plane policy service.", "Metrics stream cho shadow decision, rejection, Redis latency, hot key và degraded mode."],
+        "tradeoffs": ["Token bucket mô hình burst tự nhiên; sliding log chính xác hơn nhưng đắt hơn nhiều.", "Local pre-allocation giảm Redis traffic nhưng cho phép overshoot hữu hạn giữa instance.", "Fail-open giữ traffic nhưng mất bảo vệ; fail-closed có thể biến Redis outage thành app outage.", "Một global limiter tăng latency; global + local phân cấp đổi precision lấy survivability."],
+        "tags": ["Token bucket", "Sliding window", "Redis", "Atomicity", "Gateway"]
+      }
+    },
+    {
+      "n": 5,
+      "slug": "payment-ledger",
+      "category": "product-systems",
+      "effort": "60 min",
+      "source_items": [
+        "11-system-design-cases.the-big-prompts.q1",
+        "11-system-design-cases.the-big-prompts.q11"
+      ],
+      "diagram": "flowchart LR\n  C[Client] --> A[Payment API]\n  A --> I[Idempotency layer]\n  I --> P[Payment orchestrator]\n  P --> L[(Double-entry ledger)]\n  P --> O[(Transactional outbox)]\n  O --> B[Event broker]\n  B --> X[PSP / bank connector]\n  B --> N[Notification]\n  X --> R[Reconciliation]\n  R --> L",
+      "en": {
+        "title": "Correct payment and money-transfer system",
+        "excerpt": "Design money movement around a double-entry ledger, idempotent commands, explicit states, outbox delivery and reconciliation—not around an eventually updated balance field.",
+        "scope": "Accept a transfer or payment command exactly once from the customer's perspective, preserve accounting invariants across retries and external providers, expose a truthful state and recover discrepancies without deleting history.",
+        "functional": ["Create, authorize, capture, reverse or transfer funds through a versioned idempotent API.", "Record balanced debit/credit postings in one local transaction before emitting side effects.", "Reconcile provider statements and surface exceptions for repair with a complete audit trail."],
+        "quality": ["No money is created or destroyed; every posting belongs to a balanced journal transaction.", "A repeated idempotency key returns the original result only when the request fingerprint matches.", "Ledger durability and auditability outrank read-model freshness."],
+        "capacity": ["Separate money commands, balance display reads, history queries and reconciliation batches.", "Budget storage for immutable postings, indexes, outbox, replicas, audit and regulatory retention.", "Load-test lock contention, retry storms, provider timeout and reconciliation backlog."],
+        "diagram_title": "Authoritative ledger and external side effects",
+        "data_model": ["Payment/transfer — id, account parties, amount/currency, state, version and idempotency reference.", "Journal transaction + postings — immutable balanced debit/credit rows with effective time.", "Idempotency record — tenant/key, request fingerprint, status, response reference and expiry policy."],
+        "stack": ["Relational database for ACID ledger transactions and explicit constraints.", "Transactional outbox plus Kafka-compatible broker for downstream and provider work.", "Separate read models/search store for history; scheduled and streaming reconciliation workers."],
+        "tradeoffs": ["Exactly-once transport is not the promise; idempotent effects plus reconciliation close the gap.", "Serializing account updates simplifies correctness but hot accounts can become contention points.", "Available balance may use holds and pending postings; it must not pretend eventual provider state is final.", "Never mutate or delete ledger history to fix a mistake—post a compensating entry."],
+        "tags": ["Double-entry", "Idempotency", "Outbox", "Reconciliation", "Fintech"]
+      },
+      "vi": {
+        "title": "Hệ thống thanh toán và chuyển tiền đúng đắn",
+        "excerpt": "Thiết kế money movement quanh double-entry ledger, idempotent command, state rõ, outbox và reconciliation — không quanh một cột balance cập nhật eventual.",
+        "scope": "Nhận transfer/payment command đúng một lần từ góc nhìn khách hàng, giữ accounting invariant qua retry và external provider, công bố state trung thực và phục hồi discrepancy mà không xoá lịch sử.",
+        "functional": ["Create, authorize, capture, reverse hoặc transfer bằng API versioned và idempotent.", "Ghi balanced debit/credit trong một local transaction trước khi phát side effect.", "Reconcile statement từ provider và đưa exception ra repair flow với audit trail đầy đủ."],
+        "quality": ["Không tạo hoặc làm mất tiền; mọi posting thuộc một journal transaction cân bằng.", "Idempotency key lặp lại chỉ trả kết quả cũ khi request fingerprint khớp.", "Durability và auditability của ledger quan trọng hơn freshness của read model."],
+        "capacity": ["Tách money command, balance display read, history query và reconciliation batch.", "Budget storage cho immutable posting, index, outbox, replica, audit và regulatory retention.", "Load-test lock contention, retry storm, provider timeout và reconciliation backlog."],
+        "diagram_title": "Ledger authoritative và external side effect",
+        "data_model": ["Payment/transfer — id, account party, amount/currency, state, version và idempotency reference.", "Journal transaction + posting — debit/credit immutable, cân bằng, có effective time.", "Idempotency record — tenant/key, request fingerprint, status, response reference và expiry policy."],
+        "stack": ["Relational database cho ACID ledger transaction và constraint rõ.", "Transactional outbox + Kafka-compatible broker cho downstream/provider work.", "Read model/search store riêng cho history; worker reconciliation theo lịch và streaming."],
+        "tradeoffs": ["Không hứa exactly-once transport; idempotent effect + reconciliation mới khép kín khoảng trống.", "Serialize account update làm correctness dễ hơn nhưng hot account có thể contention.", "Available balance có thể dùng hold/pending posting; không được giả state eventual của provider là final.", "Không mutate hoặc delete ledger history để sửa lỗi — ghi compensating entry."],
+        "tags": ["Double-entry", "Idempotency", "Outbox", "Reconciliation", "Fintech"]
+      }
+    },
+    {
+      "n": 6,
+      "slug": "notification-service",
+      "category": "product-systems",
+      "effort": "45 min",
+      "source_items": ["11-system-design-cases.the-big-prompts.q2"],
+      "diagram": "flowchart LR\n  P[Product services] --> A[Notification API]\n  A --> O[Orchestrator]\n  O --> U[(User preferences)]\n  O --> T[Template renderer]\n  O --> Q[Partitioned queues]\n  Q --> E[Email workers]\n  Q --> S[SMS workers]\n  Q --> M[Push workers]\n  E & S & M --> V[External providers]\n  V --> D[(Delivery status)]",
+      "en": {
+        "title": "Multi-channel notification service",
+        "excerpt": "Separate intent, user preference, rendering, scheduling, provider delivery and delivery status so one slow channel cannot stall the others.",
+        "scope": "Accept email, SMS and push intents from product services, respect consent and quiet hours, render versioned templates, schedule or prioritize work, survive provider failures and report an honest delivery state.",
+        "functional": ["Validate a notification intent, recipient, template version, variables and idempotency key.", "Apply user preferences, legal consent, channel fallback, priority and scheduling rules.", "Track accepted, suppressed, queued, sent, delivered and failed states per channel."],
+        "quality": ["At-least-once work must not create unacceptable duplicate messages.", "Provider outage is isolated by channel, tenant and priority with bounded retry queues.", "PII and message content follow retention, encryption and access policies."],
+        "capacity": ["Estimate peak intents separately from provider throughput and callback rate.", "Partition queues to prevent one campaign or tenant from starving transactional messages.", "Budget template/render cost, payload retention, retry amplification and dead-letter growth."],
+        "diagram_title": "Intent orchestration and isolated channel delivery",
+        "data_model": ["Notification intent — tenant, recipient, template/version, variables, schedule, priority and idempotency key.", "Delivery attempt — channel/provider, state, provider id, attempt, error class and next retry.", "Preference/consent — user, channel, category, locale, quiet hours, version and provenance."],
+        "stack": ["Relational store for intent/status/preferences; object store for large immutable template assets.", "Partitioned Kafka/queue topics plus independent channel worker pools and dead-letter handling.", "Provider adapters with circuit breakers, rate limits, webhooks and reconciliation polling."],
+        "tradeoffs": ["One global FIFO preserves order but creates head-of-line blocking across channels.", "Aggressive retry can deepen a provider incident; retry budget and expiry must follow message value.", "Fallback from push to SMS improves reach but changes cost and consent requirements.", "Delivery callback means provider acceptance or device delivery—not that a human read the message."],
+        "tags": ["Email", "SMS", "Push", "Queues", "Preferences"]
+      },
+      "vi": {
+        "title": "Notification service đa kênh",
+        "excerpt": "Tách intent, preference, render, schedule, provider delivery và delivery status để một channel chậm không chặn các channel còn lại.",
+        "scope": "Nhận intent email/SMS/push từ product service, tôn trọng consent và quiet hour, render template có version, schedule/priority, sống qua provider failure và báo delivery state trung thực.",
+        "functional": ["Validate notification intent, recipient, template version, variable và idempotency key.", "Áp user preference, legal consent, channel fallback, priority và scheduling rule.", "Theo dõi accepted, suppressed, queued, sent, delivered và failed theo từng channel."],
+        "quality": ["At-least-once work không được tạo duplicate message không chấp nhận được.", "Provider outage được isolate theo channel, tenant, priority với retry queue hữu hạn.", "PII và message content tuân retention, encryption và access policy."],
+        "capacity": ["Estimate peak intent riêng với provider throughput và callback rate.", "Partition queue để một campaign/tenant không làm transactional message đói.", "Budget render cost, payload retention, retry amplification và dead-letter growth."],
+        "diagram_title": "Điều phối intent và delivery channel tách biệt",
+        "data_model": ["Notification intent — tenant, recipient, template/version, variable, schedule, priority và idempotency key.", "Delivery attempt — channel/provider, state, provider id, attempt, error class và next retry.", "Preference/consent — user, channel, category, locale, quiet hour, version và provenance."],
+        "stack": ["Relational store cho intent/status/preference; object store cho template asset immutable lớn.", "Kafka/queue topic partition cùng channel worker pool độc lập và dead-letter handling.", "Provider adapter có circuit breaker, rate limit, webhook và reconciliation polling."],
+        "tradeoffs": ["Một global FIFO giữ order nhưng gây head-of-line blocking giữa channel.", "Retry mạnh làm incident provider sâu hơn; retry budget/expiry phải theo giá trị message.", "Fallback push sang SMS tăng reach nhưng thay đổi cost và consent requirement.", "Delivery callback chỉ có thể nghĩa provider/device nhận — không phải con người đã đọc."],
+        "tags": ["Email", "SMS", "Push", "Queue", "Preference"]
+      }
+    },
+    {
+      "n": 7,
+      "slug": "url-shortener",
+      "category": "product-systems",
+      "effort": "40 min",
+      "source_items": ["11-system-design-cases.the-big-prompts.q3"],
+      "diagram": "flowchart LR\n  C[Client] --> E[Edge / CDN]\n  E --> R[Redirect service]\n  R --> K[(Hot-link cache)]\n  K --> D[(Link store)]\n  C --> A[Create API]\n  A --> I[ID allocator]\n  A --> D\n  R --> Q[Analytics queue]\n  Q --> W[Analytics warehouse]",
+      "en": {
+        "title": "URL shortener with a fast redirect path",
+        "excerpt": "Keep redirect reads tiny and cacheable while separating custom alias creation, abuse controls, expiration and asynchronous analytics.",
+        "scope": "Create a short code for a validated long URL and redirect it with low latency at a read-heavy scale. Support optional custom aliases and expiry without putting analytics or preview generation on the critical path.",
+        "functional": ["Create a generated or custom short code with ownership, destination and optional expiry.", "Resolve a code to the destination using the chosen permanent or temporary redirect semantics.", "Record clicks asynchronously with bounded privacy, abuse and retention controls."],
+        "quality": ["Redirect remains available and low-latency even when analytics is degraded.", "Prevent enumeration, malicious destinations and alias takeover according to product policy.", "Define read-after-create and update propagation guarantees across cache and regions."],
+        "capacity": ["Estimate redirects versus creates, unique active links, average URL size and retention.", "Model Zipf-like popularity: a small hot set may dominate redirects.", "Budget cache miss rate, storage/index overhead, abuse scans and analytics volume."],
+        "diagram_title": "Read-optimized redirect path",
+        "data_model": ["Link — short code, destination, owner, created/expiry time, status and version.", "Alias reservation — normalized custom code, owner, lifecycle and anti-squatting metadata.", "Click event — code, coarse time/location/device fields and privacy-safe identifiers."],
+        "stack": ["Key-value or relational store indexed by short code; Redis/edge cache for hot redirects.", "Snowflake/range allocation or random base62 codes sized against collision and enumeration needs.", "Queue and analytical warehouse for clicks; asynchronous reputation scanner for destinations."],
+        "tradeoffs": ["Sequential IDs are compact but enumerable; random codes need collision handling.", "301 improves caching but makes destination updates harder; 302/307 keeps server control at higher load.", "Multi-region reads improve latency while alias creation still needs a clear uniqueness authority.", "Negative caching reduces random misses but must expire when a code can later be created."],
+        "tags": ["Redirect", "Base62", "Cache", "Key-value", "Analytics"]
+      },
+      "vi": {
+        "title": "URL shortener với redirect path cực ngắn",
+        "excerpt": "Giữ redirect read nhỏ và cacheable, đồng thời tách custom alias, abuse control, expiration và analytics bất đồng bộ.",
+        "scope": "Tạo short code cho long URL đã validate và redirect latency thấp ở read-heavy scale. Hỗ trợ custom alias/expiry mà không đặt analytics hay preview generation lên critical path.",
+        "functional": ["Tạo code sinh tự động hoặc custom với owner, destination và expiry tuỳ chọn.", "Resolve code sang destination bằng semantics redirect permanent/temporary đã chọn.", "Ghi click bất đồng bộ với privacy, abuse và retention control hữu hạn."],
+        "quality": ["Redirect vẫn available và low-latency khi analytics degraded.", "Chống enumeration, malicious destination và alias takeover theo product policy.", "Định nghĩa read-after-create và update propagation qua cache/region."],
+        "capacity": ["Estimate redirect so với create, active link unique, average URL size và retention.", "Mô hình Zipf: một hot set nhỏ có thể chiếm phần lớn redirect.", "Budget cache miss, storage/index overhead, abuse scan và analytics volume."],
+        "diagram_title": "Redirect path tối ưu cho read",
+        "data_model": ["Link — short code, destination, owner, created/expiry time, status và version.", "Alias reservation — custom code normalized, owner, lifecycle và anti-squatting metadata.", "Click event — code, time/location/device thô và identifier an toàn privacy."],
+        "stack": ["Key-value hoặc relational store index theo short code; Redis/edge cache cho hot redirect.", "Snowflake/range allocation hoặc random base62 theo nhu cầu collision/enumeration.", "Queue + analytical warehouse cho click; reputation scanner bất đồng bộ cho destination."],
+        "tradeoffs": ["Sequential ID gọn nhưng enumerable; random code cần collision handling.", "301 cache tốt nhưng update destination khó; 302/307 giữ server control với load cao hơn.", "Multi-region read giảm latency còn alias creation vẫn cần uniqueness authority rõ.", "Negative cache giảm random miss nhưng phải hết hạn nếu code có thể được tạo sau."],
+        "tags": ["Redirect", "Base62", "Cache", "Key-value", "Analytics"]
+      }
+    },
+    {
+      "n": 8,
+      "slug": "news-feed",
+      "category": "product-systems",
+      "effort": "50 min",
+      "source_items": ["11-system-design-cases.the-big-prompts.q4"],
+      "diagram": "flowchart LR\n  U[Creator] --> W[Post service]\n  W --> P[(Post store)]\n  W --> Q[Fan-out queue]\n  Q --> F[Fan-out workers]\n  F --> T[(Timeline cache)]\n  C[Reader] --> R[Feed service]\n  R --> T\n  R --> P\n  H[High-fanout creators] -. merge on read .-> R\n  R --> K[Ranking service]",
+      "en": {
+        "title": "News feed with hybrid fan-out",
+        "excerpt": "Combine fan-out on write for ordinary creators with merge-on-read for high-fanout accounts, then make ranking and privacy changes explicit.",
+        "scope": "Publish posts and return a paginated home timeline from followed creators. The design must handle celebrity fan-out, privacy and deletion changes, ranking evolution and a feed that can degrade gracefully.",
+        "functional": ["Create a post and distribute or reference it for eligible followers.", "Read a stable cursor-based timeline, hydrate posts and apply final visibility checks.", "Support follow/unfollow, deletion, blocks and privacy changes without permanent leakage."],
+        "quality": ["Posting should not wait for every follower timeline to update.", "Feed reads remain bounded for users following many high-fanout creators.", "Ranking outage falls back to a deterministic chronological or cached feed."],
+        "capacity": ["Estimate posts, feed reads, follows per user, fan-out distribution and hot creators.", "Model write amplification and timeline storage under fan-out on write.", "Budget hydration/cache misses, ranking calls and backfill after worker lag."],
+        "diagram_title": "Hybrid fan-out and ranked read path",
+        "data_model": ["Post — author, content reference, visibility, created time, status and version.", "Follow edge — follower/followee, state, privacy decision and effective time.", "Timeline entry — user, post reference, candidate time/source and ranking features/version."],
+        "stack": ["Durable post store plus graph/follow index; Kafka-compatible fan-out stream.", "Redis/Cassandra-style timeline store for bounded per-user candidate lists.", "Stateless feed hydration and ranking services with feature cache and fallback."],
+        "tradeoffs": ["Fan-out on write makes reads cheap but explodes work for celebrity accounts.", "Fan-out on read avoids write amplification but raises per-read merge cost and latency.", "Materialized timelines can contain stale candidates, so final authorization remains on read.", "Ranking quality must not make the feed unavailable; define a simpler fallback contract."],
+        "tags": ["Fan-out", "Timeline", "Ranking", "Graph", "Kafka"]
+      },
+      "vi": {
+        "title": "News Feed với hybrid fan-out",
+        "excerpt": "Kết hợp fan-out on write cho creator thường với merge-on-read cho account fan-out lớn, rồi nói rõ ranking và privacy change.",
+        "scope": "Publish post và trả home timeline phân trang từ creator đang follow. Design phải xử lý celebrity fan-out, privacy/deletion, ranking evolution và feed degrade có kiểm soát.",
+        "functional": ["Tạo post và distribute/reference nó cho follower đủ điều kiện.", "Đọc timeline cursor ổn định, hydrate post và áp final visibility check.", "Hỗ trợ follow/unfollow, delete, block và privacy change mà không leak vĩnh viễn."],
+        "quality": ["Post không chờ timeline của mọi follower cập nhật xong.", "Feed read hữu hạn cho user follow nhiều high-fanout creator.", "Ranking outage fallback sang chronological hoặc cached feed deterministic."],
+        "capacity": ["Estimate post, feed read, follow/user, fan-out distribution và hot creator.", "Mô hình write amplification và timeline storage với fan-out on write.", "Budget hydration/cache miss, ranking call và backfill sau worker lag."],
+        "diagram_title": "Hybrid fan-out và ranked read path",
+        "data_model": ["Post — author, content reference, visibility, created time, status và version.", "Follow edge — follower/followee, state, privacy decision và effective time.", "Timeline entry — user, post reference, candidate time/source và ranking feature/version."],
+        "stack": ["Durable post store + graph/follow index; Kafka-compatible fan-out stream.", "Redis/Cassandra-style timeline store cho candidate list hữu hạn theo user.", "Feed hydration/ranking stateless với feature cache và fallback."],
+        "tradeoffs": ["Fan-out write làm read rẻ nhưng nổ việc với celebrity.", "Fan-out read tránh write amplification nhưng tăng merge cost và latency mỗi read.", "Materialized timeline có candidate stale nên final authorization vẫn ở read.", "Ranking quality không được làm feed unavailable; cần fallback contract đơn giản hơn."],
+        "tags": ["Fan-out", "Timeline", "Ranking", "Graph", "Kafka"]
+      }
+    },
+    {
+      "n": 9,
+      "slug": "realtime-leaderboard",
+      "category": "product-systems",
+      "effort": "40 min",
+      "source_items": ["11-system-design-cases.the-big-prompts.q6"],
+      "diagram": "flowchart LR\n  G[Game / event producers] --> I[Score ingest]\n  I --> Q[Event log]\n  Q --> V[Validation and scoring]\n  V --> Z[(Sorted-set shards)]\n  V --> A[(Durable score history)]\n  C[Client] --> R[Leaderboard API]\n  R --> Z\n  R --> P[Profile cache]\n  A --> B[Rebuild / audit jobs]",
+      "en": {
+        "title": "Real-time leaderboard",
+        "excerpt": "Serve top-N and around-me ranks from partitioned sorted indexes while keeping an auditable score history and explicit tie/update semantics.",
+        "scope": "Ingest trusted score changes, show global or scoped leaderboards, return a player's rank and nearby competitors, handle seasons and rebuild indexes after corruption or rule changes.",
+        "functional": ["Accept idempotent score events with rule/season context and authorization.", "Read top-N, rank by player and around-player windows with deterministic ties.", "Close a season, retain history and rebuild a derived ranking from durable events."],
+        "quality": ["Leaderboard freshness is bounded while durable score history remains recoverable.", "Hot competitions and celebrity reads do not overload one shard or profile service.", "Anti-cheat and correction workflows leave an audit trail."],
+        "capacity": ["Estimate score updates, rank reads, board scopes, members per board and top-N size.", "Model sorted-index memory, shard skew, season rollover and rebuild time.", "Benchmark update/read contention and large around-me queries."],
+        "diagram_title": "Durable events and derived sorted indexes",
+        "data_model": ["Score event — event id, player, board/season, delta or absolute score, rule version and time.", "Rank member — composite board/player key, score and deterministic tie-break value.", "Season snapshot — closed board, winners, rule version, checksum and archive location."],
+        "stack": ["Kafka-compatible log for score events and replay; validation/scoring consumers.", "Redis sorted sets or a purpose-built ordered index partitioned by board/season.", "Relational/column store for durable history, audit, seasonal snapshots and rebuild."],
+        "tradeoffs": ["One global sorted set is simple until write rate, memory or one hot board exceeds a node.", "Sharding by score range makes top-N easier but moving scores cross shard boundaries.", "Approximate rank can be cheaper at huge scale; product must explicitly accept the error.", "Profiles should be hydrated after rank lookup so profile latency cannot corrupt ordering."],
+        "tags": ["Sorted sets", "Ranking", "Streaming", "Seasons", "Audit"]
+      },
+      "vi": {
+        "title": "Leaderboard real-time",
+        "excerpt": "Phục vụ top-N và around-me từ sorted index có partition, đồng thời giữ score history audit được cùng semantics tie/update rõ.",
+        "scope": "Ingest score change đáng tin, hiển thị leaderboard global/scoped, trả rank và đối thủ xung quanh, xử lý season và rebuild index sau corruption hoặc đổi rule.",
+        "functional": ["Nhận score event idempotent có rule/season context và authorization.", "Đọc top-N, rank theo player và around-player window với tie deterministic.", "Đóng season, giữ history và rebuild ranking derived từ durable event."],
+        "quality": ["Freshness của leaderboard hữu hạn còn durable score history phục hồi được.", "Competition nóng và celebrity read không overload một shard/profile service.", "Anti-cheat và correction workflow để lại audit trail."],
+        "capacity": ["Estimate score update, rank read, board scope, member/board và top-N size.", "Mô hình sorted-index memory, shard skew, season rollover và rebuild time.", "Benchmark update/read contention và around-me query lớn."],
+        "diagram_title": "Durable event và sorted index derived",
+        "data_model": ["Score event — event id, player, board/season, delta/absolute score, rule version và time.", "Rank member — composite board/player key, score và tie-break value deterministic.", "Season snapshot — board đã đóng, winner, rule version, checksum và archive location."],
+        "stack": ["Kafka-compatible log cho score event/replay; validation/scoring consumer.", "Redis sorted set hoặc ordered index chuyên dụng partition theo board/season.", "Relational/column store cho durable history, audit, snapshot và rebuild."],
+        "tradeoffs": ["Một global sorted set đơn giản tới khi write, memory hoặc hot board vượt node.", "Shard theo score range làm top-N dễ hơn nhưng score di chuyển xuyên shard.", "Approximate rank rẻ hơn ở scale rất lớn; product phải chấp nhận sai số rõ.", "Hydrate profile sau rank lookup để profile latency không làm sai ordering."],
+        "tags": ["Sorted set", "Ranking", "Streaming", "Season", "Audit"]
+      }
+    },
+    {
+      "n": 10,
+      "slug": "distributed-cache",
+      "category": "product-systems",
+      "effort": "50 min",
+      "source_items": ["11-system-design-cases.the-big-prompts.q7"],
+      "diagram": "flowchart LR\n  C[Clients] --> R[Routing / hash ring]\n  R --> N1[Cache node A]\n  R --> N2[Cache node B]\n  R --> N3[Cache node C]\n  N1 & N2 & N3 --> P[Replication / failover]\n  M[Cluster metadata] --> R\n  N1 & N2 & N3 --> E[Eviction and expiry]\n  O[Origin loader] -. cache-aside .-> C",
+      "en": {
+        "title": "Redis/Memcached-style distributed cache",
+        "excerpt": "Design routing, partitioning, expiry, eviction, replication and failure behavior for a cache whose misses can threaten the source database.",
+        "scope": "Provide low-latency get/set/delete with TTL across a changing cluster. Decide consistency, replication and eviction semantics and protect the origin during node loss, rebalance and cold start.",
+        "functional": ["Route a key to an owner, store a bounded value with TTL and remove or invalidate it.", "Add/remove nodes with limited key movement and observable rebalance progress.", "Expose hit/miss and conditional operations required by safe client patterns."],
+        "quality": ["Bound memory and latency under hot keys, large values and eviction pressure.", "Define whether failover may return stale data or lose recent cache writes.", "Prevent node failure from turning all misses into an origin stampede."],
+        "capacity": ["Estimate unique active keys, value distribution, TTL churn, operations and network bytes.", "Size for replication, fragmentation, headroom and rebalance—not only payload sum.", "Benchmark hot key, mass expiry, node loss, rolling upgrade and cold restart."],
+        "diagram_title": "Partitioned cache cluster",
+        "data_model": ["Entry — binary key/value, version/CAS token, creation and expiry metadata.", "Cluster map — node identity, token/range ownership, health, generation and replica placement.", "Eviction telemetry — policy, memory class, key/value size bucket and bounded reason."],
+        "stack": ["Consistent hashing or server-side cluster slots with versioned topology discovery.", "In-memory nodes with LRU/LFU approximation, TTL wheel and optional replication.", "Client request coalescing, local hot-key cache and origin protection around cache-aside."],
+        "tradeoffs": ["Client-side sharding removes a proxy hop but makes topology rollout and stale maps harder.", "Replication improves cache availability at memory cost and with possible stale reads.", "Randomized TTL avoids synchronized expiry but changes freshness distribution.", "A cache is disposable data; if rebuilding it can take the origin down, the system is not actually disposable."],
+        "tags": ["Consistent hashing", "Eviction", "TTL", "Replication", "Hot keys"]
+      },
+      "vi": {
+        "title": "Distributed cache kiểu Redis/Memcached",
+        "excerpt": "Thiết kế routing, partition, expiry, eviction, replication và failure behavior cho cache có miss đủ sức đe doạ source database.",
+        "scope": "Cung cấp get/set/delete latency thấp với TTL trên cluster thay đổi. Quyết định consistency, replication, eviction semantics và bảo vệ origin khi mất node, rebalance, cold start.",
+        "functional": ["Route key tới owner, lưu value hữu hạn với TTL và remove/invalidate.", "Thêm/bớt node với lượng key di chuyển giới hạn và thấy được progress rebalance.", "Expose hit/miss và conditional operation cần cho client pattern an toàn."],
+        "quality": ["Giới hạn memory/latency dưới hot key, value lớn và eviction pressure.", "Định nghĩa failover có thể trả stale hoặc mất recent cache write hay không.", "Không để node failure biến mọi miss thành origin stampede."],
+        "capacity": ["Estimate active key unique, value distribution, TTL churn, operation và network byte.", "Sizing replication, fragmentation, headroom, rebalance — không chỉ tổng payload.", "Benchmark hot key, mass expiry, node loss, rolling upgrade và cold restart."],
+        "diagram_title": "Cache cluster có partition",
+        "data_model": ["Entry — binary key/value, version/CAS token, creation và expiry metadata.", "Cluster map — node identity, token/range ownership, health, generation và replica placement.", "Eviction telemetry — policy, memory class, key/value size bucket và reason hữu hạn."],
+        "stack": ["Consistent hashing hoặc server-side cluster slot với topology discovery có version.", "In-memory node có LRU/LFU approximation, TTL wheel và replication tuỳ chọn.", "Client request coalescing, local hot-key cache và origin protection quanh cache-aside."],
+        "tradeoffs": ["Client-side sharding bỏ proxy hop nhưng topology rollout/stale map khó hơn.", "Replication tăng cache availability với memory cost và khả năng stale read.", "TTL random tránh expiry đồng loạt nhưng đổi freshness distribution.", "Cache là disposable data; nếu rebuild làm origin sập thì hệ thống chưa thật sự disposable."],
+        "tags": ["Consistent hashing", "Eviction", "TTL", "Replication", "Hot key"]
+      }
+    },
+    {
+      "n": 11,
+      "slug": "chat-messaging",
+      "category": "product-systems",
+      "effort": "55 min",
+      "source_items": ["11-system-design-cases.the-big-prompts.q8"],
+      "diagram": "flowchart LR\n  C[Clients] <--> W[WebSocket gateways]\n  W --> P[Presence service]\n  W --> M[Message service]\n  M --> Q[Partitioned message log]\n  Q --> S[(Message store)]\n  Q --> F[Fan-out / delivery]\n  F --> W\n  F --> N[Offline push]\n  C --> H[History API]\n  H --> S",
+      "en": {
+        "title": "Real-time chat and messaging",
+        "excerpt": "Separate durable message ordering from ephemeral connections, presence and fan-out while defining what sent, delivered and read actually mean.",
+        "scope": "Support one-to-one and group conversations over long-lived connections, multi-device history sync, offline delivery, presence and receipts without pretending one global order exists.",
+        "functional": ["Send an idempotent message to a conversation and synchronize history across devices.", "Deliver online over WebSocket, notify offline devices and update delivered/read receipts.", "Manage group membership and enforce authorization at the message sequence boundary."],
+        "quality": ["Preserve order within a conversation or partition and state the limit explicitly.", "Gateway loss reconnects without losing durable messages; presence may be eventually consistent.", "Encrypt transport and enforce retention, deletion and abuse controls for message content."],
+        "capacity": ["Estimate concurrent sockets, messages, fan-out by group size, payload and history retention.", "Partition by conversation while accounting for very large or very hot groups.", "Budget reconnect storms, receipt amplification, media references and offline push limits."],
+        "diagram_title": "Ephemeral connections over a durable message log",
+        "data_model": ["Conversation + membership — participants, roles, membership version and last sequence.", "Message — conversation sequence, sender, client idempotency id, content reference and time.", "Device cursor/receipt — user/device, delivered/read sequence and last synchronization state."],
+        "stack": ["Stateless WebSocket gateways with external session/presence discovery.", "Partitioned Kafka-compatible log and durable wide-column/relational message store.", "Push provider adapters and object storage/CDN for media outside the message row."],
+        "tradeoffs": ["Conversation ordering is practical; global ordering is costly and rarely meaningful.", "Presence favors availability and bounded staleness, while membership authorization needs stronger correctness.", "Fan-out per recipient simplifies reads but is expensive for giant groups.", "Receipts are product states with privacy and amplification costs, not free metadata."],
+        "tags": ["WebSocket", "Ordering", "Presence", "Fan-out", "Multi-device"]
+      },
+      "vi": {
+        "title": "Chat và messaging real-time",
+        "excerpt": "Tách durable message ordering khỏi connection ephemeral, presence và fan-out; đồng thời định nghĩa sent, delivered, read thật sự nghĩa gì.",
+        "scope": "Hỗ trợ conversation 1-1/group qua connection dài, sync history multi-device, offline delivery, presence và receipt mà không giả vờ có một global order.",
+        "functional": ["Gửi message idempotent vào conversation và sync history qua nhiều device.", "Deliver online qua WebSocket, notify device offline và cập nhật delivered/read receipt.", "Quản lý group membership và enforce authorization tại boundary sequence message."],
+        "quality": ["Giữ order trong conversation/partition và nói rõ giới hạn đó.", "Gateway mất thì reconnect không mất durable message; presence có thể eventual.", "Encrypt transport và enforce retention, deletion, abuse control cho content."],
+        "capacity": ["Estimate concurrent socket, message, fan-out theo group size, payload và history retention.", "Partition theo conversation nhưng tính giant/hot group.", "Budget reconnect storm, receipt amplification, media reference và offline push limit."],
+        "diagram_title": "Connection ephemeral trên durable message log",
+        "data_model": ["Conversation + membership — participant, role, membership version và last sequence.", "Message — conversation sequence, sender, client idempotency id, content reference và time.", "Device cursor/receipt — user/device, delivered/read sequence và last sync state."],
+        "stack": ["WebSocket gateway stateless với session/presence discovery external.", "Kafka-compatible log partition và durable wide-column/relational message store.", "Push provider adapter + object storage/CDN cho media ngoài message row."],
+        "tradeoffs": ["Conversation ordering thực tế; global ordering đắt và hiếm khi có nghĩa.", "Presence ưu tiên availability/staleness hữu hạn, membership authorization cần correctness mạnh hơn.", "Fan-out mỗi recipient làm read đơn giản nhưng đắt cho giant group.", "Receipt là product state có privacy/amplification cost, không phải metadata miễn phí."],
+        "tags": ["WebSocket", "Ordering", "Presence", "Fan-out", "Multi-device"]
+      }
+    },
+    {
+      "n": 12,
+      "slug": "autocomplete-typeahead",
+      "category": "product-systems",
+      "effort": "40 min",
+      "source_items": ["11-system-design-cases.the-big-prompts.q9"],
+      "diagram": "flowchart LR\n  L[Query and catalog events] --> Q[Event stream]\n  Q --> A[Aggregation pipeline]\n  A --> B[Build ranked prefix model]\n  B --> S[(Versioned suggestion store)]\n  C[Client] --> E[Edge cache]\n  E --> API[Typeahead API]\n  API --> S\n  API --> P[Policy and personalization]\n  S -. atomic version swap .-> API",
+      "en": {
+        "title": "Autocomplete and typeahead",
+        "excerpt": "Build versioned ranked prefix indexes offline or near-line, then serve them from a tiny latency path with abuse, freshness and personalization boundaries.",
+        "scope": "Return a small ranked suggestion list after each keystroke using query, catalog or entity data. Protect users from unsafe suggestions and keep serving when the model-building pipeline is delayed.",
+        "functional": ["Normalize a prefix and return ranked suggestions with display text and destination metadata.", "Build, validate and atomically publish a new suggestion model/version.", "Filter policy-sensitive terms and optionally blend bounded personalization."],
+        "quality": ["Keep end-to-end latency below the interactive budget and cancel stale client requests.", "A broken model rollout can be rolled back instantly to a known version.", "Query logs, personalization and moderation follow privacy and abuse policies."],
+        "capacity": ["Estimate keystrokes per search, active users, prefixes, languages and suggestion count.", "Model prefix popularity and edge/cache hit rate; very short prefixes are hottest.", "Budget model size, build duration, incremental update lag and version rollout memory."],
+        "diagram_title": "Versioned build pipeline and low-latency serving",
+        "data_model": ["Suggestion — normalized term, display value, target, locale, score features and policy state.", "Prefix index — prefix, ordered suggestion ids/scores, model version and build time.", "Aggregate signal — bounded query/entity counts, freshness window and privacy-safe dimensions."],
+        "stack": ["Stream/batch aggregation and a versioned trie/FST or key-value prefix index.", "Memory-mapped/in-memory serving nodes plus CDN/Redis cache for hottest prefixes.", "Moderation rules and optional ranking model isolated from the core fallback index."],
+        "tradeoffs": ["Precomputing every prefix makes reads fast but increases model size and build cost.", "Near-line updates improve freshness but can amplify spam before moderation catches it.", "Personalization improves relevance while reducing cacheability and increasing privacy risk.", "Fuzzy matching expands recall at CPU cost; restrict it by prefix length and latency budget."],
+        "tags": ["Trie", "Ranking", "Streaming", "Edge cache", "Moderation"]
+      },
+      "vi": {
+        "title": "Autocomplete và typeahead",
+        "excerpt": "Build ranked prefix index có version offline/near-line rồi serve qua latency path nhỏ với boundary về abuse, freshness và personalization.",
+        "scope": "Trả suggestion list nhỏ đã rank sau mỗi keystroke từ query/catalog/entity data. Bảo vệ user khỏi suggestion không an toàn và vẫn serve khi pipeline build model trễ.",
+        "functional": ["Normalize prefix và trả ranked suggestion kèm display text/destination metadata.", "Build, validate và publish atomic model/version mới.", "Filter term nhạy cảm policy và có thể blend personalization hữu hạn."],
+        "quality": ["Giữ end-to-end latency dưới interactive budget và cancel request client đã stale.", "Model rollout lỗi rollback ngay về known version.", "Query log, personalization và moderation tuân privacy/abuse policy."],
+        "capacity": ["Estimate keystroke/search, active user, prefix, language và suggestion count.", "Mô hình prefix popularity và edge/cache hit; prefix rất ngắn nóng nhất.", "Budget model size, build duration, incremental update lag và memory khi rollout version."],
+        "diagram_title": "Versioned build pipeline và low-latency serving",
+        "data_model": ["Suggestion — normalized term, display value, target, locale, score feature và policy state.", "Prefix index — prefix, ordered suggestion ids/scores, model version và build time.", "Aggregate signal — bounded query/entity count, freshness window và dimension an toàn privacy."],
+        "stack": ["Stream/batch aggregation và trie/FST hoặc key-value prefix index có version.", "Serving node memory-mapped/in-memory + CDN/Redis cache cho prefix nóng.", "Moderation rule và ranking model tuỳ chọn tách khỏi core fallback index."],
+        "tradeoffs": ["Precompute mọi prefix làm read nhanh nhưng tăng model size/build cost.", "Near-line update tăng freshness nhưng có thể khuếch đại spam trước moderation.", "Personalization tăng relevance nhưng giảm cacheability và tăng privacy risk.", "Fuzzy matching tăng recall với CPU cost; giới hạn theo prefix length/latency budget."],
+        "tags": ["Trie", "Ranking", "Streaming", "Edge cache", "Moderation"]
+      }
+    },
+    {
+      "n": 13,
+      "slug": "object-storage-large-upload",
+      "category": "product-systems",
+      "effort": "55 min",
+      "source_items": ["11-system-design-cases.the-big-prompts.q10"],
+      "diagram": "flowchart LR\n  C[Client] --> A[Upload session API]\n  A --> M[(Metadata store)]\n  A --> U[Pre-signed chunk URLs]\n  C --> U\n  U --> O[Object storage nodes]\n  O --> V[Checksum and finalize]\n  V --> M\n  O --> R[Replication / erasure coding]\n  D[Download client] --> CDN[CDN]\n  CDN --> O",
+      "en": {
+        "title": "Object storage and resumable large-file uploads",
+        "excerpt": "Keep bulk bytes off application servers with upload sessions, direct chunks, checksums, immutable object versions and explicit replication or erasure-coding durability.",
+        "scope": "Upload, resume, finalize, version and download large immutable objects. Metadata coordinates ownership and lifecycle while clients transfer chunks directly to storage nodes or a managed object store.",
+        "functional": ["Create an authorized upload session and issue bounded pre-signed chunk operations.", "Resume missing chunks, verify size/checksum and atomically finalize an object version.", "Download by authorized version, support range requests and lifecycle deletion/retention."],
+        "quality": ["A retry never creates a corrupt final object or silently mixes upload sessions.", "Durability target is backed by replica/erasure placement, repair and checksum scrubbing.", "Tenant isolation, encryption, malware scanning and retention are enforced outside client claims."],
+        "capacity": ["Estimate ingress/egress bytes, object/chunk size distribution, concurrency and retention.", "Separate metadata QPS from bulk network and disk throughput.", "Budget replication or erasure overhead, repair traffic, incomplete uploads and CDN hit rate."],
+        "diagram_title": "Direct multipart upload and authoritative metadata",
+        "data_model": ["Object/version — tenant, key, version, size, checksum, content type, state and retention policy.", "Upload session — expected object, chunk plan, completed parts, expiry and authorization scope.", "Chunk/placement — content hash, size, storage locations, durability state and repair generation."],
+        "stack": ["Relational/strong metadata service; S3-compatible object nodes or managed object storage for bytes.", "Pre-signed multipart upload, checksums and background finalize/scan/repair workers.", "CDN for immutable downloads; KMS-backed encryption and lifecycle policy engine."],
+        "tradeoffs": ["Proxying bytes through the API simplifies control but wastes compute and network twice.", "Small chunks improve retry granularity while increasing metadata and request overhead.", "Replication repairs simply at higher storage cost; erasure coding saves space with compute/repair complexity.", "Strong list consistency costs more than get-by-key correctness and may not be needed for every product."],
+        "tags": ["Multipart upload", "Object storage", "Checksums", "Erasure coding", "CDN"]
+      },
+      "vi": {
+        "title": "Object storage và upload file lớn có resume",
+        "excerpt": "Đưa bulk byte ra khỏi application server bằng upload session, direct chunk, checksum, immutable object version và durability replication/erasure coding rõ.",
+        "scope": "Upload, resume, finalize, version và download object immutable lớn. Metadata điều phối ownership/lifecycle còn client transfer chunk trực tiếp tới storage node hoặc managed object store.",
+        "functional": ["Tạo upload session đã authorize và cấp pre-signed chunk operation hữu hạn.", "Resume chunk thiếu, verify size/checksum và finalize atomic một object version.", "Download version đã authorize, hỗ trợ range request và lifecycle delete/retention."],
+        "quality": ["Retry không tạo final object corrupt hoặc trộn session âm thầm.", "Durability target được bảo đảm bằng placement replica/erasure, repair và checksum scrubbing.", "Tenant isolation, encryption, malware scan và retention enforce ngoài client claim."],
+        "capacity": ["Estimate ingress/egress byte, distribution object/chunk size, concurrency và retention.", "Tách metadata QPS khỏi bulk network/disk throughput.", "Budget replication/erasure overhead, repair traffic, incomplete upload và CDN hit rate."],
+        "diagram_title": "Direct multipart upload và metadata authoritative",
+        "data_model": ["Object/version — tenant, key, version, size, checksum, content type, state và retention policy.", "Upload session — expected object, chunk plan, completed part, expiry và authorization scope.", "Chunk/placement — content hash, size, storage location, durability state và repair generation."],
+        "stack": ["Relational/strong metadata service; S3-compatible node hoặc managed object storage cho byte.", "Pre-signed multipart upload, checksum và worker finalize/scan/repair nền.", "CDN cho immutable download; KMS encryption và lifecycle policy engine."],
+        "tradeoffs": ["Proxy byte qua API làm control đơn giản nhưng tốn compute/network hai lần.", "Chunk nhỏ retry mịn hơn nhưng tăng metadata/request overhead.", "Replication repair đơn giản với storage cost cao; erasure coding tiết kiệm space nhưng tăng compute/repair complexity.", "Strong list consistency đắt hơn get-by-key correctness và không phải product nào cũng cần."],
+        "tags": ["Multipart upload", "Object storage", "Checksum", "Erasure coding", "CDN"]
+      }
+    },
+    {
+      "n": 14,
+      "slug": "ota-flight-booking",
+      "category": "product-systems",
+      "effort": "60 min",
+      "source_items": [
+        "16-project-concurrency-whiteboard.presenting-dissecting-the-ota-project.q1",
+        "16-project-concurrency-whiteboard.presenting-dissecting-the-ota-project.q2",
+        "16-project-concurrency-whiteboard.presenting-dissecting-the-ota-project.q3",
+        "16-project-concurrency-whiteboard.presenting-dissecting-the-ota-project.q4",
+        "16-project-concurrency-whiteboard.presenting-dissecting-the-ota-project.q5"
+      ],
+      "diagram": "flowchart LR\n  C[Web / Mobile / B2B] --> G[API Gateway]\n  G --> S[Search and Pricing]\n  S --> X[GDS / Airline]\n  G --> H[Seat Hold Service]\n  H --> I[(Inventory and Holds)]\n  G --> B[Booking Saga]\n  B --> H\n  B --> P[Payment and Ledger]\n  B --> T[Ticketing / PNR]\n  T --> X\n  B --> Q[Event Bus]\n  Q --> N[Notification]\n  Q --> R[Realtime Availability]\n  E[Expiry and Reconciliation] --> H\n  E --> P",
+      "en": {
+        "title": "OTA flight-booking system",
+        "excerpt": "Design search, expiring seat holds, payment and ticket issuance around external airline systems, ambiguous outcomes and deliberate overbooking policy.",
+        "scope": "Let travellers search changing fares, hold scarce inventory, pay and receive a ticket or PNR through one or more GDS/airline integrations. Keep the money-and-seat path correct while search remains fast, cached and explicitly stale.",
+        "functional": [
+          "Search itineraries and quote a fare with a clear expiry, source and baggage or rule snapshot.",
+          "Create an idempotent seat hold, complete payment and issue the ticket through a recoverable booking workflow.",
+          "Release expired holds, reconcile ambiguous PSP/GDS results and publish booking status changes to clients.",
+          "Support a bounded, policy-driven overbooking allocation separately from accidental double-selling."
+        ],
+        "quality": [
+          "No two confirmed bookings consume the same physical seat unless an explicit overbooking pool permits it.",
+          "Search can degrade to cached availability, but confirmation never treats a cached result as authoritative.",
+          "Every external call is timed out and idempotent where possible; unknown outcomes enter reconciliation rather than being guessed.",
+          "The workflow exposes pending states and survives service, queue or orchestrator restarts."
+        ],
+        "capacity": [
+          "Estimate search-to-book ratio, peak search QPS, concurrent holds, conversion rate and route/date skew.",
+          "Model GDS latency and quota, fare/availability freshness, hold TTL and reconnect or retry storms.",
+          "Size the booking path for peak purchases while isolating it from the much larger search workload.",
+          "Budget event retention, reconciliation backlog, payment/ticket issue timeout windows and provider failover."
+        ],
+        "diagram_title": "Search path, authoritative hold and booking saga",
+        "data_model": [
+          "Offer snapshot — itinerary, provider, fare/rules, availability observation, currency, version and expiry.",
+          "Seat hold — flight/seat or inventory bucket, customer, quantity, status, fencing version and expires_at.",
+          "Booking saga — booking id, current step, provider references, idempotency keys, attempts and next action.",
+          "Payment ledger — immutable debit/credit postings, PSP reference and reconciliation state.",
+          "Ticket/PNR — provider locator, passengers, segments, issue status and latest verified provider state."
+        ],
+        "stack": [
+          "Stateless search/pricing services with Redis cache and provider-specific circuit breakers or quota controls.",
+          "PostgreSQL/MySQL for atomic holds, booking saga and payment ledger; conditional updates or row locks at the inventory boundary.",
+          "Kafka-compatible event bus with Outbox for notifications, analytics and availability projections.",
+          "Durable workflow/orchestrator for hold → authorize/capture → issue, plus scheduled expiry and reconciliation workers.",
+          "WebSocket or SSE for bounded realtime updates; GDS/airline and PSP adapters behind anti-corruption layers."
+        ],
+        "tradeoffs": [
+          "One atomic inventory authority prevents accidental double-booking but may need partitioning by flight or inventory bucket.",
+          "A short hold TTL improves utilization but punishes slow payment and accessibility flows; extend it only through explicit policy.",
+          "Orchestration makes the money-and-ticket path observable; choreography reduces coupling but hides one business transaction across events.",
+          "Issue the hardest-to-reverse step last, yet treat every timeout as unknown and query provider status before compensating.",
+          "Overbooking is a commercial capacity model with limits and recovery cost, not a race condition disguised as eventual consistency."
+        ],
+        "tags": ["OTA", "Seat hold", "Saga", "Payments", "GDS", "Realtime"]
+      },
+      "vi": {
+        "title": "Hệ thống OTA đặt vé máy bay",
+        "excerpt": "Thiết kế search, seat hold có expiry, payment và ticket issuance quanh hệ thống airline bên ngoài, outcome mơ hồ và policy overbooking có chủ đích.",
+        "scope": "Cho traveller tìm fare thay đổi liên tục, giữ inventory khan hiếm, trả tiền và nhận ticket/PNR qua một hay nhiều tích hợp GDS/airline. Giữ money-and-seat path đúng trong khi search nhanh, có cache và chấp nhận stale rõ ràng.",
+        "functional": [
+          "Tìm itinerary và quote fare có expiry, source cùng snapshot baggage/rule rõ.",
+          "Tạo seat hold idempotent, hoàn tất payment và issue ticket qua booking workflow phục hồi được.",
+          "Release hold hết hạn, reconcile kết quả PSP/GDS mơ hồ và publish booking status cho client.",
+          "Hỗ trợ allocation overbooking hữu hạn theo policy, tách khỏi accidental double-selling."
+        ],
+        "quality": [
+          "Không có hai confirmed booking dùng cùng physical seat trừ khi overbooking pool cho phép rõ.",
+          "Search có thể degrade sang cached availability nhưng confirmation không bao giờ coi cache là authoritative.",
+          "Mọi external call có timeout và idempotent khi có thể; unknown outcome đi vào reconciliation thay vì đoán.",
+          "Workflow expose pending state và sống qua restart service, queue hoặc orchestrator."
+        ],
+        "capacity": [
+          "Estimate search-to-book ratio, peak search QPS, concurrent hold, conversion và skew theo route/date.",
+          "Mô hình latency/quota GDS, freshness fare/availability, hold TTL và retry/reconnect storm.",
+          "Sizing booking path cho peak purchase và cô lập khỏi search workload lớn hơn nhiều.",
+          "Budget event retention, reconciliation backlog, payment/ticket timeout window và provider failover."
+        ],
+        "diagram_title": "Search path, hold authoritative và booking saga",
+        "data_model": [
+          "Offer snapshot — itinerary, provider, fare/rule, availability observation, currency, version và expiry.",
+          "Seat hold — flight/seat hoặc inventory bucket, customer, quantity, status, fencing version và expires_at.",
+          "Booking saga — booking id, current step, provider reference, idempotency key, attempt và next action.",
+          "Payment ledger — debit/credit posting immutable, PSP reference và reconciliation state.",
+          "Ticket/PNR — provider locator, passenger, segment, issue status và provider state đã verify gần nhất."
+        ],
+        "stack": [
+          "Search/pricing stateless với Redis cache và circuit breaker/quota control riêng từng provider.",
+          "PostgreSQL/MySQL cho hold atomic, booking saga và payment ledger; conditional update hoặc row lock tại inventory boundary.",
+          "Kafka-compatible event bus + Outbox cho notification, analytics và availability projection.",
+          "Workflow/orchestrator durable cho hold → authorize/capture → issue, kèm worker expiry/reconciliation định kỳ.",
+          "WebSocket hoặc SSE cho realtime update hữu hạn; adapter GDS/airline và PSP sau anti-corruption layer."
+        ],
+        "tradeoffs": [
+          "Một inventory authority atomic chặn accidental double-booking nhưng có thể phải partition theo flight/inventory bucket.",
+          "Hold TTL ngắn tăng utilization nhưng phạt payment chậm/accessibility flow; chỉ extend bằng policy rõ.",
+          "Orchestration làm money-and-ticket path dễ quan sát; choreography giảm coupling nhưng giấu một business transaction trong nhiều event.",
+          "Đặt bước khó reverse nhất cuối cùng, nhưng mọi timeout đều là unknown và phải query provider trước compensation.",
+          "Overbooking là commercial capacity model có limit/recovery cost, không phải race condition khoác áo eventual consistency."
+        ],
+        "tags": ["OTA", "Seat hold", "Saga", "Payment", "GDS", "Realtime"]
+      }
+    }
+  ],
+  "case_overviews": {
+    "arcturus-inventory-processing-system": {
+      "diagram": "flowchart LR\n  O[Order services] --> K[Ordered command queue]\n  K --> P[Single-writer processors]\n  P --> M[(In-memory inventory)]\n  P --> E[Inventory events]\n  E --> D[(Durable persistence)]\n  E --> W[Warehouse integrations]\n  D --> R[Recovery / replay]",
+      "en": { "title": "Arcturus command-processing shape", "lens": "Read the system as a single-writer state machine: ordered commands protect inventory correctness, in-memory state serves peak throughput, and asynchronous persistence plus replay defines the durability boundary." },
+      "vi": { "title": "Kiến trúc command-processing của Arcturus", "lens": "Đọc hệ thống như một single-writer state machine: command có thứ tự bảo vệ correctness tồn kho, state in-memory phục vụ peak throughput, còn persistence bất đồng bộ cùng replay định nghĩa durability boundary." }
+    },
+    "pegasus-catalog-product-api-architecture": {
+      "diagram": "flowchart LR\n  C[Clients] --> A[Catalog Product API]\n  A --> L[Local cache]\n  L --> R[(Distributed cache)]\n  R --> M[(Read-optimized documents)]\n  S[Source catalog systems] --> Q[Change stream]\n  Q --> X[Projection workers]\n  X --> M\n  X --> R",
+      "en": { "title": "Pegasus read-model architecture", "lens": "Pegasus separates catalog ownership from a denormalized read model. The design wins read latency and API simplicity by accepting asynchronous projection, cache invalidation and model-rebuild responsibilities." },
+      "vi": { "title": "Kiến trúc read model của Pegasus", "lens": "Pegasus tách ownership catalog khỏi read model denormalized. Design đổi asynchronous projection, cache invalidation và trách nhiệm rebuild model để lấy read latency cùng API đơn giản." }
+    },
+    "xac-thuc-va-phan-quyen-trong-microservices": {
+      "diagram": "flowchart LR\n  C[Client] --> I[Identity provider]\n  I --> T[Access token]\n  C --> G[API gateway]\n  T --> G\n  G --> S1[Service A]\n  G --> S2[Service B]\n  P[Policy and key distribution] --> G\n  P --> S1\n  P --> S2\n  S1 --> A[Audit events]\n  S2 --> A",
+      "en": { "title": "Authentication and authorization boundaries", "lens": "Separate identity proof, token issuance and authorization enforcement. Edge checks reduce obvious abuse, while each service still enforces resource-level policy with bounded key and policy propagation." },
+      "vi": { "title": "Boundary authentication và authorization", "lens": "Tách identity proof, token issuance và authorization enforcement. Edge check giảm abuse rõ ràng, còn từng service vẫn enforce resource-level policy với key/policy propagation hữu hạn." }
+    },
+    "how-to-handle-hot-deals-at-the-peak-time": {
+      "diagram": "flowchart LR\n  C[Buyers] --> G[Gateway and throttling]\n  G --> Q[Admission queue]\n  Q --> R[Inventory reservation]\n  R --> I[(Inventory state)]\n  R --> O[Order workflow]\n  O --> P[Payment]\n  O --> E[Order events]\n  E --> F[Fulfilment]\n  X[Expiry / compensation] --> I",
+      "en": { "title": "Hot-deal admission and reservation flow", "lens": "The central decision is not raw autoscaling; it is bounded admission before scarce inventory, followed by atomic reservation, an asynchronous order workflow and explicit expiry or compensation." },
+      "vi": { "title": "Luồng admission và reservation cho hot deal", "lens": "Quyết định trung tâm không phải autoscaling thô; đó là admission hữu hạn trước scarce inventory, tiếp theo là reservation atomic, order workflow bất đồng bộ và expiry/compensation rõ." }
+    }
+  }
+}

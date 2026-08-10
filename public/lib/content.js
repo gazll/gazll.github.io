@@ -83,8 +83,17 @@ export const Content = {
   _apply() {
     const topics = [];
     for (const [n, { row, content: en }] of this._en) {
+      // Some numbered sources are retained for cross-references but rendered
+      // on a purpose-built Experience surface instead of the Study Track.
+      if (row.surface && row.surface !== 'track') continue;
       const vi = this._vi.get(n);
-      const sections = cloneSections(this.lang === 'vi' && vi ? vi.sections : en.sections);
+      const movedItems = new Set(row.system_design_items || []);
+      const sections = cloneSections(this.lang === 'vi' && vi ? vi.sections : en.sections)
+        .map(section => ({
+          ...section,
+          items: section.items.filter(item => !movedItems.has(item.id))
+        }))
+        .filter(section => section.items.length);
       const topic = {
         n,
         // The filename stem, and the prefix of every item id in this topic —

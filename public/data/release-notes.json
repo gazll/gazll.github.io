@@ -3,6 +3,47 @@
   "releases": [
     {
       "date": "2026-08-10",
+      "en": {
+        "title": "System Design becomes a dedicated Experience library"
+      },
+      "vi": {
+        "title": "System Design thành thư viện Experience riêng"
+      },
+      "changes": [
+        {
+          "kind": "feature",
+          "target": "system-design",
+          "en": {
+            "text": "A new library turns fourteen prompts into sectioned end-to-end blueprints: requirements, capacity, architecture, data model, technology choices and explicit trade-offs, each with editable Mermaid source."
+          },
+          "vi": {
+            "text": "Thư viện mới biến mười bốn đề bài thành blueprint end-to-end có từng mục: requirements, capacity, architecture, data model, lựa chọn công nghệ và trade-off rõ ràng, mỗi bài đều có source Mermaid chỉnh sửa được."
+          }
+        },
+        {
+          "kind": "content",
+          "target": "case-studies",
+          "en": {
+            "text": "Topic 10–11 deep dives, the OTA/whiteboard overlap from Topic 16 and all four Systems & Architecture at Scale production cases now live in System Design; immutable question links and legacy case-study URLs continue to resolve."
+          },
+          "vi": {
+            "text": "Các deep dive Topic 10–11, phần OTA/whiteboard trùng từ Topic 16 cùng bốn production case Systems & Architecture at Scale đã chuyển sang System Design; link câu hỏi bất biến và URL Case Studies cũ vẫn dùng được."
+          }
+        },
+        {
+          "kind": "change",
+          "target": "all-topics",
+          "en": {
+            "text": "The Study Track progress ring now counts 365 questions instead of 398: the 33 that moved into System Design are no longer part of its denominator, so the completion percentage rises without anything being lost. Every moved question keeps its identifier, and any progress or notes already recorded against it stay saved."
+          },
+          "vi": {
+            "text": "Vòng tiến độ Study Track giờ đếm 365 câu thay vì 398: 33 câu đã chuyển sang System Design không còn nằm trong mẫu số, nên phần trăm hoàn thành tăng lên mà không mất gì cả. Mỗi câu đã chuyển vẫn giữ nguyên định danh, và tiến độ hay ghi chú đã lưu cho câu đó vẫn còn."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-10",
       "items_added": 21,
       "en": {
         "title": "Testing gets its own topic, and security grows past OAuth2"

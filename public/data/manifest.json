@@ -49,12 +49,14 @@
     {
       "n": 10,
       "file": "topics/10-system-design-rate-limit.json",
-      "topic_type": "design"
+      "topic_type": "design",
+      "surface": "system-design"
     },
     {
       "n": 11,
       "file": "topics/11-system-design-cases.json",
-      "topic_type": "design"
+      "topic_type": "design",
+      "surface": "system-design"
     },
     {
       "n": 12,
@@ -79,7 +81,15 @@
     {
       "n": 16,
       "file": "topics/16-project-concurrency-whiteboard.json",
-      "topic_type": "algorithm"
+      "topic_type": "algorithm",
+      "system_design_items": [
+        "16-project-concurrency-whiteboard.presenting-dissecting-the-ota-project.q1",
+        "16-project-concurrency-whiteboard.presenting-dissecting-the-ota-project.q2",
+        "16-project-concurrency-whiteboard.presenting-dissecting-the-ota-project.q3",
+        "16-project-concurrency-whiteboard.presenting-dissecting-the-ota-project.q4",
+        "16-project-concurrency-whiteboard.presenting-dissecting-the-ota-project.q5",
+        "16-project-concurrency-whiteboard.whiteboard-dsa.q1"
+      ]
     },
     {
       "n": 17,

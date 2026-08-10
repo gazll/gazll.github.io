@@ -39,7 +39,7 @@ public/
   index.html         shell; loads the version-aware boot.js module
   boot.js            fetches version.json no-store, then loads matching CSS + app graph
   version.json       local "dev" release; deploy overwrites it with commit SHA + timestamp
-  app.js             entry: hash router, topic track view (all 26 topics, including Microservices)
+  app.js             entry: hash router, topic track view (24 of the 26 topics; 10–11 render in System Design)
   config.js          GITIGNORED. Generated at deploy time from repo variables
   config.example.js  template to copy for local dev
   lib/
@@ -49,6 +49,10 @@ public/
     i18n.js          shared language storage + paired base/.vi JSON loader
     content.js       topic data model; owns the global content language and change events
     case-studies.js  numbered bilingual case-study data model + article-body cache
+    system-design.js blueprint data model; resolves source_items to live topic items
+    mermaid.js       lazy loader for the vendored renderer; diagrams degrade to source
+    question-links.js  #/track/<id> and #/system-design/<slug>/<id> route helpers
+    clipboard.js     copyText with an execCommand fallback for local HTTP previews
     dsa-anim.js      DSA step-frame model + pure SVG frame renderer (no DOM)
     api.js           transport to Apps Script
     auth.js          Google Identity Services + header avatar/state machine
@@ -58,11 +62,13 @@ public/
     interviews.js    interview journal CRUD (<dialog>)
     stats.js         streak + heatmap + per-topic progress
     admin.js         all-user overview (admin role only)
+    system-design.js blueprint library + design/production-case reader, TOC, Mermaid tools
     case-studies.js  long-form case-study library + article reader/lightbox
     release-notes.js bilingual changelog of the material; chrome stays English
     dsa-player.js    play/pause/step control for the DSA animations
+  vendor/mermaid-11.16.1/  pinned upstream build; version lives in the directory name
   data/
-    manifest.json       ordered list of every topic (n, topic_type, file) — 26 rows, Microservices is n=25
+    manifest.json       ordered list of every topic (n, topic_type, file, optional surface) — 26 rows
     meta.json            label/title/intro/tags/key/topic_type per topic, VI + EN in one file
     topics/NN-slug.json     complete English base, one file per topic (398 items total across 26 files)
     topics/NN-slug.vi.json  complete Vietnamese companion, same shape and item IDs
@@ -73,11 +79,13 @@ public/
     case-studies/NN-slug.json     English guide + numbered English body path
     case-studies/NN-slug.vi.json  Vietnamese guide + numbered Vietnamese body path
     case-studies/articles/NN-slug[.vi].html trusted local long-form article pairs
+    system-design/catalog.json  blueprints + production-case lenses, VI + EN in one file
     interviews.json     seed entries, merged under everyone's own Sheet rows
   assets/case-studies/  local article figures; never hotlinked from a publisher
 apps-script/Code.gs  the entire backend (Google Sheet as database)
-tests/               security · interviews.merge · auth.state · content.i18n · case-studies · assets.version · release-notes · dsa-anim
-tools/               validate-content.mjs · audit-content.mjs · add-content.mjs · stamp-assets.mjs
+tests/               every tests/*.test.mjs; discovered from disk, never enumerated
+tools/               check.mjs (the one entrypoint) · validate-content.mjs · audit-content.mjs
+                     add-content.mjs · stamp-assets.mjs
 docs/content-playbook.md  how to add/update study content end to end
 secret/              GITIGNORED. Personal setup notes and credentials
 ```
@@ -86,9 +94,14 @@ secret/              GITIGNORED. Personal setup notes and credentials
 
 - **`.qhead` is a `<button>` — nothing inside it can be one too.** A nested
   `<button>` makes the browser silently close `.qhead` early, no console
-  error, reparenting badge/chevron/answer as trailing siblings. That's why
-  `.qlangbtn` is a `<span role="switch" tabindex="0">` with its own keydown
-  handler, not a real `<button>`.
+  error, reparenting badge/chevron/answer as trailing siblings. The controls
+  that need to be real buttons therefore live **outside** it: `.qtop` is a
+  flex row holding `.qhead` and a sibling `.qmeta`, and `.qmeta` is where
+  `.qcopy` and `.qlangbtn` sit. That is the only reason they can be genuine
+  `<button>`s with native keyboard behaviour. Moving either back inside
+  `.qhead` reintroduces the bug — and because both stop propagation, the
+  symptom is not a click that toggles, it is a card whose answer has silently
+  become a sibling of the card.
 
 - **`lib/markdown.js` — the `SENT` sentinel.** It is
   `String.fromCharCode(0xE000)` on purpose. U+E000 is invisible in an editor,
@@ -106,10 +119,19 @@ secret/              GITIGNORED. Personal setup notes and credentials
   is a **stored key**: renaming a topic's file, or re-slugifying a section
   title, orphans every row already in the Sheet for that topic.
 
-- **The progress ring counts every topic, Microservices included.**
-  `Content.topicItemIds` / `Content.totalTopicItems` cover all 26 topics —
-  there is no separate "track" vs "standalone" split anymore. The
-  denominator is derived, never hardcoded.
+- **The progress ring counts what the Study Track browses, not what `data/`
+  holds.** `Content.topicItemIds` / `Content.totalTopicItems` are derived from
+  `Content.topics`, which `_apply()` builds *after* dropping everything routed
+  to another surface — so the denominator is 365 of the 398 items on disk, and
+  `validate-content.mjs` prints both numbers so the split stays visible. Two
+  things remove an item: a `manifest.json` row with `surface: "system-design"`
+  (the whole topic, 10 and 11), or a row listing individual ids in
+  `system_design_items` (the OTA/whiteboard overlap in topic 16). Either way
+  the item keeps its id and its `data/topics/` file — **the ids are stored
+  Sheet keys**, so a reader's existing `progress` rows for those 33 items stay
+  in the Sheet, simply uncounted. Never "clean up" by deleting the source
+  items. Moving items between surfaces silently changes every reader's ring,
+  so it belongs in `data/release-notes.json`.
 
 - **Every topic needs a `topic_type`.** One of `core` · `data` · `design` ·
   `platform` · `algorithm` · `microservice`, defined once in
@@ -223,6 +245,33 @@ secret/              GITIGNORED. Personal setup notes and credentials
   Each manifest row also owns a local `cover_image` from that article and an
   explicit `cover_fit` (`cover` or `contain`); card art must reflect its content.
 
+- **System Design is a presentation surface over existing content, not a copy
+  of it.** `data/system-design/catalog.json` holds the blueprint prose, but a
+  design's `source_items` are **ids, not text** — `lib/system-design.js` looks
+  each one up through `Content.itemPair()` at render time, so the migrated
+  deep-dive notes stay the single copy that lives in `data/topics/`. Editing a
+  topic file therefore updates the blueprint too. Two invariants the validator
+  now enforces: every `source_items` id must exist, and it must **also** be
+  off the track (via `surface` or `system_design_items`) — otherwise the reader
+  meets the same question twice, which is exactly the failure this layout was
+  meant to prevent. An id may be claimed by only one design. Production cases
+  are the `systems-architecture` rows handed over by Case Studies; each needs a
+  `case_overviews` entry, and the pairing is checked in both directions.
+
+- **Mermaid is vendored, pinned by directory name, and loaded lazily.** The CSP
+  is `script-src 'self'`, so a CDN was never an option — `public/vendor/
+  mermaid-11.16.1/` is upstream's own build, committed unmodified. Never edit
+  those files and never lint them: `tools/check.mjs` skips any path containing
+  `vendor/`, which is also why the console-logging ban does not trip on them
+  (`lib/mermaid.js` pins `logLevel: 'fatal'` instead). Upgrading means a **new
+  directory**, not a modified one — that name is the cache key, which is why
+  `stamp-assets.mjs` correctly leaves `.mjs` imports unstamped. The renderer is
+  behind a dynamic `import()` so the ~800K only loads once a design article
+  opens, and `securityLevel: 'strict'` + `htmlLabels: false` keeps diagram text
+  from becoming markup. A render failure is not fatal by design: the `<pre>`
+  already holds the escaped source, so the diagram degrades to readable,
+  copyable Mermaid rather than a blank frame.
+
 - **Every Pages deploy is one immutable asset version.** `tools/stamp-assets.mjs`
   writes the first 12 characters of `github.sha` plus `deployed_at` to
   `public/version.json`, versions local JS/CSS references in HTML, and versions
@@ -311,9 +360,12 @@ topic's English base instead of failing.
 - **Content is validated, not trusted.** `validate-content.mjs` checks the
   manifest/meta contract, topic types and difficulties, item schemas and IDs,
   matching bilingual section/item sequences, markup safety, duplicate IDs,
-  SVG marker uniqueness, and cross-references. With `--stats`, it reports
-  structural/content statistics: topic and difficulty counts, answer lengths,
-  cross-references, thin items, and code/table/SVG usage.
+  SVG marker uniqueness, and cross-references. It also covers
+  `system-design/catalog.json` — bilingual completeness of every design,
+  category and case lens, plus the `source_items` rules above — because those
+  ids point *out* of the file and a typo there fails silently. With `--stats`,
+  it reports structural/content statistics: topic and difficulty counts,
+  answer lengths, cross-references, thin items, and code/table/SVG usage.
 
 ## Security model
 
@@ -351,27 +403,26 @@ investigating what to change, the format rules, the VI/EN contract, and the
 patch tool. The commands below are the subset CI cares about.
 
 ```bash
-# structure of the data/ tree + structural/content statistics
-node tools/validate-content.mjs --stats
+# everything CI enforces, in CI's order, from the same file CI calls:
+# content validation · ESM syntax of every shipped module · the console-logging
+# ban · every tests/*.test.mjs
+node tools/check.mjs
 
-# editorial state: EN/VI parity, example coverage, dense answers
-# (reports, never fails)
-node tools/audit-content.mjs
-node tools/audit-content.mjs --dense
-
-# same check the CI runs
-for f in $(find public -name '*.js'); do node --input-type=module --check < "$f" || echo "FAIL $f"; done
-
-# auth/authorization/row-isolation/error-disclosure, the seed-vs-own merge
-# rules, the sign-in state machine, and the VI/EN language split
-NODE_NO_WARNINGS=1 node --experimental-vm-modules --test tests/*.test.mjs
-
-# CI also refuses any console.* under public/ or apps-script/
-grep -RInE 'console\.(log|info|warn|error|debug)|Logger\.log' public apps-script
+node tools/check.mjs --audit        # + the editorial report (never fails)
+node tools/check.mjs --only tests   # one stage; --list names them
+node tools/check.mjs --list
 
 # run it (python may not be on PATH — `npx serve public` works too)
 cd public && python -m http.server 8080
 ```
+
+`check.mjs` discovers modules and test files from disk, so a new
+`tests/*.test.mjs` is picked up locally **and** in CI without editing
+`deploy.yml`. The individual tools still stand alone when you want detail —
+`node tools/validate-content.mjs --stats` for content statistics,
+`node tools/audit-content.mjs --dense` for the prose-density report.
+Anything under `public/vendor/` is skipped everywhere: it is upstream code,
+pinned by directory name.
 
 Editing `apps-script/Code.gs` requires Deploy → Manage deployments → New
 version, otherwise the Web App keeps serving the old code.

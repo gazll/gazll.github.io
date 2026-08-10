@@ -8,6 +8,10 @@
 
      node tools/validate-content.mjs            # check
      node tools/validate-content.mjs --stats    # check + content report
+
+   It also covers data/system-design/catalog.json, because that file names
+   Study Track items by id: a typo there renders zero migrated notes silently
+   rather than throwing.
 */
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -30,6 +34,10 @@ const KNOWN = 'pre|table|figure|code|span|thead|tbody|tr|th|td|a|b|br|svg|defs|m
 // item id: {topic-key}.{section-slug}.q{n} — topic-key/section-slug are
 // slugs (lowercase, hyphenated), the item index is always numeric.
 const ID_RE = /^([a-z0-9-]+)\.([a-z0-9-]+)\.q(\d+)$/;
+// A manifest row is either browsed in the Study Track or presented on a
+// purpose-built Experience surface. Either way its items keep their ids,
+// because those ids are stored Sheet keys.
+const SURFACES = new Set(['track', 'system-design']);
 
 const errs = [];
 const items = [];
@@ -47,6 +55,17 @@ const topics = manifest.topics.map(row => ({
 for (const { row, content, meta: m } of topics) {
   const t = `topic ${row.n}`;
   if (!TOPIC_TYPE_KEYS.has(row.topic_type)) err(t, `unknown topic_type "${row.topic_type}"`);
+  if (row.surface !== undefined && !SURFACES.has(row.surface)) {
+    err(t, `unknown surface "${row.surface}" — expected one of ${[...SURFACES].join(', ')}`);
+  }
+  if (row.system_design_items !== undefined && !Array.isArray(row.system_design_items)) {
+    err(t, 'system_design_items must be an array of item ids');
+  }
+  // Moving a whole topic off the track and also listing individual items from
+  // it is contradictory: the per-item filter would never run.
+  if (row.surface === 'system-design' && row.system_design_items?.length) {
+    err(t, 'a system-design surface topic cannot also list system_design_items');
+  }
   if (!m) { err(t, 'missing meta.json entry'); continue; }
   for (const k of ['label', 'title', 'intro', 'tags']) {
     if (m.vi?.[k] === undefined) err(t, `meta.json missing vi.${k}`);
@@ -172,13 +191,143 @@ for (const { row, content } of topics) {
   }
 }
 
+/* ---------- data/system-design/catalog.json ----------
+
+   The catalog is the only file that names Study Track items from outside the
+   topics tree. A mistyped source_items id does not throw — the design article
+   simply renders without that migrated note — so it is checked here, next to
+   the ids it points at. Every design is fully bilingual for the same reason
+   topics are: the header switch selects an already-loaded language. */
+const catalog = readOptionalJson(DATA + 'system-design/catalog.json');
+// Items no longer browsable in the Study Track — the progress ring's
+// denominator is `items.length` minus this set, so it is reported below.
+const offTrack = new Set();
+// Must match PRODUCTION_CATEGORY in public/lib/system-design.js and
+// MOVED_TO_SYSTEM_DESIGN in public/views/case-studies.js.
+const PRODUCTION_CATEGORY = 'systems-architecture';
+const DESIGN_LANG_KEYS = ['title', 'excerpt', 'scope', 'diagram_title'];
+const DESIGN_LANG_LISTS = ['functional', 'quality', 'capacity', 'data_model', 'stack', 'tradeoffs', 'tags'];
+
+if (!catalog) {
+  errs.push('system-design/catalog.json: missing');
+} else {
+  const sd = (id, msg) => errs.push(`system-design ${id}: ${msg}`);
+  const bilingual = (id, node, keys, lists = []) => {
+    for (const lang of ['en', 'vi']) {
+      if (!node?.[lang]) { sd(id, `missing ${lang} block`); continue; }
+      for (const k of keys) {
+        if (!String(node[lang][k] ?? '').trim()) sd(id, `empty ${lang}.${k}`);
+      }
+      for (const k of lists) {
+        const list = node[lang][k];
+        if (!Array.isArray(list) || !list.length) { sd(id, `${lang}.${k} must be a non-empty array`); continue; }
+        if (list.some(entry => !String(entry ?? '').trim())) sd(id, `${lang}.${k} has an empty entry`);
+      }
+    }
+  };
+
+  bilingual('library', catalog.library, ['eyebrow', 'title', 'intro']);
+  bilingual('production', catalog.production, ['label', 'description']);
+
+  const categoryIds = new Set();
+  for (const category of catalog.categories || []) {
+    if (!category.id) { sd('categories', 'a category has no id'); continue; }
+    if (categoryIds.has(category.id)) sd(`category "${category.id}"`, 'duplicate id');
+    categoryIds.add(category.id);
+    bilingual(`category "${category.id}"`, category, ['label', 'description']);
+  }
+
+  // Every id the catalog claims to have migrated must exist, must be claimed
+  // once, and must actually be hidden from the track — otherwise the reader
+  // sees the same question in two places.
+  const designSlugs = new Set();
+  const designNumbers = new Set();
+  const claimed = new Map();
+
+  for (const design of catalog.designs || []) {
+    const id = `design ${design.n} "${design.slug}"`;
+    if (!design.slug) sd(`design ${design.n}`, 'missing slug');
+    else if (designSlugs.has(design.slug)) sd(id, 'duplicate slug');
+    designSlugs.add(design.slug);
+
+    if (!Number.isInteger(design.n)) sd(id, 'n must be an integer');
+    else if (designNumbers.has(design.n)) sd(id, 'duplicate n');
+    designNumbers.add(design.n);
+
+    if (!categoryIds.has(design.category)) sd(id, `unknown category "${design.category}"`);
+    if (!String(design.diagram || '').trim()) sd(id, 'missing Mermaid diagram');
+    bilingual(id, design, DESIGN_LANG_KEYS, DESIGN_LANG_LISTS);
+
+    for (const itemId of design.source_items || []) {
+      if (!seen.has(itemId)) { sd(id, `source_items "${itemId}" points at no item`); continue; }
+      if (claimed.has(itemId)) sd(id, `source_items "${itemId}" is already claimed by ${claimed.get(itemId)}`);
+      else claimed.set(itemId, design.slug);
+    }
+  }
+
+  // The two ways an item leaves the track: its whole topic moved (surface), or
+  // it was named individually (system_design_items).
+  for (const { row, content } of topics) {
+    const named = new Set(row.system_design_items || []);
+    for (const sec of content.sections || []) {
+      for (const it of sec.items || []) {
+        if (row.surface === 'system-design' || named.has(it.id)) offTrack.add(it.id);
+      }
+    }
+    for (const itemId of named) {
+      if (!seen.has(itemId)) err(`topic ${row.n}`, `system_design_items "${itemId}" points at no item`);
+    }
+  }
+
+  for (const [itemId, slug] of claimed) {
+    if (!offTrack.has(itemId)) {
+      sd(`design "${slug}"`, `source_items "${itemId}" is still browsable in the Study Track — it would appear twice`);
+    }
+  }
+
+  // Production cases are the architecture rows the Case Studies library hands
+  // over; each needs its own Mermaid lens, and none may be left behind.
+  const caseManifest = readOptionalJson(DATA + 'case-studies/manifest.json');
+  const architectureRows = (caseManifest?.articles || [])
+    .filter(article => article.category === PRODUCTION_CATEGORY);
+  const architectureCases = architectureRows.map(article => article.slug);
+
+  // The reader's only attribution is the publication URL, and the view refuses
+  // to render a link off that host — so a wrong one silently loses the credit.
+  for (const article of architectureRows) {
+    if (!/^https:\/\/engineering\.tiki\.vn\/.+/.test(article.source_url || '')) {
+      sd(`case "${article.slug}"`, `source_url is not an engineering.tiki.vn article URL: "${article.source_url}"`);
+    }
+  }
+
+  for (const overviewSlug of Object.keys(catalog.case_overviews || {})) {
+    const overview = catalog.case_overviews[overviewSlug];
+    bilingual(`case overview "${overviewSlug}"`, overview, ['title', 'lens']);
+    if (!String(overview.diagram || '').trim()) {
+      sd(`case overview "${overviewSlug}"`, 'missing Mermaid diagram');
+    }
+    if (caseManifest && !architectureCases.includes(overviewSlug)) {
+      sd(`case overview "${overviewSlug}"`, `no "${PRODUCTION_CATEGORY}" case study has this slug`);
+    }
+  }
+  for (const slug of architectureCases) {
+    if (!catalog.case_overviews?.[slug]) {
+      sd('case_overviews', `"${slug}" is presented here but has no architecture lens`);
+    }
+  }
+}
+
 if (errs.length) {
   console.error(`\ncontent FAILED — ${errs.length} problem(s):\n`);
   for (const e of errs) console.error('  - ' + e);
   process.exit(1);
 }
 
-console.log(`content OK — ${topics.length} topics, ${items.length} items, ${markers.size} SVG markers`);
+// The track total is printed separately because it is the progress ring's
+// denominator: moving items to another surface changes every reader's ring.
+console.log(`content OK — ${topics.length} topics, ${items.length} items `
+  + `(${items.length - offTrack.size} on the Study Track, ${offTrack.size} in System Design), `
+  + `${(catalog?.designs || []).length} blueprints, ${markers.size} SVG markers`);
 
 if (process.argv.includes('--stats')) {
   const by = (fn) => items.reduce((m, i) => (m[fn(i)] = (m[fn(i)] || 0) + 1, m), {});
