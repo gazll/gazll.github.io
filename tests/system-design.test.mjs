@@ -82,7 +82,7 @@ test('Topic 10–11 and the OTA/whiteboard overlap are moved once, with every im
   const expected = await movedSourceIds();
   const actual = catalog.designs.flatMap(design => design.source_items);
 
-  assert.equal(expected.length, 33);
+  assert.equal(expected.length, 41);
   assert.equal(actual.length, expected.length);
   assert.equal(new Set(actual).size, actual.length, 'one source question was assigned to two blueprints');
   assert.deepEqual([...actual].sort(), [...expected].sort());
@@ -201,7 +201,7 @@ test('the shared loader resolves migrated notes and switches the whole collectio
       assert.equal(design.effort, source.effort, `${design.slug}: effort lost in apply()`);
     }
     assert.equal(SystemDesign.cases.length, 4);
-    assert.equal(SystemDesign.designs.flatMap(design => design.sourceNotes).length, 33);
+    assert.equal(SystemDesign.designs.flatMap(design => design.sourceNotes).length, 41);
     const itemId = catalog.designs[4].source_items[0];
     assert.equal(SystemDesign.designForSourceItem(itemId).slug, 'payment-ledger');
     assert.equal(SystemDesign.designForSourceItem('missing.q1'), null);
@@ -238,6 +238,7 @@ test('Experience routing, Case Studies migration and Mermaid security are wired 
   assert.match(systemView, /comparisonTable\(rows, labels/);
   assert.match(systemView, /tradeoffSection\(design\.tradeoffs\)/);
   assert.match(systemView, /renderResearch\(design\)/);
+  assert.match(systemView, /sd-case-guide-depth/);
   assert.match(systemView, /closest\('\.sd-toc-mobile'\)\?\.removeAttribute\('open'\)/);
   assert.match(caseView, /MOVED_TO_SYSTEM_DESIGN = 'systems-architecture'/);
   assert.match(caseView, /filter\(article => article\.category !== MOVED_TO_SYSTEM_DESIGN\)/);

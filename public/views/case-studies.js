@@ -111,6 +111,21 @@ function articleMeta(article) {
     + '</header>';
 }
 
+/* Guide briefs are deliberately short, but several contain two dense sentences.
+   Unlike archived article HTML, this is trusted plain JSON prose and can be
+   separated safely without changing the source article. */
+const GUIDE_SENTENCE = /(?<=[.?!])\s+(?=[\p{Lu}0-9"“(])/u;
+function renderGuideProse(value) {
+  const source = String(value || '').trim();
+  const sentences = source.split(GUIDE_SENTENCE).filter(Boolean);
+  if (source.length < 220 || sentences.length < 2) return '<p>' + escapeHtml(source) + '</p>';
+
+  const closing = sentences.pop();
+  const thesis = closing.length <= 170 ? ' class="cs-guide-thesis"' : '';
+  return sentences.map((sentence, index) => '<p' + (index === 0 ? ' class="cs-guide-lead"' : '') + '>'
+    + escapeHtml(sentence) + '</p>').join('') + '<p' + thesis + '>' + escapeHtml(closing) + '</p>';
+}
+
 function renderGuide(guide) {
   if (!guide) return '';
   const takeaways = (guide.takeaways || []).map(item => '<li>' + escapeHtml(item) + '</li>').join('');
@@ -119,9 +134,9 @@ function renderGuide(guide) {
     + '<header><p>' + text().guideEyebrow + '</p>'
     + '<h2 id="cs-guide-title">' + escapeHtml(guide.title) + '</h2></header>'
     + '<div class="cs-guide-brief">'
-    + '<article><b>' + text().problem + '</b><p>' + escapeHtml(guide.problem) + '</p></article>'
-    + '<article><b>' + text().coreIdea + '</b><p>' + escapeHtml(guide.core_idea) + '</p></article>'
-    + '<article><b>' + text().outcome + '</b><p>' + escapeHtml(guide.outcome) + '</p></article>'
+    + '<article><b>' + text().problem + '</b>' + renderGuideProse(guide.problem) + '</article>'
+    + '<article><b>' + text().coreIdea + '</b>' + renderGuideProse(guide.core_idea) + '</article>'
+    + '<article><b>' + text().outcome + '</b>' + renderGuideProse(guide.outcome) + '</article>'
     + '</div><div class="cs-guide-depth">'
     + '<article><h3>' + text().takeaways + '</h3><ul>' + takeaways + '</ul></article>'
     + '<article><h3>' + text().review + '</h3><ul>' + reviewLenses + '</ul></article>'

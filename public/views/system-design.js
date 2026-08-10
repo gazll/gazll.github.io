@@ -36,7 +36,7 @@ const COPY = {
     production: 'Production evidence', historical: 'Historical architecture',
     historicalNote: 'The preserved article reflects the system, constraints and technology available at publication time.',
     legacyDiagram: 'The former drawing is consolidated into the editable Mermaid architecture above.',
-    problem: 'Problem', coreIdea: 'Core idea', outcome: 'Outcome', sourceLabel: 'Source',
+    problem: 'Problem', coreIdea: 'Core idea', outcome: 'Outcome', takeaways: 'Key takeaways', review: 'Review questions', sourceLabel: 'Source',
     original: 'Original article', toc: 'On this page', tocToggle: 'Collapse contents',
     loading: 'Loading the System Design library…',
     unavailable: 'Could not load System Design', missing: 'Design not found', retry: 'Back to the library'
@@ -67,7 +67,7 @@ const COPY = {
     production: 'Bằng chứng production', historical: 'Kiến trúc theo thời điểm',
     historicalNote: 'Bài gốc phản ánh hệ thống, ràng buộc và công nghệ ở thời điểm được xuất bản.',
     legacyDiagram: 'Sơ đồ cũ đã được gom vào kiến trúc Mermaid có thể chỉnh sửa ở phía trên.',
-    problem: 'Bài toán', coreIdea: 'Ý tưởng chính', outcome: 'Kết quả', sourceLabel: 'Nguồn',
+    problem: 'Bài toán', coreIdea: 'Ý tưởng chính', outcome: 'Kết quả', takeaways: 'Điểm cần ghi nhớ', review: 'Câu hỏi review', sourceLabel: 'Nguồn',
     original: 'Bài viết gốc', toc: 'Trong bài này', tocToggle: 'Thu gọn mục lục',
     loading: 'Đang tải thư viện System Design…',
     unavailable: 'Không thể tải System Design', missing: 'Không tìm thấy bài thiết kế', retry: 'Quay lại thư viện'
@@ -369,10 +369,14 @@ function renderDesignArticle(design) {
 function renderCaseGuide(article) {
   const guide = article.guide;
   if (!guide) return '';
+  const takeaways = (guide.takeaways || []).map(item => '<li>' + emphasize(item) + '</li>').join('');
+  const reviewLenses = (guide.review_lenses || []).map(item => '<li>' + emphasize(item) + '</li>').join('');
   return '<section class="sd-section sd-case-guide"><h2 id="design-review">' + text().production + '</h2>'
-    + '<div><article><h3>' + text().problem + '</h3><p>' + emphasize(guide.problem) + '</p></article>'
+    + '<div class="sd-case-guide-brief"><article><h3>' + text().problem + '</h3><p>' + emphasize(guide.problem) + '</p></article>'
     + '<article><h3>' + text().coreIdea + '</h3><p>' + emphasize(guide.core_idea) + '</p></article>'
-    + '<article><h3>' + text().outcome + '</h3><p>' + emphasize(guide.outcome) + '</p></article></div></section>';
+    + '<article><h3>' + text().outcome + '</h3><p>' + emphasize(guide.outcome) + '</p></article></div>'
+    + '<div class="sd-case-guide-depth"><article><h3>' + text().takeaways + '</h3><ul>' + takeaways + '</ul></article>'
+    + '<article><h3>' + text().review + '</h3><ul>' + reviewLenses + '</ul></article></div></section>';
 }
 
 function renderProductionArticle(article, overview, archivedBody) {

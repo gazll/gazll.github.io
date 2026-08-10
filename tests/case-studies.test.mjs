@@ -216,9 +216,27 @@ test('Experience exposes the global language switch while remaining outside Stud
   assert.match(view, /TOC_STATE_KEY = 'gazl\.caseTocCollapsed'/);
   assert.ok(view.indexOf("'<aside class=\"cs-toc\"") < view.indexOf("'<article class=\"cs-article-body\""),
     'desktop contents must render to the left of the article body');
+  assert.match(styles, /\.cs-toc-mobile:not\(\[open\]\)>nav\{display:none\}/,
+    'the desktop TOC preference must not force a closed mobile details TOC open');
   assert.doesNotMatch(view, /article\.author|text\(\)\.by/);
   assert.doesNotMatch(styles, /view-case-studies\s+\.hdr-lang\s*\{\s*display:\s*none/,
     'Case Studies must expose the same header language switch as Topics');
   assert.doesNotMatch(topicManifest, /case-stud/i,
     'case studies must not change Study Track topics or its progress denominator');
+});
+
+test('guide prose is split only at safe sentence boundaries and remains escaped', async () => {
+  const source = await readFile(path.join(publicRoot, 'views/case-studies.js'), 'utf8');
+  const block = source.slice(source.indexOf('const GUIDE_SENTENCE'), source.indexOf('function renderGuide(guide)'));
+  const escapeHtml = value => String(value).replace(/[&<>"']/g, character =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
+  const renderGuideProse = new Function('escapeHtml', block + '\nreturn renderGuideProse;')(escapeHtml);
+  const prose = 'A guide card needs enough detail to frame the trade-off, explain the operating constraint, name the evidence that supports the claim, and make the reader decide what they would verify before accepting the recommendation. Its final sentence should be easy to scan.';
+  const html = renderGuideProse(prose);
+  assert.match(html, /^<p class="cs-guide-lead">/);
+  assert.match(html, /<p class="cs-guide-thesis">Its final sentence should be easy to scan\.<\/p>$/);
+  assert.equal(html.replace(/<[^>]+>/g, '').replace(/\s+/g, ''), prose.replace(/\s+/g, ''));
+  assert.equal(renderGuideProse('Short <guide>.'), '<p>Short &lt;guide&gt;.</p>');
+  const vietnamese = 'Một thẻ hướng dẫn cần đủ chi tiết để nêu rõ đánh đổi, điều kiện vận hành, bằng chứng phải kiểm tra, giả định cần xác nhận và quyết định người đọc cần tự đưa ra trước khi chấp nhận một khuyến nghị trong bối cảnh production. Đây là câu kết ngắn để quét nhanh.';
+  assert.match(renderGuideProse(vietnamese), /<p class="cs-guide-thesis">Đây là câu kết ngắn để quét nhanh\.<\/p>$/);
 });

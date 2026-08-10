@@ -70,7 +70,7 @@ public/
   data/
     manifest.json       ordered list of every topic (n, topic_type, file, optional surface) — 26 rows
     meta.json            label/title/intro/tags/key/topic_type per topic, VI + EN in one file
-    topics/NN-slug.json     complete English base, one file per topic (398 items total across 26 files)
+    topics/NN-slug.json     complete English base, one file per topic (406 items total across 26 files)
     topics/NN-slug.vi.json  complete Vietnamese companion, same shape and item IDs
     release-notes.json   dated changelog of the material, VI + EN in one file
     dsa-animations.json  step frames for topic 19's 15 patterns; shared frames, per-language captions
@@ -122,13 +122,13 @@ secret/              GITIGNORED. Personal setup notes and credentials
 - **The progress ring counts what the Study Track browses, not what `data/`
   holds.** `Content.topicItemIds` / `Content.totalTopicItems` are derived from
   `Content.topics`, which `_apply()` builds *after* dropping everything routed
-  to another surface — so the denominator is 365 of the 398 items on disk, and
+  to another surface — so the denominator is 365 of the 406 items on disk, and
   `validate-content.mjs` prints both numbers so the split stays visible. Two
   things remove an item: a `manifest.json` row with `surface: "system-design"`
   (the whole topic, 10 and 11), or a row listing individual ids in
   `system_design_items` (the OTA/whiteboard overlap in topic 16). Either way
   the item keeps its id and its `data/topics/` file — **the ids are stored
-  Sheet keys**, so a reader's existing `progress` rows for those 33 items stay
+  Sheet keys**, so a reader's existing `progress` rows for those 41 items stay
   in the Sheet, simply uncounted. Never "clean up" by deleting the source
   items. Moving items between surfaces silently changes every reader's ring,
   so it belongs in `data/release-notes.json`.

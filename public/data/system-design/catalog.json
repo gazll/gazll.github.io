@@ -691,7 +691,7 @@
         ],
         "tradeoffs": [
           "Sequential IDs are compact but enumerable; random codes need collision handling.",
-          "301 improves caching but makes destination updates harder; 302/307 keeps server control at higher load.",
+          "Redirect caching is controlled by status and cache headers: 301/308 carry permanent semantics, while 302/307 are temporary. Analytics and mutable destinations need an explicit cache policy, not a status-code shortcut.",
           "Multi-region reads improve latency while alias creation still needs a clear uniqueness authority.",
           "Negative caching reduces random misses but must expire when a code can later be created."
         ],
@@ -735,7 +735,7 @@
         ],
         "tradeoffs": [
           "Sequential ID gọn nhưng enumerable; random code cần collision handling.",
-          "301 cache tốt nhưng update destination khó; 302/307 giữ server control với load cao hơn.",
+          "Việc cache redirect do status và cache header quyết định: 301/308 mang ngữ nghĩa permanent, còn 302/307 là temporary. Analytics và destination có thể đổi cần cache policy tường minh, không phải quy tắc tắt theo status code.",
           "Multi-region read giảm latency còn alias creation vẫn cần uniqueness authority rõ.",
           "Negative cache giảm random miss nhưng phải hết hạn nếu code có thể được tạo sau."
         ],
@@ -1362,7 +1362,7 @@
         "quality": [
           "No two confirmed bookings consume the same physical seat unless an explicit overbooking pool permits it.",
           "Search can degrade to cached availability, but confirmation never treats a cached result as authoritative.",
-          "Every external call is timed out and idempotent where possible; unknown outcomes enter reconciliation rather than being guessed.",
+          "External outcomes: Every external call is timed out and idempotent where possible; unknown outcomes enter reconciliation rather than being guessed.",
           "The workflow exposes pending states and survives service, queue or orchestrator restarts."
         ],
         "capacity": [
@@ -1415,7 +1415,7 @@
         "quality": [
           "Không có hai confirmed booking dùng cùng physical seat trừ khi overbooking pool cho phép rõ.",
           "Search có thể degrade sang cached availability nhưng confirmation không bao giờ coi cache là authoritative.",
-          "Mọi external call có timeout và idempotent khi có thể; unknown outcome đi vào reconciliation thay vì đoán.",
+          "Kết quả từ external call: Mọi external call có timeout và idempotent khi có thể; unknown outcome đi vào reconciliation thay vì đoán.",
           "Workflow expose pending state và sống qua restart service, queue hoặc orchestrator."
         ],
         "capacity": [
@@ -1461,14 +1461,17 @@
       "slug": "high-traffic-booking-search",
       "category": "product-systems",
       "effort": "60 min",
-      "source_items": [],
+      "source_items": [
+        "11-system-design-cases.the-big-prompts.q13",
+        "11-system-design-cases.the-big-prompts.q14"
+      ],
       "diagram": "flowchart LR\n  C[Web / Mobile] --> G[API Gateway]\n  G --> SS[Search Service]\n  SS --> SC[(Search Cache)]\n  SS --> IX[(Search Index)]\n  G --> BS[Booking Service]\n  BS --> IH[Inventory and Hold Service]\n  IH --> DB[(Sharded Inventory DB)]\n  BS --> OB[(Order Store)]\n  BS --> K[Kafka]\n  K --> PY[Payment Service]\n  K --> NT[Notification Service]\n  K --> AN[Analytics and Indexer]\n  AN --> IX\n  PY --> K\n  EX[Hold Expiry and Reconciliation] --> IH\n  EX --> OB",
       "en": {
         "title": "Booking and search platform at 1M requests a day",
         "excerpt": "Split a read-heavy search path from a correctness-critical booking path, using Kafka to make payment, notification and indexing asynchronous across sharded services.",
-        "scope": "Serve roughly one million requests a day where the overwhelming majority are searches and only a small fraction become bookings. The design question is not raw throughput — 1M/day averages about 12 requests a second — but the peak-to-average ratio and the fact that two workloads with opposite requirements share one product: search must be fast and may be stale, booking must be correct and may be slow.",
+        "scope": "Serve roughly one million requests a day where the overwhelming majority are searches and only a small fraction become bookings. Raw throughput is not the question: 1M/day averages about 12 requests a second, so the peak-to-average ratio and two conflicting workloads determine the design. Keep search fast with bounded staleness; keep booking correct even when it is slower.",
         "functional": [
-          "Search availability by date, location and filters, returning ranked results from an index rather than the transactional store.",
+          "Search read path: Search availability by date, location and filters, returning ranked results from an index rather than the transactional store.",
           "Hold a specific unit for a bounded TTL so a user can complete checkout without another user taking it.",
           "Confirm a booking through payment, then issue confirmation and release the hold atomically with respect to the order.",
           "Expire abandoned holds and reconcile payments whose outcome is unknown, without operator intervention."
@@ -1480,10 +1483,10 @@
           "Every asynchronous consumer is idempotent: Kafka gives at-least-once delivery, so duplicates are normal traffic."
         ],
         "capacity": [
-          "1M requests/day is about 12 rps average; size for the peak instead — a 10-20x daily peak puts the search path near 150-250 rps.",
-          "Assume a 100:1 search-to-booking ratio: roughly 10k bookings/day, about 2-5 writes per second at peak on the correctness path.",
-          "Search is cacheable and horizontally scalable; the inventory write path is the only component that must serialize per unit.",
-          "Size Kafka for booking events plus retries and replay: modest volume, but retention must cover a full reconciliation window."
+          "Peak traffic: 1M requests/day is about 12 rps average; size for the peak instead — a 10-20x daily peak puts the search path near 150-250 rps.",
+          "Booking write rate: Assume a 100:1 search-to-booking ratio: roughly 10k bookings/day, about 2-5 writes per second at peak on the correctness path.",
+          "Serialization boundary: Search is cacheable and horizontally scalable; the inventory write path is the only component that must serialize per unit.",
+          "Event retention: Size Kafka for booking events plus retries and replay: modest volume, but retention must cover a full reconciliation window."
         ],
         "diagram_title": "Read path, authoritative write path and the Kafka fan-out",
         "data_model": [
@@ -1519,9 +1522,9 @@
       "vi": {
         "title": "Nền tảng booking và search ở mức 1 triệu request mỗi ngày",
         "excerpt": "Tách đường search đọc nhiều khỏi đường booking đòi hỏi tính đúng đắn, dùng Kafka để đưa payment, notification và indexing sang bất đồng bộ giữa các service đã shard.",
-        "scope": "Phục vụ khoảng một triệu request mỗi ngày, trong đó phần lớn là search và chỉ một phần nhỏ trở thành booking. Câu hỏi thiết kế không nằm ở throughput thô — 1 triệu/ngày trung bình chỉ khoảng 12 request mỗi giây — mà ở tỷ lệ đỉnh so với trung bình, và ở việc hai loại tải có yêu cầu trái ngược nhau cùng nằm trong một sản phẩm: search phải nhanh và được phép cũ, booking phải đúng và được phép chậm.",
+        "scope": "Phục vụ khoảng một triệu request mỗi ngày, trong đó phần lớn là search và chỉ một phần nhỏ trở thành booking. Throughput thô không phải câu hỏi chính: 1 triệu/ngày trung bình chỉ khoảng 12 request mỗi giây, nên tỷ lệ đỉnh/trung bình và hai workload trái ngược mới quyết định thiết kế. Search phải nhanh với độ stale có giới hạn; booking phải đúng dù chậm hơn.",
         "functional": [
-          "Search theo ngày, địa điểm và bộ lọc, trả kết quả đã xếp hạng từ index chứ không từ store giao dịch.",
+          "Đường đọc search: Search theo ngày, địa điểm và bộ lọc, trả kết quả đã xếp hạng từ index chứ không từ store giao dịch.",
           "Giữ (hold) một đơn vị cụ thể trong một TTL giới hạn để người dùng kịp hoàn tất checkout mà không bị người khác lấy mất.",
           "Xác nhận booking qua payment, sau đó phát confirmation và giải phóng hold một cách nhất quán với đơn hàng.",
           "Tự động hết hạn các hold bị bỏ dở và đối soát những payment chưa rõ kết quả, không cần người vận hành can thiệp."
@@ -1533,10 +1536,10 @@
           "Mọi consumer bất đồng bộ đều idempotent: Kafka giao ít nhất một lần, nên bản ghi trùng là chuyện bình thường."
         ],
         "capacity": [
-          "1 triệu request/ngày tương đương khoảng 12 rps trung bình; hãy tính theo đỉnh — đỉnh gấp 10-20 lần đưa đường search lên khoảng 150-250 rps.",
-          "Giả định tỷ lệ search trên booking là 100:1: khoảng 10 nghìn booking/ngày, tức chừng 2-5 write mỗi giây ở đỉnh trên đường đúng đắn.",
-          "Search cache được và scale ngang dễ dàng; đường ghi tồn kho là thành phần duy nhất buộc phải tuần tự hoá theo từng đơn vị.",
-          "Tính dung lượng Kafka cho sự kiện booking cộng retry và replay: lưu lượng vừa phải, nhưng retention phải phủ trọn một chu kỳ đối soát."
+          "Lưu lượng đỉnh: 1 triệu request/ngày tương đương khoảng 12 rps trung bình; hãy tính theo đỉnh — đỉnh gấp 10-20 lần đưa đường search lên khoảng 150-250 rps.",
+          "Tốc độ ghi booking: Giả định tỷ lệ search trên booking là 100:1: khoảng 10 nghìn booking/ngày, tức chừng 2-5 write mỗi giây ở đỉnh trên đường đúng đắn.",
+          "Ranh giới tuần tự hoá: Search cache được và scale ngang dễ dàng; đường ghi tồn kho là thành phần duy nhất buộc phải tuần tự hoá theo từng đơn vị.",
+          "Retention sự kiện: Tính dung lượng Kafka cho sự kiện booking cộng retry và replay: lưu lượng vừa phải, nhưng retention phải phủ trọn một chu kỳ đối soát."
         ],
         "diagram_title": "Đường đọc, đường ghi có thẩm quyền và fan-out qua Kafka",
         "data_model": [
@@ -1575,29 +1578,32 @@
       "slug": "scaling-1m-to-10m-requests",
       "category": "foundations",
       "effort": "75 min",
-      "source_items": [],
-      "diagram": "flowchart TB\n  subgraph S1[1M per day: 12 rps average, 150-250 rps peak]\n    A1[App instances] --> A2[(Primary)]\n    A2 --> A3[(Read replicas)]\n    A1 --> A4[(Redis: cache + locks)]\n    A1 --> A5[Kafka or RabbitMQ]\n  end\n  subgraph S2[10M per day: 116 rps average, 1.5-2.5k rps peak]\n    B0[CDN] --> B1[App instances]\n    B1 --> B3[(Local cache)]\n    B3 --> B4[(Redis cluster)]\n    B1 --> B2[(Sharded primaries)]\n    B2 --> B5[(Replicas per shard)]\n    B1 --> B6[Kafka: partitioned]\n    B6 --> B7[Consumer groups]\n  end\n  subgraph S3[100M per day: 1.2k rps average, 15-25k rps peak]\n    C0[CDN + edge compute] --> C1[Regional cells]\n    C1 --> C2[(Cell-local storage)]\n    C1 --> C3[(Tiered cache)]\n    C2 --> C4[CDC stream]\n    C4 --> C5[Kafka: multi-cluster]\n    C5 --> C6[(Lake + OLAP)]\n  end\n  S1 -->|Write ceiling and cache misses| S2\n  S2 -->|Blast radius and coordination cost| S3",
+      "source_items": [
+        "11-system-design-cases.the-big-prompts.q15",
+        "11-system-design-cases.the-big-prompts.q16"
+      ],
+      "diagram": "flowchart TB\n  subgraph S1[1M per day: 12 rps average, 150-250 rps peak]\n    A1[App instances] --> A2[(Primary)]\n    A2 --> A3[(Read replicas)]\n    A1 --> A4[(Redis: cache + locks)]\n    A1 --> A5[Kafka or RabbitMQ]\n  end\n  subgraph S2[10M per day: 116 rps average, 1.5-2.5k rps peak]\n    B0[CDN] --> B1[App instances]\n    B1 --> B3[(Local cache)]\n    B3 --> B4[(Redis cluster)]\n    B1 --> B2[(Primary or sharded writes)]\n    B2 --> B5[(Replicas as needed)]\n    B1 --> B6[Kafka: partitioned]\n    B6 --> B7[Consumer groups]\n  end\n  subgraph S3[100M per day: 1.2k rps average, 15-25k rps peak]\n    C0[CDN + edge compute] --> C1[Regional cells if justified]\n    C1 --> C2[(Cell-local or sharded storage)]\n    C1 --> C3[(Tiered cache)]\n    C2 --> C4[CDC stream]\n    C4 --> C5[Kafka: multi-cluster]\n    C5 --> C6[(Lake + OLAP)]\n  end\n  S1 -->|Measured constraint| S2\n  S2 -->|Blast radius or coordination cost| S3",
       "en": {
         "title": "1M, 10M and 100M requests a day: what each technique actually buys",
         "excerpt": "The same product at three scales, technique by technique — replicas, Redis, Memcached, distributed locks, Kafka, RabbitMQ, sharding and cells — with what each one solves, what it costs, and the point at which it stops being optional.",
         "scope": "Take the booking-and-search platform from Blueprint 15 and walk it through ten and then a hundred times the load. The goal is not a shopping list of technologies but a decision order: at each scale, which limit is actually binding, which technique removes it, and what that technique costs to run. Most components never change. A small number hit a hard ceiling, and each fix buys throughput with complexity you then operate forever. Being able to name the binding constraint — and refuse the upgrades that do not address it — is the whole skill.",
         "functional": [
           "State all three loads in one unit: 1M/day is about 12 rps, 10M/day about 116 rps, 100M/day about 1,157 rps average.",
-          "For each scale, name the single binding constraint before naming any technology — read throughput, write throughput, working-set size, data volume or coordination cost.",
-          "For each technique, state what it removes and what new failure mode it introduces; a technique with no new failure mode is usually not doing anything.",
-          "Give an explicit adoption order, so that a technique is only reached for once the cheaper one below it has been exhausted and measured."
+          "Binding constraint: For each scale, name the single binding constraint before naming any technology — read throughput, write throughput, working-set size, data volume or coordination cost.",
+          "Technique cost: For each technique, state what it removes and what new failure mode it introduces; a technique with no new failure mode is usually not doing anything.",
+          "Adoption order: Give an explicit adoption order, so that a technique is only reached for once the cheaper one below it has been exhausted and measured."
         ],
         "quality": [
           "Arithmetic precedes architecture: peak rps, read/write ratio, working-set size and row count decide, never the headline request number.",
-          "Correctness invariants are identical at all three scales; only the mechanisms that preserve them change, and each mechanism is weaker than the one it replaced.",
+          "Invariant continuity: Correctness invariants are identical at all three scales; only the mechanisms that preserve them change, and each mechanism is weaker than the one it replaced.",
           "Every added tier must have a named owner, a stated failure mode, and a documented way to remove it again.",
           "Reversibility is a first-class criterion: prefer the technique that can be undone in an afternoon over the one that cannot be undone at all."
         ],
         "capacity": [
-          "1M/day = 12 rps average, 150-250 rps at a 10-20x peak. One well-indexed primary plus a few app instances genuinely suffices; most of this scale is solved by an index and a connection pool.",
-          "10M/day = 116 rps average, 1.5-2.5k rps at peak. Reads are still easy; the binding constraint becomes cache-miss rate against a working set that no longer fits one node.",
-          "100M/day = 1,157 rps average, 15-25k rps at peak. Now the constraints are write throughput, coordination cost across services, and the fact that a single deploy or bad key can take out everything at once.",
-          "At a 100:1 read/write ratio the write path runs at roughly 2-5, 20-50 and 200-500 writes/sec respectively — a single Postgres primary handles all three comfortably, which is exactly why sharding must be justified by data volume or blast radius, not rps.",
+          "1M scale: 1M/day = 12 rps average and 150-250 rps at a 10-20x peak. This may fit one well-indexed primary and a few app instances, but only after measuring schema, durability, p99, and failure requirements; start with query/index and connection-pool evidence, not a scale recipe.",
+          "10M scale: 10M/day = 116 rps average and 1.5-2.5k rps at peak. The next constraint may be cache misses, write contention, dependency saturation, or data volume; measure it rather than assuming reads are easy.",
+          "100M scale: 100M/day = 1,157 rps average and 15-25k rps at peak. Constraints can include write throughput, coordination cost, recovery time, and blast radius, but their order follows the workload and availability target.",
+          "Write-path scale: At a 100:1 read/write ratio the write path runs at roughly 2-5, 20-50, and 200-500 writes/sec. Those rates alone do not establish primary capacity: schema, indexes, transaction shape, durability, contention, hardware, and p99 matter. Shard only for a measured constraint or blast-radius objective.",
           "Data volume usually forces change before request rate: ten times the traffic is ten times the rows, index size, backup window and restore time — restore time is the number that ends the single-primary era."
         ],
         "diagram_title": "Three scales, and the constraint that forces each transition",
@@ -1619,7 +1625,7 @@
           "Cells and multi-region (100M) — partition the whole stack into independent cells, each serving a slice of users end to end. This is bought for blast radius and regional latency, not throughput: it means one bad deploy or poison key affects one cell. Cost: the highest operational complexity in this list — routing, per-cell capacity, cross-cell data and a much harder mental model. Multi-region specifically is driven by latency and availability targets, never by request volume; 100M/day in one region is unremarkable."
         ],
         "tradeoffs": [
-          "Adoption order, cheapest and most reversible first: index and query tuning, connection pooling, read replicas, caching, async offload via a queue, read models, then sharding, then cells. Each step should be taken only after the previous one is measured and exhausted. Skipping to sharding because the number is large is the classic failure — a single primary handles all three write rates in this design.",
+          "Adoption order, cheapest and most reversible first: index and query tuning, connection pooling, read replicas, caching, async offload, read models, then partitioning, sharding, and cells. Treat this as a hypothesis, not a ladder: take a later step only when a measured bottleneck or invariant requires it.",
           "In favour of staying at the 1M shape: one primary means real transactions, trivial joins, no cross-shard reasoning, and an on-call rotation anyone can hold. Vertical scaling and replicas are the cheapest throughput you will ever buy. The cost is a hard write ceiling and one failure domain.",
           "In favour of the 10M shape: caching and read models remove the read ceiling entirely, and async offload keeps slow work off the request path. The cost is staleness everywhere, plus cache stampedes and cold-start behaviour that only appear during an incident — precisely when you can least afford them.",
           "In favour of the 100M shape: no single write ceiling, blast radius contained per shard or cell, independent scaling per workload. The cost is distributed transactions or a hard rule that they never occur, resharding as a project rather than a config change, and debugging that spans services, shards and regions.",
@@ -1642,21 +1648,21 @@
         "scope": "Lấy nền tảng booking và search ở Blueprint 15 rồi đưa nó qua mức tải gấp mười và gấp trăm lần. Mục tiêu không phải một danh sách công nghệ mà là thứ tự ra quyết định: ở mỗi mức, giới hạn nào mới thực sự đang chặn, kỹ thuật nào gỡ được nó, và kỹ thuật đó tốn gì để vận hành. Phần lớn thành phần không bao giờ đổi. Một số ít chạm trần thật, và mỗi cách khắc phục đều mua throughput bằng độ phức tạp mà sau đó bạn phải nuôi mãi. Gọi tên được ràng buộc đang chặn — và từ chối những nâng cấp không nhắm vào nó — chính là toàn bộ kỹ năng ở đây.",
         "functional": [
           "Quy cả ba mức tải về một đơn vị: 1 triệu/ngày khoảng 12 rps, 10 triệu/ngày khoảng 116 rps, 100 triệu/ngày khoảng 1.157 rps trung bình.",
-          "Ở mỗi mức, gọi tên ràng buộc đang chặn trước khi gọi tên bất kỳ công nghệ nào — throughput đọc, throughput ghi, kích thước working set, khối lượng dữ liệu hay chi phí phối hợp.",
-          "Với mỗi kỹ thuật, nêu rõ nó gỡ bỏ điều gì và mang vào kiểu lỗi mới nào; một kỹ thuật không sinh ra kiểu lỗi mới thì thường là nó chẳng làm gì cả.",
-          "Đưa ra thứ tự áp dụng tường minh, để chỉ với tới một kỹ thuật khi kỹ thuật rẻ hơn bên dưới đã được đo và vắt kiệt."
+          "Ràng buộc chặn: Ở mỗi mức, gọi tên ràng buộc đang chặn trước khi gọi tên bất kỳ công nghệ nào — throughput đọc, throughput ghi, kích thước working set, khối lượng dữ liệu hay chi phí phối hợp.",
+          "Cái giá kỹ thuật: Với mỗi kỹ thuật, nêu rõ nó gỡ bỏ điều gì và mang vào kiểu lỗi mới nào; một kỹ thuật không sinh ra kiểu lỗi mới thì thường là nó chẳng làm gì cả.",
+          "Thứ tự áp dụng: Đưa ra thứ tự áp dụng tường minh, để chỉ với tới một kỹ thuật khi kỹ thuật rẻ hơn bên dưới đã được đo và vắt kiệt."
         ],
         "quality": [
           "Số học đi trước kiến trúc: rps đỉnh, tỷ lệ đọc/ghi, kích thước working set và số dòng mới quyết định, không bao giờ là con số tổng.",
-          "Bất biến về tính đúng đắn giống hệt nhau ở cả ba mức; chỉ cơ chế bảo vệ chúng thay đổi, và mỗi cơ chế mới đều yếu hơn cái nó thay thế.",
+          "Tính liên tục của invariant: Bất biến về tính đúng đắn giống hệt nhau ở cả ba mức; chỉ cơ chế bảo vệ chúng thay đổi, và mỗi cơ chế mới đều yếu hơn cái nó thay thế.",
           "Mỗi tầng thêm vào phải có người sở hữu rõ ràng, kiểu lỗi rõ ràng, và một đường gỡ bỏ đã ghi lại.",
           "Khả năng đảo ngược là tiêu chí hạng nhất: ưu tiên kỹ thuật gỡ được trong một buổi chiều hơn kỹ thuật không bao giờ gỡ được."
         ],
         "capacity": [
-          "1 triệu/ngày = 12 rps trung bình, 150-250 rps ở đỉnh gấp 10-20 lần. Một primary đánh index tốt cùng vài instance ứng dụng là thực sự đủ; phần lớn mức này giải quyết bằng một cái index và một connection pool.",
-          "10 triệu/ngày = 116 rps trung bình, 1,5-2,5 nghìn rps ở đỉnh. Đọc vẫn dễ; ràng buộc chặn trở thành tỷ lệ cache miss trên một working set không còn vừa một node.",
-          "100 triệu/ngày = 1.157 rps trung bình, 15-25 nghìn rps ở đỉnh. Lúc này ràng buộc là throughput ghi, chi phí phối hợp giữa các service, và việc một lần deploy hỏng hay một key xấu có thể hạ toàn bộ cùng lúc.",
-          "Với tỷ lệ đọc/ghi 100:1, đường ghi chạy ở khoảng 2-5, 20-50 và 200-500 write/giây tương ứng — một primary Postgres kham cả ba mức thoải mái, đó chính là lý do sharding phải được biện minh bằng khối lượng dữ liệu hoặc bán kính ảnh hưởng, không phải bằng rps.",
+          "Mức 1 triệu: 1 triệu/ngày = 12 rps trung bình và 150-250 rps ở đỉnh gấp 10-20 lần. Mức này có thể vừa một primary đánh index tốt cùng vài app instance, nhưng chỉ sau khi đo schema, durability, p99 và yêu cầu failure; hãy bắt đầu từ bằng chứng về query/index và connection pool, không phải một công thức scale.",
+          "Mức 10 triệu: 10 triệu/ngày = 116 rps trung bình và 1,5-2,5 nghìn rps ở đỉnh. Nút thắt tiếp theo có thể là cache miss, write contention, dependency saturation hoặc data volume; phải đo thay vì mặc định read luôn dễ.",
+          "Mức 100 triệu: 100M/ngày = 1.157 rps trung bình và 15-25 nghìn rps ở đỉnh. Ràng buộc có thể gồm write throughput, chi phí phối hợp, thời gian recovery và blast radius, nhưng thứ tự của chúng phụ thuộc workload cùng mục tiêu availability.",
+          "Quy mô đường ghi: Với tỷ lệ đọc/ghi 100:1, đường ghi chạy khoảng 2-5, 20-50 và 200-500 write/giây. Chỉ các tốc độ này chưa nói được primary chịu nổi bao nhiêu: schema, index, transaction shape, durability, contention, hardware và p99 đều quan trọng. Chỉ shard khi có ràng buộc đã đo hoặc mục tiêu blast radius.",
           "Khối lượng dữ liệu thường ép thay đổi trước tốc độ request: tải gấp mười lần là gấp mười lần số dòng, kích thước index, cửa sổ backup và thời gian restore — thời gian restore mới là con số kết thúc thời kỳ một primary."
         ],
         "diagram_title": "Ba mức tải, và ràng buộc ép mỗi lần chuyển giai đoạn",
@@ -1678,7 +1684,7 @@
           "Cell và multi-region (100 triệu) — chia toàn bộ hệ thống thành các cell độc lập, mỗi cell phục vụ trọn vẹn một nhóm người dùng. Thứ này mua bán kính ảnh hưởng và độ trễ theo vùng, không phải throughput: một lần deploy hỏng hay một key độc chỉ ảnh hưởng một cell. Cái giá: độ phức tạp vận hành cao nhất trong danh sách này — định tuyến, dung lượng từng cell, dữ liệu liên cell và một mô hình tư duy khó hơn hẳn. Riêng multi-region thì do mục tiêu độ trễ và tính sẵn sàng quyết định, không bao giờ do lưu lượng; 100 triệu/ngày trong một vùng là chuyện bình thường."
         ],
         "tradeoffs": [
-          "Thứ tự áp dụng, rẻ và dễ đảo ngược trước: tối ưu index và truy vấn, connection pooling, read replica, cache, đẩy việc sang bất đồng bộ bằng hàng đợi, read model, rồi mới sharding, rồi mới cell. Mỗi bước chỉ nên làm sau khi bước trước đã được đo và vắt kiệt. Nhảy thẳng tới sharding vì thấy con số lớn là sai lầm kinh điển — một primary duy nhất kham được cả ba mức ghi trong thiết kế này.",
+          "Thứ tự áp dụng, từ rẻ và dễ đảo ngược nhất: index/query tuning, connection pooling, read replica, cache, async offload, read model, rồi partitioning, sharding và cell. Hãy coi đây là giả thuyết, không phải nấc thang: chỉ đi tới bước sau khi một nút thắt đã đo hoặc invariant bắt buộc điều đó.",
           "Ủng hộ giữ hình dạng 1 triệu: một primary nghĩa là transaction thật, join đơn giản, không phải suy luận liên shard, và một ca trực ai cũng gánh được. Scale dọc cùng replica là throughput rẻ nhất bạn từng mua. Cái giá là một trần ghi cứng và một miền lỗi duy nhất.",
           "Ủng hộ hình dạng 10 triệu: cache và read model gỡ hẳn trần đọc, còn việc đẩy sang bất đồng bộ giữ các tác vụ chậm ra khỏi đường request. Cái giá là dữ liệu cũ ở khắp nơi, cộng thêm cache stampede và hành vi cold-start chỉ lộ ra khi đang có sự cố — đúng lúc bạn ít chịu nổi nhất.",
           "Ủng hộ hình dạng 100 triệu: không còn trần ghi đơn lẻ, bán kính ảnh hưởng gói trong từng shard hoặc cell, mỗi loại tải scale độc lập. Cái giá là giao dịch phân tán hoặc một luật cứng rằng chúng không bao giờ xảy ra, reshard thành cả một dự án chứ không phải đổi config, và việc debug trải trên nhiều service, nhiều shard và nhiều vùng.",
@@ -1701,29 +1707,32 @@
       "slug": "scaling-technique-catalogue",
       "category": "foundations",
       "effort": "60 min",
-      "source_items": [],
+      "source_items": [
+        "11-system-design-cases.the-big-prompts.q17",
+        "11-system-design-cases.the-big-prompts.q18"
+      ],
       "diagram": "flowchart TB\n  Q{What is actually slow or failing?}\n  Q -->|Reads| R1[Index and query tuning]\n  R1 --> R2[Read replicas]\n  R2 --> R3[Cache: local then Redis]\n  R3 --> R4[CDN for public reads]\n  Q -->|Writes| W1[Batching and connection pool]\n  W1 --> W2[Async offload: queue]\n  W2 --> W3[Partition by key]\n  W3 --> W4[Shard or distributed SQL]\n  Q -->|Slow dependency| A1[Timeout and circuit breaker]\n  A1 --> A2[Queue the work]\n  A2 --> A3[Bulkhead per dependency]\n  Q -->|Contention on one row| L1[DB constraint or version]\n  L1 --> L2[Serialize by key in one partition]\n  L2 --> L3[Lock only for efficiency]",
       "en": {
         "title": "The scaling technique catalogue: which tool for which bottleneck",
         "excerpt": "A reference for the individual techniques — replicas, cache tiers, locks, queues, partitioning, bulkheads and backpressure — each with the one problem it solves, the failure it introduces, and the cheaper thing to try first.",
-        "scope": "Blueprint 16 asks what changes between scales. This one is the reference behind it: a technique-by-technique catalogue you can read on its own. Each entry answers four questions — what limit does this remove, what does it cost, what does it NOT fix, and what should you have tried before reaching for it. The organising principle is that every technique is a trade, and naming what you gave up is what separates a design from a list of technologies.",
+        "scope": "Blueprint 16 asks what changes between scales. This one is the reference behind it: a technique-by-technique catalogue you can read on its own. Each entry answers four questions — what limit does this remove, what does it cost, what does it NOT fix, and what should you have tried before reaching for it. The organising principle is simple: every technique is a trade. Naming what you gave up separates a design from a technology list.",
         "functional": [
           "Start from the symptom, never the technology: slow reads, slow writes, a slow dependency, or contention on a single row each have different answers.",
-          "For each technique, state the limit it removes and the limit it leaves untouched — most production mistakes are a technique applied to the wrong bottleneck.",
+          "Limit removed: For each technique, state the limit it removes and the limit it leaves untouched — most production mistakes are a technique applied to the wrong bottleneck.",
           "Give the cheaper alternative that should be exhausted first, so the catalogue reads as an order rather than a menu.",
           "Name the new failure mode each technique introduces, because that is the ongoing cost you will actually operate."
         ],
         "quality": [
-          "A technique is only correct if it targets the measured bottleneck; adding replicas to fix write latency is a common and expensive category error.",
-          "Correctness mechanisms and performance mechanisms must never be confused — distributed locks are performance, database constraints are correctness.",
-          "Every asynchronous boundary makes the caller's success ambiguous, so idempotency is not optional once a queue enters the design.",
+          "Measured bottleneck: A technique is only correct if it targets the measured bottleneck; adding replicas to fix write latency is a common and expensive category error.",
+          "Correctness boundary: Correctness mechanisms and performance mechanisms must never be confused — distributed locks are performance, database constraints are correctness.",
+          "Async ambiguity: Every asynchronous boundary makes the caller's success ambiguous, so idempotency is not optional once a queue enters the design.",
           "Prefer the technique whose failure mode you can detect: a slow system you can see beats a fast one that is silently wrong."
         ],
         "capacity": [
           "Measure before choosing: p99 latency by endpoint, read/write split, cache hit rate, working-set size, and the slowest dependency's timeout budget.",
-          "A single modern Postgres primary handles thousands of simple writes per second — most systems reaching for sharding have a query problem, not a scale problem.",
-          "Cache effectiveness is set by working-set size versus memory, not by request rate; a 99 percent hit rate and a 90 percent hit rate differ tenfold in origin load.",
-          "Queue sizing is about burst absorption and drain rate, not throughput: the useful number is how long the backlog takes to clear after an incident."
+          "Primary write capacity is workload-specific: schema, indexes, transaction shape, durability, contention, hardware, and p99 all matter. Benchmark a production-shaped workload before choosing sharding; the next fix is often a query, data-model, or concurrency change, but never assume it.",
+          "Working-set fit: Cache effectiveness is set by working-set size versus memory, not by request rate; a 99 percent hit rate and a 90 percent hit rate differ tenfold in origin load.",
+          "Queue recovery: Queue sizing is about burst absorption and drain rate, not throughput: the useful number is how long the backlog takes to clear after an incident."
         ],
         "diagram_title": "From symptom to technique, cheapest option first",
         "data_model": [
@@ -1763,24 +1772,24 @@
       "vi": {
         "title": "Danh mục kỹ thuật scaling: dùng công cụ nào cho nút thắt nào",
         "excerpt": "Tài liệu tra cứu cho từng kỹ thuật — replica, các tầng cache, lock, hàng đợi, phân vùng, bulkhead và backpressure — mỗi thứ kèm đúng một bài toán nó giải, kiểu lỗi nó mang vào, và thứ rẻ hơn nên thử trước.",
-        "scope": "Blueprint 16 hỏi cái gì thay đổi giữa các mức tải. Bài này là tài liệu tra cứu phía sau nó: một danh mục theo từng kỹ thuật, đọc riêng cũng được. Mỗi mục trả lời bốn câu — kỹ thuật này gỡ bỏ giới hạn nào, tốn gì, KHÔNG sửa được gì, và lẽ ra nên thử gì trước khi với tới nó. Nguyên tắc xuyên suốt: mọi kỹ thuật đều là một cuộc đổi chác, và gọi tên được thứ mình đã đánh đổi mới là điều phân biệt một thiết kế với một danh sách công nghệ.",
+        "scope": "Blueprint 16 hỏi cái gì thay đổi giữa các mức tải. Bài này là tài liệu tra cứu phía sau nó: một danh mục theo từng kỹ thuật, đọc riêng cũng được. Mỗi mục trả lời bốn câu — kỹ thuật này gỡ bỏ giới hạn nào, tốn gì, KHÔNG sửa được gì, và lẽ ra nên thử gì trước khi với tới nó. Nguyên tắc xuyên suốt rất đơn giản: mọi kỹ thuật đều là một cuộc đổi chác. Gọi tên được thứ mình đã đánh đổi mới phân biệt một thiết kế với một danh sách công nghệ.",
         "functional": [
           "Xuất phát từ triệu chứng, đừng bao giờ từ công nghệ: đọc chậm, ghi chậm, một dependency chậm, hay tranh chấp trên một dòng dữ liệu đều có câu trả lời khác nhau.",
-          "Với mỗi kỹ thuật, nêu rõ giới hạn nó gỡ và giới hạn nó để nguyên — phần lớn sai lầm production là áp một kỹ thuật vào sai nút thắt.",
+          "Giới hạn được gỡ: Với mỗi kỹ thuật, nêu rõ giới hạn nó gỡ và giới hạn nó để nguyên — phần lớn sai lầm production là áp một kỹ thuật vào sai nút thắt.",
           "Đưa ra lựa chọn rẻ hơn cần vắt kiệt trước, để danh mục đọc như một thứ tự chứ không phải một thực đơn.",
           "Gọi tên kiểu lỗi mới mà mỗi kỹ thuật mang vào, vì đó mới là chi phí lâu dài bạn thực sự phải vận hành."
         ],
         "quality": [
-          "Một kỹ thuật chỉ đúng khi nó nhắm vào nút thắt đã đo được; thêm replica để chữa độ trễ ghi là lỗi phân loại phổ biến và đắt đỏ.",
-          "Không bao giờ được lẫn lộn cơ chế đúng đắn với cơ chế hiệu năng — distributed lock là hiệu năng, ràng buộc database mới là đúng đắn.",
-          "Mọi ranh giới bất đồng bộ đều làm kết quả của bên gọi trở nên mơ hồ, nên idempotency không còn là tuỳ chọn một khi hàng đợi bước vào thiết kế.",
+          "Nút thắt đã đo: Một kỹ thuật chỉ đúng khi nó nhắm vào nút thắt đã đo được; thêm replica để chữa độ trễ ghi là lỗi phân loại phổ biến và đắt đỏ.",
+          "Ranh giới đúng đắn: Không bao giờ được lẫn lộn cơ chế đúng đắn với cơ chế hiệu năng — distributed lock là hiệu năng, ràng buộc database mới là đúng đắn.",
+          "Mơ hồ bất đồng bộ: Mọi ranh giới bất đồng bộ đều làm kết quả của bên gọi trở nên mơ hồ, nên idempotency không còn là tuỳ chọn một khi hàng đợi bước vào thiết kế.",
           "Ưu tiên kỹ thuật mà bạn phát hiện được kiểu lỗi của nó: một hệ thống chậm mà thấy được vẫn hơn một hệ thống nhanh mà sai trong im lặng."
         ],
         "capacity": [
           "Đo trước khi chọn: p99 theo từng endpoint, tỷ lệ đọc/ghi, tỷ lệ cache hit, kích thước working set, và ngân sách timeout của dependency chậm nhất.",
-          "Một primary Postgres hiện đại kham được hàng nghìn write đơn giản mỗi giây — phần lớn hệ thống với tới sharding thực ra đang có vấn đề truy vấn, không phải vấn đề quy mô.",
-          "Hiệu quả của cache do kích thước working set so với bộ nhớ quyết định, không do tốc độ request; hit rate 99 phần trăm và 90 phần trăm chênh nhau mười lần tải xuống origin.",
-          "Tính dung lượng hàng đợi là chuyện hấp thụ đột biến và tốc độ rút, không phải throughput: con số hữu ích là backlog mất bao lâu để giải toả sau sự cố."
+          "Trần ghi của primary phụ thuộc workload: schema, index, transaction shape, durability, contention, hardware và p99 đều quan trọng. Hãy benchmark workload giống production trước khi chọn sharding; bước tiếp theo thường là sửa query, data model hoặc concurrency, nhưng đừng mặc định điều đó.",
+          "Độ vừa working set: Hiệu quả của cache do kích thước working set so với bộ nhớ quyết định, không do tốc độ request; hit rate 99 phần trăm và 90 phần trăm chênh nhau mười lần tải xuống origin.",
+          "Phục hồi hàng đợi: Tính dung lượng hàng đợi là chuyện hấp thụ đột biến và tốc độ rút, không phải throughput: con số hữu ích là backlog mất bao lâu để giải toả sau sự cố."
         ],
         "diagram_title": "Từ triệu chứng tới kỹ thuật, rẻ nhất trước",
         "data_model": [
@@ -1823,7 +1832,10 @@
       "slug": "flash-sale-booking-inventory-bottleneck",
       "category": "product-systems",
       "effort": "75 min",
-      "source_items": [],
+      "source_items": [
+        "11-system-design-cases.the-big-prompts.q19",
+        "11-system-design-cases.the-big-prompts.q20"
+      ],
       "diagram": "flowchart LR\n  C[Web / App] --> W[Edge waiting room]\n  W --> G[API Gateway]\n  G --> S[Search and product read model]\n  S --> CA[(Cache / Search index)]\n  G --> A[Checkout admission control]\n  A --> R[Reservation API]\n  R --> IA[Inventory authority]\n  IA --> DB[(Partitioned inventory and holds)]\n  R --> O[(Order and outbox)]\n  O --> Q[Event log / queue]\n  Q --> P[Payment orchestrator]\n  P --> X[PSP]\n  Q --> E[Availability projection]\n  E --> CA\n  H[Hold expiry and reconciliation] --> IA\n  H --> P",
       "en": {
         "title": "Flash-sale booking and inventory: finding and removing the hot-stock bottleneck",
@@ -1831,26 +1843,26 @@
         "scope": "The pictured architecture serves one million daily users and roughly ten times normal promotional traffic, but the dangerous number is not daily users or total requests. Product pages multiply reads into inventory checks, while every buyer of one discounted SKU contends on the same stock record or Redis lock. The synchronous Book → Inventory → Payment chain holds scarce connections and inventory ownership across network calls, so latency, retries and payment timeouts feed back into more contention. This design makes the bottleneck measurable, preserves one authoritative reservation decision and lets search, payment and downstream work scale independently.",
         "functional": [
           "Serve product/search availability from a versioned projection; revalidate only when creating an authoritative hold.",
-          "Admit a bounded number of checkout attempts per campaign/SKU and return sold-out, queued or retry-after responses before the inventory authority saturates.",
-          "Create an idempotent hold with quantity, fencing version and expiry using one atomic conditional write; never keep a database transaction open while calling payment.",
-          "Run authorize/capture and order confirmation as a durable saga, release expired or failed holds and reconcile unknown PSP outcomes.",
-          "Expose campaign state, queue position and truthful pending/sold-out results so clients do not poll inventory aggressively."
+          "Admission control: Admit a bounded number of checkout attempts per campaign/SKU and return sold-out, queued or retry-after responses before the inventory authority saturates.",
+          "Authoritative hold: Create an idempotent hold with quantity, fencing version and expiry using one atomic conditional write; never keep a database transaction open while calling payment.",
+          "Booking saga: Run authorize/capture and order confirmation as a durable saga, release expired or failed holds and reconcile unknown PSP outcomes.",
+          "Client-facing state: Expose campaign state, queue position and truthful pending/sold-out results so clients do not poll inventory aggressively."
         ],
         "quality": [
-          "Confirmed plus active-held quantity never exceeds sellable stock; Redis cache or lock loss cannot violate this invariant.",
-          "Search remains available during checkout overload, and overload for one campaign/SKU cannot consume every DB connection or worker.",
-          "The API is idempotent across client retry, gateway retry, queue redelivery and payment callback duplication.",
-          "p99 hold latency stays within the admission deadline; once the queue cannot drain inside the business window, reject rather than hide demand in an unbounded backlog.",
-          "Every hold, expiry, payment and compensation transition is auditable and can be replayed or reconciled without mutating history."
+          "Inventory invariant: Confirmed plus active-held quantity never exceeds sellable stock; Redis cache or lock loss cannot violate this invariant.",
+          "Overload isolation: Search remains available during checkout overload, and overload for one campaign/SKU cannot consume every DB connection or worker.",
+          "Idempotency boundary: The API is idempotent across client retry, gateway retry, queue redelivery and payment callback duplication.",
+          "Admission deadline: p99 hold latency stays within the admission deadline; once the queue cannot drain inside the business window, reject rather than hide demand in an unbounded backlog.",
+          "Audit trail: Every hold, expiry, payment and compensation transition is auditable and can be replayed or reconciled without mutating history."
         ],
         "capacity": [
           "Baseline: 1M DAU does not imply high throughput—uniform traffic is only 11.6 user arrivals/s. Model the launch window: 50k users refreshing five times in 60 seconds produces about 4,167 edge requests/s before images and retries.",
           "Read amplification: if a page checks 20 SKUs separately, 4,000 page requests/s becomes 80,000 inventory lookups/s. Batch the read, serve a denormalized projection/cache, and remove authoritative inventory from the browse path.",
           "Hot-SKU serialization: capacity is approximately 1 / critical-section time. A 12 ms atomic reservation has a theoretical ceiling near 83 reservations/s for one serialized key; operate around 60–70% (about 50–58/s) to leave failover and variance headroom.",
-          "If lock/transaction time rises to 25 ms under WAL, replication or index pressure, the same SKU falls to 40/s theoretical and roughly 24–28/s safe. Ten application replicas do not raise this per-key limit; they only create more waiters.",
+          "Hot-key slowdown: If lock/transaction time rises to 25 ms under WAL, replication or index pressure, the same SKU falls to 40/s theoretical and roughly 24–28/s safe. Ten application replicas do not raise this per-key limit; they only create more waiters.",
           "Connection bound: 120 usable DB connections with 40 ms average transaction time suggests 3,000 tx/s only when work is independent. One hot row remains limited by its serial service time; if synchronous payment holds each connection for 0.8 s, the same pool has a theoretical ceiling of only 150 checkout/s.",
           "Example admission: benchmark p99 atomic hold at 12 ms, choose 50 hold attempts/s per hot SKU, cap the waiting room at 10 seconds (500 admitted attempts), and reject/mark sold-out beyond it. These are planning numbers, not product guarantees.",
-          "Find the real knee with a production-shaped pgbench/custom load test: Poisson arrivals plus a flash burst, realistic hot-SKU skew, WAL/replica settings and indexes. Increase target rate until schedule lag, p99 lock wait, serialization retry or error budget rises non-linearly; set the production limit below that point.",
+          "Production limit: Find the real knee with a production-shaped pgbench/custom load test: Poisson arrivals plus a flash burst, realistic hot-SKU skew, WAL/replica settings and indexes. Increase target rate until schedule lag, p99 lock wait, serialization retry or error budget rises non-linearly; set the production limit below that point.",
           "Capacity SLOs: DB pool below 70%, p99 lock wait below 20 ms, hold success response below 250 ms, oldest admitted request below 2 s, payment pending age bounded by provider SLA, and zero negative inventory."
         ],
         "diagram_title": "Bounded flash-sale path with authoritative holds",
@@ -1896,26 +1908,26 @@
         "scope": "Kiến trúc trong hình phục vụ một triệu người dùng hằng ngày và khoảng mười lần traffic khi khuyến mãi, nhưng con số nguy hiểm không phải DAU hay tổng request. Trang sản phẩm khuếch đại read thành nhiều inventory check, trong khi mọi buyer của một SKU giảm giá cùng tranh chấp một stock row hoặc Redis lock. Chuỗi synchronous Book → Inventory → Payment giữ connection và quyền sở hữu inventory qua network call, khiến latency, retry và payment timeout tạo positive feedback làm contention nặng hơn. Thiết kế này biến bottleneck thành số đo được, giữ một quyết định reservation authoritative và cho search, payment, downstream scale độc lập.",
         "functional": [
           "Serve availability cho product/search từ projection có version; chỉ revalidate khi tạo hold authoritative.",
-          "Admit số checkout attempt hữu hạn theo campaign/SKU và trả sold-out, queued hoặc retry-after trước khi inventory authority saturation.",
-          "Tạo hold idempotent có quantity, fencing version và expiry bằng một atomic conditional write; không giữ database transaction khi gọi payment.",
-          "Chạy authorize/capture và order confirmation bằng durable saga, release hold hết hạn/thất bại và reconcile PSP outcome mơ hồ.",
-          "Expose campaign state, queue position và pending/sold-out trung thực để client không poll inventory hung hãn."
+          "Kiểm soát admission: Admit số checkout attempt hữu hạn theo campaign/SKU và trả sold-out, queued hoặc retry-after trước khi inventory authority saturation.",
+          "Hold authoritative: Tạo hold idempotent có quantity, fencing version và expiry bằng một atomic conditional write; không giữ database transaction khi gọi payment.",
+          "Booking saga: Chạy authorize/capture và order confirmation bằng durable saga, release hold hết hạn/thất bại và reconcile PSP outcome mơ hồ.",
+          "Trạng thái cho client: Expose campaign state, queue position và pending/sold-out trung thực để client không poll inventory hung hãn."
         ],
         "quality": [
-          "Tổng confirmed và active-held không vượt sellable stock; mất Redis cache/lock không được làm vỡ invariant này.",
-          "Search vẫn available khi checkout overload, và overload của một campaign/SKU không ăn hết DB connection hoặc worker.",
-          "API idempotent qua client retry, gateway retry, queue redelivery và payment callback duplicate.",
-          "p99 hold latency nằm trong admission deadline; khi queue không drain kịp business window phải reject thay vì giấu demand trong backlog vô hạn.",
-          "Mọi transition hold, expiry, payment và compensation đều audit/replay/reconcile được mà không mutate history."
+          "Invariant tồn kho: Tổng confirmed và active-held không vượt sellable stock; mất Redis cache/lock không được làm vỡ invariant này.",
+          "Cô lập quá tải: Search vẫn available khi checkout overload, và overload của một campaign/SKU không ăn hết DB connection hoặc worker.",
+          "Ranh giới idempotency: API idempotent qua client retry, gateway retry, queue redelivery và payment callback duplicate.",
+          "Hạn admission: p99 hold latency nằm trong admission deadline; khi queue không drain kịp business window phải reject thay vì giấu demand trong backlog vô hạn.",
+          "Dấu vết audit: Mọi transition hold, expiry, payment và compensation đều audit/replay/reconcile được mà không mutate history."
         ],
         "capacity": [
           "Baseline: 1M DAU không đồng nghĩa throughput cao — nếu đều chỉ là 11,6 user arrival/s. Cần model launch window: 50k user refresh năm lần trong 60 giây tạo khoảng 4.167 edge request/s, chưa tính image và retry.",
           "Read amplification: nếu mỗi page check riêng 20 SKU, 4.000 page request/s biến thành 80.000 inventory lookup/s. Phải batch read, serve projection/cache denormalized và bỏ inventory authoritative khỏi browse path.",
           "Hot-SKU serialization: capacity xấp xỉ 1 / thời gian critical section. Atomic reservation 12 ms có trần lý thuyết gần 83 reservation/s cho một key serialized; chỉ vận hành 60–70% (khoảng 50–58/s) để chừa headroom cho variance/failover.",
-          "Nếu lock/transaction tăng lên 25 ms do WAL, replication hoặc index pressure, cùng SKU chỉ còn 40/s lý thuyết và khoảng 24–28/s an toàn. Mười app replica không tăng per-key limit; chúng chỉ tạo thêm waiter.",
+          "Chậm ở hot key: Nếu lock/transaction tăng lên 25 ms do WAL, replication hoặc index pressure, cùng SKU chỉ còn 40/s lý thuyết và khoảng 24–28/s an toàn. Mười app replica không tăng per-key limit; chúng chỉ tạo thêm waiter.",
           "Connection bound: 120 DB connection dùng được với transaction trung bình 40 ms gợi ý 3.000 tx/s chỉ khi work độc lập. Một hot row vẫn bị giới hạn bởi serial service time; nếu synchronous payment giữ mỗi connection 0,8 giây thì cùng pool chỉ còn trần lý thuyết 150 checkout/s.",
           "Ví dụ admission: benchmark p99 atomic hold 12 ms, chọn 50 hold attempt/s cho mỗi hot SKU, cap waiting room 10 giây (500 attempt đã admit), reject/mark sold-out phần vượt. Đây là planning number, không phải guarantee chung.",
-          "Tìm knee thật bằng pgbench/custom load test giống production: Poisson arrival cộng flash burst, hot-SKU skew thật, WAL/replica/index thật. Tăng target rate tới khi schedule lag, p99 lock wait, serialization retry hoặc error budget tăng phi tuyến; đặt production limit thấp hơn điểm đó.",
+          "Giới hạn production: Tìm knee thật bằng pgbench/custom load test giống production: Poisson arrival cộng flash burst, hot-SKU skew thật, WAL/replica/index thật. Tăng target rate tới khi schedule lag, p99 lock wait, serialization retry hoặc error budget tăng phi tuyến; đặt production limit thấp hơn điểm đó.",
           "Capacity SLO: DB pool dưới 70%, p99 lock wait dưới 20 ms, hold response dưới 250 ms, oldest admitted request dưới 2 giây, payment pending age theo provider SLA và zero negative inventory."
         ],
         "diagram_title": "Flash-sale path hữu hạn với hold authoritative",
@@ -1961,45 +1973,45 @@
     "arcturus-inventory-processing-system": {
       "diagram": "flowchart LR\n  O[Order services] --> K[Ordered command queue]\n  K --> P[Single-writer processors]\n  P --> M[(In-memory inventory)]\n  P --> E[Inventory events]\n  E --> D[(Durable persistence)]\n  E --> W[Warehouse integrations]\n  D --> R[Recovery / replay]",
       "en": {
-        "title": "Arcturus command-processing shape",
-        "lens": "Read the system as a single-writer state machine: ordered commands protect inventory correctness, in-memory state serves peak throughput, and asynchronous persistence plus replay defines the durability boundary."
+        "title": "Arcturus: ordered inventory command processing",
+        "lens": "Treat inventory as a recoverable single-writer state machine: ordered commands protect scarce stock, in-memory state absorbs the peak, and durable offsets plus replay define correctness after failure."
       },
       "vi": {
-        "title": "Kiến trúc command-processing của Arcturus",
-        "lens": "Đọc hệ thống như một single-writer state machine: command có thứ tự bảo vệ correctness tồn kho, state in-memory phục vụ peak throughput, còn persistence bất đồng bộ cùng replay định nghĩa durability boundary."
+        "title": "Arcturus: xử lý lệnh tồn kho có thứ tự",
+        "lens": "Hãy xem tồn kho như một single-writer state machine có thể khôi phục: command có thứ tự bảo vệ hàng khan hiếm, state in-memory hấp thụ peak load, còn offset bền vững cùng replay quyết định tính đúng sau sự cố."
       }
     },
     "pegasus-catalog-product-api-architecture": {
       "diagram": "flowchart LR\n  C[Clients] --> A[Catalog Product API]\n  A --> L[Local cache]\n  L --> R[(Distributed cache)]\n  R --> M[(Read-optimized documents)]\n  S[Source catalog systems] --> Q[Change stream]\n  Q --> X[Projection workers]\n  X --> M\n  X --> R",
       "en": {
-        "title": "Pegasus read-model architecture",
-        "lens": "Pegasus separates catalog ownership from a denormalized read model. The design wins read latency and API simplicity by accepting asynchronous projection, cache invalidation and model-rebuild responsibilities."
+        "title": "Pegasus: catalog read-model architecture",
+        "lens": "Pegasus moves catalog reads behind an owned API, local cache, and asynchronous projection. Its latency target is credible only with an explicit freshness, rebuild, and cache-miss contract."
       },
       "vi": {
-        "title": "Kiến trúc read model của Pegasus",
-        "lens": "Pegasus tách ownership catalog khỏi read model denormalized. Design đổi asynchronous projection, cache invalidation và trách nhiệm rebuild model để lấy read latency cùng API đơn giản."
+        "title": "Pegasus: kiến trúc read model cho catalog",
+        "lens": "Pegasus đưa việc đọc catalog sau một API có ownership, local cache và asynchronous projection. Mục tiêu latency chỉ đáng tin khi freshness, rebuild và cache miss đều có contract tường minh."
       }
     },
     "xac-thuc-va-phan-quyen-trong-microservices": {
       "diagram": "flowchart LR\n  C[Client] --> I[Identity provider]\n  I --> T[Access token]\n  C --> G[API gateway]\n  T --> G\n  G --> S1[Service A]\n  G --> S2[Service B]\n  P[Policy and key distribution] --> G\n  P --> S1\n  P --> S2\n  S1 --> A[Audit events]\n  S2 --> A",
       "en": {
-        "title": "Authentication and authorization boundaries",
-        "lens": "Separate identity proof, token issuance and authorization enforcement. Edge checks reduce obvious abuse, while each service still enforces resource-level policy with bounded key and policy propagation."
+        "title": "Authentication and authorization trust boundaries",
+        "lens": "Separate identity proof, token issuance, and resource-level authorization. Edge enforcement helps, but every service still needs a bounded key, policy, and audit contract for calls that bypass the gateway."
       },
       "vi": {
-        "title": "Boundary authentication và authorization",
-        "lens": "Tách identity proof, token issuance và authorization enforcement. Edge check giảm abuse rõ ràng, còn từng service vẫn enforce resource-level policy với key/policy propagation hữu hạn."
+        "title": "Ranh giới tin cậy cho authentication và authorization",
+        "lens": "Tách identity proof, token issuance và authorization ở cấp resource. Edge enforcement hữu ích, nhưng từng service vẫn cần contract hữu hạn cho key, policy và audit đối với cả các luồng đi vòng qua gateway."
       }
     },
     "how-to-handle-hot-deals-at-the-peak-time": {
       "diagram": "flowchart LR\n  C[Buyers] --> G[Gateway and throttling]\n  G --> Q[Admission queue]\n  Q --> R[Inventory reservation]\n  R --> I[(Inventory state)]\n  R --> O[Order workflow]\n  O --> P[Payment]\n  O --> E[Order events]\n  E --> F[Fulfilment]\n  X[Expiry / compensation] --> I",
       "en": {
-        "title": "Hot-deal admission and reservation flow",
-        "lens": "The central decision is not raw autoscaling; it is bounded admission before scarce inventory, followed by atomic reservation, an asynchronous order workflow and explicit expiry or compensation."
+        "title": "Hot-deal price-version and reservation flow",
+        "lens": "Peak safety comes from a versioned price identity and bounded admission before scarce inventory—not raw autoscaling. Reservation, expiry, and duplicate-event handling must keep deal quota and physical stock aligned."
       },
       "vi": {
-        "title": "Luồng admission và reservation cho hot deal",
-        "lens": "Quyết định trung tâm không phải autoscaling thô; đó là admission hữu hạn trước scarce inventory, tiếp theo là reservation atomic, order workflow bất đồng bộ và expiry/compensation rõ."
+        "title": "Luồng phiên bản giá và reservation cho hot deal",
+        "lens": "An toàn khi peak đến từ price identity có phiên bản và admission hữu hạn trước tồn kho khan hiếm—không phải chỉ autoscaling. Reservation, expiry và xử lý event trùng phải giữ quota deal khớp với tồn kho thực."
       }
     }
   }

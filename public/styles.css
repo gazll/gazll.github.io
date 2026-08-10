@@ -417,6 +417,9 @@
   .cs-guide-brief article{padding:15px 16px;border:1px solid #dbe5e0;border-radius:11px;background:rgba(255,255,255,.76)}
   .cs-guide-brief b{display:block;margin-bottom:7px;font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.55px;text-transform:uppercase;color:var(--emerald-deep)}
   .cs-guide-brief p{margin:0;font-size:13.5px;line-height:1.66;color:var(--ink-soft)}
+  .cs-guide-brief p+p{margin-top:10px}
+  .cs-guide-brief .cs-guide-lead{color:var(--ink);font-weight:500}
+  .cs-guide-brief .cs-guide-thesis{padding-top:10px;border-top:1px solid #dbe5e0;color:var(--emerald-deep);font-weight:500}
   .cs-guide-depth{display:grid;grid-template-columns:1.14fr .86fr;gap:13px;margin-top:13px}
   .cs-guide-depth article{padding:18px 20px;border:1px solid #dbe5e0;border-radius:11px;background:var(--surface)}
   .cs-guide-depth h3{margin:0 0 10px;font-family:"Space Grotesk",sans-serif;font-size:18px;color:var(--ink)}
@@ -436,6 +439,8 @@
   .cs-article-body h4{font-size:17px;margin:30px 0 9px;color:var(--emerald-deep)}
   .cs-article-body p{font-size:16.5px;line-height:1.82;margin:0 0 17px;color:var(--ink-soft)}
   .cs-article-body ul,.cs-article-body ol{margin:0 0 20px;padding-left:24px}
+  /* Keep prose readable without narrowing figures, tables, or code examples. */
+  .cs-article-body>p,.cs-article-body>ul,.cs-article-body>ol,.cs-article-body>blockquote{max-width:74ch}
   .cs-article-body li{padding-left:4px;margin:8px 0;line-height:1.74;color:var(--ink-soft)}
   .cs-article-body li::marker{color:var(--emerald)}
   .cs-article-body strong{color:var(--ink);font-weight:600}
@@ -471,6 +476,7 @@
   .cs-toc-content>a{display:inline-block;margin-top:18px;color:var(--emerald-deep);font-family:"IBM Plex Mono",monospace;font-size:10px;text-decoration:none}
   .cs-toc-content>a:hover{text-decoration:underline;text-underline-offset:3px}
   .cs-toc-mobile{display:none}
+  .cs-toc-mobile:not([open])>nav{display:none}
   .cs-source{max-width:1120px;margin:24px auto 0;display:flex;align-items:center;gap:12px;padding:15px 18px;border:1px solid var(--line);
     border-radius:11px;background:var(--surface);font-size:13px}
   .cs-source span{font-family:"IBM Plex Mono",monospace;font-size:10px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted)}
@@ -654,8 +660,12 @@
   .sd-mermaid-source{border-top:1px solid var(--line);background:#F7F9FC}
   .sd-mermaid-source summary{cursor:pointer;padding:8px 14px;font-family:"IBM Plex Mono",monospace;font-size:10px;color:var(--muted)}
   .sd-mermaid-source pre{margin:0;border:0;border-radius:0;max-height:330px}
-  .sd-case-guide>div{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+  .sd-case-guide-brief{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+  .sd-case-guide-depth{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px}
   .sd-case-guide p{margin:0;color:var(--ink-soft);font-size:13.5px;line-height:1.65}
+  .sd-case-guide-depth ul{margin:0;padding-left:19px}
+  .sd-case-guide-depth li{margin:6px 0;padding-left:2px;color:var(--ink-soft);font-size:13px;line-height:1.55}
+  .sd-case-guide-depth li::marker{color:var(--indigo)}
   .sd-notes>p{font-size:13.5px;color:var(--muted);font-family:"IBM Plex Mono",monospace}
   .sd-notes details{border:1px solid var(--line);border-radius:10px;background:#FAFBFD;margin-top:9px;overflow:hidden}
   .sd-notes details.link-target{border-color:var(--indigo);box-shadow:0 0 0 3px rgba(61,78,143,.12);scroll-margin-top:90px}
@@ -943,7 +953,7 @@
     .sd-research-grid{grid-template-columns:1fr}
     .sd-research-grid article{border-right:0;border-bottom:1px solid var(--line)}
     .sd-research-grid article:last-child{border-bottom:0}
-    .sd-requirements>div,.sd-case-guide>div{grid-template-columns:1fr}
+    .sd-requirements>div,.sd-case-guide-brief,.sd-case-guide-depth{grid-template-columns:1fr}
     .sd-diagram>figcaption{align-items:flex-start;flex-direction:column}
     .sd-notes summary{flex-direction:column;gap:6px}
     .sd-notes summary code{max-width:100%}

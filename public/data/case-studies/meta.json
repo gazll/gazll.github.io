@@ -287,8 +287,8 @@
         "excerpt": "Practical analysis of authentication and authorization in microservices: JWT, opaque tokens, OAuth 2, enforcement at the edge and access control at each service.",
         "tags": [
           "Microservices",
-          "Xác thực",
-          "Phân quyền",
+          "Authentication",
+          "Authorization",
           "JWT",
           "OAuth 2"
         ]
@@ -298,8 +298,8 @@
         "excerpt": "Phân tích thực tế về xác thực và phân quyền trong microservices: JWT, opaque token, OAuth 2, enforcement tại lớp rìa và kiểm soát truy cập ở từng service.",
         "tags": [
           "Microservices",
-          "Authentication",
-          "Authorization",
+          "Xác thực",
+          "Phân quyền",
           "JWT",
           "OAuth 2"
         ]
