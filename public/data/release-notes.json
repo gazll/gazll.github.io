@@ -2,6 +2,48 @@
   "version": 1,
   "releases": [
     {
+      "date": "2026-08-11",
+      "en": {
+        "title": "The Vietnamese material keeps the words an interview actually uses"
+      },
+      "vi": {
+        "title": "Bản tiếng Việt giữ đúng thuật ngữ dùng khi phỏng vấn"
+      },
+      "changes": [
+        {
+          "kind": "content",
+          "target": "language",
+          "en": {
+            "text": "Every Vietnamese companion was reworded so the technical vocabulary stays in the form an interviewer says out loud — `memory`, `thread`, `lock`, `queue`, `record`, `partition key`, `version` — while the sentences around them stay Vietnamese. Translating those terms was making the Vietnamese side harder to use in the room it was written for: a reader who studied `hàng đợi` and `luồng` still has to answer a question about a queue and a thread. All 26 topics moved together with the System Design blueprints, the Case Studies reading guides and the labels on both surfaces. Item ids, difficulty and section order are untouched, so no progress, note or study-log row moved with them."
+          },
+          "vi": {
+            "text": "Toàn bộ file tiếng Việt được viết lại để technical vocabulary giữ nguyên dạng interviewer nói ra — `memory`, `thread`, `lock`, `queue`, `record`, `partition key`, `version` — còn câu văn quanh nó vẫn là tiếng Việt. Dịch những term đó làm bản tiếng Việt khó dùng đúng nơi nó được viết ra: người học `hàng đợi` và `luồng` rồi vẫn phải trả lời câu hỏi về queue và thread. Cả 26 topic đi cùng lúc với blueprint System Design, reading guide của Case Studies và label trên hai surface đó. Item id, difficulty và thứ tự section giữ nguyên, nên không có row progress, note hay study log nào bị ảnh hưởng."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-11",
+      "en": {
+        "title": "Blueprint 18's failure review comes with answers"
+      },
+      "vi": {
+        "title": "Failure review của Blueprint 18 giờ có câu trả lời"
+      },
+      "changes": [
+        {
+          "kind": "feature",
+          "target": "system-design",
+          "en": {
+            "text": "The five failure-review lenses under a blueprint's trade-offs are prompts to think with, and for the flash-sale design they are now answered in full: which invariant is non-negotiable and what keeps it true when Redis is gone, which saturation signal fires before customers see the collapse, where a hot SKU or a slow provider gets contained, how an idempotency key plus a fencing version stop a retry from double-selling, and what has to reconcile to zero before recovery counts as proven rather than assumed."
+          },
+          "vi": {
+            "text": "Năm lens failure review dưới phần trade-off của blueprint là prompt để tự chất vấn, và design flash sale giờ trả lời đủ cả năm: invariant nào không được phá và cái gì giữ nó đúng khi mất Redis, saturation signal nào bắn trước lúc khách thấy hệ thống sụp, hot SKU hoặc provider chậm bị contain ở đâu, idempotency key cộng fencing version chặn retry bán trùng thế nào, và cái gì phải reconcile về 0 trước khi recovery được coi là đã chứng minh chứ không phải phỏng đoán."
+          }
+        }
+      ]
+    },
+    {
       "date": "2026-08-10",
       "en": {
         "title": "Flash-sale inventory gets a capacity-first failure analysis"
