@@ -32,6 +32,7 @@ const COPY = {
     furtherReading: 'Primary sources',
     migrated: 'Migrated deep-dive notes', migratedNote: 'Preserved from Study Track topics 10–11 and the overlapping Topic 16 sections.',
     source: 'Mermaid source', copy: 'Copy Mermaid', copyLink: 'Copy link', copied: 'Copied', visualizer: 'Open visualizer',
+    zoomControls: 'Diagram zoom', zoomOut: 'Zoom out', zoomIn: 'Zoom in', zoomReset: 'Reset zoom',
     diagramUnavailable: 'Diagram renderer unavailable. The editable Mermaid source is still available below.',
     production: 'Production evidence', historical: 'Historical architecture',
     historicalNote: 'The preserved article reflects the system, constraints and technology available at publication time.',
@@ -63,6 +64,7 @@ const COPY = {
     furtherReading: 'Primary sources',
     migratedNote: 'Giữ lại từ Topic 10–11 và các phần overlap của Topic 16 trong Study Track.', source: 'Mermaid source',
     copy: 'Copy Mermaid', copyLink: 'Copy link', copied: 'Đã copy', visualizer: 'Mở visualizer',
+    zoomControls: 'Phóng to/thu nhỏ sơ đồ', zoomOut: 'Thu nhỏ', zoomIn: 'Phóng to', zoomReset: 'Đặt lại tỷ lệ',
     diagramUnavailable: 'Renderer không khả dụng. Editable Mermaid source vẫn nằm bên dưới.',
     production: 'Production evidence', historical: 'Historical architecture',
     historicalNote: 'Bài gốc phản ánh system, constraints và technology ở thời điểm được publish.',
@@ -136,9 +138,13 @@ function list(items) {
 
 function diagramBlock(title, diagram) {
   return '<figure class="sd-diagram" data-diagram-frame><figcaption><strong>' + escapeHtml(title) + '</strong>'
-    + '<span><button type="button" data-copy-mermaid>' + text().copy + '</button>'
+    + '<span class="sd-diagram-actions"><button type="button" data-copy-mermaid>' + text().copy + '</button>'
+    + '<span class="sd-diagram-zoom" data-mermaid-zoom-controls role="group" aria-label="' + escapeHtml(text().zoomControls) + '" hidden>'
+    + '<button type="button" data-mermaid-zoom-out aria-label="' + escapeHtml(text().zoomOut) + '" title="' + escapeHtml(text().zoomOut) + '">−</button>'
+    + '<button type="button" data-mermaid-zoom-reset aria-label="' + escapeHtml(text().zoomReset) + '" title="' + escapeHtml(text().zoomReset) + '">100%</button>'
+    + '<button type="button" data-mermaid-zoom-in aria-label="' + escapeHtml(text().zoomIn) + '" title="' + escapeHtml(text().zoomIn) + '">+</button></span>'
     + '<a href="https://mermaid.live/" target="_blank" rel="noopener noreferrer">' + text().visualizer + ' ↗</a></span></figcaption>'
-    + '<pre class="mermaid" data-mermaid-diagram>' + escapeHtml(diagram) + '</pre>'
+    + '<div class="sd-diagram-viewport" data-mermaid-viewport tabindex="0"><pre class="mermaid" data-mermaid-diagram>' + escapeHtml(diagram) + '</pre></div>'
     + '<p class="sd-mermaid-status" data-mermaid-status hidden>' + text().diagramUnavailable + '</p>'
     + '<details class="sd-mermaid-source"><summary>' + text().source + '</summary><pre><code data-mermaid-source>'
     + escapeHtml(diagram) + '</code></pre></details></figure>';
@@ -445,6 +451,82 @@ function wireDiagramTools(root) {
   }));
 }
 
+const MERMAID_ZOOM_MIN = 0.5;
+const MERMAID_ZOOM_MAX = 2.5;
+const MERMAID_ZOOM_STEP = 0.25;
+
+function setDiagramZoom(frame, requested) {
+  const viewport = frame.querySelector('[data-mermaid-viewport]');
+  const svg = viewport?.querySelector('svg');
+  if (!viewport || !svg) return;
+
+  const previous = Number(frame.dataset.mermaidZoom || 1);
+  const zoom = Math.min(MERMAID_ZOOM_MAX, Math.max(MERMAID_ZOOM_MIN, requested));
+  const centerX = viewport.scrollLeft + viewport.clientWidth / 2;
+  const centerY = viewport.scrollTop + viewport.clientHeight / 2;
+  svg.style.width = (zoom * 100).toFixed(0) + '%';
+  frame.dataset.mermaidZoom = String(zoom);
+  frame.classList.toggle('is-zoomed', zoom !== 1);
+
+  const label = Math.round(zoom * 100) + '%';
+  const reset = frame.querySelector('[data-mermaid-zoom-reset]');
+  if (reset) {
+    reset.textContent = label;
+    reset.setAttribute('aria-label', text().zoomReset + ' (' + label + ')');
+  }
+  viewport.scrollLeft = Math.max(0, centerX * zoom / previous - viewport.clientWidth / 2);
+  viewport.scrollTop = Math.max(0, centerY * zoom / previous - viewport.clientHeight / 2);
+}
+
+function wireDiagramZoom(root) {
+  root.querySelectorAll('[data-diagram-frame].is-rendered').forEach(frame => {
+    if (frame.dataset.mermaidZoomWired) return;
+    const viewport = frame.querySelector('[data-mermaid-viewport]');
+    const controls = frame.querySelector('[data-mermaid-zoom-controls]');
+    if (!viewport || !controls || !viewport.querySelector('svg')) return;
+    frame.dataset.mermaidZoomWired = 'true';
+    controls.hidden = false;
+    setDiagramZoom(frame, 1);
+
+    const change = amount => setDiagramZoom(frame, Number(frame.dataset.mermaidZoom || 1) + amount);
+    frame.querySelector('[data-mermaid-zoom-in]')?.addEventListener('click', () => change(MERMAID_ZOOM_STEP));
+    frame.querySelector('[data-mermaid-zoom-out]')?.addEventListener('click', () => change(-MERMAID_ZOOM_STEP));
+    frame.querySelector('[data-mermaid-zoom-reset]')?.addEventListener('click', () => setDiagramZoom(frame, 1));
+
+    viewport.addEventListener('keydown', event => {
+      if (event.key === '+' || event.key === '=') { event.preventDefault(); change(MERMAID_ZOOM_STEP); }
+      if (event.key === '-') { event.preventDefault(); change(-MERMAID_ZOOM_STEP); }
+      if (event.key === '0') { event.preventDefault(); setDiagramZoom(frame, 1); }
+    });
+    viewport.addEventListener('wheel', event => {
+      if (!event.ctrlKey && !event.metaKey) return;
+      event.preventDefault();
+      change(event.deltaY < 0 ? MERMAID_ZOOM_STEP : -MERMAID_ZOOM_STEP);
+    }, { passive: false });
+
+    let drag = null;
+    viewport.addEventListener('pointerdown', event => {
+      if (event.pointerType !== 'mouse' || event.button !== 0) return;
+      drag = { x: event.clientX, y: event.clientY, left: viewport.scrollLeft, top: viewport.scrollTop };
+      viewport.setPointerCapture(event.pointerId);
+      viewport.classList.add('is-dragging');
+    });
+    viewport.addEventListener('pointermove', event => {
+      if (!drag) return;
+      viewport.scrollLeft = drag.left - (event.clientX - drag.x);
+      viewport.scrollTop = drag.top - (event.clientY - drag.y);
+    });
+    const stopDrag = event => {
+      if (!drag) return;
+      drag = null;
+      viewport.classList.remove('is-dragging');
+      if (viewport.hasPointerCapture(event.pointerId)) viewport.releasePointerCapture(event.pointerId);
+    };
+    viewport.addEventListener('pointerup', stopDrag);
+    viewport.addEventListener('pointercancel', stopDrag);
+  });
+}
+
 function wireArchiveImages(root) {
   root.querySelectorAll('[data-zoom-image]').forEach(button => {
     const image = button.querySelector('img');
@@ -501,6 +583,7 @@ async function showRoute(root, collection, routeParts, token) {
   wireDiagramTools(root);
   wireArchiveImages(root);
   await mountMermaidDiagrams(root);
+  wireDiagramZoom(root);
   if (routeParts[0] !== 'case') {
     let questionId = '';
     try { questionId = decodeURIComponent(routeParts[1] || ''); } catch (error) {}

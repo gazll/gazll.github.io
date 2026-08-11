@@ -249,6 +249,9 @@ test('Experience routing, Case Studies migration and Mermaid security are wired 
   assert.match(app, /redirectMovedQuestion\(routeParts\)/);
   assert.match(systemView, /SystemDesign\.load\(Content\.lang\)/);
   assert.match(systemView, /data-copy-mermaid/);
+  assert.match(systemView, /data-mermaid-zoom-in/);
+  assert.match(systemView, /data-mermaid-zoom-out/);
+  assert.match(systemView, /function wireDiagramZoom/);
   assert.match(systemView, /data-copy-sd-question/);
   assert.match(systemView, /revealLinkedSource/);
   assert.match(systemView, /comparisonTable\(rows, labels/);
@@ -267,6 +270,7 @@ test('Experience routing, Case Studies migration and Mermaid security are wired 
   assert.match(index, /script-src 'self' https:\/\/accounts\.google\.com\/gsi\/client;/);
   await readFile(path.join(publicRoot, 'vendor/mermaid-11.16.1/LICENSE'), 'utf8');
   assert.match(styles, /\.sd-diagram/);
+  assert.match(styles, /\.sd-diagram-viewport/);
   assert.match(styles, /\.sd-notes details\.link-target/);
   assert.match(styles, /\.sd-comparison-wrap/);
   assert.match(styles, /\.sd-toc-mobile:not\(\[open\]\)>nav\{display:none\}/);
