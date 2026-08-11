@@ -1,22 +1,22 @@
 {
   "body_file": "data/case-studies/articles/01-arcturus-inventory-processing-system.vi.html",
   "guide": {
-    "title": "Hãy đọc bài này trước hết như một thiết kế giữ đúng tồn kho, rồi mới là câu chuyện chịu tải sale cao điểm.",
-    "problem": "Các thay đổi tồn kho từ checkout và từ vận hành kho đến cùng lúc. Trong các đợt sale lớn, khóa ở cơ sở dữ liệu bảo vệ được tính đúng nhưng giới hạn thông lượng; nếu nới lỏng tính nhất quán để hệ thống sống sót, nguy cơ bán vượt tồn và phải hủy đơn sẽ tăng lên.",
-    "core_idea": "Đưa mọi thay đổi tồn kho vào một command log có thứ tự; khôi phục state in-memory từ offset của queue, xử lý xung đột tuần tự trên một luồng và ghi bền các thay đổi theo lô bất đồng bộ. Các tích hợp dùng vòng đời reserve, confirm và reverse thay vì giả định nhiều HTTP service có thể dùng chung một transaction nguyên tử.",
-    "outcome": "Bài gốc báo cáo khoảng 350 nghìn transaction mỗi giây trong bộ nhớ, 120 nghìn transaction mỗi giây khi có đầy đủ I/O, 5.600 request mỗi giây ở môi trường staging và tỷ lệ cache hit 99%. Quan trọng hơn các benchmark này, cùng một mô hình offset được dùng cho cả xử lý bình thường lẫn khôi phục sau sự cố.",
+    "title": "Hãy đọc bài này trước hết như một thiết kế giữ đúng inventory, rồi mới là câu chuyện chịu tải sale peak.",
+    "problem": "Các thay đổi inventory từ checkout và từ vận hành kho đến cùng lúc. Trong các đợt sale lớn, khóa ở database bảo vệ được correctness nhưng giới hạn throughput; nếu nới lỏng consistency để hệ thống sống sót, nguy cơ bán vượt tồn và phải hủy đơn sẽ tăng lên.",
+    "core_idea": "Đưa mọi thay đổi inventory vào một command log có thứ tự; restore state in-memory từ offset của queue, xử lý xung đột tuần tự trên một single thread và ghi bền các thay đổi theo lô async. Các tích hợp dùng lifecycle reserve, confirm và reverse thay vì giả định nhiều HTTP service có thể dùng chung một transaction nguyên tử.",
+    "outcome": "Bài gốc báo cáo khoảng 350 nghìn transaction mỗi giây trong in-memory, 120 nghìn transaction mỗi giây khi có đầy đủ I/O, 5.600 request mỗi giây ở môi trường staging và cache hit rate 99%. Quan trọng hơn các benchmark này, cùng một offset model được dùng cho cả xử lý bình thường lẫn incident recovery.",
     "takeaways": [
-      "Xử lý tuần tự có thể là một kỹ thuật mở rộng quy mô khi contention thật sự tập trung ở ít khóa tồn kho; giảm lock và context switch đôi khi hiệu quả hơn chỉ tăng số worker.",
-      "Offset của queue không chỉ là metadata của consumer. Nó là checkpoint nối command log, state trong bộ nhớ và database bền vững thành một state machine có thể khôi phục.",
-      "Điều chỉnh tồn kho từ kho và việc mua hàng của khách đi qua cùng một đường mutation. Command model thống nhất loại bỏ logic trùng lặp và làm rõ quy tắc thứ tự.",
-      "Tính đúng xuyên service phải được xử lý như một vòng đời: reserve hàng, quan sát kết quả đơn, rồi confirm hoặc compensate. Timeout, event trùng và reverse là luồng bình thường của thiết kế.",
+      "Xử lý tuần tự có thể là một kỹ thuật scale khi contention thật sự tập trung ở ít khóa inventory; giảm lock và context switch đôi khi hiệu quả hơn chỉ tăng số worker.",
+      "Offset của queue không chỉ là metadata của consumer. Nó là checkpoint nối command log, in-memory state và durable database thành một state machine có thể recovery.",
+      "Điều chỉnh inventory từ kho và việc mua hàng của khách đi qua cùng một đường mutation. Command model thống nhất loại bỏ logic trùng lặp và làm rõ quy tắc thứ tự.",
+      "Correctness xuyên service phải được xử lý như một lifecycle: reserve hàng, quan sát kết quả đơn, rồi confirm hoặc compensate. Timeout, event trùng và reverse là flow bình thường của thiết kế.",
       "Kiến trúc tách quyết định nhạy với latency khỏi persistence bền vững chỉ an toàn khi replay và idempotency đủ mạnh để nối lại hai phần đó sau sự cố."
     ],
     "review_lenses": [
-      "Ranh giới khôi phục: Offset nào đã được ghi bền, và bằng chứng nào cho thấy replay không thể áp dụng cùng một mutation tồn kho hai lần?",
+      "Ranh giới recovery: Offset nào đã được ghi bền, và bằng chứng nào cho thấy replay không thể áp dụng cùng một mutation inventory hai lần?",
       "Chiến lược hot key: Khi nào một processor là đủ, và có thể partition theo SKU hoặc kho như thế nào mà vẫn giữ được thứ tự nghiệp vụ cần thiết?",
       "Backpressure: Điều gì xảy ra khi ring buffer dành cho persistence hoặc MySQL tụt lại phía sau command stream, và khi nào hệ thống phải giảm tải?",
-      "Vòng đời reservation: Hết hạn, event đơn đến muộn, hủy đơn và compensation được quan sát, retry và xử lý idempotent như thế nào?"
+      "Lifecycle reservation: Hết hạn, event đơn đến muộn, hủy đơn và compensation được quan sát, retry và xử lý idempotent như thế nào?"
     ]
   }
 }

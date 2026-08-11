@@ -7,9 +7,9 @@
       "intro": "End-to-end blueprints for turning a product prompt into requirements, capacity ranges, APIs, data ownership, architecture, technology choices and explicit trade-offs. Each design includes editable Mermaid source and the deep-dive notes moved from Study Track."
     },
     "vi": {
-      "eyebrow": "Kinh nghiệm · Thiết kế từ ràng buộc",
+      "eyebrow": "Experience · Design from constraints",
       "title": "Thư viện System Design",
-      "intro": "Các blueprint end-to-end để biến một đề bài sản phẩm thành requirements, khoảng tải, API, quyền sở hữu dữ liệu, kiến trúc, lựa chọn công nghệ và trade-off rõ ràng. Mỗi bài có source Mermaid chỉnh sửa được cùng ghi chú chuyên sâu chuyển từ Study Track."
+      "intro": "Các blueprint end-to-end để biến một đề bài sản phẩm thành requirements, capacity range, API, data ownership, architecture, technology choices và trade-off rõ ràng. Mỗi bài có editable Mermaid source cùng deep dives chuyển từ Study Track."
     }
   },
   "production": {
@@ -18,8 +18,8 @@
       "description": "Production evidence from Tiki Engineering, moved here from Case Studies and paired with an editable Mermaid architecture lens."
     },
     "vi": {
-      "label": "Hệ thống & Kiến trúc ở quy mô",
-      "description": "Bằng chứng production từ Tiki Engineering, được chuyển từ Case Studies sang đây và bổ sung góc nhìn kiến trúc bằng Mermaid có thể chỉnh sửa."
+      "label": "Systems & Architecture at Scale",
+      "description": "Production evidence từ Tiki Engineering, được chuyển từ Case Studies sang đây và bổ sung editable Mermaid architecture lens."
     }
   },
   "categories": [
@@ -30,8 +30,8 @@
         "description": "A repeatable review method, the traffic path and the controls that keep a system useful under overload."
       },
       "vi": {
-        "label": "Phương pháp thiết kế & Tải",
-        "description": "Khung review lặp lại được, đường đi của traffic và các control giúp hệ thống vẫn hữu ích khi quá tải."
+        "label": "Design method & Load",
+        "description": "Repeatable review framework, traffic path và các control giúp system vẫn hữu ích khi overload."
       }
     },
     {
@@ -41,8 +41,8 @@
         "description": "Classic product prompts designed through data ownership, critical flows, failure modes and evolution thresholds."
       },
       "vi": {
-        "label": "Blueprint hệ thống sản phẩm",
-        "description": "Các đề bài sản phẩm kinh điển được thiết kế qua data ownership, critical flow, failure mode và ngưỡng tiến hoá."
+        "label": "Product system blueprints",
+        "description": "Các product prompt kinh điển được thiết kế qua data ownership, critical flow, failure mode và evolution threshold."
       }
     }
   ],
@@ -104,7 +104,7 @@
       },
       "vi": {
         "title": "Khung system design và review có thể tái sử dụng",
-        "excerpt": "Workflow bắt đầu từ quyết định, giữ buổi phỏng vấn hoặc design review bám vào ràng buộc thay vì trôi thành danh mục công nghệ.",
+        "excerpt": "Workflow bắt đầu từ quyết định, giữ buổi phỏng vấn hoặc design review bám vào constraint thay vì trôi thành danh mục công nghệ.",
         "scope": "Bắt đầu bằng user journey, invariant và non-goal. Đầu ra không phải một diagram hoàn hảo, mà là chuỗi lập luận bảo vệ được từ workload và failure model tới quyết định, hệ quả và bằng chứng khiến team phải xem lại quyết định đó.",
         "functional": [
           "Nêu actor, critical journey và API contract trước khi vẽ service.",
@@ -206,7 +206,7 @@
       "vi": {
         "title": "Phân phối traffic và topology cache bảo vệ được",
         "excerpt": "Đặt CDN, load balancer, cache local và cache phân tán theo ownership cùng consistency — không theo một template request path chung chung.",
-        "scope": "Thiết kế read path cho service scale ngang. Quyết định response nào được cache, mỗi bản sao sống ở đâu, hết hạn hoặc invalidate thế nào và chuyện gì xảy ra khi cache hay origin chậm hoặc chết.",
+        "scope": "Thiết kế read path cho service scale ngang. Quyết định response nào được cache, mỗi copy sống ở đâu, hết hạn hoặc invalidate thế nào và chuyện gì xảy ra khi cache hay origin chậm hoặc chết.",
         "functional": [
           "Phân phối traffic qua instance khỏe, chỉ giữ affinity khi thật sự có lý do.",
           "Phục vụ nội dung public/static an toàn ở edge và hot application data từ cache có giới hạn.",
@@ -237,7 +237,7 @@
           "L1 bỏ network hop nhưng N pod có thể giữ N phiên bản stale.",
           "L2 gom invalidation nhưng thành network dependency và khuếch đại overload khi chết.",
           "Cache-aside đơn giản nhưng cho phép stale repopulation quanh concurrent write.",
-          "Không cache balance, authorization decision hay checkout price nếu business invariant không chấp nhận bản sao."
+          "Không cache balance, authorization decision hay checkout price nếu business invariant không chấp nhận stale copy."
         ],
         "tags": [
           "CDN",
@@ -414,7 +414,7 @@
         "scope": "Bảo vệ API dùng chung qua nhiều gateway và service instance. Limit có thể theo user, tenant, credential, IP, endpoint hay weighted cost và phải hành xử dự đoán được dưới concurrency cùng Redis failure.",
         "functional": [
           "Đánh giá policy có version và trả allow/deny cùng remaining budget/reset hint.",
-          "Hỗ trợ token bucket cho burst có kiểm soát và sliding window khi độ chính xác đáng chi phí.",
+          "Hỗ trợ token bucket cho burst có kiểm soát và sliding window khi accuracy đáng cost.",
           "Có shadow mode để đo policy mới trước khi enforce."
         ],
         "quality": [
@@ -705,12 +705,12 @@
       },
       "vi": {
         "title": "URL shortener với redirect path cực ngắn",
-        "excerpt": "Giữ redirect read nhỏ và cacheable, đồng thời tách custom alias, abuse control, expiration và analytics bất đồng bộ.",
+        "excerpt": "Giữ redirect read nhỏ và cacheable, đồng thời tách custom alias, abuse control, expiration và analytics async.",
         "scope": "Tạo short code cho long URL đã validate và redirect latency thấp ở read-heavy scale. Hỗ trợ custom alias/expiry mà không đặt analytics hay preview generation lên critical path.",
         "functional": [
           "Tạo code sinh tự động hoặc custom với owner, destination và expiry tuỳ chọn.",
           "Resolve code sang destination bằng semantics redirect permanent/temporary đã chọn.",
-          "Ghi click bất đồng bộ với privacy, abuse và retention control hữu hạn."
+          "Ghi click async với privacy, abuse và retention control hữu hạn."
         ],
         "quality": [
           "Redirect vẫn available và low-latency khi analytics degraded.",
@@ -731,7 +731,7 @@
         "stack": [
           "Key-value hoặc relational store index theo short code; Redis/edge cache cho hot redirect.",
           "Snowflake/range allocation hoặc random base62 theo nhu cầu collision/enumeration.",
-          "Queue + analytical warehouse cho click; reputation scanner bất đồng bộ cho destination."
+          "Queue + analytical warehouse cho click; reputation scanner async cho destination."
         ],
         "tradeoffs": [
           "Sequential ID gọn nhưng enumerable; random code cần collision handling.",
@@ -804,7 +804,7 @@
       "vi": {
         "title": "News Feed với hybrid fan-out",
         "excerpt": "Kết hợp fan-out on write cho creator thường với merge-on-read cho account fan-out lớn, rồi nói rõ ranking và privacy change.",
-        "scope": "Publish post và trả home timeline phân trang từ creator đang follow. Design phải xử lý celebrity fan-out, privacy/deletion, ranking evolution và feed degrade có kiểm soát.",
+        "scope": "Publish post và trả home timeline pagination từ creator đang follow. Design phải xử lý celebrity fan-out, privacy/deletion, ranking evolution và feed degrade có kiểm soát.",
         "functional": [
           "Tạo post và distribute/reference nó cho follower đủ điều kiện.",
           "Đọc timeline cursor ổn định, hydrate post và áp final visibility check.",
@@ -1520,47 +1520,47 @@
         ]
       },
       "vi": {
-        "title": "Nền tảng booking và search ở mức 1 triệu request mỗi ngày",
-        "excerpt": "Tách đường search đọc nhiều khỏi đường booking đòi hỏi tính đúng đắn, dùng Kafka để đưa payment, notification và indexing sang bất đồng bộ giữa các service đã shard.",
-        "scope": "Phục vụ khoảng một triệu request mỗi ngày, trong đó phần lớn là search và chỉ một phần nhỏ trở thành booking. Throughput thô không phải câu hỏi chính: 1 triệu/ngày trung bình chỉ khoảng 12 request mỗi giây, nên tỷ lệ đỉnh/trung bình và hai workload trái ngược mới quyết định thiết kế. Search phải nhanh với độ stale có giới hạn; booking phải đúng dù chậm hơn.",
+        "title": "Booking & search platform ở mức 1M requests/day",
+        "excerpt": "Tách high-read search path khỏi correctness-sensitive booking path, dùng Kafka để đưa payment, notification và indexing sang async giữa các service đã shard.",
+        "scope": "Phục vụ khoảng 1M requests/day, phần lớn là search và chỉ một phần nhỏ trở thành booking. Raw throughput không phải câu hỏi chính: 1M/day average chỉ khoảng 12 requests/s, nên peak/average ratio và hai workload trái ngược mới quyết định design. Search phải nhanh với staleness có giới hạn; booking phải đúng dù chậm hơn.",
         "functional": [
-          "Đường đọc search: Search theo ngày, địa điểm và bộ lọc, trả kết quả đã xếp hạng từ index chứ không từ store giao dịch.",
-          "Giữ (hold) một đơn vị cụ thể trong một TTL giới hạn để người dùng kịp hoàn tất checkout mà không bị người khác lấy mất.",
-          "Xác nhận booking qua payment, sau đó phát confirmation và giải phóng hold một cách nhất quán với đơn hàng.",
-          "Tự động hết hạn các hold bị bỏ dở và đối soát những payment chưa rõ kết quả, không cần người vận hành can thiệp."
+          "Search read path: Search theo ngày, địa điểm và filter, trả ranked result từ index chứ không từ transactional store.",
+          "Resource hold: Giữ một unit cụ thể trong TTL giới hạn để user kịp checkout mà không bị người khác lấy mất.",
+          "Booking confirmation: Xác nhận booking qua payment, sau đó phát confirmation và release hold nhất quán với order.",
+          "Expiry & reconciliation: Tự động expire hold bị bỏ dở và reconcile payment outcome chưa rõ mà không cần manual intervention."
         ],
         "quality": [
-          "Không bao giờ có hai booking đã xác nhận cùng chiếm một đơn vị; oversell là lỗi đúng đắn, không phải lỗi năng lực.",
-          "Search được phép trả tồn kho hơi cũ, nhưng bước hold luôn kiểm tra lại với store có thẩm quyền.",
-          "Payment chậm hay lỗi chỉ được làm chậm booking, tuyệt đối không ảnh hưởng tới khả năng search.",
-          "Mọi consumer bất đồng bộ đều idempotent: Kafka giao ít nhất một lần, nên bản ghi trùng là chuyện bình thường."
+          "No oversell: Không bao giờ có hai confirmed booking cùng chiếm một unit; oversell là correctness failure, không phải capacity failure.",
+          "Bounded staleness: Search được phép trả inventory hơi cũ, nhưng hold luôn revalidate với authoritative store.",
+          "Failure isolation: Payment chậm hoặc lỗi chỉ làm booking chậm, không được ảnh hưởng search availability.",
+          "Async idempotency: Mọi consumer đều idempotent; Kafka giao at-least-once nên duplicate record là bình thường."
         ],
         "capacity": [
-          "Lưu lượng đỉnh: 1 triệu request/ngày tương đương khoảng 12 rps trung bình; hãy tính theo đỉnh — đỉnh gấp 10-20 lần đưa đường search lên khoảng 150-250 rps.",
-          "Tốc độ ghi booking: Giả định tỷ lệ search trên booking là 100:1: khoảng 10 nghìn booking/ngày, tức chừng 2-5 write mỗi giây ở đỉnh trên đường đúng đắn.",
-          "Ranh giới tuần tự hoá: Search cache được và scale ngang dễ dàng; đường ghi tồn kho là thành phần duy nhất buộc phải tuần tự hoá theo từng đơn vị.",
-          "Retention sự kiện: Tính dung lượng Kafka cho sự kiện booking cộng retry và replay: lưu lượng vừa phải, nhưng retention phải phủ trọn một chu kỳ đối soát."
+          "Peak traffic: 1M requests/day ≈ 12 rps average; hãy size theo peak — peak factor 10–20× đưa search path lên khoảng 150–250 rps.",
+          "Booking write rate: Với search/booking ratio 100:1, khoảng 10k booking/day, tức khoảng 2–5 writes/s trên correctness-sensitive path.",
+          "Serialization boundary: Search cache được và scale ngang dễ; inventory write path là component duy nhất phải serialize theo từng unit.",
+          "Event retention: Tính Kafka capacity cho booking events cộng retry và replay; traffic vừa phải nhưng retention phải phủ trọn một reconciliation cycle."
         ],
-        "diagram_title": "Đường đọc, đường ghi có thẩm quyền và fan-out qua Kafka",
+        "diagram_title": "Search read path, authoritative write path và Kafka fan-out",
         "data_model": [
-          "Inventory unit — bản ghi có thẩm quyền, shard theo resource id để tranh chấp trên một đơn vị nằm gọn trong một shard.",
-          "Hold — unit id, user, thời điểm hết hạn và trạng thái; ràng buộc duy nhất chống bán trùng nằm ở đây.",
+          "Inventory unit — authoritative record, shard theo resource id để contention trên một unit nằm gọn trong một shard.",
+          "Hold — unit id, user, expiry time và state; unique constraint chống bán trùng nằm ở đây.",
           "Order — aggregate của booking kèm idempotency key, tham chiếu payment và một state machine tường minh.",
-          "Search document — bản chiếu denormalized, nhất quán cuối, dựng lại từ event và không bao giờ được đọc lúc xác nhận.",
+          "Search document — bản chiếu denormalized, eventual consistency, dựng lại từ event và không bao giờ được đọc lúc xác nhận.",
           "Outbox — thay đổi trạng thái booking ghi cùng transaction với order rồi chuyển tiếp sang Kafka đúng một lần."
         ],
         "stack": [
-          "API gateway cùng search service và booking service triển khai tách biệt, để mỗi bên scale theo hình dạng tải của chính nó.",
-          "Distributed SQL (CockroachDB, TiDB, Yugabyte) hoặc store quan hệ đã shard: booking cần transaction thật, nên shard theo range của resource giúp giao dịch nằm trong một shard.",
-          "Kafka làm xương sống sự kiện — partition theo booking id hoặc resource id để sự kiện của cùng một thực thể giữ đúng thứ tự.",
-          "Một search index (Elasticsearch hoặc OpenSearch) cộng cache cho truy vấn nóng, cả hai được nạp bất đồng bộ từ Kafka.",
+          "API gateway cùng search service và booking service triển khai tách biệt, để mỗi bên scale theo workload shape của chính nó.",
+          "Distributed SQL (CockroachDB, TiDB, Yugabyte) hoặc relational store đã shard: booking cần transaction thật, nên shard theo range của resource giúp transaction nằm trong một shard.",
+          "Kafka làm xương sống event — partition theo booking id hoặc resource id để event của cùng một thực thể giữ đúng thứ tự.",
+          "Một search index (Elasticsearch hoặc OpenSearch) cộng cache cho truy vấn nóng, cả hai được nạp async từ Kafka.",
           "Dùng transactional outbox thay vì dual write: commit database và publish Kafka không thể nguyên tử cùng nhau."
         ],
         "tradeoffs": [
-          "Ở mức tải này, một primary quan hệ đánh index tốt nhiều khả năng vẫn kham được. Sharding và microservice được mua để lấy sự cô lập và khả năng deploy độc lập, không phải để lấy throughput — hãy nói thẳng điều đó thay vì lấy số request ra biện minh.",
-          "Kafka đưa payment và notification ra khỏi đường request, nhưng biến booking thành luồng bất đồng bộ: người dùng bắt đầu thấy trạng thái pending, và mọi consumer đều cần idempotency cùng dead-letter.",
-          "Distributed database gỡ bỏ trần của một primary duy nhất nhưng thêm độ trễ liên shard; thiết kế chỉ có lãi vì booking của cùng một đơn vị luôn nằm trong một shard.",
-          "Hold đánh đổi hiệu suất sử dụng tồn kho lấy trải nghiệm: TTL dài chặn mất nhu cầu thật, TTL ngắn làm mất đơn khi payment chậm.",
+          "Ở scale này, một relational primary đánh index tốt nhiều khả năng vẫn kham được. Sharding và microservice được mua để lấy isolation và khả năng deploy độc lập, không phải để lấy throughput — hãy nói thẳng điều đó thay vì lấy số request ra biện minh.",
+          "Kafka đưa payment và notification ra khỏi request path, nhưng biến booking thành async flow: user bắt đầu thấy trạng thái pending, và mọi consumer đều cần idempotency cùng dead-letter.",
+          "Distributed database gỡ bỏ trần của một primary duy nhất nhưng thêm cross-shard latency; design chỉ có lãi vì booking của cùng một unit luôn nằm trong một shard.",
+          "Hold là trade-off giữa inventory utilization và user experience: TTL dài chặn mất nhu cầu thật, TTL ngắn làm mất đơn khi payment chậm.",
           "Review lỗi: rủi ro cao nhất là payment không rõ kết quả, consumer replay lại event cũ sau khi rollback, và index trễ khiến search quảng cáo những đơn vị đã hết."
         ],
         "tags": [
@@ -1643,54 +1643,54 @@
         ]
       },
       "vi": {
-        "title": "1 triệu, 10 triệu và 100 triệu request mỗi ngày: mỗi kỹ thuật thực sự mua được gì",
-        "excerpt": "Cùng một sản phẩm ở ba mức tải, đi theo từng kỹ thuật — replica, Redis, Memcached, distributed lock, Kafka, RabbitMQ, sharding và cell — kèm việc mỗi thứ giải quyết được gì, trả giá bằng gì, và đến lúc nào thì không còn là tuỳ chọn.",
-        "scope": "Lấy nền tảng booking và search ở Blueprint 15 rồi đưa nó qua mức tải gấp mười và gấp trăm lần. Mục tiêu không phải một danh sách công nghệ mà là thứ tự ra quyết định: ở mỗi mức, giới hạn nào mới thực sự đang chặn, kỹ thuật nào gỡ được nó, và kỹ thuật đó tốn gì để vận hành. Phần lớn thành phần không bao giờ đổi. Một số ít chạm trần thật, và mỗi cách khắc phục đều mua throughput bằng độ phức tạp mà sau đó bạn phải nuôi mãi. Gọi tên được ràng buộc đang chặn — và từ chối những nâng cấp không nhắm vào nó — chính là toàn bộ kỹ năng ở đây.",
+        "title": "1M, 10M và 100M requests/day: mỗi technique thực sự mua được gì",
+        "excerpt": "Cùng một product qua ba scale, đi theo từng technique — replica, Redis, Memcached, distributed lock, Kafka, RabbitMQ, sharding và cell — xem mỗi thứ giải quyết gì, cost gì, và tới lúc nào thì không còn optional.",
+        "scope": "Lấy booking-and-search platform ở Blueprint 15 rồi đưa nó qua scale gấp mười và gấp trăm. Mục tiêu không phải shopping list công nghệ mà là thứ tự ra decision: ở mỗi scale, binding constraint nào đang block, technique nào gỡ được nó, và technique đó tốn gì để operate. Phần lớn component không đổi. Chỉ một số ít chạm hard ceiling, và mỗi fix đều mua throughput bằng operational complexity mà team phải nuôi mãi. Gọi đúng binding constraint — và từ chối upgrade không đụng vào nó — là skill cốt lõi.",
         "functional": [
-          "Quy cả ba mức tải về một đơn vị: 1 triệu/ngày khoảng 12 rps, 10 triệu/ngày khoảng 116 rps, 100 triệu/ngày khoảng 1.157 rps trung bình.",
-          "Ràng buộc chặn: Ở mỗi mức, gọi tên ràng buộc đang chặn trước khi gọi tên bất kỳ công nghệ nào — throughput đọc, throughput ghi, kích thước working set, khối lượng dữ liệu hay chi phí phối hợp.",
-          "Cái giá kỹ thuật: Với mỗi kỹ thuật, nêu rõ nó gỡ bỏ điều gì và mang vào kiểu lỗi mới nào; một kỹ thuật không sinh ra kiểu lỗi mới thì thường là nó chẳng làm gì cả.",
-          "Thứ tự áp dụng: Đưa ra thứ tự áp dụng tường minh, để chỉ với tới một kỹ thuật khi kỹ thuật rẻ hơn bên dưới đã được đo và vắt kiệt."
+          "Common unit: 1M/day ≈ 12 rps average, 10M/day ≈ 116 rps average, 100M/day ≈ 1,157 rps average.",
+          "Binding constraint: Ở mỗi scale, gọi tên constraint đang block trước khi gọi tên technology — read throughput, write throughput, working-set size, data volume hay coordination cost.",
+          "Technique cost: Với mỗi technique, nêu rõ nó gỡ constraint nào và mang vào failure mode nào; một technique không tạo failure mode mới thì thường là nó chẳng làm gì cả.",
+          "Adoption order: Đưa ra thứ tự áp dụng rõ ràng, chỉ reach for một technique khi option rẻ hơn bên dưới đã được measure và exhausted."
         ],
         "quality": [
-          "Số học đi trước kiến trúc: rps đỉnh, tỷ lệ đọc/ghi, kích thước working set và số dòng mới quyết định, không bao giờ là con số tổng.",
-          "Tính liên tục của invariant: Bất biến về tính đúng đắn giống hệt nhau ở cả ba mức; chỉ cơ chế bảo vệ chúng thay đổi, và mỗi cơ chế mới đều yếu hơn cái nó thay thế.",
-          "Mỗi tầng thêm vào phải có người sở hữu rõ ràng, kiểu lỗi rõ ràng, và một đường gỡ bỏ đã ghi lại.",
-          "Khả năng đảo ngược là tiêu chí hạng nhất: ưu tiên kỹ thuật gỡ được trong một buổi chiều hơn kỹ thuật không bao giờ gỡ được."
+          "Arithmetic before architecture: peak rps, read/write ratio, working-set size và row count mới quyết định, không phải headline request number.",
+          "Invariant continuity: Correctness invariants giống nhau ở cả ba scale; chỉ mechanism bảo vệ chúng thay đổi, và mỗi mechanism mới đều yếu hơn cái nó thay thế.",
+          "Operational ownership: Mỗi tier thêm vào phải có owner rõ ràng, failure mode rõ ràng và documented removal path.",
+          "Reversibility: Ưu tiên technique gỡ được trong một buổi chiều hơn technique không thể undo."
         ],
         "capacity": [
-          "Mức 1 triệu: 1 triệu/ngày = 12 rps trung bình và 150-250 rps ở đỉnh gấp 10-20 lần. Mức này có thể vừa một primary đánh index tốt cùng vài app instance, nhưng chỉ sau khi đo schema, durability, p99 và yêu cầu failure; hãy bắt đầu từ bằng chứng về query/index và connection pool, không phải một công thức scale.",
-          "Mức 10 triệu: 10 triệu/ngày = 116 rps trung bình và 1,5-2,5 nghìn rps ở đỉnh. Nút thắt tiếp theo có thể là cache miss, write contention, dependency saturation hoặc data volume; phải đo thay vì mặc định read luôn dễ.",
-          "Mức 100 triệu: 100M/ngày = 1.157 rps trung bình và 15-25 nghìn rps ở đỉnh. Ràng buộc có thể gồm write throughput, chi phí phối hợp, thời gian recovery và blast radius, nhưng thứ tự của chúng phụ thuộc workload cùng mục tiêu availability.",
-          "Quy mô đường ghi: Với tỷ lệ đọc/ghi 100:1, đường ghi chạy khoảng 2-5, 20-50 và 200-500 write/giây. Chỉ các tốc độ này chưa nói được primary chịu nổi bao nhiêu: schema, index, transaction shape, durability, contention, hardware và p99 đều quan trọng. Chỉ shard khi có ràng buộc đã đo hoặc mục tiêu blast radius.",
-          "Khối lượng dữ liệu thường ép thay đổi trước tốc độ request: tải gấp mười lần là gấp mười lần số dòng, kích thước index, cửa sổ backup và thời gian restore — thời gian restore mới là con số kết thúc thời kỳ một primary."
+          "1M scale: 1M/day = 12 rps average và 150–250 rps at peak với peak factor 10–20×. Có thể fit một well-indexed primary và vài app instance, nhưng chỉ sau khi measure schema, durability, p99 và failure requirement; bắt đầu từ query/index và connection-pool evidence, không phải scale recipe.",
+          "10M scale: 10M/day = 116 rps average và 1.5–2.5k rps at peak. Constraint tiếp theo có thể là cache miss, write contention, dependency saturation hoặc data volume; measure thay vì mặc định read luôn dễ.",
+          "100M scale: 100M/day = 1,157 rps average và 15–25k rps at peak. Constraint có thể là write throughput, coordination cost, recovery time hoặc blast radius; thứ tự phụ thuộc workload và availability target.",
+          "Write-path scale: Với read/write ratio 100:1, write path chạy khoảng 2–5, 20–50 và 200–500 writes/s. Các rate này chưa tự nói primary capacity: schema, index, transaction shape, durability, contention, hardware và p99 đều quan trọng. Chỉ shard khi có measured constraint hoặc blast-radius objective.",
+          "Data volume thường force change trước request rate: traffic gấp mười là gấp mười row, index size, backup window và restore time — restore time mới là con số kết thúc thời kỳ single-primary."
         ],
-        "diagram_title": "Ba mức tải, và ràng buộc ép mỗi lần chuyển giai đoạn",
+        "diagram_title": "Three scales và constraint ép mỗi transition",
         "data_model": [
-          "Không đổi ở mọi mức: thực thể, bất biến và idempotency key. Quy mô không làm thay đổi định nghĩa thế nào là đúng, chỉ làm việc bảo đảm nó đắt hơn.",
-          "1 triệu — một schema chuẩn hoá, khoá ngoại thật, join làm trong database. Đây là mức đúng đắn rẻ nhất bạn từng có; hãy tiêu nó trước khi tối ưu.",
-          "10 triệu — tách read model khỏi write model. Một search projection denormalized, dựng lại từ event, để đường đọc không bao giờ chạm vào store giao dịch.",
-          "100 triệu — khoá shard trở thành dòng thiết kế quan trọng nhất hệ thống. Chọn sao cho giao dịch của thực thể nóng nằm trong một shard; chọn sai thì đó là di trú dữ liệu chứ không phải refactor.",
-          "Phân tầng retention ở mọi mức trên 1 triệu: dòng nóng ở store vận hành, lịch sử sang cold storage hoặc lake, vì backup và restore tỷ lệ với kích thước bảng chứ không với lưu lượng."
+          "Invariant không đổi: entities, invariants và idempotency keys ở mọi scale. Scale không đổi định nghĩa correct là gì, chỉ làm việc guarantee nó đắt hơn.",
+          "1M — normalized schema, real foreign keys, join trong database. Đây là correctness rẻ nhất bạn từng có; hãy dùng nó trước khi optimize.",
+          "10M — read model tách khỏi write model. Một denormalized search projection rebuild được từ events, để read path không bao giờ query transactional store.",
+          "100M — shard key trở thành dòng design quan trọng nhất. Chọn sao cho transaction của hot entity nằm trong một shard; chọn sai thì đây là data migration chứ không phải refactor.",
+          "Retention tiers ở mọi scale trên 1M: hot rows trong operational store, history sang cold storage hoặc lake, vì backup và restore scale theo table size chứ không theo traffic."
         ],
         "stack": [
-          "Read replica (1 triệu, nâng cấp đầu tiên) — mua throughput đọc và chỉ vậy thôi. Rẻ, đảo ngược được, và là nước đi đầu tiên đúng đắn. Cái giá: độ trễ replication, nên mọi truy vấn cần đọc đúng ngay sau khi ghi đều phải ghim vào primary. Nó không giúp gì cho ghi, và đó là sai lầm người ta hay mắc khi thêm replica để chữa vấn đề ghi.",
-          "Memcached và Redis (1-10 triệu) — Memcached là cache LRU thuần: đa luồng, mỗi node nhanh hơn chút với key-value đơn giản, và nó quên. Redis là một server cấu trúc dữ liệu: sorted set, counter, stream, Lua, persistence, replication. Chỉ chọn Memcached khi bạn thực sự chỉ muốn một cache ngu và không gì khác; chọn Redis khi rồi bạn sẽ còn cần rate limiting, leaderboard, hàng đợi hay lock — tức là gần như luôn luôn. Chạy một Redis thay vì Memcached cộng thêm thứ khác thường là vận hành đơn giản hơn.",
-          "Topology cache (10 triệu) — một Redis dùng chung trở thành cache local trong tiến trình đặt trước Redis dùng chung. Tầng local bỏ được một vòng gọi mạng cho mỗi lần hit và hấp thụ các key nóng vốn sẽ biến một node Redis thành điểm nghẽn. Cái giá: hai mức dữ liệu cũ, và invalidation nay là bài toán phân tán. Hãy dùng TTL local ngắn thay vì cố invalidate thật chính xác.",
-          "Distributed lock (mọi mức, dùng dè dặt) — Redis SETNX kèm token và TTL là đủ cho loại trừ lẫn nhau kiểu best-effort, ví dụ 'chỉ một worker chạy cron này'. Nó không an toàn cho tính đúng đắn: một lần GC pause hay phân mảnh mạng là hai bên cùng tin mình đang giữ lock, và Redlock không sửa được điều đó. Với tiền và tồn kho, hãy dùng database — unique constraint, SELECT FOR UPDATE, hoặc cột version optimistic. Nguyên tắc: lock để tăng hiệu quả, ràng buộc database để bảo đảm đúng đắn.",
-          "RabbitMQ và Kafka (1-10 triệu) — RabbitMQ là broker cho task queue: ack theo từng message, requeue, priority, routing phức tạp, và message biến mất sau khi được tiêu thụ. Kafka là log phân vùng phát lại được: có thứ tự theo key, giữ nhiều ngày, và nhiều consumer group độc lập cùng đọc một stream. Chọn RabbitMQ cho việc phân phát job mà mỗi message là một việc cần làm đúng một lần; chọn Kafka khi sự kiện có nhiều bên tiêu thụ, cần thứ tự theo thực thể, hoặc phải phát lại được sau khi sửa bug. Hệ thống này muốn Kafka chính vì sự kiện booking cùng lúc nuôi payment, notification, indexing và analytics.",
-          "Sharding và distributed SQL (10-100 triệu) — gỡ trần ghi đơn lẻ và gói bán kính ảnh hưởng. Distributed SQL như CockroachDB, TiDB hay Yugabyte giữ được ngữ nghĩa SQL với cái giá là độ trễ liên shard; shard ở tầng ứng dụng thì nhanh hơn nhưng đẩy việc định tuyến, reshard và truy vấn liên shard vào code của bạn. Dù cách nào, giao dịch một shard phải là mặc định áp đảo, và đó là quyết định mô hình dữ liệu phải chốt trước tất cả những thứ này.",
-          "CDN và edge (từ 10 triệu) — throughput rẻ nhất có thể mua cho mọi thứ cache được và công khai. Trang kết quả search và tài nguyên tĩnh không bao giờ nên chạm tới origin. Cái giá: invalidate cache trên một mạng bạn không kiểm soát, nên hãy đánh version vào URL thay vì đi purge.",
-          "Cell và multi-region (100 triệu) — chia toàn bộ hệ thống thành các cell độc lập, mỗi cell phục vụ trọn vẹn một nhóm người dùng. Thứ này mua bán kính ảnh hưởng và độ trễ theo vùng, không phải throughput: một lần deploy hỏng hay một key độc chỉ ảnh hưởng một cell. Cái giá: độ phức tạp vận hành cao nhất trong danh sách này — định tuyến, dung lượng từng cell, dữ liệu liên cell và một mô hình tư duy khó hơn hẳn. Riêng multi-region thì do mục tiêu độ trễ và tính sẵn sàng quyết định, không bao giờ do lưu lượng; 100 triệu/ngày trong một vùng là chuyện bình thường."
+          "Read replicas (1M, first upgrade) — mua read throughput và không gì khác. Cheap, reversible, và là first move đúng. Cost: replication lag, nên read cần correct ngay sau write phải pin vào primary. Không giúp write; thêm replica để chữa write problem là mistake kinh điển.",
+          "Memcached vs Redis (1M–10M) — Memcached là pure LRU cache: multithreaded, mỗi node nhanh hơn chút cho plain key-value, và nó quên mọi thứ. Redis là data-structure server: sorted sets, counters, streams, Lua, persistence, replication. Chọn Memcached khi thật sự chỉ muốn dumb cache; chọn Redis khi còn cần rate limiting, leaderboard, queue hoặc lock — gần như luôn luôn. Một Redis thường đơn giản hơn Memcached cộng thêm một component khác.",
+          "Cache topology (10M) — shared Redis có local in-process cache đặt phía trước. Local tier bỏ một network round trip mỗi hit và hấp thụ hot key trước khi chúng biến một Redis node thành hotspot. Cost: hai level staleness và invalidation trở thành distributed problem. Dùng local TTL ngắn thay vì cố invalidate chính xác.",
+          "Distributed locks (any scale, sparingly) — Redis SETNX với token và TTL đủ cho best-effort mutual exclusion, ví dụ chỉ một worker chạy cron. Không safe cho correctness: GC pause hoặc network partition có thể khiến hai holder cùng tin mình đang giữ lock, và Redlock không sửa được điều đó. Với money và inventory, dùng database — unique constraint, SELECT FOR UPDATE hoặc optimistic version. Rule: lock để efficiency, database constraint để correctness.",
+          "RabbitMQ vs Kafka (1M–10M) — RabbitMQ là broker cho task queue: per-message ack, requeue, priority, complex routing và message biến mất sau consume. Kafka là replayable partitioned log: ordered theo key, retained nhiều ngày và nhiều consumer group độc lập cùng đọc stream. Chọn RabbitMQ cho job dispatch một lần; chọn Kafka khi event có nhiều consumer, cần ordering theo entity hoặc cần replay sau bug. Hệ thống này chọn Kafka vì booking event đồng thời feed payment, notification, indexing và analytics.",
+          "Sharding và distributed SQL (10M–100M) — gỡ single-write ceiling và contain blast radius. Distributed SQL như CockroachDB, TiDB hoặc Yugabyte giữ SQL semantics với cross-shard latency; application-level sharding nhanh hơn nhưng đẩy routing, resharding và cross-shard query vào code. Dù chọn cách nào, single-shard transaction phải là default áp đảo — một data-model decision cần chốt trước.",
+          "CDN và edge (10M+) — throughput rẻ nhất cho public content cacheable. Search-result pages và static assets không nên chạm origin. Cost: cache invalidation trên network mình không control, nên version URL thay vì purge.",
+          "Cells và multi-region (100M) — chia toàn bộ stack thành independent cells, mỗi cell serve end-to-end một user slice. Thứ này mua blast-radius containment và regional latency, không mua throughput: bad deploy hoặc poison key chỉ ảnh hưởng một cell. Cost cao nhất là operational complexity — routing, per-cell capacity, cross-cell data và mental model khó hơn nhiều. Multi-region do latency/availability target quyết định, không do request volume; 100M/day trong một region vẫn bình thường."
         ],
         "tradeoffs": [
-          "Thứ tự áp dụng, từ rẻ và dễ đảo ngược nhất: index/query tuning, connection pooling, read replica, cache, async offload, read model, rồi partitioning, sharding và cell. Hãy coi đây là giả thuyết, không phải nấc thang: chỉ đi tới bước sau khi một nút thắt đã đo hoặc invariant bắt buộc điều đó.",
-          "Ủng hộ giữ hình dạng 1 triệu: một primary nghĩa là transaction thật, join đơn giản, không phải suy luận liên shard, và một ca trực ai cũng gánh được. Scale dọc cùng replica là throughput rẻ nhất bạn từng mua. Cái giá là một trần ghi cứng và một miền lỗi duy nhất.",
-          "Ủng hộ hình dạng 10 triệu: cache và read model gỡ hẳn trần đọc, còn việc đẩy sang bất đồng bộ giữ các tác vụ chậm ra khỏi đường request. Cái giá là dữ liệu cũ ở khắp nơi, cộng thêm cache stampede và hành vi cold-start chỉ lộ ra khi đang có sự cố — đúng lúc bạn ít chịu nổi nhất.",
-          "Ủng hộ hình dạng 100 triệu: không còn trần ghi đơn lẻ, bán kính ảnh hưởng gói trong từng shard hoặc cell, mỗi loại tải scale độc lập. Cái giá là giao dịch phân tán hoặc một luật cứng rằng chúng không bao giờ xảy ra, reshard thành cả một dự án chứ không phải đổi config, và việc debug trải trên nhiều service, nhiều shard và nhiều vùng.",
-          "Sharding là quyết định khó đảo ngược nhất hệ thống. Khoá shard gần như vĩnh viễn, nên nó phải làm sau cùng, sau khi replica, cache, read model và bất đồng bộ đều đã đo và vắt kiệt. Mọi thứ phía trên nó gỡ được trong một buổi chiều; riêng nó thì không bao giờ gỡ được.",
-          "Cache có đòn bẩy cao nhất và rủi ro bị xem nhẹ nhất: nó biến trần đọc thành chuyện không đáng bàn đồng thời mang vào dữ liệu cũ, stampede và kiểu lỗi cold-start. Luôn đi kèm cache với request coalescing và TTL có jitter, nếu không lần khởi động lại đầu tiên sau sự cố sẽ thành sự cố thứ hai.",
-          "Review lỗi theo từng mức: ở 1 triệu, sự cố thực tế là primary failover. Ở 10 triệu, nó liên quan tới cache — stampede, key nóng, hoặc một consumer group tụt lại tới mức index cũ thấy rõ. Ở 100 triệu, nó cục bộ và mơ hồ: một shard chết, một cell suy giảm, một vùng phục vụ dữ liệu cũ. Phần khó là phát hiện chứ không phải sửa, và chi phí vận hành đó trả hằng tuần chứ không trả một lần lúc xây."
+          "Adoption order, cheapest and most reversible first: index/query tuning, connection pooling, read replicas, cache, async offload, read model, rồi partitioning, sharding và cells. Đây là hypothesis, không phải ladder: chỉ đi bước sau khi có measured bottleneck hoặc invariant bắt buộc.",
+          "Ở lại 1M shape: một primary nghĩa là real transactions, trivial joins, không cần cross-shard reasoning và on-call rotation ai cũng gánh được. Vertical scaling và replicas là throughput rẻ nhất bạn có thể mua. Cost là hard write ceiling và single failure domain.",
+          "Chuyển sang 10M shape: cache và read model gỡ read ceiling, async offload giữ slow work khỏi request path. Cost là staleness ở khắp nơi, cộng cache stampede và cold-start behavior chỉ xuất hiện trong incident — đúng lúc khó chịu nhất.",
+          "Chuyển sang 100M shape: không còn single-write ceiling, blast radius được contain theo shard/cell và mỗi workload scale độc lập. Cost là distributed transactions hoặc rule cứng rằng chúng không bao giờ xảy ra, resharding thành project chứ không phải config change, và debug trải qua services, shards và regions.",
+          "Sharding là decision khó reversible nhất. Shard key gần như permanent, nên làm sau replica, cache, read model và async offload — tất cả đã measure và exhausted. Mọi thứ phía trên gỡ được trong một buổi chiều; shard key thì không.",
+          "Cache có leverage cao nhất và underrated risk: biến read ceiling thành non-issue nhưng mang vào staleness, stampede và cold-start failure mode. Luôn pair cache với request coalescing và jittered TTL, nếu không restart đầu tiên sau incident sẽ thành incident thứ hai.",
+          "Failure review theo scale: ở 1M, outage thực tế là primary failover. Ở 10M, vấn đề thường là cache — stampede, hot key hoặc consumer group lag làm index stale rõ rệt. Ở 100M, failure partial và ambiguous: một shard down, một cell degraded, một region serve old data. Khó nhất là detection chứ không phải repair, và operational cost này trả hằng tuần."
         ],
         "tags": [
           "Scaling",
@@ -1770,52 +1770,52 @@
         ]
       },
       "vi": {
-        "title": "Danh mục kỹ thuật scaling: dùng công cụ nào cho nút thắt nào",
-        "excerpt": "Tài liệu tra cứu cho từng kỹ thuật — replica, các tầng cache, lock, hàng đợi, phân vùng, bulkhead và backpressure — mỗi thứ kèm đúng một bài toán nó giải, kiểu lỗi nó mang vào, và thứ rẻ hơn nên thử trước.",
-        "scope": "Blueprint 16 hỏi cái gì thay đổi giữa các mức tải. Bài này là tài liệu tra cứu phía sau nó: một danh mục theo từng kỹ thuật, đọc riêng cũng được. Mỗi mục trả lời bốn câu — kỹ thuật này gỡ bỏ giới hạn nào, tốn gì, KHÔNG sửa được gì, và lẽ ra nên thử gì trước khi với tới nó. Nguyên tắc xuyên suốt rất đơn giản: mọi kỹ thuật đều là một cuộc đổi chác. Gọi tên được thứ mình đã đánh đổi mới phân biệt một thiết kế với một danh sách công nghệ.",
+        "title": "Scaling technique catalogue: dùng tool nào cho bottleneck nào",
+        "excerpt": "Reference guide cho từng technique — replica, cache tiers, lock, queue, partitioning, bulkhead và backpressure — mỗi thứ gắn với bottleneck nó giải, failure mode nó mang vào và option rẻ hơn nên thử trước.",
+        "scope": "Blueprint 16 hỏi điều gì thay đổi giữa các scale. Bài này là reference catalogue phía sau nó, có thể đọc độc lập. Mỗi entry trả lời bốn câu — technique này gỡ constraint nào, cost là gì, nó KHÔNG fix được gì, và nên thử gì trước khi reach for nó. Nguyên tắc rất đơn giản: mọi technique đều là một trade-off. Gọi đúng thứ đã trade-off mới phân biệt một design với shopping list công nghệ.",
         "functional": [
-          "Xuất phát từ triệu chứng, đừng bao giờ từ công nghệ: đọc chậm, ghi chậm, một dependency chậm, hay tranh chấp trên một dòng dữ liệu đều có câu trả lời khác nhau.",
-          "Giới hạn được gỡ: Với mỗi kỹ thuật, nêu rõ giới hạn nó gỡ và giới hạn nó để nguyên — phần lớn sai lầm production là áp một kỹ thuật vào sai nút thắt.",
-          "Đưa ra lựa chọn rẻ hơn cần vắt kiệt trước, để danh mục đọc như một thứ tự chứ không phải một thực đơn.",
-          "Gọi tên kiểu lỗi mới mà mỗi kỹ thuật mang vào, vì đó mới là chi phí lâu dài bạn thực sự phải vận hành."
+          "Symptom first: Đừng bắt đầu từ technology. Slow read, slow write, một slow dependency hay contention trên một data row đều có answer khác nhau.",
+          "Constraint được gỡ: Với mỗi technique, nêu rõ constraint nó gỡ và constraint nó để nguyên — phần lớn production mistake là áp technique vào sai bottleneck.",
+          "Cheaper option first: Nêu option rẻ hơn cần exhaust trước, để catalogue đọc như một decision order chứ không phải menu.",
+          "New failure mode: Gọi tên failure mode mà mỗi technique mang vào, vì đó mới là long-term cost team thực sự phải operate."
         ],
         "quality": [
-          "Nút thắt đã đo: Một kỹ thuật chỉ đúng khi nó nhắm vào nút thắt đã đo được; thêm replica để chữa độ trễ ghi là lỗi phân loại phổ biến và đắt đỏ.",
-          "Ranh giới đúng đắn: Không bao giờ được lẫn lộn cơ chế đúng đắn với cơ chế hiệu năng — distributed lock là hiệu năng, ràng buộc database mới là đúng đắn.",
-          "Mơ hồ bất đồng bộ: Mọi ranh giới bất đồng bộ đều làm kết quả của bên gọi trở nên mơ hồ, nên idempotency không còn là tuỳ chọn một khi hàng đợi bước vào thiết kế.",
-          "Ưu tiên kỹ thuật mà bạn phát hiện được kiểu lỗi của nó: một hệ thống chậm mà thấy được vẫn hơn một hệ thống nhanh mà sai trong im lặng."
+          "Measured bottleneck: Một technique chỉ đúng khi nhắm vào bottleneck đã measure; thêm replica để chữa write latency là classification error phổ biến và đắt.",
+          "Correctness boundary: Không lẫn correctness mechanism với performance mechanism — distributed lock là efficiency, database constraint mới là correctness.",
+          "Async ambiguity: Mọi async boundary làm outcome của caller trở nên ambiguous, nên idempotency không còn optional khi queue bước vào design.",
+          "Observable failure: Ưu tiên technique có failure mode detect được; system chậm mà thấy được vẫn hơn system nhanh mà silently wrong."
         ],
         "capacity": [
-          "Đo trước khi chọn: p99 theo từng endpoint, tỷ lệ đọc/ghi, tỷ lệ cache hit, kích thước working set, và ngân sách timeout của dependency chậm nhất.",
-          "Trần ghi của primary phụ thuộc workload: schema, index, transaction shape, durability, contention, hardware và p99 đều quan trọng. Hãy benchmark workload giống production trước khi chọn sharding; bước tiếp theo thường là sửa query, data model hoặc concurrency, nhưng đừng mặc định điều đó.",
-          "Độ vừa working set: Hiệu quả của cache do kích thước working set so với bộ nhớ quyết định, không do tốc độ request; hit rate 99 phần trăm và 90 phần trăm chênh nhau mười lần tải xuống origin.",
-          "Phục hồi hàng đợi: Tính dung lượng hàng đợi là chuyện hấp thụ đột biến và tốc độ rút, không phải throughput: con số hữu ích là backlog mất bao lâu để giải toả sau sự cố."
+          "Measure before choosing: p99 theo từng endpoint, read/write ratio, cache-hit ratio, working-set size và timeout budget của slowest dependency.",
+          "Primary write ceiling: Phụ thuộc workload — schema, index, transaction shape, durability, contention, hardware và p99 đều quan trọng. Benchmark production-shaped workload trước sharding; bước tiếp theo thường là query, data model hoặc concurrency, nhưng đừng assume.",
+          "Working-set fit: Cache efficiency do working-set size so với memory quyết định, không do request rate; hit rate 99% và 90% tạo chênh lệch gấp mười ở origin load.",
+          "Queue recovery: Queue capacity là bài toán absorb burst và drain rate, không phải throughput; metric hữu ích là backlog cần bao lâu để drain sau incident."
         ],
-        "diagram_title": "Từ triệu chứng tới kỹ thuật, rẻ nhất trước",
+        "diagram_title": "Symptom → technique, cheapest first",
         "data_model": [
-          "Idempotency key — điều kiện tiên quyết cho mọi retry, hàng đợi và consumer at-least-once trong danh mục này; thiếu nó thì không kỹ thuật bất đồng bộ nào an toàn.",
-          "Cột version hoặc sequence — optimistic concurrency, và là phương án đúng đắn thay cho distributed lock ở những dòng bị tranh chấp.",
-          "Bảng outbox — cách duy nhất chắc chắn để vừa phát event vừa commit transaction; dual write mất message đúng vào lúc quan trọng nhất.",
-          "Read model denormalized — thứ làm cho cache và replica trở nên hiệu quả, vì nó bỏ đi những phép join vốn khiến đọc trở nên đắt.",
-          "Khoá phân vùng hoặc shard — trường duy nhất quyết định giao dịch tương lai có nằm cục bộ hay không; hãy chốt nó trước khi nó thành thứ chịu lực."
+          "Idempotency key — prerequisite cho mọi retry, queue và at-least-once consumer trong catalogue; thiếu nó thì không async technique nào safe.",
+          "Version/sequence column — optimistic concurrency và correctness alternative cho distributed lock trên hot rows.",
+          "Outbox table — cách chắc chắn để vừa publish event vừa commit transaction; dual write sẽ mất message đúng lúc quan trọng nhất.",
+          "Denormalized read model — làm cache và replica hiệu quả vì loại bỏ các join khiến read trở nên đắt.",
+          "Partition/shard key — field quyết định future transaction có nằm local hay không; chốt nó trước khi data model chịu load."
         ],
         "stack": [
-          "Read replica — gỡ giới hạn throughput đọc. Không giúp gì cho ghi, và mang vào độ trễ replication, nên đọc lại chính cái mình vừa ghi phải ghim vào primary. Hãy tối ưu index và truy vấn trước; một index còn thiếu rẻ hơn một server mới.",
-          "Redis — một server cấu trúc dữ liệu, không chỉ là cache. Mua được đọc dưới một mili giây, counter, sorted set cho leaderboard, token bucket cho rate limiting, stream cho hàng đợi nhẹ. Tốn thêm một miền lỗi và một chính sách dữ liệu cũ. Ưu tiên nó hơn Memcached trừ khi bạn thực sự chỉ muốn một cache LRU, vì rồi bạn sẽ cần tới các cấu trúc kia.",
-          "Memcached — cache LRU đa luồng thuần tuý. Mỗi node nhanh hơn chút với key-value đơn giản và dễ suy luận hơn vì nó không có persistence, không có ngữ nghĩa. Chọn nó khi cache thực sự có thể vứt đi và bạn muốn không bị cám dỗ lưu trạng thái vào đó.",
-          "Cache local trong tiến trình — bỏ được vòng gọi mạng mà Redis vẫn tốn, và hấp thụ key nóng trước khi chúng dồn vào một node Redis. Tốn thêm một cửa sổ dữ liệu cũ; hãy giữ TTL ngắn thay vì cố invalidate thật chính xác giữa các instance.",
-          "Distributed lock (Redis SETNX kèm token và TTL) — loại trừ lẫn nhau để tăng hiệu quả: chạy một cron, tránh làm trùng việc. Không an toàn cho tính đúng đắn, vì một lần GC pause hay phân mảnh mạng là có hai bên cùng giữ; Redlock không bịt được lỗ này. Với tồn kho và tiền, hãy dùng unique constraint, SELECT FOR UPDATE, hoặc một cột version optimistic.",
-          "RabbitMQ — broker cho task: ack từng message, requeue, dead-letter, priority và routing phong phú. Đúng khi mỗi message là một đơn vị công việc tiêu thụ đúng một lần và cần phân phát độ trễ thấp. Sai khi nhiều consumer độc lập cùng cần một event, hoặc khi phải phát lại sau khi sửa bug.",
-          "Kafka — log phân vùng, phát lại được, có thứ tự theo key và các consumer group độc lập. Đúng cho xương sống sự kiện, CDC, fan-out tới nhiều mối quan tâm, và xử lý lại lịch sử. Tốn công hoạch định số partition, biến consumer lag thành chỉ số vận hành vĩnh viễn, và ngữ nghĩa at-least-once mà bạn phải hấp thụ bằng idempotency.",
-          "Circuit breaker, bulkhead và backpressure — những cơ chế giữ cho một dependency chậm không nuốt hết thread. Breaker fail nhanh khi dependency không khoẻ, bulkhead giới hạn concurrency cho từng dependency để nó không bỏ đói phần còn lại, và hàng đợi có chặn kèm load shedding giữ độ trễ hữu hạn khi quá tải. Đây là những khoản lợi về độ tin cậy rẻ nhất trong danh mục và gần như luôn bị thiếu."
+          "Read replica — gỡ read-throughput ceiling. Không giúp write và mang vào replication lag, nên read-after-write cần pin vào primary. Tối ưu index/query trước; một index thiếu rẻ hơn một server mới.",
+          "Redis — data-structure server, không chỉ là cache. Mua được sub-millisecond read, counter, sorted set cho leaderboard, token bucket cho rate limiting và stream cho lightweight queue. Cost là thêm một failure domain và staleness policy. Ưu tiên Redis hơn Memcached khi sẽ cần các structure này.",
+          "Memcached — pure multithreaded LRU cache. Mỗi node nhanh hơn chút với plain key-value và dễ reason vì không có persistence hay state semantics. Chọn khi cache thật sự disposable và không muốn ai bị cám dỗ lưu state vào đó.",
+          "In-process local cache — bỏ network round trip mà Redis vẫn tốn và hấp thụ hot key trước khi chúng dồn vào một Redis node. Cost là thêm stale-data window; giữ TTL ngắn thay vì cố invalidate chính xác giữa các instance.",
+          "Distributed lock (Redis SETNX với token và TTL) — mutual exclusion để tăng efficiency: chạy một cron hoặc tránh duplicate work. Không safe cho correctness, vì GC pause hay network partition có thể để hai bên cùng giữ; Redlock không bịt lỗ này. Với inventory và money, dùng unique constraint, SELECT FOR UPDATE hoặc optimistic version.",
+          "RabbitMQ — task broker: per-message ack, requeue, dead-letter, priority và routing phong phú. Đúng khi mỗi message là một work unit consume một lần với low latency. Sai khi nhiều consumer độc lập cùng cần một event hoặc cần replay sau bug.",
+          "Kafka — replayable partitioned log, ordered theo key với các consumer group độc lập. Đúng cho event backbone, CDC, fan-out tới nhiều consumer và historical replay. Cost là partition planning, consumer lag thành operational metric vĩnh viễn và at-least-once semantics phải hấp thụ bằng idempotency.",
+          "Circuit breaker, bulkhead và backpressure — giữ slow dependency không nuốt hết thread. Breaker fail fast, bulkhead giới hạn concurrency theo dependency để không starve phần còn lại, bounded queue cùng load shedding giữ latency hữu hạn khi overload. Đây là reliability gain rẻ nhất và thường bị thiếu."
         ],
         "tradeoffs": [
-          "Thứ tự mới là điều quan trọng: tối ưu index và truy vấn, rồi connection pooling, rồi replica, rồi cache, rồi bất đồng bộ, rồi read model, rồi phân vùng, rồi sharding, rồi cell. Mỗi bước rẻ hơn và dễ đảo ngược hơn bước sau, và nhảy cóc là mua độ phức tạp vĩnh viễn để giải một vấn đề tạm thời.",
-          "Cache so với replica: cache gỡ hẳn tải khỏi database, replica chỉ dời tải đi. Cache đòn bẩy cao hơn và rủi ro cao hơn; replica thì buồn tẻ và dễ đoán. Ưu tiên replica khi dữ liệu đọc phải mới, ưu tiên cache khi được phép hơi cũ.",
-          "Kafka so với RabbitMQ là câu hỏi về hình dạng dữ liệu, không phải về hiệu năng. Hãy hỏi message này là một việc cần làm một lần hay một sự kiện mà nhiều bên quan tâm. Chọn Kafka cho việc phân phát job đơn giản là ôm thêm việc hoạch định partition không cần thiết; chọn RabbitMQ cho một xương sống sự kiện thì tới consumer thứ hai là phải thiết kế lại.",
-          "Distributed lock là món bị dùng sai nhiều nhất ở đây. Nó trông như đúng đắn nhưng không phải. Nếu mất lock dẫn tới hỏng dữ liệu chứ không chỉ làm trùng việc, thì câu trả lời là ràng buộc database — không có ngoại lệ.",
-          "Đẩy sang bất đồng bộ là đổi một lỗi đồng bộ rõ ràng lấy một lỗi bất đồng bộ mơ hồ. Người dùng nhận phản hồi pending thật nhanh, còn bạn thừa hưởng retry, bản trùng, dead letter, câu hỏi về thứ tự và một backlog phải theo dõi. Chỉ vượt ranh giới đó khi công việc thực sự không thuộc về request.",
-          "Mỗi kỹ thuật ở đây đều thêm một thành phần có thể hỏng độc lập. Cách hạch toán trung thực không phải là throughput thu được mà là bề mặt trực thêm vào: mỗi thứ là một dashboard, một cảnh báo, một runbook và một kiểu lỗi mà ai đó phải hiểu lúc ba giờ sáng."
+          "Adoption order mới là điều quan trọng: index/query tuning, connection pooling, replicas, cache, async offload, read model, partitioning, sharding rồi cells. Mỗi bước rẻ và reversible hơn bước sau; nhảy cóc là mua permanent complexity cho temporary problem.",
+          "Cache vs replica: cache gỡ tải khỏi database, replica chỉ move tải đi. Cache có leverage và risk cao hơn; replica boring và predictable hơn. Ưu tiên replica khi read phải fresh, cache khi chấp nhận staleness.",
+          "Kafka vs RabbitMQ là câu hỏi về data shape, không phải performance. Message này là work cần làm một lần hay event nhiều bên quan tâm? Chọn Kafka cho simple job dispatch là ôm partition planning không cần thiết; chọn RabbitMQ cho event backbone thì tới consumer thứ hai đã phải redesign.",
+          "Distributed lock là món bị misuse nhiều nhất. Nó trông như correctness nhưng không phải. Nếu mất lock làm hỏng data thay vì chỉ duplicate work, câu trả lời là database constraint — không có ngoại lệ.",
+          "Async là đổi một sync failure rõ ràng lấy async failure mơ hồ. User nhận pending nhanh, còn team nhận retry, duplicate, DLQ, ordering question và backlog cần operate. Chỉ cross boundary khi work thực sự không thuộc request.",
+          "Mỗi technique thêm một component có thể fail độc lập. Hạch toán trung thực không chỉ là throughput đạt được mà là operational surface: thêm dashboard, alert, runbook và failure mode mà ai đó phải hiểu lúc 3 giờ sáng."
         ],
         "tags": [
           "Redis",
@@ -1903,9 +1903,9 @@
         ]
       },
       "vi": {
-        "title": "Booking và inventory mùa flash sale: tìm và gỡ bottleneck tồn kho nóng",
-        "excerpt": "Phân tích vì sao đường synchronous Book → lock Inventory → Payment sụp khi chạy khuyến mãi/ngày đôi, tính ngưỡng hot SKU và thiết kế lại admission, hold, payment theo tải hữu hạn.",
-        "scope": "Kiến trúc trong hình phục vụ một triệu người dùng hằng ngày và khoảng mười lần traffic khi khuyến mãi, nhưng con số nguy hiểm không phải DAU hay tổng request. Trang sản phẩm khuếch đại read thành nhiều inventory check, trong khi mọi buyer của một SKU giảm giá cùng tranh chấp một stock row hoặc Redis lock. Chuỗi synchronous Book → Inventory → Payment giữ connection và quyền sở hữu inventory qua network call, khiến latency, retry và payment timeout tạo positive feedback làm contention nặng hơn. Thiết kế này biến bottleneck thành số đo được, giữ một quyết định reservation authoritative và cho search, payment, downstream scale độc lập.",
+        "title": "Flash-sale booking & inventory: tìm và gỡ hot-inventory bottleneck",
+        "excerpt": "Phân tích vì sao synchronous Book → lock Inventory → Payment sụp ở peak, tính hot-SKU limit và redesign admission, hold, payment theo bounded load.",
+        "scope": "Architecture này phục vụ 1M DAU và khoảng 10× traffic trong campaign, nhưng con số nguy hiểm không phải DAU hay total requests. Product page amplify read thành nhiều inventory check, trong khi mọi buyer của một discounted SKU cùng tranh chấp một stock row hoặc Redis lock. Chuỗi synchronous Book → Inventory → Payment giữ connection và inventory ownership qua network call, khiến latency, retry và payment timeout tạo positive feedback làm contention nặng hơn. Design này biến bottleneck thành số đo được, giữ một authoritative reservation decision và cho search, payment, downstream scale độc lập.",
         "functional": [
           "Serve availability cho product/search từ projection có version; chỉ revalidate khi tạo hold authoritative.",
           "Kiểm soát admission: Admit số checkout attempt hữu hạn theo campaign/SKU và trả sold-out, queued hoặc retry-after trước khi inventory authority saturation.",
@@ -1914,7 +1914,7 @@
           "Trạng thái cho client: Expose campaign state, queue position và pending/sold-out trung thực để client không poll inventory hung hãn."
         ],
         "quality": [
-          "Invariant tồn kho: Tổng confirmed và active-held không vượt sellable stock; mất Redis cache/lock không được làm vỡ invariant này.",
+          "Invariant inventory: Tổng confirmed và active-held không vượt sellable stock; mất Redis cache/lock không được làm vỡ invariant này.",
           "Cô lập quá tải: Search vẫn available khi checkout overload, và overload của một campaign/SKU không ăn hết DB connection hoặc worker.",
           "Ranh giới idempotency: API idempotent qua client retry, gateway retry, queue redelivery và payment callback duplicate.",
           "Hạn admission: p99 hold latency nằm trong admission deadline; khi queue không drain kịp business window phải reject thay vì giấu demand trong backlog vô hạn.",
@@ -1925,7 +1925,7 @@
           "Read amplification: nếu mỗi page check riêng 20 SKU, 4.000 page request/s biến thành 80.000 inventory lookup/s. Phải batch read, serve projection/cache denormalized và bỏ inventory authoritative khỏi browse path.",
           "Hot-SKU serialization: capacity xấp xỉ 1 / thời gian critical section. Atomic reservation 12 ms có trần lý thuyết gần 83 reservation/s cho một key serialized; chỉ vận hành 60–70% (khoảng 50–58/s) để chừa headroom cho variance/failover.",
           "Chậm ở hot key: Nếu lock/transaction tăng lên 25 ms do WAL, replication hoặc index pressure, cùng SKU chỉ còn 40/s lý thuyết và khoảng 24–28/s an toàn. Mười app replica không tăng per-key limit; chúng chỉ tạo thêm waiter.",
-          "Connection bound: 120 DB connection dùng được với transaction trung bình 40 ms gợi ý 3.000 tx/s chỉ khi work độc lập. Một hot row vẫn bị giới hạn bởi serial service time; nếu synchronous payment giữ mỗi connection 0,8 giây thì cùng pool chỉ còn trần lý thuyết 150 checkout/s.",
+          "Connection bound: 120 DB connection dùng được với average transaction time 40 ms gợi ý 3.000 tx/s chỉ khi work độc lập. Một hot row vẫn bị giới hạn bởi serial service time; nếu synchronous payment giữ mỗi connection 0,8 giây thì cùng pool chỉ còn trần lý thuyết 150 checkout/s.",
           "Ví dụ admission: benchmark p99 atomic hold 12 ms, chọn 50 hold attempt/s cho mỗi hot SKU, cap waiting room 10 giây (500 attempt đã admit), reject/mark sold-out phần vượt. Đây là planning number, không phải guarantee chung.",
           "Giới hạn production: Tìm knee thật bằng pgbench/custom load test giống production: Poisson arrival cộng flash burst, hot-SKU skew thật, WAL/replica/index thật. Tăng target rate tới khi schedule lag, p99 lock wait, serialization retry hoặc error budget tăng phi tuyến; đặt production limit thấp hơn điểm đó.",
           "Capacity SLO: DB pool dưới 70%, p99 lock wait dưới 20 ms, hold response dưới 250 ms, oldest admitted request dưới 2 giây, payment pending age theo provider SLA và zero negative inventory."
@@ -1977,8 +1977,8 @@
         "lens": "Treat inventory as a recoverable single-writer state machine: ordered commands protect scarce stock, in-memory state absorbs the peak, and durable offsets plus replay define correctness after failure."
       },
       "vi": {
-        "title": "Arcturus: xử lý lệnh tồn kho có thứ tự",
-        "lens": "Hãy xem tồn kho như một single-writer state machine có thể khôi phục: command có thứ tự bảo vệ hàng khan hiếm, state in-memory hấp thụ peak load, còn offset bền vững cùng replay quyết định tính đúng sau sự cố."
+        "title": "Arcturus: xử lý lệnh inventory có thứ tự",
+        "lens": "Hãy xem inventory như một single-writer state machine có thể recovery: command có thứ tự bảo vệ hàng khan hiếm, state in-memory hấp thụ peak load, còn durable offset cùng replay quyết định correctness sau sự cố."
       }
     },
     "pegasus-catalog-product-api-architecture": {
@@ -2000,7 +2000,7 @@
       },
       "vi": {
         "title": "Ranh giới tin cậy cho authentication và authorization",
-        "lens": "Tách identity proof, token issuance và authorization ở cấp resource. Edge enforcement hữu ích, nhưng từng service vẫn cần contract hữu hạn cho key, policy và audit đối với cả các luồng đi vòng qua gateway."
+        "lens": "Tách identity proof, token issuance và authorization ở cấp resource. Edge enforcement hữu ích, nhưng từng service vẫn cần contract hữu hạn cho key, policy và audit đối với cả các flow đi vòng qua gateway."
       }
     },
     "how-to-handle-hot-deals-at-the-peak-time": {
@@ -2010,8 +2010,8 @@
         "lens": "Peak safety comes from a versioned price identity and bounded admission before scarce inventory—not raw autoscaling. Reservation, expiry, and duplicate-event handling must keep deal quota and physical stock aligned."
       },
       "vi": {
-        "title": "Luồng phiên bản giá và reservation cho hot deal",
-        "lens": "An toàn khi peak đến từ price identity có phiên bản và admission hữu hạn trước tồn kho khan hiếm—không phải chỉ autoscaling. Reservation, expiry và xử lý event trùng phải giữ quota deal khớp với tồn kho thực."
+        "title": "Flow phiên bản giá và reservation cho hot deal",
+        "lens": "An toàn khi peak đến từ price identity có phiên bản và admission hữu hạn trước inventory khan hiếm—không phải chỉ autoscaling. Reservation, expiry và xử lý event trùng phải giữ quota deal khớp với inventory thực."
       }
     }
   }

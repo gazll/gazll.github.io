@@ -1,8 +1,8 @@
 {
   "body_file": "data/case-studies/articles/04-o1-android-build-time-at-tiki.vi.html",
   "guide": {
-    "title": "Mấu chốt là thu hẹp dependency graph của bản build cục bộ, không chỉ biên dịch cùng một graph nhanh hơn.",
-    "problem": "Một thay đổi ở data module dùng chung làm invalid gần như mọi feature module, biến vòng lặp edit–compile–run thông thường thành một lần build kéo dài từ năm đến tám phút. Với mười đến hai mươi lần build mỗi ngày, độ trễ này trở thành chi phí năng suất lớn và lặp lại.",
+    "title": "Mấu chốt là thu hẹp dependency graph của bản build cục bộ, không chỉ compile cùng một graph nhanh hơn.",
+    "problem": "Một thay đổi ở data module dùng chung làm invalid gần như mọi feature module, biến vòng lặp edit–compile–run thông thường thành một lần build kéo dài từ năm đến tám phút. Với mười đến hai mươi lần build mỗi ngày, latency này trở thành cost năng suất lớn và lặp lại.",
     "core_idea": "Một Gradle property tùy biến chỉ include feature đang được phát triển. Các tham chiếu đến feature bị loại khỏi build được thay bằng fake source set nhỏ, còn deep link mở thẳng màn hình mục tiêu trong debug APK đã rút gọn.",
     "outcome": "Bài gốc cho biết thời gian build giảm xấp xỉ một nửa, còn khoảng một đến hai phút. Debug APK cũng nhỏ hơn vì các feature không liên quan không được đưa vào bản build cục bộ.",
     "takeaways": [

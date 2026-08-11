@@ -1,19 +1,19 @@
 {
   "body_file": "data/case-studies/articles/09-pegasus-catalog-product-api-architecture.vi.html",
   "guide": {
-    "title": "Pegasus là thiết kế read path xoay quanh quyền sở hữu dữ liệu, độ tươi của cache và chi phí payload.",
-    "problem": "Dữ liệu catalog từng nằm trong một hệ thống lớn nơi nhiều module dùng chung database và ranh giới ownership không rõ ràng. Dữ liệu sản phẩm xuất hiện ở gần như mọi điểm chạm của khách hàng, nên API thay thế cần thông lượng cao, latency thấp và một lộ trình rời khỏi việc truy cập database trực tiếp.",
-    "core_idea": "Mercury sao chép thay đổi sản phẩm từ phía ghi MySQL sang MongoDB; Pegasus sở hữu read API và cache Guava cục bộ; các event Kafka dùng để invalidate cache khi sản phẩm thay đổi. Nén và gRPC giải quyết các đánh đổi về CPU, mạng và chi phí quản lý connection.",
-    "outcome": "Bài gốc báo cáo khoảng 24 nghìn request mỗi giây với p99 gần 20 ms cho API trả về một sản phẩm trong một cấu hình benchmark cụ thể. Bài cũng cho thấy load balancer L4 và connection gRPC được tái sử dụng có thể hiệu quả hơn PHP client mở rất nhiều HTTP connection.",
+    "title": "Pegasus là thiết kế read path xoay quanh quyền sở hữu dữ liệu, cache freshness và cost payload.",
+    "problem": "Dữ liệu catalog từng nằm trong một hệ thống lớn nơi nhiều module dùng chung database và ranh giới ownership không rõ ràng. Dữ liệu sản phẩm xuất hiện ở gần như mọi điểm chạm của khách hàng, nên API thay thế cần throughput cao, latency thấp và một lộ trình rời khỏi việc truy cập database trực tiếp.",
+    "core_idea": "Mercury replicate thay đổi sản phẩm từ phía ghi MySQL sang MongoDB; Pegasus sở hữu read API và cache Guava cục bộ; các event Kafka dùng để invalidate cache khi sản phẩm thay đổi. Nén và gRPC giải quyết các trade-off về CPU, mạng và cost quản lý connection.",
+    "outcome": "Bài gốc báo cáo khoảng 24 nghìn request mỗi giây với p99 gần 20 ms cho API trả về một sản phẩm trong một config benchmark cụ thể. Bài cũng cho thấy load balancer L4 và connection gRPC được tái sử dụng có thể hiệu quả hơn PHP client mở rất nhiều HTTP connection.",
     "takeaways": [
       "Tách read khỏi write cũng là một migration về ownership: client phải ngừng xem catalog database như một giao diện tích hợp dùng chung.",
       "Cache invalidation dựa trên event, nhưng cache miss vẫn cần một đường đọc đáng tin cậy qua MongoDB; cả hành vi cache nóng lẫn cache lạnh đều quan trọng.",
       "Batch API cần logic nạp dữ liệu khác single-key API; nếu không, cache miss lặp lại có thể biến thành truy cập database thiếu hiệu quả.",
-      "Nén đánh đổi CPU lấy băng thông và storage. Lựa chọn hợp lý phụ thuộc vào dạng payload, tầng cache và năng lực của caller.",
+      "Nén trade-off CPU lấy bandwidth và storage. Lựa chọn hợp lý phụ thuộc vào dạng payload, tầng cache và năng lực của caller.",
       "Hiệu năng giao thức có thể bị chi phối bởi cách client quản lý connection và bởi load balancer, chứ không chỉ bởi code xử lý ở server."
     ],
     "review_lenses": [
-      "Freshness contract: Độ trễ invalidate nào là chấp nhận được, và read model hoặc cache được phục hồi thế nào khi event Kafka đến muộn hoặc bị mất?",
+      "Freshness contract: Latency invalidate nào là chấp nhận được, và read model hoặc cache được recovery thế nào khi event Kafka đến muộn hoặc bị mất?",
       "Migration safety: Làm thế nào quan sát và chặn các consumer vẫn truy cập catalog database trực tiếp trước khi ownership thực sự được chuyển đổi?",
       "Cache protection: Cơ chế nào chống cache stampede, giới hạn memory và vẫn giữ được hit rate cho sản phẩm nóng khi traffic tăng đột ngột?",
       "Benchmark realism: Benchmark có bao gồm kích thước payload, tỷ lệ batch, connection pool, load balancer và giai đoạn cache lạnh hay chưa?"

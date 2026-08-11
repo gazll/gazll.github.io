@@ -1,20 +1,20 @@
 {
   "body_file": "data/case-studies/articles/08-applying-machine-learning-to-solve-brand-logo-detection-problem.vi.html",
   "guide": {
-    "title": "Thiết kế production nên tách việc định vị logo khỏi việc quyết định logo đó thuộc thương hiệu nào.",
-    "problem": "Quy mô marketplace khiến việc kiểm tra ảnh thủ công trở nên tốn kém, trong khi hình thức bên ngoài của sản phẩm thường không đủ để phân biệt thương hiệu. Hệ thống còn phải xử lý bài toán open-set, nơi phần lớn ảnh không thuộc bất kỳ thương hiệu nào trong bảy thương hiệu được hỗ trợ ban đầu.",
-    "core_idea": "Dùng YOLO v3 qua Darknet để định vị các vùng có khả năng chứa logo, rồi đưa các vùng ảnh đã cắt vào classifier ResNet để dự đoán thương hiệu chính xác hơn. Mô hình đóng vai trò tín hiệu sớm cho quy trình QC nội dung, không phải sự thay thế tuyệt đối cho quyết định của con người.",
-    "outcome": "Darknet đạt mAP 91,73% tại IoU 0,5 trong tập validation được báo cáo. Trên 10.000 ảnh production chưa xác định thương hiệu, việc thêm ResNet giảm tỷ lệ gán nhầm vào bảy thương hiệu đã biết từ 2,18% xuống 0,26%; hệ thống kết hợp báo cáo F1 trung bình 94,01% trên tập đánh giá hỗn hợp.",
+    "title": "Thiết kế production nên tách việc localization logo khỏi việc quyết định logo đó thuộc brand nào.",
+    "problem": "Scale marketplace khiến việc kiểm tra ảnh thủ công trở nên tốn kém, trong khi hình thức bên ngoài của sản phẩm thường không đủ để phân biệt brand. Hệ thống còn phải xử lý bài toán open-set, nơi phần lớn ảnh không thuộc bất kỳ brand nào trong bảy brand được hỗ trợ ban đầu.",
+    "core_idea": "Dùng YOLO v3 qua Darknet để localization các vùng có khả năng chứa logo, rồi đưa các vùng ảnh đã cắt vào classifier ResNet để prediction brand chính xác hơn. Mô hình đóng vai trò tín hiệu sớm cho quy trình QC nội dung, không phải sự thay thế tuyệt đối cho quyết định của con người.",
+    "outcome": "Darknet đạt mAP 91,73% tại IoU 0,5 trong tập validation được báo cáo. Trên 10.000 ảnh production chưa xác định brand, việc thêm ResNet giảm tỷ lệ gán nhầm vào bảy brand đã biết từ 2,18% xuống 0,26%; hệ thống kết hợp báo cáo F1 average 94,01% trên mixed evaluation set.",
     "takeaways": [
       "Tách localization và classification cho phép mỗi mô hình giải quyết đúng phần việc mình làm tốt nhất, đồng thời làm lộ rõ các failure mode riêng của từng giai đoạn.",
-      "Độ chính xác trong closed set là chưa đủ cho kiểm duyệt marketplace. Thương hiệu lạ và ảnh không có logo thường chiếm phần lớn phân phối thực tế.",
+      "Accuracy trong closed set là chưa đủ cho kiểm duyệt marketplace. Brand lạ và ảnh không có logo thường chiếm phần lớn phân phối thực tế.",
       "Một hệ thống gợi ý có con người trong vòng lặp vẫn tạo giá trị trước khi recall đủ cao để cho phép từ chối hoàn toàn tự động.",
       "Mức khớp giữa đề xuất ở cấp request và quyết định QC là metric vận hành hữu ích hơn chỉ nhìn accuracy ở cấp ảnh riêng lẻ.",
       "False negative vẫn khó xử lý khi logo bị sửa, che khuất hoặc xóa đi; product workflow phải nói rõ giới hạn này thay vì coi mô hình là nguồn sự thật tuyệt đối."
     ],
     "review_lenses": [
       "Chính sách ngưỡng: Ngưỡng confidence nào áp dụng cho gợi ý, review thủ công và hành động tự động, và ai chịu trách nhiệm khi ngưỡng đó thay đổi?",
-      "Giám sát open-set: Theo dõi false positive với thương hiệu chưa hỗ trợ tách biệt khỏi lỗi nhầm lẫn giữa các thương hiệu mà hệ thống đã biết.",
+      "Giám sát open-set: Theo dõi false positive với brand chưa hỗ trợ tách biệt khỏi lỗi nhầm lẫn giữa các brand mà hệ thống đã biết.",
       "Sức khỏe dataset: Kiểm tra bias theo seller, category và kiểu ảnh khi marketplace, nguồn dữ liệu hoặc chiến thuật né kiểm duyệt thay đổi.",
       "Vòng phản hồi: Phân biệt nhãn QC đã được xác minh với quyết định lịch sử nhiều nhiễu trước khi dùng chúng để đánh giá hoặc retrain mô hình."
     ]

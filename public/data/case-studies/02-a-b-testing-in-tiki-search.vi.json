@@ -1,22 +1,22 @@
 {
   "body_file": "data/case-studies/articles/02-a-b-testing-in-tiki-search.vi.html",
   "guide": {
-    "title": "Mục tiêu không phải chọn một kiểm định “thắng cuộc”, mà là chọn được kiểm định hợp với phân phối metric của chính bạn.",
-    "problem": "Chênh lệch CTR nhỏ có thể tạo tác động tài chính đáng kể, nhưng hành vi ngẫu nhiên của người dùng cũng có thể tạo ra chênh lệch cùng cỡ ngay cả khi hai biến thể xếp hạng không khác nhau. So sánh trực tiếp vì vậy rất dễ nhầm nhiễu lấy mẫu với một cải tiến sản phẩm thật.",
-    "core_idea": "Mô hình hóa số lượt hiển thị và xác suất nhấp tiềm ẩn của từng người dùng, tạo nhiều thí nghiệm A/A và A/B có kiểm soát, rồi đo cả false-positive rate lẫn khả năng phát hiện hiệu ứng cho kiểm định t, Mann–Whitney và các biến thể bucketing. Lưu lượng A/A thực được dùng làm bước hiệu chỉnh cuối cùng.",
-    "outcome": "Các dạng phân phối khác nhau sẽ phù hợp với các kiểm định khác nhau. Mann–Whitney hoạt động tốt trong nhiều mô phỏng, còn bucketing trở nên cạnh tranh khi phân phối CTR nền đều đặn hơn. Bài viết chủ ý không đưa ra một kiểm định thống kê duy nhất áp dụng đúng cho mọi hệ thống.",
+    "title": "Mục tiêu không phải chọn một test “thắng cuộc”, mà là chọn được test hợp với distribution metric của chính bạn.",
+    "problem": "Chênh lệch CTR nhỏ có thể tạo tác động tài chính đáng kể, nhưng hành vi ngẫu nhiên của user cũng có thể tạo ra chênh lệch cùng cỡ ngay cả khi hai biến thể xếp hạng không khác nhau. So sánh trực tiếp vì vậy rất dễ nhầm nhiễu lấy mẫu với một cải tiến sản phẩm thật.",
+    "core_idea": "Mô hình hóa số impressions và xác suất nhấp tiềm ẩn của từng user, tạo nhiều thí nghiệm A/A và A/B có kiểm soát, rồi đo cả false-positive rate lẫn khả năng phát hiện hiệu ứng cho t-test, Mann–Whitney và các biến thể bucketing. Traffic A/A thực được dùng làm bước hiệu chỉnh cuối cùng.",
+    "outcome": "Các dạng distribution khác nhau sẽ phù hợp với các test khác nhau. Mann–Whitney hoạt động tốt trong nhiều simulation, còn bucketing trở nên cạnh tranh khi distribution CTR nền đều đặn hơn. Bài viết chủ ý không đưa ra một statistical test duy nhất áp dụng đúng cho mọi hệ thống.",
     "takeaways": [
-      "Hãy bắt đầu từ đơn vị độc lập. Gom quan sát theo người dùng giúp tránh coi các impression hoặc session phụ thuộc là độc lập, khiến p-value trông chắc chắn hơn thực tế.",
-      "Cần kiểm tra A/A trước khi tin vào kết quả A/B. Nếu trường hợp không có tác động đã vượt false-positive rate chấp nhận được, quyết định sản phẩm dựa trên kiểm định đó không đáng tin.",
-      "Khả năng phát hiện hiệu ứng và false-positive rate phải được đánh giá cùng nhau. Một kiểm định quá bảo thủ đến mức không phát hiện được uplift thật không tự động là kiểm định tốt.",
-      "Mô phỏng chỉ hữu ích khi số lượt xem và CTR tiềm ẩn gần với production. Giả định đẹp nhưng sai phân phối thực tế có thể khiến team chọn sai phương pháp.",
-      "Bucketing thay đổi đơn vị quan sát và cách gán trọng số; kích thước bucket là tham số của bài toán cần kiểm chứng, không phải một hằng số thần kỳ."
+      "Hãy bắt đầu từ đơn vị độc lập. Gom quan sát theo user giúp tránh coi các impression hoặc session phụ thuộc là độc lập, khiến p-value trông chắc chắn hơn thực tế.",
+      "Cần kiểm tra A/A trước khi tin vào kết quả A/B. Nếu trường hợp không có tác động đã vượt false-positive rate chấp nhận được, quyết định sản phẩm dựa trên test đó không đáng tin.",
+      "Sensitivity và false-positive rate phải được đánh giá cùng nhau. Một test quá bảo thủ đến mức không phát hiện được uplift thật không tự động là test tốt.",
+      "Simulation chỉ hữu ích khi số lượt xem và CTR tiềm ẩn gần với production. Giả định đẹp nhưng sai distribution thực tế có thể khiến team chọn sai phương pháp.",
+      "Bucketing thay đổi đơn vị quan sát và cách gán trọng số; kích thước bucket là parameter của bài toán cần kiểm chứng, không phải một hằng số thần kỳ."
     ],
     "review_lenses": [
       "Phân bổ thử nghiệm: Xác minh việc gán user ổn định, không có sample-ratio mismatch, có quy tắc loại trừ rõ ràng và độc lập với các experiment chạy đồng thời.",
-      "Định nghĩa metric: Nêu rõ mẫu số, đơn vị aggregation, cách xử lý người dùng hoạt động rất ít và các sự kiện logging thiếu hoặc đến muộn.",
+      "Định nghĩa metric: Nêu rõ mẫu số, đơn vị aggregation, cách xử lý user hoạt động rất ít và các event logging thiếu hoặc đến muộn.",
       "Lập kế hoạch statistical power: Gắn minimum detectable effect, cỡ mẫu và hành vi trọn vẹn theo tuần trước khi quyết định thời lượng experiment.",
-      "Chính sách ra quyết định: Ghi rõ multiple-testing correction, guardrail metric và cách xử lý trường hợp ý nghĩa thống kê không đi cùng ý nghĩa kinh doanh."
+      "Chính sách ra quyết định: Ghi rõ multiple-testing correction, guardrail metric và cách xử lý trường hợp statistical significance không đi cùng ý nghĩa kinh doanh."
     ]
   }
 }

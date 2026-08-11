@@ -236,7 +236,7 @@
             "text": "The JSON boundary as a contract: which ObjectMapper defaults quietly become breaking changes, and the three separate bugs in serializing a JPA entity straight out."
           },
           "vi": {
-            "section": "Vòng đời bean & luồng request",
+            "section": "Vòng đời bean & request flow",
             "text": "Biên JSON như một contract: default nào của ObjectMapper âm thầm trở thành breaking change, và ba bug riêng biệt khi serialize thẳng một entity JPA."
           }
         },

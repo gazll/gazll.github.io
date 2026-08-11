@@ -1,22 +1,22 @@
 {
   "body_file": "data/case-studies/articles/11-how-to-handle-hot-deals-at-the-peak-time.vi.html",
   "guide": {
-    "title": "Ràng buộc khó nhất là đồng thời giữ đúng phiên bản giá, quota khuyến mãi và tồn kho thực.",
-    "problem": "Một đợt khuyến mãi chớp nhoáng không trở nên an toàn chỉ vì giá hiển thị đổi đúng giờ. Hàng nghìn checkout đồng thời có thể bán vượt quota ưu đãi, tranh chấp với tồn kho thông thường và vẫn nhìn thấy dữ liệu giá cũ trong khi hệ thống deal và catalog đang hội tụ.",
-    "core_idea": "Gán định danh duy nhất cho mỗi phiên bản giá, dùng deal id làm special-price id và gửi định danh đó cùng yêu cầu reservation tồn kho. Arcturus kiểm tra đồng thời tồn kho kho hàng và quota deal; event sold-out tắt deal và đồng bộ lại giá thông thường.",
-    "outcome": "Luồng mới loại bỏ trách nhiệm bị chia cắt vốn buộc hệ thống deal phải đóng khuyến mãi một cách phản ứng. Sao chép giá, reservation tồn kho và checkout nay dùng chung định danh cùng event rõ ràng cho toàn bộ vòng đời của một deal.",
+    "title": "Constraint khó nhất là đồng thời giữ đúng phiên bản giá, quota khuyến mãi và inventory thực.",
+    "problem": "Một đợt khuyến mãi chớp nhoáng không trở nên an toàn chỉ vì giá hiển thị đổi đúng giờ. Hàng nghìn checkout đồng thời có thể bán vượt quota ưu đãi, tranh chấp với inventory thông thường và vẫn nhìn thấy dữ liệu giá cũ trong khi hệ thống deal và catalog đang hội tụ.",
+    "core_idea": "Gán định danh duy nhất cho mỗi phiên bản giá, dùng deal id làm special-price id và gửi định danh đó cùng yêu cầu reservation inventory. Arcturus kiểm tra đồng thời inventory kho hàng và quota deal; event sold-out tắt deal và sync lại giá thông thường.",
+    "outcome": "Flow mới loại bỏ trách nhiệm bị chia cắt vốn buộc hệ thống deal phải đóng khuyến mãi một cách phản ứng. Replicate giá, reservation inventory và checkout nay dùng chung định danh cùng event rõ ràng cho toàn bộ lifecycle của một deal.",
     "takeaways": [
-      "Tính đúng cần nhận diện được phiên bản giá mà khách thực sự thấy; chỉ so sánh giá trị số không thể phân biệt các phiên bản hay các cập nhật chồng lấn.",
-      "Kiểm tra quota khuyến mãi phải nằm cạnh quyết định tồn kho thực, để một lần chấp nhận không thể vi phạm quota deal hoặc bất biến tồn kho.",
-      "Đồng bộ giá eventual chỉ chấp nhận được khi checkout gửi version identity và reservation service từ chối deal đã cũ, đã hết hạn hoặc đã cạn quota.",
+      "Correctness cần nhận diện được phiên bản giá mà khách thực sự thấy; chỉ so sánh giá trị số không thể phân biệt các phiên bản hay các cập nhật chồng lấn.",
+      "Kiểm tra quota khuyến mãi phải nằm cạnh quyết định inventory thực, để một lần chấp nhận không thể vi phạm quota deal hoặc bất biến inventory.",
+      "Sync giá eventual chỉ chấp nhận được khi checkout gửi version identity và reservation service từ chối deal đã cũ, đã hết hạn hoặc đã cạn quota.",
       "Event sold-out vừa là business transition vừa là tín hiệu invalidate cache; consumer phải chịu được event trùng lặp, đến muộn và đến sai thứ tự.",
-      "Xử lý peak là luồng phối hợp giữa price, deal, catalog, inventory và checkout, chứ không phải bài toán tăng throughput riêng trong một service."
+      "Xử lý peak là flow phối hợp giữa price, deal, catalog, inventory và checkout, chứ không phải bài toán tăng throughput riêng trong một service."
     ],
     "review_lenses": [
       "Phân tích race: Liệt kê các interleaving giữa lúc deal bắt đầu, giá được cập nhật, reservation cuối cùng thành công và event sold-out được phát đi.",
-      "Idempotency: Reservation checkout lặp lại và event cập nhật quota trùng lặp được nhận diện, trả kết quả nhất quán và không trừ hàng hai lần như thế nào?",
-      "Chính sách staleness: Phiên bản giá nào còn được chấp nhận trong thời gian đồng bộ, trong bao lâu, và service nào có quyền từ chối version cũ?",
-      "Giảm tải: Làm thế nào vẫn bảo vệ bất biến tồn kho khi các consumer phía price hoặc deal tụt lại trong lúc traffic sale tăng vọt?"
+      "Idempotency: Reservation checkout lặp lại và event cập nhật quota trùng lặp được nhận diện, trả kết quả consistent và không trừ hàng hai lần như thế nào?",
+      "Chính sách staleness: Phiên bản giá nào còn được chấp nhận trong thời gian sync, trong bao lâu, và service nào có quyền từ chối version cũ?",
+      "Giảm tải: Làm thế nào vẫn bảo vệ bất biến inventory khi các consumer phía price hoặc deal tụt lại trong lúc traffic sale tăng vọt?"
     ]
   }
 }

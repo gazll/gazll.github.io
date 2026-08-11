@@ -1,20 +1,20 @@
-<p>Xác thực (authentication, trả lời câu hỏi bạn là ai) và phân quyền (authorization, trả lời câu hỏi bạn có thể làm được gì) luôn là thành phần không thể thiếu của mọi hệ thống, nhưng mức độ áp dụng thì lại tùy thuộc vào từng giai đoạn. Nếu bạn làm mọi thứ chặt chẽ ngay từ đầu, nó có thể làm tăng độ phức tạp và làm chậm sự phát triển của công ty. Nhưng nếu bạn làm nó quá muộn, thì có thể bạn sẽ hứang chịu nguy cơ bị tấn công và rủi ro từ đó. Với 1 công ty e-commerce như Tiki, rủi ro đó rất hiện hữu với các hệ thống liên quan tới thanh toán, tiền ảo (Tiki Xu), mã khuyến mại (coupon), phiếu quà tặng (giftcard) và nhiều hệ thống nhạy cảm khác…</p>
+<p>Authentication (bạn là ai) và authorization (bạn được phép làm gì) là thành phần không thể thiếu của mọi hệ thống, nhưng mức độ áp dụng phụ thuộc từng giai đoạn. Nếu làm quá chặt ngay từ đầu, hệ thống có thể phức tạp và làm chậm tốc độ phát triển. Nếu làm quá muộn, công ty phải chịu nguy cơ bị tấn công và các rủi ro liên quan. Với một e-commerce company như Tiki, rủi ro này đặc biệt rõ ở payment, tiền ảo (Tiki Xu), coupon, gift card và các hệ thống nhạy cảm khác.</p>
 <h2 id="bat-dau-tu-monolithic">Bắt đầu từ Monolithic</h2>
-<p>Tiki xuất phát là 1 hệ thống monolithic, thông thường ở hệ thống như vậy sẽ có 1 module chung quản lý việc xác thực và phân quyền, mỗi user sau khi đăng nhập sẽ được cấp cho 1 Session ID duy nhất để định danh. Phía client có thể lưu Session ID lại dưới dạng cookie và gửi kèm nó trong mọi request. Hệ thống sau đó sẽ dùng Session ID được gửi đi để xác định danh tính của user truy cập, để người dùng không cần phải nhập lại thông tin đăng nhập lần sau.</p>
+<p>Tiki xuất phát là một monolithic system. Thông thường, hệ thống có một module chung quản lý authentication và authorization; sau khi login, mỗi user nhận một Session ID duy nhất. Client lưu Session ID trong cookie và gửi kèm trong mọi request. Hệ thống dùng ID này để xác định identity của user, nên user không phải nhập lại thông tin đăng nhập ở các request sau.</p>
 <figure class="cs-figure cs-figure-wide">
   <button type="button" data-zoom-image aria-label="Open figure 1 at full size">
     <img src="assets/case-studies/10-xac-thuc-va-phan-quyen-trong-microservices/01-figure.png" width="1322" height="906" loading="lazy" decoding="async" alt="Figure 1 for Bắt đầu từ Monolithic">
   </button>
   <figcaption>Figure 1 · Bắt đầu từ Monolithic</figcaption>
 </figure>
-<p>Khi Session ID được gửi lên, server sẽ xác định được danh tính của người dùng gắn với Session ID đó, đồng thời sẽ kiểm tra quyền của user xem có được truy cập tác vụ đó hay không. Giải pháp session và cookie vẫn có thể sử dụng, tuy nhiên ngày nay chúng ta có nhiều yêu cầu hơn, chẳng hạn như các ứng dụng Hybrid hoặc SPA (Single Page Application) có thể cần truy cập tới nhiều hệ thống backend khác nhau, vì vậy session và cookie lấy từ 1 server có thể không sử dụng được ở server khác.</p>
+<p>Khi Session ID được gửi lên, server xác định identity gắn với ID đó và kiểm tra permission của user. Session và cookie vẫn dùng được, nhưng các Hybrid app hoặc SPA có thể phải truy cập nhiều backend system; session và cookie lấy từ một server có thể không dùng được ở server khác.</p>
 <h2 id="bai-toan-kho-microservices">Bài toán khó Microservices</h2>
-<p>Trong kiến trúc microservices, hệ thống được chia nhỏ thành nhiều hệ thống con, đảm nhận các nghiệp vụ và chức năng khác nhau. Mỗi hệ thống con đó cũng cần được xác thực và phân quyền, nếu xử lý theo cách của kiến trúc Monolithic ở trên chúng ta sẽ gặp các vấn đề sau:</p>
+<p>Trong microservices architecture, system được chia nhỏ thành nhiều subsystem, đảm nhận các nghiệp vụ và chức năng khác nhau. Mỗi subsystem cũng cần có authentication và authorization; nếu xử lý theo cách của Monolithic architecture ở trên, chúng ta sẽ gặp các vấn đề sau:</p>
 <ul>
-  <li>Mỗi service có nhu cầu cần phải tự thực hiện việc xác thực và phân quyền ở service của mình. Mặc dù chúng ta có thể sử dụng các thư viện giống nhau ở mỗi service để làm việc đó tuy nhiên chi phí để bảo trì thư viện chung đó với nhiều nền tảng ngôn ngữ khác nhau là quá lớn.</li>
-  <li>Mỗi service nên tập trung vào xây dựng các nghiệp vụ của mình, việc xây dựng thêm logic về phân quyền làm giảm tốc độ phát triển và tăng độ phức tạp của các service.</li>
-  <li>Các service thông thường sẽ cung cấp các interface dưới dạng RESTful API, sử dụng protocol HTTP. Các HTTP request sẽ được đi qua nhiều thành phần của hệ thống. Cách truyền thống sử dụng session ở server (stateful) sẽ gây khó khăn cho việc mở rộng hệ thống theo chiều ngang.</li>
-  <li>Service sẽ được truy cập từ nhiều ứng dụng và đối tượng sử dụng khác nhau, có thể là người dùng, 1 thiết bị phần cứng, 3rd-party, crontab hay 1 service khác. Việc xác định định danh (identity) và phân quyền (authorization) ở nhiều ngữ cảnh (context) khác nhau như vậy là vô cùng phức tạp.</li>
+  <li>Mỗi service phải tự thực hiện authentication và authorization. Dùng cùng một library ở mỗi service vẫn tạo cost bảo trì lớn khi có nhiều language platform khác nhau.</li>
+  <li>Mỗi service nên tập trung vào nghiệp vụ của mình; thêm authorization logic làm giảm tốc độ phát triển và tăng độ phức tạp của service.</li>
+  <li>Các service thông thường sẽ cung cấp các interface dưới dạng REST API, sử dụng protocol HTTP. Các HTTP request sẽ được đi qua nhiều thành phần của hệ thống. Cách truyền thống sử dụng session ở server (stateful) sẽ gây khó khăn cho việc mở rộng hệ thống theo chiều ngang.</li>
+  <li>Service sẽ được truy cập từ nhiều ứng dụng và đối tượng khác nhau, có thể là user, một hardware device, 3rd-party, crontab hay một service khác. Việc xác định identity và authorization trong nhiều context như vậy là vô cùng phức tạp.</li>
 </ul>
 <figure class="cs-figure cs-figure-wide">
   <button type="button" data-zoom-image aria-label="Open figure 2 at full size">
@@ -25,10 +25,10 @@
 <p>Dưới đây là một số giải pháp, kỹ thuật và hướng tiếp cận mà Tiki đã áp dụng cho bài toán này.</p>
 <h2 id="dinh-danh">Định danh</h2>
 <h3 id="su-dung-jwt">Sử dụng JWT</h3>
-<p>JWT (Json Web Token) là 1 loại token sử dụng chuẩn mở dùng để trao đổi thông tin kèm theo các HTTP request. Thông tin này được xác thực và đánh dấu 1 cách tin cậy dựa vào chữ ký. JWT có rất nhiều ưu điểm so với session.</p>
+<p>JWT (JSON Web Token) là một open standard dùng để trao đổi thông tin kèm theo HTTP request. Payload được verify dựa trên signature, nên có thể tin cậy nếu key và validation policy được quản lý đúng. JWT có nhiều ưu điểm so với session.</p>
 <ul>
   <li>Stateless, thông tin không được lưu trữ trên server.</li>
-  <li>Dễ dạng phát triển, mở rộng.</li>
+  <li>Dễ phát triển và scale.</li>
   <li>Performance tốt hơn do server đọc thông tin ngay trong request (nếu session thì cần đọc ở storage hoặc database)</li>
 </ul>
 <figure class="cs-figure cs-figure-wide">
@@ -37,14 +37,14 @@
   </button>
   <figcaption>Figure 3 · Sử dụng JWT</figcaption>
 </figure>
-<h3 id="ma-hoa-rsa-cho-jwt">Mã hóa RSA cho JWT</h3>
-<p>Phần chữ ký sẽ được mã hóa lại bằng HMAC hoặc RSA.</p>
+<h3 id="ma-hoa-rsa-cho-jwt">RSA signing cho JWT</h3>
+<p>JWT signature có thể dùng HMAC hoặc RSA; đây là signing, không phải encryption payload.</p>
 <ul>
-  <li>HMAC: đối tượng khởi tạo JWT (token issuer) và đầu nhận JWT (token verifier) sử dụng chung 1 mã bí mật để mã hóa và kiểm tra.</li>
-  <li>RSA: sử dụng 1 cặp key, đối tượng khởi tạo JWT sử dụng Private Key để mã hóa, đầu nhận JWT sử dụng Public Key để kiểm tra.</li>
+  <li>HMAC: token issuer và token verifier dùng chung một secret để sign và verify.</li>
+  <li>RSA: token issuer dùng Private Key để sign, còn token verifier dùng Public Key để verify.</li>
 </ul>
-<p>Như vậy với HMAC, cả 2 phía đều phải chia sẻ mã bí mật cho nhau, và đầu nhận JWT hoàn toàn có thể khởi tạo 1 mã JWT khác hợp lệ dựa trên mã bí mật đó. Còn với RSA, đầu nhận sử dụng Public Key để kiểm tra nhưng không thể khởi tạo được 1 JWT mới dựa trên key đó. Vì vậy mã hóa sử dụng RSA giúp cho việc bảo mật chữ ký tốt hơn khi cần chia sẻ JWT với nhiều đối tượng khác nhau.</p>
-<h3 id="su-dung-opaque-token-khi-muon-de-kiem-soat-phien-lam-viec-tot-hon">Sử dụng Opaque Token khi muốn để kiểm soát phiên làm việc tốt hơn</h3>
+<p>Với HMAC, hai phía phải share secret, nên token verifier cũng có khả năng tạo JWT hợp lệ mới. Với RSA, verifier chỉ giữ Public Key để verify và không thể tạo JWT mới. Vì vậy RSA phù hợp hơn khi cần share JWT với nhiều verifier.</p>
+<h3 id="su-dung-opaque-token-khi-muon-de-kiem-soat-phien-lam-viec-tot-hon">Sử dụng Opaque Token khi muốn để kiểm soát session làm việc tốt hơn</h3>
 <p>Opaque Token (còn được gọi là stateful token) là dạng token không chứa thông tin trong nó, thông thường là 1 chuỗi ngẫu nhiên và yêu cầu 1 service trung gian để kiểm tra và lấy thông tin. Ví dụ:</p>
 <pre><code>{</code></pre>
 <pre><code>&quot;access_token&quot;: &quot;c2hr8Jgp5jBn-TY7E14HRuO37hEK1o_IOfDzbnZEO-o.zwh2f8SPiLKbcMbrD_DSgOTd3FIfQ8ch2bYSFi8NwbY&quot;,</code></pre>
@@ -54,51 +54,51 @@
 <p>Transparent Token (còn được gọi là stateless token) thông thường chính là dạng JWT, token này bản thân chứa thông tin và không cần 1 service trung gian để kiểm tra. Hãy cùng so sánh 2 loại token này.</p>
 <figure class="cs-figure cs-figure-wide">
   <button type="button" data-zoom-image aria-label="Open figure 4 at full size">
-    <img src="assets/case-studies/10-xac-thuc-va-phan-quyen-trong-microservices/04-figure.png" width="1574" height="312" loading="lazy" decoding="async" alt="Figure 4 for Sử dụng Opaque Token khi muốn để kiểm soát phiên làm việc tốt hơn">
+    <img src="assets/case-studies/10-xac-thuc-va-phan-quyen-trong-microservices/04-figure.png" width="1574" height="312" loading="lazy" decoding="async" alt="Figure 4 for Sử dụng Opaque Token khi muốn để kiểm soát session làm việc tốt hơn">
   </button>
-  <figcaption>Figure 4 · Sử dụng Opaque Token khi muốn để kiểm soát phiên làm việc tốt hơn</figcaption>
+  <figcaption>Figure 4 · Sử dụng Opaque Token khi muốn để kiểm soát session làm việc tốt hơn</figcaption>
 </figure>
-<p>Như vậy ta có thể thấy Transparent Token mang lại tốc độ tốt hơn, đơn giản dễ sử dụng với cả 2 phía, không phù thuộc vào 1 server trung tâm để kiểm tra. Còn Opaque Token kiểm soát tốt hơn các phiên làm việc của đối tượng, chẳng hạn khi bạn muốn thoát tất cả các thiết bị đang đăng nhập.</p>
+<p>Transparent Token có tốc độ tốt hơn và không phụ thuộc vào một central server để verify. Opaque Token kiểm soát session tốt hơn, chẳng hạn khi muốn logout tất cả device đang đăng nhập.</p>
 <h3 id="oauth-2">OAuth 2</h3>
-<p>Các token sẽ được khởi tạo thông qua OAuth 2, là phương thức chức thực phổ biến nhất hiện nay, mà qua đó một service, hay một ứng dụng bên thứ 3 có thể đại điện (delegation) cho người dùng truy cập vào 1 tài nguyên của người dùng nằm trên 1 dịch vụ nào đó.</p>
+<p>Token thường được cấp qua OAuth 2, một authorization framework cho phép service hoặc third-party app đại diện (delegation) cho user để truy cập resource của user trên một service khác.</p>
 <p>OAuth 2 là chuẩn mở, có đầy đủ tài liệu, thư viện ở tất cả các ngôn ngữ khác nhau giúp cho việc tích hợp, phát triển dựa trên nó trở nên dễ dàng và nhanh chóng.</p>
-<h2 id="kien-truc-cho-xac-thuc-va-phan-quyen">Kiến trúc cho xác thực và phân quyền</h2>
-<p>Sau khi đã có định danh và giao thức dùng để giao tiếp, câu hỏi tiếp theo là cần trả lời câu hỏi đối tượng với định danh đó có quyền thực hiện 1 hành động, truy cập 1 tài nguyên nào đó hay không. Ở Tiki, bên cạnh các service được xây dựng mới, vẫn còn tồn tại các hệ thống cũ (legacy) chạy song song, thế nên hiện nay Tiki có 2 cách thức tổ chức phân quyền như dưới đây.</p>
-<h3 id="xac-thuc-phan-quyen-tai-lop-ria">Xác thực, phân quyền tại lớp rìa</h3>
+<h2 id="kien-truc-cho-xac-thuc-va-phan-quyen">Architecture for authentication và authorization</h2>
+<p>Sau khi có identity và communication protocol, câu hỏi tiếp theo là identity đó có permission thực hiện action hoặc truy cập resource hay không. Ở Tiki, service mới và legacy system vẫn chạy song song, nên có hai cách tổ chức authorization như dưới đây.</p>
+<h3 id="xac-thuc-phan-quyen-tai-lop-ria">Authentication và permission enforcement tại edge layer</h3>
 <figure class="cs-figure cs-figure-wide">
   <button type="button" data-zoom-image aria-label="Open figure 5 at full size">
-    <img src="assets/case-studies/10-xac-thuc-va-phan-quyen-trong-microservices/05-figure.png" width="1022" height="1162" loading="lazy" decoding="async" alt="Figure 5 for Xác thực, phân quyền tại lớp rìa">
+    <img src="assets/case-studies/10-xac-thuc-va-phan-quyen-trong-microservices/05-figure.png" width="1022" height="1162" loading="lazy" decoding="async" alt="Figure 5 for Authentication và permission enforcement tại edge layer">
   </button>
-  <figcaption>Figure 5 · Xác thực, phân quyền tại lớp rìa</figcaption>
+  <figcaption>Figure 5 · Authentication và permission enforcement tại edge layer</figcaption>
 </figure>
-<p>Theo mô hình tất cả mọi request sẽ được xác thực khi đi qua API Gateway hoặc BFF (Backend For Frontend). BFF chính là lớp service ở rìa (Edge Service) được thiết kế riêng cho từng ứng dụng (ví dụ IOS, Android, Management UI). Chúng ta sẽ đặt xác thực và phân quyền ở lớp rìa này</p>
+<p>Theo model này, mọi request đều được authenticate khi đi qua API Gateway hoặc BFF (Backend For Frontend). BFF là edge service được thiết kế riêng cho từng ứng dụng (ví dụ iOS, Android, Management UI). Chúng ta đặt authentication và permission enforcement ở edge layer này.</p>
 <ul>
   <li>API Gateway sẽ bắt buộc tất cả request sẽ cần gửi kèm token để định danh</li>
-  <li>Nếu token này là JWT (đối với OpenID Connect), Gateway có thể kiểm tra tính hợp lệ của token thông qua chữ ký (signature), thông tin (claim) hoặc đối tượng khởi tạo (issuer)</li>
-  <li>Nết token này là Opaque Token, Gateway có thể phân tích (introspect) token, đổi (exchange) lấy JWT và truyền tiếp vào trong cho các services.</li>
+  <li>Nếu token là JWT (đối với OpenID Connect), Gateway có thể validate token thông qua signature, claim và issuer.</li>
+  <li>Nếu token này là Opaque Token, Gateway có thể introspect token, exchange lấy JWT và truyền tiếp vào trong cho các service.</li>
   <li>API Gateway hoặc BFF kiểm tra các policy xem có hợp lệ hay không thông qua Authorization Server trung tâm.</li>
-  <li>Các microservices không thực hiện lớp xác thực và phân quyền nào, có thể tự do truy cập bên trong vùng nội bộ (internal network).</li>
+  <li>Các microservices không thực hiện authentication hoặc permission enforcement nào, và có thể tự do truy cập bên trong internal network.</li>
 </ul>
 <figure class="cs-figure cs-figure-wide">
   <button type="button" data-zoom-image aria-label="Open figure 6 at full size">
-    <img src="assets/case-studies/10-xac-thuc-va-phan-quyen-trong-microservices/06-figure.png" width="1780" height="858" loading="lazy" decoding="async" alt="Figure 6 for Xác thực, phân quyền tại lớp rìa">
+    <img src="assets/case-studies/10-xac-thuc-va-phan-quyen-trong-microservices/06-figure.png" width="1780" height="858" loading="lazy" decoding="async" alt="Figure 6 for Authentication và permission enforcement tại edge layer">
   </button>
-  <figcaption>Figure 6 · Xác thực, phân quyền tại lớp rìa</figcaption>
+  <figcaption>Figure 6 · Authentication và permission enforcement tại edge layer</figcaption>
 </figure>
-<p>Mô hình này có điểm tương đồng với kiến trúc Monolithic khi đặt xác thực phân quyền tại 1 số service nhất định, việc xây dựng và bảo trì sẽ tốn chi phí nhỏ hơn, tuy nhiên sẽ để lộ 1 khoảng trống bảo mật rất lớn ở lớp trong do các service có thể tự do truy cập lẫn nhau. Chúng ta có thể đặt 1 số rule ở góc độ network đối với các service bên trong này tuy nhiên các rule này sẽ tương đối đơn giản và không thể đáp ứng được các nghiệp vụ truy cập dữ liệu lẫn nhau giữa các team/service (mở rộng ra là các công ty nội bộ) độc lập nhau.</p>
-<h3 id="xac-thuc-phan-quyen-tai-cac-service">Xác thực, phân quyền tại các service</h3>
-<p>Ở mô hình này, mỗi service (trừ 1 số ngoại lệ) khi được thiết kế và xây dựng các giao tiếp APIs (API Interface) mở rộng được và <strong>có thể phục vụ cho thế giới bên ngoài</strong>. Một service hôm nay được xây dựng cho các nghiệp vụ bên trong nội bộ công ty, nhưng ngày mai có thể sẵn sàng để mở ra cho các đối tác, các lập trình vên ngoài. Điều này sẽ giúp cho các service/team chủ động được hoàn toàn về các tài nguyên hiện có, tài nguyên đó được cấp cho những đối tượng nào, được truy cập từng phần hay toàn phần…</p>
-<p>Để làm được việc này, vai trò rất lớn sẽ nằm ở service IAM (Identity Access Management), IAM nắm giữ các định danh của toàn bộ các đối tượng (user, service, command…) cùng với các bộ luật phân quyền chi tiết cho từng loại tài nguyên.</p>
+<p>Mô hình này giống Monolithic architecture: authentication và authorization đặt ở một số service, giúp giảm cost build/bảo trì. Tuy nhiên, nó tạo một security gap lớn ở internal layer vì các service có thể tự do gọi nhau. Network rule chỉ giải quyết được phần đơn giản, không đủ để mô tả access giữa các team/service độc lập.</p>
+<h3 id="xac-thuc-phan-quyen-tai-cac-service">Authentication và permission enforcement tại service</h3>
+<p>Ở model này, mỗi service (trừ một số ngoại lệ) được thiết kế với API interface có thể mở rộng và <strong>có thể phục vụ bên ngoài</strong>. Một service hôm nay phục vụ internal use case nhưng ngày mai có thể mở cho partner hoặc external developer. Service/team sẽ chủ động về resource, đối tượng được cấp quyền và phạm vi access.</p>
+<p>Để làm được việc này, IAM (Identity Access Management) đóng vai trò rất lớn. IAM nắm giữ identity của các đối tượng (user, service, command…) cùng với các policy authorization chi tiết cho từng loại resource.</p>
 <figure class="cs-figure cs-figure-wide">
   <button type="button" data-zoom-image aria-label="Open figure 7 at full size">
-    <img src="assets/case-studies/10-xac-thuc-va-phan-quyen-trong-microservices/07-figure.png" width="1746" height="830" loading="lazy" decoding="async" alt="Figure 7 for Xác thực, phân quyền tại các service">
+    <img src="assets/case-studies/10-xac-thuc-va-phan-quyen-trong-microservices/07-figure.png" width="1746" height="830" loading="lazy" decoding="async" alt="Figure 7 for Authentication và permission enforcement tại service">
   </button>
-  <figcaption>Figure 7 · Xác thực, phân quyền tại các service</figcaption>
+  <figcaption>Figure 7 · Authentication và permission enforcement tại service</figcaption>
 </figure>
-<p>Việc mỗi service phải tự thực hiện việc xác thực, phân quyền sẽ làm tăng chi phí khi xây dựng các service, bên ngoài các nghiệp vụ chính thì cần thêm lớp middleware để giao tiếp với IAM. Tuy nhiên các service sẽ có được sự tự chủ hoàn toàn, chủ động về việc cung cấp tài nguyên cho các đối tượng, và tăng tốc phát triển hơn vì nhiều trường hợp client có thể truy cập thẳng tới các service mà không cần phát triển thêm lớp BFF ở giữa.</p>
+<p>Việc mỗi service phải tự thực hiện authentication và authorization sẽ làm tăng cost khi xây dựng service; ngoài nghiệp vụ chính còn cần thêm middleware để giao tiếp với IAM. Tuy nhiên, service sẽ có sự tự chủ hoàn toàn về resource và đối tượng được cấp quyền, đồng thời tăng tốc phát triển vì trong nhiều trường hợp client có thể truy cập thẳng tới service mà không cần thêm BFF layer.</p>
 <h2 id="access-control">Access Control</h2>
-<p>Xây dựng hệ thống luật (rule) hiệu quả không bao giờ là dễ dàng, khi yêu cầu về nghiệp vụ tăng cao kéo theo yêu cầu về phân quyền càng phức tạp. Hãy lấy 1 ví dụ cụ thể để làm rõ, mỗi ứng dùng thông thường sẽ gán quyền cho 1 thành viên cụ thể (ví dụ John được quyền tạo sản phẩm). Mở rộng ra trong 1 hệ thống microservices, đối tượng ở đây có thể là người dùng, service, crontab…</p>
-<p>Có 1 vài cách tiếp cận cho việc phân quyền như trên, hãy thử đi qua các cách khác nhau để có nhiều góc nhìn khác nhau.</p>
+<p>Xây dựng policy system hiệu quả không dễ. Khi business requirement tăng, authorization cũng phức tạp hơn. Ví dụ, một ứng dụng thông thường gán permission cho một member cụ thể (John được phép tạo product). Trong microservices, subject có thể là user, service, cron job…</p>
+<p>Có một vài approach cho authorization như trên; hãy lần lượt xem qua để có nhiều góc nhìn khác nhau.</p>
 <h3 id="access-control-list-acl">Access Control List (ACL)</h3>
 <figure class="cs-figure cs-figure-wide">
   <button type="button" data-zoom-image aria-label="Open figure 8 at full size">
@@ -106,44 +106,44 @@
   </button>
   <figcaption>Figure 8 · Access Control List (ACL)</figcaption>
 </figure>
-<p>Trong ví dụ trên các bạn có thể thấy 1 ma trận của đối tượng và quyền, nó gần tương đương với cách quản lý file trên Linux (chmod) và phù hợp với những ứng dụng có ít đối tượng. Khi hệ thống lớn lên mô hình này sẽ không thể quản lý nổi bởi ma trận được tạo ra quá lớn và phức tạp. Do vậy và mô hình này không còn phổ biến hiện tại.</p>
+<p>Trong ví dụ trên, bạn có thể thấy một matrix giữa object và permission; nó gần tương đương với cách quản lý file trên Linux (chmod) và phù hợp với ứng dụng có ít object. Khi system lớn lên, matrix sẽ trở nên quá lớn và phức tạp để quản lý. Vì vậy, model này không còn phổ biến hiện nay.</p>
 <h3 id="role-based-access-control-rbac">Role-Based Access Control (RBAC)</h3>
-<p>RBAC liên kết đối tượng tới các vai trò (role), và từ vai trò tới các quyền. Chẳng hạn vai trò <strong>Administrator</strong>có thể thừa hưởng mọi quyền mà vai trò <strong>Manager </strong>có, điều này giúp làm giảm độ phức tạp của ma trận quyền, thay vì gán toàn bộ quyền cho <strong>Administrator </strong>thì chỉ cần cho <strong>Administrator </strong>thừa hưởng các quyền của <strong>Manager</strong>.</p>
+<p>RBAC liên kết object với role, rồi role với permission. Chẳng hạn role <strong>Administrator</strong> có thể inherit mọi permission của role <strong>Manager</strong>. Điều này giảm độ phức tạp của permission matrix: thay vì gán trực tiếp mọi permission cho <strong>Administrator</strong>, chỉ cần cho role này inherit permission của <strong>Manager</strong>.</p>
 <figure class="cs-figure">
   <button type="button" data-zoom-image aria-label="Open figure 9 at full size">
     <img src="assets/case-studies/10-xac-thuc-va-phan-quyen-trong-microservices/09-figure.png" width="899" height="432" loading="lazy" decoding="async" alt="Figure 9 for Role-Based Access Control (RBAC)">
   </button>
   <figcaption>Figure 9 · Role-Based Access Control (RBAC)</figcaption>
 </figure>
-<p>RBAC rất phổ biến và bạn có thể thấy ở mọi nơi, so với ACL thì RBAC giúp giảm thiểu độ phức tạp khi số lượng đối tượng + quyền tăng cao. Tuy nhiên RBAC chưa thỏa mãn được 1 số trường hợp, ví dụ khi cấp quyền 1 sản phẩm chỉ được sửa bởi người tạo, người dùng nằm trong 1 phòng ban xác định hoặc quyền phân biệt với các người dùng từ nhiều hệ thống (tenant) khác nhau.</p>
+<p>RBAC rất phổ biến và bạn có thể thấy ở mọi nơi, so với ACL thì RBAC giúp giảm thiểu độ phức tạp khi số lượng đối tượng + permission tăng cao. Tuy nhiên RBAC chưa thỏa mãn được 1 số trường hợp, ví dụ khi cấp permission 1 sản phẩm chỉ được sửa bởi người tạo, người dùng nằm trong 1 phòng ban xác định hoặc permission phân biệt với các người dùng từ nhiều hệ thống (tenant) khác nhau.</p>
 <h3 id="policy-based-access-control-pbac">Policy-Based Access Control (PBAC)</h3>
-<p>PBAC được xây dựng dựa trên Attribute Based Access Control (ABAC), qua đó định nghĩa các quyền để diễn đạt một yêu cầu được cho phép hay từ chối. ABAC sử dụng các thuộc tính (attribute) để mô tả cho đối tượng cần được kiểm tra, mỗi thuộc tính là 1 cặp key-value ví dụ <strong>Department </strong>= <strong>Marketing</strong>. Nhờ đó ABAC có thể giúp phân quyền mịn hơn, phù hợp với nhiều ngữ cảnh (context) và nghiệp vụ (business rules) khác nhau.</p>
+<p>PBAC được xây dựng dựa trên Attribute-Based Access Control (ABAC), qua đó định nghĩa policy để quyết định một request được allow hay deny. ABAC dùng các attribute để mô tả object cần kiểm tra; mỗi attribute là một cặp key-value, ví dụ <strong>Department</strong> = <strong>Marketing</strong>. Nhờ đó ABAC có thể authorize chi tiết hơn, phù hợp với nhiều context và business rule khác nhau.</p>
 <figure class="cs-figure cs-figure-wide">
   <button type="button" data-zoom-image aria-label="Open figure 10 at full size">
     <img src="assets/case-studies/10-xac-thuc-va-phan-quyen-trong-microservices/10-figure.png" width="1616" height="1290" loading="lazy" decoding="async" alt="Figure 10 for Policy-Based Access Control (PBAC)">
   </button>
   <figcaption>Figure 10 · Policy-Based Access Control (PBAC)</figcaption>
 </figure>
-<p>PABC được định nghĩa thông qua các policy được viết dưới dạng 1 ngôn ngữ chung XACML (eXtensible Access Control Markup Language). Một policy định nghĩa 4 đối tượng subject, effect, action và resource. Ví dụ <strong>john </strong>(subject) được <strong>allowed</strong>(effect) để mà <strong>delete</strong>(action) product với ID <strong>john-leman</strong>(resource). Nhìn qua thì nó gần giống với cách định nghĩa 1 ACL</p>
+<p>PBAC được định nghĩa qua các policy viết bằng một policy language như XACML (eXtensible Access Control Markup Language). Một policy có bốn thành phần: subject, effect, action và resource. Ví dụ <strong>john</strong> (subject) được <strong>allowed</strong> (effect) thực hiện <strong>delete</strong> (action) product có ID <strong>john-leman</strong> (resource). Cách này nhìn qua khá giống ACL.</p>
 <pre><code>{</code></pre>
 <pre><code>&quot;subjects&quot;: [&quot;user:john&quot;],</code></pre>
 <pre><code>&quot;effect&quot;: &quot;allow&quot;,</code></pre>
 <pre><code>&quot;actions&quot;: [&quot;catalog:delete&quot;]</code></pre>
 <pre><code>&quot;resources&quot;: [&quot;product:john-leman&quot;],</code></pre>
 <pre><code>}</code></pre>
-<p>Chúng ta có thể bổ sung subject, action cũng như resource thêm vào policy nếu muốn.</p>
+<p>Chúng ta có thể bổ sung subject, action và resource vào policy nếu cần.</p>
 <pre><code>{</code></pre>
 <pre><code>&quot;subjects&quot;: [&quot;user:john&quot;, &quot;user:katy&quot;, &quot;user:perry&quot;],</code></pre>
 <pre><code>&quot;effect&quot;: &quot;allow&quot;,</code></pre>
 <pre><code>&quot;actions&quot;: [&quot;catalog:delete&quot;, &quot;catalog:update&quot;, &quot;catalog:publish&quot;]</code></pre>
 <pre><code>&quot;resources&quot;: [&quot;product:john-leman&quot;, &quot;product:john-doe&quot;]</code></pre>
 <pre><code>}</code></pre>
-<p>Bạn có thể thắc mắc thế thì PBAC khác gì ACL, và đây là sự khác biệt</p>
-<p><strong>Luật ưu tiên</strong></p>
+<p>Bạn có thể thắc mắc PBAC khác ACL thế nào; điểm khác biệt nằm ở policy precedence và cách diễn đạt rule.</p>
+<p><strong>Policy precedence</strong></p>
 <ul>
-  <li>Mặc định nếu không có policy phù hợp, yêu cầu sẽ bị từ chối</li>
-  <li>Nếu không có policy nào <strong>deny</strong>, có ít nhất một policy <strong>allow </strong>thì yêu cầu được cho phép</li>
-  <li>Nếu có 1 policy là <strong>deny</strong>, thì yêu cầu luôn bị từ chối</li>
+  <li>Mặc định nếu không có policy phù hợp, request bị deny.</li>
+  <li>Nếu không có policy nào <strong>deny</strong> và có ít nhất một policy <strong>allow</strong>, request được allow.</li>
+  <li>Nếu có một policy là <strong>deny</strong>, request luôn bị từ chối.</li>
 </ul>
 <p><strong>Regular Expression</strong></p>
 <p>Các policy cho phép khai báo sử dụng regular expression, như ở ví dụ này cho phép tất cả người dùng được xem thông tin product.</p>
@@ -153,8 +153,8 @@
 <pre><code>&quot;actions&quot;: [&quot;catalog:read],</code></pre>
 <pre><code>&quot;resources&quot;: [&quot;product:&lt;.*&gt;&quot;]</code></pre>
 <pre><code>}</code></pre>
-<p><strong>Điều kiện</strong></p>
-<p>Các policy có thể bổ sung các điều kiện để thu hẹp phạm vi của quyền, ví dụ như chỉ áp dụng cho 1 dải IP nhất định, hoặc chỉ cho phép người tạo sản phẩm được sửa sản phẩm đó.</p>
+<p><strong>Conditions</strong></p>
+<p>Policy có thể bổ sung condition để thu hẹp phạm vi permission, ví dụ chỉ áp dụng cho một IP range hoặc chỉ cho phép creator của product được sửa product đó.</p>
 <pre><code>{</code></pre>
 <pre><code>&quot;subjects&quot;: [&quot;user:ken&quot;],</code></pre>
 <pre><code>&quot;actions&quot; : [&quot;catalog:delete&quot;, &quot;catalog:create&quot;, &quot;catalog:update&quot;],</code></pre>
@@ -169,4 +169,4 @@
 <pre><code>}</code></pre>
 <pre><code>}</code></pre>
 <h2 id="tong-ket">Tổng kết</h2>
-<p>Việc liên tục mở rộng nghiệp vụ và hệ thống đòi hỏi các service pải tự xác thực, qua đó không phân biệt service đó là bên trong (internal) hay bên ngoài (external), giúp các team dễ dàng mở rộng tích hợp với nhau. Việc này đòi hỏi mô hình xác thực chung pải hoạt động ổn định, tối ưu và đáp ứng được hiệu năng cao. Còn rất nhiều thách thức đang chờ phía trước, nếu bạn muốn tham gia cùng chúng tôi, hãy tìm hiểu thêm ở <a href="https://tuyendung.tiki.vn/" target="_blank" rel="noopener noreferrer">https://tuyendung.tiki.vn</a> nhé.</p>
+<p>Việc liên tục mở rộng nghiệp vụ và hệ thống đòi hỏi mỗi service phải tự thực hiện authentication, không phân biệt service đó là internal hay external. Điều này giúp các team dễ dàng mở rộng và tích hợp với nhau, nhưng cũng đòi hỏi một authentication model chung hoạt động ổn định, tối ưu và đáp ứng throughput cao. Vẫn còn nhiều thách thức ở phía trước; nếu bạn muốn tham gia cùng chúng tôi, hãy tìm hiểu thêm ở <a href="https://tuyendung.tiki.vn/" target="_blank" rel="noopener noreferrer">https://tuyendung.tiki.vn</a>.</p>
