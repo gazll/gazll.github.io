@@ -20,7 +20,7 @@ export const SYSTEM_DESIGN_RESEARCH = {
     'high-traffic-booking-search': ['transactions', 'messaging'],
     'scaling-1m-to-10m-requests': ['data-evolution', 'reliability'],
     'scaling-technique-catalogue': ['data-evolution', 'observability'],
-    'flash-sale-booking-inventory-bottleneck': ['flash-sale', 'transactions', 'rate-limiting']
+    'flash-sale-booking-inventory-bottleneck': ['flash-sale', 'elastic-scaling', 'transactions', 'rate-limiting']
   },
   packs: {
     'flash-sale': {
@@ -64,6 +64,49 @@ export const SYSTEM_DESIGN_RESEARCH = {
         ['PostgreSQL — pgbench target-rate and schedule lag', 'https://www.postgresql.org/docs/17/pgbench.html'],
         ['Redis — Real-time inventory reservation', 'https://redis.io/tutorials/inventory-reservation-in-real-time-with-redis/'],
         ['Azure — Queue-based load leveling', 'https://learn.microsoft.com/en-us/azure/architecture/patterns/queue-based-load-leveling']
+      ]
+    },
+    'elastic-scaling': {
+      en: {
+        title: 'Elastic capacity across the traffic lifecycle',
+        intro: 'Scale-out is useful only for work that can run in parallel. Known peaks need scheduled warm capacity; quiet periods need deliberate, drain-safe scale-in rather than an indiscriminate scale-to-zero policy.',
+        sections: [
+          { title: 'Pre-warm known peaks; bound unknown spikes', items: [
+            'For a scheduled campaign, raise the critical-path floor before launch using measured startup, cache warm-up and connection-pool time. Reactive autoscaling begins after demand is observed, so admission control must cover the warm-up gap.',
+            'For surprise traffic, scale gateway, read path and stateless APIs from concurrency/request signals, but issue no more checkout work than the inventory, database and PSP budgets can safely drain.'
+          ]},
+          { title: 'Use one scaling signal per component', items: [
+            'UI/API capacity follows request concurrency or requests per healthy target; queue consumers need oldest-message age, input/output rate and partition skew; payment workers also need a provider-concurrency cap.',
+            'A hot SKU, shared row, database lock or one ordered partition is a synchronization point. More replicas reduce surrounding work but do not raise that key’s serialized rate; use admission, quotas, cells or a single-writer lane instead.'
+          ]},
+          { title: 'Scale in after drain, not merely after CPU falls', items: [
+            'Scale down only after the campaign/recovery window ends and queue, outbox, payment-pending and expiry signals are healthy through a cooldown. Stop pulling work, finish or checkpoint the current item, then release its lease before termination.',
+            'Scale-to-zero fits intermittent analytics, reindex and bulk notifications. Retain a safe floor for checkout, inventory authority, outbox, expiry, reconciliation, provider callback handling and observability because their idle cost buys correctness and recovery time.'
+          ]}
+        ]
+      },
+      vi: {
+        title: 'Elastic capacity xuyên suốt traffic lifecycle',
+        intro: 'Scale-out chỉ hữu ích cho work chạy song song được. Peak biết trước cần warm capacity theo lịch; lúc yên cần scale-in có drain an toàn thay vì scale-to-zero vô điều kiện.',
+        sections: [
+          { title: 'Pre-warm peak biết trước; bound spike không biết trước', items: [
+            'Campaign có lịch phải nâng critical-path floor trước giờ mở theo startup, cache warm-up và connection-pool time đã đo. Reactive autoscale chỉ bắt đầu sau khi demand xuất hiện, nên admission control phải che khoảng warm-up.',
+            'Traffic bất ngờ có thể scale gateway, read path và API stateless theo concurrency/request signal, nhưng không được admit checkout vượt budget mà inventory, database và PSP có thể drain an toàn.'
+          ]},
+          { title: 'Mỗi component dùng một scaling signal', items: [
+            'UI/API theo request concurrency hoặc requests trên healthy target; queue consumer cần oldest-message age, input/output rate và partition skew; payment worker còn cần provider-concurrency cap.',
+            'Hot SKU, shared row, database lock hoặc ordered partition là synchronization point. Replica nhiều hơn chỉ giảm work xung quanh chứ không tăng serialized rate của key đó; phải dùng admission, quota, cell hoặc single-writer lane.'
+          ]},
+          { title: 'Scale-in sau drain, không chỉ khi CPU hạ', items: [
+            'Chỉ scale down sau campaign/recovery window và khi queue, outbox, payment-pending, expiry signal khỏe qua cooldown. Stop pulling work, finish/checkpoint item hiện tại rồi release lease trước terminate.',
+            'Scale-to-zero phù hợp analytics, reindex và bulk notification gián đoạn. Giữ safe floor cho checkout, inventory authority, outbox, expiry, reconciliation, provider callback và observability vì idle cost của chúng mua correctness cùng recovery time.'
+          ]}
+        ]
+      },
+      sources: [
+        ['Azure — Design to scale out and scale in', 'https://learn.microsoft.com/en-us/azure/architecture/guide/design-principles/scale-out'],
+        ['Azure — Background jobs and graceful scale-in', 'https://learn.microsoft.com/en-us/azure/architecture/best-practices/background-jobs'],
+        ['AWS — Target tracking, warm-up and gradual scale-in', 'https://docs.aws.amazon.com/autoscaling/ec2/userguide/as-scaling-target-tracking.html']
       ]
     },
     reliability: {

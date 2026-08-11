@@ -14,10 +14,10 @@
           "kind": "feature",
           "target": "system-design",
           "en": {
-            "text": "Blueprint 18 dissects the synchronous Book → Inventory lock → Payment bottleneck in the supplied e-commerce architecture. It quantifies read amplification, per-hot-SKU serialization and connection-pool limits, then replaces unbounded contention with an edge waiting room, admission control, atomic expiring holds, an asynchronous payment saga and reconciliation. Every threshold is labeled as a planning assumption and paired with a production-shaped benchmark procedure."
+            "text": "Blueprint 18 dissects the synchronous Book → Inventory lock → Payment bottleneck in the supplied e-commerce architecture. It quantifies read amplification, per-hot-SKU serialization and connection-pool limits, then replaces unbounded contention with edge admission, atomic expiring holds, outbox-driven payment commands, asynchronous confirm/release and reconciliation. It now includes a traffic lifecycle from low traffic through pre-peak, surge, protection and recovery: what scales, what cannot scale, safe scale-in gates, cost tiers, queue backpressure and a trigger-to-action bottleneck runbook."
           },
           "vi": {
-            "text": "Blueprint 18 mổ xẻ bottleneck synchronous Book → lock Inventory → Payment trong kiến trúc e-commerce được cung cấp. Bài định lượng read amplification, giới hạn serialization theo hot SKU và connection pool, rồi thay contention vô hạn bằng edge waiting room, admission control, hold atomic có expiry, payment saga bất đồng bộ và reconciliation. Mọi threshold đều được ghi là planning assumption và đi kèm cách benchmark giống production."
+            "text": "Blueprint 18 mổ xẻ bottleneck synchronous Book → lock Inventory → Payment trong kiến trúc e-commerce được cung cấp. Bài định lượng read amplification, giới hạn serialization theo hot SKU và connection pool, rồi thay contention vô hạn bằng edge admission, hold atomic có expiry, payment command qua outbox, confirm/release bất đồng bộ và reconciliation. Bài giờ có traffic lifecycle từ low traffic qua pre-peak, surge, protect đến recovery: phần nào scale được/không được, gate scale-in an toàn, cost tier, queue backpressure và runbook signal → action cho bottleneck."
           }
         }
       ]

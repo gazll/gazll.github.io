@@ -76,6 +76,22 @@ test('the catalog is a complete bilingual System Design library', () => {
   }
 });
 
+test('Topic 18 keeps the durable flash-sale lifecycle and scale-in guidance', () => {
+  const design = catalog.designs.find(row => row.slug === 'flash-sale-booking-inventory-bottleneck');
+  assert.ok(design);
+  assert.match(design.diagram, /^flowchart TB\n/);
+  for (const marker of ['Edge waiting room', 'MQ hold-created', 'MQ payment-result', 'MQ confirm or release']) {
+    assert.match(design.diagram, new RegExp(marker));
+  }
+  for (const lang of ['en', 'vi']) {
+    const body = design[lang];
+    assert.ok(body.functional.some(row => /outbox|Outbox/.test(row)), `${lang}: durable payment handoff missing`);
+    assert.ok(body.capacity.some(row => /scale-in|Scale-in|scale-in|Gate scale-in/.test(row)), `${lang}: scale-in gate missing`);
+    assert.ok(body.stack.some(row => /pre-warm|Pre-warm/.test(row)), `${lang}: pre-warm policy missing`);
+    assert.ok(body.tradeoffs.some(row => /Scale.to.zero|Scale-to-zero/.test(row)), `${lang}: low-traffic trade-off missing`);
+  }
+});
+
 test('Topic 10–11 and the OTA/whiteboard overlap are moved once, with every immutable id covered', async () => {
   assert.deepEqual(movedRows.map(row => row.n), [10, 11]);
   assert.equal(manifest.topics.find(row => row.n === 16).system_design_items.length, 6);
