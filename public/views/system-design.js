@@ -26,7 +26,14 @@ const COPY = {
     stackChecksTitle: 'Challenge every choice with',
     stackChecks: ['simplest viable alternative', 'consistency and latency impact', 'failure and degraded mode', 'team/on-call capability', 'migration and exit trigger'],
     tradeoffIntro: 'Each row is a tension the design accepts—not a universal best practice. Review both sides and record the condition that would reverse the decision.',
-    decision: 'Decision tension', consequence: 'Failure-review questions',
+    decision: 'Decision tension', consequence: 'Failure-review questions', failureReviewAnswered: 'Failure review — answers for this design',
+    failureAnswerLead: [
+      'The stated correctness guard is: ',
+      'Start detection from this workload or capacity trigger: ',
+      'Contain the failure at this boundary: ',
+      'Retry and ordering safety are anchored in: ',
+      'Recovery evidence and the repair path start with: '
+    ],
     failureChecks: ['What invariant can break?', 'Which metric detects it first?', 'How is the blast radius contained?', 'Can retry duplicate or reorder work?', 'How do we repair, reconcile and prove recovery?'],
     research: 'Engineering deep dives', researched: 'Current practice distilled from primary documentation. Validate version-specific details against the linked sources before implementation.',
     furtherReading: 'Primary sources',
@@ -58,7 +65,14 @@ const COPY = {
     stackChecksTitle: 'Challenge mỗi choice bằng',
     stackChecks: ['simplest viable alternative', 'consistency và latency impact', 'failure/degraded mode', 'team/on-call capability', 'migration và exit trigger'],
     tradeoffIntro: 'Mỗi row là một tension mà design chấp nhận, không phải best practice đúng cho mọi hệ thống. Review cả hai phía và ghi điều kiện khiến decision phải đảo chiều.',
-    decision: 'Decision tension', consequence: 'Failure-review questions',
+    decision: 'Decision tension', consequence: 'Failure-review questions', failureReviewAnswered: 'Failure review — câu trả lời cho design này',
+    failureAnswerLead: [
+      'Correctness guard được nêu cho design này là: ',
+      'Bắt đầu detect từ workload hoặc capacity trigger: ',
+      'Contain failure tại boundary sau: ',
+      'An toàn retry và ordering dựa vào: ',
+      'Bằng chứng recovery và đường repair bắt đầu từ: '
+    ],
     failureChecks: ['Invariant nào có thể break?', 'Metric nào detect sớm nhất?', 'Blast radius được contain thế nào?', 'Retry có duplicate hoặc reorder work không?', 'Repair, reconcile và prove recovery thế nào?'],
     research: 'Engineering deep dives', researched: 'Best practice hiện tại được chắt lọc từ primary docs. Kiểm tra version-specific details trong nguồn liên kết trước khi triển khai.',
     furtherReading: 'Primary sources',
@@ -271,8 +285,57 @@ function decisionSection(title, intro, rows, labels, checksTitle, checks, id, cl
     + decisionChecks(checksTitle, checks) + '</section>';
 }
 
-function tradeoffSection(rows) {
-  const cards = (rows || []).map((row, index) => {
+function reviewEvidence(rows, pattern, fallback = '') {
+  return (rows || []).find(row => pattern.test(row)) || (rows || [])[0] || fallback;
+}
+
+/* Existing blueprint fields are the source of truth for the normal case. A
+   bespoke `failure_review` is only needed when a design, such as flash sale,
+   has a richer runbook answer than its decision rows can express. */
+function inferredFailureReview(design) {
+  const quality = design.quality || [];
+  const capacity = design.capacity || [];
+  const data = design.data_model || [];
+  const stack = design.stack || [];
+  const tradeoffs = design.tradeoffs || [];
+  const retryRows = [...quality, ...data, ...stack, ...tradeoffs];
+  const recoveryRows = [...data, ...quality, ...stack, ...tradeoffs];
+  const leads = text().failureAnswerLead;
+  return [
+    {
+      question: text().failureChecks[0],
+      answer: leads[0] + reviewEvidence(quality, /invariant|correctness|consistent|oversell|balanced|durab|bất biến|đúng|không.*vượt/i)
+    },
+    {
+      question: text().failureChecks[1],
+      answer: leads[1] + reviewEvidence(capacity, /measure|benchmark|track|load.test|peak|budget|estimate|model|đo|benchmark|theo dõi|đỉnh/i)
+    },
+    {
+      question: text().failureChecks[2],
+      answer: leads[2] + reviewEvidence([...stack, ...quality], /bound|limit|partition|isolate|queue|cache|circuit|shard|separate|gateway|giới hạn|cô lập|phân vùng|hàng đợi|cache/i)
+    },
+    {
+      question: text().failureChecks[3],
+      answer: leads[3] + reviewEvidence(retryRows, /idempoten|retry|version|sequence|outbox|dedup|unique|replay|thử lại|phiên bản|thứ tự|duy nhất/i)
+    },
+    {
+      question: text().failureChecks[4],
+      answer: leads[4] + reviewEvidence(recoveryRows, /reconcil|replay|audit|restore|recover|outbox|snapshot|repair|durab|đối soát|khôi phục|sửa|bền/i)
+    }
+  ];
+}
+
+function failureReviewSection(design) {
+  const answers = (design.failure_review || []).filter(entry => entry?.question && entry?.answer);
+  const resolved = answers.length ? answers : inferredFailureReview(design);
+  const cards = resolved.map((entry, index) => '<article><span>' + numberLabel(index + 1) + '</span><div><h3>'
+    + emphasize(entry.question) + '</h3><p>' + emphasize(entry.answer) + '</p></div></article>').join('');
+  return '<aside class="sd-failure-review"><strong>' + escapeHtml(text().failureReviewAnswered) + '</strong>'
+    + '<div>' + cards + '</div></aside>';
+}
+
+function tradeoffSection(design) {
+  const cards = (design.tradeoffs || []).map((row, index) => {
     const parts = splitDecision(row);
     return '<article><span>' + numberLabel(index + 1) + '</span><div><strong>' + emphasize(parts.name)
       + '</strong>' + (parts.detail && parts.detail !== parts.name
@@ -280,7 +343,7 @@ function tradeoffSection(rows) {
   }).join('');
   return '<section class="sd-section sd-tradeoff-review"><h2 id="tradeoffs-failure-review">' + text().tradeoffs + '</h2>'
     + '<p class="sd-section-intro">' + emphasize(text().tradeoffIntro) + '</p><div class="sd-tradeoff-list">'
-    + cards + '</div>' + decisionChecks(text().consequence, text().failureChecks) + '</section>';
+    + cards + '</div>' + failureReviewSection(design) + '</section>';
 }
 
 const RESEARCH_ORIGINS = new Set([
@@ -366,7 +429,7 @@ function renderDesignArticle(design) {
       text().dataChecksTitle, text().dataChecks, 'data-model', 'sd-data-decision')
     + decisionSection(text().stack, text().stackIntro, design.stack, [text().stackLayer, text().stackReason],
       text().stackChecksTitle, text().stackChecks, 'technology-choices', 'sd-stack-decision')
-    + tradeoffSection(design.tradeoffs)
+    + tradeoffSection(design)
     + renderResearch(design)
     + renderSourceNotes(design) + '</article>';
   return articleShell(header, body);

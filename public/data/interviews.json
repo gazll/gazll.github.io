@@ -20,6 +20,25 @@
           "note": "Làm được nhưng mất ~5 phút mới nhận ra phải chạy w cửa sổ theo offset — lúc đầu chỉ chạy một cửa sổ từ index 0 nên trượt hết các vị trí lệch. Quên luôn case words có từ trùng, interviewer phải gợi ý. Lần sau: nói ra brute force + độ phức tạp trước, rồi mới tối ưu. Có bị hỏi thêm cách tối ưu — trả lời map mỗi từ sang int id để so sánh rẻ hơn String.substring, nên ôn thêm rolling hash."
         }
       ]
+    },
+    {
+      "name": "embedIT",
+      "role": "",
+      "date": "",
+      "result": "pending",
+      "stack": [
+        "Messaging",
+        "Kafka",
+        "RabbitMQ"
+      ],
+      "questions": [
+        {
+          "round": "Technical · Backend",
+          "q": "Backpressure là gì?",
+          "a": "[[g:Backpressure]] là cơ chế buộc producer hoặc client giảm tốc, chờ có giới hạn, hoặc bị từ chối khi consumer hay downstream không còn xử lý kịp. Mục tiêu là giữ latency, memory và resource của phần việc đã nhận ở mức hữu hạn; queue lớn không giải quyết overload mà chỉ giấu nó thành queue age và deadline miss.\n\nĐặt control ở boundary sớm nhất biết cost và priority của work:\n\n- [[b:admission/concurrency limit]]: giới hạn request hoặc in-flight work trước DB, PSP hay service chậm; trả `429`/`503` và `Retry-After` chỉ khi retry policy thực sự chịu được.\n- [[b:bounded queue]]: khi đầy thì reject, shed low-priority work hoặc làm caller chậm lại; luôn có deadline, cancellation và retry budget.\n- [[b:consumer flow control]]: consumer pull theo khả năng xử lý. RabbitMQ đặt `prefetch` hữu hạn để một consumer không ôm hết unacked message; Kafka theo dõi consumer lag và giới hạn admission trước khi lag tăng vô hạn.\n- [[b:bulkhead]]: tách pool/concurrency theo dependency và priority để một provider chậm không chiếm hết thread hoặc connection.\n\nĐo in-flight work, queue depth, [[o:oldest-message age]], available permits/connections, rejection rate, deadline miss và tốc độ consumer lag tăng/giảm. CPU hoặc p99 là signal xác nhận, thường đến muộn sau khi queue đã phình.\n\n:::tip Câu trả lời ngắn khi phỏng vấn\nProducer nhanh hơn consumer thì cần giới hạn hữu hạn và overload contract rõ ràng: giảm source rate, queue bounded, consumer pull theo capacity, ưu tiên việc quan trọng và reject phần vượt. Không tăng queue hoặc scale pod một cách mù quáng; downstream budget mới là capacity thật.\n:::\n\n:::deep\nBackpressure khác [[b:rate limit]]: rate limit thường là quota/abuse policy theo thời gian, còn backpressure bảo vệ resource đang saturated theo in-flight work, queue age hoặc downstream capacity. Nó cũng khác circuit breaker: breaker fail-fast quanh dependency lỗi; backpressure điều tiết work ngay cả khi dependency còn sống nhưng đã chậm.\n\nRetry storm có thể phá backpressure nếu client retry đồng loạt. Vì vậy response phải truthful, có jitter, idempotency và retry budget. Test step spike, dependency slow-down, consumer chết, cold start và recovery để chứng minh queue drain lại trong business deadline.\n:::",
+          "note": "Nêu bounded queue + admission trước resource khan hiếm, consumer pull/prefetch, signal queue age/lag và overload contract. Không trả lời chỉ là “dùng Kafka/RabbitMQ”."
+        }
+      ]
     }
   ]
 }

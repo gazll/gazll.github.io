@@ -258,6 +258,15 @@ if (!catalog) {
     if (!String(design.effort || '').trim()) sd(id, 'missing effort');
     if (!String(design.diagram || '').trim()) sd(id, 'missing Mermaid diagram');
     bilingual(id, design, DESIGN_LANG_KEYS, DESIGN_LANG_LISTS);
+    for (const lang of ['en', 'vi']) {
+      const review = design[lang]?.failure_review;
+      if (review == null) continue;
+      if (!Array.isArray(review) || !review.length) {
+        sd(id, `${lang}.failure_review must be a non-empty array when provided`);
+      } else if (review.some(entry => !String(entry?.question || '').trim() || !String(entry?.answer || '').trim())) {
+        sd(id, `${lang}.failure_review entries need question and answer`);
+      }
+    }
 
     for (const itemId of design.source_items || []) {
       if (!seen.has(itemId)) { sd(id, `source_items "${itemId}" points at no item`); continue; }

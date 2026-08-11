@@ -76,6 +76,15 @@ test('the catalog is a complete bilingual System Design library', () => {
   }
 });
 
+test('every blueprint can answer the shared failure-review lenses', async () => {
+  const view = await readFile(path.join(publicRoot, 'views/system-design.js'), 'utf8');
+  assert.match(view, /function inferredFailureReview/);
+  assert.match(view, /failureReviewSection\(design\)/);
+  assert.match(view, /quality = design\.quality/);
+  assert.match(view, /capacity = design\.capacity/);
+  assert.match(view, /data = design\.data_model/);
+});
+
 test('Topic 18 keeps the durable flash-sale lifecycle and scale-in guidance', () => {
   const design = catalog.designs.find(row => row.slug === 'flash-sale-booking-inventory-bottleneck');
   assert.ok(design);
@@ -89,6 +98,8 @@ test('Topic 18 keeps the durable flash-sale lifecycle and scale-in guidance', ()
     assert.ok(body.capacity.some(row => /scale-in|Scale-in|scale-in|Gate scale-in/.test(row)), `${lang}: scale-in gate missing`);
     assert.ok(body.stack.some(row => /pre-warm|Pre-warm/.test(row)), `${lang}: pre-warm policy missing`);
     assert.ok(body.tradeoffs.some(row => /Scale.to.zero|Scale-to-zero/.test(row)), `${lang}: low-traffic trade-off missing`);
+    assert.equal(body.failure_review?.length, 5, `${lang}: five answered failure-review prompts required`);
+    assert.ok(body.failure_review.every(row => row.question && row.answer), `${lang}: failure review answer missing`);
   }
 });
 
@@ -255,7 +266,8 @@ test('Experience routing, Case Studies migration and Mermaid security are wired 
   assert.match(systemView, /data-copy-sd-question/);
   assert.match(systemView, /revealLinkedSource/);
   assert.match(systemView, /comparisonTable\(rows, labels/);
-  assert.match(systemView, /tradeoffSection\(design\.tradeoffs\)/);
+  assert.match(systemView, /tradeoffSection\(design\)/);
+  assert.match(systemView, /failureReviewSection\(design\)/);
   assert.match(systemView, /renderResearch\(design\)/);
   assert.match(systemView, /sd-case-guide-depth/);
   assert.match(systemView, /closest\('\.sd-toc-mobile'\)\?\.removeAttribute\('open'\)/);
@@ -271,6 +283,7 @@ test('Experience routing, Case Studies migration and Mermaid security are wired 
   await readFile(path.join(publicRoot, 'vendor/mermaid-11.16.1/LICENSE'), 'utf8');
   assert.match(styles, /\.sd-diagram/);
   assert.match(styles, /\.sd-diagram-viewport/);
+  assert.match(styles, /\.sd-failure-review/);
   assert.match(styles, /\.sd-notes details\.link-target/);
   assert.match(styles, /\.sd-comparison-wrap/);
   assert.match(styles, /\.sd-toc-mobile:not\(\[open\]\)>nav\{display:none\}/);

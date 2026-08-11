@@ -1922,6 +1922,28 @@
           "Queueing smooths a burst only when drain rate exceeds sustainable arrivals soon enough. If 2,000 attempts/s enter a 50/s hot-SKU worker, backlog grows 1,950/s; after ten seconds it already needs about 390 seconds to drain, so rejection is the honest response.",
           "Failure review: test Redis loss, DB primary failover, an expired hold racing with payment success, duplicated payment callbacks, outbox lag, bot-distributed identities and a client retry storm after a gateway timeout."
         ],
+        "failure_review": [
+          {
+            "question": "What invariant can break, and what keeps it true?",
+            "answer": "The only non-negotiable invariant is confirmed plus active-held quantity never exceeding sellable stock. Inventory DB is the write authority: one conditional reservation write commits position, hold and outbox together; cache, Redis lock and projections are never allowed to confirm stock. If reconciliation detects a mismatch, freeze admission for that SKU and repair from immutable hold, order and PSP evidence rather than editing the stock counter by hand."
+          },
+          {
+            "question": "Which signal detects the incident before customers see a collapse?",
+            "answer": "Alert on the first saturated boundary, not aggregate CPU: p99 inventory lock wait above 20 ms, hold latency above 250 ms, usable DB pool above 70%, post-admission queue age above 2 s, hot-partition lag, PSP unknown age and attempt-to-original retry ratio. The campaign dashboard must show these per campaign and sampled hot SKU, with a named owner who can move the mode to PROTECT."
+          },
+          {
+            "question": "How is the blast radius contained during a hot SKU or dependency failure?",
+            "answer": "Admission is capped per campaign/SKU before Book and Inventory; checkout has bounded DB and PSP concurrency separate from browse, batch and analytics. In PROTECT, lower the SKU admission rate, stop optional work, serve cached approximate availability and return queued, retry-after or sold-out instead of accumulating an unbounded backend queue. Search stays available because it never calls the authoritative stock write path."
+          },
+          {
+            "question": "Can retries duplicate, reorder or incorrectly finalize work?",
+            "answer": "A client idempotency key maps to one hold, payment intent and terminal response; event IDs plus inbox dedupe make MQ redelivery harmless. Ordering is only per SKU/aggregate, so every state transition checks its expected version and a stale confirm/release is rejected. PSP timeout becomes PAYMENT_UNKNOWN: query and reconcile the provider before capture retry, release or refund; never use a Redis lease as proof that a payment may be repeated."
+          },
+          {
+            "question": "How do we prove recovery after Redis loss, DB failover or a partial saga?",
+            "answer": "Rebuild projections from the inventory outbox, replay idempotently by aggregate/version, and compare every active hold with payment/order saga and PSP records. The expiry worker reconciles old holds, while a dedicated unknown-payment job queries the PSP and emits one fenced confirm, release or refund decision. Recovery is complete only when the reconciliation diff is zero, queue/outbox and expiry age return inside SLO, and the audit trail can explain each stock transition."
+          }
+        ],
         "tags": [
           "Flash sale",
           "Hot SKU",
@@ -2015,6 +2037,28 @@
           "Pre-allocate stock theo cell/region bỏ global write hop và giới hạn blast radius, nhưng quota có thể mắc kẹt khiến một cell báo sold-out trong khi cell khác còn hàng; chỉ rebalance qua fenced quota transfer.",
           "Queue chỉ làm phẳng burst nếu drain rate sớm vượt sustainable arrival. Nếu 2.000 attempt/s vào worker hot-SKU 50/s, backlog tăng 1.950/s; sau 10 giây đã cần khoảng 390 giây để drain, vì vậy reject mới là phản hồi trung thực.",
           "Failure review: test Redis loss, DB primary failover, expired hold race với payment success, duplicate payment callback, outbox lag, bot dùng distributed identity và client retry storm sau gateway timeout."
+        ],
+        "failure_review": [
+          {
+            "question": "Invariant nào có thể vỡ và điều gì giữ nó đúng?",
+            "answer": "Invariant không được phá là confirmed cộng active-held không bao giờ vượt sellable stock. Inventory DB là write authority: một conditional reservation write commit position, hold và outbox cùng transaction; cache, Redis lock hay projection không bao giờ được confirm stock. Nếu reconciliation thấy lệch, freeze admission của SKU đó và repair bằng bằng chứng immutable từ hold, order và PSP, không sửa tay stock counter."
+          },
+          {
+            "question": "Tín hiệu nào phát hiện incident trước khi khách thấy hệ thống sụp?",
+            "answer": "Alert ở boundary saturated đầu tiên, không nhìn CPU tổng: p99 inventory lock wait trên 20 ms, hold latency trên 250 ms, usable DB pool trên 70%, post-admission queue age trên 2 giây, hot-partition lag, PSP unknown age và tỉ lệ retry/original attempt. Campaign dashboard phải hiển thị theo campaign và hot SKU được sample, kèm owner có quyền chuyển mode sang PROTECT."
+          },
+          {
+            "question": "Blast radius được contain thế nào khi hot SKU hoặc dependency lỗi?",
+            "answer": "Admission bị cap theo campaign/SKU trước Book và Inventory; checkout có DB/PSP concurrency hữu hạn, tách khỏi browse, batch và analytics. Ở PROTECT, giảm SKU admission rate, dừng optional work, serve cached approximate availability và trả queued, retry-after hoặc sold-out thay vì tích backend queue vô hạn. Search vẫn available vì không gọi authoritative stock write path."
+          },
+          {
+            "question": "Retry có thể duplicate, reorder hoặc finalize sai không?",
+            "answer": "Client idempotency key map vào một hold, payment intent và terminal response; event ID cộng inbox dedupe làm MQ redelivery vô hại. Ordering chỉ theo SKU/aggregate nên mọi state transition kiểm expected version và stale confirm/release bị reject. PSP timeout thành PAYMENT_UNKNOWN: query và reconcile provider trước khi capture retry, release hoặc refund; không dùng Redis lease làm bằng chứng payment được phép lặp."
+          },
+          {
+            "question": "Làm sao chứng minh recovery sau Redis loss, DB failover hoặc saga dang dở?",
+            "answer": "Rebuild projection từ inventory outbox, replay idempotent theo aggregate/version, rồi đối chiếu từng active hold với payment/order saga và PSP record. Expiry worker reconcile hold cũ; unknown-payment job query PSP và phát đúng một fenced decision confirm, release hoặc refund. Recovery chỉ hoàn tất khi reconciliation diff bằng 0, queue/outbox/expiry age về lại SLO và audit trail giải thích được từng stock transition."
+          }
         ],
         "tags": [
           "Flash sale",

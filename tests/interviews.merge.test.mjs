@@ -9,7 +9,7 @@
    imported from there — that is the only reason for the copy step below. */
 import { test, before, after, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, cpSync, writeFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, cpSync, writeFileSync, rmSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -18,6 +18,7 @@ const SCRIPT_URL = 'https://script.example.test/exec';
 // fileURLToPath, not .pathname — the latter yields "/D:/…" on Windows, which
 // node then resolves against the current drive as "D:\D:\…".
 const PUBLIC = fileURLToPath(new URL('../public/', import.meta.url));
+const MASTER = JSON.parse(readFileSync(PUBLIC + 'data/interviews.json', 'utf8'));
 
 let dir, Interviews, Auth;
 
@@ -57,6 +58,15 @@ function stubFetch({ remote = [], fail = false } = {}) {
 
 const signIn = () => { Auth.session = { sub: 'u1', token: 't', exp: Date.now() + 3600e3 }; };
 const signOut = () => { Auth.session = null; };
+
+test('master interview data includes the embedIT backpressure question', () => {
+  const embedIT = MASTER.companies.find(company => company.name === 'embedIT');
+  assert.ok(embedIT, 'embedIT is present in master interview data');
+  const question = embedIT.questions.find(row => /backpressure/i.test(row.q));
+  assert.ok(question, 'embedIT includes a backpressure question');
+  assert.match(question.a, /bounded queue/i);
+  assert.match(question.a, /consumer/i);
+});
 
 before(async () => {
   dir = mkdtempSync(join(tmpdir(), 'iv-'));
