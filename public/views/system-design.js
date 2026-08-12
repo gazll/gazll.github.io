@@ -7,6 +7,7 @@ import { mountMermaidDiagrams } from '../lib/mermaid.js';
 import { systemDesignQuestionUrl } from '../lib/question-links.js';
 import { crossRefResolver } from '../lib/cross-ref.js';
 import { SYSTEM_DESIGN_RESEARCH } from '../data/system-design/research.js';
+import { anchorHref, scrollToAnchor } from '../lib/anchors.js';
 
 let mountToken = 0;
 
@@ -421,7 +422,7 @@ function renderDesignArticle(design) {
   const tags = design.tags.map(tag => '<span>' + escapeHtml(tag) + '</span>').join('');
   const header = '<header class="sd-article-head"><a class="cs-back" href="#/system-design">← ' + text().back + '</a>'
     + '<p class="cs-eyebrow">Blueprint ' + numberLabel(design.n) + ' · ' + escapeHtml(design.effort || '45 min') + '</p>'
-    + '<h1>' + escapeHtml(design.title) + '</h1><p>' + escapeHtml(design.excerpt) + '</p><div class="cs-tags">' + tags + '</div></header>';
+    + '<h1 id="design-' + escapeHtml(design.slug) + '-title">' + escapeHtml(design.title) + '</h1><p>' + escapeHtml(design.excerpt) + '</p><div class="cs-tags">' + tags + '</div></header>';
   const body = '<article class="sd-article-body" data-sd-body>'
     + '<section class="sd-section sd-scope"><h2 id="problem-framing">' + text().scope + '</h2>'
     + renderScope(design.scope) + '</section>'
@@ -458,7 +459,7 @@ function renderProductionArticle(article, overview, archivedBody) {
   const href = sourceHref(article.source_url);
   const tags = article.tags.map(tag => '<span>' + escapeHtml(tag) + '</span>').join('');
   const header = '<header class="sd-article-head"><a class="cs-back" href="#/system-design">← ' + text().back + '</a>'
-    + '<p class="cs-eyebrow">' + text().production + ' · Tiki Engineering</p><h1>' + escapeHtml(article.title) + '</h1>'
+    + '<p class="cs-eyebrow">' + text().production + ' · Tiki Engineering</p><h1 id="system-case-' + escapeHtml(article.slug) + '-title">' + escapeHtml(article.title) + '</h1>'
     + '<p>' + escapeHtml(article.excerpt) + '</p><div class="cs-tags">' + tags + '</div>'
     + '<div class="cs-archive-note"><b>' + text().historical + '</b><span>' + text().historicalNote + '</span></div></header>';
   const body = '<article class="sd-article-body" data-sd-body>'
@@ -473,14 +474,17 @@ function renderProductionArticle(article, overview, archivedBody) {
     + 'Tiki Engineering — ' + text().original + ' ↗</a></footer>';
 }
 
-function buildToc(root) {
+function buildToc(root, routeParts = []) {
   const headings = [...root.querySelectorAll('[data-sd-body] h2[id], [data-sd-body] h3[id]')];
+  const articleRoute = routeParts[0] === 'case'
+    ? '/system-design/case/' + encodeURIComponent(routeParts[1] || '')
+    : '/system-design/' + encodeURIComponent(routeParts[0] || '');
   const html = headings.map(heading => '<a class="' + (heading.tagName === 'H3' ? 'is-sub' : '')
-    + '" href="" data-sd-section="' + escapeHtml(heading.id) + '">' + escapeHtml(heading.textContent) + '</a>').join('');
+    + '" href="' + escapeHtml(anchorHref(heading.id, articleRoute)) + '" data-anchor-link data-anchor-id="'
+    + escapeHtml(heading.id) + '" data-anchor-route="' + escapeHtml(articleRoute) + '" data-sd-section="'
+    + escapeHtml(heading.id) + '">' + escapeHtml(heading.textContent) + '</a>').join('');
   root.querySelectorAll('[data-sd-toc], [data-sd-toc-mobile]').forEach(nav => { nav.innerHTML = html; });
   root.querySelectorAll('[data-sd-section]').forEach(link => link.addEventListener('click', event => {
-    event.preventDefault();
-    root.querySelector('#' + link.dataset.sdSection)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     link.closest('.sd-toc-mobile')?.removeAttribute('open');
   }));
 
@@ -613,7 +617,7 @@ function revealLinkedSource(root, questionId) {
   requestAnimationFrame(() => note.scrollIntoView({ block: 'start', inline: 'nearest' }));
 }
 
-async function showRoute(root, collection, routeParts, token) {
+async function showRoute(root, collection, routeParts, token, anchor = '') {
   if (!routeParts.length) {
     root.innerHTML = renderLibrary(collection);
     document.title = collection.library.title + ' · Backend Engineering';
@@ -648,7 +652,7 @@ async function showRoute(root, collection, routeParts, token) {
   }
 
   root.innerHTML = html;
-  buildToc(root);
+  buildToc(root, routeParts);
   wireDiagramTools(root);
   wireArchiveImages(root);
   await mountMermaidDiagrams(root);
@@ -658,6 +662,7 @@ async function showRoute(root, collection, routeParts, token) {
     try { questionId = decodeURIComponent(routeParts[1] || ''); } catch (error) {}
     revealLinkedSource(root, questionId);
   }
+  if (anchor) requestAnimationFrame(() => scrollToAnchor(root, anchor, { behavior: 'auto' }));
 }
 
 export function renderSystemDesign() {
@@ -665,14 +670,14 @@ export function renderSystemDesign() {
     + '<div class="cs-loading"><span></span><p>' + text().loading + '</p></div></section>';
 }
 
-export async function mountSystemDesign(host, routeParts = []) {
+export async function mountSystemDesign(host, routeParts = [], anchor = '') {
   const token = ++mountToken;
   const root = host.querySelector('[data-system-design-root]');
   if (!root) return;
   try {
     const collection = await SystemDesign.load(Content.lang);
     if (token !== mountToken) return;
-    await showRoute(root, collection, routeParts, token);
+    await showRoute(root, collection, routeParts, token, anchor);
   } catch (error) {
     if (token !== mountToken) return;
     root.innerHTML = '<div class="cs-empty"><p class="cs-eyebrow">' + text().unavailable + '</p>'

@@ -1,6 +1,7 @@
 /* ---------- Markdown renderer (dependency-free, tuned to this book's subset) ----------
-   Supports: paragraphs, **bold**, *italic*, `code`, "- "/"1." lists,
-   ::: deep | tip | warn ::: callouts, and raw HTML blocks (SVG diagrams / tables / pre). */
+   Supports: paragraphs, headings/permalinks, **bold**, *italic*, `code`,
+   fenced code, "- "/"1." lists, simple GFM tables, ::: deep | tip | warn :::
+   callouts, and raw HTML blocks (SVG diagrams / tables / pre). */
 
 // Placeholder for code spans during inline processing. Private-use U+E000,
 // so it can never collide with real content. Built via fromCharCode rather
@@ -18,6 +19,7 @@ export function renderMarkdown(md, options) {
   const lines = String(md || '').replace(/\r/g, '').split('\n');
   const resolveRef = options && options.resolveRef;
   const headingIds = new Map();
+  let headingNumber = 0;
   let i = 0, html = '';
 
   // No resolver means the id stays the plain text it has always been — that is
@@ -49,9 +51,13 @@ export function renderMarkdown(md, options) {
     const base = String(value || '').replace(/[`*_]/g, '').trim().toLowerCase()
       .normalize('NFKD').replace(/[\u0300-\u036f]/g, '')
       .replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/^-+|-+$/g, '') || 'section';
+    headingNumber++;
+    if (options?.stableHeadingIds) return 'heading-' + headingNumber;
     const count = headingIds.get(base) || 0;
     headingIds.set(base, count + 1);
-    return count ? base + '-' + count : base;
+    const prefix = String(options?.headingPrefix || '')
+      .replace(/[^a-zA-Z0-9_-]+/g, '-').replace(/^-+|-+$/g, '');
+    return (prefix ? prefix + '-' : '') + (count ? base + '-' + count : base);
   };
   const splitTableRow = line => {
     let row = line.trim();
@@ -90,7 +96,14 @@ export function renderMarkdown(md, options) {
     if (heading) {
       const level = heading[1].length;
       const label = heading[2].trim();
-      html += '<h' + level + ' id="' + escapeHtml(headingId(label)) + '">' + inlineMd(label) + '</h' + level + '>';
+      const id = headingId(label);
+      const route = String(options?.headingRoute || '').replace(/^#/, '').replace(/#.*$/, '');
+      const href = route ? '#' + route + '#' + encodeURIComponent(id) : '#' + encodeURIComponent(id);
+      const linkLabel = options?.headingLinkLabel || 'Link to this section';
+      html += '<h' + level + ' id="' + escapeHtml(id) + '"><a class="md-heading-anchor" data-anchor-link data-anchor-id="'
+        + escapeHtml(id) + '"' + (route ? ' data-anchor-route="' + escapeHtml(route) + '"' : '')
+        + ' href="' + escapeHtml(href) + '" aria-label="' + escapeHtml(linkLabel) + '">' + inlineMd(label)
+        + '</a></h' + level + '>';
       i++;
       continue;
     }

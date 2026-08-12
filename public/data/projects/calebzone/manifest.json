@@ -10,6 +10,51 @@
     "source_root": "calebzone/",
     "owner_note": "Source documents are preserved in their original language. Configuration samples are sanitized before publishing."
   },
+  "locales": {
+    "vi": {
+      "project": {
+        "title": "CalebZone — SRS triển khai",
+        "intro": "Bản ghi software requirements và implementation cho backend Java/Spring dạng modular của CalebZone. Trang này nối intended architecture với bằng chứng từ source tree hiện tại, API contract, gateway configuration và operational notes.",
+        "status": "Đang triển khai",
+        "owner_note": "Tài liệu source được giữ nguyên ngôn ngữ gốc. Các sample configuration đã được loại secret trước khi publish."
+      },
+      "prose": {
+        "scope": "Trang này là companion hướng implementation cho phần System Design mang tính khái niệm. Nó ghi lại CalebZone cần làm gì, các module tách boundary ra sao, và repository hiện tại đang chứng minh hoặc còn qualify decision nào.",
+        "technologyTitle": "Technology baseline",
+        "modulesTitle": "Module ownership",
+        "architecture": "Gateway là client-facing edge và north-south policy boundary. Các service hướng domain tự giữ use case của mình, còn adapter phụ trách Redis, persistence và external provider.",
+        "diagramTitle": "CalebZone runtime topology",
+        "editableSource": "editable source",
+        "requirements": "Các requirement dưới đây là contract triển khai được rút ra từ source, configuration và tài liệu hiện tại; chúng không tự động đồng nghĩa với việc mọi phần đã ship hoàn chỉnh.",
+        "evidence": "Các sample này được copy từ working tree CalebZone hiện tại để SRS có thể đối chiếu với implementation detail thay vì chỉ đọc prose. Gateway sample cố ý không chứa secret.",
+        "documents": "Các tài liệu source bên dưới được giữ như reading material có thể mở/đóng. Heading, table và fenced code block được render tại chỗ; source path luôn hiển thị trên mỗi entry."
+      },
+      "modules": [
+        { "name": "core", "role": "Shared domain primitive, error model, validation, search specification và exception handling dùng chung." },
+        { "name": "auth", "role": "Authentication, user, role, permission, JWT issuance và các security-specific API." },
+        { "name": "air", "role": "Flight-search bounded context với hexagonal port, Redis cache, persistence và Sabre integration." },
+        { "name": "ai-recognition", "role": "Flight/search recognition service với reactive infrastructure và security/configuration pattern dùng chung." },
+        { "name": "gateway", "role": "Reactive edge: routing, JWT verification, identity forwarding, rate limiting, retry, circuit breaker và observability." }
+      ],
+      "requirements": [
+        "Expose một client-facing gateway ở port 8080 và route traffic auth, air, AI tới các service độc lập.",
+        "Cho phép các authentication và operational endpoint đã chỉ định là public; mọi exchange khác phải yêu cầu JWT authentication.",
+        "Propagate request id và verified identity context tới downstream service, không xem identity header do client gửi là trusted.",
+        "Bảo vệ downstream capacity bằng Redis-backed rate limit, retry có bound và circuit breaker theo từng service.",
+        "Trả về error contract ổn định gồm trace id, error category, localized message và field-level validation detail.",
+        "Giữ flight-search use case độc lập với Sabre, Redis và persistence thông qua port-in/port-out boundary."
+      ],
+      "architecture": {
+        "decisions": [
+          "Gateway là boundary north-south cho policy và resilience; mỗi service vẫn sở hữu domain behavior của mình.",
+          "Module air dùng pragmatic hexagonal shape: web adapter gọi input port, application service orchestration output port, adapter sở hữu external protocol.",
+          "Core sở hữu error vocabulary và response construction dùng chung; auth và air mở rộng cho behavior và message riêng của module.",
+          "Redis là disposable control/cache state, không phải source of truth cho invariant của flight hoặc user.",
+          "Project local hiện chứa cả intended behavior đã document và implementation gap; SRS giữ hai sự thật này hiển thị thay vì ngầm coi mọi checklist item đã shipped."
+        ]
+      }
+    }
+  },
   "stack": [
     "Java 21",
     "Spring Boot 3.5.7",

@@ -1,6 +1,7 @@
 import { escapeHtml } from '../lib/markdown.js';
 import { Content } from '../lib/content.js';
 import { CaseStudies } from '../lib/case-studies.js';
+import { anchorHref, scrollToAnchor } from '../lib/anchors.js';
 
 let mountToken = 0;
 const TOC_STATE_KEY = 'gazl.caseTocCollapsed';
@@ -100,7 +101,7 @@ function articleMeta(article) {
     + '<a class="cs-back" href="#/case-studies">← ' + text().allCases + '</a>'
     + '<p class="cs-eyebrow">' + text().number + ' ' + numberLabel(article) + ' · '
     + escapeHtml(article.company) + ' · ' + escapeHtml(article.category_label) + '</p>'
-    + '<h1>' + escapeHtml(article.title) + '</h1>'
+    + '<h1 id="case-study-' + escapeHtml(article.slug) + '-title">' + escapeHtml(article.title) + '</h1>'
     + '<p class="cs-deck">' + escapeHtml(article.excerpt) + '</p>'
     + '<div class="cs-byline"><span>' + formatDate(article.published_at) + '</span>'
     + '<a class="cs-origin" href="' + href + '" target="_blank" rel="noopener noreferrer">'
@@ -165,16 +166,14 @@ function renderArticle(article, body, guide) {
 
 function buildToc(root, slug) {
   const headings = [...root.querySelectorAll('[data-case-body] h2[id], [data-case-body] h3[id]')];
-  const articleHash = '#/case-studies/' + encodeURIComponent(slug);
+  const articleRoute = '/case-studies/' + encodeURIComponent(slug);
   const html = headings.map(heading => '<a class="' + (heading.tagName === 'H3' ? 'is-sub' : '')
-    + '" href="' + articleHash + '" data-case-section="' + escapeHtml(heading.id) + '">'
+    + '" href="' + escapeHtml(anchorHref(heading.id, articleRoute)) + '" data-anchor-link data-anchor-id="'
+    + escapeHtml(heading.id) + '" data-anchor-route="' + escapeHtml(articleRoute) + '" data-case-section="' + escapeHtml(heading.id) + '">'
     + escapeHtml(heading.textContent) + '</a>').join('');
   root.querySelectorAll('[data-case-toc], [data-case-toc-mobile]').forEach(nav => { nav.innerHTML = html; });
   root.querySelectorAll('[data-case-section]').forEach(link => {
-    link.addEventListener('click', event => {
-      event.preventDefault();
-      root.querySelector('#' + link.dataset.caseSection)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
+    link.addEventListener('click', () => link.closest('.cs-toc-mobile')?.removeAttribute('open'));
   });
 }
 
@@ -226,7 +225,7 @@ function wireLightbox(root) {
   dialog.addEventListener('click', event => { if (event.target === dialog) dialog.close(); });
 }
 
-async function showArticle(root, collection, slug, token) {
+async function showArticle(root, collection, slug, token, anchor = '') {
   const article = (collection.articles || []).find(row => row.slug === slug);
   if (!article) {
     root.innerHTML = '<div class="cs-empty"><p class="cs-eyebrow">' + text().notFound + '</p>'
@@ -243,6 +242,7 @@ async function showArticle(root, collection, slug, token) {
   buildToc(root, article.slug);
   wireTocToggle(root);
   wireLightbox(root);
+  if (anchor) requestAnimationFrame(() => scrollToAnchor(root, anchor, { behavior: 'auto' }));
 }
 
 export function renderCaseStudies() {
@@ -250,7 +250,7 @@ export function renderCaseStudies() {
     + '<div class="cs-loading"><span></span><p>' + text().loading + '</p></div></section>';
 }
 
-export async function mountCaseStudies(host, routeParts = []) {
+export async function mountCaseStudies(host, routeParts = [], anchor = '') {
   const token = ++mountToken;
   const root = host.querySelector('[data-case-root]');
   if (!root) return;
@@ -259,7 +259,7 @@ export async function mountCaseStudies(host, routeParts = []) {
     const collection = await CaseStudies.load(Content.lang);
     if (token !== mountToken) return;
     const slug = routeParts[0] ? decodeURIComponent(routeParts[0]) : '';
-    if (slug) await showArticle(root, collection, slug, token);
+    if (slug) await showArticle(root, collection, slug, token, anchor);
     else root.innerHTML = renderLibrary(collection);
   } catch (error) {
     if (token !== mountToken) return;

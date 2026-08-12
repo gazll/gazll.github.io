@@ -6,8 +6,8 @@
 
    Adding a menu = adding one entry to VIEWS below.
 
-   UI strings stay English even when the material is Vietnamese — see
-   CLAUDE.md. The VI/EN toggle switches content only. */
+   Shared shell strings stay English; reader surfaces use the global EN/VI
+   state when they have localized material — see CLAUDE.md. */
 import { renderMarkdown, escapeHtml } from './lib/markdown.js';
 import { chevSVG, BADGE, debounce } from './lib/ui.js';
 import { Content } from './lib/content.js';
@@ -34,6 +34,7 @@ import { renderReleaseNotes, mountReleaseNotes } from './views/release-notes.js'
 import { renderSearch, mountSearch, mountSearchOverlay } from './views/search.js';
 import { SearchHistory } from './lib/search-history.js';
 import { mountDsaPlayers, stopDsaPlayers } from './views/dsa-player.js';
+import { anchorHref, routePathFromHash, scrollToAnchor, wireAnchorLinks, wireHeadingPermalinks } from './lib/anchors.js';
 
 let TOPICS = [];
 let current = 0;
@@ -181,6 +182,16 @@ function noteBox(id) {
     + escapeHtml(val) + '</textarea></div>';
 }
 
+function renderAnswerMarkdown(item, answer) {
+  return renderMarkdown(answer, {
+    resolveRef: crossRefResolver(),
+    headingPrefix: 'question-' + item.id,
+    stableHeadingIds: true,
+    headingRoute: questionHash(item.id).slice(1),
+    headingLinkLabel: 'Link to this section'
+  });
+}
+
 function wireNotes(root) {
   (root || document).querySelectorAll('.note-input').forEach(ta => {
     const id = ta.dataset.note;
@@ -230,7 +241,7 @@ function qcard(it) {
     + '<span class="qtext">' + it.q + '</span>'
     + chevSVG + '</button><div class="qmeta">' + copyBtn + langBtn + '</div></div>'
     + '<div class="qbody"><div class="qbody-inner"><div class="answer">'
-    + '<div class="answer-body">' + renderMarkdown(it.a, { resolveRef: crossRefResolver() }) + '</div>' + noteBox(it.id)
+    + '<div class="answer-body">' + renderAnswerMarkdown(it, it.a) + '</div>' + noteBox(it.id)
     + '</div></div></div></div>';
 }
 
@@ -297,7 +308,7 @@ function wireQcards(root, onMark) {
         // Replacing .answer-body drops the old player nodes, so stop their
         // timers first and re-mount into the fresh markup.
         stopDsaPlayers(card);
-        card.querySelector('.answer-body').innerHTML = renderMarkdown(nextText.a, { resolveRef: crossRefResolver() });
+        card.querySelector('.answer-body').innerHTML = renderAnswerMarkdown({ id: card.dataset.qid }, nextText.a);
         // This card's own language, which may differ from Content.lang.
         if (card.classList.contains('open')) mountDsaPlayers(card, next);
         langBtn.dataset.itemLang = next;
@@ -487,21 +498,30 @@ function wireHeader() {
 
 function isTrackActive() { return document.body.classList.contains('view-track'); }
 function currentRoute() {
-  const parts = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean);
+  const routePath = routePathFromHash(location.hash);
+  const raw = String(location.hash).replace(/^#\/?/, '');
+  const routeWithoutSlash = routePath.replace(/^\/?/, '');
+  const rawAnchor = raw.slice(routeWithoutSlash.length);
+  let anchor = '';
+  if (rawAnchor.startsWith('#')) {
+    try { anchor = decodeURIComponent(rawAnchor.slice(1)); } catch (error) { anchor = ''; }
+  }
+  const parts = routeWithoutSlash.split('/').filter(Boolean);
   const id = parts[0];
   return routableViews().some(v => v.id === id)
-    ? { id, parts: parts.slice(1) }
-    : { id: 'track', parts: [] };
+    ? { id, parts: parts.slice(1), anchor }
+    : { id: 'track', parts: [], anchor: '' };
 }
 function currentViewId() {
   return currentRoute().id;
 }
 function route() {
   const currentRouteState = currentRoute();
-  showView(currentRouteState.id, currentRouteState.parts);
+  if (currentRouteState.anchor) showView(currentRouteState.id, currentRouteState.parts, currentRouteState.anchor);
+  else showView(currentRouteState.id, currentRouteState.parts);
 }
 
-function showView(id, routeParts = []) {
+function showView(id, routeParts = [], anchor = '') {
   // Swap only the view-* class; `nav-open` and anything else stays put.
   document.body.classList.forEach(c => { if (c.startsWith('view-')) document.body.classList.remove(c); });
   document.body.classList.add('view-' + id);
@@ -520,20 +540,28 @@ function showView(id, routeParts = []) {
   if (id === 'track') {
     track.hidden = false; host.hidden = true;
     linkedCard = showLinkedQuestion(routeParts);
-    if (!linkedCard) redirectMovedQuestion(routeParts);
+    const topicRoute = routeParts.length === 1 && TOPICS.some(topic => topic.key === decodeRoutePart(routeParts[0]));
+    if (!linkedCard && !topicRoute) redirectMovedQuestion(routeParts);
   } else {
     track.hidden = true; host.hidden = false;
     const v = VIEWS.find(x => x.id === id);
     if (v && v.md) host.innerHTML = '<div class="page">' + renderMarkdown(v.md) + '</div>';
-    else if (v && v.render) host.innerHTML = v.render(routeParts);
+    else if (v && v.render) host.innerHTML = v.render(routeParts, anchor);
     else host.innerHTML = '';
-    if (v && v.mount) v.mount(host, routeParts);
+    if (v && v.mount) v.mount(host, routeParts, anchor);
   }
   paintLangSwitch();
   window.scrollTo({ top: 0 });
-  if (linkedCard) {
-    requestAnimationFrame(() => linkedCard.scrollIntoView({ block: 'start', inline: 'nearest' }));
+  if (anchor || linkedCard) {
+    requestAnimationFrame(() => {
+      if (anchor) scrollToTopicAnchor(anchor);
+      else if (linkedCard) linkedCard.scrollIntoView({ block: 'start', inline: 'nearest' });
+    });
   }
+}
+
+function decodeRoutePart(value) {
+  try { return decodeURIComponent(value || ''); } catch (error) { return ''; }
 }
 
 /** Preserve shared links after Study Track topics 10–11 moved into System Design. */
@@ -720,21 +748,39 @@ function buildTypeBar() {
   }));
 }
 
+function topicRoute(topic) {
+  return '/track/' + encodeURIComponent(topic.key);
+}
+
+function topicHeadingId(topic, sectionIndex) {
+  return topic.key + '-section-' + (sectionIndex + 1);
+}
+
+function topicHeadingLink(topic, id, label, className = 'topic-heading-anchor') {
+  const route = topicRoute(topic);
+  return '<a class="' + className + '" data-anchor-link data-anchor-id="' + escapeHtml(id)
+    + '" data-anchor-route="' + escapeHtml(route) + '" href="' + escapeHtml(anchorHref(id, route))
+    + '" aria-label="Link to this section">' + escapeHtml(label) + '</a>';
+}
+
 function renderDay() {
   // panel.innerHTML below detaches every card; stop their timers first.
   stopDsaPlayers(panel);
   const t = TOPICS[current];
-  const sectionsHTML = t.sections.map(sec =>
-    '<div class="section-h">' + sec.title + '<span class="sline"></span></div>'
+  const sectionsHTML = t.sections.map((sec, sectionIndex) =>
+    '<div class="section-h" id="' + escapeHtml(topicHeadingId(t, sectionIndex)) + '">'
+    + topicHeadingLink(t, topicHeadingId(t, sectionIndex), sec.title) + '<span class="sline"></span></div>'
     + sec.items.map(it => qcard(it)).join('')
   ).join('');
   const topicQcount = t.sections.reduce((a, s) => a + s.items.length, 0);
+  const topicTitleId = t.key + '-title';
 
   panel.innerHTML =
     '<section class="hero"><div class="hero-head">'
     + '<div class="daynum" data-topic-type="' + t.topic_type + '"><small>'
     + (TOPIC_TYPE_LABEL[t.topic_type] || t.topic_type).toUpperCase() + '</small>' + t.n + '</div>'
-    + '<div><h2>' + t.title + '</h2><p class="intro">' + t.intro + '</p>'
+    + '<div><h2 id="' + escapeHtml(topicTitleId) + '">' + topicHeadingLink(t, topicTitleId, t.title)
+    + '</h2><p class="intro">' + t.intro + '</p>'
     + '<div class="tags">' + t.tags.map(tag => '<span class="tag">' + tag + '</span>').join('') + '</div></div>'
     + '</div></section>'
     + '<div class="toolbar">'
@@ -769,7 +815,20 @@ function renderDay() {
 function showLinkedQuestion(routeParts) {
   const questionId = questionIdFromRoute(routeParts);
   const found = findQuestion(TOPICS, questionId);
-  if (!found) return null;
+  if (!found) {
+    let topicKey = '';
+    try { topicKey = routeParts.length === 1 ? decodeURIComponent(routeParts[0]) : ''; } catch (error) {}
+    const topicIndex = TOPICS.findIndex(topic => topic.key === topicKey);
+    if (topicIndex < 0) return null;
+    if (current !== topicIndex) {
+      current = topicIndex;
+      dots.querySelectorAll('.pdot').forEach((dot, index) => dot.classList.toggle('on', index === current));
+      renderDay();
+      paintTopicButton();
+      paintLangSwitch();
+    }
+    return null;
+  }
 
   if (current !== found.topicIndex) {
     current = found.topicIndex;
@@ -784,6 +843,18 @@ function showLinkedQuestion(routeParts) {
   panel.querySelectorAll('.qcard.link-target').forEach(candidate => candidate.classList.remove('link-target'));
   if (card) card.classList.add('link-target');
   return card || null;
+}
+
+function scrollToTopicAnchor(anchor) {
+  return scrollToAnchor(panel, anchor, {
+    reveal: target => {
+      const card = target.closest('.qcard');
+      if (!card || card.classList.contains('open')) return;
+      card.classList.add('open');
+      card.querySelector('.qhead')?.setAttribute('aria-expanded', 'true');
+      mountDsaPlayers(card);
+    }
+  });
 }
 
 function syncToggleAllLabel() {
@@ -885,6 +956,8 @@ async function init() {
   wireNavPanel();
   wireLangSwitch();
   wireHeader();
+  wireAnchorLinks(document);
+  wireHeadingPermalinks(document);
   // Registers its own Content.onChange first, so the index is dropped before
   // the repaint below re-mounts a view that reads it.
   mountSearchOverlay();
@@ -892,6 +965,9 @@ async function init() {
   mountSyncState(document.getElementById('syncState'));
 
   window.addEventListener('hashchange', route);
+  // Heading permalinks use pushState so clicking them does not remount the
+  // current view; Back/Forward must still restore the previous anchor.
+  window.addEventListener('popstate', route);
   route();
 
   document.getElementById('prevBtn').addEventListener('click', () => goTo(current - 1));

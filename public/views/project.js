@@ -1,32 +1,56 @@
 import { escapeHtml, renderMarkdown } from '../lib/markdown.js';
 import { ProjectDocs } from '../lib/project.js';
+import { Content } from '../lib/content.js';
+import { anchorHref, scrollToAnchor } from '../lib/anchors.js';
 
 let mountToken = 0;
 
 const COPY = {
-  eyebrow: 'Project · Software requirements specification',
-  back: 'Project',
-  sourceSnapshot: 'Source snapshot',
-  status: 'Status',
-  modules: 'modules',
-  documents: 'documents',
-  samples: 'implementation samples',
-  scope: 'Scope and intent',
-  architecture: 'Architecture and boundaries',
-  requirements: 'System requirements',
-  evidence: 'Implementation evidence',
-  sourceDocs: 'Source documents',
-  contents: 'On this page',
-  loading: 'Loading project documentation…',
-  unavailable: 'Could not load project documentation',
-  retry: 'Try again',
-  original: 'Original project document',
-  sampleSource: 'Source',
-  openSample: 'Open sample',
-  sanitized: 'Secrets redacted for publication.'
+  en: {
+    eyebrow: 'Project · Software requirements specification', back: 'Project', sourceSnapshot: 'Source snapshot',
+    status: 'Status', root: 'root', modules: 'modules', documents: 'documents', samples: 'implementation samples',
+    scope: 'Scope and intent', architecture: 'Architecture and boundaries', requirements: 'System requirements',
+    evidence: 'Implementation evidence', sourceDocs: 'Source documents', contents: 'On this page',
+    loading: 'Loading project documentation…', unavailable: 'Could not load project documentation', retry: 'Try again',
+    original: 'Original project document', sampleSource: 'Source', openSample: 'Open sample',
+    sanitized: 'Secrets redacted for publication.', technologyBaseline: 'Technology baseline',
+    moduleOwnership: 'Module ownership', editableSource: 'editable source', headingLink: 'Link to this section',
+    notFound: 'Project not found', notFoundBack: 'Back to Project'
+  },
+  vi: {
+    eyebrow: 'Project · Đặc tả yêu cầu phần mềm', back: 'Project', sourceSnapshot: 'Snapshot source',
+    status: 'Trạng thái', root: 'root', modules: 'module', documents: 'tài liệu', samples: 'sample triển khai',
+    scope: 'Phạm vi và mục tiêu', architecture: 'Kiến trúc và boundary', requirements: 'Yêu cầu hệ thống',
+    evidence: 'Bằng chứng triển khai', sourceDocs: 'Tài liệu nguồn', contents: 'Nội dung trang',
+    loading: 'Đang tải tài liệu project…', unavailable: 'Không thể tải tài liệu project', retry: 'Thử lại',
+    original: 'Tài liệu gốc của project', sampleSource: 'Source', openSample: 'Mở sample',
+    sanitized: 'Secret đã được loại khỏi bản publish.', technologyBaseline: 'Technology baseline',
+    moduleOwnership: 'Module ownership', editableSource: 'source có thể chỉnh sửa', headingLink: 'Liên kết đến mục này',
+    notFound: 'Không tìm thấy project', notFoundBack: 'Quay lại Project'
+  }
 };
 
-const text = key => COPY[key] || key;
+const text = key => (COPY[Content.lang] || COPY.en)[key] || COPY.en[key] || key;
+const PROJECT_ROUTE = '/project/calebzone';
+
+function localizedManifest(manifest) {
+  const localized = manifest.locales?.[Content.lang] || manifest.locales?.en || {};
+  return {
+    project: { ...manifest.project, ...(localized.project || {}) },
+    stack: localized.stack || manifest.stack || [],
+    modules: localized.modules || manifest.modules || [],
+    requirements: localized.requirements || manifest.requirements || [],
+    architecture: { ...manifest.architecture, ...(localized.architecture || {}) },
+    prose: localized.prose || {}
+  };
+}
+
+function heading(level, id, label, className = '') {
+  return '<h' + level + ' id="' + escapeHtml(id) + '"' + (className ? ' class="' + className + '"' : '') + '><a class="pj-heading-anchor"'
+    + ' data-anchor-link data-anchor-id="' + escapeHtml(id) + '" data-anchor-route="' + escapeHtml(PROJECT_ROUTE)
+    + '" href="' + escapeHtml(anchorHref(id, PROJECT_ROUTE)) + '" aria-label="' + escapeHtml(text('headingLink')) + '">'
+    + escapeHtml(label) + '</a></h' + level + '>';
+}
 
 function renderList(items, className = '') {
   return '<ul' + (className ? ' class="' + className + '"' : '') + '>'
@@ -59,13 +83,18 @@ function renderDocuments(documents, bodies) {
     byCategory.get(documentMeta.category).push(documentMeta);
   });
   byCategory.forEach((rows, category) => {
-    groups.push('<section class="pj-doc-group"><h3>' + escapeHtml(category) + '</h3>'
+    const categoryId = 'project-doc-category-' + category.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    groups.push('<section class="pj-doc-group">' + heading(3, categoryId, category)
       + rows.map((documentMeta, index) => {
         const body = bodies.get(documentMeta.id) || '';
         return '<details class="pj-doc"' + (groups.length === 0 && index === 0 ? ' open' : '')
           + ' id="doc-' + escapeHtml(documentMeta.id) + '"><summary><span><strong>'
           + escapeHtml(documentMeta.title) + '</strong><small>' + escapeHtml(documentMeta.source) + '</small></span>'
-          + '<b>↘</b></summary><div class="pj-doc-body">' + renderMarkdown(body) + '</div></details>';
+          + '<b>↘</b></summary><div class="pj-doc-body">' + renderMarkdown(body, {
+            headingPrefix: 'doc-' + documentMeta.id,
+            headingRoute: PROJECT_ROUTE,
+            headingLinkLabel: text('headingLink')
+          }) + '</div></details>';
       }).join('') + '</section>');
   });
   return groups.join('');
@@ -79,51 +108,54 @@ function renderToc() {
     ['project-evidence', 'Implementation evidence'],
     ['project-documents', 'Source documents']
   ];
-  return rows.map(([id, label]) => '<a href="#/project/calebzone" data-project-section="' + id + '">' + label + '</a>').join('');
+  return rows.map(([id, label]) => '<a href="' + escapeHtml(anchorHref(id, PROJECT_ROUTE)) + '" data-anchor-link data-anchor-id="'
+    + escapeHtml(id) + '" data-anchor-route="' + escapeHtml(PROJECT_ROUTE) + '" data-project-section="' + id + '">' + label + '</a>').join('');
 }
 
 function renderArticle(manifest, documentBodies, sampleBodies) {
-  const project = manifest.project;
-  const stats = '<div class="pj-stats"><span><b>' + manifest.modules.length + '</b> ' + text('modules')
+  const localized = localizedManifest(manifest);
+  const project = localized.project;
+  const prose = localized.prose;
+  const stats = '<div class="pj-stats"><span><b>' + localized.modules.length + '</b> ' + text('modules')
     + '</span><span><b>' + manifest.documents.length + '</b> ' + text('documents')
     + '</span><span><b>' + manifest.samples.length + '</b> ' + text('samples') + '</span></div>';
   return '<div class="pj-article">'
     + '<header class="pj-head"><a class="pj-back" href="#/project">← ' + text('back') + '</a>'
-    + '<p class="pj-eyebrow">' + text('eyebrow') + '</p><h1>' + escapeHtml(project.title) + '</h1>'
+    + '<p class="pj-eyebrow">' + text('eyebrow') + '</p>' + heading(1, 'project-calebzone-title', project.title)
     + '<p class="pj-deck">' + escapeHtml(project.intro) + '</p>' + stats
     + '<div class="pj-meta"><span><b>' + text('status') + '</b> ' + escapeHtml(project.status) + '</span>'
     + '<span><b>' + text('sourceSnapshot') + '</b> ' + escapeHtml(manifest.snapshot) + '</span>'
-    + '<span><b>root</b> <code>' + escapeHtml(project.source_root) + '</code></span></div>'
+    + '<span><b>' + text('root') + '</b> <code>' + escapeHtml(project.source_root) + '</code></span></div>'
     + '<p class="pj-note">' + escapeHtml(project.owner_note) + '</p></header>'
     + '<details class="pj-toc-mobile"><summary>' + text('contents') + '</summary><nav>' + renderToc() + '</nav></details>'
     + '<div class="pj-grid"><aside class="pj-toc"><p>' + text('contents') + '</p><nav>' + renderToc() + '</nav></aside>'
     + '<article class="pj-body" data-project-body>'
-    + '<section class="pj-section" id="project-scope"><h2>' + text('scope') + '</h2>'
-    + '<p>This page is the implementation-facing companion to the conceptual System Design material. It records what CalebZone is meant to do, how the modules are separated, and where the current repository proves or qualifies each decision.</p>'
-    + '<div class="pj-two-col"><article><h3>Technology baseline</h3>' + renderList(manifest.stack, 'pj-plain-list') + '</article>'
-    + '<article><h3>Module ownership</h3>' + renderModules(manifest.modules) + '</article></div></section>'
-    + '<section class="pj-section" id="project-architecture"><h2>' + text('architecture') + '</h2>'
-    + '<p>The gateway owns the client-facing edge. Domain-oriented services keep their own use cases, while adapters handle Redis, persistence and external providers.</p>'
-    + '<figure class="pj-diagram"><figcaption><strong>CalebZone runtime topology</strong><span>editable source</span></figcaption>'
+    + '<section class="pj-section" id="project-scope">' + heading(2, 'project-scope', text('scope'))
+    + '<p>' + escapeHtml(prose.scope || 'This page is the implementation-facing companion to the conceptual System Design material. It records what CalebZone is meant to do, how the modules are separated, and where the current repository proves or qualifies each decision.') + '</p>'
+    + '<div class="pj-two-col"><article>' + heading(3, 'project-technology', prose.technologyTitle || text('technologyBaseline')) + renderList(localized.stack, 'pj-plain-list') + '</article>'
+    + '<article>' + heading(3, 'project-module-ownership', prose.modulesTitle || text('moduleOwnership')) + renderModules(localized.modules) + '</article></div></section>'
+    + '<section class="pj-section" id="project-architecture">' + heading(2, 'project-architecture', text('architecture'))
+    + '<p>' + escapeHtml(prose.architecture || 'The gateway owns the client-facing edge. Domain-oriented services keep their own use cases, while adapters handle Redis, persistence and external providers.') + '</p>'
+    + '<figure class="pj-diagram"><figcaption><strong>' + escapeHtml(prose.diagramTitle || 'CalebZone runtime topology') + '</strong><span>' + escapeHtml(prose.editableSource || text('editableSource')) + '</span></figcaption>'
     + '<pre><code class="language-mermaid">' + escapeHtml(manifest.architecture.diagram) + '</code></pre></figure>'
-    + '<div class="pj-decision-list">' + (manifest.architecture.decisions || []).map((decision, index) =>
+    + '<div class="pj-decision-list">' + (localized.architecture.decisions || []).map((decision, index) =>
       '<article><span>' + String(index + 1).padStart(2, '0') + '</span><p>' + escapeHtml(decision) + '</p></article>').join('') + '</div></section>'
-    + '<section class="pj-section" id="project-requirements"><h2>' + text('requirements') + '</h2>'
-    + '<div class="pj-requirement-list">' + (manifest.requirements || []).map((requirement, index) =>
+    + '<section class="pj-section" id="project-requirements">' + heading(2, 'project-requirements', text('requirements'))
+    + (prose.requirements ? '<p>' + escapeHtml(prose.requirements) + '</p>' : '')
+    + '<div class="pj-requirement-list">' + (localized.requirements || []).map((requirement, index) =>
       '<article><b>FR-' + String(index + 1).padStart(2, '0') + '</b><p>' + escapeHtml(requirement) + '</p></article>').join('') + '</div></section>'
-    + '<section class="pj-section" id="project-evidence"><h2>' + text('evidence') + '</h2>'
-    + '<p>These are copied from the current CalebZone working tree, so the SRS can be checked against implementation details rather than only prose. The gateway samples intentionally leave secrets out.</p>'
+    + '<section class="pj-section" id="project-evidence">' + heading(2, 'project-evidence', text('evidence'))
+    + '<p>' + escapeHtml(prose.evidence || 'These are copied from the current CalebZone working tree, so the SRS can be checked against implementation details rather than only prose. The gateway samples intentionally leave secrets out.') + '</p>'
     + renderSamples(manifest.samples, sampleBodies) + '</section>'
-    + '<section class="pj-section" id="project-documents"><h2>' + text('sourceDocs') + '</h2>'
-    + '<p>The source documents below are preserved as collapsible reading material. Their headings, tables and fenced code blocks are rendered in place; the source path remains visible on every entry.</p>'
+    + '<section class="pj-section" id="project-documents">' + heading(2, 'project-documents', text('sourceDocs'))
+    + '<p>' + escapeHtml(prose.documents || 'The source documents below are preserved as collapsible reading material. Their headings, tables and fenced code blocks are rendered in place; the source path remains visible on every entry.') + '</p>'
     + renderDocuments(manifest.documents, documentBodies) + '</section>'
     + '</article></div></div>';
 }
 
 function wireToc(root) {
-  root.querySelectorAll('[data-project-section]').forEach(link => link.addEventListener('click', event => {
-    event.preventDefault();
-    root.querySelector('#' + link.dataset.projectSection)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  root.querySelectorAll('[data-project-section]').forEach(link => link.addEventListener('click', () => {
+    link.closest('.pj-toc-mobile')?.removeAttribute('open');
   }));
 }
 
@@ -132,13 +164,14 @@ export function renderProject() {
     + text('loading') + '</p></div></section>';
 }
 
-export async function mountProject(host, routeParts = []) {
+export async function mountProject(host, routeParts = [], anchor = '') {
   const token = ++mountToken;
   const root = host.querySelector('[data-project-root]');
   if (!root) return;
   const slug = routeParts[0] ? decodeURIComponent(routeParts[0]) : 'calebzone';
   if (slug !== 'calebzone') {
-    root.innerHTML = '<div class="pj-empty"><p class="pj-eyebrow">Project</p><h1>Project not found</h1><a href="#/project">Back to Project</a></div>';
+    root.innerHTML = '<div class="pj-empty"><p class="pj-eyebrow">Project</p><h1>' + text('notFound') + '</h1><a href="#/project">'
+      + text('notFoundBack') + '</a></div>';
     return;
   }
 
@@ -152,6 +185,7 @@ export async function mountProject(host, routeParts = []) {
     root.innerHTML = renderArticle(manifest, new Map(documentBodies), new Map(sampleBodies));
     document.title = 'CalebZone Project · Backend Engineering';
     wireToc(root);
+    if (anchor) requestAnimationFrame(() => scrollToAnchor(root, anchor, { behavior: 'auto' }));
   } catch (error) {
     if (token !== mountToken) return;
     root.innerHTML = '<div class="pj-empty"><p class="pj-eyebrow">' + text('unavailable') + '</p><h1>'

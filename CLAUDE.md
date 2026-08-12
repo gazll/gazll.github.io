@@ -8,12 +8,13 @@ step, no package.json — vanilla ES modules served straight to the browser.
 
 **Two language layers, and they are not the same thing.**
 
-1. **The interface is always English and does not switch.** Every string in
-   `index.html`, `app.js`, `lib/` and `views/`: menus, buttons, headings,
-   badges, placeholders, `alert`/`confirm`, `aria-label`s, and the
-   `DEEP DIVE · SENIOR` tag in `lib/markdown.js`. There is no UI string table
-   and there should not be one. (`lib/api.js` matches Vietnamese *and* English
-   in its `authExpired` regex — `apps-script/Code.gs` answers in Vietnamese.)
+1. **The shell stays English; reader surfaces follow EN/VI.** Navigation,
+   account controls and shared utility chrome remain English. Study Track,
+   System Design, Case Studies and the structured Project SRS follow the
+   header's EN/VI switch. A Project's imported source documents remain in the
+   language they were written in, while its manifest can carry localized SRS
+   prose and requirements. (`lib/api.js` matches Vietnamese *and* English in
+   its `authExpired` regex — `apps-script/Code.gs` answers in Vietnamese.)
 
    **One deliberate exception: `public/course-registration/`.** That sibling
    tool is entirely Vietnamese, and stays that way. It mirrors a Vietnamese
@@ -45,6 +46,7 @@ public/
   lib/
     constants.js     TOPIC_TYPES, DIFFICULTIES — the closed-set identifiers, label source
     markdown.js      renderMarkdown + renderUser (escaping variant)
+    anchors.js       hash-router-safe heading permalinks and scroll restoration
     cross-ref.js     resolves a written (item-id) to the route that owns it
     ui.js            chevSVG, BADGE, debounce, localDay
     i18n.js          shared language storage + paired base/.vi JSON loader
@@ -161,6 +163,14 @@ secret/              GITIGNORED. Personal setup notes and credentials
   blank one, so a blank line inside a `<pre>` or `<table>` truncates it and
   dumps the rest as literal text. Use a comment-only line as a separator
   instead.
+
+- **Markdown headings are permalinks.** `renderMarkdown` gives each Markdown
+  heading a local id and renders its text as an anchor. When a caller knows
+  its route, pass `headingRoute` (and `headingPrefix` when multiple documents
+  share a page) so the address becomes `#/view/item#heading`; the hash router
+  restores the view and scroll position on reload. Do not add a clipboard
+  action for this — clicking the heading updates the address bar and the
+  reader can copy it with the browser's normal controls.
 
 - **`renderMarkdown` never escapes, so `<` must be written `&lt;` everywhere
   in `data/topics/*.json`** — including inside inline code spans. `` `jcmd <pid>` ``
@@ -279,7 +289,10 @@ secret/              GITIGNORED. Personal setup notes and credentials
   `data/projects/calebzone/manifest.json`. The manifest points at copied source
   documents and code/config samples so the page works after GitHub Pages deploy;
   it cannot read the sibling `/home/.../calebzone` directory at runtime. Update
-  the snapshot deliberately, and redact secrets before adding a sample.
+  the snapshot deliberately, redact secrets before adding a sample, and keep
+  `locales.vi` aligned with the structured module/requirement/decision arrays
+  when the SRS is shown in Vietnamese. Source-document headings are scoped by
+  document id so their permalinks stay unique on the one Project page.
 
 - **Case studies are numbered and bilingual, but are not Study Track topics.**
   They do not have item ids, difficulty, reviewed state or notes, and never

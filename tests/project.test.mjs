@@ -45,8 +45,22 @@ test('Project menu and renderer are wired as a hash-routable view', async () => 
 test('Markdown project documents render headings, tables and escaped fenced code', async () => {
   const { renderMarkdown } = await import(pathToFileURL(path.join(publicRoot, 'lib/markdown.js')).href);
   const html = renderMarkdown('# Gateway\n\n| Path | Service |\n| --- | --- |\n| `/air` | Air |\n\n```java\n<script>alert(1)</script>\n```');
-  assert.match(html, /<h1 id="gateway">Gateway<\/h1>/);
+  assert.match(html, /<h1 id="gateway"><a class="md-heading-anchor"[^>]*>Gateway<\/a><\/h1>/);
   assert.match(html, /<table class="md-table">/);
   assert.match(html, /<pre><code class="language-java">&lt;script&gt;alert\(1\)&lt;\/script&gt;<\/code><\/pre>/);
   assert.doesNotMatch(html, /<script>/);
+});
+
+test('Project has a Vietnamese SRS source and headings expose shareable anchors', async () => {
+  assert.ok(manifest.locales?.vi?.project?.title);
+  assert.equal(manifest.locales.vi.modules.length, manifest.modules.length);
+  assert.equal(manifest.locales.vi.requirements.length, manifest.requirements.length);
+
+  const { renderMarkdown } = await import(pathToFileURL(path.join(publicRoot, 'lib/markdown.js')).href + '?anchors=' + Math.random());
+  const html = renderMarkdown('## Identity boundary', {
+    headingPrefix: 'doc-gateway', headingRoute: '/project/calebzone', headingLinkLabel: 'Liên kết đến mục này'
+  });
+  assert.match(html, /id="doc-gateway-identity-boundary"/);
+  assert.match(html, /data-anchor-route="\/project\/calebzone"/);
+  assert.match(html, /href="#\/project\/calebzone#doc-gateway-identity-boundary"/);
 });
