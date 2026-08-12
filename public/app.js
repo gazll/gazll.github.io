@@ -11,6 +11,7 @@
 import { renderMarkdown, escapeHtml } from './lib/markdown.js';
 import { chevSVG, BADGE, debounce } from './lib/ui.js';
 import { Content } from './lib/content.js';
+import { crossRefResolver } from './lib/cross-ref.js';
 import { copyText } from './lib/clipboard.js';
 import {
   findQuestion,
@@ -29,6 +30,8 @@ import { renderAdmin, mountAdmin } from './views/admin.js';
 import { renderSystemDesign, mountSystemDesign } from './views/system-design.js';
 import { renderCaseStudies, mountCaseStudies } from './views/case-studies.js';
 import { renderReleaseNotes, mountReleaseNotes } from './views/release-notes.js';
+import { renderSearch, mountSearch, mountSearchOverlay } from './views/search.js';
+import { SearchHistory } from './lib/search-history.js';
 import { mountDsaPlayers, stopDsaPlayers } from './views/dsa-player.js';
 
 let TOPICS = [];
@@ -64,6 +67,8 @@ const COPY_LINK_SVG = '<svg class="qcopy-icon" viewBox="0 0 24 24" fill="none" s
 /* ---------- Views / navigation ---------- */
 const GUIDE_MD = [
   'This is an **all-in-one** site. The ☰ button opens the **navigation panel**, grouped into `Technical` (study & practice), `Experience` (real-world case studies), `Tools` (standalone utilities) and `Other`. Every view has its own URL (e.g. `#/guide`), so any of them can be shared or bookmarked.',
+  '',
+  'The **search** control in the header (`Ctrl`/`⌘` + `K`, or just `/`) queries the Study Track, the System Design blueprints and the case studies in one pass. Each result names the topic or blueprint it belongs to and opens that card directly; accents are optional, so `dong bo` finds `đồng bộ`. `See all results` opens the full panel at `#/search/<query>`, which can be filtered by surface and shared like any other view. Recent searches stay in the browser session while signed out and move into your account when you sign in.',
   '',
   ':::tip Adding a menu entry',
   'Open `app.js` and push one object into the `VIEWS` array — nothing else needs touching. The `sec` field decides which section of the panel it lands in.',
@@ -113,6 +118,10 @@ const NAV_SECTIONS = [
    `when` hides the row; `desc` is the second line in the panel. */
 const VIEWS = [
   { id: 'track', sec: 'technical', label: 'Study Track', desc: 'Topic-based learning path', icon: 'track' },
+  // Routable so a search can be shared; the header trigger and Ctrl+K open the
+  // same query in the overlay first.
+  { id: 'search', sec: 'technical', label: 'Search', desc: 'One query across every surface', icon: 'search',
+    render: renderSearch, mount: mountSearch },
   { id: 'gazl', sec: 'technical', label: 'Gazl Try', desc: 'Companies interviewed', icon: 'journal',
     render: renderInterviews, mount: mountInterviews },
   { id: 'stats', sec: 'technical', label: 'Stats', desc: 'Streak, heatmap, progress', icon: 'stats',
@@ -140,6 +149,7 @@ const VIEWS = [
 /* Inline so the panel needs no network and no icon font. */
 const ICONS = {
   track: '<path d="M4 6h16M4 12h16M4 18h10"/>',
+  search: '<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/>',
   journal: '<path d="M5 4h11l3 3v13H5z"/><path d="M8 10h8M8 14h5"/>',
   stats: '<path d="M5 19V10M12 19V5M19 19v-6"/>',
   admin: '<path d="M12 3l7 3v5c0 4.2-2.8 7.6-7 10-4.2-2.4-7-5.8-7-10V6z"/>',
@@ -214,7 +224,7 @@ function qcard(it) {
     + '<span class="qtext">' + it.q + '</span>'
     + chevSVG + '</button><div class="qmeta">' + copyBtn + langBtn + '</div></div>'
     + '<div class="qbody"><div class="qbody-inner"><div class="answer">'
-    + '<div class="answer-body">' + renderMarkdown(it.a) + '</div>' + noteBox(it.id)
+    + '<div class="answer-body">' + renderMarkdown(it.a, { resolveRef: crossRefResolver() }) + '</div>' + noteBox(it.id)
     + '</div></div></div></div>';
 }
 
@@ -281,7 +291,7 @@ function wireQcards(root, onMark) {
         // Replacing .answer-body drops the old player nodes, so stop their
         // timers first and re-mount into the fresh markup.
         stopDsaPlayers(card);
-        card.querySelector('.answer-body').innerHTML = renderMarkdown(nextText.a);
+        card.querySelector('.answer-body').innerHTML = renderMarkdown(nextText.a, { resolveRef: crossRefResolver() });
         // This card's own language, which may differ from Content.lang.
         if (card.classList.contains('open')) mountDsaPlayers(card, next);
         langBtn.dataset.itemLang = next;
@@ -858,6 +868,8 @@ async function init() {
 
   // Must precede the first render: qcard() reads reviewed state and notes.
   Store.attachAuth();
+  // Before Auth.init(), so signing in later carries the session's searches over.
+  SearchHistory.attachAuth();
 
   wireTopicPicker();
   renderDay();
@@ -867,6 +879,9 @@ async function init() {
   wireNavPanel();
   wireLangSwitch();
   wireHeader();
+  // Registers its own Content.onChange first, so the index is dropped before
+  // the repaint below re-mounts a view that reads it.
+  mountSearchOverlay();
   mountAuthUI(document.getElementById('authbar'));
   mountSyncState(document.getElementById('syncState'));
 

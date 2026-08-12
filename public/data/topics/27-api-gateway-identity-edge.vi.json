@@ -1,0 +1,142 @@
+{
+  "sections": [
+    {
+      "title": "The edge in four sizes",
+      "items": [
+        {
+          "id": "27-api-gateway-identity-edge.the-edge-in-four-sizes.q1",
+          "difficulty": "core",
+          "q": "Làm sao đổi 10k, 100k, 1M và 100M request mỗi ngày thành peak rate để size edge, và thêm một hop tốn gì ở mỗi tier?",
+          "a": "Bắt đầu từ traffic trung bình: request mỗi ngày chia cho 86.400. Với workload consumer hoặc campaign, dùng heuristic peak khoảng 20× và nói rõ đây là assumption, không phải capacity guarantee.\n\n- **T1:** 10k req/day là 0,12 rps trung bình, nên plan khoảng 2,5 peak rps. Một gateway hop chủ yếu là quyết định routing và connection management; thêm proxy thứ hai thường tốn operational cost hơn lợi ích capacity.\n- **T2:** 100k req/day là 1,2 rps trung bình, nên plan khoảng 25 peak rps. Shared gateway có thể thêm authentication, rate limit và metrics, nhưng phải đo p99 với payload và TLS path thật.\n- **T3:** 1M req/day là 11,6 rps trung bình, nên plan khoảng 250 peak rps. Replica, connection pool, distributed limit và dependency budget trở nên quan trọng; một hop còn tiêu socket và retry budget.\n- **T4:** 100M req/day là 1.157 rps trung bình, nên plan khoảng 25.000 peak rps. Hãy nghĩ theo cell hoặc regional slice, không phải một gateway cluster khổng lồ; mỗi cell là một hệ T3 tới waypoint cộng routing.\n\nWaypoint 10M/day khoảng 116 rps trung bình và 2.500 peak rps. Đây thường là lúc một regional fleet bắt đầu đổi thành cell design. Anchor 1M/day tương tự trong (11-system-design-cases.the-big-prompts.q13); giữ phép tính nhất quán.\n\nMột hop thêm tốn nhiều hơn median processing time: có queueing, connection pool, health state, trace span, timeout accounting và failure boundary mới. Đặt latency budget cho từng hop rồi load-test p99 và saturation.\n\nVới traffic internal hoặc B2B có concentration đo được 3–5×, đừng áp dụng 20× mù quáng. Tính lại từ arrival trace và đặt peak assumption cạnh quyết định."
+        },
+        {
+          "id": "27-api-gateway-identity-edge.the-edge-in-four-sizes.q2",
+          "difficulty": "advanced",
+          "q": "Ở mỗi traffic tier, edge capability nào không cần, nên có, bắt buộc, hoặc cần một scaling story riêng?",
+          "a": "Dùng cùng bốn phán quyết cho mọi control: **không cần** khi operational cost lớn hơn lợi ích, **nên có** là insurance rẻ, **bắt buộc** để tránh incident dễ đoán, và **cần scale riêng** khi một dòng config không còn đủ.\n\n- **T1 — 10k/day:** CDN cho static asset public là nên có; managed gateway có thể route và authenticate. Distributed Redis limiter, PDP và multi-region identity plane thường không cần.\n- **T2 — 100k/day:** rate limit, timeout budget, circuit breaker và route-level RED metrics là nên có. Giữ identity verification ở gateway và service; policy service riêng chưa bắt buộc nếu policy ít đổi và audit chưa cần.\n- **T3 — 1M/day:** gateway replica qua nhiều zone, connection pool có giới hạn, shared limiter, JWKS cache, trace propagation và dependency isolation là bắt buộc. IdP failover, policy-decision cache và audit async có thể cần scale story riêng.\n- **T4 — 100M/day:** cell, regional routing, gateway fleet độc lập, regional identity/key distribution, policy bundle và blast-radius control cần scale riêng. Một global Redis limiter hoặc PDP global là critical path bị che giấu.\n\nPhán quyết phụ thuộc failure model cũng như rps. Payment API traffic thấp vẫn có thể cần isolation mạnh hơn anonymous read traffic lớn. Hãy nêu resource được bảo vệ, abuse cost và owner trước khi chọn control."
+        },
+        {
+          "id": "27-api-gateway-identity-edge.the-edge-in-four-sizes.q3",
+          "difficulty": "advanced",
+          "q": "Tín hiệu nào cho biết đã vượt qua ranh giới tier trước khi incident xảy ra?",
+          "a": "Đã vượt ranh giới khi shape hiện tại không còn giữ được SLO với headroom bình thường, không phải khi dashboard chạm một số tròn. Tìm nhiều tín hiệu cùng đổi:\n\n- **Queueing:** event-loop delay, upstream connection acquisition, pending request và p99 latency tăng trong khi CPU trung bình vẫn bình thường.\n- **Dependency pressure:** usable connection pool, Redis operation, JWKS refresh, PDP latency và downstream concurrency tiến gần hard budget.\n- **Failure feedback:** 429, 5xx, 504, retry/original ratio, circuit-open time và client cancellation tăng; thêm replica không còn hạ tail.\n- **Blast radius:** incident của một tenant, route, region hoặc IdP ăn hết shared pool hay làm route không liên quan cùng fail.\n\nỞ waypoint 10M/day, hỏi một fleet có còn upgrade và recovery như một unit được không. Gần T4, hỏi một cell hỏng thì region có sống không. Định nghĩa action trước threshold: tăng capacity, tách pool, thêm admission control, chuyển sang cell hay isolate dependency.\n\nBenchmark bằng payload, token mix, cache hit rate và retry behavior giống production. Một con số open-loop rps bỏ qua connection churn sẽ đẩy boundary tới tận incident."
+        }
+      ]
+    },
+    {
+      "title": "Gateway configuration that matters",
+      "items": [
+        {
+          "id": "27-api-gateway-identity-edge.gateway-configuration-that-matters.q1",
+          "difficulty": "core",
+          "q": "Trong Spring Cloud Gateway, request đi qua route, predicate và filter theo thứ tự nào, và authN nên nằm ở đâu?",
+          "a": "Một route là destination cộng với filter chain có thứ tự. Predicate quyết định route có match không; filter biến đổi request/response, enforce policy rồi forward hoặc short-circuit. Thứ tự hiệu dụng là contract, nên hãy inspect route sau cùng thay vì chỉ tin thứ tự trong YAML.\n\nAuthentication nên xảy ra trước khi request tới protected service, nhưng không nhất thiết là operation đầu tiên.\n\nReject input malformed hoặc quá lớn sớm, dựng correlation và trace context, sau đó authenticate trước route-specific authorization và forward.\n\nKhông để rewrite hay header do client điều khiển thay đổi identity đã verify.\n\nSpring Cloud Gateway 5.0.2 hiện có tài liệu và starter tách cho Server WebFlux và Server Web MVC. WebFlux server dựa trên WebFlux, Reactor và Netty; hãy chọn flavor rõ ràng thay vì copy artifact cũ `spring-cloud-starter-gateway` vào build mới. Ghi release train trong build và test filter order thật.\n\nDùng Java LTS còn được vendor hỗ trợ; tại lần review này JDK 25 là mốc LTS hiện hành. Verify patch support của vendor theo Spring Boot/Cloud train đã chọn trước khi rollout.\n\nGateway có thể quyết định coarse như `scope=orders:read` và route ownership. Service vẫn authenticate ở trust boundary của mình và làm object-level authorization. Đây là cách áp dụng edge cho (13-security-oauth2.designing-the-auth-system.q1)."
+        },
+        {
+          "id": "27-api-gateway-identity-edge.gateway-configuration-that-matters.q2",
+          "difficulty": "core",
+          "q": "Timeout của gateway, downstream và client nên liên hệ ra sao, và vì sao edge là nơi nhanh nhất tạo retry storm?",
+          "a": "Đặt deadline end-to-end cho client rồi chia từ ngoài vào trong. Gateway deadline phải chừa thời gian xử lý response; từng downstream deadline ngắn hơn gateway và bao gồm cả connection acquisition. Client retry deadline không được tạo request mới sau khi server có thể đã commit effect.\n\nRetry budget giới hạn retry theo tỷ lệ traffic gốc trong một window. Chỉ retry lỗi transient đã phân loại, chỉ khi operation safe hoặc idempotent, rồi dùng exponential backoff có jitter. Gateway retry nhân mọi downstream hop; retry 2× ở hai layer có thể thành gần 4× work trước khi tính client.\n\nChọn một owner retry cho mỗi hop.\n\nGateway thường chỉ nên retry connection failure mới hoặc 502 có giới hạn trước khi service nhận byte; không replay mù một POST đã timeout.\n\nKhi replay nằm trong contract, truyền idempotency key.\n\nCơ chế và failure mode của storm nằm ở (25-microservice.01-cascading-failure-retry-storm.q5); ở đây tập trung vào budget và filter placement.\n\nTrả error contract ổn định. `504` nghĩa gateway không nhận được upstream response dùng được trong deadline; không chứng minh service chưa làm gì."
+        },
+        {
+          "id": "27-api-gateway-identity-edge.gateway-configuration-that-matters.q3",
+          "difficulty": "core",
+          "q": "CircuitBreaker và RequestRateLimiter filter làm gateway đổi behavior thế nào, và phán quyết theo tier là gì?",
+          "a": "`CircuitBreaker` filter phải scope theo route hoặc dependency được group có chủ ý.\n\nFailure predicate, sliding window, minimum calls, failure/slow-call threshold, open wait và số probe half-open quyết định lúc traffic dừng; breaker dùng chung cho route không liên quan sẽ biến một backend hỏng thành outage lớn hơn.\n\nKhi open, trả 503 hoặc fallback an toàn theo contract và có metric ghi rõ route cùng nguyên nhân.\n\n`RequestRateLimiter` cần `KeyResolver` ổn định, cost model và burst policy.\n\nVới Redis token bucket, `replenishRate` là token mỗi giây, `burstCapacity` là sức chứa bucket, còn `requestedTokens` cho phép operation đắt tiêu nhiều hơn một token.\n\nRedis check là distributed dependency, không phải capacity vô hạn.\n\nTrả 429 và `Retry-After` chỉ khi delay có ý nghĩa và lấy từ policy; contract với client phải rõ.\n\n- **T1:** local hoặc managed rate limit nên có; shared Redis limiter không cần nếu abuse risk thấp.\n- **T2:** route-level limit và breaker nên có; policy ít và dễ inspect.\n- **T3:** limit theo tenant hoặc weighted cost, Redis HA, breaker isolation và retry budget là bắt buộc.\n- **T4:** limiter state, policy distribution và breaker ownership cần scale riêng, thường theo cell hoặc region.\n\nResilience4j 2.2.0 có các control tương tự trong process, nhưng gateway filter vẫn phải chọn scope route và distributed state. Đừng copy default ở service vào edge; so quyết định edge với (10-system-design-rate-limit.rate-limiting-in-depth.q5)."
+        },
+        {
+          "id": "27-api-gateway-identity-edge.gateway-configuration-that-matters.q4",
+          "difficulty": "advanced",
+          "q": "Connection pool và request hygiene nào quan trọng ở edge, và gateway phải strip hoặc không được tin gì?",
+          "a": "Netty connection pool đổi socket và memory lấy reuse. Size pending acquisition, max connection, keep-alive và idle eviction từ upstream concurrency cùng service limit đã đo, không từ số gateway replica. Pool quá nhỏ queue ở edge; quá lớn chỉ chuyển queue vào database hoặc partner.\n\nĐặt giới hạn rõ cho body và header, reject framing sai, chỉ buffer khi filter thật sự cần body. Upload hoặc response lớn giữ trong memory có thể biến một request thành heap incident. CORS là browser contract, không phải authorization control; chỉ allow origin và method product sở hữu.\n\nStrip identity và routing header từ public request trước khi thêm giá trị trusted. `X-Forwarded-*`, user, tenant, role, internal route và correlation header do client gửi đều untrusted.\n\nDựng lại chúng từ connection đã verify, token và trace context của gateway.\n\nChỉ giữ header mà downstream contract cần.\n\nKeep-alive và idle eviction phải khớp load balancer cùng service.\n\nSau scale-out, fleet cold có thể tạo connection storm; warm pool từ từ và theo dõi connect rate, pending acquisition, event-loop delay cùng upstream reset.\n\nDefault đổi theo Spring Cloud Gateway và Netty version, nên verify line 5.0.2 đã chọn rồi benchmark deployment."
+        }
+      ]
+    },
+    {
+      "title": "Identity at the edge",
+      "items": [
+        {
+          "id": "27-api-gateway-identity-edge.identity-at-the-edge.q1",
+          "difficulty": "core",
+          "q": "Ai verify token: chỉ gateway, chỉ service, hay cả hai? Mỗi lựa chọn tốn gì và bỏ ngỏ gì?",
+          "a": "Chỉ verify ở gateway rẻ cho service path và gom rejection tại một chỗ, nhưng biến gateway thành trusted security oracle. Bypass, misroute hoặc internal caller tới thẳng service có thể bỏ qua check nếu service không có boundary khác.\n\nChỉ verify ở service giữ resource owner là authority và hỗ trợ call không đi qua edge, nhưng mọi service đều trả verification cost và phải thống nhất issuer, audience, key cùng time validation. Traffic xấu cũng đã tiêu downstream work trước khi bị reject.\n\nDefault thực tế là cả hai, với hai nhiệm vụ khác nhau.\n\nGateway verify bearer token và coarse route policy; service verify original token hoặc signed internal assertion, sau đó làm tenant/object authorization.\n\nCache public key, không cache authorization decision vô hạn.\n\nNếu service trust identity do gateway cấp, assertion phải bind audience, expiry, route và key mà service tự verify; không tin header chỉ vì convention.\n\nĐây là defense in depth, không phải lý do để hai policy engine độc lập bất đồng. Chỉ định owner cho từng decision và đo p99 verification cost thêm vào. Identity provider cùng token contract được nói ở (13-security-oauth2.designing-the-auth-system.q1)."
+        },
+        {
+          "id": "27-api-gateway-identity-edge.identity-at-the-edge.q2",
+          "difficulty": "core",
+          "q": "Edge nên verify JWT thế nào, gồm JWKS fetch, kid rotation, clock skew, iss, aud và exp?",
+          "a": "Xem JWT là untrusted bytes cho tới khi mọi check cần thiết pass. Chỉ decode để chọn candidate key; verify signature bằng algorithm được allow, rồi validate `iss`, `aud`, `exp`, `nbf` cùng token type/scope mà route yêu cầu. `kid` chọn key trong JWKS của issuer; nó không phải authorization decision.\n\nCache issuer metadata và JWKS với freshness có giới hạn.\n\nGặp `kid` lạ thì refresh một lần có backoff và bảo vệ refresh path khỏi key-id spray.\n\nGiữ key cũ và mới trong thời gian rotation overlap.\n\nNếu JWKS endpoint down, chỉ tiếp tục với cached key còn hạn theo risk policy đã ghi; không accept token chưa verify vì IdP đang down.\n\nCho clock skew theo số đo.\n\nSkew rộng kéo dài token lifetime và làm revocation yếu; skew bằng 0 reject request hợp lệ gần boundary.\n\nReject issuer confusion và algorithm substitution; RFC 8725 là JWT guidance chuẩn.\n\nOpenID Connect Discovery định nghĩa quan hệ issuer với `jwks_uri`, còn Spring Security resource-server mô tả validation sequence.\n\nSignature verification không có một con số microsecond cố định. RS256 và ES256, token size, JIT state, key-cache hit, thế hệ CPU và concurrency đều đổi kết quả. Benchmark token accepted/rejected ở p99 mục tiêu rồi đưa kết quả vào budget từng tier."
+        },
+        {
+          "id": "27-api-gateway-identity-edge.identity-at-the-edge.q3",
+          "difficulty": "advanced",
+          "q": "Khi nào opaque-token introspection hợp lý, và truyền identity vào trong thế nào mà không tin client header?",
+          "a": "Opaque token cho authorization server một revocation point trực tiếp, nhưng mỗi cache miss tạo IdP dependency và latency tail.\n\nChỉ cache introspection với TTL ngắn hơn accepted token lifetime và có rule fail-open/fail-closed rõ.\n\nJWT verification trả crypto cost local nhưng có thể còn valid sau logout cho tới khi hết hạn hoặc cơ chế revocation khác hoạt động.\n\nToken relay đơn giản: service nhận bearer token gốc và tự verify.\n\nNó giữ semantics issuer/audience gốc nhưng phát credential user qua nhiều hop hơn.\n\nSigned internal claim hẹp hơn: gateway ký `sub`, tenant, scope, route audience, issue time và expiry cho service.\n\nService verify assertion đó và reject token dành cho service khác.\n\nKhông bao giờ nhận `X-User`, `X-Tenant` hoặc `X-Roles` từ public request.\n\nStrip chúng ở edge, chỉ thêm trusted identity sau verification, và dùng mTLS hoặc workload identity giữa gateway với service để process nội bộ tùy ý không forge được channel.\n\nHeader chỉ là transport representation; signature và trust path mới là boundary.\n\nChọn theo route. Money action rủi ro cao có thể cần live introspection hoặc service-local verification; high-volume read có thể dùng JWT ngắn hạn và cached key. Trade-off này liên quan (13-security-oauth2.jwt-tokens.q2), không cần chép lại token taxonomy ở đây."
+        },
+        {
+          "id": "27-api-gateway-identity-edge.identity-at-the-edge.q4",
+          "difficulty": "advanced",
+          "q": "Revocation, logout và IdP failure nên hoạt động thế nào ở edge, và mỗi tier thay đổi ra sao?",
+          "a": "Access-token TTL ngắn là baseline revocation bound, không phải logout guarantee.\n\nDeny-list invalidation ngay nhưng thêm read, eviction và retention problem.\n\nBFF hoặc edge session giấu token khỏi browser và gom logout, nhưng tạo session state cùng edge store cần HA.\n\nChọn theo rủi ro token bị trộm, không theo checklist chung chung.\n\nKhi IdP unavailable, cached JWKS còn có thể verify JWT chưa hết hạn; path chỉ introspection thì không thể tự tạo positive answer an toàn.\n\nFail closed cho money movement, privilege change và sensitive read.\n\nPublic read rủi ro thấp có thể serve bounded stale session nếu product ghi rõ chấp nhận rủi ro đó.\n\nĐừng fail open chỉ vì gateway muốn availability.\n\nRotate key có overlap: publish key mới trước khi sign bằng nó, accept cả hai trong maximum token lifetime cộng propagation margin, rồi retire key cũ sau khi thấy không còn legitimate use. Refresh `kid` lạ một lần, rate-limit miss và alert khi phân bố key-id đột ngột đổi.\n\n- **T1/T2:** JWT TTL ngắn cộng cached JWKS thường nên có; global deny-list thường không cần cho route rủi ro thấp.\n- **T3:** regional IdP/JWKS redundancy, refresh protection và route-specific fail-closed policy là bắt buộc.\n- **T4:** identity, key distribution, revocation và session state cần scale riêng theo region hoặc cell.\n\nRFC 9700 khuyến nghị OAuth security hiện hành, nhưng không chọn availability mode cho sản phẩm. Đó vẫn là route risk và business contract."
+        }
+      ]
+    },
+    {
+      "title": "Authorization without a bottleneck",
+      "items": [
+        {
+          "id": "27-api-gateway-identity-edge.authorization-without-a-bottleneck.q1",
+          "difficulty": "core",
+          "q": "Gateway được coarse-authorize gì, gì phải để service quyết định, và tenant resolution thuộc đâu?",
+          "a": "Gateway có thể authorize điều nhìn thấy từ request contract: token hợp lệ, route nằm trong audience, scope cho phép `orders:read`, method được phép và caller ở trong coarse tenant/product boundary. Những check này hữu ích trước khi tiêu downstream capacity.\n\nService sở hữu domain decision: user có được đọc order này không, tenant có sở hữu object không, account có bị suspend không và state transition có hợp lệ không. Gateway không nên fetch domain row chỉ để quyết policy; làm vậy biến nó thành application thứ hai với blast radius rộng hơn.\n\nResolve tenant từ verified claim, mTLS/workload context hoặc host được map rõ ràng, rồi để service xác nhận membership và object ownership. `tenant_id` do client gửi chỉ là request hint cho tới khi khớp tenancy được subject authenticate cho phép.\n\nURL path một mình không phải proof của tenant identity.\n\nGiữ luật giống nhau cho bypass gateway và east-west call. Owner service phải enforce invariant mà không giả định một proxy cụ thể luôn nằm trên path. Đây là áp dụng riêng cho gateway của (13-security-oauth2.designing-the-auth-system.q6)."
+        },
+        {
+          "id": "27-api-gateway-identity-edge.authorization-without-a-bottleneck.q2",
+          "difficulty": "advanced",
+          "q": "Nên để role trong token hay trong policy decision point như OPA/Cedar, và decision cache được phép stale tới đâu?",
+          "a": "Role trong token nhanh và dùng được khi IdP outage, nhưng stale tới lúc token hết hạn và không hợp với entitlement đổi nhanh hay resource attribute. PDP có thể evaluate tenant, resource, action và context tập trung, nhưng thêm latency, availability coupling và policy deployment path.\n\nDùng token cho fact coarse ổn định như subject, tenant, audience và broad scope.\n\nDùng service-local check hoặc PDP cho role động, ownership, time, geography và resource state.\n\nOPA/Rego hay Cedar là lựa chọn policy, không thay invariant của service; service vẫn cung cấp input đáng tin và sở hữu state transition cuối.\n\nChỉ cache decision với key gồm principal, tenant, action, resource class, policy version và context liên quan.\n\nĐặt TTL theo mức hại của allow stale, không theo sự tiện của cache.\n\nInvalidate khi high-risk role bị gỡ, hoặc chọn cache ngắn và fail closed.\n\nStale deny thường chỉ mất availability; stale allow có thể thành security incident.\n\nAudit decision nhưng không log bearer token hay payload nhạy cảm: principal pseudonym, tenant, action, resource class, policy version, decision, reason code, trace id và timestamp thường đủ. Ghi policy change riêng để auditor giải thích được rule nào tạo allow."
+        }
+      ]
+    },
+    {
+      "title": "Introducing a gateway into a running system",
+      "items": [
+        {
+          "id": "27-api-gateway-identity-edge.introducing-a-gateway-into-a-running-system.q1",
+          "difficulty": "core",
+          "q": "CDN, L4 load balancer, gateway, mesh và service nên sở hữu gì, và chuyện gì xảy ra khi cùng một control bị cấu hình hai lần?",
+          "a": "Cho mỗi layer một owner hẹp:\n\n- **CDN:** public byte có thể cache, edge TLS và coarse abuse protection. Nó không nên quyết ownership của một order private.\n- **L4 load balancer:** transport distribution dựa trên health và connection termination khi phù hợp.\n- **Gateway:** L7 route matching, external authentication, coarse authorization, public rate limit, request normalization và edge observability.\n- **Mesh:** east-west mTLS, service identity, traffic policy và transport telemetry khi tổ chức vận hành nổi control plane.\n- **Service:** domain authorization, invariant, idempotency và state transition.\n\nControl trùng không tự động an toàn hơn. Hai retry nhân work, hai timeout làm mơ hồ owner, hai rate limiter khiến capacity khó đoán, hai identity transform có thể bất đồng về principal. Chọn một owner cùng contract, layer còn lại chỉ enforce guardrail tương thích.\n\nCDN có thể reject abuse rõ ràng trước gateway, service có thể reverify token ở trust boundary. Hai việc đó bổ sung nhau vì bảo vệ resource khác nhau. Trade-off layered tổng quát nằm ở (12-architecture-patterns.patterns-principles.q5)."
+        },
+        {
+          "id": "27-api-gateway-identity-edge.introducing-a-gateway-into-a-running-system.q2",
+          "difficulty": "advanced",
+          "q": "Làm sao gateway không thành single point of failure khi migrate một hệ thống đang chạy?",
+          "a": "Chạy ít nhất N+1 healthy gateway capacity qua các failure domain, không để route phụ thuộc vào một instance, zone, config store hoặc identity endpoint.\n\nHealth check nên kiểm tra gateway nhận traffic được, không fail mọi pod đồng thời vì shared dependency chậm.\n\nGiữ last-known-good route snapshot để control-plane outage không xóa data plane.\n\nCoi route, filter, policy và limit là code. Validate trong CI, render effective config, canary trên route/tenant/cell nhỏ, so RED metrics và giữ rollback không cần control plane đang lỗi. Không rollout gateway change cùng backend contract change thành một switch không thể đảo.\n\nMigrate từng route: shadow hoặc mirror read an toàn, gửi một phần traffic thật, mở rộng theo zone, rồi chỉ bỏ path cũ sau khi log và authorization decision khớp. Giữ nguyên correlation id và error contract trong transition.\n\nT1/T2 có thể đủ một pair qua zone; T3 bắt buộc multi-zone fleet và config validation; T4 mỗi cell cần gateway capacity, policy distribution và rollback độc lập. N cụ thể đến từ failure test cùng warm-up time, không có replica count dùng cho mọi hệ."
+        },
+        {
+          "id": "27-api-gateway-identity-edge.introducing-a-gateway-into-a-running-system.q3",
+          "difficulty": "advanced",
+          "q": "Vận hành edge thế nào: trace propagation, correlation id, RED metrics, ý nghĩa 504, warm-up và connection storm?",
+          "a": "Propagate W3C trace context qua HTTP và gRPC, tạo một gateway span cho từng route, giữ correlation id có giới hạn cho log.\n\nKhông dùng raw user, tenant hoặc URL làm metric label.\n\nEmit RED metrics—request rate, error rate và duration—theo route, status class, outcome và region; high-cardinality detail để trong sampled log/trace.\n\nGateway 504 nói deadline của gateway hết trước khi nhận upstream response dùng được.\n\nService có thể vẫn đang chạy, đã commit effect, hoặc bị reject trước execution.\n\nGhép metric với upstream connect time, response header, cancellation, retry count và idempotency/reconciliation signal.\n\nCoi nó là symptom, không phải proof rằng rollback đã xảy ra.\n\nSau scale-out, JVM cold, DNS/connection pool rỗng, JWKS refresh và health check đồng bộ có thể tạo warm-up storm. Pre-warm instance, mở connection limit dần, stagger refresh và chỉ cho readiness sau local warm-up đã đo; đừng để liveness phụ thuộc toàn bộ dependency graph.\n\nOwner vận hành phải thấy saturation theo route trước aggregate CPU. Dùng signal autoscale và gateway trong (25-microservice.08-operational-concerns.q3), rồi diễn tập 504, IdP outage và config rollback."
+        }
+      ]
+    },
+    {
+      "title": "Internal calls: sync, async, or neither",
+      "items": [
+        {
+          "id": "27-api-gateway-identity-edge.internal-calls-sync-async-or-neither.q1",
+          "difficulty": "core",
+          "q": "Quy tắc nào chọn sync hay async cho từng hop, và khi nào REST hoặc gRPC đáng để đổi?",
+          "a": "Hỏi một câu cho từng hop: **caller có cần answer này để tạo response của chính nó hoặc commit local decision kế tiếp không?** Nếu có, giữ sync, đặt deadline và làm failure visible.\n\nNếu không, persist command hoặc event rồi trả durable pending state; consumer lúc này phải lo delivery, dedup và observability.\n\nREST thường là boundary rẻ hơn cho public API, browser client, team khác nhau và contract evolve độc lập. gRPC hợp với east-west có kiểm soát khi Protobuf contract, generated client, HTTP/2 multiplexing hoặc streaming giải quyết một vấn đề đã đo.\n\nNó không xóa timeout, authorization, compatibility hay load shedding.\n\nĐừng đưa internal call qua external gateway chỉ để reuse route. Làm vậy thêm public auth, edge limit, hop và blast radius. Dùng service discovery hoặc mesh cho east-west transport, nhưng vẫn giữ service authorization boundary.\n\nProtocol comparison thuộc owner (04-rest-grpc-webflux.protocols.q2). Item này áp dụng lựa chọn đó vào gateway topology và giữ rule một decision cho mỗi hop."
+        },
+        {
+          "id": "27-api-gateway-identity-edge.internal-calls-sync-async-or-neither.q2",
+          "difficulty": "advanced",
+          "q": "Đưa một hop lên queue được gì và phải trả giá gì, và vì sao east-west traffic phải bypass edge gateway?",
+          "a": "Queue tách producer khỏi latency và failure path tức thời của consumer, làm phẳng burst và cho mỗi bên scale theo signal riêng. Nhưng user contract đổi từ response sang accepted/pending, đồng thời phát sinh các nghĩa vụ:\n\n- command identity bền vững và consumer idempotent;\n- ordering chỉ trong entity thật sự cần;\n- retry, expiry và DLQ có giới hạn, nhìn thấy được;\n- backpressure, oldest-message age và consumer capacity;\n- schema compatibility, audit và reconciliation cho external effect.\n\nVới chain sync ba hop, xấp xỉ p99 bằng gateway overhead cộng queueing, service và network tail của từng hop.\n\nNếu mỗi service p99 40 ms và gateway/transport overhead 2 ms, serial budget lạc quan khoảng 122 ms trước retry; tail correlation cùng connection wait có thể tệ hơn.\n\nDùng budget đo được, không cộng average.\n\nEast-west nên dùng mesh hoặc service discovery vì external gateway tối ưu cho north-south policy: public auth, tenant quota, route exposure và edge protection. Cho service A đi qua đó tới service B sẽ duplicate control, tiêu public capacity và để edge outage kéo internal recovery xuống.\n\nSync/async failure semantics mở rộng ở (25-microservice.10-system-design-putting-it-all-together.q2); ở đây boundary quyết định bởi caller có cần answer ngay hay không."
+        }
+      ]
+    }
+  ]
+}

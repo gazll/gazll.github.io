@@ -39,17 +39,20 @@ public/
   index.html         shell; loads the version-aware boot.js module
   boot.js            fetches version.json no-store, then loads matching CSS + app graph
   version.json       local "dev" release; deploy overwrites it with commit SHA + timestamp
-  app.js             entry: hash router, topic track view (24 of the 26 topics; 10–11 render in System Design)
+  app.js             entry: hash router, topic track view (24 of the 27 topics; 10–11 and 27 render in System Design)
   config.js          GITIGNORED. Generated at deploy time from repo variables
   config.example.js  template to copy for local dev
   lib/
     constants.js     TOPIC_TYPES, DIFFICULTIES — the closed-set identifiers, label source
     markdown.js      renderMarkdown + renderUser (escaping variant)
+    cross-ref.js     resolves a written (item-id) to the route that owns it
     ui.js            chevSVG, BADGE, debounce, localDay
     i18n.js          shared language storage + paired base/.vi JSON loader
     content.js       topic data model; owns the global content language and change events
     case-studies.js  numbered bilingual case-study data model + article-body cache
     system-design.js blueprint data model; resolves source_items to live topic items
+    search.js        one index over all three surfaces: folding, ranking, snippets
+    search-history.js recent searches: session while signed out, account once signed in
     mermaid.js       lazy loader for the vendored renderer; diagrams degrade to source
     question-links.js  #/track/<id> and #/system-design/<slug>/<id> route helpers
     clipboard.js     copyText with an execCommand fallback for local HTTP previews
@@ -59,6 +62,7 @@ public/
     store.js         offline-first progress, notes, study log
     interviews.js    interview journal data layer
   views/
+    search.js        header search overlay (Ctrl/⌘+K) + the #/search/<query> panel
     interviews.js    interview journal CRUD (<dialog>)
     stats.js         streak + heatmap + per-topic progress
     admin.js         all-user overview (admin role only)
@@ -68,9 +72,9 @@ public/
     dsa-player.js    play/pause/step control for the DSA animations
   vendor/mermaid-11.16.1/  pinned upstream build; version lives in the directory name
   data/
-    manifest.json       ordered list of every topic (n, topic_type, file, optional surface) — 26 rows
+    manifest.json       ordered list of every topic (n, topic_type, file, optional surface) — 27 rows
     meta.json            label/title/intro/tags/key/topic_type per topic, VI + EN in one file
-    topics/NN-slug.json     complete English base, one file per topic (406 items total across 26 files)
+    topics/NN-slug.json     complete English base, one file per topic (424 items total across 27 files)
     topics/NN-slug.vi.json  complete Vietnamese companion, same shape and item IDs
     release-notes.json   dated changelog of the material, VI + EN in one file
     dsa-animations.json  step frames for topic 19's 15 patterns; shared frames, per-language captions
@@ -122,13 +126,13 @@ secret/              GITIGNORED. Personal setup notes and credentials
 - **The progress ring counts what the Study Track browses, not what `data/`
   holds.** `Content.topicItemIds` / `Content.totalTopicItems` are derived from
   `Content.topics`, which `_apply()` builds *after* dropping everything routed
-  to another surface — so the denominator is 365 of the 406 items on disk, and
+  to another surface — so the denominator is 365 of the 424 items on disk, and
   `validate-content.mjs` prints both numbers so the split stays visible. Two
   things remove an item: a `manifest.json` row with `surface: "system-design"`
-  (the whole topic, 10 and 11), or a row listing individual ids in
+  (the whole topic, 10, 11 and 27), or a row listing individual ids in
   `system_design_items` (the OTA/whiteboard overlap in topic 16). Either way
   the item keeps its id and its `data/topics/` file — **the ids are stored
-  Sheet keys**, so a reader's existing `progress` rows for those 41 items stay
+  Sheet keys**, so a reader's existing `progress` rows for those 59 items stay
   in the Sheet, simply uncounted. Never "clean up" by deleting the source
   items. Moving items between surfaces silently changes every reader's ring,
   so it belongs in `data/release-notes.json`.
@@ -219,6 +223,45 @@ secret/              GITIGNORED. Personal setup notes and credentials
 - **`api.js` must send `Content-Type: text/plain`.** Apps Script cannot answer
   a preflight OPTIONS. `application/json`, or an `Authorization` header, makes
   the request CORS non-simple and it fails. Hence idToken travels in the body.
+
+- **Search folds text without changing its length.** `fold()` in
+  `lib/search.js` lowercases and strips Vietnamese diacritics **per
+  character**, because every offset — the snippet window, every `<mark>` — is
+  found in the folded copy and applied to the original. `normalize('NFD')`
+  over a whole string expands `ế` into three code units, and the highlight
+  then lands mid-word. It does not throw; it just slices words in half. The
+  same rule is why `plainText()` decodes entities *after* stripping tags:
+  `&lt;pid&gt;` is text the author wrote, and decoding first would let the tag
+  stripper eat it.
+
+- **The search index is a copy, so a language switch must drop it.**
+  `SearchIndex.entries` holds flattened strings taken out of `Content.topics`,
+  the blueprint catalog and the case-study guides — none of which are re-read
+  after the build. `views/search.js` registers its `Content.onChange` in
+  `mountSearchOverlay()`, which `app.js` calls **before** its own listener, so
+  the index is invalidated before any view repaints from it. The archived
+  case-study articles (~200KB per language) load in a second pass,
+  `SearchIndex.enrich()`, and whatever is on screen repaints when it lands:
+  blocking the first result on eleven HTML files reads as a broken search.
+
+- **The overlay's keys are handled on `document`, not on the dialog.**
+  Removing a recent search repaints the list under the button that was
+  clicked, which drops focus to `<body>` — a listener on the dialog goes deaf
+  at exactly that moment and `Esc` stops closing. The click handlers therefore
+  also return focus to the input. Result rows carry `data-index` in **DOM**
+  order (groups render in `SURFACES` order, ranking only orders rows within a
+  group), which is what makes arrow keys move the way the list looks.
+
+- **Search history follows the account, and is carried over exactly once.**
+  Signed out it is `sessionStorage` — a borrowed browser must not keep someone
+  else's reading trail; signed in it is `localStorage` under the account
+  bucket plus the Sheet. `attachAuth()` merges the session list into the
+  account on sign-in and then **deletes the session key**, so a second account
+  signed in from the same tab does not inherit it. `search.delete` matches the
+  exact stored string, which is why `pull()` re-queues any row whose spelling
+  the merge changed. Every remote call is best-effort: an Apps Script
+  deployment without the `search.*` actions answers "Action không hợp lệ." and
+  the reader must not notice.
 
 - **Adding a menu is one entry in `VIEWS`.** `sec` picks the nav-panel section
   (`technical` · `experience` · `tool` · `about`). An entry with `href` is an external
@@ -409,6 +452,77 @@ topic's English base instead of failing.
   it reports structural/content statistics: topic and difficulty counts,
   answer lengths, cross-references, thin items, and code/table/SVG usage.
 
+## Content standards
+
+- **Write against the current release, and go to the primary source.** This is
+  interview material for people who will be asked what they would do *now*, so
+  a claim is worth what its source is worth: the spec, the RFC, the project's
+  own reference docs, the vendor's own limits page — not a blog rewrite of
+  them. The research-source allowlist in `tests/system-design.test.mjs` is a
+  whitelist of origins, **not a limit on research**: when the best source for
+  something lives on a host that is not in it yet, add the origin rather than
+  settle for a weaker source. Every version-bound claim gets an entry in
+  `data/content-reviews.json` with `reviewed_at` and `target_versions`, which
+  is what separates a checked claim from an inherited one — see
+  `docs/content-playbook.md` §1.4 and §2.5 for the claim types and the
+  provenance rule for benchmark numbers.
+
+- **One owner per mechanism, pointers everywhere else.** Duplicated *mechanism*
+  — the same parameter table, the same trap list, the same example — is the
+  thing to avoid: fix one copy and the other is now wrong. Duplicated *context*
+  is not: "the three breaker states and their Resilience4j parameters" and
+  "per-route or shared breaker at the gateway" are two interview questions, not
+  one written twice. So a topic that merely *uses* a concept states the
+  decision in its own context in a few lines and cross-refs the owner with
+  `(item-id)`. Those render as links — `renderMarkdown` takes an optional
+  `resolveRef`, and `lib/cross-ref.js` routes an id to `#/track/…` or to the
+  blueprint holding it — which is what makes a pointer an acceptable substitute
+  for a second copy. A reference is never re-explained prose. And an item is never
+  deleted to remove a duplicate — `item_id` is a stored Sheet key. The only
+  removal available is rewriting the item into pointer form while keeping its
+  id, which costs the depth a reader already studied and still leaves the card
+  in the progress ring; reserve it for a genuine verbatim duplicate.
+
+- **The four traffic tiers are the site's shared yardstick.** A component is
+  sized by its **peak rate**, so that is the number a capacity line leads with
+  — with the daily volume in parentheses, because requests/day is the number a
+  reader actually knows about their own system: `250 rps peak (1M req/day)`.
+  Write both, in that order, every time:
+
+  | Tier | Requests/day | Avg rps | Peak rps (planning) |
+  |---|---|---|---|
+  | T1 | 10k | 0.12 | ~2.5 |
+  | T2 | 100k | 1.2 | ~25 |
+  | T3 | 1M | 11.6 | ~250 |
+  | T4 | 100M | 1,157 | ~25,000 |
+  | *(waypoint)* | 10M | 116 | ~2,500 |
+
+  `peak ≈ 20 × average`, rounded up. That factor is not arbitrary: it
+  reproduces the numbers already written into
+  `11-system-design-cases.the-big-prompts.q13/q15/q16` (1M/day ↔ 250 rps peak,
+  10M/day ↔ 2,500 rps peak, 100M/day ↔ ~25,000 rps peak). Keep the anchors — a
+  second peak factor elsewhere makes two topics contradict each other. It is a
+  heuristic, so state the assumption where it matters: consumer and campaign
+  traffic concentrates 10–20×, steady internal/B2B traffic 3–5×.
+
+  T1→T3 each step is 10×, and T3→T4 is 100× on purpose: that last jump is where
+  a system stops growing and changes shape (shards or cells, regional
+  isolation, blast-radius design). 10M/day is the documented waypoint inside it
+  — the tier that most readers are actually approaching — so name it when the
+  answer changes there, but do not turn it into a fifth column. Everything
+  between 10M and 100M is the same regime, and the honest way to describe T4 is
+  as **N copies of a T3 system plus routing**: ~25,000 rps peak is roughly ten
+  cells each carrying a T3-to-waypoint load. Per-cell numbers are the ones a
+  reader can reason about; the tier-wide number only sizes the fleet.
+
+  A technology, a config line or a pattern is then judged **per tier**, in
+  these four words: `not needed` (the operational cost exceeds the benefit
+  here) · `worth it` (cheap insurance, not yet required) · `mandatory` (its
+  absence is an incident waiting) · `needs its own scaling story` (one config
+  line will not do it; it needs its own component and an owner). Using the same
+  four verdicts everywhere is what makes the tiers a yardstick instead of
+  decoration.
+
 ## Security model
 
 There is no RLS. `Code.gs` is the only thing enforcing access:
@@ -429,6 +543,11 @@ never persist it to `localStorage`/`sessionStorage`, include it in an error, or
 write it to any browser/server log. The Sheet itself must keep **General
 access: Restricted** and must not be shared with app users; they access only
 their own rows through the verified Apps Script API.
+
+Search queries are reader data like progress and notes: they reach the Sheet
+only through `search.push`, only while signed in, and land under the verified
+`sub`. Signed out they never leave the browser session at all — see the search
+history rule in "Things that break easily".
 
 What `localStorage` *does* hold is `gazl.profile` — the **profile hint**:
 `{sub, email, name, picture}` and nothing else. It exists so a returning
@@ -467,4 +586,7 @@ Anything under `public/vendor/` is skipped everywhere: it is upstream code,
 pinned by directory name.
 
 Editing `apps-script/Code.gs` requires Deploy → Manage deployments → New
-version, otherwise the Web App keeps serving the old code.
+version, otherwise the Web App keeps serving the old code. The `search.pull` /
+`search.push` / `search.delete` actions and the `search_history` sheet were
+added there — until that redeploy, signed-in search history stays on the
+device and the site behaves exactly as it did before.

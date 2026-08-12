@@ -158,6 +158,37 @@ drain_time = 19.500 / 50 = 390 giây
 
 Một buyer chờ 6,5 phút cho flash sale ngắn gần như không còn giá trị. Trường hợp này phải trả sold-out, busy hoặc Retry-After thay vì tiếp tục queue vô hạn.
 
+### 2.5 Backpressure trong hệ thống nhiều request
+
+`Backpressure` là cơ chế làm cho producer/client **giảm tốc, chờ có giới hạn hoặc bị từ chối** khi consumer/downstream không còn xử lý kịp. Nó biến overload từ một queue vô hạn thành một contract có giới hạn; mục tiêu là bảo vệ latency, memory, connection và correctness của phần việc đã được nhận.
+
+Trong Topic 18, backpressure phải đi theo chuỗi:
+
+```text
+edge admission → bounded waiting room → bounded in-flight hold
+→ bounded DB/PSP concurrency → consumer pull/prefetch → Retry-After hoặc reject
+```
+
+Ảnh hưởng khi producer nhanh hơn consumer:
+
+| Không có backpressure | Có backpressure |
+|---|---|
+| Request vẫn vào Book/Inventory rồi tranh lock | Chặn ở edge trước khi chiếm DB connection |
+| Queue depth tăng, nhưng user không biết phải chờ bao lâu | Queue có max age; quá hạn trả `busy`, `sold-out` hoặc `Retry-After` |
+| Retry sau timeout tạo positive feedback và retry storm | Deadline, jitter, idempotency và retry budget giới hạn traffic phục hồi |
+| Thêm pod/consumer làm hot SKU hoặc PSP bị gọi nhiều hơn | Consumer pull theo `safe_downstream_rate`, không vượt DB/PSP budget |
+| Memory, connection pool và lock wait cùng cạn | Bulkhead tách browse, booking, payment và worker priority |
+
+Control phải đặt ở boundary sớm nhất biết **cost + priority**: gateway admission theo campaign/SKU/account, semaphore cho concurrent hold, queue bounded, RabbitMQ `prefetch` hữu hạn hoặc Kafka consumer lag, rồi mới tới database/PSP. Đừng dùng queue lớn để che capacity thiếu; queue chỉ có ích khi:
+
+```text
+drain_rate > arrival_rate
+và
+estimated_drain_time ≤ business_window
+```
+
+Nếu không, phải shed work ít quan trọng, giảm admission hoặc trả lỗi có nghĩa. Theo dõi `in_flight`, queue depth, `oldest-message-age`, available permits/connections, rejection rate, deadline miss và **đạo hàm queue lag** (đang tăng hay giảm); CPU thường là tín hiệu đến muộn.
+
 ## 3. Kiến trúc đề xuất
 
 ```mermaid

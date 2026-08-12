@@ -43,6 +43,11 @@ var SHEETS = {
   /** Fshare tool: folders the user has opened. One row per (user, linkcode). */
   fshare_history:      ['user_id', 'linkcode', 'name', 'hits', 'last_at'],
 
+  /** Site search: recent queries, so history follows the reader between
+   *  devices. One row per (user, q). Signed-out history never reaches here —
+   *  it stays in the browser session. */
+  search_history:      ['user_id', 'q', 'hits', 'last_at'],
+
   /** Generic per-user settings, namespaced by `app` so other tools can share. */
   app_config:          ['user_id', 'app', 'key', 'value', 'updated_at']
 };
@@ -329,6 +334,55 @@ var ACTIONS = {
         });
       }
       return counts;
+    });
+  },
+
+  /* ---- Site search -------------------------------------------------- */
+
+  /** Recent searches for this reader, merged client-side with local history. */
+  'search.pull': function (user) {
+    return {
+      history: mine(table('search_history').read(), user).map(function (r) {
+        return { q: r.q, hits: Number(r.hits) || 1, at: iso(r.last_at) };
+      })
+    };
+  },
+
+  /** Upsert by (user, q): searching the same thing twice updates one row. */
+  'search.push': function (user, p) {
+    var history = asArray(p && p.history);
+    if (!history.length) return { history: 0 };
+    if (history.length > MAX_ROWS_PER_PUSH) {
+      throw publicError('Request quá lớn (giới hạn ' + MAX_ROWS_PER_PUSH + ' dòng).');
+    }
+    return withLock(function () {
+      return {
+        history: upsertByKey(table('search_history'), user, history, ['q'], function (r) {
+          return {
+            user_id: user.sub,
+            // A query is free text; cap it so one paste cannot fill a cell.
+            q: String(r.q || '').slice(0, 200),
+            hits: Number(r.hits) || 1,
+            last_at: iso(r.at) || nowIso()
+          };
+        })
+      };
+    });
+  },
+
+  /** Removes named queries, or the whole history when `all` is set. */
+  'search.delete': function (user, p) {
+    var all = Boolean(p && p.all);
+    var wanted = {};
+    asArray(p && p.queries).forEach(function (q) { wanted[String(q)] = 1; });
+    if (!all && !Object.keys(wanted).length) throw publicError('Thiếu queries.');
+
+    return withLock(function () {
+      return {
+        deleted: table('search_history').deleteWhere(function (r) {
+          return String(r.user_id) === String(user.sub) && (all || wanted[String(r.q)] === 1);
+        })
+      };
     });
   },
 

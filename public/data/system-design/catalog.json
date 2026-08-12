@@ -1848,7 +1848,8 @@
           "Booking saga: Run authorize/capture and order confirmation as a durable saga, release expired or failed holds and reconcile unknown PSP outcomes.",
           "Client-facing state: Expose campaign state, queue position and truthful pending/sold-out results so clients do not poll inventory aggressively.",
           "Durable handoff: Commit stock, expiring hold and outbox together; emit hold-created/payment work only after commit, then return confirm-or-release commands to the Inventory authority.",
-          "Traffic lifecycle: Operate NORMAL, PRE_PEAK, SURGE, PROTECT and RECOVERY policies with versioned admission, DB/PSP budgets, user response and rollback owner."
+          "Traffic lifecycle: Operate NORMAL, PRE_PEAK, SURGE, PROTECT and RECOVERY policies with versioned admission, DB/PSP budgets, user response and rollback owner.",
+          "Backpressure contract: Stop or slow producer work before the scarce boundary with bounded admission, in-flight holds, consumer pull/prefetch, deadlines, cancellation, Retry-After and load shedding; never hide overload in an unbounded queue."
         ],
         "quality": [
           "Inventory invariant: Confirmed plus active-held quantity never exceeds sellable stock; Redis cache or lock loss cannot violate this invariant.",
@@ -1857,7 +1858,8 @@
           "Admission deadline: p99 hold latency stays within the admission deadline; once the queue cannot drain inside the business window, reject rather than hide demand in an unbounded backlog.",
           "Audit trail: Every hold, expiry, payment and compensation transition is auditable and can be replayed or reconciled without mutating history.",
           "Scale-in safety: A worker drains or checkpoints its current message before termination; scale-in cannot strand an active hold, unpublished outbox event or unknown payment.",
-          "Budget isolation: Browse, batch and analytics work have bounded DB/PSP concurrency so a scale-out in one path cannot consume the reservation budget."
+          "Budget isolation: Browse, batch and analytics work have bounded DB/PSP concurrency so a scale-out in one path cannot consume the reservation budget.",
+          "Backpressure safety: When arrival rate exceeds drain rate, queue age and deadline misses stay bounded by rejecting, shedding or slowing work before DB connections, locks and PSP concurrency are exhausted."
         ],
         "capacity": [
           "Baseline: 1M DAU does not imply high throughput—uniform traffic is only 11.6 user arrivals/s. Model the launch window: 50k users refreshing five times in 60 seconds produces about 4,167 edge requests/s before images and retries.",
@@ -1870,7 +1872,8 @@
           "Capacity SLOs: DB pool below 70%, p99 lock wait below 20 ms, hold success response below 250 ms, post-admission backend queue age below 2 s, payment pending age bounded by provider SLA, and zero negative inventory.",
           "Autoscaler gap: if a fleet needs 90 seconds to start and safe admission is 50/s while a campaign sends 2,000/s, an unbounded queue grows by roughly 175,500 requests before warm-up completes. Pre-warm known events; use the waiting room to bound unknown spikes.",
           "Scaling vector: CDN, cache, search, gateways and independent workers scale with replicas; a viral SKU remains bounded by its 1 / critical-section rate. Measure and set a separate per-SKU admission cap rather than treating total RPS as capacity.",
-          "Scale-in gate: reduce capacity only after no active campaign, queue/outbox age is inside SLO, payment unknown and expiry backlog are draining, and p99/pool/lock signals are stable through a cooldown window."
+          "Scale-in gate: reduce capacity only after no active campaign, queue/outbox age is inside SLO, payment unknown and expiry backlog are draining, and p99/pool/lock signals are stable through a cooldown window.",
+          "Backpressure capacity check: admit only when drain_rate exceeds arrival_rate and estimated_drain_time fits the business window; otherwise cap the waiting room, shed low-priority work or return Retry-After instead of growing backlog."
         ],
         "diagram_title": "Traffic-lifecycle flash-sale architecture with authoritative inventory",
         "data_model": [
@@ -1888,7 +1891,7 @@
           "Availability projection — campaign/SKU, approximate remaining band, version and observed_at; optimized for browse and never authoritative for confirmation."
         ],
         "stack": [
-          "Edge waiting room/CDN — absorbs synchronized refreshes and releases signed admission tokens at a rate the checkout path has measured it can sustain; alternative is immediate 429/sold-out for very short campaigns.",
+          "Edge waiting room/CDN — absorbs synchronized refreshes and releases signed admission tokens at a rate the checkout path has measured it can sustain; its bounded queue age is the first backpressure valve; alternative is immediate 429/sold-out for very short campaigns.",
           "API gateway limiter — limits per campaign, SKU, account and device/API key; weighted checkout cost is more useful than IP-only request count behind NAT or bot networks.",
           "PostgreSQL/MySQL inventory authority — conditional UPDATE or short SELECT FOR UPDATE transaction with unique constraints; preferred when oversell is unacceptable because correctness survives cache loss.",
           "Redis — excellent for waiting-room counters, admission tokens, cached availability and optional atomic reservation when bounded loss/repair is explicitly accepted; a TTL lock alone is not the stock source of truth.",
@@ -1919,7 +1922,7 @@
           "A longer hold TTL improves checkout completion while reducing inventory utilization and enabling hoarding. Use a short base TTL, per-user caps and policy-controlled extension after payment authorization begins.",
           "Partitioning by SKU spreads different products but never scales one viral SKU. For that key, reduce critical-section time, pre-split a quota into fenced buckets or serialize commands in one partition and accept bounded throughput.",
           "Pre-allocating stock to cells/regions removes a global write hop and contains failure, but stranded quota can show sold-out in one cell while another has stock; rebalance only through fenced quota transfer.",
-          "Queueing smooths a burst only when drain rate exceeds sustainable arrivals soon enough. If 2,000 attempts/s enter a 50/s hot-SKU worker, backlog grows 1,950/s; after ten seconds it already needs about 390 seconds to drain, so rejection is the honest response.",
+          "Queueing/backpressure smooths a burst only when drain rate exceeds sustainable arrivals soon enough. If 2,000 attempts/s enter a 50/s hot-SKU worker, backlog grows 1,950/s; after ten seconds it already needs about 390 seconds to drain, so bounded admission and rejection are the honest response.",
           "Failure review: test Redis loss, DB primary failover, an expired hold racing with payment success, duplicated payment callbacks, outbox lag, bot-distributed identities and a client retry storm after a gateway timeout."
         ],
         "failure_review": [
@@ -1964,7 +1967,8 @@
           "Booking saga: Chạy authorize/capture và order confirmation bằng durable saga, release hold hết hạn/thất bại và reconcile PSP outcome mơ hồ.",
           "Trạng thái cho client: Expose campaign state, queue position và pending/sold-out trung thực để client không poll inventory hung hãn.",
           "Handoff bền vững: Commit stock, hold có expiry và outbox cùng nhau; chỉ phát hold-created/payment work sau commit, rồi gửi command confirm/release về Inventory authority.",
-          "Traffic lifecycle: Vận hành policy NORMAL, PRE_PEAK, SURGE, PROTECT và RECOVERY có versioned admission, DB/PSP budget, user response và rollback owner."
+          "Traffic lifecycle: Vận hành policy NORMAL, PRE_PEAK, SURGE, PROTECT và RECOVERY có versioned admission, DB/PSP budget, user response và rollback owner.",
+          "Backpressure contract: Dừng hoặc làm chậm producer trước scarce boundary bằng bounded admission, in-flight hold, consumer pull/prefetch, deadline, cancellation, Retry-After và load shedding; không giấu overload trong queue vô hạn."
         ],
         "quality": [
           "Invariant inventory: Tổng confirmed và active-held không vượt sellable stock; mất Redis cache/lock không được làm vỡ invariant này.",
@@ -1973,7 +1977,8 @@
           "Hạn admission: p99 hold latency nằm trong admission deadline; khi queue không drain kịp business window phải reject thay vì giấu demand trong backlog vô hạn.",
           "Dấu vết audit: Mọi transition hold, expiry, payment và compensation đều audit/replay/reconcile được mà không mutate history.",
           "Scale-in an toàn: Worker drain hoặc checkpoint message hiện tại trước terminate; scale-in không được làm stranded active hold, outbox chưa publish hoặc payment unknown.",
-          "Cô lập budget: Browse, batch và analytics có DB/PSP concurrency hữu hạn để scale-out một path không ăn reservation budget."
+          "Cô lập budget: Browse, batch và analytics có DB/PSP concurrency hữu hạn để scale-out một path không ăn reservation budget.",
+          "Backpressure safety: Khi arrival rate vượt drain rate, queue age và deadline miss vẫn hữu hạn bằng cách reject, shed hoặc làm chậm work trước khi DB connection, lock và PSP concurrency cạn."
         ],
         "capacity": [
           "Baseline: 1M DAU không đồng nghĩa throughput cao — nếu đều chỉ là 11,6 user arrival/s. Cần model launch window: 50k user refresh năm lần trong 60 giây tạo khoảng 4.167 edge request/s, chưa tính image và retry.",
@@ -1986,7 +1991,8 @@
           "Capacity SLO: DB pool dưới 70%, p99 lock wait dưới 20 ms, hold response dưới 250 ms, post-admission backend queue age dưới 2 giây, payment pending age theo provider SLA và zero negative inventory.",
           "Khoảng trống autoscaler: Nếu fleet cần 90 giây để start và safe admission là 50/s trong khi campaign gửi 2.000/s, queue vô hạn tăng khoảng 175.500 request trước khi warm-up xong. Campaign có lịch phải pre-warm; spike không biết trước phải bị waiting room chặn hữu hạn.",
           "Scaling vector: CDN, cache, search, gateway và worker độc lập scale theo replica; một SKU viral vẫn bị chặn bởi 1 / critical-section time. Đo và đặt per-SKU admission cap riêng thay vì xem total RPS là capacity.",
-          "Gate scale-in: Chỉ giảm capacity khi không có active campaign, queue/outbox age trong SLO, payment unknown và expiry backlog đang drain, p99/pool/lock ổn định qua cooldown window."
+          "Gate scale-in: Chỉ giảm capacity khi không có active campaign, queue/outbox age trong SLO, payment unknown và expiry backlog đang drain, p99/pool/lock ổn định qua cooldown window.",
+          "Backpressure capacity check: Chỉ admit khi drain_rate lớn hơn arrival_rate và estimated_drain_time nằm trong business window; nếu không thì cap waiting room, shed work ít ưu tiên hoặc trả Retry-After thay vì để backlog phình."
         ],
         "diagram_title": "Kiến trúc flash-sale theo traffic lifecycle với inventory authoritative",
         "data_model": [
@@ -2004,7 +2010,7 @@
           "Availability projection — campaign/SKU, approximate remaining band, version và observed_at; tối ưu browse và không authoritative khi confirm."
         ],
         "stack": [
-          "Edge waiting room/CDN — hấp thụ synchronized refresh và phát signed admission token theo rate checkout path đã đo là chịu được; campaign rất ngắn có thể chọn 429/sold-out ngay.",
+          "Edge waiting room/CDN — hấp thụ synchronized refresh và phát signed admission token theo rate checkout path đã đo là chịu được; bounded queue age là van backpressure đầu tiên; campaign rất ngắn có thể chọn 429/sold-out ngay.",
           "API gateway limiter — limit theo campaign, SKU, account và device/API key; weighted checkout cost hữu ích hơn IP-only count sau NAT hoặc bot network.",
           "PostgreSQL/MySQL inventory authority — conditional UPDATE hoặc transaction SELECT FOR UPDATE rất ngắn kèm unique constraint; phù hợp khi không chấp nhận oversell vì correctness sống qua cache loss.",
           "Redis — phù hợp cho waiting-room counter, admission token, cached availability và optional atomic reservation nếu bounded loss/repair được chấp nhận rõ; TTL lock đơn lẻ không phải stock source of truth.",
@@ -2035,7 +2041,7 @@
           "Hold TTL dài tăng checkout completion nhưng giảm inventory utilization và tạo cơ hội hoarding. Dùng base TTL ngắn, per-user cap và chỉ extend theo policy sau khi bắt đầu payment authorization.",
           "Partition theo SKU phân tán các product khác nhau nhưng không scale một viral SKU. Với key đó phải giảm critical-section time, pre-split quota thành fenced bucket hoặc serialize command trong một partition và chấp nhận bounded throughput.",
           "Pre-allocate stock theo cell/region bỏ global write hop và giới hạn blast radius, nhưng quota có thể mắc kẹt khiến một cell báo sold-out trong khi cell khác còn hàng; chỉ rebalance qua fenced quota transfer.",
-          "Queue chỉ làm phẳng burst nếu drain rate sớm vượt sustainable arrival. Nếu 2.000 attempt/s vào worker hot-SKU 50/s, backlog tăng 1.950/s; sau 10 giây đã cần khoảng 390 giây để drain, vì vậy reject mới là phản hồi trung thực.",
+          "Queue/backpressure chỉ làm phẳng burst nếu drain rate sớm vượt sustainable arrival. Nếu 2.000 attempt/s vào worker hot-SKU 50/s, backlog tăng 1.950/s; sau 10 giây đã cần khoảng 390 giây để drain, vì vậy bounded admission và reject mới là phản hồi trung thực.",
           "Failure review: test Redis loss, DB primary failover, expired hold race với payment success, duplicate payment callback, outbox lag, bot dùng distributed identity và client retry storm sau gateway timeout."
         ],
         "failure_review": [
@@ -2067,6 +2073,221 @@
           "Admission control",
           "Queueing",
           "Capacity"
+        ]
+      }
+    },
+    {
+      "n": 19,
+      "slug": "api-gateway-identity-edge",
+      "category": "foundations",
+      "effort": "60 min",
+      "source_items": [
+        "27-api-gateway-identity-edge.the-edge-in-four-sizes.q1",
+        "27-api-gateway-identity-edge.the-edge-in-four-sizes.q2",
+        "27-api-gateway-identity-edge.the-edge-in-four-sizes.q3",
+        "27-api-gateway-identity-edge.gateway-configuration-that-matters.q1",
+        "27-api-gateway-identity-edge.gateway-configuration-that-matters.q2",
+        "27-api-gateway-identity-edge.gateway-configuration-that-matters.q3",
+        "27-api-gateway-identity-edge.gateway-configuration-that-matters.q4",
+        "27-api-gateway-identity-edge.identity-at-the-edge.q1",
+        "27-api-gateway-identity-edge.identity-at-the-edge.q2",
+        "27-api-gateway-identity-edge.identity-at-the-edge.q3",
+        "27-api-gateway-identity-edge.identity-at-the-edge.q4",
+        "27-api-gateway-identity-edge.authorization-without-a-bottleneck.q1",
+        "27-api-gateway-identity-edge.authorization-without-a-bottleneck.q2",
+        "27-api-gateway-identity-edge.introducing-a-gateway-into-a-running-system.q1",
+        "27-api-gateway-identity-edge.introducing-a-gateway-into-a-running-system.q2",
+        "27-api-gateway-identity-edge.introducing-a-gateway-into-a-running-system.q3",
+        "27-api-gateway-identity-edge.internal-calls-sync-async-or-neither.q1",
+        "27-api-gateway-identity-edge.internal-calls-sync-async-or-neither.q2"
+      ],
+      "diagram": "flowchart TB\n  C[Client] --> CDN[CDN / static]\n  C --> LB[L4 load balancer]\n  LB --> GW[API gateway: route, authN, limit, breaker]\n  GW -. JWKS cache .-> IDP[Identity provider]\n  GW -. decision cache .-> PDP[Policy decision point]\n  GW --> RL[(Redis rate-limit counters)]\n  GW --> S1[Service A] --> DB1[(DB A)]\n  GW --> S2[Service B]\n  S1 -->|sync gRPC| S2\n  S1 -->|async event| MQ[[Message broker]] --> W[Worker]",
+      "en": {
+        "title": "API gateway and identity edge under four traffic tiers",
+        "excerpt": "Choose the edge controls, identity trust boundaries and sync/async hops that keep a gateway useful without turning it into a global bottleneck or a new single point of failure.",
+        "scope": "Every request needs a defensible authentication and authorization boundary before it reaches the system, but putting every control at one gateway creates a new choke point. The design must separate north-south routing from east-west calls, keep domain authorization with the resource owner, and size identity, rate limiting and connection state against a declared peak workload. It must also say what remains available when the IdP, JWKS, policy engine, Redis or one gateway cell is unhealthy.\n\nThe thesis is simple: the edge should make cheap, coarse decisions early, while services retain the authority to protect their own invariants.",
+        "functional": [
+          "Routing: match host, path and method, then apply ordered filters without allowing client headers to change the destination.",
+          "Authentication: verify the bearer token or a narrowly scoped internal assertion before protected north-south traffic reaches a service.",
+          "Authorization: enforce coarse scope, audience, tenant and product policy at the edge, then leave object and state authorization to the owner service.",
+          "Admission: apply per-route, tenant and identity rate limits plus bounded concurrency before scarce downstream capacity is consumed.",
+          "Resilience: enforce deadlines, retry budgets, circuit breaking and an explicit 429, 503 or 504 contract for each route.",
+          "Identity propagation: forward a verified original token or a signed internal assertion while stripping client-supplied identity headers.",
+          "Operations: emit route-level RED metrics, W3C traces, a bounded correlation id and audit-safe policy decisions for diagnosis and review."
+        ],
+        "quality": [
+          "Latency budget: target no more than 5 ms p99 for a warm local route, then measure JWT, Redis and PDP costs separately; this is an SLO target, not a vendor guarantee.",
+          "Availability: the edge is not a single point of failure; gateway capacity, configuration, keys and policy must survive one instance, zone or cell loss.",
+          "Identity outage: cached JWKS may verify an unexpired JWT, but money movement and privilege changes fail closed when the IdP, introspection or policy source is unavailable.",
+          "Isolation: one route, tenant, backend, IdP or PDP failure cannot exhaust the connection pool, event loop, limiter state or retry budget of unrelated routes.",
+          "Trust boundary: client-provided user, tenant, role, forwarding and routing headers are stripped and rebuilt only from verified context.",
+          "Rotation: issuer, key, policy and route changes have overlap, versioning, canary and rollback paths that do not depend on the failing control plane.",
+          "Degraded contract: every route declares whether it rejects, serves a bounded stale result, becomes read-only or returns pending when a dependency is unhealthy."
+        ],
+        "capacity": [
+          "T1 — 2.5 rps peak (10k req/day): one or two gateway instances, a local or managed limiter and one regional identity path are usually sufficient; measure the added hop rather than guessing.",
+          "T2 — 25 rps peak (100k req/day): keep a small multi-instance fleet, warm connection pools and route-level budgets; a shared Redis limiter is useful when tenant or abuse isolation needs it.",
+          "T3 — 250 rps peak (1M req/day): size gateway replicas by p99 concurrency and downstream budgets, then add zonal HA, Redis HA, JWKS cache protection, retry budgets and dependency-specific breakers.",
+          "Waypoint — 2,500 rps peak (10M req/day): test whether one regional fleet can still upgrade, warm and recover as a unit; this is often where cells or regional policy distribution become worthwhile.",
+          "T4 — 25,000 rps peak (100M req/day): model roughly ten T3-to-waypoint cells plus routing, with per-cell gateway instances, local key/cache paths and regional isolation; the fleet-wide number is not a single process target.",
+          "JWT and JWKS: benchmark RS256 and ES256 verification at the target p99 with warm and cold key caches, token sizes and realistic concurrency; record cache-hit rate and unknown-kid refresh rate instead of inventing a constant.",
+          "Rate limiting: count one Redis atomic check, its retries and policy refresh operations per request, then reserve headroom for hot tenants and failover; measure Redis ops and latency under the actual key distribution.",
+          "Boundary trigger: move tier when connection acquisition, event-loop delay, 429/504 rate, retry amplification, JWKS/PDP latency or blast radius breaches the budget even if average CPU is below a target."
+        ],
+        "diagram_title": "North-south edge, identity controls and east-west paths",
+        "data_model": [
+          "Route configuration — route id, match predicates, destination, ordered filters, timeout, retry budget, auth mode, policy version and rollback owner; publish it as a validated immutable snapshot.",
+          "Rate-limit counter — Redis key, policy version, refill rate, burst, weighted cost, expiry and decision timestamp; counters are disposable control state, not business truth.",
+          "JWKS and token cache — issuer, key id, public key, algorithm, fetched_at, expires_at and refresh status; cache public verification material and never private keys or bearer tokens.",
+          "Policy and rule store — tenant, principal, action, resource class, policy version, bundle checksum and activation window; a PDP decision is reproducible only when its input and version are known.",
+          "Identity assertion — subject, tenant, audience, scopes, issue time, expiry, key id and route context; services verify the assertion before using it and reject a client-created equivalent.",
+          "Audit log — decision id, principal pseudonym, tenant, action, route, policy/key version, outcome, reason code and trace id; exclude tokens, secrets and unnecessary payload data.",
+          "Capacity and health budget — route, cell, instance, connection limits, queue age, dependency state, warm-up phase and last-known-good config; it drives admission and safe scale-in."
+        ],
+        "stack": [
+          "CDN and L4 boundary: terminate or pass through transport concerns, cache safe public bytes and shed obvious abuse before the application gateway; do not put object authorization here.",
+      "Spring Cloud Gateway 5.0.2: use the selected Server WebFlux or Server Web MVC starter from the 2025.1.2 release train, and keep route predicates, ordered filters and effective configuration under test.",
+      "Runtime baseline: use a supported Java LTS and verify vendor patch support against the selected Boot/Cloud train; JDK 25 is the current LTS reference at review time, not a throughput assumption.",
+      "Resilience4j 2.2.0: use CircuitBreaker, TimeLimiter and RateLimiter concepts for local protection, but choose one retry/breaker owner per hop and avoid hiding distributed state behind an in-process default.",
+          "Redis rate limiter and cache: use atomic token-bucket checks, short-lived policy/JWKS metadata and bounded decision cache; isolate limiter state by region or cell when a global store becomes a failure amplifier.",
+          "Identity provider and keys: use OAuth/OIDC discovery, short-lived access tokens, overlapping signing keys and regional JWKS availability; validate issuer, audience, algorithm and time at the consumer boundary.",
+          "PDP: use OPA/Rego, Cedar or a service-local policy module only for decisions that need dynamic context; version bundles, cache with a stated staleness bound and keep the service invariant local.",
+          "Internal protocols: keep public REST at the north-south contract, use gRPC when a measured east-west need justifies it, and use a durable message broker for work that does not belong on the request path."
+        ],
+        "tradeoffs": [
+          "Gateway verification vs service verification — verify at both boundaries for defense in depth, but give the gateway coarse rejection and the service final resource authorization; measure the duplicated crypto cost.",
+          "JWT vs opaque introspection — JWT keeps the hot path local and survives a bounded IdP outage, while opaque tokens give fresher revocation at the price of an IdP dependency and a cache-staleness contract.",
+          "Roles in token vs PDP — token roles are cheap and portable but stale; a PDP handles dynamic resource context but needs availability, policy rollout, decision caching and audit ownership.",
+          "Sync vs async hop — synchronous calls preserve an immediate answer but multiply tail latency and retry work; queues smooth load and isolate failure but owe idempotency, ordering, DLQ, lag and a pending contract.",
+          "Smart gateway vs thin gateway — domain-aware routing can reduce client hops, but fetching business data at the edge duplicates service ownership, increases blast radius and makes policy evolution harder.",
+          "Global state vs cells — one limiter, IdP cache or PDP is simple to reason about initially, while regional or per-cell state limits blast radius but adds quota transfer, key distribution and reconciliation work.",
+          "Central config vs local autonomy — a central snapshot gives consistent policy and rollback, while local cached data keeps the data plane alive during control-plane failure; both require version, expiry and last-known-good behavior."
+        ],
+        "tags": [
+          "API Gateway",
+          "Identity edge",
+          "JWT/JWKS",
+          "Authorization",
+          "Rate limiting",
+          "Circuit breaking",
+          "Cells",
+          "North-south vs east-west"
+        ],
+        "failure_review": [
+          {
+            "question": "Which invariant can break when the gateway or IdP is unhealthy?",
+            "answer": "A valid identity must never become a valid domain action by itself. The service remains the authority for tenant, object and state invariants; gateway and IdP failures may reject or degrade a request, but they cannot authorize a client-supplied header or bypass the service check."
+          },
+          {
+            "question": "Which metric detects the edge boundary before users see an outage?",
+            "answer": "Start with route-level p99, pending connection acquisition, event-loop delay, 429/504 rate, retry amplification, JWKS/PDP latency and usable downstream pool. The first saturated dependency—not aggregate gateway CPU—sets the next action and the blast radius."
+          },
+          {
+            "question": "How is the blast radius contained when one route, cell or identity dependency fails?",
+            "answer": "Scope breakers, limits, pools, caches and policy bundles by route, tenant, region or cell. Fail closed for high-risk actions, serve only explicitly bounded stale reads, and keep last-known-good route and key material so one control-plane failure cannot erase every data-plane decision."
+          },
+          {
+            "question": "Can retry duplicate or reorder an external effect?",
+            "answer": "Yes: a gateway timeout does not prove that the service or provider did nothing. Retry only safe operations or carry an idempotency key, keep one retry owner per hop, and use an explicit pending/unknown state with reconciliation for payment or other irreversible effects."
+          },
+          {
+            "question": "What evidence proves recovery after key, Redis, PDP or gateway-cell loss?",
+            "answer": "Restore the last-known-good configuration, refresh keys with overlap, rebuild disposable counters and replay policy safely, then verify route error budget, queue age, key refresh, decision consistency and reconciliation debt. Recovery is proven only when the degraded contract ends without an unexplained authorization or business-state transition."
+          }
+        ]
+      },
+      "vi": {
+        "title": "API gateway và identity edge dưới bốn traffic tier",
+        "excerpt": "Chọn edge control, identity trust boundary và sync/async hop để gateway hữu ích mà không thành bottleneck toàn cục hay single point of failure mới.",
+        "scope": "Mọi request cần một authentication và authorization boundary có thể bảo vệ được trước khi vào hệ thống, nhưng gom mọi control vào một gateway sẽ tạo choke point mới. Design phải tách north-south routing khỏi east-west call, giữ domain authorization với resource owner, và size identity, rate limiting cùng connection state theo peak workload đã khai báo. Design cũng phải nói rõ còn phục vụ được gì khi IdP, JWKS, policy engine, Redis hoặc một gateway cell không khỏe.\n\nThesis là: edge nên đưa ra quyết định coarse, rẻ và sớm, còn service giữ authority để bảo vệ invariant của chính nó.",
+        "functional": [
+          "Routing: match host, path và method rồi chạy filter theo thứ tự, không cho client header đổi destination.",
+          "Authentication: verify bearer token hoặc internal assertion scope hẹp trước khi north-south traffic được bảo vệ tới service.",
+          "Authorization: enforce scope, audience, tenant và product policy ở mức coarse tại edge, rồi để owner service quyết object và state authorization.",
+          "Admission: áp dụng rate limit theo route, tenant và identity cùng bounded concurrency trước khi tiêu downstream capacity khan hiếm.",
+          "Resilience: enforce deadline, retry budget, circuit breaker và contract rõ cho 429, 503 hoặc 504 của từng route.",
+          "Identity propagation: forward original token đã verify hoặc signed assertion, đồng thời strip identity header do client gửi.",
+          "Operations: emit RED metrics theo route, W3C trace, correlation id có giới hạn và policy decision an toàn cho audit."
+        ],
+        "quality": [
+          "Latency budget: target không quá 5 ms p99 cho route local đã warm, sau đó đo riêng cost của JWT, Redis và PDP; đây là SLO target, không phải vendor guarantee.",
+          "Availability: edge không được là single point of failure; gateway capacity, config, key và policy phải sống qua mất instance, zone hoặc cell.",
+          "Identity outage: cached JWKS có thể verify JWT chưa hết hạn, nhưng money movement và privilege change phải fail closed khi IdP, introspection hoặc policy source unavailable.",
+          "Isolation: route, tenant, backend, IdP hoặc PDP hỏng không được ăn hết connection pool, event loop, limiter state hay retry budget của route khác.",
+          "Trust boundary: user, tenant, role, forwarding và routing header từ client phải bị strip rồi dựng lại từ context đã verify.",
+          "Rotation: thay issuer, key, policy và route phải có overlap, version, canary và rollback không phụ thuộc control plane đang lỗi.",
+          "Degraded contract: từng route phải nói rõ lúc dependency lỗi thì reject, serve stale có giới hạn, chuyển read-only hay trả pending."
+        ],
+        "capacity": [
+          "T1 — 2,5 rps peak (10k req/day): một hoặc hai gateway instance, limiter local/managed và một identity path trong region thường đủ; đo hop thêm thay vì đoán.",
+          "T2 — 25 rps peak (100k req/day): giữ fleet nhỏ nhiều instance, warm connection pool và budget theo route; shared Redis limiter hữu ích khi cần isolate tenant hoặc abuse.",
+          "T3 — 250 rps peak (1M req/day): size gateway replica theo p99 concurrency và downstream budget, rồi thêm zonal HA, Redis HA, JWKS-cache protection, retry budget và breaker theo dependency.",
+          "Waypoint — 2.500 rps peak (10M req/day): test một regional fleet còn upgrade, warm và recovery như một unit được không; đây thường là lúc cell hoặc regional policy distribution đáng có.",
+          "T4 — 25.000 rps peak (100M req/day): model khoảng mười cell T3 tới waypoint cộng routing, với gateway instance, key/cache path và regional isolation theo cell; không xem số toàn fleet là target của một process.",
+          "JWT và JWKS: benchmark verify RS256/ES256 ở p99 mục tiêu với key cache warm/cold, token size và concurrency thật; ghi cache-hit rate cùng unknown-kid refresh rate thay vì bịa constant.",
+          "Rate limit: đếm một Redis atomic check, retry và policy refresh cho mỗi request, rồi chừa headroom cho hot tenant và failover; đo Redis ops cùng latency theo key distribution thật.",
+          "Boundary trigger: đổi tier khi connection acquisition, event-loop delay, 429/504, retry amplification, JWKS/PDP latency hoặc blast radius vượt budget dù CPU trung bình còn thấp."
+        ],
+        "diagram_title": "North-south edge, identity control và east-west path",
+        "data_model": [
+          "Route configuration — route id, match predicate, destination, ordered filter, timeout, retry budget, auth mode, policy version và rollback owner; publish thành immutable snapshot đã validate.",
+          "Rate-limit counter — Redis key, policy version, refill rate, burst, weighted cost, expiry và decision timestamp; đây là control state có thể bỏ, không phải business truth.",
+          "JWKS và token cache — issuer, key id, public key, algorithm, fetched_at, expires_at và refresh status; chỉ cache public verification material, không cache private key hay bearer token.",
+          "Policy và rule store — tenant, principal, action, resource class, policy version, bundle checksum và activation window; PDP decision chỉ reproduce được khi biết input và version.",
+          "Identity assertion — subject, tenant, audience, scope, issue time, expiry, key id và route context; service phải verify assertion rồi mới dùng, không chấp nhận bản client tự tạo.",
+          "Audit log — decision id, principal pseudonym, tenant, action, route, policy/key version, outcome, reason code và trace id; không ghi token, secret hay payload thừa.",
+          "Capacity và health budget — route, cell, instance, connection limit, queue age, dependency state, warm-up phase và last-known-good config; nó điều khiển admission và scale-in an toàn."
+        ],
+        "stack": [
+          "CDN và L4 boundary: xử lý transport, cache public byte an toàn và shed abuse rõ ràng trước application gateway; không đặt object authorization ở đây.",
+      "Spring Cloud Gateway 5.0.2: dùng starter Server WebFlux hoặc Server Web MVC đã chọn trong release train 2025.1.2, đưa route predicate, ordered filter và effective config vào test.",
+      "Runtime baseline: dùng Java LTS còn được vendor hỗ trợ và verify patch support theo Boot/Cloud train đã chọn; ở thời điểm review, JDK 25 là mốc LTS hiện hành, không phải throughput assumption.",
+      "Resilience4j 2.2.0: dùng khái niệm CircuitBreaker, TimeLimiter và RateLimiter cho protection local, nhưng mỗi hop phải có một retry/breaker owner và không giấu distributed state sau default in-process.",
+          "Redis rate limiter và cache: dùng token-bucket check atomic, policy/JWKS metadata ngắn hạn và decision cache có giới hạn; isolate limiter state theo region/cell khi global store khuếch đại failure.",
+          "Identity provider và key: dùng OAuth/OIDC discovery, access token ngắn hạn, signing key overlap và JWKS theo region; consumer phải validate issuer, audience, algorithm và time.",
+          "PDP: dùng OPA/Rego, Cedar hoặc policy module local khi decision cần context động; version bundle, cache với staleness bound rõ và giữ invariant trong service.",
+          "Internal protocol: giữ public REST ở north-south contract, dùng gRPC khi east-west need đã đo đủ để biện minh, và dùng message broker cho work không thuộc request path."
+        ],
+        "tradeoffs": [
+          "Gateway verification vs service verification — verify ở cả hai boundary để defense in depth, nhưng gateway reject coarse còn service authorize resource cuối; phải đo crypto cost bị lặp.",
+          "JWT vs opaque introspection — JWT giữ hot path local và sống qua IdP outage có giới hạn; opaque token revocation mới hơn nhưng phải trả IdP dependency và cache-staleness contract.",
+          "Role trong token vs PDP — token role rẻ, portable nhưng stale; PDP xử lý resource context động nhưng cần availability, policy rollout, decision cache và audit owner.",
+          "Sync vs async hop — sync giữ answer ngay nhưng nhân tail latency và retry work; queue làm phẳng load, isolate failure nhưng phải trả idempotency, ordering, DLQ, lag và pending contract.",
+          "Smart gateway vs thin gateway — route hiểu domain có thể giảm hop của client, nhưng fetch business data ở edge lặp service ownership, tăng blast radius và làm policy khó evolve.",
+          "Global state vs cell — limiter, IdP cache hoặc PDP global ban đầu dễ hiểu hơn; state theo region/cell giảm blast radius nhưng thêm quota transfer, key distribution và reconciliation.",
+          "Central config vs local autonomy — snapshot central cho policy nhất quán và rollback, cache local giữ data plane sống khi control plane lỗi; cả hai đều cần version, expiry và last-known-good."
+        ],
+        "tags": [
+          "API Gateway",
+          "Identity edge",
+          "JWT/JWKS",
+          "Authorization",
+          "Rate limiting",
+          "Circuit breaking",
+          "Cells",
+          "North-south vs east-west"
+        ],
+        "failure_review": [
+          {
+            "question": "Invariant nào có thể break khi gateway hoặc IdP không khỏe?",
+            "answer": "Identity hợp lệ không tự biến thành domain action hợp lệ. Service vẫn là authority cho tenant, object và state invariant; gateway/IdP failure có thể reject hoặc degrade nhưng không được authorize client header hay bypass service check."
+          },
+          {
+            "question": "Metric nào phát hiện edge boundary trước khi user thấy outage?",
+            "answer": "Bắt đầu với p99 theo route, pending connection acquisition, event-loop delay, 429/504, retry amplification, JWKS/PDP latency và usable downstream pool. Dependency saturation đầu tiên, không phải aggregate CPU, quyết định action kế tiếp và blast radius."
+          },
+          {
+            "question": "Blast radius được contain thế nào khi một route, cell hoặc identity dependency lỗi?",
+            "answer": "Scope breaker, limit, pool, cache và policy bundle theo route, tenant, region hoặc cell. Fail closed cho action rủi ro cao, chỉ serve stale khi có bound rõ, và giữ last-known-good route/key để một control-plane failure không xóa mọi data-plane decision."
+          },
+          {
+            "question": "Retry có duplicate hoặc reorder external effect không?",
+            "answer": "Có: gateway timeout không chứng minh service/provider chưa làm gì. Chỉ retry operation an toàn hoặc mang idempotency key, giữ một retry owner cho mỗi hop, và dùng pending/unknown state cùng reconciliation cho payment hay external effect không đảo ngược."
+          },
+          {
+            "question": "Bằng chứng nào chứng minh recovery sau mất key, Redis, PDP hoặc gateway cell?",
+            "answer": "Restore last-known-good config, refresh key có overlap, rebuild counter có thể bỏ và replay policy an toàn, rồi verify error budget, queue age, key refresh, decision consistency cùng reconciliation debt. Recovery chỉ được coi là xong khi degraded contract kết thúc mà không có authorization hay business transition không giải thích được."
+          }
         ]
       }
     }

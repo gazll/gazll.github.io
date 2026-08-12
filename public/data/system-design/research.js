@@ -20,7 +20,8 @@ export const SYSTEM_DESIGN_RESEARCH = {
     'high-traffic-booking-search': ['transactions', 'messaging'],
     'scaling-1m-to-10m-requests': ['data-evolution', 'reliability'],
     'scaling-technique-catalogue': ['data-evolution', 'observability'],
-    'flash-sale-booking-inventory-bottleneck': ['flash-sale', 'elastic-scaling', 'transactions', 'rate-limiting']
+    'flash-sale-booking-inventory-bottleneck': ['flash-sale', 'elastic-scaling', 'transactions', 'rate-limiting'],
+    'api-gateway-identity-edge': ['reliability', 'rate-limiting', 'identity-edge']
   },
   packs: {
     'flash-sale': {
@@ -429,6 +430,53 @@ export const SYSTEM_DESIGN_RESEARCH = {
       sources: [
         ['OpenTelemetry — Metrics and cardinality', 'https://opentelemetry.io/docs/concepts/signals/metrics/'],
         ['AWS — Security Pillar', 'https://docs.aws.amazon.com/wellarchitected/latest/security-pillar/welcome.html']
+      ]
+    },
+    'identity-edge': {
+      en: {
+        title: 'Identity controls at the gateway boundary',
+        intro: 'Authentication, authorization and key distribution are separate decisions. The edge can reject cheap failures early, but a service must still own its resource invariant and trust boundary.',
+        sections: [
+          { title: 'Verify the token, then verify the context', items: [
+            'Validate issuer, signature algorithm, key id, audience and time claims before using a JWT. A cached JWKS is verification material, not proof that a user may access a particular object.',
+            'Use the gateway for coarse route policy and let the resource service verify the original token or a signed internal assertion. Strip client identity headers before adding trusted context.'
+          ]},
+          { title: 'Treat keys and policy as dependencies', items: [
+            'Refresh an unknown key id once with backoff, overlap old and new signing keys during rotation, and keep the last valid key set only for the documented degraded window.',
+            'Cache policy decisions with a key that includes principal, tenant, action, resource class and policy version. A stale allow is a security decision, not an ordinary cache hit.'
+          ]},
+          { title: 'Choose degraded behavior per risk', items: [
+            'Short-lived JWTs can keep low-risk reads available during a bounded IdP outage; high-risk writes should fail closed when introspection or policy evidence is unavailable.',
+            'Measure verification p99, JWKS miss and refresh rates, PDP latency, deny/allow changes and key-id distribution. These signals reveal an identity bottleneck before a global gateway outage.'
+          ]}
+        ]
+      },
+      vi: {
+        title: 'Identity control tại gateway boundary',
+        intro: 'Authentication, authorization và key distribution là các decision khác nhau. Edge có thể reject lỗi rẻ sớm, nhưng service vẫn phải sở hữu resource invariant và trust boundary.',
+        sections: [
+          { title: 'Verify token rồi verify context', items: [
+            'Validate issuer, signature algorithm, key id, audience và time claim trước khi dùng JWT. JWKS cache là verification material, không phải bằng chứng user được đọc object cụ thể.',
+            'Dùng gateway cho coarse route policy và để resource service verify original token hoặc signed internal assertion. Strip identity header từ client trước khi thêm context trusted.'
+          ]},
+          { title: 'Coi key và policy là dependency', items: [
+            'Refresh key id lạ một lần có backoff, overlap key cũ và mới trong rotation, rồi chỉ giữ key set hợp lệ cuối cùng trong degraded window đã ghi.',
+            'Cache policy decision với key gồm principal, tenant, action, resource class và policy version. Stale allow là security decision, không phải cache hit bình thường.'
+          ]},
+          { title: 'Chọn degraded behavior theo risk', items: [
+            'JWT ngắn hạn có thể giữ low-risk read sống qua IdP outage có giới hạn; high-risk write nên fail closed khi thiếu introspection hoặc policy evidence.',
+            'Đo verification p99, JWKS miss/refresh rate, PDP latency, allow/deny change và key-id distribution. Các signal này lộ identity bottleneck trước gateway outage toàn cục.'
+          ]}
+        ]
+      },
+      sources: [
+        ['Spring Cloud Gateway — Reference', 'https://docs.spring.io/spring-cloud-gateway/reference/index.html'],
+        ['Spring Security — Resource Server JWT', 'https://docs.spring.io/spring-security/reference/reactive/oauth2/resource-server/jwt.html'],
+        ['RFC 9700 — OAuth 2.0 Security BCP', 'https://www.rfc-editor.org/rfc/rfc9700.html'],
+        ['RFC 8725 — JWT Best Current Practices', 'https://www.rfc-editor.org/rfc/rfc8725.html'],
+        ['OpenID Connect Discovery 1.0', 'https://openid.net/specs/openid-connect-discovery-1_0.html'],
+        ['Resilience4j — CircuitBreaker', 'https://resilience4j.readme.io/docs/circuitbreaker'],
+        ['Open Policy Agent — REST API', 'https://www.openpolicyagent.org/docs/latest/rest-api/']
       ]
     },
     'data-evolution': {

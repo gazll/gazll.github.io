@@ -892,5 +892,87 @@
       "https://www.rfc-editor.org/rfc/rfc9562.html",
       "https://www.postgresql.org/docs/current/indexes-partial.html"
     ]
+  },
+  "27-api-gateway-identity-edge.gateway-configuration-that-matters.q1": {
+    "reviewed_at": "2026-08-12",
+    "target_versions": [
+      "Spring Cloud Gateway 5.0.2",
+      "Spring Cloud 2025.1.2 (Oakwood)",
+      "Spring Boot 4.1.x",
+      "JDK 25 LTS"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.spring.io/spring-cloud-gateway/reference/index.html",
+      "https://docs.spring.io/spring-cloud-gateway/reference/spring-cloud-gateway-server-webflux/starter.html",
+      "https://spring.io/projects/spring-cloud",
+      "https://openjdk.org/projects/jdk/25/"
+    ]
+  },
+  "27-api-gateway-identity-edge.gateway-configuration-that-matters.q3": {
+    "reviewed_at": "2026-08-12",
+    "target_versions": [
+      "Spring Cloud Gateway 5.0.2",
+      "Resilience4j 2.2.0"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.spring.io/spring-cloud-gateway/reference/spring-cloud-gateway-server-webflux/gatewayfilter-factories/circuitbreaker-filter.html",
+      "https://docs.spring.io/spring-cloud-gateway/reference/spring-cloud-gateway-server-webflux/gatewayfilter-factories/requestratelimiter-factory.html",
+      "https://github.com/resilience4j/resilience4j/releases/tag/v2.2.0"
+    ]
+  },
+  "27-api-gateway-identity-edge.gateway-configuration-that-matters.q4": {
+    "reviewed_at": "2026-08-12",
+    "target_versions": [
+      "Spring Cloud Gateway 5.0.2",
+      "Spring Boot 4.1.x",
+      "Netty 4.x"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.spring.io/spring-cloud-gateway/reference/configprops.html",
+      "https://docs.spring.io/spring-cloud-gateway/reference/spring-cloud-gateway-server-webflux/starter.html"
+    ]
+  },
+  "27-api-gateway-identity-edge.identity-at-the-edge.q1": {
+    "reviewed_at": "2026-08-12",
+    "target_versions": [
+      "RFC 9700 (OAuth 2.0 Security BCP)",
+      "Spring Security current OAuth2 Resource Server reference"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://www.rfc-editor.org/rfc/rfc9700.html",
+      "https://docs.spring.io/spring-security/reference/reactive/oauth2/resource-server/index.html"
+    ]
+  },
+  "27-api-gateway-identity-edge.identity-at-the-edge.q2": {
+    "reviewed_at": "2026-08-12",
+    "target_versions": [
+      "RFC 8725 (JWT Best Current Practices)",
+      "OpenID Connect Discovery 1.0 incorporating errata set 2",
+      "Spring Security current Resource Server JWT reference"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://www.rfc-editor.org/rfc/rfc8725.html",
+      "https://openid.net/specs/openid-connect-discovery-1_0.html",
+      "https://docs.spring.io/spring-security/reference/reactive/oauth2/resource-server/jwt.html"
+    ]
+  },
+  "27-api-gateway-identity-edge.identity-at-the-edge.q4": {
+    "reviewed_at": "2026-08-12",
+    "target_versions": [
+      "RFC 9700 (OAuth 2.0 Security BCP)",
+      "RFC 8725 (JWT Best Current Practices)",
+      "OpenID Connect Discovery 1.0 incorporating errata set 2"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://www.rfc-editor.org/rfc/rfc9700.html",
+      "https://www.rfc-editor.org/rfc/rfc8725.html",
+      "https://openid.net/specs/openid-connect-discovery-1_0.html"
+    ]
   }
 }

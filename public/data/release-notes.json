@@ -2,6 +2,89 @@
   "version": 1,
   "releases": [
     {
+      "date": "2026-08-12",
+      "en": {
+        "title": "One search bar across every surface"
+      },
+      "vi": {
+        "title": "Một thanh tìm kiếm cho mọi surface"
+      },
+      "changes": [
+        {
+          "kind": "feature",
+          "target": "search",
+          "en": {
+            "text": "The header now carries a **search** control (`Ctrl`/`⌘` + `K`, or `/`) that queries the Study Track, the System Design blueprints and the case-study library at once. Every result names the topic or blueprint that owns it and links straight to that card, so a keyword answers *where do I read this* rather than *does this exist*. Accents are optional — `dong bo` finds `đồng bộ`. When one query returns more than the overlay shows, **See all results** opens a full panel at its own URL (`#/search/<query>`), filterable by surface."
+          },
+          "vi": {
+            "text": "Header giờ có control **search** (`Ctrl`/`⌘` + `K`, hoặc `/`) tìm đồng thời trong Study Track, blueprint System Design và thư viện case study. Mỗi kết quả nêu rõ topic hoặc blueprint chứa nó và link thẳng tới card đó, nên một keyword trả lời *đọc ở đâu* chứ không chỉ *có tồn tại không*. Không cần gõ dấu — `dong bo` vẫn ra `đồng bộ`. Khi kết quả nhiều hơn phần overlay hiển thị, **See all results** mở panel đầy đủ với URL riêng (`#/search/<query>`), lọc được theo từng surface."
+          }
+        },
+        {
+          "kind": "feature",
+          "target": "search",
+          "en": {
+            "text": "Recent searches are remembered, and can be removed one at a time or cleared entirely. Signed out they live in the browser session only; signing in carries that session's searches into the account and keeps them in the Sheet from then on, so history follows the reader between devices."
+          },
+          "vi": {
+            "text": "Các lần tìm gần đây được ghi nhớ, xoá được từng mục hoặc xoá tất cả. Khi chưa đăng nhập, chúng chỉ nằm trong session của trình duyệt; lúc đăng nhập, phần lịch sử của session được mang sang tài khoản và lưu tiếp vào Sheet, nên lịch sử đi theo người đọc giữa các thiết bị."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-12",
+      "en": {
+        "title": "Blueprint 19: API Gateway and Identity Edge"
+      },
+      "vi": {
+        "title": "Blueprint 19: API Gateway và Identity Edge"
+      },
+      "changes": [
+        {
+          "kind": "feature",
+          "target": "system-design",
+          "en": {
+            "text": "Added Topic 27 as the 19th System Design blueprint: 18 migrated notes cover four traffic tiers, gateway configuration, identity verification, authorization, migration and internal call boundaries. The topic lives entirely on the System Design surface, so the Study Track progress denominator remains 365 even though the library now holds 424 items across 27 topics."
+          },
+          "vi": {
+            "text": "Thêm Topic 27 thành blueprint System Design thứ 19: 18 note bao phủ bốn traffic tier, gateway configuration, identity verification, authorization, migration và internal call boundary. Topic nằm hoàn toàn trên surface System Design, nên mẫu số progress của Study Track vẫn là 365 dù thư viện hiện có 424 item trong 27 topic."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-12",
+      "en": {
+        "title": "A cross-reference is now a link, not a 45-character id"
+      },
+      "vi": {
+        "title": "Cross-reference giờ là link, không còn là chuỗi id 45 ký tự"
+      },
+      "changes": [
+        {
+          "kind": "feature",
+          "target": "all-topics",
+          "en": {
+            "text": "The material explains a mechanism once and cites it everywhere else, and there are 359 of those citations per language. Until now each one rendered as the raw item id, so following a pointer meant hunting for it by hand. They are links now: an item still on the Study Track opens at its card, one that moved into a blueprint opens inside that blueprint, and the link is labelled with the question it leads to rather than the id. An id shown inside `code`, a `<pre>` block or a diagram stays text — there it is being displayed, not cited."
+          },
+          "vi": {
+            "text": "Tài liệu giải thích một cơ chế đúng một lần rồi trỏ về đó từ mọi nơi khác, và mỗi ngôn ngữ đang có 359 con trỏ như vậy. Trước đây chúng hiện ra đúng dạng item id thô, nên đi theo một con trỏ nghĩa là tự đi tìm. Giờ chúng là link: item còn trên Study Track mở ra tại card của nó, item đã chuyển vào blueprint thì mở trong chính blueprint đó, và link mang tên câu hỏi đích chứ không phải id. Id nằm trong `code`, trong `<pre>` hay trong diagram vẫn là chữ — ở đó nó đang được trưng ra, không phải đang trỏ đi."
+          }
+        },
+        {
+          "kind": "fix",
+          "target": "05-db-core-index-lock",
+          "en": {
+            "text": "One Vietnamese cross-reference pointed at a section slug that does not exist, so it led nowhere. Content validation only read the English base files for references; it now checks both languages, because an id is language-independent and a broken one in the companion is invisible to anyone reading English."
+          },
+          "vi": {
+            "text": "Một cross-reference bên bản tiếng Việt trỏ tới section slug không tồn tại nên không dẫn đi đâu cả. Trước đây khâu validate chỉ đọc file EN để kiểm reference; giờ kiểm cả hai ngôn ngữ, vì id không phụ thuộc ngôn ngữ và một ref hỏng bên file companion thì người đọc bản tiếng Anh không bao giờ thấy."
+          }
+        }
+      ]
+    },
+    {
       "date": "2026-08-11",
       "en": {
         "title": "The Vietnamese material keeps the words an interview actually uses"

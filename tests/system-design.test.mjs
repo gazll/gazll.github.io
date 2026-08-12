@@ -100,16 +100,21 @@ test('Topic 18 keeps the durable flash-sale lifecycle and scale-in guidance', ()
     assert.ok(body.tradeoffs.some(row => /Scale.to.zero|Scale-to-zero/.test(row)), `${lang}: low-traffic trade-off missing`);
     assert.equal(body.failure_review?.length, 5, `${lang}: five answered failure-review prompts required`);
     assert.ok(body.failure_review.every(row => row.question && row.answer), `${lang}: failure review answer missing`);
+    assert.ok(body.functional.some(row => /backpressure/i.test(row)), `${lang}: backpressure contract missing`);
+    assert.ok(body.quality.some(row => /backpressure/i.test(row)), `${lang}: backpressure safety missing`);
+    assert.ok(body.capacity.some(row => /backpressure/i.test(row)), `${lang}: backpressure capacity check missing`);
+    assert.ok(body.stack.some(row => /backpressure/i.test(row)), `${lang}: backpressure valve missing`);
+    assert.ok(body.tradeoffs.some(row => /backpressure/i.test(row)), `${lang}: backpressure trade-off missing`);
   }
 });
 
-test('Topic 10–11 and the OTA/whiteboard overlap are moved once, with every immutable id covered', async () => {
-  assert.deepEqual(movedRows.map(row => row.n), [10, 11]);
+test('Topic 10–11, Topic 27 and the OTA/whiteboard overlap are moved once, with every immutable id covered', async () => {
+  assert.deepEqual(movedRows.map(row => row.n), [10, 11, 27]);
   assert.equal(manifest.topics.find(row => row.n === 16).system_design_items.length, 6);
   const expected = await movedSourceIds();
   const actual = catalog.designs.flatMap(design => design.source_items);
 
-  assert.equal(expected.length, 41);
+  assert.equal(expected.length, 59);
   assert.equal(actual.length, expected.length);
   assert.equal(new Set(actual).size, actual.length, 'one source question was assigned to two blueprints');
   assert.deepEqual([...actual].sort(), [...expected].sort());
@@ -141,7 +146,8 @@ test('every blueprint has bilingual research lenses backed by primary sources', 
     'https://sre.google', 'https://docs.aws.amazon.com', 'https://developers.cloudflare.com',
     'https://redis.io', 'https://docs.stripe.com', 'https://www.postgresql.org',
     'https://kafka.apache.org', 'https://learn.microsoft.com', 'https://www.elastic.co',
-    'https://opentelemetry.io'
+    'https://opentelemetry.io', 'https://www.rfc-editor.org', 'https://docs.spring.io',
+    'https://openid.net', 'https://resilience4j.readme.io', 'https://www.openpolicyagent.org'
   ]);
 
   assert.deepEqual(Object.keys(research.assignments).sort(), catalog.designs.map(row => row.slug).sort());
@@ -228,7 +234,7 @@ test('the shared loader resolves migrated notes and switches the whole collectio
       assert.equal(design.effort, source.effort, `${design.slug}: effort lost in apply()`);
     }
     assert.equal(SystemDesign.cases.length, 4);
-    assert.equal(SystemDesign.designs.flatMap(design => design.sourceNotes).length, 41);
+    assert.equal(SystemDesign.designs.flatMap(design => design.sourceNotes).length, 59);
     const itemId = catalog.designs[4].source_items[0];
     assert.equal(SystemDesign.designForSourceItem(itemId).slug, 'payment-ledger');
     assert.equal(SystemDesign.designForSourceItem('missing.q1'), null);

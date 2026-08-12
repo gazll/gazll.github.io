@@ -5,6 +5,7 @@ import { SystemDesign } from '../lib/system-design.js';
 import { CaseStudies } from '../lib/case-studies.js';
 import { mountMermaidDiagrams } from '../lib/mermaid.js';
 import { systemDesignQuestionUrl } from '../lib/question-links.js';
+import { crossRefResolver } from '../lib/cross-ref.js';
 import { SYSTEM_DESIGN_RESEARCH } from '../data/system-design/research.js';
 
 let mountToken = 0;
@@ -350,7 +351,8 @@ const RESEARCH_ORIGINS = new Set([
   'https://sre.google', 'https://docs.aws.amazon.com', 'https://developers.cloudflare.com',
   'https://redis.io', 'https://docs.stripe.com', 'https://www.postgresql.org',
   'https://kafka.apache.org', 'https://learn.microsoft.com', 'https://www.elastic.co',
-  'https://opentelemetry.io'
+  'https://opentelemetry.io', 'https://www.rfc-editor.org', 'https://docs.spring.io',
+  'https://openid.net', 'https://resilience4j.readme.io', 'https://www.openpolicyagent.org'
 ]);
 
 function safeResearchHref(value) {
@@ -383,13 +385,18 @@ function renderResearch(design) {
 
 function renderSourceAnswer(markdown) {
   const replacement = '<p class="sd-legacy-diagram-note">' + escapeHtml(text().legacyDiagram) + '</p>';
-  return renderMarkdown(markdown).replace(/<figure\s+class=['"]dgm['"][\s\S]*?<\/figure>/gi, replacement);
+  return renderMarkdown(markdown, { resolveRef: crossRefResolver() }).replace(/<figure\s+class=['"]dgm['"][\s\S]*?<\/figure>/gi, replacement);
 }
 
 function renderSourceNotes(design) {
   if (!design.sourceNotes.length) return '';
+  const migratedNote = design.slug === 'api-gateway-identity-edge'
+    ? (Content.lang === 'vi'
+      ? 'Giữ lại từ Topic 27 — API gateway và identity edge trong System Design.'
+      : 'Preserved from Topic 27 — API gateway and identity edge in System Design.')
+    : text().migratedNote;
   return '<section class="sd-section sd-notes"><h2 id="migrated-notes">' + text().migrated + '</h2><p>'
-    + text().migratedNote + '</p>' + design.sourceNotes.map(note => '<details id="question-' + escapeHtml(note.id)
+    + migratedNote + '</p>' + design.sourceNotes.map(note => '<details id="question-' + escapeHtml(note.id)
       + '" data-sd-question="' + escapeHtml(note.id) + '"><summary><span>'
       + escapeHtml(note.q) + '</span><code>' + escapeHtml(note.id) + '</code></summary><div>'
       + '<div class="sd-note-actions"><button type="button" data-copy-sd-question data-design-slug="'

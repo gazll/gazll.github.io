@@ -140,6 +140,12 @@
       "n": 26,
       "file": "topics/26-testing-strategy.json",
       "topic_type": "core"
+    },
+    {
+      "n": 27,
+      "file": "topics/27-api-gateway-identity-edge.json",
+      "topic_type": "design",
+      "surface": "system-design"
     }
   ]
 }

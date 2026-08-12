@@ -909,6 +909,38 @@
           "Mutation testing"
         ]
       }
+    },
+    "27": {
+      "topic_type": "design",
+      "key": "27-api-gateway-identity-edge",
+      "vi": {
+        "label": "API Gateway & Identity Edge",
+        "title": "API Gateway và Identity Edge — control traffic trước khi vào hệ thống",
+        "intro": "Thiết kế gateway, authentication, authorization và internal call boundary theo bốn traffic tier. Tập trung vào timeout, rate limit, JWKS, policy cache, blast radius và lúc edge cần đổi hình dạng.",
+        "tags": [
+          "API Gateway",
+          "JWT/JWKS",
+          "OAuth 2.0",
+          "Rate limiting",
+          "Authorization",
+          "Timeouts",
+          "Cells"
+        ]
+      },
+      "en": {
+        "label": "API Gateway & Identity Edge",
+        "title": "API Gateway & Identity Edge — control traffic before it enters the system",
+        "intro": "Design the gateway, authentication, authorization and internal-call boundary across four traffic tiers. Focus on timeouts, rate limits, JWKS, policy caching, blast radius and the point where the edge must change shape.",
+        "tags": [
+          "API Gateway",
+          "JWT/JWKS",
+          "OAuth 2.0",
+          "Rate limiting",
+          "Authorization",
+          "Timeouts",
+          "Cells"
+        ]
+      }
     }
   }
 }

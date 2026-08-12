@@ -25,7 +25,7 @@ const LANGS = ['en', 'vi'];
    Keep this closed rather than skipping any unresolvable target — a typo in a
    topic key should fail here, not silently render without its badge. */
 const NON_TOPIC_TARGETS = new Set([
-  'case-studies', 'system-design', 'boot', 'language', 'all-topics', 'release-notes'
+  'case-studies', 'system-design', 'boot', 'language', 'all-topics', 'release-notes', 'search'
 ]);
 
 test('there is at least one release, and every release is dated ISO yyyy-mm-dd', () => {

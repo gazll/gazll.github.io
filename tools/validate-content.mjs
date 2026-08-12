@@ -170,6 +170,16 @@ for (const [n, m] of Object.entries(meta.topics)) {
 for (const { row, content } of topics) {
   const viFile = readOptionalJson(DATA + row.file.replace(/\.json$/, '.vi.json'));
   if (!viFile) { errs.push(`topic ${row.n}: missing ${row.file.replace(/\.json$/, '.vi.json')}`); continue; }
+  // Cross-refs are checked on both sides: ids are language-independent, and a
+  // typo that exists only in the companion renders as dead text rather than a
+  // link, which is exactly the failure nobody notices while reading English.
+  for (const sec of viFile.sections || []) {
+    for (const it of sec.items || []) {
+      for (const m of String(it.a).matchAll(REF_RE)) {
+        if (!seen.has(m[1])) errs.push(`${it.id}.vi: cross-ref (${m[1]}) points at no item`);
+      }
+    }
+  }
   if (!Array.isArray(viFile.sections) || viFile.sections.length !== content.sections.length) {
     errs.push(`topic ${row.n}.vi.json: ${(viFile.sections || []).length} sections for ${content.sections.length} in the base file`);
   }

@@ -51,6 +51,14 @@
       </button>
     </div>
     <div class="headright">
+      <!-- The overlay itself is built by views/search.js; this is only its
+           trigger, sized like every other header control so the one-row
+           header keeps shedding rather than wrapping. -->
+      <button class="searchtrigger" id="searchTrigger" aria-label="Search all material" title="Search (Ctrl+K)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></svg>
+        <span class="st-label">Search</span>
+        <kbd class="st-key">Ctrl K</kbd>
+      </button>
       <div class="progress-wrap track-only">
         <div class="progress-meta">Reviewed<br><b id="reviewedCount">0</b> / <span id="totalCount">0</span></div>
         <div class="ring" id="ring"></div>
