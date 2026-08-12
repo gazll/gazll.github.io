@@ -51,6 +51,7 @@ public/
     content.js       topic data model; owns the global content language and change events
     case-studies.js  numbered bilingual case-study data model + article-body cache
     system-design.js blueprint data model; resolves source_items to live topic items
+    project.js       CalebZone SRS manifest and cached source-document/sample loader
     search.js        one index over all three surfaces: folding, ranking, snippets
     search-history.js recent searches: session while signed out, account once signed in
     mermaid.js       lazy loader for the vendored renderer; diagrams degrade to source
@@ -68,6 +69,7 @@ public/
     admin.js         all-user overview (admin role only)
     system-design.js blueprint library + design/production-case reader, TOC, Mermaid tools
     case-studies.js  long-form case-study library + article reader/lightbox
+    project.js       Project SRS reader with architecture, requirements, source docs and code samples
     release-notes.js bilingual changelog of the material; chrome stays English
     dsa-player.js    play/pause/step control for the DSA animations
   vendor/mermaid-11.16.1/  pinned upstream build; version lives in the directory name
@@ -84,6 +86,9 @@ public/
     case-studies/NN-slug.vi.json  Vietnamese guide + numbered Vietnamese body path
     case-studies/articles/NN-slug[.vi].html trusted local long-form article pairs
     system-design/catalog.json  blueprints + production-case lenses, VI + EN in one file
+    projects/calebzone/manifest.json  Project SRS metadata, module map, requirements, docs and sample manifest
+    projects/calebzone/docs/        source-document snapshots imported from the CalebZone working tree
+    projects/calebzone/samples/     sanitized Java/XML/YAML implementation samples
     interviews.json     seed entries, merged under everyone's own Sheet rows
   assets/case-studies/  local article figures; never hotlinked from a publisher
 apps-script/Code.gs  the entire backend (Google Sheet as database)
@@ -268,6 +273,13 @@ secret/              GITIGNORED. Personal setup notes and credentials
   destination: it renders as a new-tab link and `currentViewId()` refuses to
   route to it, so a hash matching its id falls back to the track. That is how
   sibling apps under `public/` (e.g. `fshare-tool/`) join the menu.
+
+- **Project is an implementation snapshot, not another Study Track.** The
+  `Project` menu currently opens `#/project` and renders the CalebZone SRS from
+  `data/projects/calebzone/manifest.json`. The manifest points at copied source
+  documents and code/config samples so the page works after GitHub Pages deploy;
+  it cannot read the sibling `/home/.../calebzone` directory at runtime. Update
+  the snapshot deliberately, and redact secrets before adding a sample.
 
 - **Case studies are numbered and bilingual, but are not Study Track topics.**
   They do not have item ids, difficulty, reviewed state or notes, and never

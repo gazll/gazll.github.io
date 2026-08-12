@@ -29,6 +29,7 @@ import { renderStats, mountStats } from './views/stats.js';
 import { renderAdmin, mountAdmin } from './views/admin.js';
 import { renderSystemDesign, mountSystemDesign } from './views/system-design.js';
 import { renderCaseStudies, mountCaseStudies } from './views/case-studies.js';
+import { renderProject, mountProject } from './views/project.js';
 import { renderReleaseNotes, mountReleaseNotes } from './views/release-notes.js';
 import { renderSearch, mountSearch, mountSearchOverlay } from './views/search.js';
 import { SearchHistory } from './lib/search-history.js';
@@ -94,6 +95,8 @@ const GUIDE_MD = [
   '',
   '**System Design** is a long-form Experience library driven by `data/system-design/catalog.json`. Each blueprint follows the same review shape — framing, functional and quality requirements, capacity, architecture, data model, technology choices and trade-offs — and keeps its diagram as editable Mermaid source. Topic 10–11 deep dives plus the OTA/whiteboard overlap from Topic 16 are mapped into these articles by immutable item id; the architecture category moved from Case Studies is preserved there as production evidence.',
   '',
+  '**Project** is the implementation-facing SRS surface. It keeps a project manifest, runtime/module decisions, requirements, copied source documents and sanitized code/config samples together, so a design decision can be checked against the current working tree.',
+  '',
   'The 15 patterns in **DSA & LeetCode** are *animated*: press play and each step runs in turn, or scrub and arrow-key through them. Frames live in `data/dsa-animations.json` and were produced by running the real algorithm, so the animation cannot disagree with the code beside it. The drawing is shared between languages and only the step captions are translated.',
   '',
   '**Release Notes** (last entry in `Other`) records what material arrived and when. Entries live in `data/release-notes.json`, newest release first, so adding one never touches `app.js`. Each release and change carries `en` and `vi` blocks in that one file and follows the header switch like any other material; a note written in only one language falls back rather than rendering blank. A change may name a topic by its `key` — the view resolves that to the topic\'s current label, so renaming a topic never leaves a stale note behind.',
@@ -131,6 +134,8 @@ const VIEWS = [
 
   { id: 'system-design', sec: 'experience', label: 'System Design', desc: 'Blueprints, diagrams & trade-offs', icon: 'design',
     render: renderSystemDesign, mount: mountSystemDesign },
+  { id: 'project', sec: 'experience', label: 'Project', desc: 'CalebZone SRS & implementation evidence', icon: 'project',
+    render: renderProject, mount: mountProject },
   { id: 'case-studies', sec: 'experience', label: 'Case Studies', desc: 'Data, mobile & engineering stories', icon: 'case',
     render: renderCaseStudies, mount: mountCaseStudies },
 
@@ -154,6 +159,7 @@ const ICONS = {
   stats: '<path d="M5 19V10M12 19V5M19 19v-6"/>',
   admin: '<path d="M12 3l7 3v5c0 4.2-2.8 7.6-7 10-4.2-2.4-7-5.8-7-10V6z"/>',
   design: '<path d="M4 5h6v5H4zM14 5h6v5h-6zM9 15h6v5H9z"/><path d="M7 10v2.5h10V10M12 12.5V15"/>',
+  project: '<path d="M4 6.5h6l2 2h8v9.5H4z"/><path d="M4 6.5V5h6l2 2.5"/>',
   case: '<path d="M5 5h14v14H5z"/><path d="M8 9h8M8 13h5M9 5V3h6v2"/>',
   tool: '<path d="M14.5 3.5a5 5 0 0 0-6.1 6.7L3.5 15v5.5H9l4.8-4.9a5 5 0 0 0 6.7-6.1L17 12l-2.5-.5L14 9z"/>',
   guide: '<circle cx="12" cy="12" r="8.5"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.2 3.1c-.6.3-.8.7-.8 1.4"/><path d="M12 17h.01"/>',

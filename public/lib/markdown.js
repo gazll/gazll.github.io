@@ -17,6 +17,7 @@ const XREF = /\(([a-z0-9-]+\.[a-z0-9-]+\.q\d+)\)/g;
 export function renderMarkdown(md, options) {
   const lines = String(md || '').replace(/\r/g, '').split('\n');
   const resolveRef = options && options.resolveRef;
+  const headingIds = new Map();
   let i = 0, html = '';
 
   // No resolver means the id stays the plain text it has always been — that is
@@ -42,11 +43,57 @@ export function renderMarkdown(md, options) {
     t = t.replace(new RegExp(SENT + '(\\d+)' + SENT, 'g'), (_, n) => '<code>' + codes[+n] + '</code>');
     return t;
   }
-  const isSpecial = l => { const s = l.trim(); return s.startsWith(':::') || s.startsWith('<') || /^([-*]|\d+\.)\s+/.test(s); };
+  const fenceMatch = l => /^```([A-Za-z0-9_+.#-]*)\s*$/.exec(l.trim());
+  const headingMatch = l => /^(#{1,6})\s+(.+?)\s*#*$/.exec(l.trim());
+  const headingId = value => {
+    const base = String(value || '').replace(/[`*_]/g, '').trim().toLowerCase()
+      .normalize('NFKD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/^-+|-+$/g, '') || 'section';
+    const count = headingIds.get(base) || 0;
+    headingIds.set(base, count + 1);
+    return count ? base + '-' + count : base;
+  };
+  const splitTableRow = line => {
+    let row = line.trim();
+    if (row.startsWith('|')) row = row.slice(1);
+    if (row.endsWith('|')) row = row.slice(0, -1);
+    return row.split('|').map(cell => cell.trim());
+  };
+  const isTableSeparator = line => {
+    const cells = splitTableRow(line);
+    return cells.length > 1 && cells.every(cell => /^:?-{3,}:?$/.test(cell));
+  };
+  const isSpecial = l => {
+    const s = l.trim();
+    return s.startsWith(':::') || s.startsWith('<') || fenceMatch(s) || headingMatch(s)
+      || /^([-*]|\d+\.)\s+/.test(s) || /^\s*\|.*\|\s*$/.test(s);
+  };
 
   while (i < lines.length) {
     if (!lines[i].trim()) { i++; continue; }
     const trimmed = lines[i].trim();
+
+    // Fenced code is used by imported project documents and is intentionally
+    // escaped as a whole block: code samples must never become active HTML.
+    const fence = fenceMatch(trimmed);
+    if (fence) {
+      i++;
+      const buf = [];
+      while (i < lines.length && !/^```\s*$/.test(lines[i].trim())) { buf.push(lines[i]); i++; }
+      if (i < lines.length) i++;
+      const language = fence[1] ? ' class="language-' + escapeHtml(fence[1]) + '"' : '';
+      html += '<pre><code' + language + '>' + escapeHtml(buf.join('\n')) + '</code></pre>';
+      continue;
+    }
+
+    const heading = headingMatch(trimmed);
+    if (heading) {
+      const level = heading[1].length;
+      const label = heading[2].trim();
+      html += '<h' + level + ' id="' + escapeHtml(headingId(label)) + '">' + inlineMd(label) + '</h' + level + '>';
+      i++;
+      continue;
+    }
 
     // ::: callout container
     const cm = /^:::(deep|tip|warn)\s*(.*)$/.exec(trimmed);
@@ -75,6 +122,20 @@ export function renderMarkdown(md, options) {
       // Table cells cite items too. <pre> and <svg> are excluded: there the id
       // is sample text or diagram content, and an <a> would be wrong markup.
       html += /<(?:pre|svg)\b/.test(raw) ? raw : linkRefs(raw);
+      continue;
+    }
+
+    // Small GFM-style tables are useful in project SRS documents. The
+    // separator line makes this unambiguous and leaves ordinary pipe prose
+    // untouched.
+    if (i + 1 < lines.length && /^\s*\|.*\|\s*$/.test(lines[i]) && isTableSeparator(lines[i + 1])) {
+      const headers = splitTableRow(lines[i]);
+      i += 2;
+      const rows = [];
+      while (i < lines.length && /^\s*\|.*\|\s*$/.test(lines[i])) { rows.push(splitTableRow(lines[i])); i++; }
+      html += '<table class="md-table"><thead><tr>' + headers.map(cell => '<th>' + inlineMd(cell) + '</th>').join('')
+        + '</tr></thead><tbody>' + rows.map(row => '<tr>' + headers.map((_, index) => '<td>' + inlineMd(row[index] || '') + '</td>').join('') + '</tr>').join('')
+        + '</tbody></table>';
       continue;
     }
 
