@@ -18,7 +18,7 @@ export const SYSTEM_DESIGN_RESEARCH = {
     'object-storage-large-upload': ['object-storage', 'observability'],
     'ota-flight-booking': ['transactions', 'reliability'],
     'high-traffic-booking-search': ['transactions', 'messaging'],
-    'scaling-1m-to-10m-requests': ['transactions', 'data-evolution', 'reliability'],
+    'scaling-1m-to-10m-requests': ['transactions', 'messaging', 'caching', 'search-ranking', 'data-evolution', 'reliability'],
     'scaling-technique-catalogue': ['data-evolution', 'observability'],
     'flash-sale-booking-inventory-bottleneck': ['flash-sale', 'elastic-scaling', 'transactions', 'rate-limiting'],
     'api-gateway-identity-edge': ['reliability', 'rate-limiting', 'identity-edge']
@@ -268,7 +268,10 @@ export const SYSTEM_DESIGN_RESEARCH = {
         ]
       },
       sources: [
-        ['Apache Kafka — Design and delivery semantics', 'https://kafka.apache.org/08/design/design/'],
+        ['Apache Kafka 4.1 — Consumer groups and subscriptions', 'https://kafka.apache.org/41/javadoc/org/apache/kafka/clients/consumer/KafkaConsumer.html'],
+        ['Apache Kafka 4.1 — Producer idempotence and transactions', 'https://kafka.apache.org/41/javadoc/org/apache/kafka/clients/producer/KafkaProducer.html'],
+        ['RabbitMQ — Reliability and data safety', 'https://www.rabbitmq.com/docs/reliability'],
+        ['RabbitMQ — Dead Letter Exchanges', 'https://www.rabbitmq.com/docs/dlx'],
         ['Azure — Competing Consumers pattern', 'https://learn.microsoft.com/en-us/azure/architecture/patterns/competing-consumers']
       ]
     },
@@ -308,6 +311,7 @@ export const SYSTEM_DESIGN_RESEARCH = {
         ]
       },
       sources: [
+        ['Redis — Cache-aside', 'https://redis.io/docs/latest/develop/use-cases/cache-aside/'],
         ['Redis — Key eviction', 'https://redis.io/docs/latest/develop/reference/eviction/'],
         ['Redis — Client-side caching', 'https://redis.io/docs/latest/develop/clients/client-side-caching/']
       ]
@@ -348,6 +352,8 @@ export const SYSTEM_DESIGN_RESEARCH = {
         ]
       },
       sources: [
+        ['Elasticsearch — Near real-time search', 'https://www.elastic.co/docs/manage-data/data-store/near-real-time-search'],
+        ['Elasticsearch — Optimistic concurrency control', 'https://www.elastic.co/docs/reference/elasticsearch/rest-apis/optimistic-concurrency-control'],
         ['Elasticsearch — Search-as-you-type field', 'https://www.elastic.co/docs/reference/elasticsearch/mapping-reference/search-as-you-type'],
         ['Redis — Compare data types', 'https://redis.io/docs/latest/develop/data-types/compare-data-types/']
       ]

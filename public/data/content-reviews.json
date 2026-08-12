@@ -956,7 +956,11 @@
     "reviewed_at": "2026-08-12",
     "target_versions": [
       "AWS Prescriptive Guidance current transactional-outbox and Saga patterns",
-      "Apache Kafka 4.1 producer semantics",
+      "Apache Kafka 4.1 producer and consumer semantics",
+      "Kubernetes current Service and DNS discovery model",
+      "Redis current cache-aside guidance",
+      "Elasticsearch current near-real-time search model",
+      "RabbitMQ 4.3 reliability and dead-lettering guidance",
       "PostgreSQL current transaction semantics"
     ],
     "claim_type": "heuristic",
@@ -964,6 +968,12 @@
       "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html",
       "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/saga-patterns.html",
       "https://kafka.apache.org/41/javadoc/org/apache/kafka/clients/producer/KafkaProducer.html",
+      "https://kafka.apache.org/41/javadoc/org/apache/kafka/clients/consumer/KafkaConsumer.html",
+      "https://kubernetes.io/docs/concepts/services-networking/service/",
+      "https://redis.io/docs/latest/develop/use-cases/cache-aside/",
+      "https://www.elastic.co/docs/manage-data/data-store/near-real-time-search",
+      "https://www.rabbitmq.com/docs/reliability",
+      "https://www.rabbitmq.com/docs/dlx",
       "https://www.postgresql.org/docs/current/tutorial-transactions.html"
     ]
   },

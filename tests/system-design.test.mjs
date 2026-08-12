@@ -135,6 +135,29 @@ test('Blueprint 16 ships the supplied e-commerce reference architecture with a c
     assert.ok(body.stack.some(row => /at.least.once/i.test(row)), `${lang}: delivery semantics missing`);
     assert.equal(body.failure_review?.length, 5, `${lang}: explicit failure review required`);
   }
+
+  assert.equal(design.en.stack.length, 18, 'each e-commerce technology needs its own decision row');
+  assert.equal(design.vi.stack.length, design.en.stack.length, 'technology decisions must stay bilingual');
+  const technologyNames = design.en.stack.map(row => row.split(' — ')[0]);
+  for (const technology of [
+    'Image CDN', 'API Gateway', 'Service discovery with Kubernetes Service/DNS',
+    'Search Service plus Elasticsearch/OpenSearch', 'Product Redis cache', 'Cart DB plus Cart Redis',
+    'Checkout Saga plus Checkout DB', 'Idempotency store', 'Order Service plus relational Order DB',
+    'Inventory Service plus relational Inventory DB', 'Payment Service plus relational Payment DB',
+    'Transactional Outbox, relay and consumer Inbox', 'Kafka event log', 'RabbitMQ work queues',
+    'Bounded retry plus DLQ', 'After-payment workers and After Payment DB',
+    'Observability and reconciliation workers', 'Shards and cells'
+  ]) {
+    assert.ok(technologyNames.includes(technology), `technology decision missing: ${technology}`);
+  }
+  assert.ok(design.en.stack.every(row => /Problem solved:.*Flow position:.*Failure \/ cost:.*Tier verdict:/.test(row)),
+    'English technology rows need purpose, flow, failure/cost and a tier verdict');
+  assert.ok(design.vi.stack.every(row => /Vấn đề giải quyết:.*Vị trí trong flow:.*Failure \/ cái giá:.*Phán quyết theo tier:/.test(row)),
+    'Vietnamese technology rows need purpose, flow, failure/cost and a tier verdict');
+  assert.ok(design.en.stack.every(row => /not needed|worth it|mandatory|needs its own scaling story/.test(row)),
+    'English technology rows must use the shared tier vocabulary');
+  assert.ok(design.vi.stack.every(row => /không cần|nên có|bắt buộc|cần scale riêng/.test(row)),
+    'Vietnamese technology rows must use the shared tier vocabulary');
 });
 
 test('Topic 10–11, Topic 27 and the OTA/whiteboard overlap are moved once, with every immutable id covered', async () => {
@@ -191,7 +214,7 @@ test('every blueprint has bilingual research lenses backed by primary sources', 
   const allowedOrigins = new Set([
     'https://sre.google', 'https://docs.aws.amazon.com', 'https://developers.cloudflare.com',
     'https://redis.io', 'https://docs.stripe.com', 'https://www.postgresql.org',
-    'https://kafka.apache.org', 'https://learn.microsoft.com', 'https://www.elastic.co',
+    'https://kafka.apache.org', 'https://www.rabbitmq.com', 'https://learn.microsoft.com', 'https://www.elastic.co',
     'https://opentelemetry.io', 'https://www.rfc-editor.org', 'https://docs.spring.io',
     'https://openid.net', 'https://resilience4j.readme.io', 'https://www.openpolicyagent.org'
   ]);
