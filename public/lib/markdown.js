@@ -122,7 +122,12 @@ export function renderMarkdown(md, options) {
         html += "<div class='deep'><span class='deep-tag'>&#9656; DEEP DIVE · SENIOR</span>" + renderMarkdown(inner.join('\n'), options) + '</div>';
       } else {
         const cls = cm[1] === 'warn' ? 'warn' : 'takeaway';
-        html += '<div class="' + cls + '">' + (label ? '<b>' + label + ':</b> ' : '') + inlineMd(inner.join(' ').trim()) + '</div>';
+        // Tip/warn used to flatten the whole body into one inline paragraph.
+        // Rendering the same safe subset as the main body makes deliberate
+        // paragraph/list breaks visible and keeps dense decision summaries
+        // readable without changing existing one-line callouts.
+        html += '<div class="' + cls + '">' + (label ? '<b>' + label + ':</b> ' : '')
+          + renderMarkdown(inner.join('\n'), options) + '</div>';
       }
       continue;
     }

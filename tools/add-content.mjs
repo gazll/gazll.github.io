@@ -128,7 +128,9 @@ function place(answer, mode, block) {
     // The :::deep block is closed by the answer's last ':::' on its own line.
     const i = answer.lastIndexOf('\n:::');
     if (i < 0) throw new Error('no :::deep block to append to — use mode "end"');
-    return answer.slice(0, i) + '\n' + block + '\n' + answer.slice(i + 1);
+    // Keep the inserted lead-in as its own paragraph. A single newline makes
+    // Markdown merge the previous prose and a bold heading into one run.
+    return answer.slice(0, i).trimEnd() + '\n\n' + block + '\n' + answer.slice(i + 1);
   }
   // body: before the first callout, or at the end when there is none.
   const m = /^:::(deep|tip|warn)/m.exec(answer);

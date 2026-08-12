@@ -50,6 +50,14 @@ test('callouts and deep dives resolve too — options must survive recursion', (
   assert.match(tip, /class="xref"/);
 });
 
+test('tip and warn callouts preserve paragraph and list structure', () => {
+  const tip = renderMarkdown(':::tip Trade-off\nLead.\n\n- benefit\n- cost\n:::');
+  assert.match(tip, /<div class="takeaway"><b>Trade-off:<\/b> <p>Lead\.<\/p><ul><li>benefit<\/li><li>cost<\/li><\/ul><\/div>/);
+
+  const warn = renderMarkdown(':::warn Boundary\nFirst paragraph.\n\nSecond paragraph.\n:::');
+  assert.match(warn, /<div class="warn"><b>Boundary:<\/b> <p>First paragraph\.<\/p><p>Second paragraph\.<\/p><\/div>/);
+});
+
 test('table cells link, but <pre> and <svg> keep the id as text', () => {
   const table = renderMarkdown(`<table><tr><td>See (${REF})</td></tr></table>`, { resolveRef: resolver });
   assert.match(table, /class="xref"/);

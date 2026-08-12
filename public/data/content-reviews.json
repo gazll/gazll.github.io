@@ -43,7 +43,7 @@
     ]
   },
   "01-java-core-jvm.concurrency.q2": {
-    "reviewed_at": "2026-08-01",
+    "reviewed_at": "2026-08-12",
     "target_versions": [
       "JDK 25"
     ],
@@ -51,6 +51,48 @@
     "sources": [
       "https://openjdk.org/jeps/506",
       "https://openjdk.org/jeps/505"
+    ]
+  },
+  "03-spring-boot-deep-build.auto-configuration-build.q10": {
+    "reviewed_at": "2026-08-12",
+    "target_versions": [
+      "Spring Boot 4.1.x",
+      "Testcontainers for Java current documentation"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.spring.io/spring-boot/reference/testing/testcontainers.html"
+    ]
+  },
+  "04-rest-grpc-webflux.reactive-webflux.q1": {
+    "reviewed_at": "2026-08-12",
+    "target_versions": [
+      "Reactor Core current reference"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://projectreactor.io/docs/core/release/reference/faq.html#faq.wrap-blocking"
+    ]
+  },
+  "05-db-core-index-lock.transactions-mvcc-locking.q4": {
+    "reviewed_at": "2026-08-12",
+    "target_versions": [
+      "MySQL 8.4 / InnoDB"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://dev.mysql.com/doc/refman/8.4/en/innodb-deadlocks.html",
+      "https://dev.mysql.com/doc/refman/8.4/en/innodb-error-handling.html"
+    ]
+  },
+  "06-db-scaling.replication-consistency.q2": {
+    "reviewed_at": "2026-08-12",
+    "target_versions": [
+      "PostgreSQL 18"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://www.postgresql.org/docs/current/functions-admin.html"
     ]
   },
   "01-java-core-jvm.collections-data-structures.q5": {
@@ -204,13 +246,15 @@
     ]
   },
   "07-sql-nosql-db-engines.engine-by-engine.q4": {
-    "reviewed_at": "2026-08-01",
+    "reviewed_at": "2026-08-12",
     "target_versions": [
       "MongoDB current documentation"
     ],
     "claim_type": "normative",
     "sources": [
-      "https://www.mongodb.com/docs/manual/reference/read-concern/"
+      "https://www.mongodb.com/docs/manual/reference/read-concern/",
+      "https://www.mongodb.com/docs/manual/core/write-operations-atomicity/",
+      "https://www.mongodb.com/docs/manual/data-modeling/embedding/"
     ]
   },
   "07-sql-nosql-db-engines.engine-by-engine.q2": {
@@ -285,14 +329,15 @@
     ]
   },
   "08-message-queue.reliability-delivery-semantics.q2": {
-    "reviewed_at": "2026-08-01",
+    "reviewed_at": "2026-08-12",
     "target_versions": [
       "RabbitMQ current documentation"
     ],
     "claim_type": "normative",
     "sources": [
       "https://www.rabbitmq.com/docs/confirms",
-      "https://www.rabbitmq.com/docs/quorum-queues"
+      "https://www.rabbitmq.com/docs/quorum-queues",
+      "https://www.rabbitmq.com/tutorials/tutorial-seven-java"
     ]
   },
   "08-message-queue.reliability-delivery-semantics.q3": {
@@ -425,17 +470,19 @@
     ]
   },
   "14-devops-k8s-best-practices.ci-cd-2026-best-practices.q6": {
-    "reviewed_at": "2026-08-01",
+    "reviewed_at": "2026-08-12",
     "target_versions": [
-      "Kubernetes current documentation"
+      "Kubernetes current documentation",
+      "Spring Boot 4.1.x"
     ],
     "claim_type": "heuristic",
     "sources": [
-      "https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/"
+      "https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/",
+      "https://docs.spring.io/spring-boot/reference/web/graceful-shutdown.html"
     ]
   },
   "15-network-i-o-models.threading-network-programming.q1": {
-    "reviewed_at": "2026-08-01",
+    "reviewed_at": "2026-08-12",
     "target_versions": [
       "Spring Boot 3.2-4.x",
       "JDK 21-25"
@@ -443,7 +490,8 @@
     "claim_type": "heuristic",
     "sources": [
       "https://docs.spring.io/spring-boot/reference/features/spring-application.html#features.spring-application.virtual-threads",
-      "https://openjdk.org/jeps/491"
+      "https://openjdk.org/jeps/491",
+      "https://openjdk.org/jeps/444"
     ]
   },
   "16-project-concurrency-whiteboard.technical-storytelling-fundamentals.q3": {
@@ -663,7 +711,7 @@
     ]
   },
   "25-microservice.04-messaging-event-driven-at-scale.q2": {
-    "reviewed_at": "2026-08-01",
+    "reviewed_at": "2026-08-12",
     "target_versions": [
       "Apache Kafka 4.1"
     ],
@@ -891,6 +939,71 @@
     "sources": [
       "https://www.rfc-editor.org/rfc/rfc9562.html",
       "https://www.postgresql.org/docs/current/indexes-partial.html"
+    ]
+  },
+  "10-system-design-rate-limit.rate-limiting-in-depth.q4": {
+    "reviewed_at": "2026-08-12",
+    "target_versions": [
+      "Redis 7.x and later scripting semantics"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://redis.io/docs/latest/develop/programmability/eval-intro/",
+      "https://redis.io/docs/latest/develop/programmability/lua-api/"
+    ]
+  },
+  "16-project-concurrency-whiteboard.presenting-dissecting-the-ota-project.q2": {
+    "reviewed_at": "2026-08-12",
+    "target_versions": [
+      "PostgreSQL 18"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://www.postgresql.org/docs/current/transaction-iso.html",
+      "https://www.postgresql.org/docs/current/dml-returning.html"
+    ]
+  },
+  "17-rest-api-design.contracts-errors-lifecycle.q4": {
+    "reviewed_at": "2026-08-12",
+    "target_versions": [
+      "RFC 9745",
+      "RFC 8594"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://www.rfc-editor.org/rfc/rfc9745.html",
+      "https://www.rfc-editor.org/rfc/rfc8594.html"
+    ]
+  },
+  "18-query-optimization.measure-first-reading-the-execution-plan.q1": {
+    "reviewed_at": "2026-08-12",
+    "target_versions": [
+      "PostgreSQL 18"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://www.postgresql.org/docs/current/using-explain.html"
+    ]
+  },
+  "20-observability-sre.the-three-pillars-how-to-measure.q3": {
+    "reviewed_at": "2026-08-12",
+    "target_versions": [
+      "Prometheus current PromQL"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://prometheus.io/docs/prometheus/latest/querying/functions/"
+    ]
+  },
+  "27-api-gateway-identity-edge.gateway-configuration-that-matters.q2": {
+    "reviewed_at": "2026-08-12",
+    "target_versions": [
+      "Spring Cloud Gateway 5.0.2"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.spring.io/spring-cloud-gateway/reference/spring-cloud-gateway-server-webflux/http-timeouts-configuration.html",
+      "https://docs.spring.io/spring-cloud-gateway/reference/configprops.html"
     ]
   },
   "27-api-gateway-identity-edge.gateway-configuration-that-matters.q1": {

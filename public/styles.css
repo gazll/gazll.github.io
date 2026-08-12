@@ -871,6 +871,9 @@
   .takeaway{margin-top:6px;background:var(--emerald-soft);border:1px solid #cfe6da;border-radius:9px;padding:11px 14px 11px 40px;position:relative;color:var(--emerald-deep);font-size:14px;}
   .takeaway::before{content:"\21B3";position:absolute;left:14px;top:9px;font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:16px;color:var(--emerald)}
   .takeaway b{color:var(--emerald-deep)}
+  .takeaway > p,.warn > p{margin:5px 0}
+  .takeaway > p:first-of-type,.warn > p:first-of-type{display:inline}
+  .takeaway > ul,.takeaway > ol,.warn > ul,.warn > ol{margin:7px 0 0;padding-left:20px}
   .warn{background:var(--clay-soft);border:1px solid #e6c6c0;color:#7d2f24;border-radius:9px;padding:11px 14px;font-size:14px;margin:6px 0 12px}
   .warn b{color:#7d2f24}
 

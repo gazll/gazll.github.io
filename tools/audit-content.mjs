@@ -170,10 +170,9 @@ if (flag('--dense')) {
     .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&')
     .replace(/\s+/g, ' ').trim();
 
-  /* Each run is labelled with the callout it lives in, because that decides the
-     fix. renderMarkdown joins every line of a :::tip/:::warn into one paragraph,
-     so a blank line inside one changes nothing on screen — those have to be
-     shortened or moved out. Plain prose and :::deep just take the blank line. */
+  /* Each run is labelled with the callout it lives in, because that decides
+     the fix. The renderer preserves paragraph/list breaks inside every callout,
+     so all containers follow the same run boundaries as plain prose. */
   const runs = (a) => {
     const out = [];
     let box = null, buf = [];
@@ -182,10 +181,7 @@ if (flag('--dense')) {
       const open = /^:::(deep|tip|warn)\b/.exec(line);
       if (open) { flush(); box = open[1]; continue; }        // the label is a heading, not prose
       if (line.trim() === ':::') { flush(); box = null; continue; }
-      // Inside tip/warn nothing breaks: the renderer joins the whole box into
-      // one paragraph, so a blank line there is invisible to the reader.
-      const joined = box === 'tip' || box === 'warn';
-      if (!joined && (!line.trim() || /^\s*(?:[-*]\s|\d+\.\s)/.test(line))) flush();   // a bullet is its own run
+      if (!line.trim() || /^\s*(?:[-*]\s|\d+\.\s)/.test(line)) flush();   // a bullet is its own run
       buf.push(line);
     }
     flush();
@@ -233,7 +229,7 @@ if (flag('--dense')) {
       const box = r.en.box || (r.vi && r.vi.box);
       console.log(`  run ${pair('para')} blocks ${pair('blocks')}`
         + (r.en.cell > CELL_WALL || (r.vi && r.vi.cell > CELL_WALL) ? `  cell ${pair('cell')}` : '')
-        + (box ? `  in :::${box}${box === 'tip' || box === 'warn' ? ' (cannot be split — shorten it)' : ''}` : ''));
+        + (box ? `  in :::${box}` : ''));
       console.log(`      ${r.difficulty.padEnd(8)} ${r.id}`);
       console.log(`      ${r.q}`);
     });
