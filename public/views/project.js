@@ -1,7 +1,7 @@
 import { escapeHtml, renderMarkdown } from '../lib/markdown.js';
 import { ProjectDocs } from '../lib/project.js';
 import { Content } from '../lib/content.js';
-import { anchorHref, scrollToAnchor } from '../lib/anchors.js';
+import { anchorHref, decorateHeadingPermalinks, scrollToAnchor, withRouteLanguage } from '../lib/anchors.js';
 
 let mountToken = 0;
 
@@ -120,7 +120,7 @@ function renderArticle(manifest, documentBodies, sampleBodies) {
     + '</span><span><b>' + manifest.documents.length + '</b> ' + text('documents')
     + '</span><span><b>' + manifest.samples.length + '</b> ' + text('samples') + '</span></div>';
   return '<div class="pj-article">'
-    + '<header class="pj-head"><a class="pj-back" href="#/project">← ' + text('back') + '</a>'
+    + '<header class="pj-head"><a class="pj-back" href="' + escapeHtml(withRouteLanguage('#/project', Content.lang)) + '">← ' + text('back') + '</a>'
     + '<p class="pj-eyebrow">' + text('eyebrow') + '</p>' + heading(1, 'project-calebzone-title', project.title)
     + '<p class="pj-deck">' + escapeHtml(project.intro) + '</p>' + stats
     + '<div class="pj-meta"><span><b>' + text('status') + '</b> ' + escapeHtml(project.status) + '</span>'
@@ -170,8 +170,9 @@ export async function mountProject(host, routeParts = [], anchor = '') {
   if (!root) return;
   const slug = routeParts[0] ? decodeURIComponent(routeParts[0]) : 'calebzone';
   if (slug !== 'calebzone') {
-    root.innerHTML = '<div class="pj-empty"><p class="pj-eyebrow">Project</p><h1>' + text('notFound') + '</h1><a href="#/project">'
+    root.innerHTML = '<div class="pj-empty"><p class="pj-eyebrow">Project</p><h1>' + text('notFound') + '</h1><a href="' + escapeHtml(withRouteLanguage('#/project', Content.lang)) + '">'
       + text('notFoundBack') + '</a></div>';
+    decorateHeadingPermalinks(root);
     return;
   }
 
@@ -183,12 +184,14 @@ export async function mountProject(host, routeParts = [], anchor = '') {
     ]);
     if (token !== mountToken) return;
     root.innerHTML = renderArticle(manifest, new Map(documentBodies), new Map(sampleBodies));
+    decorateHeadingPermalinks(root);
     document.title = 'CalebZone Project · Backend Engineering';
     wireToc(root);
     if (anchor) requestAnimationFrame(() => scrollToAnchor(root, anchor, { behavior: 'auto' }));
   } catch (error) {
     if (token !== mountToken) return;
     root.innerHTML = '<div class="pj-empty"><p class="pj-eyebrow">' + text('unavailable') + '</p><h1>'
-      + escapeHtml(error?.message || String(error)) + '</h1><a href="#/project">' + text('retry') + '</a></div>';
+      + escapeHtml(error?.message || String(error)) + '</h1><a href="' + escapeHtml(withRouteLanguage('#/project', Content.lang)) + '">' + text('retry') + '</a></div>';
+    decorateHeadingPermalinks(root);
   }
 }

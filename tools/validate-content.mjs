@@ -217,6 +217,7 @@ const offTrack = new Set();
 const PRODUCTION_CATEGORY = 'systems-architecture';
 const DESIGN_LANG_KEYS = ['title', 'excerpt', 'scope', 'diagram_title'];
 const DESIGN_LANG_LISTS = ['functional', 'quality', 'capacity', 'data_model', 'stack', 'tradeoffs', 'tags'];
+const CONTENT_LEVELS = new Set(['core', 'advanced', 'extra']);
 
 if (!catalog) {
   errs.push('system-design/catalog.json: missing');
@@ -266,8 +267,16 @@ if (!catalog) {
 
     if (!categoryIds.has(design.category)) sd(id, `unknown category "${design.category}"`);
     if (!String(design.effort || '').trim()) sd(id, 'missing effort');
+    if (!CONTENT_LEVELS.has(design.level)) sd(id, `level must be one of ${[...CONTENT_LEVELS].join(', ')}`);
+    if (typeof design.featured !== 'boolean') sd(id, 'featured must be boolean');
     if (!String(design.diagram || '').trim()) sd(id, 'missing Mermaid diagram');
     bilingual(id, design, DESIGN_LANG_KEYS, DESIGN_LANG_LISTS);
+    const enSamples = design.en?.code_samples;
+    const viSamples = design.vi?.code_samples;
+    if ((enSamples == null) !== (viSamples == null)) sd(id, 'code_samples must be present in both en and vi when used');
+    if (Array.isArray(enSamples) && Array.isArray(viSamples) && enSamples.length !== viSamples.length) {
+      sd(id, 'en/vi code_samples must have the same number of examples');
+    }
     if (design.reference_image != null) {
       const image = design.reference_image;
       if (!/^assets\/system-design\/[a-z0-9][a-z0-9._/-]*\.(?:avif|jpe?g|png|webp)$/i.test(image.src || '')) {
@@ -281,6 +290,20 @@ if (!catalog) {
       bilingual(`${id} reference_image`, image, ['alt', 'caption']);
     }
     for (const lang of ['en', 'vi']) {
+      const samples = design[lang]?.code_samples;
+      if (samples != null) {
+        if (!Array.isArray(samples) || !samples.length) {
+          sd(id, `${lang}.code_samples must be a non-empty array when provided`);
+        } else {
+          for (const [index, sample] of samples.entries()) {
+            if (!String(sample?.title || '').trim() || !String(sample?.language || '').trim()
+              || !String(sample?.code || '').trim()) {
+              sd(id, `${lang}.code_samples[${index}] needs title, language and code`);
+            }
+            if (sample?.run != null && !String(sample.run).trim()) sd(id, `${lang}.code_samples[${index}].run is blank`);
+          }
+        }
+      }
       const review = design[lang]?.failure_review;
       if (review == null) continue;
       if (!Array.isArray(review) || !review.length) {
@@ -323,6 +346,12 @@ if (!catalog) {
   const architectureRows = (caseManifest?.articles || [])
     .filter(article => article.category === PRODUCTION_CATEGORY);
   const architectureCases = architectureRows.map(article => article.slug);
+
+  for (const article of caseManifest?.articles || []) {
+    const id = `case "${article.slug || article.n}"`;
+    if (!CONTENT_LEVELS.has(article.level)) sd(id, `level must be one of ${[...CONTENT_LEVELS].join(', ')}`);
+    if (typeof article.featured !== 'boolean') sd(id, 'featured must be boolean');
+  }
 
   // The reader's only attribution is the publication URL, and the view refuses
   // to render a link off that host — so a wrong one silently loses the credit.

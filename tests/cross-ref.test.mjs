@@ -16,7 +16,7 @@ const { renderMarkdown } = await import(pathToFileURL(path.join(publicRoot, 'lib
 const { crossRefResolver } = await import(pathToFileURL(path.join(publicRoot, 'lib/cross-ref.js')).href);
 
 const REF = '25-microservice.01-cascading-failure-retry-storm.q3';
-const resolver = () => ({ href: '#/track/' + REF, label: 'Circuit breakers' });
+const resolver = () => ({ href: '#/track/' + REF + '?lang=en', label: 'Circuit breakers' });
 
 test('without a resolver the id renders exactly as it always has', () => {
   const html = renderMarkdown(`Bound the call (${REF}).`);
@@ -98,16 +98,16 @@ test('the resolver routes by surface, and declines what it cannot place', () => 
   const loaded = { designForSourceItem: () => ({ slug: 'payment-ledger' }) };
 
   const withDesigns = crossRefResolver({ content, systemDesign: loaded });
-  assert.equal(withDesigns(REF).href, '#/track/' + REF);
+  assert.equal(withDesigns(REF).href, '#/track/' + REF + '?lang=en');
   assert.equal(withDesigns('11-system-design-cases.the-big-prompts.q1').href,
-    '#/system-design/payment-ledger/11-system-design-cases.the-big-prompts.q1');
+    '#/system-design/payment-ledger/11-system-design-cases.the-big-prompts.q1?lang=en');
   assert.equal(withDesigns('nope.nope.q9'), null);
 
   // System Design loads lazily: before it does, an off-track target has no
   // route yet, and no link is better than a broken one.
   const notLoaded = crossRefResolver({ content, systemDesign: { designForSourceItem: () => null } });
   assert.equal(notLoaded('11-system-design-cases.the-big-prompts.q1'), null);
-  assert.equal(notLoaded(REF).href, '#/track/' + REF);
+  assert.equal(notLoaded(REF).href, '#/track/' + REF + '?lang=en');
 
   content.lang = 'vi';
   assert.equal(crossRefResolver({ content, systemDesign: loaded })(REF).label, 'Circuit breaker: ba trạng thái');

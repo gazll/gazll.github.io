@@ -244,18 +244,18 @@ test('a snippet is a window around the match, with ellipses only where it cuts',
 --------------------------------------------------------------------- */
 
 test('every entry routes to the surface that actually owns it', () => {
-  assert.equal(find(index, ITEM).href, '#/track/' + encodeURIComponent(ITEM));
-  assert.equal(find(index, 'design:scaling-1m-to-10m-requests').href, '#/system-design/scaling-1m-to-10m-requests');
-  assert.equal(find(index, 'case:a-b-testing-in-tiki-search').href, '#/case-studies/a-b-testing-in-tiki-search');
+  assert.equal(find(index, ITEM).href, '#/track/' + encodeURIComponent(ITEM) + '?lang=en');
+  assert.equal(find(index, 'design:scaling-1m-to-10m-requests').href, '#/system-design/scaling-1m-to-10m-requests?lang=en');
+  assert.equal(find(index, 'case:a-b-testing-in-tiki-search').href, '#/case-studies/a-b-testing-in-tiki-search?lang=en');
   assert.equal(find(index, 'production:arcturus-inventory-processing-system').href,
-    '#/system-design/case/arcturus-inventory-processing-system');
+    '#/system-design/case/arcturus-inventory-processing-system?lang=en');
   // A migrated deep dive is off the track, so it must never route back to it.
-  assert.equal(find(index, '10-deep.dive.q1').href, '#/system-design/scaling-1m-to-10m-requests/10-deep.dive.q1');
+  assert.equal(find(index, '10-deep.dive.q1').href, '#/system-design/scaling-1m-to-10m-requests/10-deep.dive.q1?lang=en');
 });
 
 test('a topic opens at its first card, which is what selects the topic', () => {
   const topic = find(index, 'topic:05-db-core-index-lock');
-  assert.equal(topic.href, '#/track/' + encodeURIComponent(ITEM));
+  assert.equal(topic.href, '#/track/' + encodeURIComponent(ITEM) + '?lang=en');
   assert.match(topic.context, /Topic 05/);
 });
 
@@ -317,8 +317,8 @@ test('the real content builds an index whose every row is reachable', async () =
 --------------------------------------------------------------------- */
 
 test('a search is a shareable route, slashes and accents included', () => {
-  assert.equal(searchHash('circuit breaker'), '#/search/circuit%20breaker');
-  assert.equal(searchHash('  '), '#/search');
+  assert.equal(searchHash('circuit breaker'), '#/search/circuit%20breaker?lang=en');
+  assert.equal(searchHash('  '), '#/search?lang=en');
   assert.equal(queryFromRoute(['circuit%20breaker']), 'circuit breaker');
   assert.equal(queryFromRoute([encodeURIComponent('a/b')]), 'a/b');
   assert.equal(queryFromRoute(['%E1%BB%9F']), 'ở');

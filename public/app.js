@@ -34,7 +34,19 @@ import { renderReleaseNotes, mountReleaseNotes } from './views/release-notes.js'
 import { renderSearch, mountSearch, mountSearchOverlay } from './views/search.js';
 import { SearchHistory } from './lib/search-history.js';
 import { mountDsaPlayers, stopDsaPlayers } from './views/dsa-player.js';
-import { anchorHref, routePathFromHash, scrollToAnchor, wireAnchorLinks, wireHeadingPermalinks } from './lib/anchors.js';
+import {
+  anchorHref,
+  decorateHeadingPermalinks,
+  routeAnchorFromHash,
+  routeLanguageFromHash,
+  routePathFromHash,
+  routePathWithoutQuery,
+  scrollToAnchor,
+  updateRouteLanguage,
+  wireAnchorLinks,
+  wireHeadingPermalinks,
+  withRouteLanguage
+} from './lib/anchors.js';
 
 let TOPICS = [];
 let current = 0;
@@ -342,7 +354,7 @@ function buildNav() {
     const external = Boolean(v.href);
     const attrs = external
       ? 'href="' + v.href + '" target="_blank" rel="noopener noreferrer"'
-      : 'href="#/' + v.id + '" aria-current="' + (v.id === active) + '"';
+      : 'href="' + withRouteLanguage('#/' + v.id, Content.lang) + '" aria-current="' + (v.id === active) + '"';
     return '<a class="navlink' + (external ? ' is-external' : '') + '" data-view="' + v.id + '" ' + attrs + '>'
       + iconSVG(v.icon)
       + '<span class="nv-text"><span class="nv-label">' + v.label + '</span>'
@@ -427,6 +439,7 @@ function wireLangSwitch() {
   const flip = async () => {
     const next = Content.lang === 'vi' ? 'en' : 'vi';
     box.classList.add('busy');   // setLang re-applies the overlay
+    updateRouteLanguage(next);
     await Content.setLang(next);
     box.classList.remove('busy');
   };
@@ -499,13 +512,8 @@ function wireHeader() {
 function isTrackActive() { return document.body.classList.contains('view-track'); }
 function currentRoute() {
   const routePath = routePathFromHash(location.hash);
-  const raw = String(location.hash).replace(/^#\/?/, '');
-  const routeWithoutSlash = routePath.replace(/^\/?/, '');
-  const rawAnchor = raw.slice(routeWithoutSlash.length);
-  let anchor = '';
-  if (rawAnchor.startsWith('#')) {
-    try { anchor = decodeURIComponent(rawAnchor.slice(1)); } catch (error) { anchor = ''; }
-  }
+  const routeWithoutSlash = routePathWithoutQuery(routePath).replace(/^\/?/, '');
+  const anchor = routeAnchorFromHash(location.hash);
   const parts = routeWithoutSlash.split('/').filter(Boolean);
   const id = parts[0];
   return routableViews().some(v => v.id === id)
@@ -516,6 +524,12 @@ function currentViewId() {
   return currentRoute().id;
 }
 function route() {
+  const lang = routeLanguageFromHash(location.hash, Content.lang);
+  if (lang !== Content.lang) {
+    Content.setLang(lang).then(() => route());
+    return;
+  }
+  updateRouteLanguage(lang);
   const currentRouteState = currentRoute();
   if (currentRouteState.anchor) showView(currentRouteState.id, currentRouteState.parts, currentRouteState.anchor);
   else showView(currentRouteState.id, currentRouteState.parts);
@@ -537,6 +551,7 @@ function showView(id, routeParts = [], anchor = '') {
   const track = document.getElementById('view-track');
   const host = document.getElementById('view-host');
   let linkedCard = null;
+  let mountResult = null;
   if (id === 'track') {
     track.hidden = false; host.hidden = true;
     linkedCard = showLinkedQuestion(routeParts);
@@ -548,15 +563,33 @@ function showView(id, routeParts = [], anchor = '') {
     if (v && v.md) host.innerHTML = '<div class="page">' + renderMarkdown(v.md) + '</div>';
     else if (v && v.render) host.innerHTML = v.render(routeParts, anchor);
     else host.innerHTML = '';
-    if (v && v.mount) v.mount(host, routeParts, anchor);
+    decorateHeadingPermalinks(host);
+    if (v && v.mount) mountResult = v.mount(host, routeParts, anchor);
   }
   paintLangSwitch();
   window.scrollTo({ top: 0 });
   if (anchor || linkedCard) {
-    requestAnimationFrame(() => {
-      if (anchor) scrollToTopicAnchor(anchor);
-      else if (linkedCard) linkedCard.scrollIntoView({ block: 'start', inline: 'nearest' });
-    });
+    const settleAnchor = () => {
+      if (anchor) {
+        // Track owns a special reveal step for collapsed question cards. Every
+        // other view uses the shared host, including Markdown-only views whose
+        // headings are rendered synchronously.
+        if (id === 'track') scrollToTopicAnchor(anchor);
+        else {
+          decorateHeadingPermalinks(host);
+          scrollToAnchor(host, anchor, { behavior: 'auto' });
+        }
+      } else if (linkedCard) linkedCard.scrollIntoView({ block: 'start', inline: 'nearest' });
+    };
+
+    requestAnimationFrame(settleAnchor);
+    // System Design, Project, Case Studies, Search and Release Notes fetch
+    // their body after the shell is mounted. Retry once the view's async
+    // mount has replaced its loading state, so a copied heading URL works on
+    // a fresh tab as well as after an in-app click.
+    if (anchor && mountResult && typeof mountResult.then === 'function') {
+      mountResult.then(() => requestAnimationFrame(settleAnchor), () => {});
+    }
   }
 }
 
@@ -789,6 +822,7 @@ function renderDay() {
     + '</div>' + sectionsHTML;
 
   wireQcards(panel, () => { updateProgress(); paintTopicButton(); });
+  decorateHeadingPermalinks(panel);
 
   const toggleAll = document.getElementById('toggleAll');
   toggleAll.addEventListener('click', () => {
@@ -875,7 +909,7 @@ function updateProgress() {
 function goTo(i) {
   if (i < 0 || i >= TOPICS.length) return;
   if (isTrackActive() && questionIdFromRoute(currentRoute().parts)) {
-    history.replaceState(null, '', '#/track');
+    history.replaceState(null, '', withRouteLanguage('#/track', Content.lang));
   }
   current = i;
   dots.querySelectorAll('.pdot').forEach((dt, idx) => dt.classList.toggle('on', idx === current));

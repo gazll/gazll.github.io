@@ -1,23 +1,40 @@
 /** Stable hash routes for individual study-track questions. */
 
-export function questionHash(questionId) {
-  return '#/track/' + encodeURIComponent(questionId);
+const LANGS = new Set(['en', 'vi']);
+
+function languageFromHash(hash, fallback = 'en') {
+  const raw = String(hash == null ? '' : hash).replace(/^#/, '');
+  const route = raw.split('#')[0];
+  const query = route.includes('?') ? route.slice(route.indexOf('?') + 1) : '';
+  const value = query.match(/(?:^|&)lang=(en|vi)(?:&|$)/)?.[1] || '';
+  return LANGS.has(value) ? value : fallback;
+}
+
+function localized(path, lang = null) {
+  const chosen = LANGS.has(lang)
+    ? lang
+    : languageFromHash(globalThis.location?.hash, 'en');
+  return path + '?lang=' + chosen;
+}
+
+export function questionHash(questionId, lang = null) {
+  return localized('#/track/' + encodeURIComponent(questionId), lang);
 }
 
 export function questionUrl(pageHref, questionId) {
   const url = new URL(pageHref);
-  url.hash = questionHash(questionId).slice(1);
+  url.hash = questionHash(questionId, languageFromHash(url.hash, 'en')).slice(1);
   return url.href;
 }
 
 /** Canonical location for a former Study Track question moved into a blueprint. */
-export function systemDesignQuestionHash(designSlug, questionId) {
-  return '#/system-design/' + encodeURIComponent(designSlug) + '/' + encodeURIComponent(questionId);
+export function systemDesignQuestionHash(designSlug, questionId, lang = null) {
+  return localized('#/system-design/' + encodeURIComponent(designSlug) + '/' + encodeURIComponent(questionId), lang);
 }
 
 export function systemDesignQuestionUrl(pageHref, designSlug, questionId) {
   const url = new URL(pageHref);
-  url.hash = systemDesignQuestionHash(designSlug, questionId).slice(1);
+  url.hash = systemDesignQuestionHash(designSlug, questionId, languageFromHash(url.hash, 'en')).slice(1);
   return url.href;
 }
 

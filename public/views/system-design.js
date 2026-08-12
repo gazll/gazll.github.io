@@ -7,7 +7,7 @@ import { mountMermaidDiagrams } from '../lib/mermaid.js';
 import { systemDesignQuestionUrl } from '../lib/question-links.js';
 import { crossRefResolver } from '../lib/cross-ref.js';
 import { SYSTEM_DESIGN_RESEARCH } from '../data/system-design/research.js';
-import { anchorHref, scrollToAnchor } from '../lib/anchors.js';
+import { anchorHref, decorateHeadingPermalinks, scrollToAnchor, withRouteLanguage } from '../lib/anchors.js';
 
 let mountToken = 0;
 
@@ -40,7 +40,8 @@ const COPY = {
     research: 'Engineering deep dives', researched: 'Current practice distilled from primary documentation. Validate version-specific details against the linked sources before implementation.',
     furtherReading: 'Primary sources',
     migrated: 'Migrated deep-dive notes', migratedNote: 'Preserved from Study Track topics 10–11 and the overlapping Topic 16 sections.',
-    source: 'Mermaid source', copy: 'Copy Mermaid', copyLink: 'Copy link', copied: 'Copied', visualizer: 'Open visualizer',
+    source: 'Mermaid source', copy: 'Copy Mermaid', copyCode: 'Copy code', copyLink: 'Copy link', copied: 'Copied', visualizer: 'Open visualizer',
+    codeSamples: 'Runnable code samples', codeIntro: 'Small executable slices make the boundary concrete. Run them locally, then adapt the schema, limits and failure handling to your workload.', run: 'Run',
     zoomControls: 'Diagram zoom', zoomOut: 'Zoom out', zoomIn: 'Zoom in', zoomReset: 'Reset zoom',
     diagramUnavailable: 'Diagram renderer unavailable. The editable Mermaid source is still available below.',
     production: 'Production evidence', historical: 'Historical architecture',
@@ -79,7 +80,8 @@ const COPY = {
     research: 'Engineering deep dives', researched: 'Best practice hiện tại được chắt lọc từ primary docs. Kiểm tra version-specific details trong nguồn liên kết trước khi triển khai.',
     furtherReading: 'Primary sources',
     migratedNote: 'Giữ lại từ Topic 10–11 và các phần overlap của Topic 16 trong Study Track.', source: 'Mermaid source',
-    copy: 'Copy Mermaid', copyLink: 'Copy link', copied: 'Đã copy', visualizer: 'Mở visualizer',
+    copy: 'Copy Mermaid', copyCode: 'Copy code', copyLink: 'Copy link', copied: 'Đã copy', visualizer: 'Mở visualizer',
+    codeSamples: 'Code sample có thể chạy', codeIntro: 'Các lát cắt nhỏ có thể chạy giúp thấy boundary cụ thể hơn. Hãy chạy local, sau đó điều chỉnh schema, limit và failure handling theo workload thực tế.', run: 'Chạy',
     zoomControls: 'Phóng to/thu nhỏ sơ đồ', zoomOut: 'Thu nhỏ', zoomIn: 'Phóng to', zoomReset: 'Đặt lại tỷ lệ',
     diagramUnavailable: 'Renderer không khả dụng. Editable Mermaid source vẫn nằm bên dưới.',
     production: 'Production evidence', historical: 'Historical architecture',
@@ -95,6 +97,19 @@ const COPY = {
 const text = () => COPY[Content.lang] || COPY.en;
 const numberLabel = n => String(n).padStart(2, '0');
 
+const LEVEL_LABELS = Object.freeze({ core: 'Core', advanced: 'Advanced', extra: 'Extra' });
+function levelMarkup(row) {
+  const level = LEVEL_LABELS[row?.level] ? row.level : 'advanced';
+  return '<span class="content-level level-' + level + '">' + LEVEL_LABELS[level] + '</span>'
+    + (row?.featured ? '<span class="featured-mark" title="Featured topic" aria-label="Featured topic">★</span>' : '');
+}
+
+const GROUP_ANCHOR_IDS = Object.freeze({
+  foundations: 'sd-group-foundations',
+  'product-systems': 'sd-group-product-systems'
+});
+const groupAnchorId = category => GROUP_ANCHOR_IDS[category.id] || 'sd-group-' + category.id;
+
 /* Desktop-only preference. The mobile <details> TOC must stay unaffected by it,
    so nothing here touches .sd-toc-mobile. */
 const TOC_KEY = 'gazl.sd.toc';
@@ -109,40 +124,41 @@ function storeTocCollapsed(collapsed) {
 const sourceHref = url => /^https:\/\/engineering\.tiki\.vn\//.test(url || '') ? url : 'https://engineering.tiki.vn/';
 
 function renderDesignCard(design) {
-  return '<a class="sd-card" href="#/system-design/' + encodeURIComponent(design.slug) + '">'
+  return '<a class="sd-card" href="' + escapeHtml(withRouteLanguage('#/system-design/' + encodeURIComponent(design.slug), Content.lang)) + '">'
     + '<span class="sd-card-num">' + numberLabel(design.n) + '</span><span class="sd-card-main">'
-    + '<span class="sd-card-type">Blueprint · ' + escapeHtml(design.effort || '45 min') + '</span>'
+    + '<span class="sd-card-type">Blueprint · ' + escapeHtml(design.effort || '45 min') + levelMarkup(design) + '</span>'
     + '<strong>' + escapeHtml(design.title) + '</strong><span>' + escapeHtml(design.excerpt) + '</span>'
     + '<span class="sd-card-tags">' + design.tags.slice(0, 4).map(tag => '<i>' + escapeHtml(tag) + '</i>').join('') + '</span>'
-    + '</span><span class="sd-card-go">' + text().open + ' →</span></a>';
+    + '</span><span class="sd-card-arrow" aria-hidden="true">→</span></a>';
 }
 
 function renderCaseCard(article) {
-  return '<a class="sd-card sd-case-card" href="#/system-design/case/' + encodeURIComponent(article.slug) + '">'
+  return '<a class="sd-card sd-case-card" href="' + escapeHtml(withRouteLanguage('#/system-design/case/' + encodeURIComponent(article.slug), Content.lang)) + '">'
     + '<span class="sd-case-art"><img src="' + escapeHtml(article.cover_image) + '" alt="" loading="lazy"></span>'
-    + '<span class="sd-card-main"><span class="sd-card-type">' + text().production + ' · Tiki Engineering</span>'
+    + '<span class="sd-card-main"><span class="sd-card-type">' + text().production + ' · Tiki Engineering' + levelMarkup(article) + '</span>'
     + '<strong>' + escapeHtml(article.title) + '</strong><span>' + escapeHtml(article.excerpt) + '</span>'
     + '<span class="sd-card-tags">' + article.tags.slice(0, 4).map(tag => '<i>' + escapeHtml(tag) + '</i>').join('') + '</span>'
-    + '</span><span class="sd-card-go">' + text().read + ' →</span></a>';
+    + '</span><span class="sd-card-arrow" aria-hidden="true">→</span></a>';
 }
 
 function renderLibrary(collection) {
   const groups = collection.categories.map(category => {
     const designs = collection.designs.filter(design => design.category === category.id);
     if (!designs.length) return '';
-    return '<section class="sd-group" aria-labelledby="sd-group-' + escapeHtml(category.id) + '">'
-      + '<header><div><p>' + text().eyebrow + '</p><h2 id="sd-group-' + escapeHtml(category.id) + '">'
+    const anchorId = groupAnchorId(category);
+    return '<section class="sd-group" aria-labelledby="' + escapeHtml(anchorId) + '">'
+      + '<header><div><p>' + text().eyebrow + '</p><h2 id="' + escapeHtml(anchorId) + '">'
       + escapeHtml(category.label) + '</h2><span>' + escapeHtml(category.description) + '</span></div><b>' + designs.length + '</b></header>'
       + '<div class="sd-list">' + designs.map(renderDesignCard).join('') + '</div></section>';
   }).join('');
 
   return '<div class="sd-library"><header class="sd-hero"><p class="cs-eyebrow">' + escapeHtml(collection.library.eyebrow) + '</p>'
-    + '<h1>' + escapeHtml(collection.library.title) + '</h1><p>' + escapeHtml(collection.library.intro) + '</p>'
+    + '<h1 id="sd-library-title">' + escapeHtml(collection.library.title) + '</h1><p>' + escapeHtml(collection.library.intro) + '</p>'
     + '<div class="cs-library-stats"><span><b>' + collection.designs.length + '</b> '
     + text().blueprints(collection.designs.length) + '</span><span><b>' + collection.cases.length + '</b> '
     + text().cases(collection.cases.length) + '</span><span>Mermaid · EN/VI</span></div></header>'
     + groups
-    + '<section class="sd-group sd-production"><header><div><p>' + text().production + '</p><h2>'
+    + '<section class="sd-group sd-production"><header><div><p>' + text().production + '</p><h2 id="sd-group-production-cases">'
     + escapeHtml(collection.production.label) + '</h2><span>' + escapeHtml(collection.production.description)
     + '</span></div><b>' + collection.cases.length + '</b></header><div class="sd-list">'
     + collection.cases.map(renderCaseCard).join('') + '</div></section></div>';
@@ -302,6 +318,22 @@ function decisionSection(title, intro, rows, labels, checksTitle, checks, id, cl
     + decisionChecks(checksTitle, checks) + '</section>';
 }
 
+function codeSamplesSection(design) {
+  const samples = Array.isArray(design.code_samples) ? design.code_samples : [];
+  if (!samples.length) return '';
+  const cards = samples.map(sample => {
+    const language = String(sample.language || 'text').toLowerCase().replace(/[^a-z0-9_-]/g, '');
+    return '<article class="sd-code-sample"><header><div><h3>' + escapeHtml(sample.title || 'Code sample') + '</h3>'
+      + (sample.note ? '<p>' + escapeHtml(sample.note) + '</p>' : '') + '</div><span>' + escapeHtml(language || 'text') + '</span></header>'
+      + '<div class="sd-code-frame"><button type="button" data-copy-code-sample>' + text().copyCode + '</button>'
+      + '<pre><code class="language-' + escapeHtml(language || 'text') + '">' + escapeHtml(sample.code || '') + '</code></pre></div>'
+      + (sample.run ? '<p class="sd-code-run"><b>' + text().run + '</b><code>' + escapeHtml(sample.run) + '</code></p>' : '')
+      + '</article>';
+  }).join('');
+  return '<section class="sd-section sd-code-samples"><h2 id="code-samples">' + text().codeSamples + '</h2><p>'
+    + escapeHtml(text().codeIntro) + '</p><div class="sd-code-grid">' + cards + '</div></section>';
+}
+
 function reviewEvidence(rows, pattern, fallback = '') {
   return (rows || []).find(row => pattern.test(row)) || (rows || [])[0] || fallback;
 }
@@ -435,8 +467,8 @@ function articleShell(header, body) {
 
 function renderDesignArticle(design) {
   const tags = design.tags.map(tag => '<span>' + escapeHtml(tag) + '</span>').join('');
-  const header = '<header class="sd-article-head"><a class="cs-back" href="#/system-design">← ' + text().back + '</a>'
-    + '<p class="cs-eyebrow">Blueprint ' + numberLabel(design.n) + ' · ' + escapeHtml(design.effort || '45 min') + '</p>'
+  const header = '<header class="sd-article-head"><a class="cs-back" href="' + escapeHtml(withRouteLanguage('#/system-design', Content.lang)) + '">← ' + text().back + '</a>'
+    + '<p class="cs-eyebrow">Blueprint ' + numberLabel(design.n) + ' · ' + escapeHtml(design.effort || '45 min') + ' ' + levelMarkup(design) + '</p>'
     + '<h1 id="design-' + escapeHtml(design.slug) + '-title">' + escapeHtml(design.title) + '</h1><p>' + escapeHtml(design.excerpt) + '</p><div class="cs-tags">' + tags + '</div></header>';
   const body = '<article class="sd-article-body" data-sd-body>'
     + '<section class="sd-section sd-scope"><h2 id="problem-framing">' + text().scope + '</h2>'
@@ -452,6 +484,7 @@ function renderDesignArticle(design) {
       text().dataChecksTitle, text().dataChecks, 'data-model', 'sd-data-decision')
     + decisionSection(text().stack, text().stackIntro, design.stack, [text().stackLayer, text().stackReason],
       text().stackChecksTitle, text().stackChecks, 'technology-choices', 'sd-stack-decision')
+    + codeSamplesSection(design)
     + tradeoffSection(design)
     + renderResearch(design)
     + renderSourceNotes(design) + '</article>';
@@ -474,8 +507,8 @@ function renderCaseGuide(article) {
 function renderProductionArticle(article, overview, archivedBody) {
   const href = sourceHref(article.source_url);
   const tags = article.tags.map(tag => '<span>' + escapeHtml(tag) + '</span>').join('');
-  const header = '<header class="sd-article-head"><a class="cs-back" href="#/system-design">← ' + text().back + '</a>'
-    + '<p class="cs-eyebrow">' + text().production + ' · Tiki Engineering</p><h1 id="system-case-' + escapeHtml(article.slug) + '-title">' + escapeHtml(article.title) + '</h1>'
+  const header = '<header class="sd-article-head"><a class="cs-back" href="' + escapeHtml(withRouteLanguage('#/system-design', Content.lang)) + '">← ' + text().back + '</a>'
+    + '<p class="cs-eyebrow">' + text().production + ' · Tiki Engineering ' + levelMarkup(article) + '</p><h1 id="system-case-' + escapeHtml(article.slug) + '-title">' + escapeHtml(article.title) + '</h1>'
     + '<p>' + escapeHtml(article.excerpt) + '</p><div class="cs-tags">' + tags + '</div>'
     + '<div class="cs-archive-note"><b>' + text().historical + '</b><span>' + text().historicalNote + '</span></div></header>';
   const body = '<article class="sd-article-body" data-sd-body>'
@@ -523,6 +556,19 @@ function wireDiagramTools(root) {
       setTimeout(() => { button.textContent = original; button.classList.remove('is-copied'); }, 1600);
     } catch (error) {
       window.prompt(text().source + ':', source);
+    }
+  }));
+
+  root.querySelectorAll('[data-copy-code-sample]').forEach(button => button.addEventListener('click', async () => {
+    const source = button.closest('.sd-code-frame')?.querySelector('code')?.textContent || '';
+    try {
+      await copyText(source);
+      const original = button.textContent;
+      button.textContent = text().copied;
+      button.classList.add('is-copied');
+      setTimeout(() => { button.textContent = original; button.classList.remove('is-copied'); }, 1600);
+    } catch (error) {
+      window.prompt(text().copyCode + ':', source);
     }
   }));
 
@@ -636,6 +682,7 @@ function revealLinkedSource(root, questionId) {
 async function showRoute(root, collection, routeParts, token, anchor = '') {
   if (!routeParts.length) {
     root.innerHTML = renderLibrary(collection);
+    decorateHeadingPermalinks(root);
     document.title = collection.library.title + ' · Backend Engineering';
     return;
   }
@@ -663,11 +710,13 @@ async function showRoute(root, collection, routeParts, token, anchor = '') {
 
   if (!html) {
     root.innerHTML = '<div class="cs-empty"><p class="cs-eyebrow">' + text().missing + '</p>'
-      + '<h1>' + text().missing + '</h1><a href="#/system-design">← ' + text().retry + '</a></div>';
+      + '<h1>' + text().missing + '</h1><a href="' + escapeHtml(withRouteLanguage('#/system-design', Content.lang)) + '">← ' + text().retry + '</a></div>';
+    decorateHeadingPermalinks(root);
     return;
   }
 
   root.innerHTML = html;
+  decorateHeadingPermalinks(root);
   buildToc(root, routeParts);
   wireDiagramTools(root);
   wireArchiveImages(root);
@@ -697,6 +746,7 @@ export async function mountSystemDesign(host, routeParts = [], anchor = '') {
   } catch (error) {
     if (token !== mountToken) return;
     root.innerHTML = '<div class="cs-empty"><p class="cs-eyebrow">' + text().unavailable + '</p>'
-      + '<h1>' + text().unavailable + '</h1><a href="#/system-design">' + text().retry + '</a></div>';
+      + '<h1>' + text().unavailable + '</h1><a href="' + escapeHtml(withRouteLanguage('#/system-design', Content.lang)) + '">' + text().retry + '</a></div>';
+    decorateHeadingPermalinks(root);
   }
 }

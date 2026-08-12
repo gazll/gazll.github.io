@@ -20,8 +20,8 @@ test('a question id becomes a shareable absolute track URL and decodes again', a
   const id = '03-spring-boot-deep-build.ioc-container-transactions.q6';
   const url = links.questionUrl('https://gazll.github.io/#/stats', id);
 
-  assert.equal(url, 'https://gazll.github.io/#/track/' + id);
-  const routeParts = new URL(url).hash.replace(/^#\/?/, '').split('/').filter(Boolean).slice(1);
+  assert.equal(url, 'https://gazll.github.io/#/track/' + id + '?lang=en');
+  const routeParts = new URL(url).hash.replace(/^#\/?/, '').split('?')[0].split('/').filter(Boolean).slice(1);
   assert.equal(links.questionIdFromRoute(routeParts), id);
   assert.equal(links.questionIdFromRoute([]), null);
   assert.equal(links.questionIdFromRoute(['broken%ZZ']), null);
@@ -32,8 +32,8 @@ test('a moved question gets a canonical System Design URL', async () => {
   const id = '11-system-design-cases.the-big-prompts.q1';
   const url = links.systemDesignQuestionUrl('https://gazll.github.io/#/track', 'payment-ledger', id);
 
-  assert.equal(url, 'https://gazll.github.io/#/system-design/payment-ledger/' + id);
-  assert.equal(links.systemDesignQuestionHash('payment-ledger', id), '#/system-design/payment-ledger/' + id);
+  assert.equal(url, 'https://gazll.github.io/#/system-design/payment-ledger/' + id + '?lang=en');
+  assert.equal(links.systemDesignQuestionHash('payment-ledger', id), '#/system-design/payment-ledger/' + id + '?lang=en');
 });
 
 test('the immutable full id distinguishes repeated Q6 labels across sections', async () => {
@@ -62,6 +62,10 @@ test('the track renders and wires one copy-link control per question', async () 
   assert.match(app, /<div class="qtop"><button class="qhead"/);
   assert.match(app, /showLinkedQuestion\(routeParts\)/);
   assert.match(app, /scrollIntoView\(\{ block: 'start'/);
+  assert.match(app, /scrollToAnchor\(host, anchor, \{ behavior: 'auto' \}\)/,
+    'a copied heading URL must scroll the rendered view, not only Study Track cards');
+  assert.match(app, /mountResult\.then\(\(\) => requestAnimationFrame\(settleAnchor\)/,
+    'async views must retry the anchor after their body finishes loading');
   assert.match(styles, /\.qcard\.link-target/);
   assert.match(styles, /scroll-margin-top/);
 });

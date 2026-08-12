@@ -6,6 +6,7 @@ import { Auth } from '../lib/auth.js';
 import { Content } from '../lib/content.js';
 import { escapeHtml as esc } from '../lib/markdown.js';
 import { localDay } from '../lib/ui.js';
+import { withRouteLanguage } from '../lib/anchors.js';
 
 const WEEKS = 26;                  // half a year: wide enough, still fits mobile
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -161,7 +162,7 @@ function perDay(reviewed) {
   const rows = Content.topicCounts().map(t => {
     const done = t.ids.filter(id => reviewed.has(id)).length;
     const pct = t.ids.length ? Math.round(done / t.ids.length * 100) : 0;
-    return '<a class="pd-row" href="#/track" data-day="' + t.n + '" data-topic-type="' + esc(t.topic_type) + '">'
+    return '<a class="pd-row" href="' + withRouteLanguage('#/track', Content.lang) + '" data-day="' + t.n + '" data-topic-type="' + esc(t.topic_type) + '">'
       + '<span class="pd-n">' + String(t.n).padStart(2, '0') + '</span>'
       + '<span class="pd-label">' + esc(t.label) + '</span>'
       + '<span class="pd-bar"><span class="pd-fill" style="width:' + pct + '%"></span></span>'

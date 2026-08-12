@@ -1,7 +1,7 @@
 import { escapeHtml } from '../lib/markdown.js';
 import { Content } from '../lib/content.js';
 import { CaseStudies } from '../lib/case-studies.js';
-import { anchorHref, scrollToAnchor } from '../lib/anchors.js';
+import { anchorHref, decorateHeadingPermalinks, scrollToAnchor, withRouteLanguage } from '../lib/anchors.js';
 
 let mountToken = 0;
 const TOC_STATE_KEY = 'gazl.caseTocCollapsed';
@@ -20,6 +20,7 @@ const COPY = {
     originalArticle: 'original article', closeImage: 'Close image', notFound: 'Case study not found',
     missing: 'That article is not in this collection.', back: 'Back to case studies', loading: 'Loading case studies…',
     unavailable: 'Could not load this collection', unavailableTitle: 'The case-study files are unavailable.', retry: 'Try again',
+    levelCore: 'Core', levelAdvanced: 'Advanced', levelExtra: 'Extra', featured: 'Featured',
     locale: 'en'
   },
   vi: {
@@ -35,6 +36,7 @@ const COPY = {
     originalArticle: 'bài viết gốc', closeImage: 'Đóng ảnh', notFound: 'Không tìm thấy case study',
     missing: 'Bài viết này không có trong bộ sưu tập.', back: 'Quay lại Case Studies', loading: 'Đang tải case study…',
     unavailable: 'Không thể tải bộ sưu tập', unavailableTitle: 'Các file case study hiện không khả dụng.', retry: 'Thử lại',
+    levelCore: 'Core', levelAdvanced: 'Advanced', levelExtra: 'Extra', featured: 'Nổi bật',
     locale: 'vi-VN'
   }
 };
@@ -43,6 +45,12 @@ const text = () => COPY[Content.lang] || COPY.en;
 const MOVED_TO_SYSTEM_DESIGN = 'systems-architecture';
 const numberLabel = article => String(article.n).padStart(2, '0');
 const languageLabel = article => article.is_translation ? text().translation : text().original;
+function levelMarkup(article) {
+  const labels = { core: text().levelCore, advanced: text().levelAdvanced, extra: text().levelExtra };
+  const level = labels[article?.level] ? article.level : 'advanced';
+  return '<span class="content-level level-' + level + '">' + labels[level] + '</span>'
+    + (article?.featured ? '<span class="featured-mark" title="' + text().featured + '" aria-label="' + text().featured + '">★</span>' : '');
+}
 
 const sourceHref = url => /^https:\/\/engineering\.tiki\.vn\//.test(url || '')
   ? url
@@ -57,12 +65,12 @@ function formatDate(value) {
 
 function renderCard(article, category) {
   const coverFit = article.cover_fit === 'contain' ? ' contain' : '';
-  return '<a class="cs-card" href="#/case-studies/' + encodeURIComponent(article.slug) + '">'
+  return '<a class="cs-card" href="' + escapeHtml(withRouteLanguage('#/case-studies/' + encodeURIComponent(article.slug), Content.lang)) + '">'
     + '<span class="cs-card-art' + coverFit + '" aria-hidden="true"><img src="'
     + escapeHtml(article.cover_image) + '" alt="" loading="lazy" decoding="async"></span>'
     + '<span class="cs-card-content">'
     + '<span class="cs-card-kicker">' + text().number + ' ' + numberLabel(article) + ' · '
-    + escapeHtml(article.company) + ' · ' + escapeHtml(languageLabel(article)) + '</span>'
+    + escapeHtml(article.company) + ' · ' + escapeHtml(languageLabel(article)) + ' ' + levelMarkup(article) + '</span>'
     + '<strong>' + escapeHtml(article.title) + '</strong>'
     + '<span class="cs-card-excerpt">' + escapeHtml(article.excerpt) + '</span>'
     + '<span class="cs-card-meta"><span>' + escapeHtml(category.label) + '</span><span>'
@@ -87,7 +95,7 @@ function renderLibrary(collection) {
 
   return '<div class="cs-library">'
     + '<header class="cs-library-hero"><p class="cs-eyebrow">' + escapeHtml(collection.library.eyebrow) + '</p>'
-    + '<h1>' + escapeHtml(collection.library.title) + '</h1>'
+    + '<h1 id="case-library-title">' + escapeHtml(collection.library.title) + '</h1>'
     + '<p>' + escapeHtml(collection.library.intro) + '</p>'
     + '<div class="cs-library-stats"><span><b>' + articles.length + '</b> ' + text().cases(articles.length) + '</span>'
     + '<span><b>1</b> ' + text().company + '</span><span>' + text().availableLanguage + '</span></div></header>'
@@ -98,9 +106,9 @@ function articleMeta(article) {
   const tags = (article.tags || []).map(tag => '<span>' + escapeHtml(tag) + '</span>').join('');
   const href = sourceHref(article.source_url);
   return '<header class="cs-article-head">'
-    + '<a class="cs-back" href="#/case-studies">← ' + text().allCases + '</a>'
+    + '<a class="cs-back" href="' + escapeHtml(withRouteLanguage('#/case-studies', Content.lang)) + '">← ' + text().allCases + '</a>'
     + '<p class="cs-eyebrow">' + text().number + ' ' + numberLabel(article) + ' · '
-    + escapeHtml(article.company) + ' · ' + escapeHtml(article.category_label) + '</p>'
+    + escapeHtml(article.company) + ' · ' + escapeHtml(article.category_label) + ' ' + levelMarkup(article) + '</p>'
     + '<h1 id="case-study-' + escapeHtml(article.slug) + '-title">' + escapeHtml(article.title) + '</h1>'
     + '<p class="cs-deck">' + escapeHtml(article.excerpt) + '</p>'
     + '<div class="cs-byline"><span>' + formatDate(article.published_at) + '</span>'
@@ -229,7 +237,8 @@ async function showArticle(root, collection, slug, token, anchor = '') {
   const article = (collection.articles || []).find(row => row.slug === slug);
   if (!article) {
     root.innerHTML = '<div class="cs-empty"><p class="cs-eyebrow">' + text().notFound + '</p>'
-      + '<h1>' + text().missing + '</h1><a href="#/case-studies">← ' + text().back + '</a></div>';
+      + '<h1>' + text().missing + '</h1><a href="' + escapeHtml(withRouteLanguage('#/case-studies', Content.lang)) + '">← ' + text().back + '</a></div>';
+    decorateHeadingPermalinks(root);
     document.title = text().notFound + ' · Backend Engineering';
     return;
   }
@@ -238,6 +247,7 @@ async function showArticle(root, collection, slug, token, anchor = '') {
   if (token !== mountToken) return;
 
   root.innerHTML = renderArticle(article, body, article.guide);
+  decorateHeadingPermalinks(root);
   document.title = article.title + ' · Backend Engineering';
   buildToc(root, article.slug);
   wireTocToggle(root);
@@ -260,11 +270,15 @@ export async function mountCaseStudies(host, routeParts = [], anchor = '') {
     if (token !== mountToken) return;
     const slug = routeParts[0] ? decodeURIComponent(routeParts[0]) : '';
     if (slug) await showArticle(root, collection, slug, token, anchor);
-    else root.innerHTML = renderLibrary(collection);
+    else {
+      root.innerHTML = renderLibrary(collection);
+      decorateHeadingPermalinks(root);
+    }
   } catch (error) {
     if (token !== mountToken) return;
     root.innerHTML = '<div class="cs-empty"><p class="cs-eyebrow">' + text().unavailable + '</p>'
       + '<h1>' + text().unavailableTitle + '</h1><p>' + escapeHtml(error?.message || String(error)) + '</p>'
-      + '<a href="#/case-studies">' + text().retry + '</a></div>';
+      + '<a href="' + escapeHtml(withRouteLanguage('#/case-studies', Content.lang)) + '">' + text().retry + '</a></div>';
+    decorateHeadingPermalinks(root);
   }
 }

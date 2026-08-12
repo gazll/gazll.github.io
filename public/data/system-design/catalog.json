@@ -52,6 +52,8 @@
       "slug": "design-review-framework",
       "category": "foundations",
       "effort": "30–45 min",
+      "level": "core",
+      "featured": true,
       "source_items": [
         "10-system-design-rate-limit.framework-building-blocks.q1",
         "10-system-design-rate-limit.framework-building-blocks.q2",
@@ -152,6 +154,8 @@
       "slug": "traffic-caching-building-blocks",
       "category": "foundations",
       "effort": "35 min",
+      "level": "core",
+      "featured": false,
       "source_items": [
         "10-system-design-rate-limit.framework-building-blocks.q3",
         "10-system-design-rate-limit.framework-building-blocks.q4",
@@ -253,6 +257,8 @@
       "slug": "surviving-high-load",
       "category": "foundations",
       "effort": "35 min",
+      "level": "core",
+      "featured": false,
       "source_items": [
         "10-system-design-rate-limit.surviving-high-load.q1",
         "10-system-design-rate-limit.surviving-high-load.q2",
@@ -354,6 +360,8 @@
       "slug": "distributed-rate-limiter",
       "category": "product-systems",
       "effort": "45 min",
+      "level": "advanced",
+      "featured": false,
       "source_items": [
         "10-system-design-rate-limit.rate-limiting-in-depth.q1",
         "10-system-design-rate-limit.rate-limiting-in-depth.q2",
@@ -400,6 +408,15 @@
           "Fail-open preserves traffic but removes protection; fail-closed can turn a Redis outage into an application outage.",
           "One global limiter adds latency; hierarchical global plus local limits trade precision for survivability."
         ],
+        "code_samples": [
+          {
+            "title": "Atomic fixed-window fallback",
+            "language": "lua",
+            "note": "A short Redis script keeps increment and expiry together; choose fail-open or fail-closed per route.",
+            "code": "local count = redis.call('INCRBY', KEYS[1], ARGV[1])\nif count == tonumber(ARGV[1]) then\n  redis.call('PEXPIRE', KEYS[1], ARGV[2])\nend\nreturn count <= tonumber(ARGV[3])",
+            "run": "redis-cli --eval limiter.lua limit:user:42 , 1 1000 10"
+          }
+        ],
         "tags": [
           "Token bucket",
           "Sliding window",
@@ -444,6 +461,15 @@
           "Fail-open giữ traffic nhưng mất bảo vệ; fail-closed có thể biến Redis outage thành app outage.",
           "Một global limiter tăng latency; global + local phân cấp đổi precision lấy survivability."
         ],
+        "code_samples": [
+          {
+            "title": "Fixed-window fallback atomic",
+            "language": "lua",
+            "note": "Redis script giữ increment và expiry cùng nhau; chọn fail-open hay fail-closed theo từng route.",
+            "code": "local count = redis.call('INCRBY', KEYS[1], ARGV[1])\nif count == tonumber(ARGV[1]) then\n  redis.call('PEXPIRE', KEYS[1], ARGV[2])\nend\nreturn count <= tonumber(ARGV[3])",
+            "run": "redis-cli --eval limiter.lua limit:user:42 , 1 1000 10"
+          }
+        ],
         "tags": [
           "Token bucket",
           "Sliding window",
@@ -458,6 +484,8 @@
       "slug": "payment-ledger",
       "category": "product-systems",
       "effort": "60 min",
+      "level": "core",
+      "featured": true,
       "source_items": [
         "11-system-design-cases.the-big-prompts.q1",
         "11-system-design-cases.the-big-prompts.q11"
@@ -498,6 +526,15 @@
           "Serializing account updates simplifies correctness but hot accounts can become contention points.",
           "Available balance may use holds and pending postings; it must not pretend eventual provider state is final.",
           "Never mutate or delete ledger history to fix a mistake—post a compensating entry."
+        ],
+        "code_samples": [
+          {
+            "title": "Balanced double-entry posting",
+            "language": "sql",
+            "note": "The journal is accepted only when debit and credit balance inside the same local transaction.",
+            "code": "BEGIN;\n\nINSERT INTO journal_transaction (id, idempotency_key, currency)\nVALUES (:journal_id, :key, :currency)\nON CONFLICT (idempotency_key) DO NOTHING;\n\nINSERT INTO posting (journal_id, account_id, direction, amount)\nVALUES\n  (:journal_id, :debit_account, 'DEBIT', :amount),\n  (:journal_id, :credit_account, 'CREDIT', :amount);\n\nSELECT 1\nFROM posting\nWHERE journal_id = :journal_id\nGROUP BY journal_id\nHAVING SUM(CASE WHEN direction = 'DEBIT' THEN amount ELSE -amount END) = 0;\nCOMMIT;",
+            "run": "psql ledger.sql --set amount=1250 --set currency=VND"
+          }
         ],
         "tags": [
           "Double-entry",
@@ -543,6 +580,15 @@
           "Available balance có thể dùng hold/pending posting; không được giả state eventual của provider là final.",
           "Không mutate hoặc delete ledger history để sửa lỗi — ghi compensating entry."
         ],
+        "code_samples": [
+          {
+            "title": "Posting double-entry cân bằng",
+            "language": "sql",
+            "note": "Journal chỉ được nhận khi debit và credit cân bằng trong cùng một local transaction.",
+            "code": "BEGIN;\n\nINSERT INTO journal_transaction (id, idempotency_key, currency)\nVALUES (:journal_id, :key, :currency)\nON CONFLICT (idempotency_key) DO NOTHING;\n\nINSERT INTO posting (journal_id, account_id, direction, amount)\nVALUES\n  (:journal_id, :debit_account, 'DEBIT', :amount),\n  (:journal_id, :credit_account, 'CREDIT', :amount);\n\nSELECT 1\nFROM posting\nWHERE journal_id = :journal_id\nGROUP BY journal_id\nHAVING SUM(CASE WHEN direction = 'DEBIT' THEN amount ELSE -amount END) = 0;\nCOMMIT;",
+            "run": "psql ledger.sql --set amount=1250 --set currency=VND"
+          }
+        ],
         "tags": [
           "Double-entry",
           "Idempotency",
@@ -557,6 +603,8 @@
       "slug": "notification-service",
       "category": "product-systems",
       "effort": "45 min",
+      "level": "advanced",
+      "featured": false,
       "source_items": [
         "11-system-design-cases.the-big-prompts.q2"
       ],
@@ -655,6 +703,8 @@
       "slug": "url-shortener",
       "category": "product-systems",
       "effort": "40 min",
+      "level": "extra",
+      "featured": false,
       "source_items": [
         "11-system-design-cases.the-big-prompts.q3"
       ],
@@ -753,6 +803,8 @@
       "slug": "news-feed",
       "category": "product-systems",
       "effort": "50 min",
+      "level": "advanced",
+      "featured": false,
       "source_items": [
         "11-system-design-cases.the-big-prompts.q4"
       ],
@@ -851,6 +903,8 @@
       "slug": "realtime-leaderboard",
       "category": "product-systems",
       "effort": "40 min",
+      "level": "advanced",
+      "featured": false,
       "source_items": [
         "11-system-design-cases.the-big-prompts.q6"
       ],
@@ -949,6 +1003,8 @@
       "slug": "distributed-cache",
       "category": "product-systems",
       "effort": "50 min",
+      "level": "core",
+      "featured": true,
       "source_items": [
         "11-system-design-cases.the-big-prompts.q7"
       ],
@@ -988,6 +1044,15 @@
           "Replication improves cache availability at memory cost and with possible stale reads.",
           "Randomized TTL avoids synchronized expiry but changes freshness distribution.",
           "A cache is disposable data; if rebuilding it can take the origin down, the system is not actually disposable."
+        ],
+        "code_samples": [
+          {
+            "title": "Cache-aside with a versioned key",
+            "language": "bash",
+            "note": "Write the origin first and version the key so stale values cannot overwrite a newer product snapshot.",
+            "code": "key=product:42:v17\nvalue=$(redis-cli --raw GET \"$key\")\n\nif [ -z \"$value\" ]; then\n  value=$(psql -At catalog.sql -c \"SELECT jsonb_build_object('id', id, 'price', price) FROM product WHERE id = 42\")\n  redis-cli SET \"$key\" \"$value\" EX 30 NX\nfi\n\nprintf '%s\\n' \"$value\"",
+            "run": "bash cache-aside.sh"
+          }
         ],
         "tags": [
           "Consistent hashing",
@@ -1033,6 +1098,15 @@
           "TTL random tránh expiry đồng loạt nhưng đổi freshness distribution.",
           "Cache là disposable data; nếu rebuild làm origin sập thì hệ thống chưa thật sự disposable."
         ],
+        "code_samples": [
+          {
+            "title": "Cache-aside với versioned key",
+            "language": "bash",
+            "note": "Ghi origin trước và version key để value cũ không ghi đè snapshot product mới.",
+            "code": "key=product:42:v17\nvalue=$(redis-cli --raw GET \"$key\")\n\nif [ -z \"$value\" ]; then\n  value=$(psql -At catalog.sql -c \"SELECT jsonb_build_object('id', id, 'price', price) FROM product WHERE id = 42\")\n  redis-cli SET \"$key\" \"$value\" EX 30 NX\nfi\n\nprintf '%s\\n' \"$value\"",
+            "run": "bash cache-aside.sh"
+          }
+        ],
         "tags": [
           "Consistent hashing",
           "Eviction",
@@ -1047,6 +1121,8 @@
       "slug": "chat-messaging",
       "category": "product-systems",
       "effort": "55 min",
+      "level": "advanced",
+      "featured": false,
       "source_items": [
         "11-system-design-cases.the-big-prompts.q8"
       ],
@@ -1145,6 +1221,8 @@
       "slug": "autocomplete-typeahead",
       "category": "product-systems",
       "effort": "40 min",
+      "level": "advanced",
+      "featured": false,
       "source_items": [
         "11-system-design-cases.the-big-prompts.q9"
       ],
@@ -1243,6 +1321,8 @@
       "slug": "object-storage-large-upload",
       "category": "product-systems",
       "effort": "55 min",
+      "level": "advanced",
+      "featured": false,
       "source_items": [
         "11-system-design-cases.the-big-prompts.q10"
       ],
@@ -1341,6 +1421,8 @@
       "slug": "ota-flight-booking",
       "category": "product-systems",
       "effort": "60 min",
+      "level": "core",
+      "featured": true,
       "source_items": [
         "16-project-concurrency-whiteboard.presenting-dissecting-the-ota-project.q1",
         "16-project-concurrency-whiteboard.presenting-dissecting-the-ota-project.q2",
@@ -1392,6 +1474,15 @@
           "Orchestration makes the money-and-ticket path observable; choreography reduces coupling but hides one business transaction across events.",
           "Issue the hardest-to-reverse step last, yet treat every timeout as unknown and query provider status before compensating.",
           "Overbooking is a commercial capacity model with limits and recovery cost, not a race condition disguised as eventual consistency."
+        ],
+        "code_samples": [
+          {
+            "title": "Conditional seat hold",
+            "language": "sql",
+            "note": "The hold is authoritative only after the conditional write succeeds; search availability is advisory.",
+            "code": "BEGIN;\n\nUPDATE inventory_unit\nSET held = held + :quantity, version = version + 1\nWHERE flight_id = :flight_id\n  AND held + confirmed + :quantity <= capacity\n  AND version = :expected_version\nRETURNING flight_id, held, version;\n\nINSERT INTO seat_hold (hold_id, flight_id, customer_id, quantity, expires_at)\nVALUES (:hold_id, :flight_id, :customer_id, :quantity, now() + interval '8 minutes');\nCOMMIT;",
+            "run": "psql booking.sql --set flight_id=VN123-2026-08-12"
+          }
         ],
         "tags": [
           "OTA",
@@ -1446,6 +1537,15 @@
           "Đặt bước khó reverse nhất cuối cùng, nhưng mọi timeout đều là unknown và phải query provider trước compensation.",
           "Overbooking là commercial capacity model có limit/recovery cost, không phải race condition khoác áo eventual consistency."
         ],
+        "code_samples": [
+          {
+            "title": "Conditional seat hold",
+            "language": "sql",
+            "note": "Hold chỉ authoritative sau khi conditional write thành công; availability trong search chỉ là advisory.",
+            "code": "BEGIN;\n\nUPDATE inventory_unit\nSET held = held + :quantity, version = version + 1\nWHERE flight_id = :flight_id\n  AND held + confirmed + :quantity <= capacity\n  AND version = :expected_version\nRETURNING flight_id, held, version;\n\nINSERT INTO seat_hold (hold_id, flight_id, customer_id, quantity, expires_at)\nVALUES (:hold_id, :flight_id, :customer_id, :quantity, now() + interval '8 minutes');\nCOMMIT;",
+            "run": "psql booking.sql --set flight_id=VN123-2026-08-12"
+          }
+        ],
         "tags": [
           "OTA",
           "Seat hold",
@@ -1461,6 +1561,8 @@
       "slug": "high-traffic-booking-search",
       "category": "product-systems",
       "effort": "60 min",
+      "level": "advanced",
+      "featured": false,
       "source_items": [
         "11-system-design-cases.the-big-prompts.q13",
         "11-system-design-cases.the-big-prompts.q14"
@@ -1578,6 +1680,8 @@
       "slug": "scaling-1m-to-10m-requests",
       "category": "foundations",
       "effort": "90 min",
+      "level": "core",
+      "featured": true,
       "source_items": [
         "11-system-design-cases.the-big-prompts.q15",
         "11-system-design-cases.the-big-prompts.q16"
@@ -1683,6 +1787,36 @@
             "answer": "Reconcile aged Saga rows against Order, Inventory, Payment and the PSP; replay committed outboxes; repair by explicit confirm, release, cancel or refund transitions; then redrive quarantined events. Prove recovery with zero unmatched captures/reservations, bounded outbox and consumer age, and sampled aggregate sequence checks."
           }
         ],
+        "code_samples": [
+          {
+            "title": "Atomic inventory reservation + outbox",
+            "language": "sql",
+            "note": "The conditional update is the final oversell guard; the outbox row commits with the reservation.",
+            "code": "BEGIN;\n\nINSERT INTO checkout_inbox (idempotency_key, request_hash, state)\nVALUES (:key, :request_hash, 'RECEIVED')\nON CONFLICT (idempotency_key) DO NOTHING;\n\nUPDATE inventory\nSET available = available - :qty, version = version + 1\nWHERE sku_id = :sku_id\n  AND available >= :qty\n  AND version = :expected_version;\n-- Require row_count = 1; otherwise reject or re-read the SKU.\n\nINSERT INTO reservation (order_id, sku_id, quantity, state, expires_at)\nVALUES (:order_id, :sku_id, :qty, 'HELD', now() + interval '10 minutes');\n\nINSERT INTO outbox_event (event_id, aggregate_id, type, payload)\nVALUES (:event_id, :order_id, 'StockReserved', :payload);\nCOMMIT;",
+            "run": "psql checkout.sql --set sku_id=sku-42 --set qty=1"
+          },
+          {
+            "title": "Inbox de-dup + optimistic Saga fence",
+            "language": "sql",
+            "note": "At-least-once delivery is expected; the inbox key and version predicate make a replay harmless.",
+            "code": "BEGIN;\n\nINSERT INTO event_inbox (event_id, consumer)\nVALUES (:event_id, 'checkout')\nON CONFLICT (event_id, consumer) DO NOTHING;\n\nUPDATE checkout_saga\nSET state = :next_state, version = version + 1, updated_at = now()\nWHERE checkout_id = :checkout_id\n  AND version = :expected_version\n  AND state = :expected_state;\n-- Zero rows means duplicate, stale, or an unexpected transition.\n\nCOMMIT;",
+            "run": "psql checkout.sql --set event_id=evt-123"
+          },
+          {
+            "title": "Replay the event stream into a new index",
+            "language": "bash",
+            "note": "Replay is a rebuild tool, not a correctness shortcut: consumers still need idempotent effects and version checks.",
+            "code": "kafka-topics.sh --bootstrap-server localhost:9092 \\\n  --create --if-not-exists --topic order.events --partitions 12 --replication-factor 3\n\nkafka-console-consumer.sh --bootstrap-server localhost:9092 \\\n  --topic order.events --group search-indexer-rebuild \\\n  --from-beginning --property print.key=true",
+            "run": "Start Kafka locally, then stop the consumer after the rebuild lag reaches zero."
+          },
+          {
+            "title": "Find payment attempts that need reconciliation",
+            "language": "sql",
+            "note": "UNKNOWN is a durable state. Query the provider before deciding whether to capture, refund, or retry.",
+            "code": "SELECT payment_id, order_id, provider_ref, idempotency_key\nFROM payment_attempt\nWHERE state = 'UNKNOWN'\n  AND updated_at < now() - interval '5 minutes'\nORDER BY updated_at\nFOR UPDATE SKIP LOCKED\nLIMIT 100;",
+            "run": "psql payment.sql --set statement_timeout=2000"
+          }
+        ],
         "tags": [
           "E-commerce",
           "Saga",
@@ -1779,6 +1913,36 @@
             "answer": "Reconcile Saga row quá tuổi với Order, Inventory, Payment và PSP; replay committed outbox; repair bằng transition confirm, release, cancel hoặc refund tường minh; sau đó redrive quarantined event. Chứng minh recovery bằng zero unmatched capture/reservation, outbox/consumer age có giới hạn và aggregate sequence check theo mẫu."
           }
         ],
+        "code_samples": [
+          {
+            "title": "Reserve atomic + ghi outbox",
+            "language": "sql",
+            "note": "Conditional update là oversell guard cuối; outbox commit cùng reservation.",
+            "code": "BEGIN;\n\nINSERT INTO checkout_inbox (idempotency_key, request_hash, state)\nVALUES (:key, :request_hash, 'RECEIVED')\nON CONFLICT (idempotency_key) DO NOTHING;\n\nUPDATE inventory\nSET available = available - :qty, version = version + 1\nWHERE sku_id = :sku_id\n  AND available >= :qty\n  AND version = :expected_version;\n-- Bắt buộc row_count = 1; nếu không thì reject hoặc đọc lại SKU.\n\nINSERT INTO reservation (order_id, sku_id, quantity, state, expires_at)\nVALUES (:order_id, :sku_id, :qty, 'HELD', now() + interval '10 minutes');\n\nINSERT INTO outbox_event (event_id, aggregate_id, type, payload)\nVALUES (:event_id, :order_id, 'StockReserved', :payload);\nCOMMIT;",
+            "run": "psql checkout.sql --set sku_id=sku-42 --set qty=1"
+          },
+          {
+            "title": "Inbox dedupe + optimistic fence cho Saga",
+            "language": "sql",
+            "note": "At-least-once delivery là mặc định; inbox key và version predicate làm replay vô hại.",
+            "code": "BEGIN;\n\nINSERT INTO event_inbox (event_id, consumer)\nVALUES (:event_id, 'checkout')\nON CONFLICT (event_id, consumer) DO NOTHING;\n\nUPDATE checkout_saga\nSET state = :next_state, version = version + 1, updated_at = now()\nWHERE checkout_id = :checkout_id\n  AND version = :expected_version\n  AND state = :expected_state;\n-- Zero rows nghĩa là duplicate, stale hoặc transition bất ngờ.\n\nCOMMIT;",
+            "run": "psql checkout.sql --set event_id=evt-123"
+          },
+          {
+            "title": "Replay event stream vào index mới",
+            "language": "bash",
+            "note": "Replay là công cụ rebuild, không phải shortcut correctness: consumer vẫn cần idempotent effect và version check.",
+            "code": "kafka-topics.sh --bootstrap-server localhost:9092 \\\n  --create --if-not-exists --topic order.events --partitions 12 --replication-factor 3\n\nkafka-console-consumer.sh --bootstrap-server localhost:9092 \\\n  --topic order.events --group search-indexer-rebuild \\\n  --from-beginning --property print.key=true",
+            "run": "Chạy Kafka local, rồi dừng consumer khi rebuild lag về zero."
+          },
+          {
+            "title": "Tìm payment attempt cần reconcile",
+            "language": "sql",
+            "note": "UNKNOWN là state durable. Query provider trước khi quyết định capture, refund hoặc retry.",
+            "code": "SELECT payment_id, order_id, provider_ref, idempotency_key\nFROM payment_attempt\nWHERE state = 'UNKNOWN'\n  AND updated_at < now() - interval '5 minutes'\nORDER BY updated_at\nFOR UPDATE SKIP LOCKED\nLIMIT 100;",
+            "run": "psql payment.sql --set statement_timeout=2000"
+          }
+        ],
         "tags": [
           "E-commerce",
           "Saga",
@@ -1794,6 +1958,8 @@
       "slug": "scaling-technique-catalogue",
       "category": "foundations",
       "effort": "60 min",
+      "level": "core",
+      "featured": true,
       "source_items": [
         "11-system-design-cases.the-big-prompts.q17",
         "11-system-design-cases.the-big-prompts.q18"
@@ -1846,6 +2012,15 @@
           "Distributed locks are the most commonly misused item here. They look like correctness and are not. If losing the lock would corrupt data rather than merely duplicate work, the answer is a database constraint — every time.",
           "Async offload trades a clear synchronous failure for an ambiguous asynchronous one. The user gets a fast pending response, and you inherit retries, duplicates, dead letters, ordering questions and a backlog that must be monitored. Only cross that boundary when the work genuinely does not belong in the request.",
           "Every technique here adds a component that can fail independently. The honest accounting is not throughput gained but on-call surface added: each one is a dashboard, an alert, a runbook and a failure mode someone must understand at three in the morning."
+        ],
+        "code_samples": [
+          {
+            "title": "Backpressure with a bounded worker queue",
+            "language": "typescript",
+            "note": "Reject before the queue consumes unbounded memory; the caller gets a retryable signal instead of hidden overload.",
+            "code": "const queue: Job[] = [];\nconst MAX_QUEUE = 500;\n\nexport function enqueue(job: Job) {\n  if (queue.length >= MAX_QUEUE) {\n    throw new Error('OVERLOADED_RETRY_LATER');\n  }\n  queue.push(job);\n}\n\nsetInterval(async () => {\n  const job = queue.shift();\n  if (job) await handle(job);\n}, 10);",
+            "run": "node --experimental-strip-types backpressure.ts"
+          }
         ],
         "tags": [
           "Redis",
@@ -1904,6 +2079,15 @@
           "Async là đổi một sync failure rõ ràng lấy async failure mơ hồ. User nhận pending nhanh, còn team nhận retry, duplicate, DLQ, ordering question và backlog cần operate. Chỉ cross boundary khi work thực sự không thuộc request.",
           "Mỗi technique thêm một component có thể fail độc lập. Hạch toán trung thực không chỉ là throughput đạt được mà là operational surface: thêm dashboard, alert, runbook và failure mode mà ai đó phải hiểu lúc 3 giờ sáng."
         ],
+        "code_samples": [
+          {
+            "title": "Backpressure với worker queue có giới hạn",
+            "language": "typescript",
+            "note": "Reject trước khi queue ngốn memory vô hạn; caller nhận tín hiệu retry thay vì overload bị giấu.",
+            "code": "const queue: Job[] = [];\nconst MAX_QUEUE = 500;\n\nexport function enqueue(job: Job) {\n  if (queue.length >= MAX_QUEUE) {\n    throw new Error('OVERLOADED_RETRY_LATER');\n  }\n  queue.push(job);\n}\n\nsetInterval(async () => {\n  const job = queue.shift();\n  if (job) await handle(job);\n}, 10);",
+            "run": "node --experimental-strip-types backpressure.ts"
+          }
+        ],
         "tags": [
           "Redis",
           "Kafka",
@@ -1919,6 +2103,8 @@
       "slug": "flash-sale-booking-inventory-bottleneck",
       "category": "product-systems",
       "effort": "75 min",
+      "level": "advanced",
+      "featured": false,
       "source_items": [
         "11-system-design-cases.the-big-prompts.q19",
         "11-system-design-cases.the-big-prompts.q20"
@@ -2011,6 +2197,15 @@
           "Pre-allocating stock to cells/regions removes a global write hop and contains failure, but stranded quota can show sold-out in one cell while another has stock; rebalance only through fenced quota transfer.",
           "Queueing/backpressure smooths a burst only when drain rate exceeds sustainable arrivals soon enough. If 2,000 attempts/s enter a 50/s hot-SKU worker, backlog grows 1,950/s; after ten seconds it already needs about 390 seconds to drain, so bounded admission and rejection are the honest response.",
           "Failure review: test Redis loss, DB primary failover, an expired hold racing with payment success, duplicated payment callbacks, outbox lag, bot-distributed identities and a client retry storm after a gateway timeout."
+        ],
+        "code_samples": [
+          {
+            "title": "Atomic hot-SKU admission",
+            "language": "lua",
+            "note": "Redis performs the cheap admission check atomically; Inventory DB remains the final source of truth.",
+            "code": "local remaining = redis.call('GET', KEYS[1])\nif not remaining or tonumber(remaining) < tonumber(ARGV[1]) then\n  return {0, remaining or '-1'}\nend\nredis.call('DECRBY', KEYS[1], ARGV[1])\nreturn {1, remaining - ARGV[1]}",
+            "run": "redis-cli --eval admit.lua sale:sku-42 , 1"
+          }
         ],
         "failure_review": [
           {
@@ -2131,6 +2326,15 @@
           "Queue/backpressure chỉ làm phẳng burst nếu drain rate sớm vượt sustainable arrival. Nếu 2.000 attempt/s vào worker hot-SKU 50/s, backlog tăng 1.950/s; sau 10 giây đã cần khoảng 390 giây để drain, vì vậy bounded admission và reject mới là phản hồi trung thực.",
           "Failure review: test Redis loss, DB primary failover, expired hold race với payment success, duplicate payment callback, outbox lag, bot dùng distributed identity và client retry storm sau gateway timeout."
         ],
+        "code_samples": [
+          {
+            "title": "Admission atomic cho hot SKU",
+            "language": "lua",
+            "note": "Redis chạy admission check rẻ và atomic; Inventory DB vẫn là source of truth cuối cùng.",
+            "code": "local remaining = redis.call('GET', KEYS[1])\nif not remaining or tonumber(remaining) < tonumber(ARGV[1]) then\n  return {0, remaining or '-1'}\nend\nredis.call('DECRBY', KEYS[1], ARGV[1])\nreturn {1, remaining - ARGV[1]}",
+            "run": "redis-cli --eval admit.lua sale:sku-42 , 1"
+          }
+        ],
         "failure_review": [
           {
             "question": "Invariant nào có thể vỡ và điều gì giữ nó đúng?",
@@ -2168,6 +2372,8 @@
       "slug": "api-gateway-identity-edge",
       "category": "foundations",
       "effort": "60 min",
+      "level": "core",
+      "featured": true,
       "source_items": [
         "27-api-gateway-identity-edge.the-edge-in-four-sizes.q1",
         "27-api-gateway-identity-edge.the-edge-in-four-sizes.q2",
@@ -2251,6 +2457,36 @@
           "Central config vs local autonomy — a central snapshot gives consistent policy and rollback, while local cached data keeps the data plane alive during control-plane failure; both require version, expiry and last-known-good behavior."
         ],
         "migrated_note": "Preserved from Topic 27 — API gateway and identity edge in System Design.",
+        "code_samples": [
+          {
+            "title": "Nginx route guard + leaky-bucket limit",
+            "language": "nginx",
+            "note": "Use the gateway for coarse admission; the downstream service still owns resource authorization.",
+            "code": "http {\n    limit_req_zone $binary_remote_addr zone=api_per_ip:10m rate=10r/s;\n\n    server {\n        location /api/ {\n            auth_request /_verify;\n            limit_req zone=api_per_ip burst=20 nodelay;\n            proxy_set_header X-Request-Id $request_id;\n            proxy_pass http://checkout_pool;\n        }\n\n        location = /_verify {\n            internal;\n            proxy_pass http://identity_verifier;\n            proxy_pass_request_body off;\n            proxy_set_header Content-Length \"\";\n            proxy_set_header X-Original-URI $request_uri;\n        }\n    }\n}",
+            "run": "nginx -t -c ./gateway.conf && nginx -c ./gateway.conf"
+          },
+          {
+            "title": "OPA/Rego resource authorization",
+            "language": "rego",
+            "note": "Rego answers policy with request context; it must not replace the service's final domain invariant.",
+            "code": "package gateway.authz\n\ndefault allow := false\n\nallow if {\n    input.identity.tenant == input.resource.tenant\n    input.identity.scopes[_] == \"orders:read\"\n    input.method == \"GET\"\n}",
+            "run": "opa eval --format pretty --data policy.rego --input request.json data.gateway.authz.allow"
+          },
+          {
+            "title": "Edge contract smoke test",
+            "language": "bash",
+            "note": "Exercise the negative contract as well as the happy path: missing identity, forbidden scope and throttled traffic.",
+            "code": "set -euo pipefail\n\nbase=http://localhost:8080\n\ncurl -fsS -o /dev/null -w 'valid: %{http_code}\\n' \\\n  -H \"Authorization: Bearer $TOKEN\" \"$base/api/orders/42\"\n\ncurl -sS -o /dev/null -w 'missing-token: %{http_code}\\n' \\\n  \"$base/api/orders/42\"\n\nfor i in $(seq 1 30); do\n  curl -sS -o /dev/null -w '%{http_code} ' \"$base/api/orders/42\"\ndone\necho",
+            "run": "TOKEN=dev-token bash edge-smoke.sh"
+          },
+          {
+            "title": "Idempotent gateway decision audit",
+            "language": "sql",
+            "note": "Audit the decision without making the audit store a request-path authorization authority.",
+            "code": "INSERT INTO gateway_decision_audit\n    (request_id, subject_id, tenant_id, route, decision, policy_version, decided_at)\nVALUES\n    (:request_id, :subject_id, :tenant_id, :route, :decision, :policy_version, now())\nON CONFLICT (request_id) DO NOTHING;",
+            "run": "psql audit.sql --set request_id=req-123 --set decision=allow"
+          }
+        ],
         "tags": [
           "API Gateway",
           "Identity edge",
@@ -2346,6 +2582,36 @@
           "Central config vs local autonomy — snapshot central cho policy nhất quán và rollback, cache local giữ data plane sống khi control plane lỗi; cả hai đều cần version, expiry và last-known-good."
         ],
         "migrated_note": "Giữ lại từ Topic 27 — API gateway và identity edge trong System Design.",
+        "code_samples": [
+          {
+            "title": "Nginx route guard + leaky-bucket limit",
+            "language": "nginx",
+            "note": "Gateway làm coarse admission; downstream service vẫn sở hữu resource authorization.",
+            "code": "http {\n    limit_req_zone $binary_remote_addr zone=api_per_ip:10m rate=10r/s;\n\n    server {\n        location /api/ {\n            auth_request /_verify;\n            limit_req zone=api_per_ip burst=20 nodelay;\n            proxy_set_header X-Request-Id $request_id;\n            proxy_pass http://checkout_pool;\n        }\n\n        location = /_verify {\n            internal;\n            proxy_pass http://identity_verifier;\n            proxy_pass_request_body off;\n            proxy_set_header Content-Length \"\";\n            proxy_set_header X-Original-URI $request_uri;\n        }\n    }\n}",
+            "run": "nginx -t -c ./gateway.conf && nginx -c ./gateway.conf"
+          },
+          {
+            "title": "OPA/Rego authorization theo resource",
+            "language": "rego",
+            "note": "Rego trả policy decision theo request context; không thay final domain invariant của service.",
+            "code": "package gateway.authz\n\ndefault allow := false\n\nallow if {\n    input.identity.tenant == input.resource.tenant\n    input.identity.scopes[_] == \"orders:read\"\n    input.method == \"GET\"\n}",
+            "run": "opa eval --format pretty --data policy.rego --input request.json data.gateway.authz.allow"
+          },
+          {
+            "title": "Smoke test contract của edge",
+            "language": "bash",
+            "note": "Test cả negative contract: thiếu identity, scope bị cấm và traffic bị throttle.",
+            "code": "set -euo pipefail\n\nbase=http://localhost:8080\n\ncurl -fsS -o /dev/null -w 'valid: %{http_code}\\n' \\\n  -H \"Authorization: Bearer $TOKEN\" \"$base/api/orders/42\"\n\ncurl -sS -o /dev/null -w 'missing-token: %{http_code}\\n' \\\n  \"$base/api/orders/42\"\n\nfor i in $(seq 1 30); do\n  curl -sS -o /dev/null -w '%{http_code} ' \"$base/api/orders/42\"\ndone\necho",
+            "run": "TOKEN=dev-token bash edge-smoke.sh"
+          },
+          {
+            "title": "Audit decision idempotent",
+            "language": "sql",
+            "note": "Ghi audit nhưng không biến audit store thành authority authorization trên request path.",
+            "code": "INSERT INTO gateway_decision_audit\n    (request_id, subject_id, tenant_id, route, decision, policy_version, decided_at)\nVALUES\n    (:request_id, :subject_id, :tenant_id, :route, :decision, :policy_version, now())\nON CONFLICT (request_id) DO NOTHING;",
+            "run": "psql audit.sql --set request_id=req-123 --set decision=allow"
+          }
+        ],
         "tags": [
           "API Gateway",
           "Identity edge",

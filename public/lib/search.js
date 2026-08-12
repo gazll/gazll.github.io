@@ -22,6 +22,7 @@ import { SystemDesign } from './system-design.js';
 import { CaseStudies } from './case-studies.js';
 import { questionHash, systemDesignQuestionHash } from './question-links.js';
 import { TOPIC_TYPE_LABEL } from './constants.js';
+import { withRouteLanguage } from './anchors.js';
 
 /** Surface ids, in the order results are grouped. Labels are chrome — English. */
 export const SURFACES = Object.freeze([
@@ -299,7 +300,7 @@ export function buildEntries({
       title: topic.title || topic.label || '',
       // A topic has no route of its own, so it opens at its first card — which
       // is what selects the topic in the track view.
-      href: ids.length ? questionHash(ids[0]) : '#/track',
+      href: ids.length ? questionHash(ids[0]) : withRouteLanguage('#/track', Content.lang),
       context: joinText('Topic ' + num, topic.label, TOPIC_TYPE_LABEL[topic.topic_type] || topic.topic_type),
       badge: 'Topic ' + num,
       topicType: topic.topic_type,
@@ -335,9 +336,11 @@ export function buildEntries({
       surface: 'system-design',
       kind: 'design',
       title: design.title || '',
-      href: '#/system-design/' + encodeURIComponent(design.slug),
+      href: withRouteLanguage('#/system-design/' + encodeURIComponent(design.slug), Content.lang),
       context: joinText('Blueprint', categoryLabel(systemDesign.categories, design.category)),
       badge: 'Blueprint',
+      difficulty: design.level,
+      featured: Boolean(design.featured),
       tags: design.tags,
       body: joinText(design.excerpt, design.scope, design.functional, design.quality,
         design.capacity, design.data_model, design.stack, design.tradeoffs),
@@ -368,9 +371,11 @@ export function buildEntries({
       surface: 'system-design',
       kind: 'case',
       title: article.title || '',
-      href: '#/system-design/case/' + encodeURIComponent(article.slug),
+      href: withRouteLanguage('#/system-design/case/' + encodeURIComponent(article.slug), Content.lang),
       context: joinText('Production case', article.company),
       badge: 'Case',
+      difficulty: article.level,
+      featured: Boolean(article.featured),
       tags: article.tags,
       body: joinText(article.excerpt, flattenText(overview), flattenText(article.guide)),
       article,
@@ -387,9 +392,11 @@ export function buildEntries({
       surface: 'case-studies',
       kind: 'case',
       title: article.title || '',
-      href: '#/case-studies/' + encodeURIComponent(article.slug),
+      href: withRouteLanguage('#/case-studies/' + encodeURIComponent(article.slug), Content.lang),
       context: joinText(article.category_label, article.company),
       badge: 'Case ' + pad2(article.n),
+      difficulty: article.level,
+      featured: Boolean(article.featured),
       tags: article.tags,
       body: joinText(article.excerpt, flattenText(article.guide)),
       article,
@@ -516,7 +523,7 @@ export const SearchIndex = {
 /** `#/search/<query>` — the full-results panel for one query. */
 export function searchHash(query) {
   const trimmed = String(query == null ? '' : query).trim();
-  return trimmed ? '#/search/' + encodeURIComponent(trimmed) : '#/search';
+  return withRouteLanguage(trimmed ? '#/search/' + encodeURIComponent(trimmed) : '#/search', Content.lang);
 }
 
 /** The query carried by a `#/search/…` route; '' when there is none. */

@@ -32,11 +32,12 @@ const surfaceLabel = id => (SURFACES.find(row => row.id === id) || {}).label || 
 function hitRow(hit, index) {
   const entry = hit.entry;
   const topicType = entry.topicType ? ' data-topic-type="' + escapeHtml(entry.topicType) + '"' : '';
+  const level = entry.difficulty ? '<span class="gs-hit-level level-' + escapeHtml(entry.difficulty) + '">' + escapeHtml(entry.difficulty) + '</span>' : '';
   return '<a class="gs-hit" href="' + escapeHtml(entry.href) + '" data-index="' + index + '"'
     + ' data-key="' + escapeHtml(entry.key) + '"' + topicType + '>'
     + '<span class="gs-hit-badge">' + escapeHtml(entry.badge || '') + '</span>'
     + '<span class="gs-hit-main"><span class="gs-hit-title">' + hit.titleHtml + '</span>'
-    + '<span class="gs-hit-context">' + escapeHtml(entry.context || '') + '</span>'
+    + '<span class="gs-hit-context">' + escapeHtml(entry.context || '') + level + (entry.featured ? ' <span class="gs-hit-featured">★</span>' : '') + '</span>'
     + (hit.snippet ? '<span class="gs-hit-snippet">' + hit.snippet + '</span>' : '')
     + '</span><span class="gs-hit-go" aria-hidden="true">↵</span></a>';
 }
@@ -48,8 +49,8 @@ function hitRow(hit, index) {
    not the fixed SURFACES order. Fixed order buries the top result under a
    whole group of weaker ones, and since the first row is the one `Enter`
    opens, it also opens the wrong thing. */
-function groupRows(hits, totals = null) {
-  let index = 0;
+function groupRows(hits, totals = null, indexOffset = 0) {
+  let index = indexOffset;
   const order = [];
   for (const hit of hits) if (!order.includes(hit.entry.surface)) order.push(hit.entry.surface);
 
@@ -130,12 +131,12 @@ function paintOverlay() {
 
   const more = found.total > shown.length;
   overlay.body.innerHTML = shown.length
-    ? groupRows(shown, found.counts)
-      + (more
-        ? '<a class="gs-more" href="' + escapeHtml(searchHash(query)) + '" data-index="' + shown.length + '">'
+    ? (more
+        ? '<a class="gs-more" href="' + escapeHtml(searchHash(query)) + '" data-index="0">'
           + 'See all ' + found.total + ' results for “' + escapeHtml(query) + '”'
           + '<span aria-hidden="true">→</span></a>'
         : '')
+      + groupRows(shown, found.counts, more ? 1 : 0)
     : '<p class="gs-empty">No match for <b>' + escapeHtml(query) + '</b>.'
       + (SearchIndex.enriched ? '' : ' Archived case studies are still being indexed.') + '</p>';
 

@@ -57,6 +57,8 @@ export const SystemDesign = {
         slug: row.slug,
         category: row.category,
         effort: row.effort,
+        level: row.level || 'advanced',
+        featured: Boolean(row.featured),
         diagram: row.diagram,
         reference_image: referenceImage,
         source_items: [...(row.source_items || [])],
