@@ -166,6 +166,21 @@ function diagramBlock(title, diagram) {
     + escapeHtml(diagram) + '</code></pre></details></figure>';
 }
 
+// Blueprint figures are repository-owned assets only. Keeping the allow-list
+// narrow prevents a future catalog edit from turning an <img> or its full-size
+// link into an external tracking request or a path traversal.
+const DESIGN_IMAGE = /^assets\/system-design\/[a-z0-9][a-z0-9._/-]*\.(?:avif|jpe?g|png|webp)$/i;
+function referenceImageBlock(image) {
+  const src = String(image?.src || '');
+  if (!DESIGN_IMAGE.test(src) || !image?.alt || !image?.caption) return '';
+  const width = Number.isInteger(image.width) && image.width > 0 ? image.width : 1600;
+  const height = Number.isInteger(image.height) && image.height > 0 ? image.height : 900;
+  return '<figure class="sd-reference-figure"><a href="' + escapeHtml(src)
+    + '" target="_blank" rel="noopener noreferrer"><img src="' + escapeHtml(src) + '" alt="'
+    + escapeHtml(image.alt) + '" width="' + width + '" height="' + height + '" loading="lazy" decoding="async"></a>'
+    + '<figcaption>' + emphasize(image.caption) + '</figcaption></figure>';
+}
+
 /* `id` is what the TOC links to, so it is passed explicitly rather than reusing
    the class name — buildToc only picks up headings that carry one. */
 function detailRows(title, rows, id) {
@@ -431,7 +446,8 @@ function renderDesignArticle(design) {
     + list(design.quality) + '</article></div></section>'
     + detailRows(text().capacity, design.capacity, 'capacity-constraints')
     + '<section class="sd-section"><h2 id="architecture">' + text().architecture + '</h2>'
-    + diagramBlock(design.diagram_title || text().architecture, design.diagram) + '</section>'
+    + diagramBlock(design.diagram_title || text().architecture, design.diagram)
+    + referenceImageBlock(design.reference_image) + '</section>'
     + decisionSection(text().data, text().dataIntro, design.data_model, [text().dataName, text().dataRole],
       text().dataChecksTitle, text().dataChecks, 'data-model', 'sd-data-decision')
     + decisionSection(text().stack, text().stackIntro, design.stack, [text().stackLayer, text().stackReason],

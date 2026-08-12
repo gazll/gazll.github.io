@@ -93,6 +93,7 @@ public/
     projects/calebzone/samples/     sanitized Java/XML/YAML implementation samples
     interviews.json     seed entries, merged under everyone's own Sheet rows
   assets/case-studies/  local article figures; never hotlinked from a publisher
+  assets/system-design/ local blueprint reference figures; catalog metadata owns EN/VI alt/caption
 apps-script/Code.gs  the entire backend (Google Sheet as database)
 tests/               every tests/*.test.mjs; discovered from disk, never enumerated
 tools/               check.mjs (the one entrypoint) · validate-content.mjs · audit-content.mjs
@@ -330,6 +331,15 @@ secret/              GITIGNORED. Personal setup notes and credentials
   `views/system-design.js` falls back to the COPY sentence, which names those
   original topics and is wrong for anything else — so the sentence lives in the
   catalog with the rest of the prose. Never branch on a slug in the view.
+
+- **A blueprint reference figure is optional, local and bilingual.** Put the
+  file under `assets/system-design/` and add one root `reference_image` object
+  to that catalog row: repository-relative `src`, intrinsic integer `width` /
+  `height`, then `en` and `vi` blocks with non-empty `alt` and `caption`.
+  `lib/system-design.js` localizes that nested record and the view renders it
+  below the editable Mermaid diagram as a full-resolution link. Do not put the
+  source image inside one language block, hotlink it, or branch on a blueprint
+  slug; the validator checks the path, file, dimensions and both translations.
 
 - **IMPORTANT — the blueprint reading format is reviewed and settled. Do not
   re-flatten it.** These four decisions were made together against a real

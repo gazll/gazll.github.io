@@ -41,6 +41,12 @@ export const SystemDesign = {
 
     this.designs = (this._catalog?.designs || []).map(row => {
       const localized = localizedRecord(row, lang);
+      const referenceImage = row.reference_image ? {
+        src: row.reference_image.src,
+        width: row.reference_image.width,
+        height: row.reference_image.height,
+        ...localizedRecord(row.reference_image, lang)
+      } : null;
       const sourceNotes = (row.source_items || []).map(id => {
         const pair = Content.itemPair(id);
         const item = pair ? (pair[lang] || pair.en) : null;
@@ -52,6 +58,7 @@ export const SystemDesign = {
         category: row.category,
         effort: row.effort,
         diagram: row.diagram,
+        reference_image: referenceImage,
         source_items: [...(row.source_items || [])],
         ...localized,
         tags: [...(localized.tags || [])],

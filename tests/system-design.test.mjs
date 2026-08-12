@@ -59,6 +59,16 @@ test('the catalog is a complete bilingual System Design library', () => {
     // them, one written directly for this library has none. validate-content
     // checks the ids themselves when they are present.
     assert.ok(Array.isArray(design.source_items), `${design.slug}: source_items must be an array`);
+    if (design.reference_image) {
+      assert.match(design.reference_image.src,
+        /^assets\/system-design\/[a-z0-9][a-z0-9._/-]*\.(?:avif|jpe?g|png|webp)$/i);
+      assert.ok(Number.isInteger(design.reference_image.width) && design.reference_image.width > 0);
+      assert.ok(Number.isInteger(design.reference_image.height) && design.reference_image.height > 0);
+      for (const lang of ['en', 'vi']) {
+        assert.ok(design.reference_image[lang]?.alt?.trim(), `${design.slug}: missing ${lang} image alt`);
+        assert.ok(design.reference_image[lang]?.caption?.trim(), `${design.slug}: missing ${lang} image caption`);
+      }
+    }
     for (const lang of ['en', 'vi']) {
       for (const field of scalarFields) assert.ok(design[lang][field]?.trim(), `${design.slug}: empty ${lang}.${field}`);
       for (const field of listFields) {
@@ -105,6 +115,25 @@ test('Topic 18 keeps the durable flash-sale lifecycle and scale-in guidance', ()
     assert.ok(body.capacity.some(row => /backpressure/i.test(row)), `${lang}: backpressure capacity check missing`);
     assert.ok(body.stack.some(row => /backpressure/i.test(row)), `${lang}: backpressure valve missing`);
     assert.ok(body.tradeoffs.some(row => /backpressure/i.test(row)), `${lang}: backpressure trade-off missing`);
+  }
+});
+
+test('Blueprint 16 ships the supplied e-commerce reference architecture with a critical-path model', async () => {
+  const design = catalog.designs.find(row => row.slug === 'scaling-1m-to-10m-requests');
+  assert.ok(design?.reference_image);
+  await access(path.join(publicRoot, design.reference_image.src));
+  for (const marker of ['Checkout Saga', 'Order DB and outbox', 'Inventory DB and outbox',
+    'Payment DB and outbox', 'Retry and DLQ']) {
+    assert.match(design.diagram, new RegExp(marker));
+  }
+  for (const lang of ['en', 'vi']) {
+    const body = design[lang];
+    assert.match(body.scope, /1M DAU/);
+    assert.ok(body.capacity.some(row => /DAU.*(?:not|không phải).*requests?\/day/i.test(row)),
+      `${lang}: DAU/request unit guard missing`);
+    assert.ok(body.data_model.some(row => /outbox/i.test(row)), `${lang}: outbox model missing`);
+    assert.ok(body.stack.some(row => /at.least.once/i.test(row)), `${lang}: delivery semantics missing`);
+    assert.equal(body.failure_review?.length, 5, `${lang}: explicit failure review required`);
   }
 });
 
@@ -249,6 +278,12 @@ test('the shared loader resolves migrated notes and switches the whole collectio
     for (const design of SystemDesign.designs) {
       const source = catalog.designs.find(row => row.slug === design.slug);
       assert.equal(design.effort, source.effort, `${design.slug}: effort lost in apply()`);
+      if (source.reference_image) {
+        assert.equal(design.reference_image?.src, source.reference_image.src,
+          `${design.slug}: reference image lost in apply()`);
+        assert.equal(design.reference_image?.alt, source.reference_image.en.alt,
+          `${design.slug}: localized image metadata lost in apply()`);
+      }
     }
     assert.equal(SystemDesign.cases.length, 4);
     assert.equal(SystemDesign.designs.flatMap(design => design.sourceNotes).length, 59);
@@ -262,6 +297,9 @@ test('the shared loader resolves migrated notes and switches the whole collectio
     assert.equal(fetched.length, eagerFetches, 'bilingual sources should already be cached');
     assert.equal(SystemDesign.design('payment-ledger').title, catalog.designs[4].vi.title);
     assert.notEqual(SystemDesign.design('payment-ledger').title, englishTitle);
+    const illustrated = catalog.designs.find(row => row.reference_image);
+    assert.equal(SystemDesign.design(illustrated.slug).reference_image.alt, illustrated.reference_image.vi.alt,
+      'VI image metadata did not switch with the article');
     assert.ok(SystemDesign.design('payment-ledger').sourceNotes.every(note => note.q && note.a));
   } finally {
     delete globalThis.fetch;
@@ -283,6 +321,7 @@ test('Experience routing, Case Studies migration and Mermaid security are wired 
   assert.match(app, /redirectMovedQuestion\(routeParts\)/);
   assert.match(systemView, /SystemDesign\.load\(Content\.lang\)/);
   assert.match(systemView, /data-copy-mermaid/);
+  assert.match(systemView, /referenceImageBlock\(design\.reference_image\)/);
   assert.match(systemView, /data-mermaid-zoom-in/);
   assert.match(systemView, /data-mermaid-zoom-out/);
   assert.match(systemView, /function wireDiagramZoom/);
@@ -306,6 +345,7 @@ test('Experience routing, Case Studies migration and Mermaid security are wired 
   await readFile(path.join(publicRoot, 'vendor/mermaid-11.16.1/LICENSE'), 'utf8');
   assert.match(styles, /\.sd-diagram/);
   assert.match(styles, /\.sd-diagram-viewport/);
+  assert.match(styles, /\.sd-reference-figure/);
   assert.match(styles, /\.sd-failure-review/);
   assert.match(styles, /\.sd-notes details\.link-target/);
   assert.match(styles, /\.sd-comparison-wrap/);

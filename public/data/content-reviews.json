@@ -952,6 +952,38 @@
       "https://redis.io/docs/latest/develop/programmability/lua-api/"
     ]
   },
+  "11-system-design-cases.the-big-prompts.q15": {
+    "reviewed_at": "2026-08-12",
+    "target_versions": [
+      "AWS Prescriptive Guidance current transactional-outbox and Saga patterns",
+      "Apache Kafka 4.1 producer semantics",
+      "PostgreSQL current transaction semantics"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html",
+      "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/saga-patterns.html",
+      "https://kafka.apache.org/41/javadoc/org/apache/kafka/clients/producer/KafkaProducer.html",
+      "https://www.postgresql.org/docs/current/tutorial-transactions.html"
+    ]
+  },
+  "11-system-design-cases.the-big-prompts.q16": {
+    "reviewed_at": "2026-08-12",
+    "target_versions": [
+      "AWS Prescriptive Guidance current transactional-outbox and Saga patterns",
+      "Apache Kafka 4.1 producer semantics",
+      "Stripe API current idempotency contract",
+      "PostgreSQL current transaction semantics"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html",
+      "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/saga-patterns.html",
+      "https://kafka.apache.org/41/javadoc/org/apache/kafka/clients/producer/KafkaProducer.html",
+      "https://docs.stripe.com/api/idempotent_requests",
+      "https://www.postgresql.org/docs/current/tutorial-transactions.html"
+    ]
+  },
   "16-project-concurrency-whiteboard.presenting-dissecting-the-ota-project.q2": {
     "reviewed_at": "2026-08-12",
     "target_versions": [

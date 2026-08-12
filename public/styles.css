@@ -678,6 +678,11 @@
   .sd-mermaid-source{border-top:1px solid var(--line);background:#F7F9FC}
   .sd-mermaid-source summary{cursor:pointer;padding:8px 14px;font-family:"IBM Plex Mono",monospace;font-size:10px;color:var(--muted)}
   .sd-mermaid-source pre{margin:0;border:0;border-radius:0;max-height:330px}
+  .sd-reference-figure{margin:16px 0 0;border:1px solid #cdd5ef;border-radius:13px;background:#FBFCFE;padding:10px;overflow:hidden}
+  .sd-reference-figure a{display:block;border-radius:8px;overflow:hidden;background:#fff}
+  .sd-reference-figure a:focus-visible{outline:3px solid var(--indigo);outline-offset:-3px}
+  .sd-reference-figure img{display:block;width:100%;height:auto;background:#fff}
+  .sd-reference-figure figcaption{padding:10px 4px 2px;color:var(--muted);font-family:"IBM Plex Mono",monospace;font-size:10.5px;line-height:1.55}
   .sd-case-guide-brief{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
   .sd-case-guide-depth{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px}
   .sd-case-guide p{margin:0;color:var(--ink-soft);font-size:13.5px;line-height:1.65}

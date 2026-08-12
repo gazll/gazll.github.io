@@ -18,7 +18,7 @@ export const SYSTEM_DESIGN_RESEARCH = {
     'object-storage-large-upload': ['object-storage', 'observability'],
     'ota-flight-booking': ['transactions', 'reliability'],
     'high-traffic-booking-search': ['transactions', 'messaging'],
-    'scaling-1m-to-10m-requests': ['data-evolution', 'reliability'],
+    'scaling-1m-to-10m-requests': ['transactions', 'data-evolution', 'reliability'],
     'scaling-technique-catalogue': ['data-evolution', 'observability'],
     'flash-sale-booking-inventory-bottleneck': ['flash-sale', 'elastic-scaling', 'transactions', 'rate-limiting'],
     'api-gateway-identity-edge': ['reliability', 'rate-limiting', 'identity-edge']

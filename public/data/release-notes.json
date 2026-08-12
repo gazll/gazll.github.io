@@ -4,6 +4,27 @@
     {
       "date": "2026-08-12",
       "en": {
+        "title": "Blueprint 16 now follows a real e-commerce Saga + Outbox path"
+      },
+      "vi": {
+        "title": "Blueprint 16 giờ đi theo một luồng e-commerce Saga + Outbox thật"
+      },
+      "changes": [
+        {
+          "kind": "content",
+          "target": "system-design",
+          "en": {
+            "text": "Blueprint 16 now turns the supplied **E-commerce System Architecture** into a scale evolution from 1M through 10M to 100M requests/day. The original full-resolution figure sits beside an editable critical-path Mermaid diagram, while the article separates its `1M DAU` headline from request traffic, assigns authority to Order/Inventory/Payment databases, explains Checkout Saga compensation, local transactional outboxes, duplicate-safe inboxes, payment `UNKNOWN`, retry/DLQ and reconciliation, and includes concrete PostgreSQL transaction shapes in both languages."
+          },
+          "vi": {
+            "text": "Blueprint 16 giờ biến **E-commerce System Architecture** được cung cấp thành evolution path từ 1M qua 10M tới 100M requests/day. Ảnh full-resolution gốc nằm cạnh Mermaid critical path có thể chỉnh sửa; bài tách headline `1M DAU` khỏi request traffic, giao authority cho database Order/Inventory/Payment, giải thích Checkout Saga compensation, transactional outbox local, inbox chống duplicate, payment `UNKNOWN`, retry/DLQ và reconciliation, đồng thời có PostgreSQL transaction shape cụ thể ở cả hai ngôn ngữ."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-12",
+      "en": {
         "title": "One search bar across every surface"
       },
       "vi": {

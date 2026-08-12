@@ -13,7 +13,7 @@
    Study Track items by id: a typo there renders zero migrated notes silently
    rather than throwing.
 */
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { TOPIC_TYPES, DIFFICULTIES } from '../public/lib/constants.js';
 
@@ -268,6 +268,18 @@ if (!catalog) {
     if (!String(design.effort || '').trim()) sd(id, 'missing effort');
     if (!String(design.diagram || '').trim()) sd(id, 'missing Mermaid diagram');
     bilingual(id, design, DESIGN_LANG_KEYS, DESIGN_LANG_LISTS);
+    if (design.reference_image != null) {
+      const image = design.reference_image;
+      if (!/^assets\/system-design\/[a-z0-9][a-z0-9._/-]*\.(?:avif|jpe?g|png|webp)$/i.test(image.src || '')) {
+        sd(id, `invalid reference_image.src "${image.src || ''}"`);
+      } else if (!existsSync(ROOT + 'public/' + image.src)) {
+        sd(id, `reference image does not exist: "${image.src}"`);
+      }
+      if (!Number.isInteger(image.width) || image.width <= 0 || !Number.isInteger(image.height) || image.height <= 0) {
+        sd(id, 'reference_image width and height must be positive integers');
+      }
+      bilingual(`${id} reference_image`, image, ['alt', 'caption']);
+    }
     for (const lang of ['en', 'vi']) {
       const review = design[lang]?.failure_review;
       if (review == null) continue;

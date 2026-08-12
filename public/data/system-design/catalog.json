@@ -1494,7 +1494,7 @@
           "Hold — unit id, user, expiry timestamp and state; the uniqueness constraint that prevents double-selling lives here.",
           "Order — the booking aggregate with an idempotency key, its payment reference and an explicit state machine.",
           "Search document — a denormalized, eventually consistent projection rebuilt from events, never read during confirmation.",
-          "Outbox — booking state changes written in the same transaction as the order and relayed to Kafka exactly once."
+          "Outbox — booking state changes written in the same transaction as the order and relayed to Kafka at least once with stable event ids; consumers deduplicate effects."
         ],
         "stack": [
           "API gateway plus separately deployed search and booking services, so the two scale on their own traffic shape.",
@@ -1547,7 +1547,7 @@
           "Hold — unit id, user, expiry time và state; unique constraint chống bán trùng nằm ở đây.",
           "Order — aggregate của booking kèm idempotency key, tham chiếu payment và một state machine tường minh.",
           "Search document — bản chiếu denormalized, eventual consistency, dựng lại từ event và không bao giờ được đọc lúc xác nhận.",
-          "Outbox — thay đổi trạng thái booking ghi cùng transaction với order rồi chuyển tiếp sang Kafka đúng một lần."
+          "Outbox — thay đổi trạng thái booking ghi cùng transaction với order rồi relay sang Kafka at-least-once bằng stable event id; consumer deduplicate effect."
         ],
         "stack": [
           "API gateway cùng search service và booking service triển khai tách biệt, để mỗi bên scale theo workload shape của chính nó.",
@@ -1577,128 +1577,195 @@
       "n": 16,
       "slug": "scaling-1m-to-10m-requests",
       "category": "foundations",
-      "effort": "75 min",
+      "effort": "90 min",
       "source_items": [
         "11-system-design-cases.the-big-prompts.q15",
         "11-system-design-cases.the-big-prompts.q16"
       ],
-      "diagram": "flowchart TB\n  subgraph S1[1M per day: 12 rps average, 150-250 rps peak]\n    A1[App instances] --> A2[(Primary)]\n    A2 --> A3[(Read replicas)]\n    A1 --> A4[(Redis: cache + locks)]\n    A1 --> A5[Kafka or RabbitMQ]\n  end\n  subgraph S2[10M per day: 116 rps average, 1.5-2.5k rps peak]\n    B0[CDN] --> B1[App instances]\n    B1 --> B3[(Local cache)]\n    B3 --> B4[(Redis cluster)]\n    B1 --> B2[(Primary or sharded writes)]\n    B2 --> B5[(Replicas as needed)]\n    B1 --> B6[Kafka: partitioned]\n    B6 --> B7[Consumer groups]\n  end\n  subgraph S3[100M per day: 1.2k rps average, 15-25k rps peak]\n    C0[CDN + edge compute] --> C1[Regional cells if justified]\n    C1 --> C2[(Cell-local or sharded storage)]\n    C1 --> C3[(Tiered cache)]\n    C2 --> C4[CDC stream]\n    C4 --> C5[Kafka: multi-cluster]\n    C5 --> C6[(Lake + OLAP)]\n  end\n  S1 -->|Measured constraint| S2\n  S2 -->|Blast radius or coordination cost| S3",
+      "diagram": "flowchart TB\n  C[App or Web] --> CDN[Image CDN]\n  C --> G[API Gateway]\n  G --> S[Search Service]\n  G --> CART[Cart Service]\n  G --> CO[Checkout Saga]\n  S --> PC[(Product cache)]\n  S --> IX[(Search index)]\n  CART --> CR[(Cart Redis)]\n  CART --> CDB[(Cart DB)]\n  CART -->|Checkout command| CO\n  CO --> CS[(Checkout DB: saga and request dedupe)]\n  CO -->|Create or confirm| O[Order Service]\n  CO -->|Reserve or confirm| I[Inventory Service]\n  CO -->|Authorize or capture| P[Payment Service]\n  CO -->|Cancel compensation| O\n  CO -->|Release compensation| I\n  CO -->|Refund compensation| P\n  O --> ODB[(Order DB and outbox)]\n  I --> IDB[(Inventory DB and outbox)]\n  P --> PDB[(Payment DB and outbox)]\n  PD[(Product DB and outbox)] -. Product events .-> B[Kafka event log]\n  ODB -. Order events .-> B\n  IDB -. Stock events .-> B\n  PDB -. Payment events .-> B\n  B -. Payment status .-> CO\n  B -. Product and stock changes .-> IX\n  B -. Payment completed .-> A[After-payment workers]\n  B -. Failed delivery .-> D[Retry and DLQ]\n  R[Expiry and reconciliation] --> CO\n  T3[1M req per day: about 250 rps peak] -. Logical boundaries may share one deploy .-> G\n  T10[10M req per day: about 2500 rps peak] -. Split pools and partitions by measured load .-> B",
+      "reference_image": {
+        "src": "assets/system-design/16-ecommerce-saga-outbox-1m-dau.webp",
+        "width": 1672,
+        "height": 941,
+        "en": {
+          "alt": "Layered e-commerce architecture with CDN and gateway, search, cart, checkout Saga, order, inventory and payment services, an event bus, retry and DLQ, and a database plus outbox per authoritative service.",
+          "caption": "Supplied reference architecture — solid arrows are synchronous calls, purple dotted arrows are asynchronous events, and red arrows are Saga compensation commands. Its headline says 1M DAU and 10x promotional traffic; the capacity section below keeps those units separate from requests/day. Open the image for the full-resolution labels."
+        },
+        "vi": {
+          "alt": "Kiến trúc e-commerce nhiều tầng gồm CDN và gateway, search, cart, checkout Saga, order, inventory và payment service, event bus, retry và DLQ, cùng database plus outbox riêng cho mỗi service authoritative.",
+          "caption": "Reference architecture được cung cấp — mũi tên liền là synchronous call, nét tím đứt là asynchronous event, còn mũi tên đỏ là compensation command do Saga điều phối. Headline của ảnh là 1M DAU và promotional traffic 10x; phần capacity bên dưới giữ các đơn vị này tách khỏi requests/day. Mở ảnh để đọc nhãn ở full resolution."
+        }
+      },
       "en": {
-        "title": "1M, 10M and 100M requests a day: what each technique actually buys",
-        "excerpt": "The same product at three scales, technique by technique — replicas, Redis, Memcached, distributed locks, Kafka, RabbitMQ, sharding and cells — with what each one solves, what it costs, and the point at which it stops being optional.",
-        "scope": "Take the booking-and-search platform from Blueprint 15 and walk it through ten and then a hundred times the load. The goal is not a shopping list of technologies but a decision order: at each scale, which limit is actually binding, which technique removes it, and what that technique costs to run. Most components never change. A small number hit a hard ceiling, and each fix buys throughput with complexity you then operate forever. Being able to name the binding constraint — and refuse the upgrades that do not address it — is the whole skill.",
+        "title": "E-commerce at 1M, 10M and 100M requests/day: evolving Saga + Outbox by evidence",
+        "excerpt": "Turn a concrete e-commerce Saga + Outbox architecture into an evolution plan: preserve stock and payment correctness while search, cart, checkout, eventing and storage scale only when their own signals demand it.",
+        "scope": "Use the supplied e-commerce diagram as a logical target for a promotion: CDN and gateway at the edge; isolated search and cart paths; a durable Checkout Saga coordinating order, inventory and payment; and a local outbox beside each authoritative database. The image says 1M DAU and a 10x campaign, whereas this blueprint's shared yardstick is requests/day. Convert DAU into endpoint traffic before sizing anything, then decide what is one deploy at 1M requests/day, what splits at the 10M waypoint, and what only becomes justified near 100M or under an explicit blast-radius target. The skill is preserving the same business invariants while refusing distribution that has no measured constraint to remove.",
         "functional": [
-          "State all three loads in one unit: 1M/day is about 12 rps, 10M/day about 116 rps, 100M/day about 1,157 rps average.",
-          "Binding constraint: For each scale, name the single binding constraint before naming any technology — read throughput, write throughput, working-set size, data volume or coordination cost.",
-          "Technique cost: For each technique, state what it removes and what new failure mode it introduces; a technique with no new failure mode is usually not doing anything.",
-          "Adoption order: Give an explicit adoption order, so that a technique is only reached for once the cheaper one below it has been exhausted and measured."
+          "Browse and search: Serve product images from the CDN, product details from cache or the catalog, and ranked results from a rebuildable search projection whose stock may be stale.",
+          "Cart: Persist the cart durably while using Redis only to accelerate active carts; an eviction or Redis outage must not erase a customer's order intent.",
+          "Checkout: Accept one idempotent checkout command, persist Saga state, create the order, reserve stock, process payment, then confirm or compensate each participant through explicit transitions.",
+          "After payment: Fan `PaymentCompleted` out to reviews, notification, analytics and search/index updates without placing those consumers on the checkout latency path.",
+          "Recovery: Expire abandoned reservations, reconcile `UNKNOWN` payments against the provider, replay outboxes, quarantine poison events and redrive the DLQ only after the consumer defect is fixed."
         ],
         "quality": [
-          "Arithmetic precedes architecture: peak rps, read/write ratio, working-set size and row count decide, never the headline request number.",
-          "Invariant continuity: Correctness invariants are identical at all three scales; only the mechanisms that preserve them change, and each mechanism is weaker than the one it replaced.",
-          "Every added tier must have a named owner, a stated failure mode, and a documented way to remove it again.",
-          "Reversibility is a first-class criterion: prefer the technique that can be undone in an afternoon over the one that cannot be undone at all."
+          "Stock invariant: Available stock never becomes negative, and at most one live reservation may consume the same scarce unit/version; search is not an authority for that decision.",
+          "Payment invariant: A client, gateway, Saga retry and provider webhook may all duplicate work, but one checkout intent can produce at most one captured amount under one provider idempotency key.",
+          "Local atomicity: Each service commits its state transition and outbox record in one local transaction; delivery and consumption remain duplicate-tolerant.",
+          "Failure isolation: Search, cart, payment and after-payment work use separate pools and bounded queues, so a slow PSP or review consumer cannot exhaust checkout or browse capacity.",
+          "Operability: Alert on aged Saga states, outbox age, consumer lag, DLQ growth, reserve conflicts, payment `UNKNOWN` age and reconciliation mismatches rather than CPU alone."
         ],
         "capacity": [
-          "1M scale: 1M/day = 12 rps average and 150-250 rps at a 10-20x peak. This may fit one well-indexed primary and a few app instances, but only after measuring schema, durability, p99, and failure requirements; start with query/index and connection-pool evidence, not a scale recipe.",
-          "10M scale: 10M/day = 116 rps average and 1.5-2.5k rps at peak. The next constraint may be cache misses, write contention, dependency saturation, or data volume; measure it rather than assuming reads are easy.",
-          "100M scale: 100M/day = 1,157 rps average and 15-25k rps at peak. Constraints can include write throughput, coordination cost, recovery time, and blast radius, but their order follows the workload and availability target.",
-          "Write-path scale: At a 100:1 read/write ratio the write path runs at roughly 2-5, 20-50, and 200-500 writes/sec. Those rates alone do not establish primary capacity: schema, indexes, transaction shape, durability, contention, hardware, and p99 matter. Shard only for a measured constraint or blast-radius objective.",
-          "Data volume usually forces change before request rate: ten times the traffic is ten times the rows, index size, backup window and restore time — restore time is the number that ends the single-primary era."
+          "Unit guard: 1M DAU is not requests/day. Estimate `requests/day = DAU × journeys/user/day × API calls/journey`, then split by browse, cart and checkout endpoint; report the assumptions beside the result.",
+          "1M request scale: 1M requests/day is 11.6 rps average and about 250 rps peak under the site's 20x planning factor. One relational primary and one coarse application deployment may still be enough; preserve the logical ownership shown in the image without paying for a database and on-call team per box.",
+          "10M waypoint: 10M requests/day is 116 rps average and about 2,500 rps peak. A 10x promotion is a burst profile, not automatically 10M/day: measure its duration, endpoint mix, cache-hit ratio and hot-SKU skew, then cap accepted checkout work to the inventory and PSP drain rates.",
+          "Write amplification: One accepted checkout can create order, reservation and payment writes plus several outbox, inbox and derived-index records. Size database IOPS, WAL, broker ingress and consumers from commands and events per checkout, not from the public API count alone.",
+          "Serialized hot key: Ten stateless inventory replicas do not raise the safe rate for one SKU row or one ordered partition. Benchmark that critical section, reserve headroom, and use per-SKU admission or a waiting room when demand exceeds its drain rate.",
+          "100M scale: About 25,000 rps peak is a fleet-sizing number. Introduce shards or cells only for measured write/data volume, restore-time or blast-radius limits; model it as roughly ten independently operable T3-to-waypoint cells rather than one giant shared checkout."
         ],
-        "diagram_title": "Three scales, and the constraint that forces each transition",
+        "diagram_title": "Critical checkout commands, local outboxes and asynchronous effects",
         "data_model": [
-          "Unchanged everywhere: entities, invariants and idempotency keys. Scale never changes what correct means, only how expensive it is to guarantee.",
-          "1M — one normalized schema, real foreign keys, joins done in the database. This is the cheapest correctness you will ever have; spend it before optimizing.",
-          "10M — read models split from the write model. A denormalized search projection, rebuilt from events, so the transactional store is never queried by the read path.",
-          "100M — the shard key becomes the most important line of design in the system. Chosen so the hot entity's transactions stay single-shard; chosen wrongly it is a data migration, not a refactor.",
-          "Retention tiers at every scale above 1M: hot rows in the operational store, history in cold storage or a lake, because backup and restore scale with table size, not traffic."
+          "Product and search document — Product DB is authoritative for catalog data; Elasticsearch/OpenSearch is a denormalized projection with `source_version` and `indexed_at`, so it can be stale, discarded and rebuilt.",
+          "Cart — Durable cart rows own product, quantity and price-snapshot references; Cart Redis is a TTL acceleration tier for active sessions, never the only copy of checkout intent.",
+          "Checkout request and Saga — `idempotency_key`, canonical request hash, original response, Saga state, step attempts, deadlines and version. Keep request dedupe with the transaction that creates the Saga, not in an eventually consistent global cache.",
+          "Order — One aggregate with legal `CREATED → CONFIRMED | CANCELLED` transitions and a version. Order Service alone changes it; the Saga requests transitions but never writes Order DB directly.",
+          "Inventory reservation — `sku_id`, quantity, order id, expiry, state and fencing version. A conditional update or uniqueness constraint is the final oversell guard; Redis may protect capacity but not replace this invariant.",
+          "Payment attempt — Amount, currency, order id, provider idempotency key/reference and explicit `PENDING | SUCCEEDED | FAILED | UNKNOWN | REFUNDED` states. Timeout means query and reconcile, not retry with a new key.",
+          "Outbox and inbox — Stable event/command id, aggregate id, aggregate version, type, payload and occurred time. Outbox closes the database/broker dual-write gap; inbox or an effect-specific unique key makes at-least-once delivery harmless."
         ],
         "stack": [
-          "Read replicas (1M, first upgrade) — buys read throughput and nothing else. Cheap, reversible, and the correct first move. Cost: replication lag, so any read that must be correct right after a write has to be pinned to the primary. Does not help writes at all, which is the mistake people make when they add replicas to fix a write problem.",
-          "Memcached vs Redis (1M-10M) — Memcached is a pure LRU cache: multithreaded, slightly faster per node for plain key-value, and it forgets things. Redis is a data-structure server: sorted sets, counters, streams, Lua, persistence, replication. Choose Memcached only when you genuinely want a dumb cache and nothing else; choose Redis when you will also want rate limiting, leaderboards, queues or locks — which is almost always. Running one Redis rather than Memcached plus something else is usually the simpler operation.",
-          "Cache topology (10M) — one shared Redis becomes local in-process cache in front of shared Redis. The local tier removes a network round trip per hit and absorbs hot keys that would otherwise make one Redis node a hotspot. Cost: two levels of staleness, and invalidation that is now a distributed problem. Use short local TTLs rather than trying to invalidate precisely.",
-          "Distributed locks (any scale, used sparingly) — Redis SETNX with a token and TTL is fine for best-effort mutual exclusion such as 'only one worker runs this cron'. It is not safe for correctness: a GC pause or network partition lets two holders believe they own it, and Redlock does not fix this. For money and inventory, use the database instead — a unique constraint, SELECT FOR UPDATE, or an optimistic version column. The rule: locks for efficiency, database constraints for correctness.",
-          "RabbitMQ vs Kafka (1M-10M) — RabbitMQ is a broker for task queues: per-message acks, requeue, priorities, complex routing, and messages disappear once consumed. Kafka is a replayable partitioned log: ordered per key, retained for days, and many independent consumer groups read the same stream. Choose RabbitMQ for job dispatch where each message is work to be done once; choose Kafka when events have several consumers, need ordering per entity, or must be replayable after a bug. This system wants Kafka precisely because booking events feed payment, notification, indexing and analytics at once.",
-          "Sharding and distributed SQL (10M-100M) — removes the single write ceiling and contains blast radius. Distributed SQL such as CockroachDB, TiDB or Yugabyte keeps SQL semantics at the price of cross-shard latency; application-level sharding is faster but pushes routing, resharding and cross-shard queries into your code. Either way single-shard transactions must be the overwhelming default, which is a data-model decision made before any of this.",
-          "CDN and edge (10M+) — the cheapest throughput available for anything cacheable and public. Search result pages and static assets should never reach your origin. Cost: cache invalidation on a network you do not control, so version your URLs rather than purging.",
-          "Cells and multi-region (100M) — partition the whole stack into independent cells, each serving a slice of users end to end. This is bought for blast radius and regional latency, not throughput: it means one bad deploy or poison key affects one cell. Cost: the highest operational complexity in this list — routing, per-cell capacity, cross-cell data and a much harder mental model. Multi-region specifically is driven by latency and availability targets, never by request volume; 100M/day in one region is unremarkable."
+          "Edge lane — Put immutable images and static assets behind versioned CDN URLs. The gateway authenticates, authorizes coarse routes, rate-limits and routes; Kubernetes/DNS or the platform can provide discovery, so a custom registry is not automatically another required box.",
+          "1M physical shape — Treat the diagram as logical ownership, not a deployment mandate. A modular monolith or a few coarse services can share one HA relational cluster while schemas, transaction boundaries, pools and code ownership remain explicit; split a service only for isolation, deployment cadence or a measured limit.",
+          "Checkout orchestrator — Persist the state machine and timers, issue idempotent commands, classify retryable failures and choose forward recovery or compensation. Run multiple stateless workers over durable Saga rows; central coordination improves visibility but requires HA and partitioning by checkout/order id.",
+          "Database plus transactional outbox — Order, Inventory and Payment each commit local state plus an outbox row atomically. The relay publishes at-least-once and can duplicate after a crash, so consumers deduplicate by event id and reject stale aggregate versions; outbox is not end-to-end exactly-once.",
+          "Kafka versus RabbitMQ — The slash in the supplied image is a decision point, not interchangeability. Kafka fits replayable domain events consumed by checkout, search, analytics and after-payment groups; RabbitMQ fits routed commands or task queues with per-message ack. Using both is valid only when topic/queue ownership and retry/DLQ semantics are explicit.",
+          "Derived read lane — Elasticsearch/OpenSearch and product Redis are disposable projections fed from product/inventory outboxes. At the 10M waypoint add local L1 caching, request coalescing, jittered TTLs and an origin-protection budget; expose freshness instead of pretending the index is authoritative stock.",
+          "10M execution shape — Scale gateway, search and cart independently; isolate connection pools and bounded queues; partition broker records by order id for Saga ordering and inventory events by SKU where required. Increase partitions from measured throughput/skew because one hot key still occupies one partition.",
+          "Shards and cells — Keep one order's state transitions local to a shard/cell and route with a versioned map. Reach this after indexes, pool tuning, replicas, caching, async effects and retention have failed a measured target; multi-region follows latency/availability objectives, not the request headline."
         ],
         "tradeoffs": [
-          "Adoption order, cheapest and most reversible first: index and query tuning, connection pooling, read replicas, caching, async offload, read models, then partitioning, sharding, and cells. Treat this as a hypothesis, not a ladder: take a later step only when a measured bottleneck or invariant requires it.",
-          "In favour of staying at the 1M shape: one primary means real transactions, trivial joins, no cross-shard reasoning, and an on-call rotation anyone can hold. Vertical scaling and replicas are the cheapest throughput you will ever buy. The cost is a hard write ceiling and one failure domain.",
-          "In favour of the 10M shape: caching and read models remove the read ceiling entirely, and async offload keeps slow work off the request path. The cost is staleness everywhere, plus cache stampedes and cold-start behaviour that only appear during an incident — precisely when you can least afford them.",
-          "In favour of the 100M shape: no single write ceiling, blast radius contained per shard or cell, independent scaling per workload. The cost is distributed transactions or a hard rule that they never occur, resharding as a project rather than a config change, and debugging that spans services, shards and regions.",
-          "Sharding is the least reversible decision in the system. The key is effectively permanent, so it comes last, after replicas, caching, read models and async offload have all been measured and exhausted. Everything above it can be undone in an afternoon; this cannot be undone at all.",
-          "Caching has the highest leverage and the most underrated risk: it turns the read ceiling into a non-issue while introducing staleness, stampedes and a cold-start failure mode. Always pair a cache with request coalescing and a jittered TTL, or the first restart after an incident becomes a second incident.",
-          "Failure review by scale: at 1M the realistic outage is a primary failover. At 10M it is cache-related — a stampede, a hot key, or a consumer group lagging until the index is visibly stale. At 100M it is partial and ambiguous: one shard down, one cell degraded, one region serving old data. Detection, not repair, is the hard part, and that operational cost is paid every week rather than once at build time."
+          "Logical architecture versus operational estate — The picture is an excellent ownership map but an expensive day-one deployment. Keeping boxes logical at 1M preserves simple transactions and on-call; splitting the measured hot lanes at 10M buys isolation while adding network failure, versioned contracts and more deployments.",
+          "Orchestration versus choreography — Checkout Saga makes sequence, timeout and compensation visible in one place. It also becomes a control-plane hotspot and coupling point; persist state, partition workers and keep participant APIs idempotent so losing the orchestrator process loses no workflow.",
+          "Asynchronous checkout — Moving payment status and secondary effects behind the broker bounds request latency and isolates dependencies. Users now need a truthful `PENDING` contract, while operators own backlog age, replay, DLQ and workflows that can remain incomplete for hours.",
+          "Compensation is not rollback — Releasing inventory, cancelling an order or refunding a payment is a new business action that may fail after the original action became externally visible. Every compensation needs its own idempotency, legal precondition, audit record and reconciliation fallback.",
+          "Outbox guarantee — The local database change and outbox row are atomic, but publication can repeat and consumers can crash after their side effect. Stable event ids, aggregate sequence checks and inbox/effect uniqueness are permanent costs of the reliability gained.",
+          "Database per service — Ownership and failure isolation improve, but joins, reports and cross-domain consistency become asynchronous products. Do not let the Saga update another service's tables, and build analytics from events/CDC rather than cross-service request-time joins.",
+          "Adoption order — Tune query/index and pools, isolate browse from checkout, add CDN/cache and asynchronous secondary effects, then partition consumers and only later shard/cell. Each step needs a triggering metric, owner, rollback and failure drill; otherwise the architecture can only grow."
+        ],
+        "failure_review": [
+          {
+            "question": "Which invariant can break?",
+            "answer": "Oversell, duplicate capture and an order marked confirmed while stock or payment disagrees are the critical failures. Inventory conditional updates, one provider idempotency key and legal versioned transitions in each authoritative service guard them; the Saga coordinates but is not the source of truth for participant state."
+          },
+          {
+            "question": "Which metric detects it first?",
+            "answer": "Watch accepted-to-completed checkout ratio and p99 together with oldest non-terminal Saga age, outbox age, consumer lag, reserve-conflict rate, PSP `UNKNOWN` age and reconciliation mismatches. Queue depth alone hides a stalled partition."
+          },
+          {
+            "question": "How is blast radius contained?",
+            "answer": "Use separate gateway routes, pools, concurrency budgets and bounded queues for browse, cart, checkout, PSP and after-payment lanes. Partition by order/SKU as required, cap one campaign or hot SKU at admission, and let secondary consumers lag without consuming checkout capacity."
+          },
+          {
+            "question": "Can retry duplicate or reorder work?",
+            "answer": "Yes by default. Bind the client key to a canonical request hash and original response, reuse the same provider key, assign every command/event a stable id plus aggregate version, and apply each consumer effect in a local transaction with an inbox or unique business key."
+          },
+          {
+            "question": "How do we repair and prove recovery?",
+            "answer": "Reconcile aged Saga rows against Order, Inventory, Payment and the PSP; replay committed outboxes; repair by explicit confirm, release, cancel or refund transitions; then redrive quarantined events. Prove recovery with zero unmatched captures/reservations, bounded outbox and consumer age, and sampled aggregate sequence checks."
+          }
         ],
         "tags": [
-          "Scaling",
-          "Redis",
+          "E-commerce",
+          "Saga",
+          "Outbox",
+          "Idempotency",
           "Kafka",
-          "Sharding",
-          "Caching",
-          "Trade-offs"
+          "Capacity"
         ]
       },
       "vi": {
-        "title": "1M, 10M và 100M requests/day: mỗi technique thực sự mua được gì",
-        "excerpt": "Cùng một product qua ba scale, đi theo từng technique — replica, Redis, Memcached, distributed lock, Kafka, RabbitMQ, sharding và cell — xem mỗi thứ giải quyết gì, cost gì, và tới lúc nào thì không còn optional.",
-        "scope": "Lấy booking-and-search platform ở Blueprint 15 rồi đưa nó qua scale gấp mười và gấp trăm. Mục tiêu không phải shopping list công nghệ mà là thứ tự ra decision: ở mỗi scale, binding constraint nào đang block, technique nào gỡ được nó, và technique đó tốn gì để operate. Phần lớn component không đổi. Chỉ một số ít chạm hard ceiling, và mỗi fix đều mua throughput bằng operational complexity mà team phải nuôi mãi. Gọi đúng binding constraint — và từ chối upgrade không đụng vào nó — là skill cốt lõi.",
+        "title": "E-commerce ở 1M, 10M và 100M requests/day: tiến hoá Saga + Outbox theo bằng chứng",
+        "excerpt": "Biến một kiến trúc e-commerce Saga + Outbox cụ thể thành evolution plan: giữ đúng stock/payment trong khi search, cart, checkout, eventing và storage chỉ scale khi signal riêng của chúng đòi hỏi.",
+        "scope": "Dùng sơ đồ e-commerce được cung cấp làm logical target cho promotion: CDN và gateway ở edge; search/cart path cô lập; Checkout Saga bền vững điều phối order, inventory và payment; mỗi authoritative database có local outbox. Ảnh ghi 1M DAU và campaign 10x, còn yardstick chung của blueprint là requests/day. Phải quy DAU thành traffic theo endpoint trước khi size, rồi quyết định phần nào vẫn chung một deployment ở 1M requests/day, phần nào tách tại waypoint 10M, và phần nào chỉ hợp lý gần 100M hoặc khi có blast-radius target rõ ràng. Skill cốt lõi là giữ nguyên business invariant nhưng từ chối distribution không gỡ một measured constraint nào.",
         "functional": [
-          "Common unit: 1M/day ≈ 12 rps average, 10M/day ≈ 116 rps average, 100M/day ≈ 1,157 rps average.",
-          "Binding constraint: Ở mỗi scale, gọi tên constraint đang block trước khi gọi tên technology — read throughput, write throughput, working-set size, data volume hay coordination cost.",
-          "Technique cost: Với mỗi technique, nêu rõ nó gỡ constraint nào và mang vào failure mode nào; một technique không tạo failure mode mới thì thường là nó chẳng làm gì cả.",
-          "Adoption order: Đưa ra thứ tự áp dụng rõ ràng, chỉ reach for một technique khi option rẻ hơn bên dưới đã được measure và exhausted."
+          "Browse và search: Serve product image từ CDN, product detail từ cache/catalog và ranked result từ search projection rebuild được; stock trên projection được phép stale.",
+          "Cart: Persist cart bền vững, chỉ dùng Redis để tăng tốc active cart; eviction hoặc Redis outage không được xoá order intent của khách.",
+          "Checkout: Nhận một checkout command idempotent, persist Saga state, tạo order, reserve stock, xử lý payment rồi confirm hoặc compensate từng participant bằng transition tường minh.",
+          "After payment: Fan `PaymentCompleted` sang review, notification, analytics và search/index update mà không đặt các consumer này trên checkout latency path.",
+          "Recovery: Expire reservation bị bỏ, reconcile payment `UNKNOWN` với provider, replay outbox, quarantine poison event và chỉ redrive DLQ sau khi đã sửa consumer defect."
         ],
         "quality": [
-          "Arithmetic before architecture: peak rps, read/write ratio, working-set size và row count mới quyết định, không phải headline request number.",
-          "Invariant continuity: Correctness invariants giống nhau ở cả ba scale; chỉ mechanism bảo vệ chúng thay đổi, và mỗi mechanism mới đều yếu hơn cái nó thay thế.",
-          "Operational ownership: Mỗi tier thêm vào phải có owner rõ ràng, failure mode rõ ràng và documented removal path.",
-          "Reversibility: Ưu tiên technique gỡ được trong một buổi chiều hơn technique không thể undo."
+          "Stock invariant: Available stock không âm và tối đa một live reservation được consume cùng scarce unit/version; search không có authority cho quyết định đó.",
+          "Payment invariant: Client, gateway, Saga retry và provider webhook đều có thể duplicate work, nhưng một checkout intent chỉ tạo tối đa một captured amount dưới cùng provider idempotency key.",
+          "Local atomicity: Mỗi service commit state transition và outbox record trong một local transaction; delivery và consumption vẫn phải chịu được duplicate.",
+          "Failure isolation: Search, cart, payment và after-payment dùng pool cùng bounded queue riêng để PSP chậm hay review consumer lỗi không làm cạn checkout/browse capacity.",
+          "Operability: Alert theo Saga state quá tuổi, outbox age, consumer lag, DLQ growth, reserve conflict, tuổi payment `UNKNOWN` và reconciliation mismatch thay vì chỉ CPU."
         ],
         "capacity": [
-          "1M scale: 1M/day = 12 rps average và 150–250 rps at peak với peak factor 10–20×. Có thể fit một well-indexed primary và vài app instance, nhưng chỉ sau khi measure schema, durability, p99 và failure requirement; bắt đầu từ query/index và connection-pool evidence, không phải scale recipe.",
-          "10M scale: 10M/day = 116 rps average và 1.5–2.5k rps at peak. Constraint tiếp theo có thể là cache miss, write contention, dependency saturation hoặc data volume; measure thay vì mặc định read luôn dễ.",
-          "100M scale: 100M/day = 1,157 rps average và 15–25k rps at peak. Constraint có thể là write throughput, coordination cost, recovery time hoặc blast radius; thứ tự phụ thuộc workload và availability target.",
-          "Write-path scale: Với read/write ratio 100:1, write path chạy khoảng 2–5, 20–50 và 200–500 writes/s. Các rate này chưa tự nói primary capacity: schema, index, transaction shape, durability, contention, hardware và p99 đều quan trọng. Chỉ shard khi có measured constraint hoặc blast-radius objective.",
-          "Data volume thường force change trước request rate: traffic gấp mười là gấp mười row, index size, backup window và restore time — restore time mới là con số kết thúc thời kỳ single-primary."
+          "Unit guard: 1M DAU không phải requests/day. Ước lượng `requests/day = DAU × journeys/user/day × API calls/journey`, rồi tách theo endpoint browse, cart và checkout; ghi assumption cạnh kết quả.",
+          "Scale 1M request: 1M requests/day là 11,6 rps average và khoảng 250 rps peak theo planning factor 20x của site. Một relational primary và coarse application deployment có thể vẫn đủ; giữ logical ownership trong ảnh mà chưa phải trả giá một database và on-call team cho mỗi box.",
+          "Waypoint 10M: 10M requests/day là 116 rps average và khoảng 2.500 rps peak. Promotion 10x là burst profile, không tự động thành 10M/day: phải đo duration, endpoint mix, cache-hit ratio và hot-SKU skew, rồi cap checkout accepted theo drain rate của inventory và PSP.",
+          "Write amplification: Một checkout accepted có thể tạo write cho order, reservation, payment cùng nhiều outbox, inbox và derived-index record. Size database IOPS, WAL, broker ingress và consumer từ command/event trên mỗi checkout, không chỉ public API count.",
+          "Serialized hot key: Mười inventory replica stateless không nâng safe rate của một SKU row hoặc một ordered partition. Benchmark critical section đó, chừa headroom và dùng admission/waiting room theo SKU khi demand vượt drain rate.",
+          "Scale 100M: Khoảng 25.000 rps peak là số để size fleet. Chỉ thêm shard/cell khi write/data volume, restore time hoặc blast radius đã đo bị chặn; model thành khoảng mười cell vận hành độc lập ở mức T3-to-waypoint thay vì một checkout khổng lồ dùng chung."
         ],
-        "diagram_title": "Three scales và constraint ép mỗi transition",
+        "diagram_title": "Checkout command quan trọng, local outbox và effect bất đồng bộ",
         "data_model": [
-          "Invariant không đổi: entities, invariants và idempotency keys ở mọi scale. Scale không đổi định nghĩa correct là gì, chỉ làm việc guarantee nó đắt hơn.",
-          "1M — normalized schema, real foreign keys, join trong database. Đây là correctness rẻ nhất bạn từng có; hãy dùng nó trước khi optimize.",
-          "10M — read model tách khỏi write model. Một denormalized search projection rebuild được từ events, để read path không bao giờ query transactional store.",
-          "100M — shard key trở thành dòng design quan trọng nhất. Chọn sao cho transaction của hot entity nằm trong một shard; chọn sai thì đây là data migration chứ không phải refactor.",
-          "Retention tiers ở mọi scale trên 1M: hot rows trong operational store, history sang cold storage hoặc lake, vì backup và restore scale theo table size chứ không theo traffic."
+          "Product và search document — Product DB authoritative cho catalog; Elasticsearch/OpenSearch là denormalized projection có `source_version` và `indexed_at`, nên được phép stale, xoá và rebuild.",
+          "Cart — Durable cart row sở hữu product, quantity và price-snapshot reference; Cart Redis là TTL acceleration tier cho active session, không bao giờ là bản duy nhất của checkout intent.",
+          "Checkout request và Saga — `idempotency_key`, canonical request hash, original response, Saga state, step attempt, deadline và version. Đặt request dedupe cạnh transaction tạo Saga, không đặt trong global cache eventual.",
+          "Order — Một aggregate với transition hợp lệ `CREATED → CONFIRMED | CANCELLED` và version. Chỉ Order Service được đổi nó; Saga yêu cầu transition nhưng không bao giờ write thẳng Order DB.",
+          "Inventory reservation — `sku_id`, quantity, order id, expiry, state và fencing version. Conditional update hoặc unique constraint là oversell guard cuối; Redis được bảo vệ capacity nhưng không thay invariant này.",
+          "Payment attempt — Amount, currency, order id, provider idempotency key/reference và state rõ `PENDING | SUCCEEDED | FAILED | UNKNOWN | REFUNDED`. Timeout nghĩa là query/reconcile, không retry bằng key mới.",
+          "Outbox và inbox — Stable event/command id, aggregate id, aggregate version, type, payload và occurred time. Outbox đóng gap dual-write database/broker; inbox hoặc effect-specific unique key làm at-least-once delivery trở nên vô hại."
         ],
         "stack": [
-          "Read replicas (1M, first upgrade) — mua read throughput và không gì khác. Cheap, reversible, và là first move đúng. Cost: replication lag, nên read cần correct ngay sau write phải pin vào primary. Không giúp write; thêm replica để chữa write problem là mistake kinh điển.",
-          "Memcached vs Redis (1M–10M) — Memcached là pure LRU cache: multithreaded, mỗi node nhanh hơn chút cho plain key-value, và nó quên mọi thứ. Redis là data-structure server: sorted sets, counters, streams, Lua, persistence, replication. Chọn Memcached khi thật sự chỉ muốn dumb cache; chọn Redis khi còn cần rate limiting, leaderboard, queue hoặc lock — gần như luôn luôn. Một Redis thường đơn giản hơn Memcached cộng thêm một component khác.",
-          "Cache topology (10M) — shared Redis có local in-process cache đặt phía trước. Local tier bỏ một network round trip mỗi hit và hấp thụ hot key trước khi chúng biến một Redis node thành hotspot. Cost: hai level staleness và invalidation trở thành distributed problem. Dùng local TTL ngắn thay vì cố invalidate chính xác.",
-          "Distributed locks (any scale, sparingly) — Redis SETNX với token và TTL đủ cho best-effort mutual exclusion, ví dụ chỉ một worker chạy cron. Không safe cho correctness: GC pause hoặc network partition có thể khiến hai holder cùng tin mình đang giữ lock, và Redlock không sửa được điều đó. Với money và inventory, dùng database — unique constraint, SELECT FOR UPDATE hoặc optimistic version. Rule: lock để efficiency, database constraint để correctness.",
-          "RabbitMQ vs Kafka (1M–10M) — RabbitMQ là broker cho task queue: per-message ack, requeue, priority, complex routing và message biến mất sau consume. Kafka là replayable partitioned log: ordered theo key, retained nhiều ngày và nhiều consumer group độc lập cùng đọc stream. Chọn RabbitMQ cho job dispatch một lần; chọn Kafka khi event có nhiều consumer, cần ordering theo entity hoặc cần replay sau bug. Hệ thống này chọn Kafka vì booking event đồng thời feed payment, notification, indexing và analytics.",
-          "Sharding và distributed SQL (10M–100M) — gỡ single-write ceiling và contain blast radius. Distributed SQL như CockroachDB, TiDB hoặc Yugabyte giữ SQL semantics với cross-shard latency; application-level sharding nhanh hơn nhưng đẩy routing, resharding và cross-shard query vào code. Dù chọn cách nào, single-shard transaction phải là default áp đảo — một data-model decision cần chốt trước.",
-          "CDN và edge (10M+) — throughput rẻ nhất cho public content cacheable. Search-result pages và static assets không nên chạm origin. Cost: cache invalidation trên network mình không control, nên version URL thay vì purge.",
-          "Cells và multi-region (100M) — chia toàn bộ stack thành independent cells, mỗi cell serve end-to-end một user slice. Thứ này mua blast-radius containment và regional latency, không mua throughput: bad deploy hoặc poison key chỉ ảnh hưởng một cell. Cost cao nhất là operational complexity — routing, per-cell capacity, cross-cell data và mental model khó hơn nhiều. Multi-region do latency/availability target quyết định, không do request volume; 100M/day trong một region vẫn bình thường."
+          "Edge lane — Đặt immutable image/static asset sau CDN với versioned URL. Gateway authenticate, coarse authorize, rate-limit và route; Kubernetes/DNS hoặc platform có thể lo discovery nên custom registry không tự động là một box bắt buộc.",
+          "Physical shape ở 1M — Xem sơ đồ như logical ownership, không phải deployment mandate. Modular monolith hoặc vài coarse service có thể dùng chung một HA relational cluster trong khi schema, transaction boundary, pool và code ownership vẫn rõ; chỉ split service vì isolation, deploy cadence hoặc measured limit.",
+          "Checkout orchestrator — Persist state machine/timer, phát idempotent command, phân loại retryable failure và chọn forward recovery hay compensation. Chạy nhiều worker stateless trên Saga row bền vững; central coordination dễ quan sát hơn nhưng cần HA và partition theo checkout/order id.",
+          "Database plus transactional outbox — Order, Inventory và Payment mỗi bên commit local state cùng outbox row atomically. Relay publish at-least-once và có thể duplicate sau crash, nên consumer dedupe theo event id và reject aggregate version cũ; outbox không phải exactly-once end-to-end.",
+          "Kafka versus RabbitMQ — Dấu slash trong ảnh là decision point, không phải hai thứ interchangeable. Kafka hợp domain event replayable cho checkout, search, analytics và after-payment consumer group; RabbitMQ hợp routed command/task queue có per-message ack. Dùng cả hai chỉ hợp lý khi ownership topic/queue cùng retry/DLQ semantics được ghi rõ.",
+          "Derived read lane — Elasticsearch/OpenSearch và product Redis là disposable projection được feed từ product/inventory outbox. Tại waypoint 10M, thêm local L1 cache, request coalescing, jittered TTL và origin-protection budget; expose freshness thay vì giả vờ index là stock authoritative.",
+          "Execution shape ở 10M — Scale gateway, search và cart độc lập; cô lập connection pool/bounded queue; partition broker record theo order id cho Saga ordering và theo SKU cho inventory event khi cần. Tăng partition từ measured throughput/skew vì một hot key vẫn chiếm một partition.",
+          "Shard và cell — Giữ state transition của một order local trong shard/cell và route bằng versioned map. Chỉ đến đây sau khi index, pool tuning, replica, cache, async effect và retention đã fail measured target; multi-region đi theo latency/availability objective, không theo request headline."
         ],
         "tradeoffs": [
-          "Adoption order, cheapest and most reversible first: index/query tuning, connection pooling, read replicas, cache, async offload, read model, rồi partitioning, sharding và cells. Đây là hypothesis, không phải ladder: chỉ đi bước sau khi có measured bottleneck hoặc invariant bắt buộc.",
-          "Ở lại 1M shape: một primary nghĩa là real transactions, trivial joins, không cần cross-shard reasoning và on-call rotation ai cũng gánh được. Vertical scaling và replicas là throughput rẻ nhất bạn có thể mua. Cost là hard write ceiling và single failure domain.",
-          "Chuyển sang 10M shape: cache và read model gỡ read ceiling, async offload giữ slow work khỏi request path. Cost là staleness ở khắp nơi, cộng cache stampede và cold-start behavior chỉ xuất hiện trong incident — đúng lúc khó chịu nhất.",
-          "Chuyển sang 100M shape: không còn single-write ceiling, blast radius được contain theo shard/cell và mỗi workload scale độc lập. Cost là distributed transactions hoặc rule cứng rằng chúng không bao giờ xảy ra, resharding thành project chứ không phải config change, và debug trải qua services, shards và regions.",
-          "Sharding là decision khó reversible nhất. Shard key gần như permanent, nên làm sau replica, cache, read model và async offload — tất cả đã measure và exhausted. Mọi thứ phía trên gỡ được trong một buổi chiều; shard key thì không.",
-          "Cache có leverage cao nhất và underrated risk: biến read ceiling thành non-issue nhưng mang vào staleness, stampede và cold-start failure mode. Luôn pair cache với request coalescing và jittered TTL, nếu không restart đầu tiên sau incident sẽ thành incident thứ hai.",
-          "Failure review theo scale: ở 1M, outage thực tế là primary failover. Ở 10M, vấn đề thường là cache — stampede, hot key hoặc consumer group lag làm index stale rõ rệt. Ở 100M, failure partial và ambiguous: một shard down, một cell degraded, một region serve old data. Khó nhất là detection chứ không phải repair, và operational cost này trả hằng tuần."
+          "Logical architecture versus operational estate — Ảnh là ownership map rất tốt nhưng là day-one deployment đắt. Giữ box ở mức logical tại 1M giúp transaction/on-call đơn giản; tách hot lane đã đo ở 10M mua isolation nhưng thêm network failure, versioned contract và deployment.",
+          "Orchestration versus choreography — Checkout Saga làm sequence, timeout và compensation nhìn thấy ở một chỗ. Nó cũng thành control-plane hotspot/coupling point; phải persist state, partition worker và giữ participant API idempotent để mất process orchestrator không mất workflow.",
+          "Asynchronous checkout — Đưa payment status và secondary effect sau broker giúp bound request latency và cô lập dependency. User giờ cần contract `PENDING` trung thực, còn operator phải sở hữu backlog age, replay, DLQ và workflow có thể incomplete nhiều giờ.",
+          "Compensation không phải rollback — Release inventory, cancel order hay refund payment là business action mới có thể fail sau khi action gốc đã external-visible. Mỗi compensation cần idempotency, legal precondition, audit record và reconciliation fallback riêng.",
+          "Outbox guarantee — Local database change và outbox row atomic, nhưng publish có thể lặp và consumer có thể crash sau side effect. Stable event id, aggregate sequence check cùng inbox/effect uniqueness là chi phí lâu dài đổi lấy reliability.",
+          "Database per service — Ownership và failure isolation tốt hơn, nhưng join, report và cross-domain consistency biến thành asynchronous product. Không cho Saga update table của service khác; dựng analytics từ event/CDC thay vì cross-service request-time join.",
+          "Adoption order — Tune query/index và pool, cô lập browse khỏi checkout, thêm CDN/cache cùng async secondary effect, rồi partition consumer và chỉ shard/cell về sau. Mỗi bước cần triggering metric, owner, rollback và failure drill; nếu không architecture chỉ có thể phình ra."
+        ],
+        "failure_review": [
+          {
+            "question": "Invariant nào có thể break?",
+            "answer": "Oversell, capture trùng và order báo confirmed trong khi stock/payment bất đồng là các failure quan trọng. Inventory conditional update, một provider idempotency key và legal versioned transition trong từng service authoritative bảo vệ chúng; Saga chỉ điều phối, không phải source of truth của participant state."
+          },
+          {
+            "question": "Metric nào detect sớm nhất?",
+            "answer": "Theo dõi tỷ lệ checkout accepted/completed và p99 cùng oldest non-terminal Saga age, outbox age, consumer lag, reserve-conflict rate, tuổi PSP `UNKNOWN` và reconciliation mismatch. Queue depth một mình che mất partition bị kẹt."
+          },
+          {
+            "question": "Blast radius được contain thế nào?",
+            "answer": "Dùng gateway route, pool, concurrency budget và bounded queue riêng cho browse, cart, checkout, PSP và after-payment lane. Partition theo order/SKU khi cần, cap một campaign hoặc hot SKU tại admission và cho secondary consumer lag mà không ăn checkout capacity."
+          },
+          {
+            "question": "Retry có duplicate hoặc reorder work không?",
+            "answer": "Mặc định là có. Bind client key với canonical request hash và original response, tái dùng cùng provider key, cấp stable id plus aggregate version cho mỗi command/event, rồi apply consumer effect trong local transaction kèm inbox hoặc unique business key."
+          },
+          {
+            "question": "Repair và prove recovery thế nào?",
+            "answer": "Reconcile Saga row quá tuổi với Order, Inventory, Payment và PSP; replay committed outbox; repair bằng transition confirm, release, cancel hoặc refund tường minh; sau đó redrive quarantined event. Chứng minh recovery bằng zero unmatched capture/reservation, outbox/consumer age có giới hạn và aggregate sequence check theo mẫu."
+          }
         ],
         "tags": [
-          "Scaling",
-          "Redis",
+          "E-commerce",
+          "Saga",
+          "Outbox",
+          "Idempotency",
           "Kafka",
-          "Sharding",
-          "Caching",
-          "Trade-off"
+          "Capacity"
         ]
       }
     },
