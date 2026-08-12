@@ -2148,7 +2148,7 @@
           "CDN and L4 boundary: terminate or pass through transport concerns, cache safe public bytes and shed obvious abuse before the application gateway; do not put object authorization here.",
       "Spring Cloud Gateway 5.0.2: use the selected Server WebFlux or Server Web MVC starter from the 2025.1.2 release train, and keep route predicates, ordered filters and effective configuration under test.",
       "Runtime baseline: use a supported Java LTS and verify vendor patch support against the selected Boot/Cloud train; JDK 25 is the current LTS reference at review time, not a throughput assumption.",
-      "Resilience4j 2.2.0: use CircuitBreaker, TimeLimiter and RateLimiter concepts for local protection, but choose one retry/breaker owner per hop and avoid hiding distributed state behind an in-process default.",
+      "Resilience4j 2.4.0: use CircuitBreaker, TimeLimiter and RateLimiter concepts for local protection, but choose one retry/breaker owner per hop and avoid hiding distributed state behind an in-process default. 2.4.0 is the release that adds Spring Boot 4 support via the separate resilience4j-spring-boot4 starter.",
           "Redis rate limiter and cache: use atomic token-bucket checks, short-lived policy/JWKS metadata and bounded decision cache; isolate limiter state by region or cell when a global store becomes a failure amplifier.",
           "Identity provider and keys: use OAuth/OIDC discovery, short-lived access tokens, overlapping signing keys and regional JWKS availability; validate issuer, audience, algorithm and time at the consumer boundary.",
           "PDP: use OPA/Rego, Cedar or a service-local policy module only for decisions that need dynamic context; version bundles, cache with a stated staleness bound and keep the service invariant local.",
@@ -2163,6 +2163,7 @@
           "Global state vs cells — one limiter, IdP cache or PDP is simple to reason about initially, while regional or per-cell state limits blast radius but adds quota transfer, key distribution and reconciliation work.",
           "Central config vs local autonomy — a central snapshot gives consistent policy and rollback, while local cached data keeps the data plane alive during control-plane failure; both require version, expiry and last-known-good behavior."
         ],
+        "migrated_note": "Preserved from Topic 27 — API gateway and identity edge in System Design.",
         "tags": [
           "API Gateway",
           "Identity edge",
@@ -2242,7 +2243,7 @@
           "CDN và L4 boundary: xử lý transport, cache public byte an toàn và shed abuse rõ ràng trước application gateway; không đặt object authorization ở đây.",
       "Spring Cloud Gateway 5.0.2: dùng starter Server WebFlux hoặc Server Web MVC đã chọn trong release train 2025.1.2, đưa route predicate, ordered filter và effective config vào test.",
       "Runtime baseline: dùng Java LTS còn được vendor hỗ trợ và verify patch support theo Boot/Cloud train đã chọn; ở thời điểm review, JDK 25 là mốc LTS hiện hành, không phải throughput assumption.",
-      "Resilience4j 2.2.0: dùng khái niệm CircuitBreaker, TimeLimiter và RateLimiter cho protection local, nhưng mỗi hop phải có một retry/breaker owner và không giấu distributed state sau default in-process.",
+      "Resilience4j 2.4.0: dùng khái niệm CircuitBreaker, TimeLimiter và RateLimiter cho protection local, nhưng mỗi hop phải có một retry/breaker owner và không giấu distributed state sau default in-process. 2.4.0 là bản thêm hỗ trợ Spring Boot 4 qua starter riêng resilience4j-spring-boot4.",
           "Redis rate limiter và cache: dùng token-bucket check atomic, policy/JWKS metadata ngắn hạn và decision cache có giới hạn; isolate limiter state theo region/cell khi global store khuếch đại failure.",
           "Identity provider và key: dùng OAuth/OIDC discovery, access token ngắn hạn, signing key overlap và JWKS theo region; consumer phải validate issuer, audience, algorithm và time.",
           "PDP: dùng OPA/Rego, Cedar hoặc policy module local khi decision cần context động; version bundle, cache với staleness bound rõ và giữ invariant trong service.",
@@ -2257,6 +2258,7 @@
           "Global state vs cell — limiter, IdP cache hoặc PDP global ban đầu dễ hiểu hơn; state theo region/cell giảm blast radius nhưng thêm quota transfer, key distribution và reconciliation.",
           "Central config vs local autonomy — snapshot central cho policy nhất quán và rollback, cache local giữ data plane sống khi control plane lỗi; cả hai đều cần version, expiry và last-known-good."
         ],
+        "migrated_note": "Giữ lại từ Topic 27 — API gateway và identity edge trong System Design.",
         "tags": [
           "API Gateway",
           "Identity edge",

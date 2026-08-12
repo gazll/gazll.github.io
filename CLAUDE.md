@@ -300,6 +300,11 @@ secret/              GITIGNORED. Personal setup notes and credentials
   meant to prevent. An id may be claimed by only one design. Production cases
   are the `systems-architecture` rows handed over by Case Studies; each needs a
   `case_overviews` entry, and the pairing is checked in both directions.
+  A design whose notes came from somewhere other than topics 10–11/16 states
+  where in its own `migrated_note` (one per language, beside `tags`).
+  `views/system-design.js` falls back to the COPY sentence, which names those
+  original topics and is wrong for anything else — so the sentence lives in the
+  catalog with the rest of the prose. Never branch on a slug in the view.
 
 - **IMPORTANT — the blueprint reading format is reviewed and settled. Do not
   re-flatten it.** These four decisions were made together against a real
@@ -521,7 +526,13 @@ topic's English base instead of failing.
   absence is an incident waiting) · `needs its own scaling story` (one config
   line will not do it; it needs its own component and an owner). Using the same
   four verdicts everywhere is what makes the tiers a yardstick instead of
-  decoration.
+  decoration — so they are these words, not synonyms of them. "Worth having"
+  for `worth it` is the drift that already had to be corrected once.
+
+  The Vietnamese companions use one fixed set too, established by topic 27:
+  `không cần` · `nên có` · `bắt buộc` · `cần scale riêng`. Same rule — a
+  translation that reaches for a different phrase each time is no longer a
+  yardstick.
 
 ## Security model
 

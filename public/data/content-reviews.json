@@ -913,13 +913,14 @@
     "reviewed_at": "2026-08-12",
     "target_versions": [
       "Spring Cloud Gateway 5.0.2",
-      "Resilience4j 2.2.0"
+      "Resilience4j 2.4.0"
     ],
     "claim_type": "normative",
     "sources": [
       "https://docs.spring.io/spring-cloud-gateway/reference/spring-cloud-gateway-server-webflux/gatewayfilter-factories/circuitbreaker-filter.html",
       "https://docs.spring.io/spring-cloud-gateway/reference/spring-cloud-gateway-server-webflux/gatewayfilter-factories/requestratelimiter-factory.html",
-      "https://github.com/resilience4j/resilience4j/releases/tag/v2.2.0"
+      "https://github.com/resilience4j/resilience4j/releases",
+      "https://central.sonatype.com/artifact/io.github.resilience4j/resilience4j-spring-boot4/2.4.0"
     ]
   },
   "27-api-gateway-identity-edge.gateway-configuration-that-matters.q4": {

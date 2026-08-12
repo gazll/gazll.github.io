@@ -390,11 +390,10 @@ function renderSourceAnswer(markdown) {
 
 function renderSourceNotes(design) {
   if (!design.sourceNotes.length) return '';
-  const migratedNote = design.slug === 'api-gateway-identity-edge'
-    ? (Content.lang === 'vi'
-      ? 'Giữ lại từ Topic 27 — API gateway và identity edge trong System Design.'
-      : 'Preserved from Topic 27 — API gateway and identity edge in System Design.')
-    : text().migratedNote;
+  // A design that names where its notes came from carries the sentence in the
+  // catalog, localized like every other string there. The COPY fallback is the
+  // original 10/11/16 wording, which is only right for those designs.
+  const migratedNote = design.migrated_note || text().migratedNote;
   return '<section class="sd-section sd-notes"><h2 id="migrated-notes">' + text().migrated + '</h2><p>'
     + migratedNote + '</p>' + design.sourceNotes.map(note => '<details id="question-' + escapeHtml(note.id)
       + '" data-sd-question="' + escapeHtml(note.id) + '"><summary><span>'

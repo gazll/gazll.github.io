@@ -120,6 +120,23 @@ test('Topic 10–11, Topic 27 and the OTA/whiteboard overlap are moved once, wit
   assert.deepEqual([...actual].sort(), [...expected].sort());
 });
 
+/* The reader is told where a blueprint's migrated notes came from. The view's
+   fallback sentence names topics 10–11 and 16, so any design fed from another
+   topic has to carry its own — in the catalog, bilingually. This existed once
+   as a slug branch inside the view, which is the shape to keep out. */
+test('a design fed from another topic states its own provenance, in both languages', () => {
+  const FALLBACK_TOPICS = new Set(['10', '11', '16']);
+  for (const design of catalog.designs) {
+    const sourceTopics = new Set(design.source_items.map(id => id.slice(0, 2)));
+    const needsOwnNote = [...sourceTopics].some(topic => !FALLBACK_TOPICS.has(topic));
+    if (!needsOwnNote) continue;
+    for (const lang of ['en', 'vi']) {
+      assert.ok(String(design[lang].migrated_note || '').trim(),
+        `${design.slug}: ${lang}.migrated_note missing — the view would claim these notes came from topics 10–11/16`);
+    }
+  }
+});
+
 test('all Systems & Architecture at Scale cases moved into System Design with Mermaid lenses', () => {
   const expected = caseManifest.articles
     .filter(article => article.category === 'systems-architecture')
