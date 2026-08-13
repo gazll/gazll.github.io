@@ -535,6 +535,19 @@ function route() {
   else showView(currentRouteState.id, currentRouteState.parts);
 }
 
+/* One fragment navigation raises BOTH popstate and hashchange, so the pair of
+   listeners below rendered every view twice — the second pass refetched the
+   body and, because the shell shrinks to its loading state in between, threw
+   away whatever scroll position the first pass had restored. Coalescing on the
+   URL keeps one render per navigation; `route()` called directly (a language
+   change, refreshCurrentView) still repaints unconditionally. */
+let renderedHref = '';
+function routeFromNavigation() {
+  if (location.href === renderedHref) return;
+  renderedHref = location.href;
+  route();
+}
+
 function showView(id, routeParts = [], anchor = '') {
   // Swap only the view-* class; `nav-open` and anything else stays put.
   document.body.classList.forEach(c => { if (c.startsWith('view-')) document.body.classList.remove(c); });
@@ -998,11 +1011,11 @@ async function init() {
   mountAuthUI(document.getElementById('authbar'));
   mountSyncState(document.getElementById('syncState'));
 
-  window.addEventListener('hashchange', route);
+  window.addEventListener('hashchange', routeFromNavigation);
   // Heading permalinks use pushState so clicking them does not remount the
   // current view; Back/Forward must still restore the previous anchor.
-  window.addEventListener('popstate', route);
-  route();
+  window.addEventListener('popstate', routeFromNavigation);
+  routeFromNavigation();
 
   document.getElementById('prevBtn').addEventListener('click', () => goTo(current - 1));
   document.getElementById('nextBtn').addEventListener('click', () => goTo(current + 1));

@@ -1,10 +1,13 @@
 import { escapeHtml } from '../lib/markdown.js';
 import { Content } from '../lib/content.js';
 import { CaseStudies } from '../lib/case-studies.js';
+import { bulletParts, sentences } from '../lib/prose.js';
+import { rememberOpened, restoreCard, stickyGroupHeads, takeOpened } from '../lib/reading-position.js';
 import { anchorHref, decorateHeadingPermalinks, scrollToAnchor, withRouteLanguage } from '../lib/anchors.js';
 
 let mountToken = 0;
 const TOC_STATE_KEY = 'gazl.caseTocCollapsed';
+const RETURN_SURFACE = 'case-studies';
 
 const COPY = {
   en: {
@@ -65,7 +68,8 @@ function formatDate(value) {
 
 function renderCard(article, category) {
   const coverFit = article.cover_fit === 'contain' ? ' contain' : '';
-  return '<a class="cs-card" href="' + escapeHtml(withRouteLanguage('#/case-studies/' + encodeURIComponent(article.slug), Content.lang)) + '">'
+  return '<a class="cs-card" data-card-key="' + escapeHtml(article.slug) + '" href="'
+    + escapeHtml(withRouteLanguage('#/case-studies/' + encodeURIComponent(article.slug), Content.lang)) + '">'
     + '<span class="cs-card-art' + coverFit + '" aria-hidden="true"><img src="'
     + escapeHtml(article.cover_image) + '" alt="" loading="lazy" decoding="async"></span>'
     + '<span class="cs-card-content">'
@@ -87,9 +91,9 @@ function renderLibrary(collection) {
     const rows = articles.filter(article => article.category === category.id);
     if (!rows.length) return '';
     return '<section class="cs-category" aria-labelledby="cs-category-' + escapeHtml(category.id) + '">'
-      + '<div class="cs-category-head"><div><p>' + text().collection + '</p><h2 id="cs-category-' + escapeHtml(category.id) + '">'
+      + '<header class="cs-category-head"><div><p>' + text().collection + '</p><h2 id="cs-category-' + escapeHtml(category.id) + '">'
       + escapeHtml(category.label) + '</h2><span>' + escapeHtml(category.description) + '</span></div>'
-      + '<b>' + rows.length + '</b></div>'
+      + '<b>' + rows.length + '</b></header>'
       + '<div class="cs-card-grid">' + rows.map(article => renderCard(article, category)).join('') + '</div></section>';
   }).join('');
 
@@ -106,7 +110,6 @@ function articleMeta(article) {
   const tags = (article.tags || []).map(tag => '<span>' + escapeHtml(tag) + '</span>').join('');
   const href = sourceHref(article.source_url);
   return '<header class="cs-article-head">'
-    + '<a class="cs-back" href="' + escapeHtml(withRouteLanguage('#/case-studies', Content.lang)) + '">← ' + text().allCases + '</a>'
     + '<p class="cs-eyebrow">' + text().number + ' ' + numberLabel(article) + ' · '
     + escapeHtml(article.company) + ' · ' + escapeHtml(article.category_label) + ' ' + levelMarkup(article) + '</p>'
     + '<h1 id="case-study-' + escapeHtml(article.slug) + '-title">' + escapeHtml(article.title) + '</h1>'
@@ -122,17 +125,26 @@ function articleMeta(article) {
 
 /* Guide briefs are deliberately short, but several contain two dense sentences.
    Unlike archived article HTML, this is trusted plain JSON prose and can be
-   separated safely without changing the source article. */
-const GUIDE_SENTENCE = /(?<=[.?!])\s+(?=[\p{Lu}0-9"“(])/u;
+   separated safely without changing the source article. A sentence that
+   enumerates becomes the list it already was — lib/prose.js decides which
+   ones qualify, and the study surfaces share that judgement. */
+function guideLine(value, className) {
+  const source = String(value || '').trim();
+  const attribute = className ? ' class="' + className + '"' : '';
+  const { lead, items } = bulletParts(source);
+  if (!items.length || !lead) return '<p' + attribute + '>' + escapeHtml(source) + '</p>';
+  return '<p' + attribute + '>' + escapeHtml(lead) + '</p><ul class="cs-clause-list">'
+    + items.map(item => '<li>' + escapeHtml(item) + '</li>').join('') + '</ul>';
+}
 function renderGuideProse(value) {
   const source = String(value || '').trim();
-  const sentences = source.split(GUIDE_SENTENCE).filter(Boolean);
-  if (source.length < 220 || sentences.length < 2) return '<p>' + escapeHtml(source) + '</p>';
+  const lines = sentences(source);
+  if (source.length < 220 || lines.length < 2) return guideLine(source, '');
 
-  const closing = sentences.pop();
-  const thesis = closing.length <= 170 ? ' class="cs-guide-thesis"' : '';
-  return sentences.map((sentence, index) => '<p' + (index === 0 ? ' class="cs-guide-lead"' : '') + '>'
-    + escapeHtml(sentence) + '</p>').join('') + '<p' + thesis + '>' + escapeHtml(closing) + '</p>';
+  const closing = lines.pop();
+  const thesis = closing.length <= 170 ? 'cs-guide-thesis' : '';
+  return lines.map((sentence, index) => guideLine(sentence, index === 0 ? 'cs-guide-lead' : '')).join('')
+    + guideLine(closing, thesis);
 }
 
 function renderGuide(guide) {
@@ -154,7 +166,12 @@ function renderGuide(guide) {
 
 function renderArticle(article, body, guide) {
   const href = sourceHref(article.source_url);
-  return '<div class="cs-article">' + articleMeta(article)
+  // Sticky for the whole article and separate from the site header: these
+  // articles run several screens, and a back link that scrolled away with the
+  // title made leaving a scroll back to the top.
+  return '<div class="cs-article"><div class="cs-backbar"><a class="cs-back" href="'
+    + escapeHtml(withRouteLanguage('#/case-studies', Content.lang)) + '">← ' + text().allCases + '</a></div>'
+    + articleMeta(article)
     + renderGuide(guide)
     + '<details class="cs-toc-mobile"><summary>' + text().toc + '</summary><nav data-case-toc-mobile></nav></details>'
     + '<div class="cs-article-grid">'
@@ -247,6 +264,7 @@ async function showArticle(root, collection, slug, token, anchor = '') {
   if (token !== mountToken) return;
 
   root.innerHTML = renderArticle(article, body, article.guide);
+  rememberOpened(RETURN_SURFACE, article.slug);
   decorateHeadingPermalinks(root);
   document.title = article.title + ' · Backend Engineering';
   buildToc(root, article.slug);
@@ -273,6 +291,10 @@ export async function mountCaseStudies(host, routeParts = [], anchor = '') {
     else {
       root.innerHTML = renderLibrary(collection);
       decorateHeadingPermalinks(root);
+      stickyGroupHeads(root, '.cs-category-head');
+      // An anchor is an explicit destination and outranks the card the reader
+      // came back from.
+      if (!anchor) restoreCard(root, takeOpened(RETURN_SURFACE));
     }
   } catch (error) {
     if (token !== mountToken) return;

@@ -58,6 +58,9 @@ public/
     search-history.js recent searches: session while signed out, account once signed in
     mermaid.js       lazy loader for the vendored renderer; diagrams degrade to source
     question-links.js  #/track/<id> and #/system-design/<slug>/<id> route helpers
+    prose.js         where authored prose is really a list: sentences, labelled
+                     segments, enumerated clauses. Structure only, never markup
+    reading-position.js  sticky group heads + the card a library reader came back from
     clipboard.js     copyText with an execCommand fallback for local HTTP previews
     dsa-anim.js      DSA step-frame model + pure SVG frame renderer (no DOM)
     api.js           transport to Apps Script
@@ -342,7 +345,7 @@ secret/              GITIGNORED. Personal setup notes and credentials
   slug; the validator checks the path, file, dimensions and both translations.
 
 - **IMPORTANT — the blueprint reading format is reviewed and settled. Do not
-  re-flatten it.** These four decisions were made together against a real
+  re-flatten it.** These five decisions were made together against a real
   blueprint (`scaling-1m-to-10m-requests`) and each one replaced something that
   had already been tried and read badly. Changing one in isolation reintroduces
   the problem it fixed.
@@ -382,6 +385,23 @@ secret/              GITIGNORED. Personal setup notes and credentials
      and the grid together. State persists in `gazl.sd.toc`. Per the Case
      Studies rule, this **must not touch the mobile `<details>` TOC**: below the
      breakpoint the rail is gone and the head padding resets.
+  5. **Prose the author wrote as a list is printed as one, and `lib/prose.js`
+     is the only thing that decides when.** Two shapes qualify: a *labelled
+     run* (`Problem solved: … Flow position: … Tier verdict: …`, which is how
+     blueprint 16's 18 technology rows are written) becomes one labelled line
+     per segment, and an *enumeration* (`lead: a; b; c`, or three-plus
+     sentences) becomes a lead line plus bullets. The thresholds are the whole
+     design: **three** clauses or **three** sentences, never two — two clauses
+     are a compound sentence and two sentences are a claim plus its qualifier,
+     and splitting those fragments prose that already read fine. The tests hold
+     list promotion under a third of rows for the same reason the tones are
+     capped: a page where everything is a list says nothing. Two rules the
+     structuring itself must keep — a colon rides with its label (dropping it
+     deletes source text) and a bullet list never renders without the lead
+     line that introduces it, or the reader gets clauses with no sentence.
+     The **only** character a transform may consume is the `;` it replaced with
+     a bullet; `tests/prose.test.mjs` and both view tests compare the rendered
+     text back to the source with that one normalisation.
 
 - **Mermaid is vendored, pinned by directory name, and loaded lazily.** The CSP
   is `script-src 'self'`, so a CDN was never an option — `public/vendor/
@@ -404,6 +424,26 @@ secret/              GITIGNORED. Personal setup notes and credentials
   dependencies would still be cacheable under old URLs. `boot.js` always fetches
   `version.json` with `no-store`, swaps in that release's stylesheet, then imports
   the matching app entry. Keep the bootstrap small, stable and free of app logic.
+
+- **One fragment navigation fires two events, so the router coalesces them.**
+  Clicking a `#/…` link raises **both** `popstate` and `hashchange` in Chrome.
+  Both were wired straight to `route()`, so every in-app navigation rendered
+  the view twice — invisible while both passes ended at `scrollTo(0)`, fatal
+  once anything wanted to keep a position: the second pass drops the shell back
+  to its loading state, the document collapses, and the browser clamps the
+  scroll to the top. `routeFromNavigation()` renders once per `location.href`;
+  direct `route()` calls (a language change, `refreshCurrentView()`) still
+  repaint unconditionally, which is what makes the guard safe.
+
+- **Leaving an article and coming back is a position, not a route.**
+  `lib/reading-position.js` writes the opened card's key to `sessionStorage`
+  when an article renders and consumes it when its library renders, so it
+  survives exactly one trip back and a borrowed browser never inherits it.
+  Two details are load-bearing: the restore scrolls the **window** rather than
+  calling `scrollIntoView` (the router's own smooth scroll to the top runs on
+  the same box and only a scroll on that box cancels it), and an explicit
+  `?…#anchor` outranks the remembered card. Cards opt in with `data-card-key`;
+  the key is matched in JS, never concatenated into a selector.
 
 - **The nav panel is `inert` while closed.** Without it the off-screen links
   stay in the tab order — the drawer is moved by `transform`, not `display`.

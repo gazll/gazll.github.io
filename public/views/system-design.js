@@ -6,6 +6,8 @@ import { CaseStudies } from '../lib/case-studies.js';
 import { mountMermaidDiagrams } from '../lib/mermaid.js';
 import { systemDesignQuestionUrl } from '../lib/question-links.js';
 import { crossRefResolver } from '../lib/cross-ref.js';
+import { bulletParts, labelledParts, sentences } from '../lib/prose.js';
+import { rememberOpened, restoreCard, stickyGroupHeads, takeOpened } from '../lib/reading-position.js';
 import { SYSTEM_DESIGN_RESEARCH } from '../data/system-design/research.js';
 import { anchorHref, decorateHeadingPermalinks, scrollToAnchor, withRouteLanguage } from '../lib/anchors.js';
 
@@ -124,7 +126,8 @@ function storeTocCollapsed(collapsed) {
 const sourceHref = url => /^https:\/\/engineering\.tiki\.vn\//.test(url || '') ? url : 'https://engineering.tiki.vn/';
 
 function renderDesignCard(design) {
-  return '<a class="sd-card" href="' + escapeHtml(withRouteLanguage('#/system-design/' + encodeURIComponent(design.slug), Content.lang)) + '">'
+  return '<a class="sd-card" data-card-key="' + escapeHtml(design.slug) + '" href="'
+    + escapeHtml(withRouteLanguage('#/system-design/' + encodeURIComponent(design.slug), Content.lang)) + '">'
     + '<span class="sd-card-num">' + numberLabel(design.n) + '</span><span class="sd-card-main">'
     + '<span class="sd-card-type">Blueprint · ' + escapeHtml(design.effort || '45 min') + levelMarkup(design) + '</span>'
     + '<strong>' + escapeHtml(design.title) + '</strong><span>' + escapeHtml(design.excerpt) + '</span>'
@@ -133,7 +136,8 @@ function renderDesignCard(design) {
 }
 
 function renderCaseCard(article) {
-  return '<a class="sd-card sd-case-card" href="' + escapeHtml(withRouteLanguage('#/system-design/case/' + encodeURIComponent(article.slug), Content.lang)) + '">'
+  return '<a class="sd-card sd-case-card" data-card-key="case/' + escapeHtml(article.slug) + '" href="'
+    + escapeHtml(withRouteLanguage('#/system-design/case/' + encodeURIComponent(article.slug), Content.lang)) + '">'
     + '<span class="sd-case-art"><img src="' + escapeHtml(article.cover_image) + '" alt="" loading="lazy"></span>'
     + '<span class="sd-card-main"><span class="sd-card-type">' + text().production + ' · Tiki Engineering' + levelMarkup(article) + '</span>'
     + '<strong>' + escapeHtml(article.title) + '</strong><span>' + escapeHtml(article.excerpt) + '</span>'
@@ -240,28 +244,42 @@ function emphasize(value) {
       [...digits].map(ch => ch.charCodeAt(0) - 0xE010).join(''))]);
 }
 
-/* Sentence break for EN and VI. VI has no different rule here, but the
-   lookahead must accept accented capitals or it splits mid-sentence. */
-const SENTENCE = /(?<=[.?!])\s+(?=[A-ZĐÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚÝ0-9"“(])/u;
+/* Enumerated prose is rendered as the list the author already wrote — see
+   lib/prose.js for when a block counts as one. The lead keeps the class the
+   paragraph had, because the lead is the sentence that class was styling. */
+function bulletList(items) {
+  return '<ul class="sd-clause-list">'
+    + items.map(item => '<li>' + emphasize(item) + '</li>').join('') + '</ul>';
+}
+
+function proseParagraph(value, className) {
+  const source = String(value || '').trim();
+  const attribute = className ? ' class="' + className + '"' : '';
+  const { lead, items } = bulletParts(source);
+  // A list with no lead opens on a bare bullet and the reader loses the
+  // sentence it belongs to, so that case stays a paragraph.
+  if (!items.length || !lead) return '<p' + attribute + '>' + emphasize(source) + '</p>';
+  return '<p' + attribute + '>' + emphasize(lead) + '</p>' + bulletList(items);
+}
 
 /* Scope runs 1-5 sentences (median 2), so a fixed split would mangle the short
    ones. Only prose long enough to read as a wall is broken up, and the closing
    sentence is pulled out as the thesis when it is a standalone claim. */
 function renderScope(value) {
   const source = String(value || '').trim();
-  const sentences = source.split(SENTENCE).filter(Boolean);
-  if (source.length < 260 || sentences.length < 3) {
-    return '<p>' + emphasize(source) + '</p>';
+  const lines = sentences(source);
+  if (source.length < 260 || lines.length < 3) {
+    return proseParagraph(source, '');
   }
 
-  const lead = sentences[0];
-  const rest = sentences.slice(1);
+  const lead = lines[0];
+  const rest = lines.slice(1);
   // A short final sentence that makes a claim reads as the takeaway; a long one
   // is still body text and stays in the paragraph.
   const closing = rest.length > 1 && rest[rest.length - 1].length <= 160 ? rest.pop() : '';
 
-  return '<p class="sd-lead">' + emphasize(lead) + '</p>'
-    + (rest.length ? '<p>' + emphasize(rest.join(' ')) + '</p>' : '')
+  return proseParagraph(lead, 'sd-lead')
+    + (rest.length ? proseParagraph(rest.join(' '), '') : '')
     + (closing ? '<p class="sd-thesis">' + emphasize(closing) + '</p>' : '');
 }
 
@@ -273,11 +291,15 @@ const ROW_LABEL = /^([^:—–]{4,60}):\s+(?=\S)/u;
 function listRow(value) {
   const source = String(value || '').trim();
   const match = source.match(ROW_LABEL);
-  if (!match) return '<li>' + emphasize(source) + '</li>';
   // The colon rides with the label: dropping it would delete source text, and
   // the label is a heading here, not a fragment of the sentence below it.
-  return '<li class="has-label"><b class="sd-row-label">' + emphasize(match[1]) + ':</b>'
-    + emphasize(source.slice(match[0].length)) + '</li>';
+  const label = match ? '<b class="sd-row-label">' + emphasize(match[1]) + ':</b>' : '';
+  const body = match ? source.slice(match[0].length) : source;
+  const { lead, items } = bulletParts(body);
+  const listed = items.length > 0 && Boolean(lead);
+  const classes = (match ? 'has-label' : '') + (listed ? (match ? ' ' : '') + 'has-list' : '');
+  return '<li' + (classes ? ' class="' + classes + '"' : '') + '>' + label
+    + emphasize(listed ? lead : body) + (listed ? bulletList(items) : '') + '</li>';
 }
 
 function splitDecision(value) {
@@ -291,6 +313,27 @@ function splitDecision(value) {
   return { name: source.slice(0, separator), detail: source.slice(separator + delimiter.length) };
 }
 
+/* The densest text in the library is a decision detail that packs several
+   labelled segments into one string ("Problem solved: … Tier verdict: …").
+   Each label opens its own line, and a segment that enumerates becomes the
+   list it already was — same structural break as the name/detail split, one
+   level further in. */
+function detailProse(value, className) {
+  const source = String(value || '').trim();
+  const parts = labelledParts(source) || [{ label: '', body: source }];
+  return '<div class="' + className + '">' + parts.map(part => {
+    const { lead, items } = bulletParts(part.body);
+    const listed = items.length > 0 && Boolean(lead || part.label);
+    // The label is chrome, not prose: emphasising it would nest a tone inside
+    // a line that is already set apart, and the tones only mean something
+    // while they stay rare.
+    const head = (part.label ? '<b class="sd-part-label">' + escapeHtml(part.label) + ':</b> ' : '')
+      + emphasize(listed ? lead : part.body);
+    return '<div class="sd-part">' + (head.trim() ? '<p>' + head + '</p>' : '')
+      + (listed ? bulletList(items) : '') + '</div>';
+  }).join('') + '</div>';
+}
+
 /* Stacked, not tabular: a fixed name column wasted half the width on 7-char
    names. .sd-comparison-wrap stays as the outer class — tests pin it. */
 function comparisonTable(rows, labels, className) {
@@ -299,7 +342,7 @@ function comparisonTable(rows, labels, className) {
     return '<div class="sd-decision-row"><p class="sd-decision-name"><span>' + numberLabel(index + 1)
       + '</span>' + emphasize(row.name) + '</p>'
       + (row.detail && row.detail !== row.name
-        ? '<p class="sd-decision-detail">' + emphasize(row.detail) + '</p>' : '') + '</div>';
+        ? detailProse(row.detail, 'sd-decision-detail') : '') + '</div>';
   }).join('');
   return '<div class="sd-comparison-wrap ' + className + '"><div class="sd-decision-legend"><span>'
     + escapeHtml(labels[0]) + '</span><span>' + escapeHtml(labels[1]) + '</span></div>'
@@ -378,7 +421,7 @@ function failureReviewSection(design) {
   const answers = (design.failure_review || []).filter(entry => entry?.question && entry?.answer);
   const resolved = answers.length ? answers : inferredFailureReview(design);
   const cards = resolved.map((entry, index) => '<article><span>' + numberLabel(index + 1) + '</span><div><h3>'
-    + emphasize(entry.question) + '</h3><p>' + emphasize(entry.answer) + '</p></div></article>').join('');
+    + emphasize(entry.question) + '</h3>' + proseParagraph(entry.answer, '') + '</div></article>').join('');
   return '<aside class="sd-failure-review"><strong>' + escapeHtml(text().failureReviewAnswered) + '</strong>'
     + '<div>' + cards + '</div></aside>';
 }
@@ -388,7 +431,7 @@ function tradeoffSection(design) {
     const parts = splitDecision(row);
     return '<article><span>' + numberLabel(index + 1) + '</span><div><strong>' + emphasize(parts.name)
       + '</strong>' + (parts.detail && parts.detail !== parts.name
-        ? '<p>' + emphasize(parts.detail) + '</p>' : '') + '</div></article>';
+        ? detailProse(parts.detail, 'sd-tradeoff-detail') : '') + '</div></article>';
   }).join('');
   return '<section class="sd-section sd-tradeoff-review"><h2 id="tradeoffs-failure-review">' + text().tradeoffs + '</h2>'
     + '<p class="sd-section-intro">' + emphasize(text().tradeoffIntro) + '</p><div class="sd-tradeoff-list">'
@@ -451,12 +494,21 @@ function renderSourceNotes(design) {
       + '</button></div>' + renderSourceAnswer(note.a) + '</div></details>').join('') + '</section>';
 }
 
+/* The way back is a bar of its own, sticky for the whole article: an article
+   runs several screens, and a link that scrolled away with the title left the
+   reader scrolling back up to leave. It sits under the site header rather than
+   inside it — the header belongs to the site, this belongs to the article. */
+function backBar() {
+  return '<div class="sd-backbar"><a class="cs-back" href="'
+    + escapeHtml(withRouteLanguage('#/system-design', Content.lang)) + '">← ' + text().back + '</a></div>';
+}
+
 /* Collapses to an icon rail rather than unmounting, so the body never reflows
    mid-read. State is per reader, not per article. */
 function articleShell(header, body) {
   const collapsed = tocCollapsed();
   return '<div class="sd-article' + (collapsed ? ' toc-collapsed' : '') + '" data-sd-article>'
-    + header + '<details class="sd-toc-mobile"><summary>' + text().toc
+    + backBar() + header + '<details class="sd-toc-mobile"><summary>' + text().toc
     + '</summary><nav data-sd-toc-mobile></nav></details><div class="sd-article-grid">'
     + '<aside class="sd-toc"><div class="sd-toc-head"><p>' + text().toc + '</p>'
     + '<button type="button" class="sd-toc-toggle" data-sd-toc-toggle aria-expanded="' + (collapsed ? 'false' : 'true')
@@ -467,7 +519,7 @@ function articleShell(header, body) {
 
 function renderDesignArticle(design) {
   const tags = design.tags.map(tag => '<span>' + escapeHtml(tag) + '</span>').join('');
-  const header = '<header class="sd-article-head"><a class="cs-back" href="' + escapeHtml(withRouteLanguage('#/system-design', Content.lang)) + '">← ' + text().back + '</a>'
+  const header = '<header class="sd-article-head">'
     + '<p class="cs-eyebrow">Blueprint ' + numberLabel(design.n) + ' · ' + escapeHtml(design.effort || '45 min') + ' ' + levelMarkup(design) + '</p>'
     + '<h1 id="design-' + escapeHtml(design.slug) + '-title">' + escapeHtml(design.title) + '</h1><p>' + escapeHtml(design.excerpt) + '</p><div class="cs-tags">' + tags + '</div></header>';
   const body = '<article class="sd-article-body" data-sd-body>'
@@ -497,9 +549,9 @@ function renderCaseGuide(article) {
   const takeaways = (guide.takeaways || []).map(item => '<li>' + emphasize(item) + '</li>').join('');
   const reviewLenses = (guide.review_lenses || []).map(item => '<li>' + emphasize(item) + '</li>').join('');
   return '<section class="sd-section sd-case-guide"><h2 id="design-review">' + text().production + '</h2>'
-    + '<div class="sd-case-guide-brief"><article><h3>' + text().problem + '</h3><p>' + emphasize(guide.problem) + '</p></article>'
-    + '<article><h3>' + text().coreIdea + '</h3><p>' + emphasize(guide.core_idea) + '</p></article>'
-    + '<article><h3>' + text().outcome + '</h3><p>' + emphasize(guide.outcome) + '</p></article></div>'
+    + '<div class="sd-case-guide-brief"><article><h3>' + text().problem + '</h3>' + proseParagraph(guide.problem, '') + '</article>'
+    + '<article><h3>' + text().coreIdea + '</h3>' + proseParagraph(guide.core_idea, '') + '</article>'
+    + '<article><h3>' + text().outcome + '</h3>' + proseParagraph(guide.outcome, '') + '</article></div>'
     + '<div class="sd-case-guide-depth"><article><h3>' + text().takeaways + '</h3><ul>' + takeaways + '</ul></article>'
     + '<article><h3>' + text().review + '</h3><ul>' + reviewLenses + '</ul></article></div></section>';
 }
@@ -507,7 +559,7 @@ function renderCaseGuide(article) {
 function renderProductionArticle(article, overview, archivedBody) {
   const href = sourceHref(article.source_url);
   const tags = article.tags.map(tag => '<span>' + escapeHtml(tag) + '</span>').join('');
-  const header = '<header class="sd-article-head"><a class="cs-back" href="' + escapeHtml(withRouteLanguage('#/system-design', Content.lang)) + '">← ' + text().back + '</a>'
+  const header = '<header class="sd-article-head">'
     + '<p class="cs-eyebrow">' + text().production + ' · Tiki Engineering ' + levelMarkup(article) + '</p><h1 id="system-case-' + escapeHtml(article.slug) + '-title">' + escapeHtml(article.title) + '</h1>'
     + '<p>' + escapeHtml(article.excerpt) + '</p><div class="cs-tags">' + tags + '</div>'
     + '<div class="cs-archive-note"><b>' + text().historical + '</b><span>' + text().historicalNote + '</span></div></header>';
@@ -679,15 +731,22 @@ function revealLinkedSource(root, questionId) {
   requestAnimationFrame(() => note.scrollIntoView({ block: 'start', inline: 'nearest' }));
 }
 
+const RETURN_SURFACE = 'system-design';
+
 async function showRoute(root, collection, routeParts, token, anchor = '') {
   if (!routeParts.length) {
     root.innerHTML = renderLibrary(collection);
     decorateHeadingPermalinks(root);
+    stickyGroupHeads(root, '.sd-group>header');
     document.title = collection.library.title + ' · Backend Engineering';
+    // An anchor is an explicit destination and outranks the card the reader
+    // came back from.
+    if (!anchor) restoreCard(root, takeOpened(RETURN_SURFACE));
     return;
   }
 
   let html = '';
+  let opened = '';
   if (routeParts[0] === 'case') {
     let slug = '';
     try { slug = decodeURIComponent(routeParts[1] || ''); } catch (error) {}
@@ -696,6 +755,7 @@ async function showRoute(root, collection, routeParts, token, anchor = '') {
       const archivedBody = await CaseStudies.body(article);
       if (token !== mountToken) return;
       html = renderProductionArticle(article, collection.caseOverview(slug), archivedBody);
+      opened = 'case/' + article.slug;
       document.title = article.title + ' · Backend Engineering';
     }
   } else {
@@ -704,6 +764,7 @@ async function showRoute(root, collection, routeParts, token, anchor = '') {
     const design = collection.design(slug);
     if (design) {
       html = renderDesignArticle(design);
+      opened = design.slug;
       document.title = design.title + ' · Backend Engineering';
     }
   }
@@ -716,6 +777,7 @@ async function showRoute(root, collection, routeParts, token, anchor = '') {
   }
 
   root.innerHTML = html;
+  rememberOpened(RETURN_SURFACE, opened);
   decorateHeadingPermalinks(root);
   buildToc(root, routeParts);
   wireDiagramTools(root);

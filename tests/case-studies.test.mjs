@@ -227,10 +227,15 @@ test('Experience exposes the global language switch while remaining outside Stud
 
 test('guide prose is split only at safe sentence boundaries and remains escaped', async () => {
   const source = await readFile(path.join(publicRoot, 'views/case-studies.js'), 'utf8');
-  const block = source.slice(source.indexOf('const GUIDE_SENTENCE'), source.indexOf('function renderGuide(guide)'));
+  const block = source.slice(source.indexOf('/* Guide briefs'), source.indexOf('function renderGuide(guide)'));
   const escapeHtml = value => String(value).replace(/[&<>"']/g, character =>
     ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
-  const renderGuideProse = new Function('escapeHtml', block + '\nreturn renderGuideProse;')(escapeHtml);
+  // Sentence and clause structuring lives in lib/prose.js, shared with System
+  // Design; the slice cannot import, so the real module is injected.
+  const { bulletParts, sentences } = await import(pathToFileURL(
+    path.join(publicRoot, 'lib/prose.js')).href);
+  const renderGuideProse = new Function('escapeHtml', 'bulletParts', 'sentences',
+    block + '\nreturn renderGuideProse;')(escapeHtml, bulletParts, sentences);
   const prose = 'A guide card needs enough detail to frame the trade-off, explain the operating constraint, name the evidence that supports the claim, and make the reader decide what they would verify before accepting the recommendation. Its final sentence should be easy to scan.';
   const html = renderGuideProse(prose);
   assert.match(html, /^<p class="cs-guide-lead">/);

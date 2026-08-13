@@ -2,6 +2,37 @@
   "version": 1,
   "releases": [
     {
+      "date": "2026-08-13",
+      "en": {
+        "title": "System Design and Case Studies read as lists, and keep your place"
+      },
+      "vi": {
+        "title": "System Design và Case Studies đọc theo dạng list, và giữ đúng vị trí đang đọc"
+      },
+      "changes": [
+        {
+          "kind": "feature",
+          "target": "system-design",
+          "en": {
+            "text": "Prose that was written as a list is now printed as one. Where a sentence enumerates behind a lead — `use the diagram as the target: CDN at the edge; search isolated; each database owns an outbox` — the lead keeps its line and the clauses become bullets, and a technology row that packs **Problem solved**, **Flow position**, **Failure / cost** and **Tier verdict** into one paragraph now gives each label its own line. Problem framing runs the full width of the article, and a list row's label no longer runs into its own sentence."
+          },
+          "vi": {
+            "text": "Đoạn văn vốn được viết như một danh sách giờ được in đúng như vậy. Khi một câu liệt kê sau phần dẫn — `dùng sơ đồ làm logical target: CDN ở edge; search cô lập; mỗi database có outbox riêng` — phần dẫn giữ nguyên dòng của nó còn các mệnh đề thành bullet; một technology row gói **Vấn đề giải quyết**, **Vị trí trong flow**, **Failure / cái giá** và **Phán quyết theo tier** vào một đoạn giờ tách mỗi nhãn ra một dòng. Problem framing chạy hết chiều rộng bài viết, và nhãn của một list row không còn dính vào câu của chính nó."
+          }
+        },
+        {
+          "kind": "feature",
+          "target": "case-studies",
+          "en": {
+            "text": "Both libraries now keep the group heading pinned while you scroll it, so a long list never leaves you asking which section you are in. Inside an article the way back is a pinned bar of its own, separate from the site header, and taking it returns you to the card you opened rather than to the top of the library. Guide briefs use the same list treatment as the blueprints."
+          },
+          "vi": {
+            "text": "Cả hai thư viện giờ ghim tiêu đề nhóm khi bạn cuộn, nên một danh sách dài không còn khiến bạn tự hỏi mình đang ở chủ đề nào. Trong bài đọc, đường quay lại là một thanh riêng được ghim, tách khỏi header của site, và khi bấm nó bạn trở về đúng thẻ đã mở thay vì về đầu thư viện. Guide brief dùng cùng cách trình bày list như blueprint."
+          }
+        }
+      ]
+    },
+    {
       "date": "2026-08-12",
       "en": {
         "title": "Blueprint 16 now follows a real e-commerce Saga + Outbox path"

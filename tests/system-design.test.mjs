@@ -375,6 +375,42 @@ test('Experience routing, Case Studies migration and Mermaid security are wired 
   assert.match(styles, /\.sd-toc-mobile:not\(\[open\]\)>nav\{display:none\}/);
 });
 
+/* Orientation in a long library, and the three ways it silently breaks. One
+   render per navigation is the load-bearing one: popstate and hashchange both
+   fire for a single fragment navigation, and a second render throws away the
+   scroll position the first one restored. */
+test('the libraries keep the reader oriented while scrolling and on the way back', async () => {
+  const [app, systemView, caseView, styles] = await Promise.all([
+    readFile(path.join(publicRoot, 'app.js'), 'utf8'),
+    readFile(path.join(publicRoot, 'views/system-design.js'), 'utf8'),
+    readFile(path.join(publicRoot, 'views/case-studies.js'), 'utf8'),
+    readFile(path.join(publicRoot, 'styles.css'), 'utf8')
+  ]);
+
+  assert.match(app, /function routeFromNavigation/);
+  assert.match(app, /addEventListener\('hashchange', routeFromNavigation\)/);
+  assert.match(app, /addEventListener\('popstate', routeFromNavigation\)/);
+  assert.doesNotMatch(app, /addEventListener\('(?:hashchange|popstate)', route\)/,
+    'both navigation events must go through the coalescing wrapper');
+
+  assert.match(systemView, /rememberOpened\(RETURN_SURFACE, opened\)/);
+  assert.match(systemView, /restoreCard\(root, takeOpened\(RETURN_SURFACE\)\)/);
+  assert.match(systemView, /stickyGroupHeads\(root, '\.sd-group>header'\)/);
+  assert.match(systemView, /data-card-key="/);
+  assert.match(caseView, /rememberOpened\(RETURN_SURFACE, article\.slug\)/);
+  assert.match(caseView, /restoreCard\(root, takeOpened\(RETURN_SURFACE\)\)/);
+  assert.match(caseView, /stickyGroupHeads\(root, '\.cs-category-head'\)/);
+
+  // The back link is a sibling of the article head, not part of it: inside the
+  // head it scrolls away with the title and leaving means scrolling back up.
+  assert.match(systemView, /class="sd-backbar"/);
+  assert.match(caseView, /class="cs-backbar"/);
+  assert.doesNotMatch(systemView, /sd-article-head"><a class="cs-back/);
+  assert.doesNotMatch(caseView, /cs-article-head"><a class="cs-back/);
+  assert.match(styles, /\.cs-backbar,\.sd-backbar\{position:sticky/);
+  assert.match(styles, /\.sd-group>header,\.cs-category-head\{position:sticky/);
+});
+
 /* Two ways emphasis corrupts text silently rather than failing the build: the
    numeric pattern eating an earlier pattern's sentinel digits, and it reading
    the "39" of &#39; as a quantity. */
@@ -421,12 +457,19 @@ test('breaking prose into paragraphs and labels never loses text', async () => {
   const block = source.slice(source.indexOf('/* Three tones'), source.indexOf('function splitDecision'));
   const escapeHtml = value => String(value).replace(/[&<>"']/g, character =>
     ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
-  const { renderScope, listRow } = new Function('escapeHtml',
-    block + '\nreturn { renderScope, listRow };')(escapeHtml);
-  const bare = html => html.replace(/<[^>]+>/g, '').replace(/\s+/g, '');
+  // The block calls lib/prose.js, which the slice cannot import — injected as
+  // parameters so the real structuring code is what gets exercised here.
+  const { bulletParts, sentences } = await import(pathToFileURL(
+    path.join(publicRoot, 'lib/prose.js')).href);
+  const { renderScope, listRow } = new Function('escapeHtml', 'bulletParts', 'sentences',
+    block + '\nreturn { renderScope, listRow };')(escapeHtml, bulletParts, sentences);
+  // A semicolon that became a bullet is the one character a transform may
+  // consume, so it is normalised on both sides; everything else must survive.
+  const bare = html => html.replace(/<[^>]+>/g, '').replace(/[\s;]+/g, '');
 
   let broken = 0;
   let labelled = 0;
+  let listed = 0;
   let listRows = 0;
   for (const design of catalog.designs) {
     for (const lang of ['en', 'vi']) {
@@ -435,6 +478,10 @@ test('breaking prose into paragraphs and labels never loses text', async () => {
         `${design.slug}.${lang}: renderScope changed the text`);
       // one <p> per break, and the thesis is always last when present
       assert.match(scope, /^<p/, `${design.slug}.${lang}: scope must start with a paragraph`);
+      // bullets always follow the line that introduces them
+      if (scope.includes('sd-clause-list')) {
+        assert.match(scope, /<\/p><ul class="sd-clause-list">/, `${design.slug}.${lang}: bullets without a lead`);
+      }
       if (scope.includes('sd-thesis')) {
         assert.match(scope, /<p class="sd-thesis">[\s\S]*<\/p>$/, `${design.slug}: thesis must close the scope`);
         broken++;
@@ -449,6 +496,7 @@ test('breaking prose into paragraphs and labels never loses text', async () => {
             assert.match(out, /<b class="sd-row-label">[^<]*:<\/b>|:<\/b>/, `${design.slug}: label lost its colon`);
             labelled++;
           }
+          if (out.includes('sd-clause-list')) listed++;
           listRows++;
         }
       }
@@ -459,6 +507,9 @@ test('breaking prose into paragraphs and labels never loses text', async () => {
   assert.ok(broken > 0 && broken < catalog.designs.length * 2, `thesis extraction fired ${broken} times`);
   assert.ok(labelled > 0 && labelled < listRows / 2,
     `label promotion should stay the exception: ${labelled}/${listRows}`);
+  // Same rule for bullets: a row is listified because the author enumerated,
+  // not because a splitter could find a separator.
+  assert.ok(listed < listRows / 3, `list promotion should stay the exception: ${listed}/${listRows}`);
 });
 
 /* The controls that sit beside a question must not be nested inside .qhead:
