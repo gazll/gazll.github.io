@@ -2,6 +2,67 @@
   "version": 1,
   "releases": [
     {
+      "date": "2026-08-17",
+      "en": {
+        "title": "Six new questions: class identity, HashMap keys, UUID keys, volatile counters, concurrency vocabulary"
+      },
+      "vi": {
+        "title": "Sáu câu hỏi mới: class identity, key của HashMap, khoá UUID, counter volatile, từ vựng concurrency"
+      },
+      "changes": [
+        {
+          "kind": "topic",
+          "target": "01-java-core-jvm",
+          "en": {
+            "text": "Three additions. **Why `com.acme.Order cannot be cast to com.acme.Order` happens** — a runtime class is its name *plus* its defining loader, so the same jar behind two loaders makes two types; the item shows the four lines that prove which loader is at fault and why the same rule duplicates `static` state. **What breaks when a HashMap key overrides only one of `equals`/`hashCode`** — walked through the three steps of a lookup, plus the mutable-key case where `remove` stops working. **Concurrency vs multithreading vs parallelism** — structure, mechanism and execution, with Little's Law turning the distinction into a number you can size a pool with."
+          },
+          "vi": {
+            "text": "Ba mục mới. **Vì sao có `com.acme.Order cannot be cast to com.acme.Order`** — một class ở runtime là tên *cộng với* loader đã define nó, nên cùng một jar sau hai loader thành hai type; mục này chỉ ra bốn dòng code chứng minh loader nào gây ra và vì sao cùng quy tắc đó nhân đôi cả `static` state. **Hỏng gì khi key của HashMap chỉ override một trong `equals`/`hashCode`** — đi qua ba bước của một lần lookup, kèm trường hợp key mutable khiến `remove` mất tác dụng. **Concurrency, multithreading và parallelism** — cấu trúc, cơ chế và thực thi, với Little's Law biến sự phân biệt đó thành một con số để size pool."
+          }
+        },
+        {
+          "kind": "topic",
+          "target": "05-db-core-index-lock",
+          "en": {
+            "text": "A UUIDv4 primary key and slowing inserts, engine by engine: InnoDB scatters the *rows* because the key is the table, while PostgreSQL keeps appending to the heap and pays in the index — full-page writes after every checkpoint. Four changes ranked by disruption, from `BINARY(16)`/`uuid` storage and a UUIDv7 generator (same column, no migration) up to splitting the public id from the clustered key. The B+Tree mechanics stay where they were owned."
+          },
+          "vi": {
+            "text": "Khoá chính UUIDv4 và insert chậm dần, xét theo từng engine: InnoDB làm *row* văng đi vì khoá chính là bảng, còn PostgreSQL vẫn append vào heap và trả giá ở index — full-page write sau mỗi checkpoint. Bốn thay đổi xếp theo mức xáo trộn, từ lưu `BINARY(16)`/`uuid` và đổi generator sang UUIDv7 (cùng cột, không migrate) cho tới tách public id khỏi khoá clustered. Phần cơ chế B+Tree vẫn nằm ở mục vốn sở hữu nó."
+          }
+        },
+        {
+          "kind": "topic",
+          "target": "06-db-scaling",
+          "en": {
+            "text": "A worked incident: six nodes join a Cassandra/ScyllaDB cluster and some customers' balances come back empty. The symptom is the clue — a missing row is not an error — and the five candidates are ranked cheapest first: the `R + W > RF` math, a node that joined with `auto_bootstrap: false`, six bootstraps at once, `nodetool cleanup` run before repair, and expired hints. `nodetool getendpoints` plus a per-key read at ONE against ALL separates them, and the closing point is that a mutable balance cell has no safe read-modify-write in the first place."
+          },
+          "vi": {
+            "text": "Một sự cố được mổ xẻ: sáu node join vào cụm Cassandra/ScyllaDB và số dư của vài khách hàng trả về rỗng. Triệu chứng chính là manh mối — row thiếu không phải là lỗi — và năm nghi phạm được xếp theo thứ tự kiểm tra rẻ trước: phép toán `R + W > RF`, node join với `auto_bootstrap: false`, sáu node bootstrap cùng lúc, `nodetool cleanup` chạy trước repair, và hint hết hạn. `nodetool getendpoints` cộng một lần đọc theo key ở ONE đối chiếu ALL sẽ tách chúng ra, và chốt lại: một ô balance mutable vốn dĩ không có read-modify-write nào an toàn."
+          }
+        },
+        {
+          "kind": "topic",
+          "target": "23-java-concurrency-coding",
+          "en": {
+            "text": "The interview drill everyone meets: 20 threads each add a million to a `volatile int`. The total is never right, because `volatile` fixes visibility and ordering while `counter++` stays a three-step read-modify-write. The item gives the runnable drill, the fix ladder from `AtomicInteger` through `LongAdder` to removing the sharing entirely, and why \"I ran it and it printed the right number\" is a weak proof next to jcstress."
+          },
+          "vi": {
+            "text": "Bài tập phỏng vấn ai cũng gặp: 20 luồng, mỗi luồng cộng một triệu vào một `volatile int`. Tổng không bao giờ đúng, vì `volatile` sửa visibility và ordering còn `counter++` vẫn là read-modify-write ba bước. Mục này có đoạn code chạy được, thang sửa lỗi từ `AtomicInteger` qua `LongAdder` tới bỏ hẳn chia sẻ, và vì sao \"em chạy thử thấy ra số đúng\" là chứng minh yếu so với jcstress."
+          }
+        },
+        {
+          "kind": "feature",
+          "target": "all-topics",
+          "en": {
+            "text": "The Study Track now browses **371** questions (430 across the whole library). Six new items means the progress ring's denominator moved: nothing you have already reviewed changed, but the percentage is now out of a larger total."
+          },
+          "vi": {
+            "text": "Study Track giờ duyệt **371** câu hỏi (430 trên toàn thư viện). Thêm sáu mục nghĩa là mẫu số của vòng tiến độ đã đổi: những gì bạn đã review vẫn giữ nguyên, chỉ là phần trăm giờ tính trên tổng lớn hơn."
+          }
+        }
+      ]
+    },
+    {
       "date": "2026-08-13",
       "en": {
         "title": "System Design and Case Studies read as lists, and keep your place"

@@ -53,6 +53,28 @@
       "https://openjdk.org/jeps/505"
     ]
   },
+  "01-java-core-jvm.language-fundamentals.q8": {
+    "reviewed_at": "2026-08-17",
+    "target_versions": [
+      "JVMS SE 25",
+      "JDK 21+ exception message format"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.oracle.com/javase/specs/jvms/se25/html/jvms-5.html#jvms-5.3"
+    ]
+  },
+  "01-java-core-jvm.collections-data-structures.q6": {
+    "reviewed_at": "2026-08-17",
+    "target_versions": [
+      "Java SE 25 API"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/HashMap.html",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html"
+    ]
+  },
   "03-spring-boot-deep-build.auto-configuration-build.q10": {
     "reviewed_at": "2026-08-12",
     "target_versions": [
@@ -85,6 +107,20 @@
       "https://dev.mysql.com/doc/refman/8.4/en/innodb-error-handling.html"
     ]
   },
+  "05-db-core-index-lock.indexes-what-they-really-are.q7": {
+    "reviewed_at": "2026-08-17",
+    "target_versions": [
+      "RFC 9562",
+      "PostgreSQL 16+",
+      "MySQL 8.0+"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://www.rfc-editor.org/rfc/rfc9562.html",
+      "https://www.postgresql.org/docs/current/runtime-config-wal.html",
+      "https://dev.mysql.com/doc/refman/8.0/en/miscellaneous-functions.html"
+    ]
+  },
   "06-db-scaling.replication-consistency.q2": {
     "reviewed_at": "2026-08-12",
     "target_versions": [
@@ -93,6 +129,18 @@
     "claim_type": "normative",
     "sources": [
       "https://www.postgresql.org/docs/current/functions-admin.html"
+    ]
+  },
+  "06-db-scaling.replication-consistency.q4": {
+    "reviewed_at": "2026-08-17",
+    "target_versions": [
+      "Apache Cassandra 4.1/5.0",
+      "ScyllaDB 6.x"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://cassandra.apache.org/doc/latest/",
+      "https://docs.scylladb.com/"
     ]
   },
   "01-java-core-jvm.collections-data-structures.q5": {
@@ -598,6 +646,18 @@
       "https://openjdk.org/jeps/491",
       "https://openjdk.org/jeps/505",
       "https://openjdk.org/jeps/506"
+    ]
+  },
+  "23-java-concurrency-coding.async-the-modern-toolkit.q5": {
+    "reviewed_at": "2026-08-17",
+    "target_versions": [
+      "Java SE 25 JLS",
+      "jcstress"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.oracle.com/javase/specs/jls/se25/html/jls-17.html#jls-17.4",
+      "https://openjdk.org/projects/code-tools/jcstress/"
     ]
   },
   "25-microservice.01-cascading-failure-retry-storm.q2": {
