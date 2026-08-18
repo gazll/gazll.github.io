@@ -34,9 +34,9 @@ async function filesBelow(directory) {
 test('case studies use stable Topic-style numbering and separate localized metadata', async () => {
   assert.equal(manifest.version, 2);
   assert.equal(meta.version, 1);
-  assert.equal(manifest.categories.length, 4);
-  assert.equal(manifest.articles.length, 11);
-  assert.deepEqual(manifest.articles.map(article => article.n), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+  assert.equal(manifest.categories.length, 5);
+  assert.equal(manifest.articles.length, 13);
+  assert.deepEqual(manifest.articles.map(article => article.n), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]);
 
   const categoryIds = manifest.categories.map(category => category.id);
   const slugs = manifest.articles.map(article => article.slug);
@@ -44,10 +44,11 @@ test('case studies use stable Topic-style numbering and separate localized metad
   assert.equal(new Set(slugs).size, slugs.length);
   assert.deepEqual(Object.fromEntries(categoryIds.map(id => [id,
     manifest.articles.filter(article => article.category === id).length])), {
-    'systems-architecture': 4,
+    'systems-architecture': 5,
     'data-ml-experimentation': 3,
     'mobile-developer-productivity': 2,
-    'engineering-evolution': 2
+    'engineering-evolution': 2,
+    'production-incidents': 1
   });
 
   assert.deepEqual(Object.keys(meta.categories).sort(), [...categoryIds].sort());
@@ -63,13 +64,23 @@ test('case studies use stable Topic-style numbering and separate localized metad
     assert.equal(meta.articles[String(article.n)].key, key);
     assert.match(article.slug, /^[a-z0-9]+(?:-[a-z0-9]+)*$/);
     assert.ok(categoryIds.includes(article.category), `${article.slug}: unknown category`);
-    assert.match(article.source_url, /^https:\/\/engineering\.tiki\.vn\//,
-      `${article.slug}: public source must stay on Tiki Engineering`);
     assert.ok(['en', 'vi'].includes(article.original_language));
-    assert.ok(article.company);
+    // Two kinds of row, and each must be unambiguous about which it is: an
+    // archived article carries its publisher and the URL that credits it, a
+    // first-party one carries neither, so a missing field is never a mistake.
+    if (article.first_party === true) {
+      assert.equal('company' in article, false,
+        `${article.slug}: a first-party case study has no publisher to credit`);
+      assert.equal('source_url' in article, false,
+        `${article.slug}: a first-party case study has no external source to link`);
+    } else {
+      assert.match(article.source_url, /^https:\/\/(?:engineering\.tiki\.vn|discord\.com)\//,
+        `${article.slug}: public source must stay on an approved publisher`);
+      assert.ok(article.company);
+    }
     assert.equal('author' in article, false, `${article.slug}: author attribution must not be stored`);
     assert.match(article.cover_image,
-      new RegExp(`^assets/case-studies/${key}/[A-Za-z0-9._-]+\\.(?:png|jpe?g|gif|webp)$`),
+      new RegExp(`^assets/case-studies/${key}/[A-Za-z0-9._-]+\\.(?:png|jpe?g|gif|webp|svg)$`),
       `${article.slug}: card cover must reuse an image from its own article`);
     assert.ok(['cover', 'contain'].includes(article.cover_fit), `${article.slug}: invalid cover fit`);
     await access(path.join(publicRoot, article.cover_image));
@@ -154,11 +165,11 @@ test('paired long-form bodies preserve structure, code and all local figures', a
     assert.deepEqual(codeBlocks(bodies.vi), codeBlocks(bodies.en), `${key}: code blocks must never be translated`);
   }
 
-  assert.equal(englishImages, 94, 'English should preserve all non-attribution source figures');
-  assert.equal(vietnameseImages, 94, 'Vietnamese should preserve all non-attribution source figures');
+  assert.equal(englishImages, 98, 'English should preserve all article figures');
+  assert.equal(vietnameseImages, 98, 'Vietnamese should preserve all article figures');
   const physicalAssets = (await filesBelow(path.join(publicRoot, 'assets/case-studies')))
     .map(file => path.relative(publicRoot, file).split(path.sep).join('/'));
-  assert.equal(physicalAssets.length, 94);
+  assert.equal(physicalAssets.length, 98);
   assert.deepEqual([...physicalAssets].sort(), [...referencedAssets].sort(), 'there should be no orphaned figures');
 });
 
@@ -178,7 +189,7 @@ test('the shared bilingual loader switches case-study JSON in memory and caches 
   const moduleUrl = pathToFileURL(path.join(publicRoot, 'lib/case-studies.js')).href + '?t=' + Math.random();
   const { CaseStudies } = await import(moduleUrl);
   await CaseStudies.load('en');
-  assert.equal(CaseStudies.articles.length, 11);
+  assert.equal(CaseStudies.articles.length, 13);
   assert.equal(CaseStudies.articles[0].title, meta.articles['1'].en.title);
   assert.equal(CaseStudies.articles[0].body_file, pairFor(manifest.articles[0]).en.body_file);
   assert.equal(CaseStudies.articles[2].is_translation, true);
@@ -210,9 +221,21 @@ test('Experience exposes the global language switch while remaining outside Stud
   assert.match(app, /showView\(currentRouteState\.id, currentRouteState\.parts\)/,
     'hash subroutes should reach the case-study reader');
   assert.match(view, /CaseStudies\.load\(Content\.lang\)/);
-  assert.match(view, /renderGuide\(guide\)/);
+  assert.match(view, /renderGuide\(guide, article\)/);
   assert.match(view, /class="cs-origin"/);
+  assert.match(view, /https:\/\/discord\.com/,
+    'the Discord source must survive the publisher URL allowlist');
   assert.match(view, /article\.cover_image/);
+  // Everything that points at a publisher must be conditional, because a
+  // first-party row has no publisher to point at. Guarding only some of them
+  // renders "undefined ↗" rather than failing, so all four are pinned.
+  for (const guarded of ['cs-origin', 'cs-archive-note', 'cs-source', 'text().readSource']) {
+    const at = view.indexOf(guarded);
+    assert.ok(at > 0, `${guarded} should still be rendered for archived rows`);
+    assert.match(view.slice(Math.max(0, at - 220), at), /first_party\s*(?:\?|$)/m,
+      `${guarded} must be skipped for a first-party case study`);
+  }
+  assert.match(view, /firstParty:/, 'a first-party row needs its own byline label');
   assert.match(view, /TOC_STATE_KEY = 'gazl\.caseTocCollapsed'/);
   assert.ok(view.indexOf("'<aside class=\"cs-toc\"") < view.indexOf("'<article class=\"cs-article-body\""),
     'desktop contents must render to the left of the article body');
@@ -227,7 +250,7 @@ test('Experience exposes the global language switch while remaining outside Stud
 
 test('guide prose is split only at safe sentence boundaries and remains escaped', async () => {
   const source = await readFile(path.join(publicRoot, 'views/case-studies.js'), 'utf8');
-  const block = source.slice(source.indexOf('/* Guide briefs'), source.indexOf('function renderGuide(guide)'));
+  const block = source.slice(source.indexOf('/* Guide briefs'), source.indexOf('function renderGuide(guide, article)'));
   const escapeHtml = value => String(value).replace(/[&<>"']/g, character =>
     ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
   // Sentence and clause structuring lives in lib/prose.js, shared with System

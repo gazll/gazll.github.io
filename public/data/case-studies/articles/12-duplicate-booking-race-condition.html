@@ -1,0 +1,373 @@
+<h2 id="context">1. A booking action that is also a fetchable URL</h2>
+<p>The system is an OTA selling international flights, hotels and packages. One core serves five brands plus metasearch traffic, split into two tiers: a Python web/BFF tier running many instances behind a load balancer, and a Java booking backend that holds session state in a <code>SESSION_INFO</code> table and calls the GDS to create the airline record.</p>
+<p>Two identifiers matter. The <strong>ITN</strong> is the itinerary number, the OTA's own booking record. The <strong>PNR</strong> is the record at the GDS. One user intent should produce exactly one of each.</p>
+<p>The booking flow runs <code>input → confirm → complete</code>. On the last step the browser calls <code>/reservation/book</code>, the web tier forwards to the backend, the backend reads the session, checks its status, marks it in progress, and <strong>spawns an asynchronous thread</strong> that calls the GDS to create the PNR and generate the ITN.</p>
+<p>Session state is a four-value machine: <code>Init</code> (booking allowed), <code>Booking</code> (in progress), <code>Complete</code> (finished), <code>Error</code> (failed). Between reading that status and writing it there is a gap, and business logic runs inside the gap.</p>
+<p>One architectural detail becomes the centre of the story: <strong><code>/reservation/book</code> accepts both <code>GET</code> and <code>POST</code></strong>. It has to accept <code>GET</code>, because once 3-D Secure finishes authenticating, the payment gateway redirects the user back into the flow — and a redirect is always a <code>GET</code>.</p>
+<p>Put differently: the act of creating a booking is a fetchable URL. And on the internet, anything fetchable will be fetched — by browsers, by security software, by proxies, by anything that sees a link.</p>
+
+<h2 id="detection">2. The alert was more specific than anyone read it as</h2>
+<p>Nobody reported it. There was no exception in the logs either. A periodic SQL batch found it:</p>
+<pre><code>SELECT   t.session_id, COUNT(t.itn_no)
+FROM     itinerary_tracking t
+         JOIN order_item o ON o.itn_no  = t.itn_no
+         JOIN orders     r ON r.order_id = o.order_id
+WHERE    t.session_id IS NOT NULL
+  AND    r.interline_flag &lt;&gt; '1'
+  AND    t.tracked_at &gt;= &lt;15 minutes ago&gt;
+GROUP BY t.session_id
+HAVING   COUNT(t.itn_no) &gt; 1</code></pre>
+<p>The detector groups by <code>session_id</code>. It does not compare passenger names or flight numbers. It asks a much narrower question: <em>did one browsing session produce more than one ITN?</em></p>
+<p>So from day one the thing being alerted on was never "a customer booked twice by mistake". It was one session, two bookings — the signature of concurrent duplicate requests, not of two independent user actions. For the whole of the first investigation, nobody read the alert that way.</p>
+
+<h3 id="frequency">Frequency, and why a rare bug still got funded</h3>
+<table>
+  <thead><tr><th>Period</th><th>Cases (flights)</th></tr></thead>
+  <tbody>
+    <tr><td>05–09/2023</td><td>1 · 1 · 1 · 0 · 0</td></tr>
+    <tr><td>10/2023</td><td>3</td></tr>
+    <tr><td>11/2023</td><td>1</td></tr>
+    <tr><td>12/2023</td><td><strong>5</strong></td></tr>
+    <tr><td>01–08/2024</td><td>1 · 0 · 1 · 2 · 0 · 0 · 0 · 1</td></tr>
+  </tbody>
+</table>
+<p>Plus exactly one case on the hotel side, in July 2023. One or two a month, with the December 2023 cluster triggering the investigation. The gap between flights and hotels — 17 cases against 1 — gets explained in <a href="#monitoring">§3.9</a>, and the explanation is not in the code.</p>
+<p>A duplicate record in an internal system sounds like a display bug. In travel it is not. The ticketing team named three kinds of damage.</p>
+<p><strong>The airline may cancel both records.</strong> On detecting two bookings with the same passenger on the same flight, the carrier's system cancels them itself — and cancels <em>both</em>, not keeping one. Only a record that has already been ticketed is safe. In the "booked, not yet ticketed" state, this incident can leave the customer with no seat at all.</p>
+<p><strong>Churning penalties are real money.</strong> Booking then cancelling repeatedly is penalised through ADMs (Agency Debit Memos), roughly 5,000 JPY per record on average. Essentially every carrier penalises it and a few are strict about it.</p>
+<p><strong>Double ticketing creates a refund obligation</strong>, which drags in a manual refund process.</p>
+<p>And the thing that turns it from a bug into an operational risk: the window for handling it depends on business hours. The only way to limit damage is a human cancelling one of the two records before the airline acts. An incident overnight or at the weekend has nobody to act on it.</p>
+<p>This is why a low-frequency incident still got prioritised: its expected cost is not proportional to <em>how often</em> it happens, but to <em>when</em> it happens.</p>
+
+<h2 id="phase-1">3. First round — blocking the source</h2>
+
+<h3 id="ticket-timeline">3.1 The ticket travelled 17 months before a developer touched it</h3>
+<table>
+  <thead><tr><th>When</th><th>What</th></tr></thead>
+  <tbody>
+    <tr><td>12/2023</td><td>Operations opens a ticket after the five-case cluster</td></tr>
+    <tr><td>12/2023</td><td>Ticketing team responds on the risks: both records cancelled, churning, refunds</td></tr>
+    <tr><td>07/2024</td><td>Reclassified from <em>Enhancement Request</em> to <em>Investigation</em>, moved to the maintenance project</td></tr>
+    <tr><td>08/2024</td><td>Dev picks it up</td></tr>
+    <tr><td>09/2024</td><td>Direction settled: widen alerting now, fix the module permanently</td></tr>
+    <tr><td>11/2024</td><td>Dev asks for the <strong>complete</strong> list of duplicate ITNs for the remaining months</td></tr>
+    <tr><td>12/2024</td><td>Root cause and solution</td></tr>
+    <tr><td>04/2025</td><td>Release</td></tr>
+    <tr><td>05/2025</td><td>Ticket closed</td></tr>
+  </tbody>
+</table>
+<p>The first seven months the ticket sat still because it was classified wrongly — <em>Enhancement Request</em> rather than <em>Investigation</em>. An incident that loses money was queued alongside UI improvement proposals.</p>
+
+<h3 id="investigation">3.2 Investigating something you cannot reproduce</h3>
+<p>Staging could not reproduce it, so the work became log archaeology:</p>
+<ol>
+  <li><strong>Ask for the complete list of duplicate ITN pairs</strong> per month — not a few samples. This is the step usually skipped: investigate only two pairs and the distribution of causes comes out wrong.</li>
+  <li>For each pair, <code>zgrep</code> the ITN across <strong>all</strong> compressed backend logs on every instance for that day.</li>
+  <li>From the first log line find the <strong>transaction key</strong>, then grep again by that key to recover both flows in full.</li>
+  <li><strong>Put the two flows side by side in columns</strong> and compare every timestamp.</li>
+</ol>
+
+<h3 id="the-race">3.3 Twenty-five milliseconds</h3>
+<figure>
+  <img src="assets/case-studies/12-duplicate-booking-race-condition/01-race-window.svg" alt="Two request lanes side by side. Request one selects the session at 15:21:44,300 and reads status Init; request two selects at 15:21:44,302 and reads the same Init value. Both pass the status check and both update the status to Booking, producing two separate PNRs. A bracket marks the 25 millisecond window between request one's read and its completed write." width="880" height="460" loading="lazy">
+  <figcaption>The window from request 1's read to its completed write is 25 ms. The two requests arrive 2 ms apart.</figcaption>
+</figure>
+<p>Nothing mysterious is happening. Two requests read the same value before either manages to write.</p>
+
+<h3 id="guard">3.4 There was a guard, and it was not one</h3>
+<pre><code>// Read the status from the session
+if (productInfo.getBookingStatus() != null) {
+    if (BOOKING_PROCESSED.equals(productInfo.getBookingStatus())) {
+        return FAILED;   // "Booking is in progress"
+    }
+    if (BOOKING_COMPLETED.equals(productInfo.getBookingStatus())) {
+        return FAILED;   // "Booking is already completed"
+    }
+}
+
+// ... only then write the status and start the booking thread
+productInfo.setBookingStatus(BOOKING_PROCESSED);
+sessionTable.update(...);
+new BookingThread(...).start();</code></pre>
+<p>This is check-then-act, not mutual exclusion. It stops requests arriving <em>late</em>, after the first has finished writing. It does not stop requests arriving <em>at the same time</em> — and "at the same time" is the definition of the problem.</p>
+<p>Two factors deepen the hole. Booking runs asynchronously and the GDS call takes seconds, so the window in which both requests see stale state is far wider than a database transaction. And the two requests land on <strong>different instances</strong> behind the load balancer, which makes every in-process lock — <code>synchronized</code>, a local lock, an in-memory cache — useless by structure rather than by configuration. The only place the two requests meet is the database.</p>
+
+<h3 id="not-googlebot">3.5 The "Googlebot" turned out not to be Googlebot</h3>
+<p>Of nine duplicate pairs, seven carried a User-Agent containing the string <code>google-bot</code>, one was a suspected double-click, and one on the hotel side was never explained. From there the ticket named the cause "Googlebot crawling the booking page". The evidence inside the investigation file itself says otherwise.</p>
+<p><strong>First, the IPs do not belong to Google.</strong> Reverse DNS on those IPs resolves to Japanese consumer ISPs: mobile carriers, residential ADSL and fibre, MVNOs. Real Googlebot comes from Google's ranges and verifies by reverse DNS to <code>googlebot.com</code>.</p>
+<p><strong>Second, the UA is not Googlebot's UA.</strong> Real Googlebot sends:</p>
+<pre><code>Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5X Build/MMB29P) AppleWebKit/537.36
+(KHTML, like Gecko) Chrome/W.X.Y.Z Mobile Safari/537.36
+(compatible; Googlebot/2.1; +http://www.google.com/bot.html)</code></pre>
+<p>The booking logs only contain the token <code>google-bot</code> — hyphenated, no bot.html URL, no Mozilla prefix. The investigation file noted this while discussing robots.txt: <em>"per Google's documentation this is not an authentic google-bot, so it may not work"</em>. Correct observation — used to reject the robots.txt <strong>solution</strong>, not to revisit the <strong>diagnosis</strong>.</p>
+<p><strong>Third, and most decisive, it travels with the real user.</strong> One trace from October 2024, same endpoint, within the same second:</p>
+<pre><code>13:17:11,535  /reservation/book   ua=google-bot          remote ip 106.x.x.92
+13:17:11,538  /reservation/book   ua=google-bot          → started_booking
+13:17:11,563  /reservation/book   ua=Mozilla/5.0 (iPhone; CPU iPhone OS 17_6_1 …)
+                                  referer=&lt;3-D Secure authentication gateway&gt;
+                                  remote ip 106.x.x.9x
+13:17:11,565  /reservation/book   ua=Mozilla/5.0 (iPhone …)  → started_booking
+13:17:11,684  /reservation/book   ua=google-bot          → started_booking
+13:17:11,810  /reservation/book   ua=google-bot
+              WARNING BookingAsync has error status, but can continue this,
+                      {'message': 'Booking is in progress', 'id': '101'}</code></pre>
+<p>Read the last three lines. The third <code>google-bot</code> request <strong>was caught by the guard</strong> — the backend returned exactly <code>Booking is in progress</code>. The web tier logged it at <code>WARNING</code>, with the phrase <em>"but can continue this"</em>, and carried on.</p>
+<p>The guard was not silent. It spoke. The caller was written to ignore what it said. A defensive check in the backend is worth exactly as much as the caller's handling of its result.</p>
+<p>Putting the three pieces together: something on the user's own device or network replays the booking URL right after the 3-D Secure redirect returns, self-identifying as <code>google-bot</code>. That fits security software scanning a link, a browser extension, or a carrier proxy. It does not fit a search engine.</p>
+<p>The "Googlebot" diagnosis led straight to a "block Googlebot" solution. The wrong name chose the patch.</p>
+
+<h3 id="options-2024">3.6 Four ideas, and what they cost</h3>
+<p>This is the most valuable part of the first round, and it is not in the ticket — only in the investigation file.</p>
+<table>
+  <thead><tr><th>#</th><th>Idea</th><th>Assessment</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td>A <code>robots.txt</code> rule plus disabling the booking button</td><td><em>"not an authentic google-bot, so it may not work"</em></td></tr>
+    <tr><td>2</td><td>Block repeat booking calls in the web tier</td><td>small impact, but the de-duplication logic takes time</td></tr>
+    <tr><td>3</td><td>Block repeat booking calls in the backend</td><td>large impact, takes time</td></tr>
+    <tr><td>4</td><td>Block the UA at nginx</td><td>blocks everything, simple</td></tr>
+  </tbody>
+</table>
+<p>And the effort estimates for the deeper directions:</p>
+<table>
+  <thead><tr><th>Solution</th><th>Dev + unit tests</th></tr></thead>
+  <tbody>
+    <tr><td>Disable button (+ robots.txt by infra)</td><td><strong>2 days</strong></td></tr>
+    <tr><td>Redis lock</td><td><strong>11 days</strong></td></tr>
+    <tr><td>Optimistic lock</td><td><strong>21 days</strong></td></tr>
+  </tbody>
+</table>
+<p><strong>The team saw the right solution in 2024.</strong> Optimistic locking was on the table, properly estimated, and rejected on 21 days against 2. The stated reasons were defensible at the time: option 4 removes every request carrying that UA, addressing <em>most</em> of the observed causes; options 2 and 3 were "relatively complex, hard to test on staging or production, and testing them would affect the live product".</p>
+<p>That second reason is the one worth pausing on. Being unable to verify a solution had become the reason to reject the correct one. And the trap is the word <em>most</em>: option 4 eliminates seven of nine observed cases, so the metrics will look good. It does not eliminate the mechanism.</p>
+
+<h3 id="phase-1-fix">3.7 What shipped: two config files and one piece of JavaScript</h3>
+<pre><code>if ($http_user_agent ~* (google-bot)) {
+    return 403;
+}</code></pre>
+<p>Placed in the config block for the booking paths, not globally. The team enumerated the URLs that need indexing — product detail pages, listings, lowest-fare calendars, search waiting pages — and confirmed none sit under <code>/reservation</code>. The second change disabled the booking button after the first click, across all three product modules and both desktop and mobile builds.</p>
+<p>One consequence nobody wrote down: the pattern <code>google-bot</code> is hyphenated, so it does <strong>not</strong> match the real crawler's <code>Googlebot/2.1</code>. In practice the rule only blocks the fake UA — the SEO worry was unfounded, but correct by accident.</p>
+
+<h3 id="curl-test">3.8 Reproducing a race with two lines of cURL</h3>
+<p>There was no load-testing tool for a flow involving 3-D Secure, so the reproduction was manual — and simple enough to be worth learning:</p>
+<ol>
+  <li>Reach the confirm screen in a real browser, open DevTools, <strong>Copy as cURL</strong> to capture the live session's headers and cookies.</li>
+  <li>Create a script with <strong>two</strong> cURL calls to <code>/reservation/book</code> using the <strong>same transaction key</strong> — one carrying <code>user-agent: google-bot</code>, one keeping the normal UA.</li>
+  <li>Run it and read the status codes: <code>503</code> means blocked, <code>302</code> means through.</li>
+  <li>Verify at the data layer, not just at the HTTP layer.</li>
+</ol>
+<p>Step 4 is what gives the test its value. The HTTP code only tells you the request was blocked; only the table tells you whether a duplicate booking was created.</p>
+<p>The checkpoints were: the button is disabled after the click; the UA is blocked on <code>/reservation/*</code> but <strong>allowed</strong> elsewhere, to avoid over-blocking; and <strong>authentic Googlebot is unaffected</strong>, tested by taking the official UA from Google's documentation, firing it at the URLs that need indexing, and cross-checking against real Googlebot log entries on those same URLs.</p>
+
+<h3 id="no-uat">3.9 No acceptance testing possible — and what replaced it</h3>
+<p>Simulating the UA returned the expected <code>503</code>, but the <em>normal</em> booking flow returned <code>500</code>, and suspicion pointed at the interaction with 3-D Secure. Reproducing that on staging together with a real payment flow was not feasible.</p>
+<p>The decision was to release and verify against production logs for one month, with two acceptance conditions: booking requests carrying that UA <strong>are</strong> blocked and countable in the logs, and real users' original bookings <strong>still</strong> complete normally.</p>
+<p>The second condition matters as much as the first. A patch that also blocks real users makes the alerts stop just as effectively as a correct one — so the criteria must include positive evidence, not only the absence of errors.</p>
+
+<h3 id="monitoring">3.10 The numbers were real, and the conclusion was still wrong</h3>
+<table>
+  <thead><tr><th></th><th>Flights</th><th>Hotels</th><th>Packages</th></tr></thead>
+  <tbody>
+    <tr><td>Requests before the fix (3 days)</td><td>3</td><td>0</td><td>0</td></tr>
+    <tr><td>Requests blocked after the fix (33 days)</td><td><strong>117</strong></td><td><strong>0</strong></td><td><strong>0</strong></td></tr>
+  </tbody>
+</table>
+<p>About 3.5 blocked requests a day, peaking at 18. No duplicate-ITN alerts. The ticket closed a month later.</p>
+<p>The zeroes in the hotel and package columns answer the question from <a href="#frequency">§2</a>: that agent only ever touched the flight booking path. Which is why the hotel side had exactly one case in three years — and why that case was never explained. It was not the same family as the other seven.</p>
+<p>The conclusion "fixed" was correct given the data at hand. It was just not correct about the system.</p>
+
+<h2 id="gap">4. What the first round left behind</h2>
+<p>Three things were untouched: check-then-act in the backend, not one line changed; <code>/reservation/book</code> still accepting <code>GET</code>, still a fetchable URL; and the caller still ignoring <code>Booking is in progress</code>.</p>
+<p>What got fixed was the list of intruders anyone had been caught seeing at the door. That list is never complete.</p>
+
+<h2 id="recurrence">5. Second round — same behaviour, different costume</h2>
+<p>Roughly a year and a half later: same passenger, same itinerary, two ITNs, two PNRs, <strong>23 milliseconds</strong> apart.</p>
+
+<h3 id="nginx-logs">5.1 This time there were nginx logs</h3>
+<p>The second investigation moved far faster — ticket opened on the 8th, root cause on the 11th — because it read the <strong>nginx</strong> logs rather than only application logs, and nginx records the HTTP method, which the application logs do not.</p>
+<pre><code>03:59:50   GET   /reservation/confirm   referer=…/input?is_three_d_secure_error=1
+03:59:57   HEAD  /reservation/card_settle_error?…   referer: -
+04:02:22   GET   /reservation/book_after_three_d_secure?…result=0…
+04:02:22   HEAD  /reservation/book    referer: -   status 302   &lt;- the copy
+04:02:22   GET   /reservation/book    referer: -   status 302   &lt;- the real one</code></pre>
+<p>The user had failed 3-D Secure once and retried — a long session with several returns, exactly the kind where things go wrong. A <code>HEAD</code> request appeared twice, both with no referer, both trailing a URL the browser had just encountered; the second targeted the booking endpoint itself. Its User-Agent was identical to the user's browser. There was no <code>google-bot</code> left to block. And again the two <code>book</code> requests landed on two different web instances.</p>
+<p>The backend logs show both running to completion: same transaction id, same authentication id, and <strong>both returning success</strong>. The team's conclusion on the source: any layer in front — browser, proxy, CDN, load balancer — can emit a <code>HEAD</code> to probe; per the logs, most likely the browser or antivirus software.</p>
+
+<h3 id="head-routing">5.2 First cause — <code>HEAD</code> is routed into the <code>GET</code> view</h3>
+<p>The framework routes <code>HEAD</code> into the same view as <code>GET</code>, which follows the HTTP spec: <code>HEAD</code> is <code>GET</code> without a body. But the spec also says both must be <strong>safe</strong> — no side effects. Here <code>GET</code> creates a booking, so <code>HEAD</code> creates a booking.</p>
+<p>The trap worth remembering: <code>HEAD</code> is what browsers, security software, prefetchers, link previews and monitoring probes emit constantly, usually without anyone knowing. If your <code>GET</code> has side effects, so does your <code>HEAD</code>.</p>
+
+<h3 id="version">5.3 Second cause — the version that could not work</h3>
+<p>The most valuable detail of the whole incident: the system already had an optimistic-lock-like mechanism, using the row's update timestamp as the version.</p>
+<pre><code>UPDATE SESSION_INFO
+   SET VALUE = /*value*/, UPD_PSN = /*updPsn*/, UPD_DT = /*updDt*/
+ WHERE TRANSACTION_KEY = /*transactionKey*/
+   AND date_format(UPD_DT, '%Y%m%d%H%i%s') = /*updDtAsVersion*/</code></pre>
+<p>Resolution: seconds. There was even code adding one second when the update timestamp equalled the current version, purely so the <code>WHERE</code> clause would not block itself. Meanwhile the two requests were 23 milliseconds apart. Both read the same <code>UPD_DT</code>, both saw <code>Init</code>, both conditional updates matched, both reported success.</p>
+<p>A version whose resolution is coarser than the arrival rate of requests is not a version. It only looks like a lock. The mechanism existed, was carefully written and commented, and was structurally incapable of catching the thing it was built for.</p>
+
+<h3 id="options-2026">5.4 Six options across two tiers</h3>
+<p>At the web tier there were two: declare <code>HEAD</code> as its own view in the routing config and have it refuse, or check the request method inside the booking handler. The first was chosen, because a constraint on method belongs to <strong>routing configuration</strong>, not to business code — in config it lives in one place and does not require remembering an extra branch in every new handler.</p>
+<p>At the backend there were four:</p>
+<table>
+  <thead><tr><th>#</th><th>Option</th><th>Trade-off</th><th>Est.</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td>Raise the timestamp to microsecond precision</td><td>distinguishes finer, but <strong>only reduces the probability</strong>; the format change touches many places</td><td>4 days</td></tr>
+    <tr><td>2</td><td>Add a separate booking-status column</td><td>easier to follow, but must stay in sync with the status inside the blob, and old data needs backfilling</td><td>6 days</td></tr>
+    <tr><td>3</td><td><strong>Add a <code>VERSION</code> column</strong></td><td><strong>independent of datetime precision</strong>; every update must increment it</td><td><strong>5 days</strong></td></tr>
+    <tr><td>4</td><td>Add a string match against the JSON blob</td><td>easiest, only the update changes; cannot use an index, breaks if the JSON format changes</td><td>3 days</td></tr>
+  </tbody>
+</table>
+<p><strong>The cheapest option was rejected, and rejected for the right reason.</strong> Option 4 costs three days and would work. It was rejected on two grounds that are both about the future rather than the present: it couples correctness to the serialization format of a blob column, and it cannot use an index. This is the kind of argument usually flattened by "but it works".</p>
+<p><strong>Option 1 exposes a very common way of thinking wrongly.</strong> Raising clock resolution from seconds to microseconds makes collisions far less likely — but not impossible. The investigation file says it outright: <em>"it only reduces the chance of duplicate bookings; for requests identical down to the microsecond a duplicate booking is still possible"</em>. A correctness bug is not fixed by making it rarer.</p>
+
+<h3 id="conditional-write">5.5 The decision moves to the row count</h3>
+<figure>
+  <img src="assets/case-studies/12-duplicate-booking-race-condition/02-conditional-write.svg" alt="Two panels compared. The left panel, check-then-act, shows select status, then an if on the value read, then an unconditional update, with the gap between step one and three marked as the incident. The right panel, conditional write, shows select status and version, then an update that increments version guarded by a where clause on the version read, then a check that the updated row count equals one." width="880" height="420" loading="lazy">
+  <figcaption>The check and the act become one statement, and the database decides the winner.</figcaption>
+</figure>
+<p>At the web tier, two views on one endpoint, split by method:</p>
+<pre><code>config.add_view(
+    context        = BookContext,
+    view           = context_as_view,
+    attr           = 'view_book_metadata',
+    request_method = ('HEAD'),
+)
+
+config.add_view(
+    context        = BookContext,
+    view           = context_as_view,
+    attr           = 'view_book',
+    request_method = ('POST', 'GET'),
+)</code></pre>
+<pre><code>def view_book_metadata(self):
+    logger.info('API booking with request method HEAD rejected')
+    return HTTPMethodNotAllowed(headers={'Allow': 'GET, POST'})</code></pre>
+<p>Two small details done right: returning <strong>405 with an <code>Allow</code> header</strong>, which is correct HTTP and tells the client what is permitted, and <strong>logging every rejection</strong> — that log line is precisely what makes monitoring-based acceptance possible when acceptance testing is not.</p>
+<p>At the backend, the state transition turns from read-then-decide into a conditional write:</p>
+<pre><code>UPDATE SESSION_INFO
+   SET VALUE   = /*value*/,
+       UPD_DT  = /*updDt*/,
+       VERSION = VERSION + 1
+ WHERE TRANSACTION_KEY    = /*transactionKey*/
+   AND AUTHENTICATION_KEY = /*authenticationKey*/
+   AND VERSION            = /*version*/</code></pre>
+<pre><code>int count = jdbcManager.updateBySqlFile(sqlFileName, sessionInfo).execute();
+if (count != 1) {
+    return error(...);        // lost the race
+}</code></pre>
+<p>And the caller turns "lost the race" into a correct business answer:</p>
+<pre><code>sessionOut = setUpdateInformation(productInfo, request);
+if (sessionOut.getErrorDetail() != null) {
+    // update matched no rows -> re-read to see who won
+    ProductInfo info = selectSessionInfo(...).getProductInfo();
+    if (BOOKING_PROCESSED.equals(info.getBookingStatus())) {
+        logger.error("Duplicate request booking detected. Booking is already progressing");
+        return FAILED;
+    }
+}</code></pre>
+<p>This is the real turning point. The decision no longer lives in the value that was read; it lives in the number of rows updated. <code>count != 1</code> is an atomic event adjudicated by the database. There is no gap between check and act, because they are the same statement.</p>
+
+<h3 id="sql-report">5.6 The schema change was reviewed as its own artifact</h3>
+<pre><code>ALTER TABLE &lt;schema&gt;.SESSION_INFO
+  ADD COLUMN VERSION int DEFAULT 0 NOT NULL
+  COMMENT 'Version number for optimistic locking'
+  AFTER GOODS_VALUE;</code></pre>
+<p><code>DEFAULT 0 NOT NULL</code> is what makes this migration backward compatible: every existing row — that is, every booking session open at deploy time — gets zero with no backfill, and the new statement matches them immediately.</p>
+<p>The document also carried a <strong>before/after execution plan comparison</strong>. The old and new statements were explained side by side with execution times, and the result was the same access path on the same table: the added predicate did not change the query plan. This is the step usually skipped. Adding a condition to a statement that sits on the path of every transaction can sink performance, and proving it does not is far cheaper than discovering the opposite in production.</p>
+<p>Third, the execution procedure was written down command by command: host, account, and the dated path of the SQL file.</p>
+
+<h3 id="unit-tests">5.7 Seventeen unit tests, split by tier</h3>
+<table>
+  <thead><tr><th>Group</th><th>Cases</th><th>Expectation</th></tr></thead>
+  <tbody>
+    <tr><td>Web</td><td><code>HEAD</code> only, for each of four product lines</td><td>booking API not called</td></tr>
+    <tr><td>Web</td><td><code>GET</code> + <code>HEAD</code> concurrently</td><td>no duplicate; one succeeds, one fails</td></tr>
+    <tr><td>Backend</td><td>Two booking requests</td><td>one succeeds, one fails</td></tr>
+    <tr><td>Regression</td><td>Normal booking, all four product lines</td><td>succeeds</td></tr>
+    <tr><td>Regression</td><td>Update from the input screen, and from the confirm screen</td><td><strong>the version changes</strong></td></tr>
+  </tbody>
+</table>
+<p>The last row holds the two subtlest cases. The version column sits on a <strong>shared</strong> session table, so if some update path forgets to increment it, the column stands still and the lock quietly stops working in exactly the place nobody is looking. They verify the lock is still <em>alive</em> on ordinary paths, not merely that it blocks under attack.</p>
+
+<h3 id="integration-tests">5.8 Thirty-nine integration cases on an existing matrix</h3>
+<p>QA did not write cases from scratch. They started from a regression-surface checklist shared by every change touching the booking flow:</p>
+<table>
+  <thead><tr><th>Dimension</th><th>Values</th></tr></thead>
+  <tbody>
+    <tr><td>Ticket source</td><td>major GDS, NDC aggregator, domestic source</td></tr>
+    <tr><td>Fare type</td><td>PEX · PrivateFare · ALLOT</td></tr>
+    <tr><td>Trip type</td><td>one-way · round-trip · direct · connecting · circle · open-jaw · foreign origin · interline</td></tr>
+    <tr><td>Selling site</td><td>five brands plus metasearch</td></tr>
+    <tr><td>Device</td><td>desktop browsers on two operating systems · mobile apps and browsers on both platforms · simulator</td></tr>
+    <tr><td>Behaviour</td><td>re-search · <strong>going back with the browser Back button</strong></td></tr>
+    <tr><td>Passengers</td><td>one adult · several adults · with children · with infants</td></tr>
+    <tr><td>Documents</td><td>payment confirmation · voucher · e-ticket, including printing at a convenience store</td></tr>
+  </tbody>
+</table>
+<p>This matrix is why a five-day patch drags a large release behind it: the regression surface is combinatorial, not linear.</p>
+<p>The boundary between browser and web tier was tested for <strong>order and count</strong>, not merely for "a HEAD gets blocked": <code>HEAD</code> alone, <code>GET</code> alone, <code>HEAD</code> then <code>GET</code>, <code>GET</code> then <code>HEAD</code>, five <code>HEAD</code>s then a <code>GET</code>, and both simultaneously — repeated across four product lines.</p>
+<p>The boundary between web tier and backend is where the lock itself was tested: two concurrent requests with the same transaction key must produce one success and one failure that writes nothing; five concurrent requests must produce exactly one success; and — the sharpest technique in the whole round — <strong>a processing delay was injected into the first request before the second was sent</strong>. A 23 ms race cannot be reproduced reliably by clicking fast; widening the window turns a probabilistic event into a deterministic one.</p>
+<p>End-to-end cases booked real itineraries across each combination and recorded <strong>the number of ITNs actually created</strong> as evidence, expecting exactly one every time. A small group verified the migration: a new session starts at zero, updates increment, and <strong>a transaction created before the <code>ALTER</code> reads as zero</strong> — the "what happens to sessions open at deploy time" question asked as a test case rather than discovered at 2 a.m. A final group regressed things outside the change's scope that nevertheless share the session table.</p>
+<p>All thirty-nine passed.</p>
+
+<h3 id="late-cost">5.9 The cost of fixing it late</h3>
+<p>The blast radius of the second fix: five repositories, four product lines, five brands plus metasearch, twelve screens, thirty-nine integration cases, seventeen unit tests and a schema change. Compare with the first round: two nginx config files and one piece of JavaScript.</p>
+<p>Putting the guard in the right place after three years is far more expensive than putting it there at the start — not because the code is harder, but because <strong>the number of surfaces to re-verify has multiplied</strong>. The 21-day estimate rejected in 2024 was ultimately delivered with five days of effort; the difference is not in writing the code, it is in everything around it.</p>
+
+<h3 id="release">5.10 A way back, built on day one</h3>
+<p>Acceptance testing was again impossible, so the release conditions were written as three substitute legs: <strong>source review</strong>, because correctness here lives in the structure of a statement and is readable by eye — the <code>WHERE VERSION = ?</code> clause is either there or it is not; <strong>review of the integration scenarios</strong>, inspecting the cases instead of the results; and <strong>post-release monitoring</strong>.</p>
+<p>The day after release, revert MRs were prepared for the modules. This is a standby path back, not a rollback that happened: the patch was not removed, the MRs simply sit ready to merge so that backing out takes minutes rather than requiring the change to be written backwards under incident pressure.</p>
+<p>That is the fourth leg. When you cannot prove a patch correct before releasing it, what you prepare is a <strong>low cost of being wrong</strong>. The team could not raise confidence, so they lowered the cost of the bad scenario.</p>
+<p>One detail done right: the database script is <strong>not</strong> on the revert list. Adding a column with a default is backward compatible — the old code does not read it, the new code needs it. Reverting the column would turn one rollback into two migrations.</p>
+
+<h2 id="two-costumes">6. One agent, two costumes</h2>
+<table>
+  <thead><tr><th></th><th>First round</th><th>Second round</th></tr></thead>
+  <tbody>
+    <tr><td>Context</td><td>right after the 3DS redirect</td><td>right after the 3DS redirect</td></tr>
+    <tr><td>What the copy looked like</td><td>UA containing <code>google-bot</code></td><td><code>HEAD</code>, no referer, the browser's UA</td></tr>
+    <tr><td>Where it came from</td><td>the user's own consumer network</td><td>the user's own network</td></tr>
+    <tr><td>Gap</td><td>2 ms</td><td>23 ms</td></tr>
+    <tr><td>Diagnosis</td><td>"Googlebot crawling the booking page"</td><td>"browser or antivirus probing"</td></tr>
+    <tr><td>Patch</td><td>block a UA string at nginx</td><td>reject the <code>HEAD</code> method at routing</td></tr>
+    <tr><td>Underlying defect</td><td>check-then-act, second-resolution version</td><td><strong>identical</strong></td></tr>
+    <tr><td>Cost</td><td>2 days</td><td>5 days + 39 cases + a migration</td></tr>
+  </tbody>
+</table>
+<p>Twice, the team blocked what the copy <em>looked like</em>. The appearance changed; the mechanism did not. What made the second round different is not that it found a new cause — it fixed the place where the two requests meet, rather than the place they come in through.</p>
+
+<h2 id="takeaways">7. Ten takeaways</h2>
+<ol>
+  <li><strong>Check-then-act is not mutual exclusion.</strong> Reading a flag and then acting on it is only correct if nobody writes that flag in between. This guard lived for years, read as reasonable, and worked — for every request that arrived late. Its failure condition is invisible when the code is read sequentially.</li>
+  <li><strong>A version coarser than the arrival rate of requests is not a version.</strong> A timestamp as a version token looks entirely sensible until two events fall into the same rounding interval — and two duplicate requests are by definition two events close together. A monotonic integer has no resolution to lose.</li>
+  <li><strong>Making a correctness bug rarer is not fixing it.</strong> This is the line between "less frequent" and "impossible", and it is worth holding even when the weaker option costs a day less.</li>
+  <li><strong>Blocking by identity requires an infinite list; blocking by nature requires it once.</strong> A UA string is never a complete enumeration. The write points are finite: one row that both requests must pass through.</li>
+  <li><strong>The name you give the cause chooses the solution.</strong> Call it "Googlebot" and blocking Googlebot is the obvious patch. The contradicting evidence was already in the investigation file; nobody revisited the diagnosis because the alerts had stopped.</li>
+  <li><strong>A defensive check is worth what the caller does with its result.</strong> The backend returned <code>Booking is in progress</code>; the web tier logged a warning and carried on. That is worse than no guard, because the log made everyone believe protection existed.</li>
+  <li><strong>In a multi-instance system, the only place two requests meet is shared storage.</strong> Every in-process lock is meaningless structurally, not by configuration.</li>
+  <li><strong>"The alerts stopped" is not "it is fixed".</strong> Reasonable criteria, real data, wrong conclusion — and 2.5 years between fixing the symptom and learning that was all it was. The question worth asking in that review: <em>if the cause we believe in is wrong, what would we see?</em></li>
+  <li><strong>Being unable to verify something is not a reason to choose the weaker solution — but it was.</strong> The deep options were rejected partly for being hard to test; six months later the same reason dropped acceptance testing for the patch that was chosen. When "hard to test" becomes a selection criterion, the system drifts toward patches that are easy to test rather than correct.</li>
+  <li><strong>When you cannot raise confidence, lower the cost of being wrong.</strong> Measurable log conditions, scenario review, monitoring, pre-built reverts. That is risk management, not risk denial.</li>
+</ol>
+
+<h3 id="if-again">If it were designed again</h3>
+<p>The strongest defence is not blocking the second request but making it <strong>harmless</strong>: an idempotency key generated per booking intent, sent with the request, with a unique constraint behind it. The second request — wherever it comes from, whatever method, whatever the gap — receives the first request's result rather than creating a new booking.</p>
+<p>The optimistic lock works <strong>because both duplicates share the same session row</strong>. That assumption carries the entire patch and is written down nowhere. Two tabs, two devices, or a retry after session expiry would be invisible to it.</p>
+<p>And at the design level: an action that creates a booking should not be a <code>GET</code> URL. It is one only because 3-D Secure returns the user by redirect. The correct pattern is redirecting to an idempotent <em>confirmation</em> endpoint which then performs the command — and then nothing can create a booking by fetching a URL.</p>
+
+<h2 id="questions">8. Practice questions</h2>
+<ol>
+  <li>A booking endpoint has the guard <code>if (status != PROCESSED) { book(); }</code>. What does this guard stop and what does it not stop? Rewrite it correctly.</li>
+  <li>Why can a <code>HEAD</code> request execute business logic? Which layer do you defend at, and why not inside the handler?</li>
+  <li>You have an optimistic lock using <code>UPDATE … WHERE updated_at = ?</code> where <code>updated_at</code> is a second-resolution timestamp. Identify the failure condition and propose a fix.</li>
+  <li>Given the four backend options in <a href="#options-2026">§5.4</a>, estimated at 3, 4, 5 and 6 days, pick one and defend it. What is wrong with the 3-day option?</li>
+  <li>Design idempotency for a booking-creation API. Where is the key generated, how long does it live, and what does a repeat request receive?</li>
+  <li>You are adding a version column for optimistic locking to a table under live traffic. What is the rollout sequence such that no request fails during deploy? What about sessions that are already open?</li>
+  <li>You cannot reproduce a race condition on staging. Design the acceptance criteria that would let you release.</li>
+  <li>How do you write a <em>deterministic</em> integration test for a race with a 23 ms window?</li>
+  <li>Your alert groups by session id and fires when the count exceeds one. What is that alert <em>actually</em> telling you about the cause?</li>
+  <li>Your patch produced 33 days with no alerts and 117 recorded blocks. What does this evidence prove, and what does it <strong>not</strong> prove?</li>
+</ol>
+
+<h2 id="anonymisation">9. A note on anonymisation</h2>
+<p>This account is based on a real production incident. Company name, brand and site names, personal names, internal ticket ids, booking numbers, hosts, IPs, session tokens and internal URLs have been removed. People are referred to by role. Modules are named after their function. Code, logs and SQL are shortened, de-identified excerpts that keep the logic intact.</p>
+<p>Industry vocabulary — GDS, PNR, ITN, churning and ADMs, 3-D Secure, <code>HEAD</code>, optimistic locking, and generic table and column names — is kept, because it is what makes the account readable and it identifies no organisation.</p>

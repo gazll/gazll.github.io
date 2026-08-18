@@ -580,6 +580,32 @@
       "https://learn.microsoft.com/en-us/sql/relational-databases/performance/parameter-sensitive-plan-optimization"
     ]
   },
+  "18-query-optimization.measure-first-reading-the-execution-plan.q6": {
+    "reviewed_at": "2026-08-18",
+    "target_versions": [
+      "PostgreSQL 18"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://www.postgresql.org/docs/18/sql-explain.html",
+      "https://www.postgresql.org/docs/18/runtime-config-resource.html",
+      "https://www.postgresql.org/docs/18/pgbuffercache.html",
+      "https://github.com/postgres/postgres/blob/REL_18_STABLE/src/backend/storage/buffer/README"
+    ]
+  },
+  "18-query-optimization.measure-first-reading-the-execution-plan.q7": {
+    "reviewed_at": "2026-08-18",
+    "target_versions": [
+      "PostgreSQL 18"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://www.postgresql.org/docs/18/runtime-config-resource.html",
+      "https://www.postgresql.org/docs/18/runtime-config-wal.html",
+      "https://www.postgresql.org/docs/18/runtime-config-query.html",
+      "https://www.postgresql.org/docs/18/monitoring-stats.html"
+    ]
+  },
   "18-query-optimization.rewriting-the-query-reshaping-the-model.q1": {
     "reviewed_at": "2026-08-01",
     "target_versions": [
@@ -788,6 +814,57 @@
     "claim_type": "heuristic",
     "sources": [
       "https://redis.io/docs/latest/develop/data-types/probabilistic/bloom-filter/"
+    ]
+  },
+  "25-microservice.05-caching-pitfalls.q5": {
+    "reviewed_at": "2026-08-18",
+    "target_versions": [
+      "Spring Framework 6.2 cache abstraction",
+      "Caffeine 3.x"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.spring.io/spring-framework/reference/integration/cache.html",
+      "https://github.com/ben-manes/caffeine/wiki/Population"
+    ]
+  },
+  "25-microservice.05-caching-pitfalls.q7": {
+    "reviewed_at": "2026-08-18",
+    "target_versions": [
+      "Redis Open Source 8.x eviction policies"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://redis.io/docs/latest/develop/reference/eviction/"
+    ]
+  },
+  "25-microservice.05-caching-pitfalls.q8": {
+    "reviewed_at": "2026-08-18",
+    "target_versions": [
+      "Redis Open Source 8.x",
+      "hash field expiration since Redis 7.4",
+      "XAUTOCLAIM since Redis 6.2"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://redis.io/docs/latest/commands/hexpire/",
+      "https://redis.io/docs/latest/develop/data-types/streams/",
+      "https://redis.io/docs/latest/develop/data-types/probabilistic/hyperloglogs/",
+      "https://redis.io/docs/latest/develop/pubsub/"
+    ]
+  },
+  "25-microservice.05-caching-pitfalls.q9": {
+    "reviewed_at": "2026-08-18",
+    "target_versions": [
+      "Redis Open Source 8.x",
+      "WAITAOF since Redis 7.2",
+      "Redis Cluster specification"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://redis.io/docs/latest/commands/waitaof/",
+      "https://redis.io/docs/latest/operate/oss_and_stack/reference/cluster-spec/",
+      "https://redis.io/docs/latest/develop/programmability/eval-intro/"
     ]
   },
   "25-microservice.06-hot-partition-db-bottleneck.q2": {

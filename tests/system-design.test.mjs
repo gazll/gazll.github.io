@@ -196,7 +196,7 @@ test('all Systems & Architecture at Scale cases moved into System Design with Me
     .sort();
   const actual = Object.keys(catalog.case_overviews).sort();
 
-  assert.equal(expected.length, 4);
+  assert.equal(expected.length, 5);
   assert.deepEqual(actual, expected);
   for (const [slug, overview] of Object.entries(catalog.case_overviews)) {
     assert.match(overview.diagram, /^flowchart\s+(?:LR|RL|TB|BT|TD)\n/, slug);
@@ -308,7 +308,7 @@ test('the shared loader resolves migrated notes and switches the whole collectio
           `${design.slug}: localized image metadata lost in apply()`);
       }
     }
-    assert.equal(SystemDesign.cases.length, 4);
+    assert.equal(SystemDesign.cases.length, 5);
     assert.equal(SystemDesign.designs.flatMap(design => design.sourceNotes).length, 59);
     const itemId = catalog.designs[4].source_items[0];
     assert.equal(SystemDesign.designForSourceItem(itemId).slug, 'payment-ledger');
@@ -355,6 +355,10 @@ test('Experience routing, Case Studies migration and Mermaid security are wired 
   assert.match(systemView, /failureReviewSection\(design\)/);
   assert.match(systemView, /renderResearch\(design\)/);
   assert.match(systemView, /sd-case-guide-depth/);
+  assert.match(systemView, /escapeHtml\(article\.company\)/,
+    'production evidence should render its actual publisher, not a hard-coded company');
+  assert.match(systemView, /https:\/\/discord\.com/,
+    'the Discord source must survive the publisher URL allowlist');
   assert.match(systemView, /closest\('\.sd-toc-mobile'\)\?\.removeAttribute\('open'\)/);
   assert.match(caseView, /MOVED_TO_SYSTEM_DESIGN = 'systems-architecture'/);
   assert.match(caseView, /filter\(article => article\.category !== MOVED_TO_SYSTEM_DESIGN\)/);

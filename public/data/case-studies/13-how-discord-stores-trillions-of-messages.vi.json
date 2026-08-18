@@ -1,0 +1,22 @@
+{
+  "body_file": "data/case-studies/articles/13-how-discord-stores-trillions-of-messages.vi.html",
+  "guide": {
+    "title": "Hãy đọc đây là câu chuyện kiểm soát load ở upstream, không chỉ là đổi database từ Cassandra sang ScyllaDB.",
+    "problem": "Đầu năm 2022, message store của Discord chứa hàng nghìn tỷ record trên 177 node Cassandra. Traffic lệch tạo hot partition, quorum read lan latency sang query lân cận, compaction bị trễ và JVM garbage collection khiến vận hành thường ngày trở thành on-call toil lặp lại.",
+    "core_idea": "Bảo vệ storage trước khi thay nó: route nhất quán một channel vào cùng Rust data-service instance stateless, coalesce các read đồng thời cho cùng một row thành một database query và giới hạn concurrency. Sau đó migrate token range sang ScyllaDB bằng checkpoint, dual write và sampled comparison read thay vì coi compatibility là bằng chứng correctness.",
+    "outcome": "Discord báo cáo chuyển message database từ 177 node Cassandra xuống 72 node ScyllaDB vào tháng 5/2022. Historical-message read từ 40–125 ms p99 còn 15 ms p99, insert từ 5–70 ms p99 còn ổn định ở 5 ms; custom migrator copy tối đa 3,2 triệu message mỗi giây trước khi cutover có kiểm chứng.",
+    "takeaways": [
+      "Partition key phân phối ownership chứ không phân phối demand. Bucket theo channel và thời gian giới hạn partition size, nhưng channel phổ biến vẫn có thể dồn concurrent read lên cùng replica set và gây latency cho cả cluster.",
+      "Request coalescing thay đổi hình dạng load thay vì chỉ thêm capacity. Nhiều caller chờ cùng một row trở thành subscriber của một in-flight query, miễn là consistent routing đưa họ vào cùng service instance.",
+      "Database tương thích không phải phương thuốc kiến trúc kiểu drop-in. Discord phải xử lý reverse-query performance cùng ScyllaDB và vẫn giữ data-service layer vì hot partition cùng unbounded concurrency có thể tồn tại trên cả hai engine.",
+      "Online migration cần bằng chứng độc lập. Token range có checkpoint giúp copy resumable, còn sampled read đối chiếu hai store kiểm tra result thực tế — điều mà chỉ thấy dual write thành công không thể chứng minh.",
+      "Latency và node count được công bố mô tả workload cùng hardware của Discord năm 2022. Đây là bằng chứng cho quyết định đó, không phải hằng số ScyllaDB-với-Cassandra; team khác phải benchmark schema, skew và operation của mình."
+    ],
+    "review_lenses": [
+      "Partition design: ước lượng cả byte mỗi partition lẫn request concentration, rồi tìm tenant, channel hoặc time bucket nào có thể áp đảo một replica set.",
+      "Admission control: quyết định nơi giới hạn concurrent work, cách request giống nhau dùng chung result và điều gì xảy ra khi coalescing worker fail hoặc timeout.",
+      "Migration safety: định nghĩa thứ tự dual write, checkpoint durability, xử lý mismatch, cutover và rollback mà không giả định source sẽ khỏe vô thời hạn.",
+      "Benchmark provenance: ghi dataset size, disk topology, node shape, consistency level và query direction trước khi dùng số p99 của Discord cho thiết kế khác."
+    ]
+  }
+}

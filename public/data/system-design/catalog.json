@@ -2691,6 +2691,17 @@
         "title": "Flow phiên bản giá và reservation cho hot deal",
         "lens": "An toàn khi peak đến từ price identity có phiên bản và admission hữu hạn trước inventory khan hiếm—không phải chỉ autoscaling. Reservation, expiry và xử lý event trùng phải giữ quota deal khớp với inventory thực."
       }
+    },
+    "how-discord-stores-trillions-of-messages": {
+      "diagram": "flowchart LR\n  A[API monolith] --> R[Consistent-hash routing]\n  R --> D[Rust data services]\n  D --> C[Request coalescing]\n  C --> S[(ScyllaDB)]\n  M[Token-range migrator] --> S\n  V[Shadow-read validation] --> S",
+      "en": {
+        "title": "Discord: isolating hot message partitions",
+        "lens": "The database replacement mattered, but the architectural control point was upstream: route one channel to one data-service instance, coalesce identical reads, bound concurrency, and validate the storage cutover independently of the dual-write path."
+      },
+      "vi": {
+        "title": "Discord: cô lập hot partition của message",
+        "lens": "Thay database rất quan trọng, nhưng control point kiến trúc nằm ở upstream: route một channel vào cùng data-service instance, coalesce read giống nhau, giới hạn concurrency và kiểm chứng storage cutover độc lập với dual-write path."
+      }
     }
   }
 }

@@ -12,6 +12,9 @@
     },
     {
       "id": "engineering-evolution"
+    },
+    {
+      "id": "production-incidents"
     }
   ],
   "articles": [
@@ -179,6 +182,35 @@
       "cover_image": "assets/case-studies/11-how-to-handle-hot-deals-at-the-peak-time/01-figure.jpeg",
       "cover_fit": "contain",
       "source_url": "https://engineering.tiki.vn/how-to-handle-hot-deals-at-the-peak-time/"
+    },
+    {
+      "n": 12,
+      "file": "case-studies/12-duplicate-booking-race-condition.json",
+      "slug": "duplicate-booking-race-condition",
+      "category": "production-incidents",
+      "level": "core",
+      "featured": true,
+      "first_party": true,
+      "published_at": "2026-08-18",
+      "read_minutes": 14,
+      "original_language": "vi",
+      "cover_image": "assets/case-studies/12-duplicate-booking-race-condition/01-race-window.svg",
+      "cover_fit": "contain"
+    },
+    {
+      "n": 13,
+      "file": "case-studies/13-how-discord-stores-trillions-of-messages.json",
+      "slug": "how-discord-stores-trillions-of-messages",
+      "category": "systems-architecture",
+      "level": "advanced",
+      "featured": true,
+      "company": "Discord Engineering",
+      "published_at": "2023-03-06",
+      "read_minutes": 12,
+      "original_language": "en",
+      "cover_image": "assets/case-studies/13-how-discord-stores-trillions-of-messages/01-architecture.svg",
+      "cover_fit": "contain",
+      "source_url": "https://discord.com/blog/how-discord-stores-trillions-of-messages"
     }
   ]
 }

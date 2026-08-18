@@ -122,8 +122,16 @@ function storeTocCollapsed(collapsed) {
   try { localStorage.setItem(TOC_KEY, collapsed ? '0' : '1'); } catch (error) {}
 }
 // Attribution is the publisher URL and nothing else, so an unexpected host is
-// never rendered as a link — it falls back to the publication's own root.
-const sourceHref = url => /^https:\/\/engineering\.tiki\.vn\//.test(url || '') ? url : 'https://engineering.tiki.vn/';
+// never rendered as an external link.
+const SOURCE_ORIGINS = new Set(['https://engineering.tiki.vn', 'https://discord.com']);
+const sourceHref = value => {
+  try {
+    const url = new URL(value);
+    return SOURCE_ORIGINS.has(url.origin) ? url.href : '#';
+  } catch {
+    return '#';
+  }
+};
 
 function renderDesignCard(design) {
   return '<a class="sd-card" data-card-key="' + escapeHtml(design.slug) + '" href="'
@@ -139,7 +147,7 @@ function renderCaseCard(article) {
   return '<a class="sd-card sd-case-card" data-card-key="case/' + escapeHtml(article.slug) + '" href="'
     + escapeHtml(withRouteLanguage('#/system-design/case/' + encodeURIComponent(article.slug), Content.lang)) + '">'
     + '<span class="sd-case-art"><img src="' + escapeHtml(article.cover_image) + '" alt="" loading="lazy"></span>'
-    + '<span class="sd-card-main"><span class="sd-card-type">' + text().production + ' · Tiki Engineering' + levelMarkup(article) + '</span>'
+    + '<span class="sd-card-main"><span class="sd-card-type">' + text().production + ' · ' + escapeHtml(article.company) + levelMarkup(article) + '</span>'
     + '<strong>' + escapeHtml(article.title) + '</strong><span>' + escapeHtml(article.excerpt) + '</span>'
     + '<span class="sd-card-tags">' + article.tags.slice(0, 4).map(tag => '<i>' + escapeHtml(tag) + '</i>').join('') + '</span>'
     + '</span><span class="sd-card-arrow" aria-hidden="true">→</span></a>';
@@ -560,7 +568,7 @@ function renderProductionArticle(article, overview, archivedBody) {
   const href = sourceHref(article.source_url);
   const tags = article.tags.map(tag => '<span>' + escapeHtml(tag) + '</span>').join('');
   const header = '<header class="sd-article-head">'
-    + '<p class="cs-eyebrow">' + text().production + ' · Tiki Engineering ' + levelMarkup(article) + '</p><h1 id="system-case-' + escapeHtml(article.slug) + '-title">' + escapeHtml(article.title) + '</h1>'
+    + '<p class="cs-eyebrow">' + text().production + ' · ' + escapeHtml(article.company) + ' ' + levelMarkup(article) + '</p><h1 id="system-case-' + escapeHtml(article.slug) + '-title">' + escapeHtml(article.title) + '</h1>'
     + '<p>' + escapeHtml(article.excerpt) + '</p><div class="cs-tags">' + tags + '</div>'
     + '<div class="cs-archive-note"><b>' + text().historical + '</b><span>' + text().historicalNote + '</span></div></header>';
   const body = '<article class="sd-article-body" data-sd-body>'
@@ -572,7 +580,7 @@ function renderProductionArticle(article, overview, archivedBody) {
     + '<div class="cs-article-body">' + archivedBody + '</div></section></article>';
   return articleShell(header, body)
     + '<footer class="cs-source"><span>' + text().sourceLabel + '</span><a href="' + href + '" target="_blank" rel="noopener noreferrer">'
-    + 'Tiki Engineering — ' + text().original + ' ↗</a></footer>';
+    + escapeHtml(article.company) + ' — ' + text().original + ' ↗</a></footer>';
 }
 
 function buildToc(root, routeParts = []) {

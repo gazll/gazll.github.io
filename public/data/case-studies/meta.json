@@ -52,6 +52,16 @@
         "label": "Engineering Evolution",
         "description": "Những câu chuyện về engineering organization growth và quyết định bước tiếp theo."
       }
+    },
+    "production-incidents": {
+      "en": {
+        "label": "Production Incidents",
+        "description": "First-party incident write-ups: what the logs actually showed, which fix was chosen, and what the wrong diagnosis cost."
+      },
+      "vi": {
+        "label": "Production Incidents",
+        "description": "Bài viết sự cố first-party: log thật sự cho thấy gì, chọn bản vá nào, và chẩn đoán sai phải trả giá ra sao."
+      }
     }
   },
   "articles": {
@@ -328,6 +338,46 @@
           "Inventory hold",
           "Checkout"
         ]
+      }
+    },
+    "12": {
+      "key": "12-duplicate-booking-race-condition",
+      "en": {
+        "title": "Fixing one race condition twice",
+        "excerpt": "A booking endpoint created two itineraries 25 ms apart. The first fix blocked a User-Agent and the alerts stopped for two and a half years — until the same mechanism returned wearing a HEAD request.",
+        "tags": [
+          "Race condition",
+          "Optimistic locking",
+          "Check-then-act",
+          "Idempotency",
+          "HTTP semantics",
+          "Incident review"
+        ]
+      },
+      "vi": {
+        "title": "Hai lần sửa một race condition",
+        "excerpt": "Một endpoint đặt chỗ tạo hai hành trình cách nhau 25 ms. Bản vá đầu chặn một User-Agent và alert im suốt hai năm rưỡi — cho tới khi đúng cơ chế đó quay lại dưới dạng một request HEAD.",
+        "tags": [
+          "Race condition",
+          "Optimistic locking",
+          "Check-then-act",
+          "Idempotency",
+          "HTTP semantics",
+          "Incident review"
+        ]
+      }
+    },
+    "13": {
+      "key": "13-how-discord-stores-trillions-of-messages",
+      "en": {
+        "title": "How Discord stores trillions of messages",
+        "excerpt": "How Discord moved message storage from MongoDB to Cassandra and then ScyllaDB, while using Rust data services, request coalescing and a verified online migration to control hot partitions and operational toil.",
+        "tags": ["ScyllaDB", "Cassandra", "Hot partitions", "Request coalescing", "Online migration", "Rust"]
+      },
+      "vi": {
+        "title": "Discord lưu trữ hàng nghìn tỷ tin nhắn như thế nào?",
+        "excerpt": "Cách Discord chuyển message storage từ MongoDB sang Cassandra rồi ScyllaDB, đồng thời dùng Rust data service, request coalescing và migration online có kiểm chứng để kiểm soát hot partition cùng operational toil.",
+        "tags": ["ScyllaDB", "Cassandra", "Hot partition", "Request coalescing", "Online migration", "Rust"]
       }
     }
   }

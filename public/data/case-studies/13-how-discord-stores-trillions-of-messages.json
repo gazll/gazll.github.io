@@ -1,0 +1,22 @@
+{
+  "body_file": "data/case-studies/articles/13-how-discord-stores-trillions-of-messages.html",
+  "guide": {
+    "title": "Read this as an upstream load-control story, not simply as a Cassandra-to-ScyllaDB database swap.",
+    "problem": "By early 2022, Discord's message store held trillions of records on 177 Cassandra nodes. Skewed traffic created hot partitions, quorum reads spread their latency to neighboring queries, compaction fell behind, and JVM garbage-collection pauses turned routine operation into recurring on-call work.",
+    "core_idea": "Protect storage before replacing it: route a channel consistently to one stateless Rust data-service instance, coalesce concurrent reads for the same row into one database query, and bound concurrency. Then migrate token ranges into ScyllaDB with checkpoints, dual writes and sampled comparison reads rather than treating compatibility as proof of correctness.",
+    "outcome": "Discord reported moving the message database from 177 Cassandra nodes to 72 ScyllaDB nodes in May 2022. Historical-message reads changed from 40–125 ms p99 to 15 ms p99, inserts from 5–70 ms p99 to a steady 5 ms, and the custom migrator copied up to 3.2 million messages per second before a validated cutover.",
+    "takeaways": [
+      "A partition key distributes ownership, not demand. Channel-plus-time bucketing constrained partition size, but a popular channel could still concentrate concurrent reads on the same replica set and become a cluster-wide latency source.",
+      "Request coalescing changes the shape of load instead of merely adding capacity. Many callers waiting for the same row become subscribers to one in-flight query, provided consistent routing sends them to the same service instance.",
+      "A compatible database is not a drop-in architectural cure. Discord first addressed reverse-query performance with ScyllaDB and kept the data-service layer because hot partitions and unbounded concurrency can exist on either engine.",
+      "Online migration needs independent evidence. Checkpointed token ranges made the copy resumable, while sampled reads against both stores checked actual results and revealed confidence that dual-write success alone could not provide.",
+      "The published latency and node-count gains describe Discord's 2022 workload and hardware. They are evidence for this decision, not universal ScyllaDB-versus-Cassandra constants; another team must benchmark its own schema, skew and operations."
+    ],
+    "review_lenses": [
+      "Partition design: estimate both bytes per partition and request concentration, then identify which tenant, channel or time bucket can dominate one replica set.",
+      "Admission control: decide where concurrent work is bounded, how identical requests share results, and what happens when the coalescing worker fails or times out.",
+      "Migration safety: define dual-write ordering, checkpoint durability, mismatch handling, cutover and rollback without assuming the source remains healthy indefinitely.",
+      "Benchmark provenance: record dataset size, disk topology, node shape, consistency level and query direction before using Discord's p99 figures in another design."
+    ]
+  }
+}

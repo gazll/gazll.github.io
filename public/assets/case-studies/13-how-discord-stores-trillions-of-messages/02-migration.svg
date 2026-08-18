@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="560" viewBox="0 0 1200 560" role="img" aria-labelledby="title desc">
+  <title id="title">Discord online message migration</title>
+  <desc id="desc">New messages are dual-written while a checkpointed Rust migrator copies Cassandra token ranges to ScyllaDB and sampled reads compare results before cutover.</desc>
+  <rect width="1200" height="560" fill="#f8fafc"/>
+  <text x="600" y="58" text-anchor="middle" font-family="Arial, sans-serif" font-size="30" font-weight="700" fill="#111827">MIGRATE, VERIFY, THEN CUT OVER</text>
+  <g font-family="Arial, sans-serif" text-anchor="middle">
+    <rect x="60" y="160" width="230" height="205" rx="18" fill="#fff7ed" stroke="#ea580c" stroke-width="3"/>
+    <text x="175" y="212" font-size="25" font-weight="700" fill="#9a3412">Cassandra</text>
+    <text x="175" y="248" font-size="17" fill="#9a3412">source of truth</text>
+    <text x="175" y="278" font-size="17" fill="#9a3412">177 nodes</text>
+    <text x="175" y="308" font-size="17" fill="#9a3412">trillions of messages</text>
+    <rect x="420" y="125" width="300" height="275" rx="18" fill="#eef2ff" stroke="#5865f2" stroke-width="3"/>
+    <text x="570" y="175" font-size="24" font-weight="700" fill="#3730a3">Rust migrator</text>
+    <text x="570" y="216" font-size="17" fill="#4338ca">read token ranges</text>
+    <text x="570" y="247" font-size="17" fill="#4338ca">checkpoint in SQLite</text>
+    <text x="570" y="278" font-size="17" fill="#4338ca">resume after failure</text>
+    <text x="570" y="329" font-size="22" font-weight="700" fill="#3730a3">up to 3.2M msg/s</text>
+    <text x="570" y="360" font-size="16" fill="#4338ca">reported peak copy rate</text>
+    <path d="M290 262 H410" stroke="#475569" stroke-width="4" marker-end="url(#arrow)"/>
+    <path d="M720 262 H840" stroke="#475569" stroke-width="4" marker-end="url(#arrow)"/>
+    <path d="M175 400 C175 485 945 485 945 400" fill="none" stroke="#2563eb" stroke-width="3" stroke-dasharray="10 7" marker-end="url(#blueArrow)"/>
+    <text x="560" y="505" font-size="17" fill="#1d4ed8">sampled reads compare both stores before cutover</text>
+    <path d="M175 125 C175 82 945 82 945 125" fill="none" stroke="#059669" stroke-width="3" marker-end="url(#greenArrow)"/>
+    <text x="560" y="103" font-size="17" fill="#047857">dual-write new messages during migration</text>
+    <rect x="850" y="160" width="230" height="205" rx="18" fill="#ecfdf5" stroke="#059669" stroke-width="3"/>
+    <text x="965" y="212" font-size="25" font-weight="700" fill="#065f46">ScyllaDB</text>
+    <text x="965" y="248" font-size="17" fill="#047857">validated target</text>
+    <text x="965" y="278" font-size="17" fill="#047857">72 nodes</text>
+    <text x="965" y="308" font-size="17" fill="#047857">primary in May 2022</text>
+  </g>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L9,3 L0,6 Z" fill="#475569"/></marker>
+    <marker id="blueArrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L9,3 L0,6 Z" fill="#2563eb"/></marker>
+    <marker id="greenArrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L9,3 L0,6 Z" fill="#059669"/></marker>
+  </defs>
+</svg>

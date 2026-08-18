@@ -2,6 +2,78 @@
   "version": 1,
   "releases": [
     {
+      "date": "2026-08-18",
+      "en": {
+        "title": "Caching end to end: patterns, Redis, and PostgreSQL's buffer cache"
+      },
+      "vi": {
+        "title": "Cache từ đầu tới cuối: pattern, Redis và bộ đệm cache của PostgreSQL"
+      },
+      "changes": [
+        {
+          "kind": "topic",
+          "target": "25-microservice",
+          "en": {
+            "text": "Five additions to Microservices §05. **The six cache patterns, drawn** — cache-aside, read-through and refresh-ahead on the read path, write-through, write-behind and write-around on the write path, one diagram each, plus the combinations people actually run: cache-aside with write-around by default, refresh-ahead over a small hot set, write-behind only where a lost increment is a rounding error. **The two sizing mistakes** — a short TTL on a hot key, and writing every key you happen to read into the cache — with the memory budget, `maxmemory-policy` and the hit rate read per key class. **Redis beyond the cache** — twelve jobs mapped to the structure and commands that do them and what each costs, then the four guarantees underneath: one command at a time, opt-in multi-command atomicity, 16384 hash slots, and asynchronous replication that can lose an acknowledged write. Stampede, hot keys, penetration and avalanche stay where they were and the new items point at them. The progress ring grows by five."
+          },
+          "vi": {
+            "text": "Năm mục mới trong Microservices §05. **Sáu cache pattern, có sơ đồ** — cache-aside, read-through và refresh-ahead ở đường đọc, write-through, write-behind và write-around ở đường ghi, mỗi cái một sơ đồ, kèm cách ghép mà thực tế người ta dùng: cache-aside với write-around làm mặc định, refresh-ahead cho tập key nóng nhỏ, write-behind chỉ ở chỗ mất một lần tăng chỉ là sai số làm tròn. **Hai lỗi sizing** — TTL ngắn đặt trên hot key, và cứ key nào đọc tới là ghi xuống cache — cùng ngân sách bộ nhớ, `maxmemory-policy` và hit rate đọc theo từng key class. **Redis ngoài việc cache** — mười hai công việc ánh xạ sang cấu trúc và lệnh làm được chúng cùng cái giá của từng cái, rồi bốn bảo đảm nằm dưới: mỗi lúc một lệnh, atomic nhiều lệnh phải chủ động chọn, 16384 hash slot, và replication bất đồng bộ có thể mất một lệnh ghi đã ACK. Stampede, hot key, penetration và avalanche vẫn ở nguyên chỗ cũ, các mục mới chỉ trỏ sang. Vòng tiến độ tăng thêm năm mục."
+          }
+        },
+        {
+          "kind": "feature",
+          "target": "all-topics",
+          "en": {
+            "text": "The Study Track now browses **378** questions (437 across the whole library). Seven new items means the progress ring’s denominator moved: nothing you have already reviewed changed, but the percentage is now out of a larger total."
+          },
+          "vi": {
+            "text": "Study Track giờ duyệt **378** câu hỏi (437 trên toàn thư viện). Thêm bảy mục nghĩa là mẫu số của vòng tiến độ đã đổi: những gì bạn đã review vẫn giữ nguyên, chỉ là phần trăm giờ tính trên tổng lớn hơn."
+          }
+        },
+        {
+          "kind": "topic",
+          "target": "18-query-optimization",
+          "en": {
+            "text": "Two additions to Query optimization §1. **PostgreSQL's buffer cache** — where a plan's `shared hit`, `read`, `dirtied` and `written` counters come from, with a diagram of the page path, the clock sweep whose usage counter stops at 5, the 256 KB ring that keeps a large sequential scan from flushing the array, and `pg_buffercache` in place of a hit ratio. **Sizing and the write side** — `shared_buffers` against double buffering and checkpoint size, `effective_cache_size` as a planner statement that allocates nothing, the checkpointer and bgwriter defaults, `num_timed` versus `num_requested`, full-page writes after a checkpoint, and prewarming an empty cache after a failover. Checked against the PostgreSQL 18 documentation."
+          },
+          "vi": {
+            "text": "Hai mục mới trong Query optimization §1. **Bộ đệm cache của PostgreSQL** — các con số `shared hit`, `read`, `dirtied` và `written` trong plan đến từ đâu, kèm sơ đồ đường đi của một page, clock sweep với usage counter dừng ở 5, ring 256 KB giữ cho một lần seq scan lớn không quét sạch mảng buffer, và `pg_buffercache` thay cho tỷ lệ hit. **Sizing và mặt ghi** — `shared_buffers` đặt cạnh double buffering và kích thước checkpoint, `effective_cache_size` là lời khai cho planner chứ không cấp phát gì, mặc định của checkpointer và bgwriter, `num_timed` so với `num_requested`, full-page write sau mỗi checkpoint, và làm ấm cache rỗng sau failover. Đã đối chiếu tài liệu PostgreSQL 18."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-18",
+      "en": {
+        "title": "Case Studies opens to first-party incident write-ups"
+      },
+      "vi": {
+        "title": "Case Studies mở cho bài viết sự cố first-party"
+      },
+      "changes": [
+        {
+          "kind": "content",
+          "target": "case-studies",
+          "en": {
+            "text": "New case study — **Fixing one race condition twice**. A booking endpoint created two itineraries 25 ms apart. The first fix blocked a User-Agent string and the alerts stopped for two and a half years, until the identical mechanism returned wearing a `HEAD` request with the user's own browser UA. It walks the whole arc: detection by SQL batch, log archaeology when nothing reproduces, why the existing guard was check-then-act, why a one-second timestamp cannot be a version, the move to a conditional write decided by row count, and how a 23 ms race was made deterministic in testing. The account is anonymised — company, sites, people, tickets and identifiers removed, industry vocabulary kept."
+          },
+          "vi": {
+            "text": "Case study mới — **Hai lần sửa một race condition**. Một endpoint đặt chỗ tạo hai hành trình cách nhau 25 ms. Bản vá đầu chặn một chuỗi User-Agent và alert im suốt hai năm rưỡi, cho tới khi đúng cơ chế đó quay lại dưới dạng một request `HEAD` mang UA của chính trình duyệt người dùng. Bài đi trọn vòng đời: phát hiện bằng batch SQL, khảo cổ log khi không tái hiện được, vì sao guard sẵn có chỉ là check-then-act, vì sao timestamp tới giây không thể làm version, việc chuyển sang ghi có điều kiện quyết định bằng số dòng update, và cách biến một race 23 ms thành tất định khi test. Bài đã ẩn danh — bỏ tên công ty, site, người, ticket và mọi định danh, giữ lại từ vựng ngành."
+          }
+        },
+        {
+          "kind": "feature",
+          "target": "case-studies",
+          "en": {
+            "text": "New collection **Production Incidents**, and the library no longer assumes every article is an archived external one. A first-party row carries no publisher and no source URL, so it renders without the outbound credit link and without the historical-archive note — both of those exist to point at a source it does not have. The source count in the library header is now counted rather than hard-coded."
+          },
+          "vi": {
+            "text": "Nhóm mới **Production Incidents**, và thư viện không còn mặc định mọi bài đều là bài ngoài đã lưu trữ. Một bài first-party không có publisher và không có source URL, nên nó hiển thị mà không kèm link dẫn nguồn lẫn nhãn lưu trữ lịch sử — cả hai vốn sinh ra để trỏ tới một nguồn mà bài này không có. Số nguồn ở đầu thư viện giờ được đếm thay vì ghi cứng."
+          }
+        }
+      ]
+    },
+    {
       "date": "2026-08-17",
       "en": {
         "title": "Six new questions: class identity, HashMap keys, UUID keys, volatile counters, concurrency vocabulary"

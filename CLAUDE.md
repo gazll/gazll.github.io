@@ -311,11 +311,23 @@ secret/              GITIGNORED. Personal setup notes and credentials
   local images, not publisher hotlinks. The visible URL deliberately keeps the
   unnumbered slug (for example `#/case-studies/arcturus-inventory-processing-system`),
   so reorganizing source files never breaks bookmarks. Do not store author names
-  or retain contributor sections/images: article attribution is publication date
-  plus the original Tiki Engineering URL only. Desktop TOC is the collapsible
+  or retain contributor sections/images. Desktop TOC is the collapsible
   left column; its persisted state must not affect the mobile `<details>` TOC.
   Each manifest row also owns a local `cover_image` from that article and an
   explicit `cover_fit` (`cover` or `contain`); card art must reflect its content.
+
+- **A case-study row is one of two kinds, and it must say which.** An *archived*
+  row keeps the original attribution — publication date plus the Tiki
+  Engineering URL, nothing else — and both `company` and `source_url` are
+  required. A *first-party* row sets `first_party: true` and must carry
+  **neither**, so an absent field is always deliberate rather than forgotten;
+  the test asserts the absence, not just the presence. The view branches on that
+  one flag: no outbound credit link, no "historical archive" note, no source
+  footer, and the guide's closing line points at the write-up rather than at a
+  preserved publisher article — every one of those exists to reference a source
+  a first-party piece does not have. The library's source count is derived from
+  the rows, so never hard-code it back. `sourceHref()` still pins archived links
+  to the publisher host; do not widen it to make a first-party row fit.
 
 - **System Design is a presentation surface over existing content, not a copy
   of it.** `data/system-design/catalog.json` holds the blueprint prose, but a

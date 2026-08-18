@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 420" width="880" height="420" font-family="IBM Plex Sans, Segoe UI, system-ui, sans-serif">
+  <rect width="880" height="420" fill="#f7f5f1"/>
+  <text x="32" y="42" font-size="19" font-weight="600" fill="#1c1917">Moving the decision from the value read to the rows updated</text>
+  <text x="32" y="66" font-size="14" fill="#57534e">The check and the act become one statement, adjudicated by the database.</text>
+
+  <!-- before -->
+  <rect x="32" y="92" width="392" height="286" rx="8" fill="#ffffff" stroke="#d6d3d1"/>
+  <rect x="32" y="92" width="392" height="36" rx="8" fill="#fef2f2"/>
+  <text x="50" y="116" font-size="14" font-weight="600" fill="#991b1b">Before — check-then-act</text>
+
+  <text x="50" y="158" font-size="13" font-weight="600" fill="#1c1917">1. SELECT status</text>
+  <text x="50" y="176" font-size="12.5" fill="#57534e">reads Init into memory</text>
+  <text x="50" y="208" font-size="13" font-weight="600" fill="#1c1917">2. if (status != PROCESSED)</text>
+  <text x="50" y="226" font-size="12.5" fill="#57534e">decides on a value that may already be stale</text>
+  <text x="50" y="258" font-size="13" font-weight="600" fill="#1c1917">3. UPDATE status = Booking</text>
+  <text x="50" y="276" font-size="12.5" fill="#57534e">unconditional — always succeeds</text>
+
+  <rect x="50" y="298" width="356" height="62" rx="6" fill="#fef2f2" stroke="#b91c1c"/>
+  <text x="64" y="322" font-size="12.5" font-weight="600" fill="#991b1b">The gap between 1 and 3 is the incident.</text>
+  <text x="64" y="342" font-size="12.5" fill="#991b1b">Version was UPD_DT, resolution one second.</text>
+
+  <!-- arrow -->
+  <line x1="432" y1="235" x2="466" y2="235" stroke="#78716c" stroke-width="2"/>
+  <path d="M466 235 l-9 -5 v10 z" fill="#78716c"/>
+
+  <!-- after -->
+  <rect x="472" y="92" width="376" height="286" rx="8" fill="#ffffff" stroke="#d6d3d1"/>
+  <rect x="472" y="92" width="376" height="36" rx="8" fill="#ecfdf5"/>
+  <text x="490" y="116" font-size="14" font-weight="600" fill="#065f46">After — conditional write</text>
+
+  <text x="490" y="158" font-size="13" font-weight="600" fill="#1c1917">1. SELECT status, VERSION</text>
+  <text x="490" y="176" font-size="12.5" fill="#57534e">VERSION is the token read</text>
+  <text x="490" y="208" font-size="13" font-weight="600" fill="#1c1917">2. UPDATE … SET VERSION = VERSION + 1</text>
+  <text x="490" y="226" font-size="12.5" fill="#57534e">WHERE VERSION = /*version*/</text>
+  <text x="490" y="258" font-size="13" font-weight="600" fill="#1c1917">3. if (count != 1) → lost the race</text>
+  <text x="490" y="276" font-size="12.5" fill="#57534e">re-read to see who won, answer FAILED</text>
+
+  <rect x="490" y="298" width="340" height="62" rx="6" fill="#ecfdf5" stroke="#059669"/>
+  <text x="504" y="322" font-size="12.5" font-weight="600" fill="#065f46">No gap left: check and act are one statement.</text>
+  <text x="504" y="342" font-size="12.5" fill="#065f46">A monotonic integer has no resolution to lose.</text>
+</svg>

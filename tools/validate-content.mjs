@@ -353,11 +353,11 @@ if (!catalog) {
     if (typeof article.featured !== 'boolean') sd(id, 'featured must be boolean');
   }
 
-  // The reader's only attribution is the publication URL, and the view refuses
-  // to render a link off that host — so a wrong one silently loses the credit.
+  // The reader's only attribution is the publication URL, and the view uses an
+  // explicit publisher allowlist — so a wrong URL silently loses the credit.
   for (const article of architectureRows) {
-    if (!/^https:\/\/engineering\.tiki\.vn\/.+/.test(article.source_url || '')) {
-      sd(`case "${article.slug}"`, `source_url is not an engineering.tiki.vn article URL: "${article.source_url}"`);
+    if (!/^https:\/\/(?:engineering\.tiki\.vn|discord\.com)\/.+/.test(article.source_url || '')) {
+      sd(`case "${article.slug}"`, `source_url is not an approved publisher URL: "${article.source_url}"`);
     }
   }
 

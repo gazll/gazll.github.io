@@ -1,0 +1,58 @@
+<p>Discord's path from MongoDB to Cassandra and then ScyllaDB is often compressed into a database comparison. The more useful story is about changing constraints. A datastore that solves yesterday's capacity problem can become tomorrow's operational bottleneck, and replacing it does not remove a skewed access pattern. Discord therefore changed both the storage engine and the layer that shaped traffic before it reached storage.</p>
+<p>This case study is an editorial synthesis of Discord Engineering's March 2023 account. All node counts, migration rates and latency figures below are reported measurements from that system at that time, not general benchmarks for the products involved.</p>
+
+<h2 id="1-three-generations-of-storage">1. Three generations of storage</h2>
+<p>Discord initially stored messages in MongoDB. As the product grew, the team wanted predictable horizontal scaling, fault tolerance and a system that required relatively little maintenance. It moved message history to Cassandra; by 2017, 12 Cassandra nodes held billions of messages. Cassandra's write path and distributed model fitted the workload well enough for that stage.</p>
+<p>Growth changed the operating envelope. At the beginning of 2022, the message cluster had reached 177 Cassandra nodes and trillions of messages. The team was now paged frequently, tail latency was unpredictable, and some maintenance operations were too expensive to run normally. The decision to move again was not an admission that Cassandra had never worked. It was recognition that the cost curve of operating this particular cluster no longer matched the goal.</p>
+<p>ScyllaDB offered Cassandra protocol compatibility, a C++ implementation without JVM garbage collection, faster repair in Discord's tests and shard-per-core workload isolation. Discord did not immediately move its largest cluster. It first migrated smaller databases, accumulated production experience, and worked with ScyllaDB on reverse-query performance before treating the message store as ready.</p>
+
+<h2 id="2-partitioning-solved-size-not-popularity">2. Partitioning solved size, not popularity</h2>
+<p>Message IDs are Snowflakes and therefore sortable by time. Discord partitioned messages by channel plus a static time bucket, then ordered rows by message ID. A simplified model looks like this:</p>
+<pre><code>CREATE TABLE messages (
+  channel_id bigint,
+  bucket int,
+  message_id bigint,
+  author_id bigint,
+  content text,
+  PRIMARY KEY ((channel_id, bucket), message_id)
+) WITH CLUSTERING ORDER BY (message_id DESC);</code></pre>
+<p>The time bucket keeps one long-lived channel from becoming one endlessly growing partition. It does not make demand uniform. A private server used by a few friends and a server with hundreds of thousands of members can have similarly shaped keys but orders-of-magnitude different request rates. Partition size and partition heat are separate design dimensions.</p>
+<p>Cassandra writes append to a commit log and update a memtable before data is flushed into SSTables. Reads may consult the memtable and several SSTables, so they are more sensitive to compaction state. When many users read one popular channel and bucket, the replicas responsible for that partition can fall behind. Because Discord used quorum reads and writes, slow replicas could raise latency for requests unrelated to the original hot channel.</p>
+
+<h2 id="3-why-operations-became-the-constraint">3. Why operations became the constraint</h2>
+<p>Compaction backlog made reads more expensive while consuming resources needed to catch up. Discord described a manual “gossip dance”: remove a node from traffic, let it compact, return it so hinted handoff could catch it up, and repeat. At the same time, engineers tuned heap and garbage-collection settings because long JVM pauses appeared directly as tail-latency spikes.</p>
+<p>This is the critical architecture signal: total storage still fitted, but recovery and maintenance competed with foreground work. More nodes did not automatically create a calmer system because every node added repair, compaction, balancing and failure-management work. The constraint had shifted from “can the database retain these bytes?” to “can a small on-call team operate the cluster without recurring intervention?”</p>
+
+<h2 id="4-the-data-service-control-point">4. The data-service control point</h2>
+<p>Discord expected hot partitions to remain possible on ScyllaDB. It inserted stateless Rust data services between the API monolith and the database. Each gRPC endpoint represented roughly one database query and intentionally carried no business logic. This narrow boundary made the service a place to control concurrency without creating a second domain layer.</p>
+<figure class="cs-figure cs-figure-wide">
+  <button type="button" data-zoom-image aria-label="Open message storage architecture at full size">
+    <img src="assets/case-studies/13-how-discord-stores-trillions-of-messages/01-architecture.svg" width="1200" height="620" loading="lazy" decoding="async" alt="Requests routed by channel to a Rust data service that coalesces identical reads before ScyllaDB.">
+  </button>
+  <figcaption>Consistent routing makes request coalescing effective before traffic reaches storage.</figcaption>
+</figure>
+<p>The service coalesces requests for the same row. The first request creates a worker task; later requests subscribe to that in-flight task instead of starting new database reads. When a large announcement causes thousands of clients to fetch the same history, database work grows much more slowly than caller count.</p>
+<p>Coalescing only works across requests that meet in the same process. Discord supplied a channel ID as the routing key and used consistent-hash routing so requests for one channel arrived at the same data-service instance. The routing and the in-process worker registry are one mechanism: remove either half and the suppression ratio collapses.</p>
+
+<h2 id="5-choosing-scylladb-with-eyes-open">5. Choosing ScyllaDB with eyes open</h2>
+<p>The team valued the absence of JVM garbage collection, stronger workload isolation and the repair performance observed in testing. Cassandra compatibility reduced application change, but compatibility was not treated as equivalence. Discord's ascending message scans are reverse queries relative to the table's descending order; ScyllaDB's performance for that path was initially insufficient. The database team prioritized and implemented improvements before the final migration blocker was removed.</p>
+<p>This sequence matters. Discord did not choose from a generic feature matrix and immediately copy trillions of rows. It tested its actual query directions, moved other production clusters first and preserved the upstream protection layer. A new engine improved the execution substrate; data services reduced amplification arriving at that substrate.</p>
+
+<h2 id="6-migrating-trillions-without-downtime">6. Migrating trillions without downtime</h2>
+<p>The first plan dual-wrote new messages to both databases, cut reads over by time and backfilled older history. ScyllaDB's Spark migrator initially estimated roughly three months, which would prolong the period of operating two paths. Discord instead extended its Rust database library into a custom migrator. It read Cassandra token ranges, stored local checkpoints in SQLite and streamed rows into ScyllaDB.</p>
+<figure class="cs-figure cs-figure-wide">
+  <button type="button" data-zoom-image aria-label="Open online migration flow at full size">
+    <img src="assets/case-studies/13-how-discord-stores-trillions-of-messages/02-migration.svg" width="1200" height="560" loading="lazy" decoding="async" alt="Checkpointed token-range copy, dual writes and sampled comparison reads between Cassandra and ScyllaDB.">
+  </button>
+  <figcaption>The migration separated copying, keeping new writes current, and proving result parity.</figcaption>
+</figure>
+<p>The new estimate was nine days and the reported peak copy rate reached 3.2 million messages per second. Near completion, progress stopped at 99.9999% because the final token ranges contained huge volumes of tombstones that Cassandra had not compacted away. Compacting the affected range let the migration finish. The last fraction of a migration often contains the least representative data; percentage complete is not a reliable risk metric.</p>
+<p>Dual writes kept the target current, but they did not prove equivalence. Discord sampled a small percentage of production reads, queried both databases and compared the results. Only after validation and full production-load observation did the team make ScyllaDB primary. A robust migration plan needs distinct mechanisms for copy progress, ongoing-write coverage and semantic comparison.</p>
+
+<h2 id="7-reported-results">7. Reported results</h2>
+<p>Discord switched the message database in May 2022. Several months later it reported running 72 ScyllaDB nodes instead of 177 Cassandra nodes. The node shapes were not equal: each ScyllaDB node had 9 TB of disk, compared with an average 4 TB per Cassandra node, so node count alone is not a normalized efficiency benchmark.</p>
+<p>For Discord's workload, historical-message fetches moved from 40–125 ms p99 on Cassandra to 15 ms p99 on ScyllaDB. Message inserts moved from 5–70 ms p99 to a steady 5 ms. More important operationally, the team reported that weekend firefights and node juggling were no longer normal. The outcome combined a different database, different hardware topology, upstream request shaping and accumulated operational learning.</p>
+
+<h2 id="8-what-to-reuse-and-what-to-remeasure">8. What to reuse—and what to remeasure</h2>
+<p>The reusable pattern is to measure skew, place an explicit concurrency boundary ahead of stateful storage, coalesce equivalent work, and migrate with a comparison oracle. The reusable decision process is to test real query shapes, gain experience on smaller systems and wait until both performance and recovery paths are acceptable.</p>
+<p>The numbers are not reusable defaults. A team evaluating Cassandra or ScyllaDB must reproduce its consistency level, partition distribution, read direction, tombstone density, compaction strategy, disks, node shape and failure model. Discord's result demonstrates what was possible under one documented workload; the architecture lesson is how the team reduced uncertainty before and during the change.</p>

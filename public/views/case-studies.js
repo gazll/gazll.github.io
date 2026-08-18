@@ -11,15 +11,17 @@ const RETURN_SURFACE = 'case-studies';
 
 const COPY = {
   en: {
-    collection: 'Collection', cases: count => count === 1 ? 'case study' : 'case studies', company: 'company',
+    collection: 'Collection', cases: count => count === 1 ? 'case study' : 'case studies',
+    sources: count => count === 1 ? 'source' : 'sources',
     availableLanguage: 'English · Vietnamese', minuteRead: 'min read', number: 'No.',
-    allCases: 'All case studies', historical: 'Historical case study',
+    allCases: 'All case studies', historical: 'Historical case study', firstParty: 'First-party incident',
     historicalNote: 'Architecture, technology choices and benchmark figures reflect the system and workload described at publication time.',
     original: 'English original', translation: 'English translation', guideEyebrow: 'Reading guide · Editorial synthesis',
     problem: 'Problem', coreIdea: 'Core idea', outcome: 'Reported outcome', takeaways: 'Key takeaways',
-    review: 'Design review lens', guideNote: 'The guide above is editorial synthesis; the preserved Tiki Engineering article continues below.',
+    review: 'Design review lens', guideNote: 'The guide above is editorial synthesis; the full case study continues below.',
+    guideNoteOwn: 'The guide above is a reading aid; the full write-up continues below.',
     toc: 'On this page', contents: 'Article contents', hideToc: 'Hide contents', showToc: 'Show contents',
-    readSource: 'Read at Tiki Engineering', source: 'Source',
+    readSource: 'Read original source', source: 'Source',
     originalArticle: 'original article', closeImage: 'Close image', notFound: 'Case study not found',
     missing: 'That article is not in this collection.', back: 'Back to case studies', loading: 'Loading case studies…',
     unavailable: 'Could not load this collection', unavailableTitle: 'The case-study files are unavailable.', retry: 'Try again',
@@ -27,15 +29,17 @@ const COPY = {
     locale: 'en'
   },
   vi: {
-    collection: 'Collection', cases: count => count === 1 ? 'case study' : 'case studies', company: 'company',
+    collection: 'Collection', cases: count => count === 1 ? 'case study' : 'case studies',
+    sources: count => count === 1 ? 'source' : 'sources',
     availableLanguage: 'Vietnamese · English', minuteRead: 'min read', number: 'No.',
-    allCases: 'All case studies', historical: 'Historical case study',
+    allCases: 'All case studies', historical: 'Historical case study', firstParty: 'First-party incident',
     historicalNote: 'Architecture, technology choices và benchmark figures phản ánh system cùng workload tại thời điểm bài được publish.',
     original: 'Vietnamese original', translation: 'Vietnamese translation', guideEyebrow: 'Reading guide · Editorial synthesis',
     problem: 'Problem', coreIdea: 'Core idea', outcome: 'Reported outcome', takeaways: 'Key takeaways',
-    review: 'Design review lens', guideNote: 'Phần trên là editorial synthesis để hỗ trợ đọc; bài Tiki Engineering được giữ lại bên dưới.',
+    review: 'Design review lens', guideNote: 'Phần trên là editorial synthesis để hỗ trợ đọc; case study đầy đủ nằm bên dưới.',
+    guideNoteOwn: 'Phần trên là tóm lược để hỗ trợ đọc; bài viết đầy đủ nằm bên dưới.',
     toc: 'On this page', contents: 'Article contents', hideToc: 'Hide contents', showToc: 'Show contents',
-    readSource: 'Đọc tại Tiki Engineering', source: 'Nguồn',
+    readSource: 'Đọc bài nguồn', source: 'Nguồn',
     originalArticle: 'bài viết gốc', closeImage: 'Đóng ảnh', notFound: 'Không tìm thấy case study',
     missing: 'Bài viết này không có trong bộ sưu tập.', back: 'Quay lại Case Studies', loading: 'Đang tải case study…',
     unavailable: 'Không thể tải bộ sưu tập', unavailableTitle: 'Các file case study hiện không khả dụng.', retry: 'Thử lại',
@@ -55,9 +59,23 @@ function levelMarkup(article) {
     + (article?.featured ? '<span class="featured-mark" title="' + text().featured + '" aria-label="' + text().featured + '">★</span>' : '');
 }
 
-const sourceHref = url => /^https:\/\/engineering\.tiki\.vn\//.test(url || '')
-  ? url
-  : 'https://engineering.tiki.vn/';
+const SOURCE_ORIGINS = new Set(['https://engineering.tiki.vn', 'https://discord.com']);
+const sourceHref = value => {
+  try {
+    const url = new URL(value);
+    return SOURCE_ORIGINS.has(url.origin) ? url.href : '#';
+  } catch {
+    return '#';
+  }
+};
+
+// Where an archived row names its publisher, a first-party row names itself.
+const bylineLabel = article => article.first_party ? text().firstParty : article.company;
+
+function sourceCount(articles) {
+  const publishers = new Set(articles.filter(a => !a.first_party).map(a => a.company));
+  return publishers.size + (articles.some(a => a.first_party) ? 1 : 0);
+}
 
 function formatDate(value) {
   const date = new Date(value + 'T00:00:00Z');
@@ -74,7 +92,7 @@ function renderCard(article, category) {
     + escapeHtml(article.cover_image) + '" alt="" loading="lazy" decoding="async"></span>'
     + '<span class="cs-card-content">'
     + '<span class="cs-card-kicker">' + text().number + ' ' + numberLabel(article) + ' · '
-    + escapeHtml(article.company) + ' · ' + escapeHtml(languageLabel(article)) + ' ' + levelMarkup(article) + '</span>'
+    + escapeHtml(bylineLabel(article)) + ' · ' + escapeHtml(languageLabel(article)) + ' ' + levelMarkup(article) + '</span>'
     + '<strong>' + escapeHtml(article.title) + '</strong>'
     + '<span class="cs-card-excerpt">' + escapeHtml(article.excerpt) + '</span>'
     + '<span class="cs-card-meta"><span>' + escapeHtml(category.label) + '</span><span>'
@@ -101,25 +119,32 @@ function renderLibrary(collection) {
     + '<header class="cs-library-hero"><p class="cs-eyebrow">' + escapeHtml(collection.library.eyebrow) + '</p>'
     + '<h1 id="case-library-title">' + escapeHtml(collection.library.title) + '</h1>'
     + '<p>' + escapeHtml(collection.library.intro) + '</p>'
+    // Counted, not hard-coded: first-party rows have no publisher, so they are
+    // their own source rather than a missing one.
     + '<div class="cs-library-stats"><span><b>' + articles.length + '</b> ' + text().cases(articles.length) + '</span>'
-    + '<span><b>1</b> ' + text().company + '</span><span>' + text().availableLanguage + '</span></div></header>'
+    + '<span><b>' + sourceCount(articles) + '</b> ' + text().sources(sourceCount(articles)) + '</span>'
+    + '<span>' + text().availableLanguage + '</span></div></header>'
     + groups + '</div>';
 }
 
 function articleMeta(article) {
   const tags = (article.tags || []).map(tag => '<span>' + escapeHtml(tag) + '</span>').join('');
-  const href = sourceHref(article.source_url);
+  // A first-party write-up has no publisher to credit and nothing off-site to
+  // link, so it gets neither the origin link nor the archive note — both of
+  // those exist to point at a source this article does not have.
+  const origin = article.first_party
+    ? ''
+    : '<a class="cs-origin" href="' + sourceHref(article.source_url) + '" target="_blank" rel="noopener noreferrer">'
+      + escapeHtml(article.company) + ' ↗</a>';
   return '<header class="cs-article-head">'
     + '<p class="cs-eyebrow">' + text().number + ' ' + numberLabel(article) + ' · '
-    + escapeHtml(article.company) + ' · ' + escapeHtml(article.category_label) + ' ' + levelMarkup(article) + '</p>'
+    + escapeHtml(bylineLabel(article)) + ' · ' + escapeHtml(article.category_label) + ' ' + levelMarkup(article) + '</p>'
     + '<h1 id="case-study-' + escapeHtml(article.slug) + '-title">' + escapeHtml(article.title) + '</h1>'
     + '<p class="cs-deck">' + escapeHtml(article.excerpt) + '</p>'
-    + '<div class="cs-byline"><span>' + formatDate(article.published_at) + '</span>'
-    + '<a class="cs-origin" href="' + href + '" target="_blank" rel="noopener noreferrer">'
-    + escapeHtml(article.company) + ' ↗</a>'
+    + '<div class="cs-byline"><span>' + formatDate(article.published_at) + '</span>' + origin
     + '<span class="cs-language">' + escapeHtml(languageLabel(article)) + '</span></div>'
     + '<div class="cs-tags">' + tags + '</div>'
-    + '<div class="cs-archive-note"><b>' + text().historical + '</b><span>' + text().historicalNote + '</span></div>'
+    + (article.first_party ? '' : '<div class="cs-archive-note"><b>' + text().historical + '</b><span>' + text().historicalNote + '</span></div>')
     + '</header>';
 }
 
@@ -147,7 +172,7 @@ function renderGuideProse(value) {
     + guideLine(closing, thesis);
 }
 
-function renderGuide(guide) {
+function renderGuide(guide, article) {
   if (!guide) return '';
   const takeaways = (guide.takeaways || []).map(item => '<li>' + escapeHtml(item) + '</li>').join('');
   const reviewLenses = (guide.review_lenses || []).map(item => '<li>' + escapeHtml(item) + '</li>').join('');
@@ -161,7 +186,7 @@ function renderGuide(guide) {
     + '</div><div class="cs-guide-depth">'
     + '<article><h3>' + text().takeaways + '</h3><ul>' + takeaways + '</ul></article>'
     + '<article><h3>' + text().review + '</h3><ul>' + reviewLenses + '</ul></article>'
-    + '</div><p class="cs-guide-note">' + text().guideNote + ' ↓</p></section>';
+    + '</div><p class="cs-guide-note">' + (article?.first_party ? text().guideNoteOwn : text().guideNote) + ' ↓</p></section>';
 }
 
 function renderArticle(article, body, guide) {
@@ -172,7 +197,7 @@ function renderArticle(article, body, guide) {
   return '<div class="cs-article"><div class="cs-backbar"><a class="cs-back" href="'
     + escapeHtml(withRouteLanguage('#/case-studies', Content.lang)) + '">← ' + text().allCases + '</a></div>'
     + articleMeta(article)
-    + renderGuide(guide)
+    + renderGuide(guide, article)
     + '<details class="cs-toc-mobile"><summary>' + text().toc + '</summary><nav data-case-toc-mobile></nav></details>'
     + '<div class="cs-article-grid">'
     + '<aside class="cs-toc" data-case-toc-panel aria-label="' + text().contents + '">'
@@ -180,11 +205,11 @@ function renderArticle(article, body, guide) {
     + '<button type="button" data-case-toc-toggle aria-expanded="true" aria-controls="cs-toc-content" aria-label="'
     + text().hideToc + '" title="' + text().hideToc + '"><span aria-hidden="true">‹</span></button></div>'
     + '<div class="cs-toc-content" id="cs-toc-content" data-case-toc-content><nav data-case-toc></nav>'
-    + '<a href="' + href + '" target="_blank" rel="noopener noreferrer">' + text().readSource + ' ↗</a></div></aside>'
+    + (article.first_party ? '' : '<a href="' + href + '" target="_blank" rel="noopener noreferrer">' + text().readSource + ' ↗</a>') + '</div></aside>'
     + '<article class="cs-article-body" data-case-body>' + body + '</article>'
     + '</div>'
-    + '<footer class="cs-source"><span>' + text().source + '</span><a href="' + href + '" target="_blank" rel="noopener noreferrer">'
-    + escapeHtml(article.company) + ' — ' + text().originalArticle + ' ↗</a></footer>'
+    + (article.first_party ? '' : '<footer class="cs-source"><span>' + text().source + '</span><a href="' + href + '" target="_blank" rel="noopener noreferrer">'
+      + escapeHtml(article.company) + ' — ' + text().originalArticle + ' ↗</a></footer>')
     + '<dialog class="cs-lightbox" data-case-lightbox><button type="button" aria-label="' + text().closeImage + '">×</button>'
     + '<figure><img alt=""><figcaption></figcaption></figure></dialog></div>';
 }
