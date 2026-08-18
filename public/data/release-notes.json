@@ -4,6 +4,47 @@
     {
       "date": "2026-08-18",
       "en": {
+        "title": "Two architecture journeys: trillion-message scale and the pre-revenue cloud bill"
+      },
+      "vi": {
+        "title": "Hai hành trình kiến trúc: hàng nghìn tỷ message và cloud bill trước doanh thu"
+      },
+      "changes": [
+        {
+          "kind": "content",
+          "target": "case-studies",
+          "en": {
+            "text": "New editorial case study — **How Discord stores trillions of messages**. It follows MongoDB to Cassandra to ScyllaDB, then focuses on the upstream controls that made the database migration work: consistent routing, request coalescing, token-range checkpoints, dual writes and sampled comparison reads. Published latency and node counts stay scoped to Discord's 2022 workload."
+          },
+          "vi": {
+            "text": "Editorial case study mới — **Discord lưu trữ hàng nghìn tỷ tin nhắn như thế nào?** Bài đi từ MongoDB sang Cassandra rồi ScyllaDB, sau đó tập trung vào upstream control giúp migration thành công: consistent routing, request coalescing, token-range checkpoint, dual write và sampled comparison read. Latency cùng node count được giới hạn đúng trong workload Discord năm 2022."
+          }
+        },
+        {
+          "kind": "content",
+          "target": "case-studies",
+          "en": {
+            "text": "New editorial case study — **Complex infrastructure for a small business: the cloud-cost shock**. A reported $312 monthly AWS bill becomes a FinOps and architecture-fitness exercise: identify the zero-user fixed floor, simplify duplicated environments and paid control planes, and compare managed cloud with one 4-core/8-GB server using explicit RPO, RTO and operator cost—not the false promise that one machine cannot go down."
+          },
+          "vi": {
+            "text": "Editorial case study mới — **Hạ tầng phức tạp cho business bé: cú sốc chi phí cloud**. Bill AWS được báo cáo ở mức 312 USD/tháng trở thành bài tập FinOps và architecture fitness: tìm fixed floor khi zero user, gộp environment cùng paid control plane bị nhân đôi, rồi so managed cloud với một server 4 core/8 GB bằng RPO, RTO và operator cost tường minh—không dựa vào lời hứa sai rằng một máy không thể downtime."
+          }
+        },
+        {
+          "kind": "feature",
+          "target": "case-studies",
+          "en": {
+            "text": "External articles that are rewritten rather than preserved now carry explicit synthesis metadata. Their cards and readers say **Editorial synthesis** instead of mislabelling the body as the original publisher article."
+          },
+          "vi": {
+            "text": "Bài external được biên soạn lại thay vì lưu nguyên văn giờ có synthesis metadata tường minh. Card và reader hiển thị **Editorial synthesis** thay vì ghi nhầm body là bài gốc của publisher."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-18",
+      "en": {
         "title": "Caching end to end: patterns, Redis, and PostgreSQL's buffer cache"
       },
       "vi": {

@@ -1,0 +1,66 @@
+<p>A reported $312 AWS bill—about VND 8.2 million—arrived in September–October 2025 while Cloud Exam Pro was not yet earning revenue. The amount was survivable; the recurring implication was frightening. Could a small exam business sell enough question sets every month merely to keep its infrastructure alive?</p>
+<p>This case study is an editorial synthesis of the founder's published account and the architecture diagrams supplied with it. The source explains the design and intended simplifications but does not publish a line-item Cost Explorer export or a verified bill after optimization. We can therefore identify likely fixed-cost mechanisms and propose a measurement plan, but we cannot honestly attribute an exact number of dollars to any service.</p>
+
+<h2 id="1-the-product-and-the-enterprise-reflex">1. The product and the enterprise reflex</h2>
+<p>The product supports registration, course discovery, checkout, practice exams, history and feedback, plus an operator surface for users, orders, courses, classes and transactions. These are real production responsibilities. They do not, however, imply the traffic, compliance duties or team boundaries of a bank, government system or large marketplace.</p>
+<p>The design was influenced by experience on exactly those larger systems. The original account plan separated development, staging and production, then added dedicated accounts for identity, deployment and long-term logs. IAM Identity Center supplied permission sets; CodePipeline, CodeBuild and CodeDeploy formed a CI/CD hub; another account retained centralized audit logs.</p>
+<figure class="cs-figure cs-figure-wide">
+  <button type="button" data-zoom-image aria-label="Open the proposed AWS account structure at full size">
+    <img src="assets/case-studies/14-small-business-cloud-cost-shock/01-figure.jpg" width="2000" height="1454" loading="lazy" decoding="async" alt="Proposed AWS organization with development, staging, production, identity, deployment and log archive accounts.">
+  </button>
+  <figcaption>Proposed account topology: strong isolation, but many operational surfaces for a very small team.</figcaption>
+</figure>
+<p>None of these patterns is inherently wrong. They isolate blast radius, support controlled promotion and make audit ownership explicit. The mistake is treating the pattern as free. Every environment needs configuration, secrets, deployment paths, monitoring, patching and human attention; many resources also accrue hourly charges while idle.</p>
+
+<h2 id="2-where-the-fixed-cost-floor-came-from">2. Where the fixed-cost floor came from</h2>
+<p>The original architecture combined Route 53, WAF, CloudFront and S3 at the edge; Cognito and API Gateway; two ECS clusters behind load balancers; two RDS databases; Step Functions and batch jobs; multiple VPC endpoints; CloudWatch, Firehose and a log archive; plus deployment, security and governance services.</p>
+<figure class="cs-figure cs-figure-wide">
+  <button type="button" data-zoom-image aria-label="Open the proposed AWS architecture at full size">
+    <img src="assets/case-studies/14-small-business-cloud-cost-shock/02-figure.jpg" width="2784" height="1704" loading="lazy" decoding="async" alt="Proposed Cloud Exam Pro AWS architecture with duplicated ECS and RDS stacks, load balancers, private endpoints, logging and CI/CD services.">
+  </button>
+  <figcaption>The proposed architecture accumulated multiple always-on and per-hour control-plane components before launch.</figcaption>
+</figure>
+<p>Low request volume makes S3, CloudFront, Lambda or SQS cheap, but it does not erase the minimum cost of provisioned components. Databases, running container tasks, load balancers and interface endpoints can create an idle floor. Logs, flow records, configuration history and cross-service delivery can then add usage-based spend even when the application itself is quiet.</p>
+<p>The diagram is not a bill. An ALB icon does not reveal hours, LCUs or count; an RDS icon does not reveal engine, class, storage, backups or Multi-AZ; an endpoint icon does not reveal Availability Zones. The first FinOps task is therefore not deleting whatever looks complicated. It is exporting cost by service, usage type, account, environment and tag, then separating three buckets: unavoidable baseline, idle duplication and request-driven growth.</p>
+
+<h2 id="3-the-first-simplification">3. The first simplification</h2>
+<p>Before completing the full design, the team removed staging, the dedicated deployment account and the log-archive account. GitHub Actions replaced the AWS CI/CD hub. Development and production remained separated, with IAM centralized.</p>
+<figure class="cs-figure cs-figure-wide">
+  <button type="button" data-zoom-image aria-label="Open the simplified AWS account structure at full size">
+    <img src="assets/case-studies/14-small-business-cloud-cost-shock/03-figure.jpg" width="2110" height="1192" loading="lazy" decoding="async" alt="Simplified AWS organization retaining identity, development and production accounts while removing staging, deployment and log archive accounts.">
+  </button>
+  <figcaption>The revised organization kept identity plus dev/prod separation and removed three planned account surfaces.</figcaption>
+</figure>
+<p>The running architecture was smaller but still sophisticated: separate user and operator ECS/RDS paths, load balancers, API Gateway, Cognito, batch workflows, VPC endpoints and the usual security and observability services. This distinction matters. Deleting accounts can reduce governance work without deleting the billable resources inside the remaining accounts.</p>
+<figure class="cs-figure cs-figure-wide">
+  <button type="button" data-zoom-image aria-label="Open the simplified running AWS architecture at full size">
+    <img src="assets/case-studies/14-small-business-cloud-cost-shock/04-figure.jpg" width="2768" height="1536" loading="lazy" decoding="async" alt="Simplified running architecture with dev and production, two ECS and RDS application paths, load balancers, batch processing and VPC endpoints.">
+  </button>
+  <figcaption>Simplified does not yet mean cheap: duplicated stateful and networking layers remain visible.</figcaption>
+</figure>
+
+<h2 id="4-is-one-4-core-8-gb-server-the-answer">4. Is one 4-core, 8-GB server the answer?</h2>
+<p>For an unlaunched exam product, a 4-core, 8-GB server may indeed have far more compute capacity than the current workload needs. A modular monolith, PostgreSQL, a reverse proxy and a background worker can serve meaningful traffic on that shape when queries, payloads and concurrency are reasonable. Replacing many managed components with one machine can cut the cash bill dramatically.</p>
+<p>The claim that it therefore “will not have downtime” is incorrect. One machine combines the application, database, disk, operating system, network path, provider and deployment into shared failure domains. A failed disk, bad kernel update, full filesystem, provider outage, destructive migration or human mistake can take out the entire service and its local backup at once.</p>
+<p>The correct comparison is not 4 cores versus ECS. It is total cost for an explicit service level:</p>
+<table class="cmp"><thead><tr><th>Option</th><th>What it buys</th><th>What the team must own</th></tr></thead><tbody>
+  <tr><td>One VPS or bare-metal server</td><td>Lowest fixed cash cost and simplest request path</td><td>OS patching, database operation, off-host backup, restore, failover decision and deployment rollback</td></tr>
+  <tr><td>Small managed app plus managed DB</td><td>Some operational work transferred to the provider; easier backups and replacement</td><td>Right-sizing, cost limits, application recovery and provider-specific failure modes</td></tr>
+  <tr><td>Current multi-service AWS design</td><td>Isolation, managed integrations and a path to higher availability</td><td>A much larger configuration surface and an idle floor that exists before revenue</td></tr>
+</tbody></table>
+<p>A single server is a rational business decision when the team explicitly accepts its RTO and RPO. It becomes reckless only when “simple” is used as a substitute for backups, observability and recovery rehearsal.</p>
+
+<h2 id="5-a-practical-early-stage-target">5. A practical early-stage target</h2>
+<p>Start with one deployable application, not necessarily one undifferentiated codebase. Serve static assets through object storage and a CDN if that remains cheap. Run the API and worker together or as two processes on one small compute unit. Keep one relational database; whether it runs on the server or as a managed service depends on the value assigned to restore automation and operator time.</p>
+<p>Keep controls whose value is high and recurring cost is low: TLS, least-privilege credentials, MFA for operators, dependency updates, database migrations, encrypted off-host backups, uptime checks, error alerts, audit events for money and administration, and infrastructure that can be recreated from code or documented commands.</p>
+<p>Do not promise automatic failover without testing it. An honest early-stage target might be a daily or hourly recovery point and restoration within a few hours. Copy backups to a different failure domain, retain multiple generations, and restore one into a clean environment. A backup that has never been restored is only an assumption.</p>
+
+<h2 id="6-a-90-day-cost-recovery-plan">6. A 90-day cost-recovery plan</h2>
+<p><strong>Days 1–7 — establish the ledger.</strong> Enable budgets and anomaly alerts. Export the bill by account, service and usage type. Tag every resource by environment, owner and product. Record CPU, memory, database connections, storage, request count and completed exams. Compute zero-user monthly cost and cost per completed exam.</p>
+<p><strong>Days 8–30 — remove idle duplication.</strong> Schedule development off-hours. Delete unused endpoints, load balancers, log groups, snapshots and orphaned volumes only after ownership checks. Reduce log retention and sampling where compliance does not require full capture. Right-size database and task minimums. Verify whether separate user/operator stacks need separate failure and scaling domains today.</p>
+<p><strong>Days 31–60 — choose the operating model.</strong> Benchmark a representative exam load on a small instance. Test database restore and a failed deployment. Compare the managed AWS baseline with a VPS or simpler managed platform including operator hours, backup storage and expected outage cost—not only CPU price.</p>
+<p><strong>Days 61–90 — make evolution explicit.</strong> Write thresholds for scaling out: sustained CPU or connection saturation, a recovery objective one server cannot meet, deployments blocking each other, a regulation requiring isolation, or incident cost exceeding the managed-service premium. Buy a Savings Plan only after a stable baseline exists; commitment discounts waste as efficiently as they discount useful capacity.</p>
+
+<h2 id="7-the-decision-rule">7. The decision rule</h2>
+<p>The architecture should minimize the combined cost of infrastructure, engineering time and accepted risk. Before product-market fit, reversibility and survival usually dominate theoretical scale. After traffic, revenue, team size or regulation changes, the same managed controls may become cheap compared with the outage or coordination they prevent.</p>
+<p>The strongest response to the bare-metal criticism is therefore: yes, one modest server may be the correct current architecture; no, its capacity does not guarantee availability. Use it with off-host backups, monitoring, a restore drill and a documented upgrade trigger. Cloud is not the goal, and minimal monthly spend is not the goal. The goal is the least expensive architecture that meets today's business contract and can evolve before tomorrow's contract breaks it.</p>

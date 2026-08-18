@@ -14,9 +14,10 @@ const COPY = {
     collection: 'Collection', cases: count => count === 1 ? 'case study' : 'case studies',
     sources: count => count === 1 ? 'source' : 'sources',
     availableLanguage: 'English · Vietnamese', minuteRead: 'min read', number: 'No.',
-    allCases: 'All case studies', historical: 'Historical case study', firstParty: 'First-party incident',
+    allCases: 'All case studies', historical: 'Historical case study', synthesis: 'Editorial synthesis', firstParty: 'First-party incident', editorial: 'Editorial case study',
     historicalNote: 'Architecture, technology choices and benchmark figures reflect the system and workload described at publication time.',
-    original: 'English original', translation: 'English translation', guideEyebrow: 'Reading guide · Editorial synthesis',
+    synthesisNote: 'This article is a rewritten case study based on the credited source, not a preserved copy of the original.',
+    original: 'English original', translation: 'English translation', synthesisLanguage: 'English synthesis', guideEyebrow: 'Reading guide · Editorial synthesis',
     problem: 'Problem', coreIdea: 'Core idea', outcome: 'Reported outcome', takeaways: 'Key takeaways',
     review: 'Design review lens', guideNote: 'The guide above is editorial synthesis; the full case study continues below.',
     guideNoteOwn: 'The guide above is a reading aid; the full write-up continues below.',
@@ -32,9 +33,10 @@ const COPY = {
     collection: 'Collection', cases: count => count === 1 ? 'case study' : 'case studies',
     sources: count => count === 1 ? 'source' : 'sources',
     availableLanguage: 'Vietnamese · English', minuteRead: 'min read', number: 'No.',
-    allCases: 'All case studies', historical: 'Historical case study', firstParty: 'First-party incident',
+    allCases: 'All case studies', historical: 'Historical case study', synthesis: 'Editorial synthesis', firstParty: 'First-party incident', editorial: 'Editorial case study',
     historicalNote: 'Architecture, technology choices và benchmark figures phản ánh system cùng workload tại thời điểm bài được publish.',
-    original: 'Vietnamese original', translation: 'Vietnamese translation', guideEyebrow: 'Reading guide · Editorial synthesis',
+    synthesisNote: 'Bài này được biên soạn lại từ nguồn đã ghi công, không phải bản sao được lưu nguyên văn từ bài gốc.',
+    original: 'Vietnamese original', translation: 'Vietnamese translation', synthesisLanguage: 'Vietnamese synthesis', guideEyebrow: 'Reading guide · Editorial synthesis',
     problem: 'Problem', coreIdea: 'Core idea', outcome: 'Reported outcome', takeaways: 'Key takeaways',
     review: 'Design review lens', guideNote: 'Phần trên là editorial synthesis để hỗ trợ đọc; case study đầy đủ nằm bên dưới.',
     guideNoteOwn: 'Phần trên là tóm lược để hỗ trợ đọc; bài viết đầy đủ nằm bên dưới.',
@@ -51,7 +53,9 @@ const COPY = {
 const text = () => COPY[Content.lang] || COPY.en;
 const MOVED_TO_SYSTEM_DESIGN = 'systems-architecture';
 const numberLabel = article => String(article.n).padStart(2, '0');
-const languageLabel = article => article.is_translation ? text().translation : text().original;
+const languageLabel = article => article.content_kind === 'synthesis' && !article.is_translation
+  ? text().synthesisLanguage
+  : article.is_translation ? text().translation : text().original;
 function levelMarkup(article) {
   const labels = { core: text().levelCore, advanced: text().levelAdvanced, extra: text().levelExtra };
   const level = labels[article?.level] ? article.level : 'advanced';
@@ -59,7 +63,7 @@ function levelMarkup(article) {
     + (article?.featured ? '<span class="featured-mark" title="' + text().featured + '" aria-label="' + text().featured + '">★</span>' : '');
 }
 
-const SOURCE_ORIGINS = new Set(['https://engineering.tiki.vn', 'https://discord.com']);
+const SOURCE_ORIGINS = new Set(['https://engineering.tiki.vn', 'https://discord.com', 'https://blog.cloudmentor.pro']);
 const sourceHref = value => {
   try {
     const url = new URL(value);
@@ -69,12 +73,13 @@ const sourceHref = value => {
   }
 };
 
-// Where an archived row names its publisher, a first-party row names itself.
-const bylineLabel = article => article.first_party ? text().firstParty : article.company;
+// Archived rows name their publisher; locally authored rows name their kind.
+const bylineLabel = article => article.first_party ? text().firstParty : article.editorial ? text().editorial : article.company;
+const hasExternalSource = article => !article.first_party && !article.editorial;
 
 function sourceCount(articles) {
-  const publishers = new Set(articles.filter(a => !a.first_party).map(a => a.company));
-  return publishers.size + (articles.some(a => a.first_party) ? 1 : 0);
+  const publishers = new Set(articles.filter(hasExternalSource).map(a => a.company));
+  return publishers.size + (articles.some(a => !hasExternalSource(a)) ? 1 : 0);
 }
 
 function formatDate(value) {
@@ -129,13 +134,14 @@ function renderLibrary(collection) {
 
 function articleMeta(article) {
   const tags = (article.tags || []).map(tag => '<span>' + escapeHtml(tag) + '</span>').join('');
-  // A first-party write-up has no publisher to credit and nothing off-site to
-  // link, so it gets neither the origin link nor the archive note — both of
-  // those exist to point at a source this article does not have.
-  const origin = article.first_party
+  // A locally authored write-up has no publisher to credit and nothing
+  // off-site to link, so it gets neither an origin link nor an archive note.
+  const origin = !hasExternalSource(article)
     ? ''
     : '<a class="cs-origin" href="' + sourceHref(article.source_url) + '" target="_blank" rel="noopener noreferrer">'
       + escapeHtml(article.company) + ' ↗</a>';
+  const archiveLabel = article.content_kind === 'synthesis' ? text().synthesis : text().historical;
+  const archiveNote = article.content_kind === 'synthesis' ? text().synthesisNote : text().historicalNote;
   return '<header class="cs-article-head">'
     + '<p class="cs-eyebrow">' + text().number + ' ' + numberLabel(article) + ' · '
     + escapeHtml(bylineLabel(article)) + ' · ' + escapeHtml(article.category_label) + ' ' + levelMarkup(article) + '</p>'
@@ -144,7 +150,7 @@ function articleMeta(article) {
     + '<div class="cs-byline"><span>' + formatDate(article.published_at) + '</span>' + origin
     + '<span class="cs-language">' + escapeHtml(languageLabel(article)) + '</span></div>'
     + '<div class="cs-tags">' + tags + '</div>'
-    + (article.first_party ? '' : '<div class="cs-archive-note"><b>' + text().historical + '</b><span>' + text().historicalNote + '</span></div>')
+    + (!hasExternalSource(article) ? '' : '<div class="cs-archive-note"><b>' + archiveLabel + '</b><span>' + archiveNote + '</span></div>')
     + '</header>';
 }
 
@@ -205,10 +211,10 @@ function renderArticle(article, body, guide) {
     + '<button type="button" data-case-toc-toggle aria-expanded="true" aria-controls="cs-toc-content" aria-label="'
     + text().hideToc + '" title="' + text().hideToc + '"><span aria-hidden="true">‹</span></button></div>'
     + '<div class="cs-toc-content" id="cs-toc-content" data-case-toc-content><nav data-case-toc></nav>'
-    + (article.first_party ? '' : '<a href="' + href + '" target="_blank" rel="noopener noreferrer">' + text().readSource + ' ↗</a>') + '</div></aside>'
+    + (!hasExternalSource(article) ? '' : '<a href="' + href + '" target="_blank" rel="noopener noreferrer">' + text().readSource + ' ↗</a>') + '</div></aside>'
     + '<article class="cs-article-body" data-case-body>' + body + '</article>'
     + '</div>'
-    + (article.first_party ? '' : '<footer class="cs-source"><span>' + text().source + '</span><a href="' + href + '" target="_blank" rel="noopener noreferrer">'
+    + (!hasExternalSource(article) ? '' : '<footer class="cs-source"><span>' + text().source + '</span><a href="' + href + '" target="_blank" rel="noopener noreferrer">'
       + escapeHtml(article.company) + ' — ' + text().originalArticle + ' ↗</a></footer>')
     + '<dialog class="cs-lightbox" data-case-lightbox><button type="button" aria-label="' + text().closeImage + '">×</button>'
     + '<figure><img alt=""><figcaption></figcaption></figure></dialog></div>';

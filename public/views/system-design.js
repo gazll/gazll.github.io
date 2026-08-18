@@ -46,11 +46,12 @@ const COPY = {
     codeSamples: 'Runnable code samples', codeIntro: 'Small executable slices make the boundary concrete. Run them locally, then adapt the schema, limits and failure handling to your workload.', run: 'Run',
     zoomControls: 'Diagram zoom', zoomOut: 'Zoom out', zoomIn: 'Zoom in', zoomReset: 'Reset zoom',
     diagramUnavailable: 'Diagram renderer unavailable. The editable Mermaid source is still available below.',
-    production: 'Production evidence', historical: 'Historical architecture',
+    production: 'Production evidence', historical: 'Historical architecture', synthesis: 'Editorial synthesis',
     historicalNote: 'The preserved article reflects the system, constraints and technology available at publication time.',
+    synthesisNote: 'This is a rewritten case study based on the credited source, not a preserved copy of the original article.',
     legacyDiagram: 'The former drawing is consolidated into the editable Mermaid architecture above.',
     problem: 'Problem', coreIdea: 'Core idea', outcome: 'Outcome', takeaways: 'Key takeaways', review: 'Review questions', sourceLabel: 'Source',
-    original: 'Original article', toc: 'On this page', tocToggle: 'Collapse contents',
+    original: 'Original article', synthesisBody: 'Editorial case study', toc: 'On this page', tocToggle: 'Collapse contents',
     loading: 'Loading the System Design library…',
     unavailable: 'Could not load System Design', missing: 'Design not found', retry: 'Back to the library'
   },
@@ -86,11 +87,12 @@ const COPY = {
     codeSamples: 'Code sample có thể chạy', codeIntro: 'Các lát cắt nhỏ có thể chạy giúp thấy boundary cụ thể hơn. Hãy chạy local, sau đó điều chỉnh schema, limit và failure handling theo workload thực tế.', run: 'Chạy',
     zoomControls: 'Phóng to/thu nhỏ sơ đồ', zoomOut: 'Thu nhỏ', zoomIn: 'Phóng to', zoomReset: 'Đặt lại tỷ lệ',
     diagramUnavailable: 'Renderer không khả dụng. Editable Mermaid source vẫn nằm bên dưới.',
-    production: 'Production evidence', historical: 'Historical architecture',
+    production: 'Production evidence', historical: 'Historical architecture', synthesis: 'Editorial synthesis',
     historicalNote: 'Bài gốc phản ánh system, constraints và technology ở thời điểm được publish.',
+    synthesisNote: 'Đây là case study được biên soạn lại từ nguồn đã ghi công, không phải bản sao được lưu nguyên văn từ bài gốc.',
     legacyDiagram: 'Legacy diagram đã được gom vào editable Mermaid architecture ở phía trên.',
     problem: 'Problem', coreIdea: 'Core idea', outcome: 'Outcome', takeaways: 'Key takeaways', review: 'Review questions', sourceLabel: 'Source',
-    original: 'Original article', toc: 'On this page', tocToggle: 'Collapse contents',
+    original: 'Original article', synthesisBody: 'Editorial case study', toc: 'On this page', tocToggle: 'Collapse contents',
     loading: 'Đang tải thư viện System Design…',
     unavailable: 'Không thể tải System Design', missing: 'Không tìm thấy bài thiết kế', retry: 'Quay lại thư viện'
   }
@@ -123,7 +125,7 @@ function storeTocCollapsed(collapsed) {
 }
 // Attribution is the publisher URL and nothing else, so an unexpected host is
 // never rendered as an external link.
-const SOURCE_ORIGINS = new Set(['https://engineering.tiki.vn', 'https://discord.com']);
+const SOURCE_ORIGINS = new Set(['https://engineering.tiki.vn', 'https://discord.com', 'https://blog.cloudmentor.pro']);
 const sourceHref = value => {
   try {
     const url = new URL(value);
@@ -567,16 +569,20 @@ function renderCaseGuide(article) {
 function renderProductionArticle(article, overview, archivedBody) {
   const href = sourceHref(article.source_url);
   const tags = article.tags.map(tag => '<span>' + escapeHtml(tag) + '</span>').join('');
+  const isSynthesis = article.content_kind === 'synthesis';
+  const archiveLabel = isSynthesis ? text().synthesis : text().historical;
+  const archiveNote = isSynthesis ? text().synthesisNote : text().historicalNote;
+  const bodyLabel = isSynthesis ? text().synthesisBody : text().original;
   const header = '<header class="sd-article-head">'
     + '<p class="cs-eyebrow">' + text().production + ' · ' + escapeHtml(article.company) + ' ' + levelMarkup(article) + '</p><h1 id="system-case-' + escapeHtml(article.slug) + '-title">' + escapeHtml(article.title) + '</h1>'
     + '<p>' + escapeHtml(article.excerpt) + '</p><div class="cs-tags">' + tags + '</div>'
-    + '<div class="cs-archive-note"><b>' + text().historical + '</b><span>' + text().historicalNote + '</span></div></header>';
+    + '<div class="cs-archive-note"><b>' + archiveLabel + '</b><span>' + archiveNote + '</span></div></header>';
   const body = '<article class="sd-article-body" data-sd-body>'
     + '<section class="sd-section sd-scope"><h2 id="architecture-lens">' + text().architecture + '</h2>'
     + renderScope(overview?.lens || article.excerpt)
     + (overview?.diagram ? diagramBlock(overview.title || text().architecture, overview.diagram) : '') + '</section>'
     + renderCaseGuide(article)
-    + '<section class="sd-section sd-archive"><h2 id="preserved-article">' + text().original + '</h2>'
+    + '<section class="sd-section sd-archive"><h2 id="preserved-article">' + bodyLabel + '</h2>'
     + '<div class="cs-article-body">' + archivedBody + '</div></section></article>';
   return articleShell(header, body)
     + '<footer class="cs-source"><span>' + text().sourceLabel + '</span><a href="' + href + '" target="_blank" rel="noopener noreferrer">'

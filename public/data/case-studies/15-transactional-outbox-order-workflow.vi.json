@@ -1,0 +1,22 @@
+{
+  "body_file": "data/case-studies/articles/15-transactional-outbox-order-workflow.vi.html",
+  "guide": {
+    "title": "Hãy đọc đây là bài thiết kế consistency boundary, không phải câu hỏi nên ghi database hay queue trước.",
+    "problem": "Service A phải cập nhật record của mình và yêu cầu Service B tạo một record khác. Database commit và broker publish là hai phép ghi độc lập, nên thứ tự nào cũng để lại một crash window nơi một bên thành công còn bên kia thất bại.",
+    "core_idea": "Commit business change và outbox event trong cùng một local database transaction. Relay sẽ publish durable event đó sau; Service B xử lý message trùng an toàn bằng cách ghi event ID và business update trong cùng một local transaction.",
+    "outcome": "Thiết kế loại bỏ lost-event window mà không cần distributed transaction. Nó chủ động cung cấp at-least-once delivery, biến duplicate thành retry vô hại, rồi mô hình hóa payment, inventory và shipping thành các order-state transition tường minh có compensating action.",
+    "takeaways": [
+      "Không thứ tự nào biến hai phép ghi độc lập thành atomic dual write. Database-first có thể mất notification; broker-first có thể lộ event của một business change chưa từng commit.",
+      "Outbox relay được phép publish hai lần. Crash sau broker acknowledgement nhưng trước lúc đánh dấu row đã publish khiến duplicate delivery không tránh khỏi, nên consumer phải idempotent.",
+      "Inbox deduplication và business update của consumer phải nằm trong cùng local transaction. Check event ID trước transaction chỉ tạo thêm một race check-then-act.",
+      "Outbox giải quyết transport reliability, không giải quyết business sequencing. Saga hoặc state machine định nghĩa event nào được chuyển order từ PAYMENT_PENDING sang PAID, RESERVED, SHIPPED hay trạng thái bù trừ.",
+      "Chỉ trả cho client trạng thái đã durable. Async checkout thường nên trả order ID cùng pending status, không tuyên bố toàn workflow đã hoàn tất."
+    ],
+    "review_lenses": [
+      "Atomicity: tìm mọi chỗ vừa ghi database vừa gọi external system trong cùng một logical operation.",
+      "Duplicate safety: định nghĩa stable event ID, business uniqueness key và transaction boundary tại từng consumer.",
+      "Ordering: quyết định event có cần per-aggregate ordering không và cách từ chối transition cũ hoặc sai thứ tự.",
+      "Operations: định nghĩa relay lag, retry policy, poison-event handling, retention, reconciliation và alert trước production."
+    ]
+  }
+}

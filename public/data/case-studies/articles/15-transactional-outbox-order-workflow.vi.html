@@ -1,0 +1,135 @@
+<h2 id="problem">1. Bài toán không phải là chọn thứ tự đúng</h2>
+<p>Client gửi request đến Service A. A phải update dữ liệu của mình, rồi phát message để Service B tạo dữ liệu liên quan. Hai hành động này nằm trên hai resource manager khác nhau: database và message broker. Một local transaction không thể tự động commit cả hai.</p>
+<table>
+  <thead><tr><th>Thứ tự</th><th>Crash window</th><th>Dữ liệu quan sát được</th></tr></thead>
+  <tbody>
+    <tr><td>Commit DB rồi publish</td><td>A crash sau commit, trước publish</td><td>A đã đổi nhưng B không bao giờ được báo</td></tr>
+    <tr><td>Publish rồi commit DB</td><td>A crash sau publish, trước commit</td><td>B xử lý một thay đổi mà A chưa từng commit</td></tr>
+    <tr><td>Publish trong DB transaction</td><td>Broker xác nhận nhưng DB rollback</td><td>Message vẫn thoát ra ngoài; rollback không thu hồi được nó</td></tr>
+  </tbody>
+</table>
+<p>Retry toàn bộ request cũng không tự giải quyết được: client có thể timeout sau khi A đã commit, rồi gửi lại và tạo thêm một lần xử lý. Câu hỏi đúng là: <strong>đâu là consistency boundary mà hệ thống thật sự có thể commit nguyên tử?</strong></p>
+
+<h2 id="business-flow">2. Bắt đầu từ quy trình đời thật</h2>
+<p>Hãy dùng một order làm root aggregate. Việc tạo order, thanh toán, giữ hàng và giao hàng không phải một transaction dài; đó là một workflow gồm các cam kết riêng, mỗi cam kết có trạng thái và cách bù trừ.</p>
+<ol>
+  <li>Order Service tạo order ở <code>CREATED</code>.</li>
+  <li>Người dùng checkout: order chuyển sang <code>PAYMENT_PENDING</code>.</li>
+  <li>Payment Service thành công: order chuyển sang <code>PAID</code>; thất bại thì <code>PAYMENT_FAILED</code>.</li>
+  <li>Inventory Service giữ hàng: thành công thì <code>INVENTORY_RESERVED</code>; hết hàng thì yêu cầu hoàn tiền.</li>
+  <li>Chỉ sau khi tiền và hàng đều được xác nhận, Shipping Service mới nhận yêu cầu giao.</li>
+</ol>
+<figure class="cs-figure">
+  <button type="button" data-zoom-image aria-label="Mở sơ đồ Transactional Outbox ở kích thước đầy đủ">
+    <img src="assets/case-studies/15-transactional-outbox-order-workflow/01-outbox-flow.svg" width="1200" height="660" loading="lazy" decoding="async" alt="Service A commit business row và outbox event cùng lúc; relay gửi event qua broker; Service B deduplicate trước khi commit dữ liệu.">
+  </button>
+  <figcaption>Database transaction tạo durable intent; relay và consumer hoàn tất delivery theo cơ chế at-least-once.</figcaption>
+</figure>
+
+<h2 id="outbox-write">3. Một commit cho business row và delivery intent</h2>
+<p>Service A không publish trực tiếp trong request transaction. Nó ghi business state và event cần phát vào cùng database. Nếu commit thành công thì cả hai cùng tồn tại; nếu rollback thì cả hai cùng biến mất.</p>
+<pre><code>BEGIN;
+
+UPDATE orders
+SET status = 'PAYMENT_PENDING', version = version + 1
+WHERE id = 'order-123' AND version = 7;
+
+INSERT INTO outbox_events (
+  event_id, aggregate_id, aggregate_version,
+  event_type, payload, status, created_at
+) VALUES (
+  'evt-456', 'order-123', 8,
+  'PaymentRequested', '{...}', 'PENDING', CURRENT_TIMESTAMP
+);
+
+COMMIT;</code></pre>
+<p><code>event_id</code> là identity ổn định cho retry. <code>aggregate_id</code> gom event theo order; <code>aggregate_version</code> giúp consumer phát hiện event cũ hoặc sai thứ tự. Payload nên chứa dữ liệu cần thiết cho contract, không buộc consumer đọc database riêng của Service A.</p>
+
+<h2 id="relay">4. Relay publish, nhưng không giả vờ exactly-once</h2>
+<p>Một relay claim các row <code>PENDING</code>, publish lên broker, chờ acknowledgement rồi đánh dấu <code>PUBLISHED</code>. Nhiều worker có thể dùng lease hoặc <code>FOR UPDATE SKIP LOCKED</code> để không cùng claim một batch. Khi publish lỗi, row vẫn durable và được retry với backoff.</p>
+<table>
+  <thead><tr><th>Relay dừng ở đâu?</th><th>Sau restart</th><th>Yêu cầu thiết kế</th></tr></thead>
+  <tbody>
+    <tr><td>Trước broker acknowledgement</td><td>Publish lại</td><td>Event không bị mất</td></tr>
+    <tr><td>Sau acknowledgement, trước lúc mark published</td><td>Có thể publish trùng</td><td>Consumer phải idempotent</td></tr>
+    <tr><td>Sau khi mark published</td><td>Không claim lại</td><td>Giữ row để audit rồi cleanup theo retention</td></tr>
+  </tbody>
+</table>
+<p>Đây là <strong>at-least-once delivery</strong>. Cố gọi nó exactly-once chỉ chuyển duplicate sang một góc khó thấy hơn; end-to-end correctness vẫn cần stable identity và idempotent side effect.</p>
+
+<h2 id="consumer">5. Service B dùng Inbox để biến duplicate thành no-op</h2>
+<p>Service B không được chỉ đọc <code>event_id</code>, thấy chưa có rồi mới insert business row. Hai consumer đồng thời có thể cùng vượt qua check. Dedup marker và business mutation phải commit trong cùng local transaction.</p>
+<pre><code>BEGIN;
+
+WITH accepted AS (
+  INSERT INTO processed_messages (consumer_name, event_id, processed_at)
+  VALUES ('payment-service', 'evt-456', CURRENT_TIMESTAMP)
+  ON CONFLICT DO NOTHING
+  RETURNING event_id
+)
+INSERT INTO payments (order_id, amount, status)
+SELECT 'order-123', 500000, 'AUTHORIZED'
+FROM accepted;
+
+COMMIT;</code></pre>
+<p>Ngoài dedup theo event, business table nên có constraint theo business intent, ví dụ <code>UNIQUE(order_id, payment_attempt)</code>. Event ID chặn phát lại cùng message; business key chặn hai message khác nhau vô tình yêu cầu cùng một side effect.</p>
+
+<h2 id="saga">6. Outbox vận chuyển sự kiện; Saga điều khiển nghiệp vụ</h2>
+<p>Outbox không biết order nào được phép chuyển trạng thái. Order state machine mới là nơi encode invariant và compensating action.</p>
+<table>
+  <thead><tr><th>Event</th><th>Transition hợp lệ</th><th>Action tiếp theo</th></tr></thead>
+  <tbody>
+    <tr><td><code>PaymentSucceeded</code></td><td><code>PAYMENT_PENDING → PAID</code></td><td>Phát <code>InventoryReservationRequested</code></td></tr>
+    <tr><td><code>PaymentFailed</code></td><td><code>PAYMENT_PENDING → PAYMENT_FAILED</code></td><td>Dừng workflow</td></tr>
+    <tr><td><code>InventoryReserved</code></td><td><code>PAID → INVENTORY_RESERVED</code></td><td>Phát <code>ShipmentRequested</code></td></tr>
+    <tr><td><code>InventoryRejected</code></td><td><code>PAID → REFUND_PENDING</code></td><td>Phát <code>RefundRequested</code></td></tr>
+  </tbody>
+</table>
+<p>Choreography phù hợp khi flow ngắn và ownership rõ. Khi nhánh, timeout và compensation tăng lên, một orchestrator giúp nhìn thấy state machine tập trung hơn. Dù chọn cách nào, mỗi service chỉ ghi database của mình và phát event qua outbox của chính nó.</p>
+
+<h2 id="api-contract">7. API chỉ hứa điều đã durable</h2>
+<p>Sau khi transaction của Order Service commit, toàn workflow vẫn chưa hoàn tất. API nên trả <code>202 Accepted</code> cùng trạng thái pending:</p>
+<pre><code>HTTP/1.1 202 Accepted
+Location: /orders/order-123
+
+{
+  "orderId": "order-123",
+  "status": "PAYMENT_PENDING"
+}</code></pre>
+<p>Client có thể poll resource, nhận SSE/WebSocket notification hoặc webhook. Một client retry cùng checkout intent nên gửi idempotency key để Order Service trả lại order đã tạo thay vì mở một Saga thứ hai.</p>
+
+<h2 id="operations">8. Phần production thường bị bỏ quên</h2>
+<ul>
+  <li><strong>Lag:</strong> đo tuổi của row <code>PENDING</code> cũ nhất, không chỉ queue depth.</li>
+  <li><strong>Retry:</strong> exponential backoff có jitter; phân biệt transient failure với payload không hợp lệ.</li>
+  <li><strong>Poison event:</strong> chuyển sang trạng thái lỗi hoặc DLQ có alert và quy trình replay, không retry nóng vô hạn.</li>
+  <li><strong>Ordering:</strong> partition theo <code>aggregate_id</code> nếu per-order order quan trọng; consumer vẫn kiểm tra version.</li>
+  <li><strong>Retention:</strong> archive hoặc xóa outbox/inbox theo cửa sổ dedup đã cam kết.</li>
+  <li><strong>Reconciliation:</strong> job đối chiếu business state với event/state phía downstream để tìm workflow bị kẹt.</li>
+  <li><strong>Tracing:</strong> mang theo <code>correlation_id</code> và <code>causation_id</code> qua mọi event.</li>
+</ul>
+
+<h2 id="tests">9. Các failure case phải test</h2>
+<ol>
+  <li>Rollback business transaction: không có business change và không có outbox row.</li>
+  <li>Crash sau commit trước lần poll đầu: relay restart vẫn publish được event.</li>
+  <li>Crash sau broker acknowledgement trước update outbox: B nhận duplicate nhưng chỉ tạo một side effect.</li>
+  <li>Hai relay claim đồng thời: một outbox row không bị xử lý song song ngoài cơ chế đã chọn.</li>
+  <li>Hai consumer nhận cùng event đồng thời: unique constraint trên inbox phân xử.</li>
+  <li>Event version cũ đến sau version mới: state machine từ chối hoặc đưa vào luồng reconciliation.</li>
+  <li>Inventory hết sau khi payment thành công: Saga tạo đúng một refund intent.</li>
+  <li>Client timeout rồi retry: idempotency key trả lại cùng order.</li>
+</ol>
+
+<h2 id="decision">10. Kết luận thiết kế</h2>
+<p>Không chọn “lưu trước” hay “gửi trước”. Service A commit business row và outbox row trong một local transaction; relay publish có retry; Service B dùng transactional inbox và business constraint để idempotent. Phía trên cơ chế delivery đó, order state machine hoặc Saga định nghĩa thứ tự đời thật và compensation.</p>
+<p>Transactional Outbox đổi một atomicity gap không kiểm soát thành hai bài toán nhìn thấy được: <strong>eventual delivery có giám sát</strong> và <strong>duplicate processing có định danh</strong>. Đó là trade-off làm hệ thống vận hành được, không phải phép màu xóa mọi failure.</p>
+
+<h2 id="questions">11. Câu hỏi tự luyện</h2>
+<ol>
+  <li>Vì sao wrap lệnh publish trong database transaction vẫn không làm dual write atomic?</li>
+  <li>Relay crash ở điểm nào tạo duplicate và vì sao không thể đánh dấu <code>PUBLISHED</code> trước khi publish?</li>
+  <li>Thiết kế inbox thế nào để hai consumer đồng thời không cùng tạo payment?</li>
+  <li>Khi nào cần ordering theo aggregate, và consumer dùng version để tự bảo vệ ra sao?</li>
+  <li>Nếu payment thành công nhưng inventory hết, đâu là compensating action và service nào sở hữu quyết định đó?</li>
+</ol>

@@ -62,6 +62,16 @@
         "label": "Production Incidents",
         "description": "Bài viết sự cố first-party: log thật sự cho thấy gì, chọn bản vá nào, và chẩn đoán sai phải trả giá ra sao."
       }
+    },
+    "distributed-systems-patterns": {
+      "en": {
+        "label": "Distributed Systems Patterns",
+        "description": "Concrete workflows for consistency, messaging, retries and failure recovery across service boundaries."
+      },
+      "vi": {
+        "label": "Distributed Systems Patterns",
+        "description": "Workflow cụ thể cho consistency, messaging, retry và phục hồi lỗi qua ranh giới service."
+      }
     }
   },
   "articles": {
@@ -378,6 +388,32 @@
         "title": "Discord lưu trữ hàng nghìn tỷ tin nhắn như thế nào?",
         "excerpt": "Cách Discord chuyển message storage từ MongoDB sang Cassandra rồi ScyllaDB, đồng thời dùng Rust data service, request coalescing và migration online có kiểm chứng để kiểm soát hot partition cùng operational toil.",
         "tags": ["ScyllaDB", "Cassandra", "Hot partition", "Request coalescing", "Online migration", "Rust"]
+      }
+    },
+    "14": {
+      "key": "14-small-business-cloud-cost-shock",
+      "en": {
+        "title": "Complex infrastructure for a small business: the cloud-cost shock",
+        "excerpt": "A pre-revenue exam platform reached a reported $312 monthly AWS bill after applying enterprise patterns too early. The useful question is not cloud versus one server, but which risks the business can afford at each stage.",
+        "tags": ["FinOps", "AWS", "Right-sizing", "Architecture fitness", "Fixed-cost floor", "Bare metal"]
+      },
+      "vi": {
+        "title": "Hạ tầng phức tạp cho business bé: cú sốc chi phí cloud",
+        "excerpt": "Một nền tảng thi chưa có doanh thu nhận bill AWS 312 USD/tháng sau khi áp dụng enterprise pattern quá sớm. Câu hỏi đúng không phải cloud hay một server, mà là business đủ sức trả cho rủi ro nào ở từng giai đoạn.",
+        "tags": ["FinOps", "AWS", "Right-sizing", "Architecture fitness", "Fixed-cost floor", "Bare metal"]
+      }
+    },
+    "15": {
+      "key": "15-transactional-outbox-order-workflow",
+      "en": {
+        "title": "From dual write to a reliable order workflow",
+        "excerpt": "Service A must update its database and notify Service B without losing either change. Transactional Outbox closes the atomicity gap; idempotency and a Saga finish the production design.",
+        "tags": ["Transactional Outbox", "Idempotency", "At-least-once", "Saga", "Message queue", "Order workflow"]
+      },
+      "vi": {
+        "title": "Từ dual write đến một order workflow đáng tin cậy",
+        "excerpt": "Service A phải cập nhật database và báo Service B mà không làm mất bên nào. Transactional Outbox đóng atomicity gap; idempotency và Saga hoàn thiện thiết kế production.",
+        "tags": ["Transactional Outbox", "Idempotency", "At-least-once", "Saga", "Message queue", "Order workflow"]
       }
     }
   }

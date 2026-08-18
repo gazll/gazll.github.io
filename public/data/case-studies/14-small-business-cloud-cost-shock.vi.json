@@ -1,0 +1,22 @@
+{
+  "body_file": "data/case-studies/articles/14-small-business-cloud-cost-shock.vi.html",
+  "guide": {
+    "title": "Hãy đọc đây là bài toán architecture fitness và unit economics—không phải bằng chứng cloud hay bare metal luôn thắng.",
+    "problem": "Một nền tảng thi nhỏ được báo cáo tốn 312 USD AWS trong tháng 9–10/2025 khi chưa có doanh thu. Thiết kế mượn nhiều control cấp enterprise—nhiều environment/account, ECS/RDS nhân đôi, load balancer, private endpoint, centralized log và deployment plane riêng—tạo fixed-cost floor lặp lại trước khi traffic biện minh cho nó.",
+    "core_idea": "Chọn hạ tầng từ giai đoạn business, recovery objective và load đã đo. Giữ các control rẻ nhưng giá trị cao như TLS, backup, least privilege, budget và deploy tái lập; gộp environment cùng paid network layer có failure isolation chưa đáng với idle tax hàng tháng; chỉ thêm lại khi một rủi ro có tên vượt ngưỡng đo được.",
+    "outcome": "Team đã bỏ staging, account CI/CD riêng và account log archive, sau đó lên kế hoạch right-sizing cùng lịch tắt môi trường dev. Bài gốc không công bố bill sau thay đổi, nên kết luận có trách nhiệm phải là decision framework và measurement plan—không bịa ra phần trăm tiết kiệm.",
+    "takeaways": [
+      "Enterprise pattern là control phụ thuộc context, không phải huy hiệu trưởng thành. Multi-account isolation, private endpoint và environment nhân đôi giải quyết vấn đề thật, nhưng mỗi thứ cần threat, compliance rule, blast-radius target hoặc deployment frequency đủ lớn để hoàn vốn fixed cost.",
+      "Traffic thấp không đảm bảo cloud bill thấp. Database, load balancer, NAT hoặc interface endpoint always-on, minimum container task, configuration recording và log pipeline tính tiền theo thời gian provision hoặc telemetry sinh ra dù không có customer request.",
+      "Một server 4 core, 8 GB có thể dư sức chịu compute load hiện tại, nhưng một máy không thể đảm bảo zero downtime. Hardware, disk, kernel, network, provider và deployment vẫn là failure domain chung; capacity và availability là hai thuộc tính khác nhau.",
+      "Phương án early-stage hợp lý thường là modular monolith có thể đảo ngược: một server nhỏ hoặc managed app, một database, object storage, encrypted backup off-host, monitoring và restore path đã test. Đơn giản chỉ an toàn khi recovery được thiết kế.",
+      "Tối ưu từ bill và utilization, không từ architecture diagram. Tag resource, tách idle spend khỏi request-driven spend, đặt budget cùng anomaly alert, rồi bỏ fixed floor lớn nhất trước khi mua cam kết như Savings Plans."
+    ],
+    "review_lenses": [
+      "Economics: fixed floor mỗi tháng khi zero user là bao nhiêu, cost mỗi bài thi hoàn thành là bao nhiêu và revenue/traffic threshold nào khiến từng managed control hoàn vốn?",
+      "Reliability: nếu single server, disk, region hoặc operator biến mất thì RPO/RTO là gì, off-host backup nằm đâu và lần gần nhất restore toàn bộ được diễn tập khi nào?",
+      "Simplification: account, environment, endpoint, load balancer và telemetry stream nào phục vụ requirement hiện tại cụ thể, thứ nào chỉ được copy từ default architecture của công ty lớn?",
+      "Evolution: trigger quan sát được nào—concurrency, CPU saturation, recovery time, deployment contention, regulation hay incident cost—khiến component tiếp theo cần tách hoặc chuyển thành managed?"
+    ]
+  }
+}

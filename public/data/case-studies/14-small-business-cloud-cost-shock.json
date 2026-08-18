@@ -1,0 +1,22 @@
+{
+  "body_file": "data/case-studies/articles/14-small-business-cloud-cost-shock.html",
+  "guide": {
+    "title": "Read this as architecture fitness and unit economics—not as proof that cloud or bare metal always wins.",
+    "problem": "A small exam platform reportedly spent $312 on AWS in September–October 2025 before earning revenue. Its design borrowed enterprise controls—multiple environments and accounts, duplicated ECS/RDS stacks, load balancers, private endpoints, centralized logs and a dedicated deployment plane—creating a recurring fixed-cost floor before traffic justified it.",
+    "core_idea": "Choose infrastructure from the business stage, recovery objectives and measured load. Preserve cheap, high-value controls such as TLS, backups, least privilege, budgets and reproducible deployment; collapse environments and paid network layers whose failure isolation is not yet worth their monthly idle tax; add them back only when a named risk crosses a measured threshold.",
+    "outcome": "The team removed staging, the dedicated CI/CD account and the log-archive account, then planned right-sizing and scheduled shutdowns for development. The published article did not provide a post-change bill, so the responsible conclusion is a decision framework and measurement plan—not an invented savings percentage.",
+    "takeaways": [
+      "Enterprise patterns are context-dependent controls, not maturity badges. Multi-account isolation, private endpoints and duplicated environments solve real problems, but each needs a threat, compliance rule, blast-radius target or deployment frequency large enough to repay its fixed cost.",
+      "Low traffic does not guarantee a low cloud bill. Always-on databases, load balancers, NAT or interface endpoints, minimum container tasks, configuration recording and log pipelines charge for provisioned time or generated telemetry even when no customer request arrives.",
+      "A 4-core, 8-GB server may easily carry the current compute load, but one machine cannot guarantee zero downtime. Hardware, disk, kernel, network, provider and deployment remain shared failure domains; capacity and availability are different properties.",
+      "The sensible early-stage alternative is usually a reversible modular monolith: one small server or managed app, one database, object storage, off-host encrypted backups, monitoring and a tested restore path. Simplicity is safe only when recovery is designed.",
+      "Optimize from the bill and utilization, not from the architecture diagram. Tag resources, separate idle from request-driven spend, set budgets and anomaly alerts, then remove the largest fixed floor before buying commitments such as Savings Plans."
+    ],
+    "review_lenses": [
+      "Economics: what is the monthly fixed floor at zero users, cost per completed exam and revenue or traffic threshold at which each managed control pays for itself?",
+      "Reliability: if the single server, disk, region or operator disappears, what are the RPO and RTO, where is the off-host backup and when was a complete restore last rehearsed?",
+      "Simplification: which accounts, environments, endpoints, load balancers and telemetry streams exist for a concrete current requirement, and which were copied from a larger company's default architecture?",
+      "Evolution: which observable trigger—concurrency, CPU saturation, recovery time, deployment contention, regulation or incident cost—causes the next component to split or become managed?"
+    ]
+  }
+}

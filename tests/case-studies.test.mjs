@@ -34,22 +34,17 @@ async function filesBelow(directory) {
 test('case studies use stable Topic-style numbering and separate localized metadata', async () => {
   assert.equal(manifest.version, 2);
   assert.equal(meta.version, 1);
-  assert.equal(manifest.categories.length, 5);
-  assert.equal(manifest.articles.length, 13);
-  assert.deepEqual(manifest.articles.map(article => article.n), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]);
+  assert.ok(manifest.categories.length > 0);
+  assert.ok(manifest.articles.length > 0);
+  assert.deepEqual(manifest.articles.map(article => article.n),
+    manifest.articles.map((_, index) => index + 1), 'case numbers must remain contiguous and append-only');
 
   const categoryIds = manifest.categories.map(category => category.id);
   const slugs = manifest.articles.map(article => article.slug);
   assert.equal(new Set(categoryIds).size, categoryIds.length);
   assert.equal(new Set(slugs).size, slugs.length);
-  assert.deepEqual(Object.fromEntries(categoryIds.map(id => [id,
-    manifest.articles.filter(article => article.category === id).length])), {
-    'systems-architecture': 5,
-    'data-ml-experimentation': 3,
-    'mobile-developer-productivity': 2,
-    'engineering-evolution': 2,
-    'production-incidents': 1
-  });
+  assert.ok(categoryIds.every(id => manifest.articles.some(article => article.category === id)),
+    'empty categories should not be published');
 
   assert.deepEqual(Object.keys(meta.categories).sort(), [...categoryIds].sort());
   assert.ok(meta.library.en.title && meta.library.vi.title);
@@ -65,16 +60,15 @@ test('case studies use stable Topic-style numbering and separate localized metad
     assert.match(article.slug, /^[a-z0-9]+(?:-[a-z0-9]+)*$/);
     assert.ok(categoryIds.includes(article.category), `${article.slug}: unknown category`);
     assert.ok(['en', 'vi'].includes(article.original_language));
-    // Two kinds of row, and each must be unambiguous about which it is: an
-    // archived article carries its publisher and the URL that credits it, a
-    // first-party one carries neither, so a missing field is never a mistake.
-    if (article.first_party === true) {
+    // Archived rows credit an external publisher. First-party and editorial
+    // rows are locally authored and deliberately carry no external source.
+    if (article.first_party === true || article.editorial === true) {
       assert.equal('company' in article, false,
-        `${article.slug}: a first-party case study has no publisher to credit`);
+        `${article.slug}: a locally authored case study has no publisher to credit`);
       assert.equal('source_url' in article, false,
-        `${article.slug}: a first-party case study has no external source to link`);
+        `${article.slug}: a locally authored case study has no external source to link`);
     } else {
-      assert.match(article.source_url, /^https:\/\/(?:engineering\.tiki\.vn|discord\.com)\//,
+      assert.match(article.source_url, /^https:\/\/(?:engineering\.tiki\.vn|discord\.com|blog\.cloudmentor\.pro)\//,
         `${article.slug}: public source must stay on an approved publisher`);
       assert.ok(article.company);
     }
@@ -165,11 +159,10 @@ test('paired long-form bodies preserve structure, code and all local figures', a
     assert.deepEqual(codeBlocks(bodies.vi), codeBlocks(bodies.en), `${key}: code blocks must never be translated`);
   }
 
-  assert.equal(englishImages, 98, 'English should preserve all article figures');
-  assert.equal(vietnameseImages, 98, 'Vietnamese should preserve all article figures');
+  assert.equal(englishImages, vietnameseImages, 'both languages should preserve the same number of figures');
   const physicalAssets = (await filesBelow(path.join(publicRoot, 'assets/case-studies')))
     .map(file => path.relative(publicRoot, file).split(path.sep).join('/'));
-  assert.equal(physicalAssets.length, 98);
+  assert.equal(physicalAssets.length, englishImages, 'every physical figure should be referenced once per language');
   assert.deepEqual([...physicalAssets].sort(), [...referencedAssets].sort(), 'there should be no orphaned figures');
 });
 
@@ -189,7 +182,7 @@ test('the shared bilingual loader switches case-study JSON in memory and caches 
   const moduleUrl = pathToFileURL(path.join(publicRoot, 'lib/case-studies.js')).href + '?t=' + Math.random();
   const { CaseStudies } = await import(moduleUrl);
   await CaseStudies.load('en');
-  assert.equal(CaseStudies.articles.length, 13);
+  assert.equal(CaseStudies.articles.length, manifest.articles.length);
   assert.equal(CaseStudies.articles[0].title, meta.articles['1'].en.title);
   assert.equal(CaseStudies.articles[0].body_file, pairFor(manifest.articles[0]).en.body_file);
   assert.equal(CaseStudies.articles[2].is_translation, true);
@@ -226,16 +219,19 @@ test('Experience exposes the global language switch while remaining outside Stud
   assert.match(view, /https:\/\/discord\.com/,
     'the Discord source must survive the publisher URL allowlist');
   assert.match(view, /article\.cover_image/);
+  assert.match(view, /hasExternalSource\s*=\s*article\s*=>\s*!article\.first_party\s*&&\s*!article\.editorial/,
+    'source visibility must cover both first-party incidents and editorial case studies');
   // Everything that points at a publisher must be conditional, because a
-  // first-party row has no publisher to point at. Guarding only some of them
+  // locally authored row has no publisher to point at. Guarding only some
   // renders "undefined ↗" rather than failing, so all four are pinned.
   for (const guarded of ['cs-origin', 'cs-archive-note', 'cs-source', 'text().readSource']) {
     const at = view.indexOf(guarded);
     assert.ok(at > 0, `${guarded} should still be rendered for archived rows`);
-    assert.match(view.slice(Math.max(0, at - 220), at), /first_party\s*(?:\?|$)/m,
-      `${guarded} must be skipped for a first-party case study`);
+    assert.match(view.slice(Math.max(0, at - 220), at), /hasExternalSource\(article\)/,
+      `${guarded} must be skipped for a locally authored case study`);
   }
   assert.match(view, /firstParty:/, 'a first-party row needs its own byline label');
+  assert.match(view, /editorial:/, 'an editorial row needs its own byline label');
   assert.match(view, /TOC_STATE_KEY = 'gazl\.caseTocCollapsed'/);
   assert.ok(view.indexOf("'<aside class=\"cs-toc\"") < view.indexOf("'<article class=\"cs-article-body\""),
     'desktop contents must render to the left of the article body');

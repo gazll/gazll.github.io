@@ -15,6 +15,9 @@
     },
     {
       "id": "production-incidents"
+    },
+    {
+      "id": "distributed-systems-patterns"
     }
   ],
   "articles": [
@@ -204,6 +207,7 @@
       "category": "systems-architecture",
       "level": "advanced",
       "featured": true,
+      "content_kind": "synthesis",
       "company": "Discord Engineering",
       "published_at": "2023-03-06",
       "read_minutes": 12,
@@ -211,6 +215,37 @@
       "cover_image": "assets/case-studies/13-how-discord-stores-trillions-of-messages/01-architecture.svg",
       "cover_fit": "contain",
       "source_url": "https://discord.com/blog/how-discord-stores-trillions-of-messages"
+    },
+    {
+      "n": 14,
+      "file": "case-studies/14-small-business-cloud-cost-shock.json",
+      "slug": "small-business-cloud-cost-shock",
+      "category": "engineering-evolution",
+      "level": "core",
+      "featured": true,
+      "content_kind": "synthesis",
+      "company": "Cloud Blog Pro",
+      "published_at": "2025-12-12",
+      "read_minutes": 13,
+      "original_language": "vi",
+      "cover_image": "assets/case-studies/14-small-business-cloud-cost-shock/02-figure.jpg",
+      "cover_fit": "contain",
+      "source_url": "https://blog.cloudmentor.pro/posts/aws-startup-xay-dung-ha-tang-aws-lon-va-khung-hoang-chi-phi"
+    },
+    {
+      "n": 15,
+      "file": "case-studies/15-transactional-outbox-order-workflow.json",
+      "slug": "transactional-outbox-order-workflow",
+      "category": "distributed-systems-patterns",
+      "level": "core",
+      "featured": true,
+      "editorial": true,
+      "content_kind": "synthesis",
+      "published_at": "2026-08-18",
+      "read_minutes": 12,
+      "original_language": "vi",
+      "cover_image": "assets/case-studies/15-transactional-outbox-order-workflow/01-outbox-flow.svg",
+      "cover_fit": "contain"
     }
   ]
 }

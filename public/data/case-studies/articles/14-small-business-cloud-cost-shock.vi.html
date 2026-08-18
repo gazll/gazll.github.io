@@ -1,0 +1,66 @@
+<p>Một bill AWS 312 USD—khoảng 8,2 triệu đồng—được báo cáo trong tháng 9–10/2025 khi Cloud Exam Pro chưa tạo doanh thu. Con số riêng lẻ vẫn chịu được; hàm ý lặp lại hàng tháng mới đáng sợ. Một business thi online nhỏ có bán đủ bộ đề mỗi tháng chỉ để giữ hạ tầng sống hay không?</p>
+<p>Case study này là editorial synthesis từ bài chia sẻ đã publish của founder và các architecture diagram đi kèm. Nguồn mô tả thiết kế cùng hướng đơn giản hóa nhưng không công bố Cost Explorer line item hay bill đã xác minh sau tối ưu. Vì vậy ta có thể chỉ ra cơ chế fixed cost có khả năng lớn và lập measurement plan, nhưng không thể gán chính xác bao nhiêu USD cho từng service.</p>
+
+<h2 id="1-the-product-and-the-enterprise-reflex">1. Product nhỏ và phản xạ enterprise</h2>
+<p>Product hỗ trợ đăng ký, tìm course, checkout, practice exam, history và feedback, cùng operator surface quản lý user, order, course, class và transaction. Đây là trách nhiệm production thật. Tuy nhiên chúng không tự động kéo theo traffic, compliance duty hay team boundary của ngân hàng, hệ thống chính phủ hoặc marketplace lớn.</p>
+<p>Thiết kế chịu ảnh hưởng từ kinh nghiệm ở chính những hệ thống lớn đó. Account plan ban đầu tách development, staging và production, sau đó thêm account riêng cho identity, deployment và long-term log. IAM Identity Center cấp permission set; CodePipeline, CodeBuild và CodeDeploy tạo CI/CD hub; một account khác giữ audit log tập trung.</p>
+<figure class="cs-figure cs-figure-wide">
+  <button type="button" data-zoom-image aria-label="Mở cấu trúc AWS account dự kiến ở kích thước đầy đủ">
+    <img src="assets/case-studies/14-small-business-cloud-cost-shock/01-figure.jpg" width="2000" height="1454" loading="lazy" decoding="async" alt="AWS organization dự kiến gồm development, staging, production, identity, deployment và log archive account.">
+  </button>
+  <figcaption>Account topology dự kiến: isolation mạnh nhưng quá nhiều operational surface cho một team rất nhỏ.</figcaption>
+</figure>
+<p>Không pattern nào trong số này tự thân là sai. Chúng cô lập blast radius, hỗ trợ promotion có kiểm soát và làm rõ audit ownership. Sai lầm là coi pattern như miễn phí. Mỗi environment cần configuration, secret, deployment path, monitoring, patching cùng attention của con người; nhiều resource còn tính phí theo giờ khi idle.</p>
+
+<h2 id="2-where-the-fixed-cost-floor-came-from">2. Fixed-cost floor đến từ đâu?</h2>
+<p>Kiến trúc dự kiến kết hợp Route 53, WAF, CloudFront và S3 ở edge; Cognito cùng API Gateway; hai ECS cluster sau load balancer; hai RDS database; Step Functions và batch job; nhiều VPC endpoint; CloudWatch, Firehose và log archive; cộng với deployment, security và governance service.</p>
+<figure class="cs-figure cs-figure-wide">
+  <button type="button" data-zoom-image aria-label="Mở AWS architecture dự kiến ở kích thước đầy đủ">
+    <img src="assets/case-studies/14-small-business-cloud-cost-shock/02-figure.jpg" width="2784" height="1704" loading="lazy" decoding="async" alt="Cloud Exam Pro AWS architecture dự kiến với ECS và RDS nhân đôi, load balancer, private endpoint, logging và CI/CD service.">
+  </button>
+  <figcaption>Kiến trúc dự kiến tích lũy nhiều component always-on và control-plane tính theo giờ trước khi launch.</figcaption>
+</figure>
+<p>Request volume thấp giúp S3, CloudFront, Lambda hoặc SQS rẻ, nhưng không xóa minimum cost của provisioned component. Database, container task đang chạy, load balancer và interface endpoint có thể tạo idle floor. Log, flow record, configuration history và cross-service delivery tiếp tục thêm usage-based spend ngay cả khi application yên tĩnh.</p>
+<p>Diagram không phải bill. Icon ALB không cho biết số lượng, số giờ hay LCU; icon RDS không cho biết engine, class, storage, backup hay Multi-AZ; icon endpoint không cho biết số Availability Zone. Việc FinOps đầu tiên không phải xóa thứ trông phức tạp. Đó là export cost theo service, usage type, account, environment và tag, rồi tách ba bucket: baseline bắt buộc, idle duplication và request-driven growth.</p>
+
+<h2 id="3-the-first-simplification">3. Lần đơn giản hóa đầu tiên</h2>
+<p>Trước khi hoàn tất toàn bộ thiết kế, team bỏ staging, account deployment riêng và account log archive. GitHub Actions thay AWS CI/CD hub. Development với production vẫn tách biệt và IAM vẫn centralized.</p>
+<figure class="cs-figure cs-figure-wide">
+  <button type="button" data-zoom-image aria-label="Mở cấu trúc AWS account đã đơn giản hóa ở kích thước đầy đủ">
+    <img src="assets/case-studies/14-small-business-cloud-cost-shock/03-figure.jpg" width="2110" height="1192" loading="lazy" decoding="async" alt="AWS organization đã đơn giản hóa, giữ identity, development và production account, bỏ staging, deployment và log archive account.">
+  </button>
+  <figcaption>Organization sửa lại giữ identity cùng dev/prod separation và bỏ ba account surface dự kiến.</figcaption>
+</figure>
+<p>Kiến trúc chạy thật nhỏ hơn nhưng vẫn tinh vi: path ECS/RDS riêng cho user và operator, load balancer, API Gateway, Cognito, batch workflow, VPC endpoint cùng các security và observability service thông thường. Phân biệt này rất quan trọng. Xóa account có thể giảm governance work nhưng không tự xóa billable resource nằm trong các account còn lại.</p>
+<figure class="cs-figure cs-figure-wide">
+  <button type="button" data-zoom-image aria-label="Mở AWS architecture đang chạy đã đơn giản hóa ở kích thước đầy đủ">
+    <img src="assets/case-studies/14-small-business-cloud-cost-shock/04-figure.jpg" width="2768" height="1536" loading="lazy" decoding="async" alt="Kiến trúc đang chạy đã đơn giản hóa với dev và production, hai path ECS/RDS, load balancer, batch processing và VPC endpoint.">
+  </button>
+  <figcaption>Simplified chưa đồng nghĩa cheap: stateful layer và networking layer nhân đôi vẫn còn rõ trên sơ đồ.</figcaption>
+</figure>
+
+<h2 id="4-is-one-4-core-8-gb-server-the-answer">4. Một server 4 core, 8 GB có phải đáp án?</h2>
+<p>Với product thi chưa launch, server 4 core, 8 GB có thể dư xa compute capacity workload hiện tại cần. Modular monolith, PostgreSQL, reverse proxy và background worker có thể phục vụ lượng traffic đáng kể trên cấu hình này nếu query, payload và concurrency hợp lý. Thay nhiều managed component bằng một máy có thể giảm cash bill rất mạnh.</p>
+<p>Nhưng kết luận rằng nó “đảm bảo không downtime” là sai. Một máy gộp application, database, disk, operating system, network path, provider và deployment vào các failure domain chung. Disk hỏng, kernel update lỗi, filesystem đầy, provider outage, migration phá dữ liệu hoặc human mistake có thể hạ toàn bộ service lẫn local backup cùng lúc.</p>
+<p>So sánh đúng không phải 4 core với ECS. Đó là total cost cho một service level tường minh:</p>
+<table class="cmp"><thead><tr><th>Phương án</th><th>Thứ mua được</th><th>Thứ team phải tự chịu</th></tr></thead><tbody>
+  <tr><td>Một VPS hoặc bare-metal server</td><td>Fixed cash cost thấp nhất và request path đơn giản nhất</td><td>OS patch, database operation, off-host backup, restore, quyết định failover và deployment rollback</td></tr>
+  <tr><td>Managed app nhỏ cộng managed DB</td><td>Chuyển một phần operational work cho provider; backup và replacement dễ hơn</td><td>Right-sizing, cost limit, application recovery và failure mode riêng của provider</td></tr>
+  <tr><td>Thiết kế AWS nhiều service hiện tại</td><td>Isolation, managed integration và đường tiến tới availability cao hơn</td><td>Configuration surface lớn hơn nhiều và idle floor tồn tại trước revenue</td></tr>
+</tbody></table>
+<p>Single server là quyết định business hợp lý khi team chấp nhận RTO và RPO một cách tường minh. Nó chỉ trở nên liều lĩnh khi “đơn giản” được dùng thay cho backup, observability và recovery rehearsal.</p>
+
+<h2 id="5-a-practical-early-stage-target">5. Target thực tế cho early stage</h2>
+<p>Bắt đầu bằng một deployable application, không nhất thiết là codebase trộn lẫn. Serve static asset qua object storage và CDN nếu chúng vẫn rẻ. Chạy API với worker cùng nhau hoặc thành hai process trên một compute unit nhỏ. Giữ một relational database; chạy trên server hay dùng managed service phụ thuộc giá trị gán cho restore automation và operator time.</p>
+<p>Giữ các control có giá trị cao nhưng recurring cost thấp: TLS, least-privilege credential, MFA cho operator, dependency update, database migration, encrypted off-host backup, uptime check, error alert, audit event cho money/admin và hạ tầng có thể tạo lại từ code hoặc command đã document.</p>
+<p>Không hứa automatic failover nếu chưa test. Target early-stage trung thực có thể là recovery point theo giờ hoặc ngày và restore trong vài giờ. Copy backup sang failure domain khác, giữ nhiều generation và restore một bản vào environment sạch. Backup chưa từng restore mới chỉ là một giả định.</p>
+
+<h2 id="6-a-90-day-cost-recovery-plan">6. Kế hoạch phục hồi chi phí trong 90 ngày</h2>
+<p><strong>Ngày 1–7 — lập sổ.</strong> Bật budget và anomaly alert. Export bill theo account, service và usage type. Tag mọi resource theo environment, owner và product. Ghi CPU, memory, database connection, storage, request count và completed exam. Tính monthly cost khi zero user cùng cost mỗi completed exam.</p>
+<p><strong>Ngày 8–30 — bỏ idle duplication.</strong> Lập lịch tắt development ngoài giờ. Xóa endpoint, load balancer, log group, snapshot và orphan volume không dùng chỉ sau ownership check. Giảm log retention và sampling nơi compliance không bắt full capture. Right-size database cùng task minimum. Xác minh user/operator stack riêng có thật sự cần failure và scaling domain riêng hôm nay không.</p>
+<p><strong>Ngày 31–60 — chọn operating model.</strong> Benchmark exam load đại diện trên instance nhỏ. Test database restore và failed deployment. So sánh managed AWS baseline với VPS hoặc managed platform đơn giản hơn, tính cả operator hour, backup storage và expected outage cost—không chỉ CPU price.</p>
+<p><strong>Ngày 61–90 — định nghĩa evolution.</strong> Viết threshold cho scale-out: CPU hay connection saturation kéo dài, recovery objective một server không đạt, deployment chặn nhau, regulation yêu cầu isolation hoặc incident cost vượt managed-service premium. Chỉ mua Savings Plan sau khi có baseline ổn định; commitment discount lãng phí hiệu quả hệt như discount capacity hữu ích.</p>
+
+<h2 id="7-the-decision-rule">7. Decision rule</h2>
+<p>Architecture phải tối thiểu hóa tổng infrastructure cost, engineering time và accepted risk. Trước product-market fit, reversibility cùng khả năng sống sót thường quan trọng hơn theoretical scale. Khi traffic, revenue, team size hoặc regulation thay đổi, chính các managed control đó có thể trở nên rẻ so với outage hay coordination mà chúng ngăn được.</p>
+<p>Vì vậy câu trả lời mạnh nhất cho phản biện bare metal là: đúng, một server vừa phải có thể là architecture đúng ở hiện tại; sai, capacity của nó không đảm bảo availability. Hãy dùng nó với off-host backup, monitoring, restore drill và upgrade trigger đã document. Cloud không phải mục tiêu, monthly spend thấp nhất cũng không phải mục tiêu. Mục tiêu là architecture rẻ nhất đáp ứng business contract hôm nay và có thể evolve trước khi contract ngày mai làm nó gãy.</p>

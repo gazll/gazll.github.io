@@ -1,0 +1,22 @@
+{
+  "body_file": "data/case-studies/articles/15-transactional-outbox-order-workflow.html",
+  "guide": {
+    "title": "Read this as a consistency-boundary design, not as a question of whether the database or the queue should be written first.",
+    "problem": "Service A must update its own record and ask Service B to create another one. Database commit and broker publish are two independent writes, so either ordering leaves a crash window in which one succeeds and the other does not.",
+    "core_idea": "Commit the business change and an outbox event in one local database transaction. A relay publishes that durable event later; Service B processes duplicates safely by recording the event ID and its business update in one local transaction.",
+    "outcome": "The design removes the lost-event window without a distributed transaction. It deliberately provides at-least-once delivery, then turns duplicates into harmless retries and models payment, inventory and shipping as explicit order-state transitions with compensating actions.",
+    "takeaways": [
+      "No ordering of two independent writes makes a dual write atomic. Database-first can lose the notification; broker-first can expose an event for a business change that never commits.",
+      "The outbox relay is allowed to publish twice. A crash after broker acknowledgement but before marking the row published makes duplicate delivery unavoidable, so consumers must be idempotent.",
+      "Inbox deduplication and the consumer's business update belong in the same local transaction. Checking an event ID before that transaction only creates another check-then-act race.",
+      "Outbox solves transport reliability, not business sequencing. A Saga or state machine defines which event may move an order from PAYMENT_PENDING to PAID, RESERVED, SHIPPED or a compensating state.",
+      "Return the state that is already durable. An asynchronous checkout should normally return an order ID and a pending status, not claim that the entire workflow has finished."
+    ],
+    "review_lenses": [
+      "Atomicity: identify every place that writes a database and calls an external system in one logical operation.",
+      "Duplicate safety: define the stable event ID, business uniqueness key and transaction boundary at every consumer.",
+      "Ordering: decide whether events require per-aggregate ordering and how stale or out-of-order transitions are rejected.",
+      "Operations: specify relay lag, retry policy, poison-event handling, retention, reconciliation and alerts before production."
+    ]
+  }
+}
