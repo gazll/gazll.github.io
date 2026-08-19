@@ -53,6 +53,7 @@ const COPY = {
     codeSamples: 'Runnable code samples', codeIntro: 'Small executable slices make the boundary concrete. Run them locally, then adapt the schema, limits and failure handling to your workload.', run: 'Run',
     zoomControls: 'Diagram zoom', zoomOut: 'Zoom out', zoomIn: 'Zoom in', zoomReset: 'Reset zoom',
     diagramUnavailable: 'Diagram renderer unavailable. The editable Mermaid source is still available below.',
+    blueprintKind: 'Blueprint', caseKind: 'Production case', minRead: 'min read', featured: 'Featured',
     production: 'Production evidence', historical: 'Historical architecture', synthesis: 'Editorial synthesis',
     historicalNote: 'The preserved article reflects the system, constraints and technology available at publication time.',
     synthesisNote: 'This is a rewritten case study based on the credited source, not a preserved copy of the original article.',
@@ -97,6 +98,7 @@ const COPY = {
     codeSamples: 'Code sample có thể chạy', codeIntro: 'Các lát cắt nhỏ có thể chạy giúp thấy boundary cụ thể hơn. Hãy chạy local, sau đó điều chỉnh schema, limit và failure handling theo workload thực tế.', run: 'Chạy',
     zoomControls: 'Phóng to/thu nhỏ sơ đồ', zoomOut: 'Thu nhỏ', zoomIn: 'Phóng to', zoomReset: 'Đặt lại tỷ lệ',
     diagramUnavailable: 'Renderer không khả dụng. Editable Mermaid source vẫn nằm bên dưới.',
+    blueprintKind: 'Blueprint', caseKind: 'Production case', minRead: 'phút đọc', featured: 'Nổi bật',
     production: 'Production evidence', historical: 'Historical architecture', synthesis: 'Editorial synthesis',
     historicalNote: 'Bài gốc phản ánh system, constraints và technology ở thời điểm được publish.',
     synthesisNote: 'Đây là case study được biên soạn lại từ nguồn đã ghi công, không phải bản sao được lưu nguyên văn từ bài gốc.',
@@ -118,7 +120,9 @@ const LEVEL_LABELS = Object.freeze({ core: 'Core', advanced: 'Advanced', extra: 
 function levelMarkup(row) {
   const level = LEVEL_LABELS[row?.level] ? row.level : 'advanced';
   return '<span class="content-level level-' + level + '">' + LEVEL_LABELS[level] + '</span>'
-    + (row?.featured ? '<span class="featured-mark" title="Featured topic" aria-label="Featured topic">★</span>' : '');
+    // role="img": a bare <span> carrying aria-label is not exposed by most AT.
+    + (row?.featured ? '<span class="featured-mark" role="img" title="' + escapeHtml(text().featured)
+      + '" aria-label="' + escapeHtml(text().featured) + '">★</span>' : '');
 }
 
 const GROUP_ANCHOR_IDS = Object.freeze({
@@ -127,11 +131,16 @@ const GROUP_ANCHOR_IDS = Object.freeze({
 });
 const groupAnchorId = category => GROUP_ANCHOR_IDS[category.id] || 'sd-group-' + category.id;
 
-function updatedDate(row) {
+/* The kicker says what a card is and who it came from; this row says how long
+   it takes and how fresh it is. Splitting them is the point: a blueprint's
+   effort and a case's publisher used to share one slot after the same "·",
+   so "45 MIN" and "SHOPIFY" read as the same kind of fact in a mixed feed. */
+function metaRow(row, duration) {
   const facts = contentDateFacts(row, Content.lang);
   const fact = facts.find(candidate => candidate.kind === 'updated') || facts.at(-1);
-  return fact ? '<time class="content-updated" datetime="' + escapeHtml(fact.value) + '">'
-    + escapeHtml(fact.label + ' ' + fact.formatted) + '</time>' : '';
+  return '<span class="sd-card-meta"><span>' + escapeHtml(duration) + '</span>'
+    + (fact ? '<time datetime="' + escapeHtml(fact.value) + '">'
+      + escapeHtml(fact.label + ' ' + fact.formatted) + '</time>' : '') + '</span>';
 }
 
 function dateBlock(row, includePublished = false) {
@@ -160,10 +169,10 @@ function renderDesignCard(design) {
   return '<a class="sd-card" data-card-key="' + escapeHtml(design.slug) + '" href="'
     + escapeHtml(withRouteLanguage('#/system-design/' + encodeURIComponent(design.slug), Content.lang)) + '">'
     + '<span class="sd-card-num">' + numberLabel(design.n) + '</span><span class="sd-card-main">'
-    + '<span class="sd-card-type">Blueprint · ' + escapeHtml(design.effort || '45 min') + levelMarkup(design)
-    + updatedDate(design) + '</span>'
+    + '<span class="sd-card-kicker">' + escapeHtml(text().blueprintKind) + levelMarkup(design) + '</span>'
     + '<strong>' + escapeHtml(design.title) + '</strong><span>' + escapeHtml(design.excerpt) + '</span>'
     + '<span class="sd-card-tags">' + design.tags.slice(0, 4).map(tag => '<i>' + escapeHtml(tag) + '</i>').join('') + '</span>'
+    + metaRow(design, design.effort || '45 min')
     + '</span><span class="sd-card-arrow" aria-hidden="true">→</span></a>';
 }
 
@@ -171,10 +180,11 @@ function renderCaseCard(article) {
   return '<a class="sd-card sd-case-card" data-card-key="case/' + escapeHtml(article.slug) + '" href="'
     + escapeHtml(withRouteLanguage('#/system-design/case/' + encodeURIComponent(article.slug), Content.lang)) + '">'
     + '<span class="sd-case-art"><img src="' + escapeHtml(article.cover_image) + '" alt="" loading="lazy"></span>'
-    + '<span class="sd-card-main"><span class="sd-card-type">' + text().production + ' · ' + escapeHtml(article.company)
-    + levelMarkup(article) + updatedDate(article) + '</span>'
+    + '<span class="sd-card-main"><span class="sd-card-kicker">' + escapeHtml(text().caseKind) + ' · '
+    + escapeHtml(article.company) + levelMarkup(article) + '</span>'
     + '<strong>' + escapeHtml(article.title) + '</strong><span>' + escapeHtml(article.excerpt) + '</span>'
     + '<span class="sd-card-tags">' + article.tags.slice(0, 4).map(tag => '<i>' + escapeHtml(tag) + '</i>').join('') + '</span>'
+    + metaRow(article, article.read_minutes + ' ' + text().minRead)
     + '</span><span class="sd-card-arrow" aria-hidden="true">→</span></a>';
 }
 

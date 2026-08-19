@@ -50,7 +50,8 @@ test('all authored-content surfaces render dates and article structured data', a
   assert.match(cases, /data-content-sort="recent"/);
   assert.match(cases, /contentActivityDate\(b\)/);
   assert.match(cases, /\.focus\(\)/);
-  assert.match(designs, /updatedDate\(design\)/);
+  assert.match(designs, /metaRow\(design, design\.effort/);
+  assert.match(designs, /metaRow\(article, article\.read_minutes/);
   assert.match(designs, /dateBlock\(design\)/);
   assert.match(designs, /dateBlock\(article, true\)/);
   assert.match(designs, /data-content-sort="recent"/);

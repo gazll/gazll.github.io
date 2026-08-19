@@ -348,6 +348,37 @@ secret/              GITIGNORED. Personal setup notes and credentials
   `content_kind: "synthesis"`; views must label it as editorial synthesis, never
   as the original article.
 
+- **A library card's kicker names the thing; the meta row times it.** Both
+  libraries use the same two-part card: `.sd-card-kicker` / `.cs-card-kicker`
+  on top carries **kind + source** (`Blueprint`, `Production case · Shopify`)
+  plus the level pill, and `.sd-card-meta` / `.cs-card-meta` closes the card
+  with **duration + updated**. They were one strip on System Design, and the
+  slot after the `·` held a blueprint's `effort` on one card and a case's
+  `company` on the next — so `45 MIN` and `SHOPIFY` read as the same kind of
+  fact in the "Latest updates" feed, which interleaves both. Never put a
+  duration back in the kicker: the second slot means *source*, and only a
+  production case has one. The meta row is shared CSS between the two
+  libraries on purpose, `·` separators via `>*+*::before` — the old
+  `.content-updated` mixed a `border-left` divider into a line that already
+  separated with `·`, and it is gone. `tests/system-design.test.mjs` pins all
+  of it, including that `.sd-case-art` keeps an **explicit width**. It had
+  none, so its `auto` grid track was sized from the cover's own intrinsic
+  width — a wide diagram can take the column and leave `minmax(0,1fr)` at
+  zero. `.cs-card-art` always declared its 112px; this is the same fix.
+
+- **Colour tokens have a contrast floor, and it is tested.** The site's meta
+  rows, tags, eyebrows and date stamps render at 9–10px, which is normal text
+  under WCAG — it owes 4.5:1, not the 3:1 large-text allowance. `--muted` sat
+  at 3.37:1 on `--surface` and 2.98:1 on `--paper`, so the smallest type was
+  also the least readable; `--brass` and `--teal` failed the same way.
+  `tests/a11y.contrast.test.mjs` computes every `:root` text token against
+  **both** page backgrounds, every difficulty pill against its own soft fill,
+  and every `[data-topic-type]` accent against surface, paper *and* its
+  `--g-soft` — an accent prints on all three (unpressed chip, hero day label,
+  pressed chip). Darken a token rather than lowering the floor. Two of these
+  were only caught by the third check: a colour that clears white can still
+  fail on its own tinted chip.
+
 - **Per-route metadata is `document.title` and `description`, and nothing
   else.** `lib/page-metadata.js` deliberately does not write `og:*`,
   `twitter:*` or `<link rel="canonical">`: the crawlers that read a social card

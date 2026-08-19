@@ -445,6 +445,52 @@ test('the libraries keep the reader oriented while scrolling and on the way back
   assert.match(styles, /\.sd-group>header,\.cs-category-head\{position:sticky/);
 });
 
+/* The "Latest updates" feed interleaves blueprints and production cases, so the
+   slot after the kind separator must mean one thing. It used to hold a
+   blueprint's effort and a case's publisher — "45 MIN" and "SHOPIFY" reading as
+   the same kind of fact. Duration now lives in the closing meta row instead. */
+test('a library card separates what it is from how long it takes', async () => {
+  const [systemView, caseView, styles] = await Promise.all([
+    readFile(path.join(publicRoot, 'views/system-design.js'), 'utf8'),
+    readFile(path.join(publicRoot, 'views/case-studies.js'), 'utf8'),
+    readFile(path.join(publicRoot, 'styles.css'), 'utf8')
+  ]);
+
+  const renderer = name => {
+    const start = systemView.indexOf('function ' + name);
+    assert.ok(start > -1, name + ' must exist');
+    return systemView.slice(start, systemView.indexOf('\n}', start));
+  };
+  const kicker = source => {
+    const match = source.match(/sd-card-kicker[\s\S]*?<\/span>'/);
+    assert.ok(match, 'every card needs a kicker');
+    return match[0];
+  };
+
+  for (const name of ['renderDesignCard', 'renderCaseCard']) {
+    const source = renderer(name);
+    assert.doesNotMatch(source, /sd-card-type/, name + ' must not revive the merged strip');
+    assert.match(source, /metaRow\(/, name + ' must close with the shared meta row');
+    const head = kicker(source);
+    assert.doesNotMatch(head, /effort|read_minutes|minRead/,
+      name + ' must keep duration out of the kicker');
+  }
+  // Only a production case has a publisher, so only it fills the second slot.
+  assert.match(renderer('renderCaseCard'), /caseKind\) \+ ' · '\s*\+ escapeHtml\(article\.company\)/);
+  assert.doesNotMatch(kicker(renderer('renderDesignCard')), / · /);
+
+  assert.doesNotMatch(styles, /\.sd-card-type\{/);
+  assert.doesNotMatch(styles, /\.content-updated\{/, 'the border-left divider left with the merged strip');
+  assert.match(styles, /\.cs-card-meta,\.sd-card-meta\{display:flex/);
+  // An `auto` track sized itself from the cover's intrinsic width.
+  assert.match(styles, /\.sd-case-art\{[^}]*width:\d+px/);
+
+  // aria-label on a bare <span> is not exposed; the star needs a role.
+  for (const source of [systemView, caseView]) {
+    assert.match(source, /class="featured-mark" role="img"/);
+  }
+});
+
 /* Two ways emphasis corrupts text silently rather than failing the build: the
    numeric pattern eating an earlier pattern's sentinel digits, and it reading
    the "39" of &#39; as a quantity. */

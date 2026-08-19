@@ -73,7 +73,9 @@ function levelMarkup(article) {
   const labels = { core: text().levelCore, advanced: text().levelAdvanced, extra: text().levelExtra };
   const level = labels[article?.level] ? article.level : 'advanced';
   return '<span class="content-level level-' + level + '">' + labels[level] + '</span>'
-    + (article?.featured ? '<span class="featured-mark" title="' + text().featured + '" aria-label="' + text().featured + '">★</span>' : '');
+    // role="img": a bare <span> carrying aria-label is not exposed by most AT.
+    + (article?.featured ? '<span class="featured-mark" role="img" title="' + escapeHtml(text().featured)
+      + '" aria-label="' + escapeHtml(text().featured) + '">★</span>' : '');
 }
 
 const sourceHref = originGuard(PUBLISHER_ORIGINS);

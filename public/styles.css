@@ -1,9 +1,9 @@
   :root{
-    --paper:#EEF1F6; --surface:#FFFFFF; --ink:#14233A; --ink-soft:#42536C; --muted:#7E8DA3;
+    --paper:#EEF1F6; --surface:#FFFFFF; --ink:#14233A; --ink-soft:#42536C; --muted:#626E7F;
     --line:#DBE1EA; --line-strong:#C6CFDC; --emerald:#0B6E4F; --emerald-deep:#085239;
-    --emerald-soft:#E4F1EB; --clay:#AE4536; --clay-soft:#F6E8E5; --brass:#9A7A41;
+    --emerald-soft:#E4F1EB; --clay:#AE4536; --clay-soft:#F6E8E5; --brass:#846938;
     --indigo:#3D4E8F; --indigo-soft:#E7EAF6;
-    --teal:#1E7D8C; --teal-soft:#E3F1F3;
+    --teal:#1C7684; --teal-soft:#E3F1F3;
     --code-bg:#0F1D31; --code-bg-2:#16273F; --code-text:#E6ECF5; --code-dim:#8A9AB4;
     --code-green:#86D6AC; --code-blue:#8DBBEC; --code-amber:#E2B871; --code-clay:#E69185;
     --radius:14px; --shadow:0 1px 2px rgba(20,35,58,.05), 0 12px 30px -18px rgba(20,35,58,.28);
@@ -87,7 +87,10 @@
   .tm-search svg{flex:none;width:15px;height:15px;color:var(--muted)}
   .tm-search input{flex:1 1 auto;min-width:0;border:0;background:none;font:inherit;font-size:14px;
     color:var(--ink);padding:2px 0}
+  /* The field is borderless, so an outline would box empty space. The row it
+     sits in already draws a rule; focus thickens and colours that instead. */
   .tm-search input:focus{outline:none}
+  .tm-search:focus-within{border-bottom-color:var(--emerald);box-shadow:inset 0 -1px 0 var(--emerald)}
   .tm-search input::placeholder{color:var(--muted)}
   /* the native clear button in Chrome sits oddly against a borderless field */
   .tm-search input::-webkit-search-cancel-button{-webkit-appearance:none;appearance:none}
@@ -381,8 +384,10 @@
   .cs-card-kicker{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.65px;text-transform:uppercase;color:var(--emerald);margin-bottom:5px}
   .cs-card-content strong{font-family:"Space Grotesk",sans-serif;font-size:20px;line-height:1.25;color:var(--ink)}
   .cs-card-excerpt{font-size:13.5px;line-height:1.55;color:var(--ink-soft);margin-top:7px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-  .cs-card-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:11px;font-family:"IBM Plex Mono",monospace;font-size:9.5px;color:var(--muted);text-transform:uppercase}
-  .cs-card-meta span+span::before{content:"·";margin-right:8px;color:var(--line-strong)}
+  /* Both libraries close a card with the same logistics row, so they share it. */
+  .cs-card-meta,.sd-card-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:11px;font-family:"IBM Plex Mono",monospace;font-size:9.5px;color:var(--muted);text-transform:uppercase}
+  .cs-card-meta>*+*::before,.sd-card-meta>*+*::before{content:"·";margin-right:8px;color:var(--line-strong)}
+  .cs-card-meta time,.sd-card-meta time{font-variant-numeric:tabular-nums}
   .cs-card-arrow{font-size:24px;color:var(--emerald);transition:transform .18s ease}
   .cs-card:hover .cs-card-arrow{transform:translateX(3px)}
 
@@ -589,14 +594,13 @@
   .sd-card-num{display:grid;place-items:center;width:38px;height:38px;border-radius:10px;background:var(--indigo-soft);
     color:var(--indigo);font-family:"IBM Plex Mono",monospace;font-size:12px;font-weight:600}
   .sd-card-main{min-width:0;display:flex;flex-direction:column}
-  .sd-card-type{font-family:"IBM Plex Mono",monospace;font-size:9.5px;letter-spacing:.65px;text-transform:uppercase;color:var(--indigo);margin-bottom:5px}
-  .content-updated{display:inline-block;margin-left:9px;padding-left:9px;border-left:1px solid var(--line-strong);color:var(--muted);font-size:9px;letter-spacing:.25px}
+  .sd-card-kicker{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.65px;text-transform:uppercase;color:var(--indigo);margin-bottom:5px}
   .content-sort{display:flex;align-items:center;gap:6px;margin-top:16px;font-family:"IBM Plex Mono",monospace;font-size:9px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)}
   .content-sort button{appearance:none;border:1px solid var(--line);border-radius:999px;background:var(--surface);padding:6px 10px;color:var(--ink-soft);font:inherit;cursor:pointer}
   .content-sort button[aria-pressed="true"]{border-color:var(--indigo);background:var(--indigo-soft);color:var(--indigo);font-weight:700}
   .visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
   .sd-card-main strong{font-family:"Space Grotesk",sans-serif;font-size:19px;line-height:1.25;color:var(--ink)}
-  .sd-card-main>span:not(.sd-card-type):not(.sd-card-tags){font-size:13.5px;line-height:1.55;color:var(--ink-soft);margin-top:7px;
+  .sd-card-main>span:not(.sd-card-kicker):not(.sd-card-tags):not(.sd-card-meta){font-size:13.5px;line-height:1.55;color:var(--ink-soft);margin-top:7px;
     display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   .sd-card-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:10px}
   .sd-card-tags i{font-style:normal;font-family:"IBM Plex Mono",monospace;font-size:9px;color:var(--muted);
@@ -604,7 +608,9 @@
   .sd-card-arrow{grid-column:2;justify-self:end;font-size:22px;line-height:1;color:var(--emerald);transition:transform .18s ease}
   .sd-card:hover .sd-card-arrow{transform:translateX(3px)}
   .sd-case-card{grid-template-columns:100px minmax(0,1fr)}
-  .sd-case-art{grid-row:1/3;display:block;align-self:stretch;min-height:128px;border:1px solid var(--line);border-radius:10px;background:#F8FAFC;overflow:hidden}
+  /* Explicit width, like .cs-card-art: an `auto` track sized itself from the
+     cover's intrinsic width, so a wide diagram squeezed the text column. */
+  .sd-case-art{grid-row:1/3;display:block;align-self:stretch;width:96px;min-height:128px;border:1px solid var(--line);border-radius:10px;background:#F8FAFC;overflow:hidden}
   .sd-case-art img{display:block;width:100%;height:100%;object-fit:cover;transition:transform .25s ease}
   .sd-case-card:hover .sd-case-art img{transform:scale(1.04)}
 
@@ -808,7 +814,7 @@
   .level-core{color:var(--emerald-deep);background:var(--emerald-soft);border-color:#cfe6da}
   .level-advanced{color:var(--indigo);background:var(--indigo-soft);border-color:#cdd5ef}
   .level-extra{color:var(--brass);background:#faf5e9;border-color:#e3d6b8}
-  .featured-mark{display:inline-block;margin-left:5px;color:var(--brass);font-size:14px;line-height:1;vertical-align:middle}
+  .featured-mark{display:inline-block;margin-left:5px;color:var(--brass);font-size:12px;line-height:1;vertical-align:middle}
   .sd-code-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
   .sd-code-sample{min-width:0;border:1px solid #cdd5ef;border-radius:11px;background:#FBFCFE;overflow:hidden}
   .sd-code-sample>header{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:13px 14px;border-bottom:1px solid #dce2f2;background:var(--indigo-soft)}
@@ -1292,6 +1298,9 @@
     .sd-card{grid-template-columns:34px minmax(0,1fr);padding:15px;gap:11px}
     .sd-card-num{width:34px;height:34px}
     .sd-case-card{grid-template-columns:minmax(0,1fr)}
+    /* Without the art column the arrow's grid-column:2 would open an implicit
+       track and jump it to the top; keep it bottom-right as on wide screens. */
+    .sd-case-card .sd-card-arrow{grid-column:1}
     .sd-case-art{display:none}
     .sd-diagram-viewport>.mermaid{padding:18px 10px}
     .cs-article-head h1{font-size:31px}
@@ -1571,6 +1580,7 @@
   .gs-box svg{width:18px;height:18px}
   .gs-input{flex:1 1 auto;min-width:0;border:0;background:none;font:inherit;font-size:16px;color:var(--ink);padding:2px 0}
   .gs-input:focus{outline:none}
+  .gs-box:focus-within{border-bottom-color:var(--emerald);box-shadow:inset 0 -1px 0 var(--emerald)}
   .gs-input::placeholder{color:var(--muted)}
   .gs-input::-webkit-search-cancel-button{-webkit-appearance:none;appearance:none}
   .gs-esc{flex:none;cursor:pointer;font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.4px;

@@ -2,6 +2,47 @@
   "version": 1,
   "releases": [
     {
+      "date": "2026-08-20",
+      "en": {
+        "title": "Library cards say one thing per slot, and the small print is readable"
+      },
+      "vi": {
+        "title": "Card thư viện mỗi ô một ý, và chữ nhỏ đọc được"
+      },
+      "changes": [
+        {
+          "kind": "fix",
+          "target": "system-design",
+          "en": {
+            "text": "A System Design card packed its kind, its duration, its publisher, the level badge and the update date into one uppercase strip — and the slot after the separator meant two different things: a blueprint’s effort on one card, a publisher on the next. In the **Latest updates** feed, which interleaves both kinds, \"45 MIN\" and \"SHOPIFY\" therefore read as the same kind of fact. The card now splits in two, matching the shape Case Studies already used: the kicker carries **kind and source**, and a closing meta row carries **duration and last update**. Production cases gain a read time they never showed, blueprints keep their effort, and both libraries now share one meta row. The production-case cover also gained an explicit width: it had none, so its automatic grid track was sized from the image itself, and a wide diagram could take the column and leave nothing for the text beside it."
+          },
+          "vi": {
+            "text": "Card System Design nhồi kind, thời lượng, publisher, badge level và ngày cập nhật vào chung một dải chữ hoa — và ô sau dấu phân cách mang hai nghĩa khác nhau: card này là effort của blueprint, card kia là publisher. Ở feed **Cập nhật mới nhất**, nơi hai loại card nằm xen kẽ, \"45 MIN\" và \"SHOPIFY\" vì thế đọc như cùng một loại thông tin. Card giờ tách làm hai, theo đúng bố cục Case Studies đang dùng: dòng kicker mang **kind và nguồn**, dòng meta khép lại card mang **thời lượng và lần cập nhật gần nhất**. Production case có thêm read time trước đây không hiện, blueprint vẫn giữ effort, và hai thư viện dùng chung một dòng meta. Ảnh bìa production case cũng được đặt chiều rộng cố định: trước đây nó không có width nên grid track tự động lấy kích thước từ chính tấm ảnh, và một sơ đồ rộng có thể chiếm hết cột, không chừa chỗ cho phần chữ bên cạnh."
+          }
+        },
+        {
+          "kind": "fix",
+          "target": "all-topics",
+          "en": {
+            "text": "Every colour the site prints text in now clears **WCAG AA contrast (4.5:1)** on both page backgrounds. The muted grey used for card meta rows, tags, eyebrows and date stamps sat at 3.37:1 on white and 2.98:1 on the page — the smallest type on the site, at 9–10px, was also the hardest to read. It was darkened, along with the brass and teal accents, and the ratios are now checked by a test that also covers each difficulty pill on its own tinted fill and each topic-type accent on all three backgrounds it appears against."
+          },
+          "vi": {
+            "text": "Mọi màu chữ trên site giờ đều đạt **contrast WCAG AA (4.5:1)** trên cả hai nền trang. Màu xám nhạt dùng cho dòng meta của card, tag, eyebrow và mốc ngày chỉ đạt 3.37:1 trên nền trắng và 2.98:1 trên nền trang — chữ nhỏ nhất site, cỡ 9–10px, lại là chữ khó đọc nhất. Màu này đã được làm đậm hơn, cùng với hai accent brass và teal, và các tỉ lệ giờ được test kiểm: test phủ cả badge độ khó trên nền màu riêng của nó và accent theo topic-type trên cả ba nền mà nó xuất hiện."
+          }
+        },
+        {
+          "kind": "fix",
+          "target": "search",
+          "en": {
+            "text": "The topic picker’s filter box and the Ctrl/⌘+K search box both suppressed their focus outline with nothing in its place, so a keyboard reader tabbing in saw no change. Both rows now colour their own rule on focus. The featured star also gained an image role: its label sat on a bare inline element, which most screen readers do not announce."
+          },
+          "vi": {
+            "text": "Ô lọc trong topic picker và ô tìm kiếm Ctrl/⌘+K đều tắt focus outline mà không thay bằng gì, nên người dùng bàn phím tab vào không thấy gì đổi. Cả hai giờ đổi màu đường kẻ của chính nó khi focus. Ngôi sao featured cũng được gán image role: nhãn của nó nằm trên một inline element trần, thứ mà phần lớn screen reader không đọc."
+          }
+        }
+      ]
+    },
+    {
       "date": "2026-08-19",
       "en": {
         "title": "Gazl Try: an evidence-led interview playbook"
