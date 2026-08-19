@@ -101,8 +101,8 @@
 <h2 id="compressor">Compressor</h2>
 <p>Pegasus supports configurable Compressors for product payload. We can configure separate compressor for single and multi query. To optimize the two APIs (single &amp; multi), we have a separate application server for each APIs.</p>
 <ul>
-  <li>To query single products: <a href="http://pegasus.tiki.services/" target="_blank" rel="noopener noreferrer">http://pegasus.</a>xxx</li>
-  <li>To query multi products: <a href="http://pegasus-query.tiki.services/" target="_blank" rel="noopener noreferrer">http://pegasus-query.x</a>xx</li>
+  <li>To query single products: <code>http://pegasus.xxx</code></li>
+  <li>To query multi products: <code>http://pegasus-query.xxx</code></li>
 </ul>
 <p>Although the codebase are the same, the configuration are different for each API:</p>
 <p>With single API, it’s better to store the gzipped payload of the products and return it directly to client, since GZIP is smaller (thus reduce payload size), and there’s no need to compress/decompress the ones already in cache.</p>

@@ -1,0 +1,22 @@
+{
+  "body_file": "data/case-studies/articles/17-ssh-server-hardening-lessons.vi.html",
+  "guide": {
+    "title": "Hãy đọc đây là case về defense in depth và incident response—không phải công thức giấu SSH để biến host đã compromise thành đáng tin.",
+    "problem": "Một Linux operator nhiều lần bị xâm nhập trong lúc lần lượt thêm password mạnh, port không mặc định, CSF, proxy giới hạn IP và cuối cùng là private bastion. Các control đã giảm một số kiểu tấn công, nhưng những incident không có cùng root cause đã được chứng minh nên không thể xếp chúng thành một thí nghiệm sạch.",
+    "core_idea": "Tách exposure, authentication, authorization, endpoint integrity, software provenance, detection và recovery. Bỏ password cùng direct root login, yêu cầu credential ngắn hạn hoặc hardware-backed, giới hạn management path, harden và monitor bastion, giữ log off-host, đồng thời coi root compromise chưa rõ đường vào là incident cần containment và clean recovery.",
+    "outcome": "Target private-only giảm mạnh Internet scan và password guessing, nhưng không chặn malicious binary, admin key bị lấy, workstation bị compromise hoặc lateral movement qua bastion. Thiết kế nâng cấp làm từng layer kiểm thử độc lập và thay câu ‘an toàn hai năm’ bằng evidence: access inventory, log, alert, key revocation và recovery drill.",
+    "takeaways": [
+      "Password mạnh không vô dụng, nhưng password authentication public vẫn hứng credential stuffing, reuse, phishing và brute force; public-key cộng MFA loại reusable server password khỏi đường truy cập đó.",
+      "Đổi port 22 giảm commodity log noise và có thể tăng chi phí scan. Nó không phải authentication control, và không security claim nào được phụ thuộc vào việc service không bị tìm thấy.",
+      "Firewall hoặc bastion giới hạn đường đi và blast radius. Chúng không bảo vệ host sau khi operator chạy untrusted code với privilege; network location tự nó cũng không được cấp trust.",
+      "Root compromise chưa rõ entry path không chứng minh latest architecture đã fail theo một cách cụ thể. Hãy giữ evidence, rotate mọi credential có thể chạm tới và rebuild từ known-good image thay vì xóa một account rồi tuyên bố host sạch.",
+      "Stop sshd sau maintenance là lớp giảm exposure thêm, không phải operating model. Recovery access, patching, automation, logging và rollout config bằng hai session đã test vẫn phải hoạt động mà không tạo single point of failure ẩn."
+    ],
+    "review_lenses": [
+      "Threat model: tách password guessing, stolen credential, malicious package, vulnerable service, workstation compromise và bastion pivot; control nào thật sự cắt từng đường?",
+      "Identity: có attribution, revoke và constrain được từng admin mà không dùng shared account, direct root login, copied key dài hạn hoặc agent socket lộ trên jump host không?",
+      "Detection và response: authentication, sudo, process, package và network record có được đẩy off-host không; quy trình containment, credential rotation và clean rebuild đã diễn tập chưa?",
+      "Availability: console hoặc break-glass path nào còn dùng được khi sshd config sai, mất MFA device, bastion chết hoặc network policy lỗi mà không phải mở lại password login ra Internet?"
+    ]
+  }
+}

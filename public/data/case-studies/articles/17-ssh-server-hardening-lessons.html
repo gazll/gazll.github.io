@@ -1,0 +1,91 @@
+<p>The original story is compelling because each compromise produced one more defensive layer: stronger passwords, a different port, a firewall, an IP-restricted proxy, and finally a private bastion. The dangerous conclusion would be that every earlier control was useless and the last topology is secure. The incidents describe different attack paths, and the fourth path was never established.</p>
+<p>This editorial reconstruction keeps the operator's experience but turns it into a reviewable threat model. No forensic evidence was supplied, so statements such as “brute force cracked the password” or “the proxy was bypassed” remain hypotheses. Security starts by separating what was observed from what was inferred.</p>
+
+<h2 id="1-four-incidents-four-different-boundaries">1. Four incidents, four different boundaries</h2>
+<p><strong>Stage one: Internet-facing password authentication.</strong> A long, randomly generated password has real entropy; an online attacker cannot simply guarantee success by trying “millions” of guesses. The practical risks are weaker passwords than remembered, credential reuse, phishing, leaked credentials, an already-created account, or a different vulnerable service. Authentication logs, shell history and a timeline are needed before assigning root cause.</p>
+<p><strong>Stage two: moving port 22.</strong> A custom port can reduce commodity scanner noise and make logs easier to read. A full port scan or service fingerprint still finds SSH, so the change supplies obscurity and operational hygiene—not identity assurance. It should never carry the security invariant.</p>
+<p><strong>Stage three: CSF plus a malicious binary.</strong> Here the reported entry path did not cross the firewall at all. The operator executed software that allegedly created a privileged account and exfiltrated configuration. A network control cannot validate a process deliberately started inside the host. The missing boundaries were software provenance, least privilege, execution isolation and endpoint detection.</p>
+<p><strong>Stage four: an allowlisted proxy followed by an unexplained compromise.</strong> The honest verdict is unknown. Plausible paths include a compromised proxy or workstation, a stolen key, an existing persistence mechanism, a vulnerable non-SSH service, cloud-control-plane access, or a mistaken interpretation of an event. Those are investigation branches, not findings.</p>
+
+<h2 id="2-what-each-control-does-and-does-not-do">2. What each control does—and does not do</h2>
+<table class="cmp"><thead><tr><th>Control</th><th>It reduces</th><th>It does not solve</th></tr></thead><tbody>
+  <tr><td>Strong unique password</td><td>Guessing probability and damage from password reuse</td><td>Phishing, credential theft, malicious code or another exposed service</td></tr>
+  <tr><td>Non-default port</td><td>Background scan noise and low-effort opportunistic traffic</td><td>Discovery by a capable scanner or authentication failure</td></tr>
+  <tr><td>Host/network firewall</td><td>Reachable source addresses, ports and lateral paths</td><td>Code executed locally, stolen allowed identity or control-plane compromise</td></tr>
+  <tr><td>Bastion / private target</td><td>Direct target exposure and uncontrolled management paths</td><td>Bastion pivot, administrator endpoint compromise or excessive privilege</td></tr>
+  <tr><td>Stopping sshd</td><td>Exposure during the stopped interval</td><td>Persistence already on the host, other services, recovery access or future configuration drift</td></tr>
+</tbody></table>
+<p>Controls are cumulative. A firewall is still useful after keys replace passwords; a bastion is still useful with MFA; endpoint integrity remains necessary behind a private subnet. Calling an imperfect layer “useless” encourages a single magic boundary, which is exactly what defense in depth avoids.</p>
+
+<h2 id="3-a-safer-ssh-baseline">3. A safer SSH baseline</h2>
+<p>For human administration, remove reusable SSH passwords from the remote path, prohibit direct root login and grant named users only the privilege they need through <code>sudo</code>. Keep a per-person access inventory; never share one root key. Prefer hardware-backed FIDO keys or short-lived SSH certificates when the team can operate their enrollment and revocation safely.</p>
+<p>The following is an illustrative key-only baseline, not a file to paste blindly. Distribution defaults and included configuration fragments differ. MFA based on PAM keyboard interaction needs a deliberately different <code>KbdInteractiveAuthentication</code> and <code>AuthenticationMethods</code> policy.</p>
+<pre><code># /etc/ssh/sshd_config.d/50-admin-hardening.conf
+PermitRootLogin no
+PasswordAuthentication no
+KbdInteractiveAuthentication no
+PubkeyAuthentication yes
+AllowGroups ssh-admins
+MaxAuthTries 3
+AllowAgentForwarding no
+X11Forwarding no
+PermitTunnel no
+
+# validate first; keep the current session open and test a second session
+sudo sshd -t
+sudo sshd -T
+sudo systemctl reload ssh</code></pre>
+<p>Do not close the working shell until the second session succeeds. Maintain an independent console or break-glass path and test it before the change. A hardening rollout that locks out the only operator has converted a security change into an availability incident.</p>
+<p>Restrict <code>AllowTcpForwarding</code>, <code>PermitOpen</code>, agent forwarding and file transfer according to the job. They are capabilities, not universally unsafe switches. In particular, copying private keys to a bastion turns that host into a credential vault. <code>ProxyJump</code> can relay the connection while the target authenticates the user's key directly; avoid leaving a reusable agent socket where a compromised jump host can abuse it.</p>
+
+<h2 id="4-the-bastion-is-a-chokepoint-not-a-trust-anchor">4. The bastion is a chokepoint, not a trust anchor</h2>
+<figure class="cs-figure cs-figure-wide">
+  <button type="button" data-zoom-image aria-label="Open the SSH defense-in-depth architecture at full size">
+    <img src="assets/case-studies/17-ssh-server-hardening-lessons/01-defense-in-depth.svg" width="1200" height="680" loading="lazy" decoding="async" alt="An administrator reaches private Linux targets through identity policy and a dedicated bastion, while telemetry is exported and clean recovery remains available.">
+  </button>
+  <figcaption>Private routing removes one attack path; identity, endpoint integrity, telemetry and recovery cover the paths that remain.</figcaption>
+</figure>
+<p>The target server should have no public SSH route and should accept management traffic only from the controlled access tier. The bastion should be dedicated to administration: minimal packages, rapid patching, no email or general browsing, tight inbound and outbound rules, no permanent user data, and no copied private keys. Make replacement easier than repair.</p>
+<p>Gate access by user identity, device state and strong MFA rather than IP alone. An IP allowlist is valuable exposure reduction, but NAT, VPN exit nodes and a compromised allowed machine can all satisfy it. NIST's zero-trust guidance is explicit that network location alone must not grant implicit trust.</p>
+<p>The bastion also concentrates risk. If every target trusts it broadly, one compromise becomes a fleet-wide pivot. Segment target groups, constrain principals and commands where possible, use short certificate validity, and give production access only when needed. Send authentication, session, privilege and configuration logs off the bastion so an attacker cannot erase the only copy.</p>
+
+<h2 id="5-the-malicious-package-changes-the-threat-model">5. The malicious package changes the threat model</h2>
+<p>A firewall cannot rescue an operator who runs an untrusted binary as root. Download from the vendor's authenticated channel; verify signatures or attestations against a key obtained through an independent trusted path. A checksum displayed beside a compromised download proves only that the malicious file arrived intact.</p>
+<p>Prefer distribution repositories, pinned dependencies and reproducible deployment artifacts. Review install scripts and requested privileges. Test unfamiliar software in a disposable VM or container without production secrets, cloud metadata access, host sockets or mounted SSH directories. Run the service under a dedicated unprivileged account with the smallest filesystem and network access it needs.</p>
+<p>Inventory packages and binaries so a later incident can answer what changed. Monitor new users, changes to <code>authorized_keys</code>, <code>sudoers</code>, systemd units, cron entries, SSH configuration and outbound connections. Detection cannot guarantee prevention, but it shortens the time during which one execution becomes permanent control.</p>
+
+<h2 id="6-unknown-root-compromise-is-an-incident">6. An unknown root compromise is an incident, not a configuration puzzle</h2>
+<p>After root compromise, the host cannot attest to its own cleanliness. Its commands, logs and binaries may be altered. Do not begin by deleting the suspicious account and continuing normal operation. Use a prepared incident process:</p>
+<ol>
+  <li><strong>Contain:</strong> isolate the instance through the network or control plane. Do not destroy it before deciding what volatile evidence and business data must be preserved.</li>
+  <li><strong>Scope:</strong> identify affected hosts, accounts, keys, tokens, repositories, CI/CD systems, cloud roles and data. Build a timeline from off-host logs and provider audit records.</li>
+  <li><strong>Rotate:</strong> revoke SSH keys and certificates, passwords, API tokens, cloud credentials and secrets reachable from the host. Rotation from the suspect machine is not trustworthy.</li>
+  <li><strong>Eradicate and recover:</strong> rebuild from a known-good image, patch the exploited path, restore only validated data and redeploy signed or pinned artifacts. Verify behavior before returning traffic.</li>
+  <li><strong>Learn:</strong> preserve the root-cause confidence level, add detection for the observed technique and rehearse the recovery path.</li>
+</ol>
+<p>When evidence is insufficient, record the cause as unknown instead of picking the most comforting explanation. “No incident for two years” measures observed absence, not security. A better outcome is that unauthorized access is harder, more observable, more contained and recoverable within explicit objectives.</p>
+
+<h2 id="7-operating-the-design">7. Operating the design</h2>
+<p>Patch OpenSSH, the kernel, the bastion and every Internet-facing service. Alert on successful root login, unexpected account or key creation, repeated failures followed by success, access outside approved windows, unusual source/device identity, privilege escalation and SSH configuration changes. Store critical logs outside the host with retention long enough for detection delay.</p>
+<p>Review access regularly and remove departed users, dormant keys and forgotten automation. Test key revocation, bastion replacement, console access and restoration from a clean image. Scan from outside to verify the target truly has no public management path; test from unrelated internal segments to verify “private” does not mean “reachable by everything inside.”</p>
+<p>Stopping sshd can remain an optional maintenance procedure for rare-access systems, but automate it only with a verified recovery path. For continuously managed production, an authenticated, monitored and narrowly reachable control plane is usually safer than a manual ritual that operators eventually bypass during an emergency.</p>
+
+<h2 id="8-design-review-questions">8. Design review questions</h2>
+<ol>
+  <li>Which evidence proves the original entry path, and which statements are only hypotheses?</li>
+  <li>Can a stolen administrator laptop or compromised bastion reach every production host?</li>
+  <li>Where are private keys, agent sockets and break-glass credentials stored, and how quickly can each be revoked?</li>
+  <li>Do logs survive root access to the target and bastion?</li>
+  <li>Can the team rebuild a host and restore service without trusting files from the compromised operating system?</li>
+  <li>What tested path prevents an sshd configuration mistake from becoming permanent lockout?</li>
+</ol>
+
+<h2 id="9-primary-references">9. Primary references</h2>
+<ul>
+  <li><a href="https://man.openbsd.org/sshd_config" target="_blank" rel="noopener noreferrer">OpenSSH <code>sshd_config(5)</code></a> for authentication, root-login and forwarding controls.</li>
+  <li><a href="https://man.openbsd.org/ssh_config" target="_blank" rel="noopener noreferrer">OpenSSH <code>ssh_config(5)</code></a> for <code>ProxyJump</code> and client behavior.</li>
+  <li><a href="https://ubuntu.com/server/docs/how-to/security/openssh-server/" target="_blank" rel="noopener noreferrer">Ubuntu OpenSSH server guidance</a> for key-based access and hardware-backed MFA options.</li>
+  <li><a href="https://csrc.nist.gov/pubs/sp/800/207/final" target="_blank" rel="noopener noreferrer">NIST SP 800-207</a> for the rule that network location alone does not imply trust.</li>
+  <li><a href="https://csrc.nist.gov/pubs/sp/800/61/r3/final" target="_blank" rel="noopener noreferrer">NIST SP 800-61 Rev. 3</a> for containment, eradication and clean recovery.</li>
+  <li><a href="https://www.cisa.gov/sites/default/files/2025-08/joint-advisory-cisa-identifies-areas-for-cyber-hygiene-improvement-after-conducting-proactive-threat-hunt-508c.pdf" target="_blank" rel="noopener noreferrer">CISA bastion-host guidance</a> for dedicated administration, segmentation, phishing-resistant MFA and centralized logging.</li>
+</ul>

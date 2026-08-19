@@ -1,0 +1,22 @@
+{
+  "body_file": "data/case-studies/articles/17-ssh-server-hardening-lessons.html",
+  "guide": {
+    "title": "Read this as a defense-in-depth and incident-response case—not as a recipe where hiding SSH makes a compromised host trustworthy.",
+    "problem": "A Linux operator suffered repeated compromises while progressively adding a stronger password, a non-default port, CSF, an IP-restricted proxy and finally a private bastion path. Those controls reduced some attacks, but the incidents did not share one proven root cause and therefore cannot be ranked as a clean experiment.",
+    "core_idea": "Separate exposure, authentication, authorization, endpoint integrity, software provenance, detection and recovery. Remove password and direct root login, require short-lived or hardware-backed credentials, restrict the management path, harden and monitor the bastion, preserve off-host logs, and treat an unexplained root compromise as an incident requiring containment and clean recovery.",
+    "outcome": "The private-only target substantially reduces Internet scanning and password-guessing traffic, but it does not stop a malicious binary, stolen administrator key, compromised workstation or pivot through the bastion. The upgraded design makes each layer independently testable and replaces the unverifiable claim ‘safe for two years’ with evidence: access inventory, logs, alerts, key revocation and recovery drills.",
+    "takeaways": [
+      "A strong password is not useless, but Internet-facing password authentication remains exposed to credential stuffing, reuse, phishing and brute force; public-key authentication plus MFA removes the reusable server password from that path.",
+      "Changing port 22 reduces commodity log noise and may lower scanning cost. It is not an authentication control, and no security claim should depend on a service remaining undiscovered.",
+      "A firewall or bastion limits reachable paths and blast radius. It cannot protect a host after an operator executes untrusted code with privilege, and network location alone must not grant trust.",
+      "A root-level compromise with an unknown entry path is not evidence that the latest architecture failed in a specific way. Preserve evidence, rotate every reachable credential and rebuild from a known-good image rather than declaring the host clean after deleting one account.",
+      "Stopping sshd after maintenance is an extra exposure reduction, not the operating model. Recovery access, patching, automation, logging and a tested two-session configuration rollout must still work without creating a hidden single point of failure."
+    ],
+    "review_lenses": [
+      "Threat model: distinguish password guessing, stolen credentials, malicious packages, vulnerable services, workstation compromise and bastion pivot; which control actually interrupts each path?",
+      "Identity: can every administrator be attributed, revoked and constrained without shared accounts, direct root login, long-lived copied keys or agent sockets exposed on the jump host?",
+      "Detection and response: are authentication, sudo, process, package and network records shipped off-host, and is there a rehearsed containment, credential rotation and clean-rebuild procedure?",
+      "Availability: what console or break-glass path survives a bad sshd configuration, lost MFA device, failed bastion or network-policy mistake without reopening password login to the Internet?"
+    ]
+  }
+}

@@ -428,6 +428,19 @@
         "excerpt": "Cách Shopify đưa temporary reservation về cùng inventory ledger, rồi dùng bounded per-unit rows, SKIP LOCKED và connection attribution để giữ correctness ở quy mô flash sale.",
         "tags": ["MySQL", "Redis", "SKIP LOCKED", "Inventory reservation", "Flash sale", "Database concurrency"]
       }
+    },
+    "17": {
+      "key": "17-ssh-server-hardening-lessons",
+      "en": {
+        "title": "Four SSH compromises and the security boundary they missed",
+        "excerpt": "An operator moved from passwords to a custom port, a firewall, an IP allowlist and finally a private bastion. The useful lesson is not that each control was useless, but that every incident crossed a different security boundary.",
+        "tags": ["OpenSSH", "Linux hardening", "Bastion host", "Incident response", "Supply chain", "Defense in depth"]
+      },
+      "vi": {
+        "title": "Bốn lần SSH bị xâm nhập và security boundary còn thiếu",
+        "excerpt": "Một operator đi từ password sang đổi port, firewall, IP allowlist rồi private bastion. Bài học đúng không phải từng control đều vô dụng, mà là mỗi incident đã đi qua một security boundary khác nhau.",
+        "tags": ["OpenSSH", "Linux hardening", "Bastion host", "Incident response", "Supply chain", "Defense in depth"]
+      }
     }
   }
 }

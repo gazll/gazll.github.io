@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="680" viewBox="0 0 1200 680" role="img" aria-labelledby="title desc">
+  <title id="title">Defense-in-depth management path for Linux servers</title>
+  <desc id="desc">An administrator uses phishing-resistant authentication through a monitored access gateway and hardened bastion to reach private Linux targets, while logs leave the trust zone and recovery uses a clean image.</desc>
+  <defs>
+    <marker id="ssh17arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6z" fill="#42536c"/></marker>
+    <style>.t{font:600 24px system-ui,sans-serif;fill:#14233a}.s{font:17px system-ui,sans-serif;fill:#42536c}.l{stroke:#42536c;stroke-width:3;fill:none;marker-end:url(#ssh17arrow)}.b{rx:16;stroke-width:2}</style>
+  </defs>
+  <rect width="1200" height="680" fill="#f7f9fc"/>
+  <text x="60" y="64" class="t">SSH security is a chain of independently testable controls</text>
+  <rect class="b" x="55" y="135" width="205" height="125" fill="#e7eaf6" stroke="#3d4e8f"/>
+  <text x="157" y="178" text-anchor="middle" class="t">Admin device</text><text x="157" y="210" text-anchor="middle" class="s">patched · encrypted</text><text x="157" y="238" text-anchor="middle" class="s">hardware-backed key</text>
+  <rect class="b" x="330" y="135" width="220" height="125" fill="#fff4d9" stroke="#c58a19"/>
+  <text x="440" y="178" text-anchor="middle" class="t">Access policy</text><text x="440" y="210" text-anchor="middle" class="s">identity · device · MFA</text><text x="440" y="238" text-anchor="middle" class="s">short-lived authorization</text>
+  <rect class="b" x="620" y="135" width="215" height="125" fill="#f1eaf7" stroke="#7c5aa6"/>
+  <text x="727" y="178" text-anchor="middle" class="t">Bastion</text><text x="727" y="210" text-anchor="middle" class="s">dedicated · minimal</text><text x="727" y="238" text-anchor="middle" class="s">monitored · no key copy</text>
+  <rect class="b" x="905" y="135" width="235" height="125" fill="#e4f1eb" stroke="#0b6e4f"/>
+  <text x="1022" y="178" text-anchor="middle" class="t">Private targets</text><text x="1022" y="210" text-anchor="middle" class="s">no public SSH route</text><text x="1022" y="238" text-anchor="middle" class="s">least privilege · patched</text>
+  <path class="l" d="M262 198H324"/><path class="l" d="M552 198H614"/><path class="l" d="M837 198H899"/>
+  <rect class="b" x="330" y="385" width="220" height="120" fill="#e4f1eb" stroke="#0b6e4f"/>
+  <text x="440" y="428" text-anchor="middle" class="t">Off-host evidence</text><text x="440" y="460" text-anchor="middle" class="s">auth · sudo · process</text><text x="440" y="488" text-anchor="middle" class="s">alerts · immutable retention</text>
+  <rect class="b" x="650" y="385" width="260" height="120" fill="#f6e8e5" stroke="#ae4536"/>
+  <text x="780" y="428" text-anchor="middle" class="t">Clean recovery</text><text x="780" y="460" text-anchor="middle" class="s">isolate · preserve · rotate</text><text x="780" y="488" text-anchor="middle" class="s">rebuild · verify · learn</text>
+  <path class="l" d="M727 265V326H440V379"/><path class="l" d="M1022 265V326H780V379"/>
+  <rect x="55" y="575" width="1085" height="58" rx="12" fill="#14233a"/>
+  <text x="597" y="612" text-anchor="middle" style="font:600 20px system-ui,sans-serif;fill:#fff">Private routing reduces exposure; identity, endpoint integrity, telemetry and recovery decide resilience.</text>
+</svg>

@@ -25,7 +25,7 @@ const LANGS = ['en', 'vi'];
    Keep this closed rather than skipping any unresolvable target — a typo in a
    topic key should fail here, not silently render without its badge. */
 const NON_TOPIC_TARGETS = new Set([
-  'case-studies', 'system-design', 'boot', 'language', 'all-topics', 'release-notes', 'search'
+  'case-studies', 'system-design', 'interviews', 'boot', 'language', 'all-topics', 'release-notes', 'search'
 ]);
 
 test('there is at least one release, and every release is dated ISO yyyy-mm-dd', () => {
@@ -124,6 +124,16 @@ test('release notes are not study items — no ids, difficulty, or progress weig
   const raw = JSON.stringify(NOTES);
   // An item id would make this data look like something the progress ring counts.
   assert.equal(/"[0-9]{2}-[a-z0-9-]+\.[a-z0-9-]+\.q\d+"/.test(raw), false);
+});
+
+test('the Gazl Try playbook release records its named company context', () => {
+  const release = releases.find(row => row.changes?.some(change => change.target === 'interviews'));
+  assert.ok(release, 'the interview playbook needs its own release-note target');
+  const text = release.changes.flatMap(change => [change.en?.text, change.vi?.text]).join('\n');
+  for (const company of ['OCB', 'MoMo', 'FPT', '7‑Eleven', 'Pizza Hut', 'GHN', 'Abbott']) {
+    assert.match(text, new RegExp(company), `${company} must remain in the release note`);
+  }
+  assert.match(text, /11 (?:thẻ|card)/i);
 });
 
 test('groupByDate collects a day into one group and rolls its totals up', async () => {

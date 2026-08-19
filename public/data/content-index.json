@@ -9,6 +9,7 @@
         "01-java-core-jvm.memory-execution-model.q3",
         "01-java-core-jvm.memory-execution-model.q4",
         "01-java-core-jvm.memory-execution-model.q5",
+        "01-java-core-jvm.memory-execution-model.q6",
         "01-java-core-jvm.concurrency.q1",
         "01-java-core-jvm.concurrency.q2",
         "01-java-core-jvm.concurrency.q3",
@@ -36,6 +37,7 @@
         "01-java-core-jvm.memory-execution-model.q3",
         "01-java-core-jvm.memory-execution-model.q4",
         "01-java-core-jvm.memory-execution-model.q5",
+        "01-java-core-jvm.memory-execution-model.q6",
         "01-java-core-jvm.concurrency.q1",
         "01-java-core-jvm.concurrency.q2",
         "01-java-core-jvm.concurrency.q3",
@@ -445,6 +447,7 @@
         "13-security-oauth2.jwt-tokens.q1",
         "13-security-oauth2.jwt-tokens.q2",
         "13-security-oauth2.jwt-tokens.q3",
+        "13-security-oauth2.jwt-tokens.q4",
         "13-security-oauth2.designing-the-auth-system.q1",
         "13-security-oauth2.designing-the-auth-system.q2",
         "13-security-oauth2.designing-the-auth-system.q3",
@@ -474,6 +477,7 @@
         "13-security-oauth2.jwt-tokens.q1",
         "13-security-oauth2.jwt-tokens.q2",
         "13-security-oauth2.jwt-tokens.q3",
+        "13-security-oauth2.jwt-tokens.q4",
         "13-security-oauth2.designing-the-auth-system.q1",
         "13-security-oauth2.designing-the-auth-system.q2",
         "13-security-oauth2.designing-the-auth-system.q3",
@@ -874,6 +878,9 @@
         "25-microservice.05-caching-pitfalls.q7",
         "25-microservice.05-caching-pitfalls.q8",
         "25-microservice.05-caching-pitfalls.q9",
+        "25-microservice.05-caching-pitfalls.q10",
+        "25-microservice.05-caching-pitfalls.q11",
+        "25-microservice.05-caching-pitfalls.q12",
         "25-microservice.06-hot-partition-db-bottleneck.q1",
         "25-microservice.06-hot-partition-db-bottleneck.q2",
         "25-microservice.06-hot-partition-db-bottleneck.q3",
@@ -924,6 +931,9 @@
         "25-microservice.05-caching-pitfalls.q7",
         "25-microservice.05-caching-pitfalls.q8",
         "25-microservice.05-caching-pitfalls.q9",
+        "25-microservice.05-caching-pitfalls.q10",
+        "25-microservice.05-caching-pitfalls.q11",
+        "25-microservice.05-caching-pitfalls.q12",
         "25-microservice.06-hot-partition-db-bottleneck.q1",
         "25-microservice.06-hot-partition-db-bottleneck.q2",
         "25-microservice.06-hot-partition-db-bottleneck.q3",
@@ -1023,6 +1033,10 @@
     "01-java-core-jvm.memory-execution-model.q5": {
       "en": "What are JIT compilation, the interpreter, C1/C2, tiered compilation, and warmup?",
       "vi": "JIT compilation: interpreter, C1/C2, tiered compilation và warmup là gì?"
+    },
+    "01-java-core-jvm.memory-execution-model.q6": {
+      "en": "JVM memory areas versus HotSpot process memory: why can RSS exceed -Xmx?",
+      "vi": "JVM memory areas và HotSpot process memory khác nhau thế nào, vì sao RSS có thể vượt -Xmx?"
     },
     "01-java-core-jvm.concurrency.q1": {
       "en": "Traditional thread pools vs Virtual Threads (Project Loom) — what's the core difference?",
@@ -1804,6 +1818,10 @@
       "en": "Access token vs refresh token, and what's the revocation strategy?",
       "vi": "Access token vs refresh token và chiến lược thu hồi?"
     },
+    "13-security-oauth2.jwt-tokens.q4": {
+      "en": "Where should a browser store JWTs: cookies, sessionStorage, or localStorage?",
+      "vi": "Browser nên lưu JWT ở cookie, sessionStorage hay localStorage?"
+    },
     "13-security-oauth2.designing-the-auth-system.q1": {
       "en": "How would you design the authentication/authorization system for microservices (SSO + gateway)?",
       "vi": "Thiết kế authentication/authorization system cho microservices (SSO + gateway)?"
@@ -2551,6 +2569,18 @@
     "25-microservice.05-caching-pitfalls.q9": {
       "en": "What Redis actually guarantees before you keep state in it",
       "vi": "Redis thật sự bảo đảm những gì trước khi bạn để state vào đó"
+    },
+    "25-microservice.05-caching-pitfalls.q10": {
+      "en": "Cache eviction: how do the working set, admission, and real algorithms fit together?",
+      "vi": "Cache eviction: working set, admission và các thuật toán thực tế liên hệ với nhau thế nào?"
+    },
+    "25-microservice.05-caching-pitfalls.q11": {
+      "en": "Cache stack and AMAT: where is latency actually paid before Redis?",
+      "vi": "Cache stack và AMAT: latency thực sự được trả ở đâu trước khi tới Redis?"
+    },
+    "25-microservice.05-caching-pitfalls.q12": {
+      "en": "Cache expiration and TTL policies: which clock should end an entry's life?",
+      "vi": "Cache expiration và TTL policy: đồng hồ nào kết thúc vòng đời một entry?"
     },
     "25-microservice.06-hot-partition-db-bottleneck.q1": {
       "en": "Hot partitions: why does skew remain after sharding?",

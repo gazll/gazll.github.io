@@ -12,6 +12,8 @@ const manifest = JSON.parse(await readFile(path.join(dataRoot, 'case-studies/man
 const meta = JSON.parse(await readFile(path.join(dataRoot, 'case-studies/meta.json'), 'utf8'));
 const contentFiles = new Map();
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+// Hiring funnels a preserved article shipped with. Add a host when one appears.
+const RECRUITMENT = /tuyendung\.|apply\.workable\.com|\/careers?\b|\/jobs?\b|greenhouse\.io|lever\.co/i;
 
 for (const article of manifest.articles) {
   for (const lang of ['en', 'vi']) {
@@ -156,8 +158,20 @@ test('paired long-form bodies preserve structure, code and all local figures', a
         assert.match(attrs, /\bwidth="\d+"/);
         assert.match(attrs, /\bheight="\d+"/);
         assert.match(attrs, /\bloading="lazy"/);
+        assert.ok(!/\bPhoto by\b/i.test(alt), `${key}: alt text must describe the figure, not credit a person`);
         referencedAssets.add(src);
         await access(path.join(publicRoot, src));
+      }
+
+      // Body anchors were the one class of outbound link nothing checked: images
+      // could not hotlink, but <a href> was free. That is how four articles kept
+      // a publisher's 2020 recruitment CTA and three kept unreachable http:// hosts.
+      for (const href of [...body.matchAll(/<a\s+[^>]*\bhref="([^"]+)"/g)].map(match => match[1])) {
+        if (href.startsWith('#') || href.startsWith('assets/')) continue;
+        assert.ok(href.startsWith('https://'),
+          `${key}: ${lang} links "${href}" — an archived body may only link https`);
+        assert.ok(!RECRUITMENT.test(href),
+          `${key}: ${lang} still carries a recruitment link ("${href}"); the archive is not a job board`);
       }
     }
 
@@ -174,6 +188,24 @@ test('paired long-form bodies preserve structure, code and all local figures', a
     .map(file => path.relative(publicRoot, file).split(path.sep).join('/'));
   assert.equal(physicalAssets.length, englishImages, 'every physical figure should be referenced once per language');
   assert.deepEqual([...physicalAssets].sort(), [...referencedAssets].sort(), 'there should be no orphaned figures');
+});
+
+test('SSH hardening case separates exposure controls from identity and incident recovery', async () => {
+  const article = manifest.articles.find(entry => entry.slug === 'ssh-server-hardening-lessons');
+  assert.ok(article, 'the SSH hardening case must be published');
+  assert.equal(article.editorial, true);
+  assert.equal('source_url' in article, false);
+
+  const pair = pairFor(article);
+  const en = await readFile(path.join(publicRoot, pair.en.body_file), 'utf8');
+  const vi = await readFile(path.join(publicRoot, pair.vi.body_file), 'utf8');
+  assert.match(en, /No forensic evidence was supplied/);
+  assert.match(en, /The bastion is a chokepoint, not a trust anchor/);
+  assert.match(en, /rebuild from a known-good image/);
+  assert.match(vi, /Kết luận trung thực là unknown/);
+  assert.match(vi, /network location tự nó không được tạo implicit trust/);
+  assert.match(en, /NIST SP 800-61 Rev\. 3/);
+  assert.match(en, /CISA bastion-host guidance/);
 });
 
 test('the shared bilingual loader switches case-study JSON in memory and caches article bodies', async () => {

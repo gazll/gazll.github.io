@@ -2,6 +2,142 @@
   "version": 1,
   "releases": [
     {
+      "date": "2026-08-19",
+      "en": {
+        "title": "Gazl Try: an evidence-led interview playbook"
+      },
+      "vi": {
+        "title": "Gazl Try: playbook phỏng vấn dựa trên evidence"
+      },
+      "changes": [
+        {
+          "kind": "content",
+          "target": "interviews",
+          "en": {
+            "text": "A new **11-card Gazl Try playbook** follows an interview from role-and-level calibration and the 90-second introduction through project proof, technical/business cases, behavioral questions, the candidate close and a practice scorecard. It replaces the myth that a longer interview guarantees an offer with observable—but non-conclusive—signals; gives DA, DE and Backend distinct technical lenses; and turns the café and 20% revenue prompts into hypothesis, data, decision and experiment frameworks. Company context from the supplied account remains explicit: OCB, MoMo, FPT, 7‑Eleven, Pizza Hut, GHN and Abbott, labelled as reported anecdotes rather than official hiring formats."
+          },
+          "vi": {
+            "text": "**Playbook Gazl Try gồm 11 thẻ** đi từ calibrate role/level và intro 90 giây tới chứng minh project, technical/business case, behavioral, candidate close cùng scorecard luyện tập. Bài thay quan niệm “phỏng vấn càng lâu càng chắc đậu” bằng các signal có thể quan sát nhưng không kết luận tuyệt đối; tách technical lens cho DA, DE và Backend; đồng thời nâng hai case chuỗi café và tăng revenue 20% thành khung hypothesis, data, decision và experiment. Bối cảnh công ty từ bài được cung cấp được giữ nguyên: OCB, MoMo, FPT, 7‑Eleven, Pizza Hut, GHN và Abbott, với nhãn trải nghiệm được kể lại thay vì format tuyển dụng chính thức."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-19",
+      "en": {
+        "title": "JWT storage: choose the browser architecture before the API"
+      },
+      "vi": {
+        "title": "Lưu JWT: chọn browser architecture trước storage API"
+      },
+      "changes": [
+        {
+          "kind": "topic",
+          "target": "13-security-oauth2",
+          "en": {
+            "text": "New advanced item in Security §JWT & tokens — **Where should a browser store JWTs?** A native BFF flow, XSS/CSRF decision matrix and hardened cookie example distinguish server-side tokens, in-memory SPA access tokens, sessionStorage and localStorage. The verdict follows the IETF browser-based-apps BCP draft: prefer BFF plus an opaque HttpOnly session cookie when a backend exists; treat sessionStorage as a bounded compromise and localStorage as non-sensitive UI storage. The Study Track now contains **383** questions (**442** across the library)."
+          },
+          "vi": {
+            "text": "Mục advanced mới trong Security §JWT & tokens — **Browser nên lưu JWT ở đâu?** Một BFF flow native, decision matrix XSS/CSRF và hardened-cookie example tách server-side token, in-memory SPA access token, sessionStorage cùng localStorage. Verdict theo BCP draft của IETF về browser-based apps: ưu tiên BFF cộng opaque HttpOnly session cookie khi có backend; xem sessionStorage là bounded compromise và localStorage là nơi lưu UI state không nhạy cảm. Study Track hiện có **383** câu hỏi (**442** trên toàn thư viện)."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-19",
+      "en": {
+        "title": "SSH hardening from repeated compromise to testable controls"
+      },
+      "vi": {
+        "title": "SSH hardening: từ repeated compromise tới control kiểm thử được"
+      },
+      "changes": [
+        {
+          "kind": "content",
+          "target": "case-studies",
+          "en": {
+            "text": "New bilingual editorial case study — **Four SSH compromises and the security boundary they missed**. It separates password guessing, scan noise, malicious-package execution and an unknown root compromise; replaces absolute claims with evidence levels; and upgrades the final private-bastion design with per-user identity, hardware-backed MFA, least privilege, off-host telemetry and a clean-rebuild incident playbook. One native architecture diagram and primary OpenSSH, Ubuntu, NIST and CISA references are included."
+          },
+          "vi": {
+            "text": "Editorial case study song ngữ mới — **Bốn lần SSH bị xâm nhập và security boundary còn thiếu**. Bài tách password guessing, scan noise, malicious-package execution và một root compromise chưa rõ nguyên nhân; thay khẳng định tuyệt đối bằng evidence level; đồng thời nâng cấp private-bastion design với identity theo từng user, hardware-backed MFA, least privilege, off-host telemetry và clean-rebuild incident playbook. Bài có một architecture diagram native cùng nguồn chính thức OpenSSH, Ubuntu, NIST và CISA."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-19",
+      "en": {
+        "title": "Cache expiration: deadlines, cleanup, and safe TTL policy"
+      },
+      "vi": {
+        "title": "Cache expiration: deadline, cleanup và TTL policy an toàn"
+      },
+      "changes": [
+        {
+          "kind": "topic",
+          "target": "25-microservice",
+          "en": {
+            "text": "New advanced item in Microservices §05 — **Cache expiration and TTL policies**. Three native diagrams separate expiration, eviction and invalidation; explain logical expiry versus physical cleanup; and compare fixed, sliding and absolute deadlines. The guide adds bounded jitter, an absolute cap for sessions and tokens, engine-specific Redis/Caffeine/Memcached semantics, operational signals and a policy decision checklist. The Study Track now contains **382** questions (**441** across the library)."
+          },
+          "vi": {
+            "text": "Mục advanced mới trong Microservices §05 — **Cache expiration và TTL policy**. Ba diagram native tách expiration, eviction và invalidation; giải thích logical expiry so với physical cleanup; đồng thời so sánh deadline fixed, sliding và absolute. Bài bổ sung jitter có biên, absolute cap cho session/token, semantics riêng của Redis/Caffeine/Memcached, tín hiệu vận hành và checklist chọn policy. Study Track hiện có **382** câu hỏi (**441** trên toàn thư viện)."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-19",
+      "en": {
+        "title": "Cache eviction: working sets, admission, and real engine behavior"
+      },
+      "vi": {
+        "title": "Cache eviction: working set, admission và hành vi thật của từng engine"
+      },
+      "changes": [
+        {
+          "kind": "topic",
+          "target": "25-microservice",
+          "en": {
+            "text": "New advanced item in Microservices §05 — **Cache eviction beyond LRU**. Four native diagrams connect capacity pressure, the separate admission and eviction gates, scan pollution, SLRU versus ARC, and W-TinyLFU. The implementation comparison is checked against primary Redis, Caffeine, Memcached, MySQL, PostgreSQL, Linux and OpenZFS sources; misleading shortcuts such as ‘Linux uses CLOCK’ are called out explicitly. The Study Track now contains **381** questions (**440** across the library)."
+          },
+          "vi": {
+            "text": "Mục advanced mới trong Microservices §05 — **Cache eviction vượt khỏi LRU**. Bốn diagram native nối bài toán áp lực dung lượng, hai cổng admission và eviction riêng biệt, scan pollution, SLRU so với ARC và W-TinyLFU. Phần so sánh implementation được kiểm chứng bằng nguồn chính thức của Redis, Caffeine, Memcached, MySQL, PostgreSQL, Linux và OpenZFS; các cách nói tắt dễ sai như ‘Linux dùng CLOCK’ được chỉ ra rõ ràng. Study Track hiện có **381** câu hỏi (**440** trên toàn thư viện)."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-19",
+      "en": {
+        "title": "Cache economics and the JVM memory map"
+      },
+      "vi": {
+        "title": "Kinh tế học của cache và bản đồ bộ nhớ JVM"
+      },
+      "changes": [
+        {
+          "kind": "topic",
+          "target": "25-microservice",
+          "en": {
+            "text": "New advanced item in Microservices §05 — **Cache stack and AMAT**. It separates HTTP, application, distributed, database and operating-system caches, derives the hit-rate break-even point, and explains why hit ratios from different layers cannot be added. Existing pattern, expiry and eviction items now form one internal learning path."
+          },
+          "vi": {
+            "text": "Mục advanced mới trong Microservices §05 — **Cache stack và AMAT**. Bài tách cache HTTP, application, distributed, database và operating system, suy ra điểm hit-rate break-even, đồng thời giải thích vì sao không được cộng hit ratio của các layer. Các mục pattern, expiry và eviction hiện nối thành một learning path nội bộ."
+          }
+        },
+        {
+          "kind": "topic",
+          "target": "01-java-core-jvm",
+          "en": {
+            "text": "New advanced item in Java Core §Memory — **JVM specification areas versus HotSpot process memory**. A native diagram separates logical runtime areas from heap, metaspace, code cache, native stacks, direct/foreign memory and mappings; the diagnostic path reconciles NMT with RSS and corrects the myth that C2 escape analysis stack-allocates ordinary objects."
+          },
+          "vi": {
+            "text": "Mục advanced mới trong Java Core §Memory — **JVM specification area so với HotSpot process memory**. Diagram native tách runtime area logic khỏi heap, metaspace, code cache, native stack, direct/foreign memory và mapping; luồng chẩn đoán reconcile NMT với RSS và sửa myth rằng escape analysis của C2 stack-allocate object thông thường."
+          }
+        }
+      ]
+    },
+    {
       "date": "2026-08-18",
       "en": {
         "title": "Two architecture journeys: trillion-message scale and the pre-revenue cloud bill"

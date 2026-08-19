@@ -101,8 +101,8 @@
 <h2 id="compressor">Compressor</h2>
 <p>Pegasus hỗ trợ configurable Compressor cho product payload. Có thể config compressor riêng cho single query và multi query. Để tối ưu hai API này, chúng tôi dùng application server riêng cho từng API.</p>
 <ul>
-  <li>Để query các sản phẩm đơn lẻ: <a href="http://pegasus.tiki.services/" target="_blank" rel="noopener noreferrer">http://pegasus.</a>xxx</li>
-  <li>Để query nhiều sản phẩm: <a href="http://pegasus-query.tiki.services/" target="_blank" rel="noopener noreferrer">http://pegasus-query.x</a>xx</li>
+  <li>Để query các sản phẩm đơn lẻ: <code>http://pegasus.xxx</code></li>
+  <li>Để query nhiều sản phẩm: <code>http://pegasus-query.xxx</code></li>
 </ul>
 <p>Dù codebase giống nhau, config của mỗi API khác nhau:</p>
 <p>Với single API, nên cache payload đã gzip và trả trực tiếp cho client vì GZIP nhỏ hơn, giảm payload size, đồng thời không cần compress/decompress những product đã có trong cache.</p>

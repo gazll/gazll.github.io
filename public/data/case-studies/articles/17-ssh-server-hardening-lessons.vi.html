@@ -1,0 +1,91 @@
+<p>Câu chuyện gốc hấp dẫn vì mỗi lần bị xâm nhập lại sinh thêm một lớp phòng thủ: password mạnh hơn, port khác, firewall, proxy giới hạn IP và cuối cùng là private bastion. Kết luận nguy hiểm sẽ là mọi control trước đó đều vô dụng còn topology cuối đã an toàn. Các incident mô tả những attack path khác nhau; riêng path thứ tư chưa bao giờ được xác định.</p>
+<p>Bản biên tập này giữ trải nghiệm của operator nhưng chuyển nó thành threat model có thể review. Không có forensic evidence đi kèm, vì vậy các câu như “brute force đã crack password” hoặc “proxy bị bypass” vẫn chỉ là giả thuyết. Security bắt đầu bằng việc tách điều quan sát được khỏi điều suy đoán.</p>
+
+<h2 id="1-four-incidents-four-different-boundaries">1. Bốn incident, bốn boundary khác nhau</h2>
+<p><strong>Giai đoạn một: password authentication mở ra Internet.</strong> Password dài và được sinh ngẫu nhiên có entropy thật; attacker online không thể bảo đảm thành công chỉ bằng “hàng triệu” lần thử. Rủi ro thực tế còn có password yếu hơn ta nhớ, credential reuse, phishing, credential đã rò rỉ, account được cài sẵn hoặc một service khác có lỗ hổng. Phải có authentication log, shell history và timeline rồi mới gán root cause.</p>
+<p><strong>Giai đoạn hai: chuyển khỏi port 22.</strong> Custom port có thể giảm commodity scanner noise và làm log dễ đọc hơn. Full port scan hoặc service fingerprint vẫn tìm ra SSH, nên thay đổi này tạo obscurity và operational hygiene—không tạo identity assurance. Security invariant không được dựa vào nó.</p>
+<p><strong>Giai đoạn ba: CSF cộng malicious binary.</strong> Entry path được kể ở đây hoàn toàn không đi qua firewall. Operator đã chạy software bị cho là tạo privileged account và exfiltrate configuration. Network control không thể xác minh process được chủ động chạy bên trong host. Boundary còn thiếu là software provenance, least privilege, execution isolation và endpoint detection.</p>
+<p><strong>Giai đoạn bốn: proxy allowlist rồi vẫn bị xâm nhập mà không rõ nguyên nhân.</strong> Kết luận trung thực là unknown. Các nhánh có thể điều tra gồm proxy hoặc workstation bị compromise, key bị lấy, persistence cũ, service ngoài SSH có lỗ hổng, cloud control plane hoặc hiểu nhầm một event. Đây là investigation branch, không phải finding.</p>
+
+<h2 id="2-what-each-control-does-and-does-not-do">2. Mỗi control làm được và không làm được gì?</h2>
+<table class="cmp"><thead><tr><th>Control</th><th>Nó giảm</th><th>Nó không giải quyết</th></tr></thead><tbody>
+  <tr><td>Strong unique password</td><td>Xác suất đoán trúng và thiệt hại do password reuse</td><td>Phishing, credential theft, malicious code hoặc service khác bị expose</td></tr>
+  <tr><td>Non-default port</td><td>Background scan noise và opportunistic traffic ít nỗ lực</td><td>Discovery bởi scanner đủ năng lực hoặc authentication failure</td></tr>
+  <tr><td>Host/network firewall</td><td>Source address, port và lateral path có thể reach</td><td>Code chạy local, stolen allowed identity hoặc control-plane compromise</td></tr>
+  <tr><td>Bastion / private target</td><td>Direct target exposure và management path không kiểm soát</td><td>Bastion pivot, admin endpoint compromise hoặc privilege quá rộng</td></tr>
+  <tr><td>Stop sshd</td><td>Exposure trong khoảng service dừng</td><td>Persistence đã có, service khác, recovery access hoặc config drift sau này</td></tr>
+</tbody></table>
+<p>Các control cộng dồn lên nhau. Firewall vẫn hữu ích sau khi key thay password; bastion vẫn hữu ích khi đã có MFA; endpoint integrity vẫn cần trong private subnet. Gọi một layer không hoàn hảo là “vô dụng” sẽ khuyến khích tìm một magic boundary duy nhất—đúng điều defense in depth muốn tránh.</p>
+
+<h2 id="3-a-safer-ssh-baseline">3. SSH baseline an toàn hơn</h2>
+<p>Với human administration, hãy loại reusable SSH password khỏi remote path, cấm direct root login và chỉ cấp named user đúng privilege cần thiết qua <code>sudo</code>. Giữ access inventory theo từng người; không chia sẻ một root key. Ưu tiên hardware-backed FIDO key hoặc short-lived SSH certificate khi team đủ khả năng vận hành enrollment và revocation an toàn.</p>
+<p>Đây là baseline key-only minh họa, không phải file để paste mù quáng. Default của distribution và các included config fragment khác nhau. MFA dựa trên PAM keyboard interaction cần policy <code>KbdInteractiveAuthentication</code> và <code>AuthenticationMethods</code> khác được thiết kế có chủ ý.</p>
+<pre><code># /etc/ssh/sshd_config.d/50-admin-hardening.conf
+PermitRootLogin no
+PasswordAuthentication no
+KbdInteractiveAuthentication no
+PubkeyAuthentication yes
+AllowGroups ssh-admins
+MaxAuthTries 3
+AllowAgentForwarding no
+X11Forwarding no
+PermitTunnel no
+
+# validate first; keep the current session open and test a second session
+sudo sshd -t
+sudo sshd -T
+sudo systemctl reload ssh</code></pre>
+<p>Đừng đóng working shell cho tới khi session thứ hai login thành công. Hãy có console hoặc break-glass path độc lập và test nó trước khi đổi. Một rollout hardening làm operator duy nhất bị lock out đã biến security change thành availability incident.</p>
+<p>Giới hạn <code>AllowTcpForwarding</code>, <code>PermitOpen</code>, agent forwarding và file transfer theo công việc. Chúng là capability, không phải switch luôn luôn nguy hiểm. Đặc biệt, copy private key lên bastion sẽ biến host đó thành credential vault. <code>ProxyJump</code> relay connection trong khi target xác thực trực tiếp key của user; tránh để reusable agent socket cho jump host đã compromise lợi dụng.</p>
+
+<h2 id="4-the-bastion-is-a-chokepoint-not-a-trust-anchor">4. Bastion là chokepoint, không phải trust anchor</h2>
+<figure class="cs-figure cs-figure-wide">
+  <button type="button" data-zoom-image aria-label="Mở kiến trúc SSH defense in depth ở kích thước đầy đủ">
+    <img src="assets/case-studies/17-ssh-server-hardening-lessons/01-defense-in-depth.svg" width="1200" height="680" loading="lazy" decoding="async" alt="Administrator đi qua identity policy và dedicated bastion để tới private Linux target, còn telemetry được export và clean recovery luôn sẵn sàng.">
+  </button>
+  <figcaption>Private routing bỏ một attack path; identity, endpoint integrity, telemetry và recovery che các path còn lại.</figcaption>
+</figure>
+<p>Target server không nên có public SSH route và chỉ nhận management traffic từ controlled access tier. Bastion phải dành riêng cho administration: package tối thiểu, patch nhanh, không email hay general browsing, inbound/outbound rule chặt, không permanent user data và không copy private key. Hãy làm cho replace dễ hơn repair.</p>
+<p>Gate access bằng user identity, device state và strong MFA thay vì chỉ IP. IP allowlist là lớp giảm exposure có giá trị, nhưng NAT, VPN exit node và một allowed machine bị compromise đều thỏa nó. Zero-trust guidance của NIST nói rõ network location tự nó không được tạo implicit trust.</p>
+<p>Bastion cũng tập trung rủi ro. Nếu mọi target đều trust nó quá rộng, một compromise trở thành fleet-wide pivot. Hãy segment target group, constrain principal và command khi có thể, dùng certificate validity ngắn và chỉ cấp production access khi cần. Đẩy authentication, session, privilege và configuration log ra khỏi bastion để attacker không xóa được bản duy nhất.</p>
+
+<h2 id="5-the-malicious-package-changes-the-threat-model">5. Malicious package làm threat model đổi hẳn</h2>
+<p>Firewall không thể cứu operator đã chạy untrusted binary bằng root. Hãy download từ authenticated channel của vendor; verify signature hoặc attestation bằng key lấy qua independent trusted path. Checksum hiển thị cạnh một download đã bị compromise chỉ chứng minh malicious file được tải về nguyên vẹn.</p>
+<p>Ưu tiên distribution repository, pinned dependency và reproducible deployment artifact. Review install script cùng privilege được yêu cầu. Test software lạ trong disposable VM hoặc container không có production secret, cloud metadata access, host socket hay mounted SSH directory. Chạy service dưới dedicated unprivileged account với filesystem và network access nhỏ nhất cần thiết.</p>
+<p>Inventory package và binary để incident sau trả lời được cái gì đã đổi. Monitor user mới, thay đổi ở <code>authorized_keys</code>, <code>sudoers</code>, systemd unit, cron entry, SSH configuration và outbound connection. Detection không bảo đảm prevention, nhưng rút ngắn thời gian một lần execution biến thành permanent control.</p>
+
+<h2 id="6-unknown-root-compromise-is-an-incident">6. Root compromise chưa rõ nguyên nhân là incident, không phải config puzzle</h2>
+<p>Sau root compromise, host không thể tự chứng minh mình sạch. Command, log và binary của nó có thể đã bị đổi. Đừng bắt đầu bằng cách xóa suspicious account rồi tiếp tục operation bình thường. Hãy dùng incident process đã chuẩn bị:</p>
+<ol>
+  <li><strong>Contain:</strong> isolate instance bằng network hoặc control plane. Đừng destroy trước khi quyết định volatile evidence và business data nào cần giữ.</li>
+  <li><strong>Scope:</strong> xác định host, account, key, token, repository, CI/CD system, cloud role và data bị ảnh hưởng. Dựng timeline từ off-host log và provider audit record.</li>
+  <li><strong>Rotate:</strong> revoke SSH key/certificate, password, API token, cloud credential và secret mà host chạm tới. Rotation từ suspect machine không đáng tin.</li>
+  <li><strong>Eradicate và recover:</strong> rebuild từ known-good image, patch exploited path, chỉ restore data đã validate và redeploy artifact đã sign hoặc pin. Verify behavior trước khi trả traffic.</li>
+  <li><strong>Learn:</strong> lưu confidence level của root cause, thêm detection cho technique quan sát được và diễn tập recovery path.</li>
+</ol>
+<p>Khi evidence không đủ, ghi nguyên nhân là unknown thay vì chọn lời giải thích dễ chịu nhất. “Không có incident trong hai năm” đo observed absence, không đo security. Outcome tốt hơn là unauthorized access khó hơn, dễ quan sát hơn, bị giới hạn hơn và recover được trong objective rõ ràng.</p>
+
+<h2 id="7-operating-the-design">7. Vận hành thiết kế</h2>
+<p>Patch OpenSSH, kernel, bastion và mọi Internet-facing service. Alert khi root login thành công, account/key bất ngờ được tạo, nhiều failure nối tiếp một success, access ngoài approved window, source/device identity bất thường, privilege escalation và SSH config thay đổi. Lưu critical log ngoài host đủ lâu cho detection delay.</p>
+<p>Review access định kỳ và bỏ departed user, dormant key cùng automation bị quên. Test key revocation, bastion replacement, console access và restore từ clean image. Scan từ ngoài để xác nhận target thật sự không có public management path; test từ internal segment không liên quan để chắc “private” không có nghĩa “mọi thứ bên trong đều reach được.”</p>
+<p>Stop sshd có thể là optional maintenance procedure cho hệ thống hiếm khi truy cập, nhưng chỉ automate khi recovery path đã verify. Với production cần quản trị liên tục, control plane được authenticate, monitor và giới hạn reachability thường an toàn hơn manual ritual mà operator cuối cùng sẽ bypass lúc khẩn cấp.</p>
+
+<h2 id="8-design-review-questions">8. Câu hỏi design review</h2>
+<ol>
+  <li>Evidence nào chứng minh entry path ban đầu, và statement nào mới là giả thuyết?</li>
+  <li>Laptop admin hoặc bastion bị compromise có reach được mọi production host không?</li>
+  <li>Private key, agent socket và break-glass credential nằm đâu; mỗi thứ revoke nhanh tới mức nào?</li>
+  <li>Log có sống sót sau root access vào target và bastion không?</li>
+  <li>Team có rebuild host và restore service mà không trust file từ compromised OS không?</li>
+  <li>Tested path nào ngăn sshd config mistake biến thành permanent lockout?</li>
+</ol>
+
+<h2 id="9-primary-references">9. Nguồn chính thức</h2>
+<ul>
+  <li><a href="https://man.openbsd.org/sshd_config" target="_blank" rel="noopener noreferrer">OpenSSH <code>sshd_config(5)</code></a> cho authentication, root login và forwarding control.</li>
+  <li><a href="https://man.openbsd.org/ssh_config" target="_blank" rel="noopener noreferrer">OpenSSH <code>ssh_config(5)</code></a> cho <code>ProxyJump</code> và client behavior.</li>
+  <li><a href="https://ubuntu.com/server/docs/how-to/security/openssh-server/" target="_blank" rel="noopener noreferrer">Ubuntu OpenSSH server guidance</a> cho key-based access và hardware-backed MFA.</li>
+  <li><a href="https://csrc.nist.gov/pubs/sp/800/207/final" target="_blank" rel="noopener noreferrer">NIST SP 800-207</a> cho nguyên tắc network location không tự tạo trust.</li>
+  <li><a href="https://csrc.nist.gov/pubs/sp/800/61/r3/final" target="_blank" rel="noopener noreferrer">NIST SP 800-61 Rev. 3</a> cho containment, eradication và clean recovery.</li>
+  <li><a href="https://www.cisa.gov/sites/default/files/2025-08/joint-advisory-cisa-identifies-areas-for-cyber-hygiene-improvement-after-conducting-proactive-threat-hunt-508c.pdf" target="_blank" rel="noopener noreferrer">CISA bastion-host guidance</a> cho dedicated administration, segmentation, phishing-resistant MFA và centralized logging.</li>
+</ul>

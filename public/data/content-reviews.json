@@ -1411,5 +1411,110 @@
       "https://docs.stripe.com/payments/payment-intents/verifying-status",
       "https://www.postgresql.org/docs/current/transaction-iso.html"
     ]
+  },
+  "01-java-core-jvm.memory-execution-model.q2": {
+    "reviewed_at": "2026-08-19",
+    "target_versions": [
+      "HotSpot C2 current escape-analysis behavior"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.oracle.com/en/java/javase/17/vm/java-hotspot-virtual-machine-performance-enhancements.html"
+    ]
+  },
+  "01-java-core-jvm.memory-execution-model.q6": {
+    "reviewed_at": "2026-08-19",
+    "target_versions": [
+      "Java SE 25 JVM Specification",
+      "Oracle JDK 25 Native Memory Tracking",
+      "Java 21 virtual threads",
+      "Java 22 Foreign Function and Memory API"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.oracle.com/javase/specs/jvms/se25/html/jvms-2.html",
+      "https://docs.oracle.com/en/java/javase/25/troubleshoot/troubleshooting-guide.pdf",
+      "https://openjdk.org/jeps/444",
+      "https://openjdk.org/jeps/454"
+    ]
+  },
+  "25-microservice.05-caching-pitfalls.q10": {
+    "reviewed_at": "2026-08-19",
+    "target_versions": [
+      "Redis Open Source current key-eviction reference",
+      "Caffeine 3.2.4 and current design reference",
+      "Memcached current maintained-LRU design",
+      "MySQL 8.4 InnoDB buffer pool",
+      "PostgreSQL 18 buffer replacement",
+      "Linux kernel current Multi-Gen LRU documentation",
+      "OpenZFS current ARC documentation"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://redis.io/docs/latest/develop/reference/eviction/",
+      "https://github.com/ben-manes/caffeine/wiki/Design",
+      "https://github.com/ben-manes/caffeine/wiki/Eviction",
+      "https://github.com/memcached/memcached/blob/master/doc/new_lru.txt",
+      "https://dev.mysql.com/doc/refman/8.4/en/innodb-performance-midpoint_insertion.html",
+      "https://wiki.postgresql.org/wiki/Multiple_Buffer_Pools",
+      "https://docs.kernel.org/mm/multigen_lru.html",
+      "https://openzfs.github.io/openzfs-docs/Basic%20Concepts/Pool%20Structure/Caching.html",
+      "https://www.usenix.org/conference/fast-03/presentation/arc-self-tuning-low-overhead-replacement-cache",
+      "https://arxiv.org/abs/1512.00727",
+      "https://doxygen.postgresql.org/buf__internals_8h_source.html",
+      "https://static.usenix.org/publications/library/proceedings/usenix05/tech/general/full_papers/jiang/jiang_html/html.html"
+    ]
+  },
+  "25-microservice.05-caching-pitfalls.q11": {
+    "reviewed_at": "2026-08-19",
+    "target_versions": [
+      "RFC 9111 HTTP Caching",
+      "Caffeine current statistics reference",
+      "Redis Open Source current INFO reference",
+      "MySQL 8.4 InnoDB buffer pool"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://www.rfc-editor.org/rfc/rfc9111.html",
+      "https://github.com/ben-manes/caffeine/wiki/Statistics",
+      "https://redis.io/docs/latest/commands/info/",
+      "https://dev.mysql.com/doc/refman/8.4/en/memory-use.html"
+    ]
+  },
+  "25-microservice.05-caching-pitfalls.q12": {
+    "reviewed_at": "2026-08-19",
+    "target_versions": [
+      "Redis Open Source current expiration and replication semantics",
+      "Caffeine current time-based expiration semantics",
+      "Memcached current text protocol expiration semantics"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://redis.io/docs/latest/commands/expire/",
+      "https://redis.io/docs/latest/commands/getex/",
+      "https://redis.io/docs/latest/commands/set/",
+      "https://redis.io/docs/latest/operate/oss_and_stack/management/replication/",
+      "https://github.com/ben-manes/caffeine/wiki/Eviction",
+      "https://github.com/memcached/memcached/blob/master/doc/protocol.txt"
+    ]
+  },
+  "13-security-oauth2.jwt-tokens.q4": {
+    "reviewed_at": "2026-08-19",
+    "target_versions": [
+      "draft-ietf-oauth-browser-based-apps-27 (OAuth 2.0 for Browser-Based Applications) — Internet-Draft in the RFC Editor queue, intended BCP; not yet an RFC at review time",
+      "RFC 9700 OAuth 2.0 Security Best Current Practice",
+      "RFC 6750 OAuth 2.0 Bearer Token Usage",
+      "RFC 8252 OAuth 2.0 for Native Apps",
+      "OWASP Session Management and CSRF guidance current at review"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://datatracker.ietf.org/doc/draft-ietf-oauth-browser-based-apps/",
+      "https://www.rfc-editor.org/rfc/rfc9700.html",
+      "https://www.rfc-editor.org/rfc/rfc6750.html",
+      "https://www.rfc-editor.org/rfc/rfc8252.html",
+      "https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html",
+      "https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html"
+    ]
   }
 }

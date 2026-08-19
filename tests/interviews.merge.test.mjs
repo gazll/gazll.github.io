@@ -123,6 +123,27 @@ test('Gazl Try lazy-renders reviewed Mermaid diagrams and preserves their source
     'the mount call must sit behind the group-open guard, not run at paint time');
 });
 
+test('master interview data includes the end-to-end interview playbook without outcome myths', () => {
+  const playbook = MASTER.companies.find(company => company.slug === 'end-to-end-interview-playbook-2026');
+  assert.ok(playbook, 'the end-to-end interview playbook must be published in Gazl Try');
+  assert.equal(playbook.kind, 'playbook');
+  assert.ok(playbook.questions.length >= 10);
+  const content = playbook.questions.map(row => `${row.q}\n${row.a}\n${row.note}`).join('\n');
+  assert.match(content, /Present → Evidence → Transition → Fit/);
+  assert.match(content, /Clarify → Model → Decide → Verify/);
+  assert.match(content, /Hypothesis/);
+  assert.match(content, /Definition of Done/);
+  assert.match(content, /evidence matrix/);
+  assert.match(content, /DA\/Analytics/);
+  assert.match(content, /DE\/Data platform/);
+  assert.match(content, /semantics → use case → limit → evidence/);
+  for (const company of ['OCB', 'MoMo', 'FPT', '7‑Eleven', 'Pizza Hut', 'GHN', 'Abbott']) {
+    assert.match(content, new RegExp(company), `the source company name ${company} must remain visible`);
+  }
+  assert.match(content, /không nên coi thời lượng là quy luật/i);
+  assert.equal(playbook.questions.filter(row => row.diagrams).length, 1);
+});
+
 test('the Apps Script schema round-trips revisions, diagrams and references with append-only columns', () => {
   const backend = readFileSync(new URL('../apps-script/Code.gs', import.meta.url), 'utf8');
   assert.match(backend, /'note', 'sort_order', 'diagrams_json'/);

@@ -287,3 +287,123 @@ test('content review metadata is keyed by real immutable item ids', async () => 
       `${id}: every source must be an HTTPS URL`);
   }
 });
+
+test('cache eviction deep dive separates admission from replacement and corrects implementation myths', () => {
+  const id = '25-microservice.05-caching-pitfalls.q10';
+  const en = [...TOPIC_FILES.values()].flatMap(content => content.sections)
+    .flatMap(section => section.items).find(item => item.id === id);
+  const vi = [...TOPIC_VI_FILES.values()].flatMap(content => content.sections)
+    .flatMap(section => section.items).find(item => item.id === id);
+
+  assert.ok(en && vi, 'the complete bilingual deep dive must exist');
+  assert.equal(en.difficulty, 'advanced');
+  assert.match(en.a, /Admission asks whether a new candidate deserves residency/);
+  assert.match(en.a, /W-TinyLFU combines a chance for new keys/);
+  assert.match(en.a, /SLRU is segmented replacement, not an admission gate/);
+  assert.match(en.a, /B1 hit grows the recency target p/);
+  assert.match(en.a, /Linux should not be summarized as “also CLOCK”/);
+  assert.match(vi.a, /Có hai cánh cửa riêng/);
+  assert.equal((en.a.match(/<svg\b/g) || []).length, 4);
+  assert.equal((vi.a.match(/<svg\b/g) || []).length, 4);
+  assert.ok(REVIEWS[id]?.sources.length >= 7, 'version-bound engine claims need primary provenance');
+});
+
+test('cache series covers layered hit economics without adding incompatible hit ratios', () => {
+  const id = '25-microservice.05-caching-pitfalls.q11';
+  const en = [...TOPIC_FILES.values()].flatMap(content => content.sections)
+    .flatMap(section => section.items).find(item => item.id === id);
+  const vi = [...TOPIC_VI_FILES.values()].flatMap(content => content.sections)
+    .flatMap(section => section.items).find(item => item.id === id);
+
+  assert.ok(en && vi, 'the cache-stack item must be bilingual');
+  assert.match(en.a, /E\[T\] = L_c \+ \(1 - h\)/);
+  assert.match(en.a, /conditional hit rate at each stop/);
+  assert.match(vi.a, /Cộng các global hit rate với nhau là sai toán học/);
+  assert.equal((en.a.match(/<svg\b/g) || []).length, 1);
+  assert.equal((vi.a.match(/<svg\b/g) || []).length, 1);
+});
+
+test('cache expiration guide separates clocks, cleanup, and bounded TTL policy', () => {
+  const id = '25-microservice.05-caching-pitfalls.q12';
+  const en = [...TOPIC_FILES.values()].flatMap(content => content.sections)
+    .flatMap(section => section.items).find(item => item.id === id);
+  const vi = [...TOPIC_VI_FILES.values()].flatMap(content => content.sections)
+    .flatMap(section => section.items).find(item => item.id === id);
+
+  assert.ok(en && vi, 'the expiration guide must be bilingual');
+  assert.equal(en.difficulty, 'advanced');
+  assert.match(en.a, /Logical expiry and physical removal are separate moments/);
+  assert.match(en.a, /effective deadline = min\(absolute cap, last access \+ idle timeout\)/);
+  assert.match(en.a, /A relative value over 30 days is interpreted as an absolute Unix timestamp/);
+  assert.match(vi.a, /Jitter phải có freshness boundary/);
+  assert.equal((en.a.match(/<svg\b/g) || []).length, 3);
+  assert.equal((vi.a.match(/<svg\b/g) || []).length, 3);
+  assert.ok(REVIEWS[id]?.sources.length >= 6, 'engine-specific TTL claims need primary provenance');
+});
+
+test('browser token storage guide chooses architecture before storage API', () => {
+  const id = '13-security-oauth2.jwt-tokens.q4';
+  const en = [...TOPIC_FILES.values()].flatMap(content => content.sections)
+    .flatMap(section => section.items).find(item => item.id === id);
+  const vi = [...TOPIC_VI_FILES.values()].flatMap(content => content.sections)
+    .flatMap(section => section.items).find(item => item.id === id);
+
+  assert.ok(en && vi, 'the browser token-storage guide must be bilingual');
+  assert.equal(en.difficulty, 'advanced');
+  assert.match(en.a, /The default answer is none of those places for the JWT itself/);
+  assert.match(en.a, /BFF \+ HttpOnly cookie/);
+  assert.match(en.a, /sessionStorage is a bounded compromise/);
+  assert.match(en.a, /CORS does not replace CSRF protection/);
+  assert.match(vi.a, /không nơi nào trong ba chỗ đó cho chính JWT/);
+  assert.equal((en.a.match(/<svg\b/g) || []).length, 1);
+  assert.equal((vi.a.match(/<svg\b/g) || []).length, 1);
+  // "OAuth 2.0 for Browser-Based Applications" is still an Internet-Draft in the
+  // RFC Editor queue. It had been cited here as "RFC 10017", a number that does
+  // not exist — so pin the draft, and pin that no rfc-editor.org URL claims it.
+  assert.ok(REVIEWS[id]?.sources.includes('https://datatracker.ietf.org/doc/draft-ietf-oauth-browser-based-apps/'),
+    'the browser-apps BCP must be cited as the draft it currently is');
+  assert.ok(REVIEWS[id].target_versions.some(version => /draft-ietf-oauth-browser-based-apps/.test(version)),
+    'the provenance record must name the draft, not an unassigned RFC number');
+  for (const source of REVIEWS[id].sources) {
+    const rfc = source.match(/rfc-editor\.org\/rfc\/rfc(\d+)/);
+    assert.ok(!rfc || Number(rfc[1]) <= 9999,
+      `${source}: RFC numbers above 9999 are not published — verify before citing`);
+  }
+});
+
+test('every provenance record cites a source that could exist', () => {
+  // content-reviews.json is what separates a checked claim from an inherited
+  // one, so a citation that cannot be read is worse than no entry at all. The
+  // highest published RFC is in the 9xxx range; a five-digit number is either a
+  // typo or invented, which is exactly how "RFC 10017" got shipped once.
+  const HIGHEST_PLAUSIBLE_RFC = 9999;
+  for (const [id, review] of Object.entries(REVIEWS)) {
+    assert.ok(Array.isArray(review.sources) && review.sources.length,
+      `${id}: a reviewed claim needs at least one source`);
+    for (const source of review.sources) {
+      assert.ok(source.startsWith('https://'), `${id}: "${source}" must be https`);
+      const rfc = source.match(/rfc-editor\.org\/(?:rfc\/rfc|info\/rfc)(\d+)/);
+      assert.ok(!rfc || Number(rfc[1]) <= HIGHEST_PLAUSIBLE_RFC,
+        `${id}: RFC ${rfc?.[1]} is not a published number — cite the draft instead`);
+    }
+    for (const version of review.target_versions || []) {
+      const rfc = String(version).match(/\bRFC\s+(\d+)/);
+      assert.ok(!rfc || Number(rfc[1]) <= HIGHEST_PLAUSIBLE_RFC,
+        `${id}: target_versions names RFC ${rfc?.[1]}, which is not published`);
+    }
+  }
+});
+
+test('JVM memory guide separates specification areas, HotSpot accounting, and RSS', () => {
+  const id = '01-java-core-jvm.memory-execution-model.q6';
+  const en = [...TOPIC_FILES.values()].flatMap(content => content.sections)
+    .flatMap(section => section.items).find(item => item.id === id);
+  const vi = [...TOPIC_VI_FILES.values()].flatMap(content => content.sections)
+    .flatMap(section => section.items).find(item => item.id === id);
+
+  assert.ok(en && vi, 'the JVM process-memory item must be bilingual');
+  assert.match(en.a, /-Xmx` caps the Java heap, not every byte/);
+  assert.match(en.a, /NMT tracks HotSpot\/JVM native allocations/);
+  assert.match(vi.a, /stack của virtual thread là stack-chunk object/);
+  assert.ok(REVIEWS[id]?.sources.includes('https://openjdk.org/jeps/444'));
+});
