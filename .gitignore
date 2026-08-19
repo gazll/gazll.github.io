@@ -12,3 +12,10 @@ secret/
 fshare-tool/*.txt
 fshare-tool/Doraemon-split/
 public/fshare-tool/*.txt
+
+# Raw incident-investigation exports behind the first-party case studies. These
+# workbooks hold unredacted production data — masked card numbers, customer IPs,
+# 3DS tokens, session/transaction keys, internal hostnames — and even their
+# filenames carry internal ticket numbers. This repo is public and Pages serves
+# from it, so they must never be committed; only the anonymised article is.
+docs/case-study-drafts/

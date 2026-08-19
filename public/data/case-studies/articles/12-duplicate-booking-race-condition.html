@@ -31,7 +31,7 @@ HAVING   COUNT(t.itn_no) &gt; 1</code></pre>
     <tr><td>01–08/2024</td><td>1 · 0 · 1 · 2 · 0 · 0 · 0 · 1</td></tr>
   </tbody>
 </table>
-<p>Plus exactly one case on the hotel side, in July 2023. One or two a month, with the December 2023 cluster triggering the investigation. The gap between flights and hotels — 17 cases against 1 — gets explained in <a href="#monitoring">§3.9</a>, and the explanation is not in the code.</p>
+<p>Plus exactly one case on the hotel side, in July 2023. One or two a month, with the December 2023 cluster triggering the investigation. The gap between flights and hotels — 17 cases against 1 — gets explained in <a href="#monitoring">§3.10</a>, and the explanation is not in the code.</p>
 <p>A duplicate record in an internal system sounds like a display bug. In travel it is not. The ticketing team named three kinds of damage.</p>
 <p><strong>The airline may cancel both records.</strong> On detecting two bookings with the same passenger on the same flight, the carrier's system cancels them itself — and cancels <em>both</em>, not keeping one. Only a record that has already been ticketed is safe. In the "booked, not yet ticketed" state, this incident can leave the customer with no seat at all.</p>
 <p><strong>Churning penalties are real money.</strong> Booking then cancelling repeatedly is penalised through ADMs (Agency Debit Memos), roughly 5,000 JPY per record on average. Essentially every carrier penalises it and a few are strict about it.</p>

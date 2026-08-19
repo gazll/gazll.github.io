@@ -1,13 +1,13 @@
-<h2 id="context">1. Một hành động đặt chỗ, đồng thời là một URL fetch được</h2>
-<p>Hệ thống là một OTA bán vé máy bay quốc tế, khách sạn và gói combo. Một lõi phục vụ năm thương hiệu cộng luồng metasearch, chia làm hai tầng: tầng web/BFF viết bằng Python chạy nhiều instance sau load balancer, và backend đặt chỗ viết bằng Java giữ trạng thái phiên trong bảng <code>SESSION_INFO</code> rồi gọi ra GDS để tạo bản ghi tại hãng.</p>
-<p>Hai định danh cần phân biệt. <strong>ITN</strong> là số hành trình — bản ghi đặt chỗ của chính OTA. <strong>PNR</strong> là bản ghi tại GDS. Một ý định của người dùng lẽ ra phải sinh ra đúng một cái mỗi loại.</p>
-<p>Luồng đặt chỗ đi qua <code>input → confirm → complete</code>. Ở bước cuối, trình duyệt gọi <code>/reservation/book</code>, tầng web chuyển tiếp sang backend, backend đọc phiên, kiểm tra trạng thái, đánh dấu đang xử lý, rồi <strong>spawn một thread bất đồng bộ</strong> đi gọi GDS để tạo PNR và sinh ITN.</p>
-<p>Trạng thái phiên là một máy trạng thái bốn giá trị: <code>Init</code> (cho phép booking), <code>Booking</code> (đang xử lý), <code>Complete</code> (hoàn tất), <code>Error</code> (lỗi). Giữa lúc đọc trạng thái đó và lúc ghi nó là một khoảng trống, và trong khoảng trống đó có cả logic nghiệp vụ.</p>
-<p>Một chi tiết kiến trúc trở thành trung tâm của cả câu chuyện: <strong><code>/reservation/book</code> nhận cả <code>GET</code> lẫn <code>POST</code></strong>. Nó buộc phải nhận <code>GET</code>, vì sau khi 3-D Secure xác thực xong, cổng thanh toán redirect người dùng quay lại luồng — mà redirect thì luôn là <code>GET</code>.</p>
-<p>Nói cách khác: hành động tạo booking là một URL fetch được. Và trên Internet, thứ gì fetch được thì sẽ bị fetch — bởi trình duyệt, bởi phần mềm bảo mật, bởi proxy, bởi bất cứ thứ gì nhìn thấy một đường link.</p>
+<h2 id="context">1. Một hành động booking, đồng thời là một URL fetch được</h2>
+<p>Hệ thống là một OTA bán vé máy bay quốc tế, hotel và package. Một core phục vụ năm brand cộng traffic từ metasearch, chia làm hai tier: <strong>web/BFF tier</strong> viết bằng Python chạy nhiều instance sau load balancer, và <strong>booking backend</strong> viết bằng Java giữ session state trong table <code>SESSION_INFO</code> rồi gọi GDS để tạo record tại hãng.</p>
+<p>Hai identifier cần phân biệt. <strong>ITN</strong> là itinerary number — booking record của chính OTA. <strong>PNR</strong> là record tại GDS. Một user intent lẽ ra phải sinh ra đúng một cái mỗi loại.</p>
+<p>Booking flow chạy <code>input → confirm → complete</code>. Ở bước cuối, browser gọi <code>/reservation/book</code>, web tier forward sang backend, backend đọc session, check status, đánh dấu in progress, rồi <strong>spawn một async thread</strong> gọi GDS để tạo PNR và sinh ITN.</p>
+<p>Session state là một state machine bốn giá trị: <code>Init</code> (cho phép booking), <code>Booking</code> (đang xử lý), <code>Complete</code> (xong), <code>Error</code> (lỗi). Giữa lúc đọc status đó và lúc ghi nó có một <strong>gap</strong>, và business logic chạy bên trong gap đó.</p>
+<p>Một chi tiết kiến trúc trở thành trung tâm của cả câu chuyện: <strong><code>/reservation/book</code> nhận cả <code>GET</code> lẫn <code>POST</code></strong>. Nó buộc phải nhận <code>GET</code>, vì sau khi 3-D Secure authenticate xong, payment gateway redirect user quay lại flow — mà redirect thì luôn là <code>GET</code>.</p>
+<p>Nói cách khác: hành động tạo booking là một URL fetch được. Và trên Internet, thứ gì fetch được thì sẽ bị fetch — bởi browser, bởi security software, bởi proxy, bởi bất cứ thứ gì nhìn thấy một link.</p>
 
-<h2 id="detection">2. Cảnh báo nói cụ thể hơn cách người ta đọc nó</h2>
-<p>Không ai báo lỗi. Cũng không có exception nào trong log. Một batch SQL chạy định kỳ phát hiện:</p>
+<h2 id="detection">2. Alert nói cụ thể hơn cách người ta đọc nó</h2>
+<p>Không ai report. Cũng không có exception nào trong log. Một SQL batch chạy định kỳ phát hiện:</p>
 <pre><code>SELECT   t.session_id, COUNT(t.itn_no)
 FROM     itinerary_tracking t
          JOIN order_item o ON o.itn_no  = t.itn_no
@@ -17,12 +17,12 @@ WHERE    t.session_id IS NOT NULL
   AND    t.tracked_at &gt;= &lt;15 minutes ago&gt;
 GROUP BY t.session_id
 HAVING   COUNT(t.itn_no) &gt; 1</code></pre>
-<p>Detector group theo <code>session_id</code>. Nó không so tên hành khách hay số hiệu chuyến bay. Nó hỏi một câu hẹp hơn nhiều: <em>một phiên duyệt web có sinh ra nhiều hơn một ITN không?</em></p>
-<p>Nghĩa là ngay từ đầu, thứ được cảnh báo đã không phải "khách đặt nhầm hai lần". Nó là một phiên, hai booking — chữ ký của duplicate request đồng thời, chứ không phải hai hành động độc lập của người dùng. Suốt đợt điều tra đầu tiên, chưa ai đọc alert theo hướng đó.</p>
+<p>Detector group theo <code>session_id</code>. Nó không so passenger name hay flight number. Nó hỏi một câu hẹp hơn nhiều: <em>một browsing session có sinh ra nhiều hơn một ITN không?</em></p>
+<p>Nghĩa là ngay từ đầu, thứ được alert đã không phải "khách book nhầm hai lần". Nó là một session, hai booking — <strong>signature</strong> của concurrent duplicate request, chứ không phải hai hành động độc lập của user. Suốt đợt điều tra đầu tiên, chưa ai đọc alert theo hướng đó.</p>
 
 <h3 id="frequency">Tần suất, và vì sao một bug hiếm vẫn được ưu tiên</h3>
 <table>
-  <thead><tr><th>Giai đoạn</th><th>Số vụ (vé máy bay)</th></tr></thead>
+  <thead><tr><th>Giai đoạn</th><th>Số case (flight)</th></tr></thead>
   <tbody>
     <tr><td>05–09/2023</td><td>1 · 1 · 1 · 0 · 0</td></tr>
     <tr><td>10/2023</td><td>3</td></tr>
@@ -31,50 +31,50 @@ HAVING   COUNT(t.itn_no) &gt; 1</code></pre>
     <tr><td>01–08/2024</td><td>1 · 0 · 1 · 2 · 0 · 0 · 0 · 1</td></tr>
   </tbody>
 </table>
-<p>Cộng thêm đúng một vụ ở mảng khách sạn, tháng 07/2023. Một tới hai vụ mỗi tháng, với cụm tháng 12/2023 kích hoạt việc điều tra. Sự lệch giữa vé máy bay và khách sạn — 17 vụ so với 1 — được giải thích ở <a href="#monitoring">mục 3.9</a>, và lời giải thích đó không nằm trong code.</p>
-<p>Một bản ghi trùng trong hệ thống nội bộ nghe như lỗi hiển thị. Trong ngành travel thì không. Team ticketing xác nhận ba loại thiệt hại.</p>
-<p><strong>Hãng bay có thể huỷ cả hai record.</strong> Phát hiện hai booking trùng hành khách trùng chuyến, hệ thống hãng tự huỷ — và huỷ <em>cả hai</em>, không giữ lại một. Chỉ record đã xuất vé mới an toàn. Ở trạng thái "đã đặt, chưa xuất vé", sự cố này có thể làm khách mất chỗ hoàn toàn.</p>
-<p><strong>Churning penalty là tiền thật.</strong> Đặt nhiều rồi huỷ bị phạt qua ADM (Agency Debit Memo), trung bình khoảng 5.000 JPY mỗi record. Về cơ bản mọi hãng đều phạt, một vài hãng đặc biệt khắt khe.</p>
-<p><strong>Xuất vé trùng thì phát sinh nghĩa vụ hoàn tiền</strong>, kéo theo quy trình refund thủ công.</p>
-<p>Và thứ biến nó từ bug thành rủi ro vận hành: cửa sổ xử lý phụ thuộc giờ làm việc. Cách duy nhất giới hạn thiệt hại là có người vào huỷ một trong hai record trước khi hãng ra tay. Sự cố phát sinh vào đêm hoặc cuối tuần thì không ai xử lý được.</p>
-<p>Đây là lý do một sự cố tần suất thấp vẫn được ưu tiên: chi phí kỳ vọng của nó không tỉ lệ với <em>số lần</em> xảy ra, mà tỉ lệ với <em>thời điểm</em> xảy ra.</p>
+<p>Cộng thêm đúng một case bên hotel, tháng 07/2023. Một tới hai case mỗi tháng, với cluster tháng 12/2023 kích hoạt việc điều tra. Chênh lệch giữa flight và hotel — 17 case so với 1 — được giải thích ở <a href="#monitoring">§3.10</a>, và lời giải thích đó không nằm trong code.</p>
+<p>Một duplicate record trong hệ thống nội bộ nghe như display bug. Trong ngành travel thì không. Team ticketing gọi tên ba loại thiệt hại.</p>
+<p><strong>Hãng bay có thể cancel cả hai record.</strong> Phát hiện hai booking cùng passenger trên cùng flight, hệ thống của carrier tự cancel — và cancel <em>cả hai</em>, không giữ lại một. Chỉ record đã ticketed mới an toàn. Ở state "đã book, chưa ticketed", sự cố này có thể làm khách mất chỗ hoàn toàn.</p>
+<p><strong>Churning penalty là tiền thật.</strong> Book rồi cancel nhiều lần bị phạt qua ADM (Agency Debit Memo), trung bình khoảng 5.000 JPY mỗi record. Về cơ bản mọi carrier đều phạt, một vài hãng đặc biệt khắt khe.</p>
+<p><strong>Double ticketing tạo ra refund obligation</strong>, kéo theo một quy trình refund thủ công.</p>
+<p>Và thứ biến nó từ bug thành operational risk: window để xử lý phụ thuộc giờ làm việc. Cách duy nhất giới hạn thiệt hại là có người cancel một trong hai record trước khi hãng ra tay. Sự cố phát sinh ban đêm hoặc cuối tuần thì không ai xử lý được.</p>
+<p>Đây là lý do một incident tần suất thấp vẫn được ưu tiên: expected cost của nó không tỉ lệ với <em>số lần</em> xảy ra, mà tỉ lệ với <em>thời điểm</em> xảy ra.</p>
 
-<h2 id="phase-1">3. Lần một — chặn nguồn phát</h2>
+<h2 id="phase-1">3. Lần một — chặn source</h2>
 
-<h3 id="ticket-timeline">3.1 Ticket đi 17 tháng trước khi có dev nhận</h3>
+<h3 id="ticket-timeline">3.1 Ticket đi 17 tháng trước khi có dev đụng vào</h3>
 <table>
   <thead><tr><th>Thời điểm</th><th>Việc</th></tr></thead>
   <tbody>
-    <tr><td>12/2023</td><td>Vận hành mở ticket sau cụm năm vụ</td></tr>
-    <tr><td>12/2023</td><td>Team ticketing trả lời về rủi ro: huỷ cả hai, churning, refund</td></tr>
-    <tr><td>07/2024</td><td>Đổi loại từ <em>Enhancement Request</em> sang <em>Investigation</em>, chuyển sang project bảo trì</td></tr>
-    <tr><td>08/2024</td><td>Dev bắt đầu nhận</td></tr>
-    <tr><td>09/2024</td><td>Chốt hướng: mở rộng alert trước mắt, sửa module về lâu dài</td></tr>
-    <tr><td>11/2024</td><td>Dev yêu cầu <strong>toàn bộ</strong> danh sách ITN trùng của các tháng còn lại</td></tr>
-    <tr><td>12/2024</td><td>Có root cause và giải pháp</td></tr>
+    <tr><td>12/2023</td><td>Operations mở ticket sau cluster năm case</td></tr>
+    <tr><td>12/2023</td><td>Team ticketing trả lời về risk: cancel cả hai record, churning, refund</td></tr>
+    <tr><td>07/2024</td><td>Đổi classification từ <em>Enhancement Request</em> sang <em>Investigation</em>, chuyển sang maintenance project</td></tr>
+    <tr><td>08/2024</td><td>Dev nhận</td></tr>
+    <tr><td>09/2024</td><td>Chốt hướng: mở rộng alert trước mắt, fix module về lâu dài</td></tr>
+    <tr><td>11/2024</td><td>Dev yêu cầu <strong>toàn bộ</strong> list ITN duplicate của các tháng còn lại</td></tr>
+    <tr><td>12/2024</td><td>Có root cause và solution</td></tr>
     <tr><td>04/2025</td><td>Release</td></tr>
     <tr><td>05/2025</td><td>Đóng ticket</td></tr>
   </tbody>
 </table>
-<p>Bảy tháng đầu ticket nằm im vì nó bị phân loại sai — <em>Enhancement Request</em> thay vì <em>Investigation</em>. Một sự cố mất tiền bị xếp cùng hàng với các đề xuất cải tiến giao diện.</p>
+<p>Bảy tháng đầu ticket nằm im vì bị classify sai — <em>Enhancement Request</em> thay vì <em>Investigation</em>. Một incident làm mất tiền bị xếp cùng hàng với các đề xuất cải tiến UI.</p>
 
-<h3 id="investigation">3.2 Điều tra khi không tái hiện được</h3>
-<p>Staging không tái hiện được, nên việc điều tra thành khảo cổ log:</p>
+<h3 id="investigation">3.2 Điều tra thứ không reproduce được</h3>
+<p>Staging không reproduce được, nên công việc thành khảo cổ log:</p>
 <ol>
-  <li><strong>Yêu cầu đủ danh sách cặp ITN trùng</strong> theo từng tháng — không phải vài mẫu. Đây là bước hay bị bỏ qua: nếu chỉ điều tra hai cặp, phân bố nguyên nhân sẽ ra sai.</li>
-  <li>Với mỗi cặp, <code>zgrep</code> số ITN trên <strong>toàn bộ</strong> log backend đã nén của mọi instance trong ngày đó.</li>
-  <li>Từ dòng log đầu tiên tìm ra <strong>transaction key</strong>, rồi grep lại theo key đó để lấy trọn vẹn hai luồng.</li>
-  <li><strong>Đặt hai luồng cạnh nhau theo cột</strong> và so từng mốc thời gian.</li>
+  <li><strong>Yêu cầu list đầy đủ các cặp ITN duplicate</strong> theo từng tháng — không phải vài sample. Đây là bước hay bị bỏ: chỉ điều tra hai cặp thì phân bố nguyên nhân sẽ ra sai.</li>
+  <li>Với mỗi cặp, <code>zgrep</code> số ITN trên <strong>toàn bộ</strong> backend log đã nén của mọi instance trong ngày đó.</li>
+  <li>Từ dòng log đầu tiên tìm ra <strong>transaction key</strong>, rồi grep lại theo key đó để lấy trọn vẹn cả hai flow.</li>
+  <li><strong>Đặt hai flow cạnh nhau theo cột</strong> và so từng timestamp.</li>
 </ol>
 
 <h3 id="the-race">3.3 Hai mươi lăm mili-giây</h3>
 <figure>
-  <img src="assets/case-studies/12-duplicate-booking-race-condition/01-race-window.svg" alt="Hai làn request đặt cạnh nhau. Request một select phiên lúc 15:21:44,300 và đọc ra status Init; request hai select lúc 15:21:44,302 và đọc đúng giá trị Init đó. Cả hai đều qua bước kiểm tra trạng thái và cả hai đều update trạng thái thành Booking, sinh ra hai PNR riêng biệt. Một dấu ngoặc đánh dấu cửa sổ 25 mili-giây từ lúc request một đọc tới lúc nó ghi xong." width="880" height="460" loading="lazy">
-  <figcaption>Cửa sổ từ lúc request 1 đọc tới lúc ghi xong là 25 ms. Hai request đến cách nhau 2 ms.</figcaption>
+  <img src="assets/case-studies/12-duplicate-booking-race-condition/01-race-window.svg" alt="Hai lane request đặt cạnh nhau. Request một select session lúc 15:21:44,300 và đọc ra status Init; request hai select lúc 15:21:44,302 và đọc đúng giá trị Init đó. Cả hai đều qua được status check và cả hai đều update status thành Booking, tạo ra hai PNR riêng biệt. Một dấu ngoặc đánh dấu window 25 mili-giây giữa lúc request một đọc và lúc nó ghi xong." width="880" height="460" loading="lazy">
+  <figcaption>Window từ lúc request 1 đọc tới lúc nó ghi xong là 25 ms. Hai request đến cách nhau 2 ms.</figcaption>
 </figure>
-<p>Không có gì bí ẩn ở đây. Hai request cùng đọc một giá trị trước khi bên nào kịp ghi.</p>
+<p>Không có gì bí ẩn ở đây. Hai request đọc cùng một giá trị trước khi bên nào kịp ghi.</p>
 
-<h3 id="guard">3.4 Guard đã có, và nó không phải guard</h3>
+<h3 id="guard">3.4 Có một guard, và nó không phải guard</h3>
 <pre><code>// Read the status from the session
 if (productInfo.getBookingStatus() != null) {
     if (BOOKING_PROCESSED.equals(productInfo.getBookingStatus())) {
@@ -89,18 +89,18 @@ if (productInfo.getBookingStatus() != null) {
 productInfo.setBookingStatus(BOOKING_PROCESSED);
 sessionTable.update(...);
 new BookingThread(...).start();</code></pre>
-<p>Đây là check-then-act, không phải mutual exclusion. Nó chặn được request đến <em>muộn</em>, sau khi request đầu đã ghi xong. Nó không chặn được request đến <em>cùng lúc</em> — mà "cùng lúc" chính là định nghĩa của vấn đề.</p>
-<p>Hai yếu tố làm hố sâu hơn. Booking chạy bất đồng bộ và lời gọi GDS mất vài giây, nên cửa sổ mà cả hai request cùng thấy trạng thái cũ rộng hơn nhiều so với một transaction DB. Và hai request rơi vào <strong>hai instance khác nhau</strong> sau load balancer, khiến mọi khoá trong tiến trình — <code>synchronized</code>, lock cục bộ, cache in-memory — vô dụng theo cấu trúc chứ không phải theo cấu hình. Chỗ duy nhất hai request gặp nhau là database.</p>
+<p>Đây là <strong>check-then-act</strong>, không phải mutual exclusion. Nó chặn được request đến <em>muộn</em>, sau khi request đầu đã ghi xong. Nó không chặn được request đến <em>cùng lúc</em> — mà "cùng lúc" chính là định nghĩa của vấn đề.</p>
+<p>Hai yếu tố làm hố sâu thêm. Booking chạy async và GDS call mất vài giây, nên window mà cả hai request cùng thấy stale state rộng hơn nhiều so với một database transaction. Và hai request rơi vào <strong>hai instance khác nhau</strong> sau load balancer, khiến mọi in-process lock — <code>synchronized</code>, local lock, in-memory cache — vô dụng theo cấu trúc chứ không phải theo config. Chỗ duy nhất hai request gặp nhau là database.</p>
 
-<h3 id="not-googlebot">3.5 "Googlebot" hoá ra không phải Googlebot</h3>
-<p>Trong chín cặp trùng, bảy cặp mang User-Agent chứa chuỗi <code>google-bot</code>, một cặp nghi do double-click, và một cặp ở mảng khách sạn không bao giờ giải thích được. Từ đó ticket gọi tên nguyên nhân là "Googlebot crawl trang đặt chỗ". Bằng chứng trong chính file điều tra lại nói khác.</p>
-<p><strong>Thứ nhất, các IP không thuộc Google.</strong> Reverse DNS của những IP đó trỏ về nhà mạng tiêu dùng Nhật Bản: mạng di động, ADSL và cáp quang gia đình, mạng MVNO. Googlebot thật đi từ dải IP của Google và xác thực được bằng reverse DNS về <code>googlebot.com</code>.</p>
+<h3 id="not-googlebot">3.5 Cái "Googlebot" hoá ra không phải Googlebot</h3>
+<p>Trong chín cặp duplicate, bảy cặp mang User-Agent chứa chuỗi <code>google-bot</code>, một cặp nghi double-click, và một cặp bên hotel không bao giờ giải thích được. Từ đó ticket gọi tên nguyên nhân là "Googlebot crawl trang booking". Bằng chứng nằm trong chính investigation file lại nói khác.</p>
+<p><strong>Thứ nhất, các IP không thuộc Google.</strong> Reverse DNS của những IP đó resolve về consumer ISP Nhật Bản: mobile carrier, ADSL và fibre gia đình, MVNO. Googlebot thật đi từ IP range của Google và verify được bằng reverse DNS về <code>googlebot.com</code>.</p>
 <p><strong>Thứ hai, UA không phải UA của Googlebot.</strong> Googlebot thật gửi:</p>
 <pre><code>Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5X Build/MMB29P) AppleWebKit/537.36
 (KHTML, like Gecko) Chrome/W.X.Y.Z Mobile Safari/537.36
 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)</code></pre>
-<p>Log đặt chỗ chỉ có token <code>google-bot</code> — có gạch nối, không có URL bot.html, không có phần Mozilla. File điều tra đã ghi nhận điều này khi bàn về robots.txt: <em>"theo tài liệu của Google thì đây không phải google-bot authentic nên có thể không hoạt động"</em>. Nhận định đúng — nhưng dùng để loại <strong>giải pháp</strong> robots.txt, chứ không dùng để xét lại <strong>chẩn đoán</strong>.</p>
-<p><strong>Thứ ba, và quyết định nhất, nó đi cùng người dùng thật.</strong> Một trace tháng 10/2024, cùng endpoint, trong cùng một giây:</p>
+<p>Booking log chỉ chứa token <code>google-bot</code> — có gạch nối, không có URL bot.html, không có prefix Mozilla. Investigation file đã ghi nhận điều này khi bàn về robots.txt: <em>"theo documentation của Google thì đây không phải google-bot authentic, nên có thể không hoạt động"</em>. Nhận định đúng — nhưng được dùng để loại bỏ <strong>solution</strong> robots.txt, không phải để xét lại <strong>diagnosis</strong>.</p>
+<p><strong>Thứ ba, và quyết định nhất, nó đi cùng user thật.</strong> Một trace tháng 10/2024, cùng endpoint, trong cùng một giây:</p>
 <pre><code>13:17:11,535  /reservation/book   ua=google-bot          remote ip 106.x.x.92
 13:17:11,538  /reservation/book   ua=google-bot          → started_booking
 13:17:11,563  /reservation/book   ua=Mozilla/5.0 (iPhone; CPU iPhone OS 17_6_1 …)
@@ -111,120 +111,120 @@ new BookingThread(...).start();</code></pre>
 13:17:11,810  /reservation/book   ua=google-bot
               WARNING BookingAsync has error status, but can continue this,
                       {'message': 'Booking is in progress', 'id': '101'}</code></pre>
-<p>Đọc ba dòng cuối. Request <code>google-bot</code> thứ ba <strong>đã bị guard bắt</strong> — backend trả về đúng <code>Booking is in progress</code>. Tầng web ghi log ở mức <code>WARNING</code>, kèm câu <em>"but can continue this"</em>, rồi đi tiếp.</p>
-<p>Guard không im lặng. Nó đã nói. Phía gọi được viết để bỏ qua lời nó nói. Một phép kiểm tra phòng thủ ở backend chỉ có giá trị bằng đúng cách caller xử lý kết quả của nó.</p>
-<p>Ghép ba mảnh lại: một tác nhân trên thiết bị hoặc mạng của chính người dùng phát lại URL đặt chỗ ngay sau khi 3-D Secure redirect về, và tự khai là <code>google-bot</code>. Phù hợp với phần mềm bảo mật quét link, tiện ích trình duyệt, hoặc proxy nhà mạng. Không phù hợp với công cụ tìm kiếm.</p>
-<p>Chẩn đoán "Googlebot" dẫn thẳng tới giải pháp "chặn Googlebot". Cái tên sai đã chọn hộ bản vá.</p>
+<p>Đọc ba dòng cuối. Request <code>google-bot</code> thứ ba <strong>đã bị guard bắt</strong> — backend trả về đúng <code>Booking is in progress</code>. Web tier log nó ở mức <code>WARNING</code>, kèm cụm <em>"but can continue this"</em>, rồi đi tiếp.</p>
+<p>Guard không im lặng. Nó đã nói. Caller được viết để bỏ qua thứ nó nói. Một defensive check ở backend chỉ đáng giá đúng bằng cách caller xử lý kết quả của nó.</p>
+<p>Ghép ba mảnh lại: một thứ gì đó trên chính device hoặc network của user replay lại booking URL ngay sau khi 3-D Secure redirect về, tự khai mình là <code>google-bot</code>. Điều đó khớp với security software scan link, một browser extension, hoặc carrier proxy. Nó không khớp với một search engine.</p>
+<p>Diagnosis "Googlebot" dẫn thẳng tới solution "chặn Googlebot". Cái tên sai đã chọn hộ patch.</p>
 
 <h3 id="options-2024">3.6 Bốn ý tưởng, và cái giá của chúng</h3>
-<p>Đây là phần đáng giá nhất của lần một, và nó không nằm trong ticket — chỉ có trong file điều tra.</p>
+<p>Đây là phần giá trị nhất của lần một, và nó không nằm trong ticket — chỉ có trong investigation file.</p>
 <table>
   <thead><tr><th>#</th><th>Ý tưởng</th><th>Đánh giá</th></tr></thead>
   <tbody>
-    <tr><td>1</td><td>Thêm rule <code>robots.txt</code> cộng disable nút đặt chỗ</td><td><em>"không phải google-bot authentic nên có thể không hoạt động"</em></td></tr>
-    <tr><td>2</td><td>Chặn gọi booking nhiều lần ở tầng web</td><td>ảnh hưởng nhỏ, nhưng tốn thời gian viết logic chống trùng</td></tr>
-    <tr><td>3</td><td>Chặn gọi booking nhiều lần ở backend</td><td>ảnh hưởng lớn, tốn thời gian</td></tr>
-    <tr><td>4</td><td>Chặn UA ở nginx</td><td>chặn được toàn bộ, đơn giản</td></tr>
+    <tr><td>1</td><td>Thêm rule <code>robots.txt</code> cộng disable booking button</td><td><em>"không phải google-bot authentic, nên có thể không hoạt động"</em></td></tr>
+    <tr><td>2</td><td>Chặn repeat booking call ở web tier</td><td>impact nhỏ, nhưng logic de-duplication tốn thời gian</td></tr>
+    <tr><td>3</td><td>Chặn repeat booking call ở backend</td><td>impact lớn, tốn thời gian</td></tr>
+    <tr><td>4</td><td>Chặn UA ở nginx</td><td>chặn được tất cả, đơn giản</td></tr>
   </tbody>
 </table>
-<p>Và ước lượng công sức cho hướng đi sâu:</p>
+<p>Và estimate cho các hướng đi sâu:</p>
 <table>
-  <thead><tr><th>Giải pháp</th><th>Dev + unit test</th></tr></thead>
+  <thead><tr><th>Solution</th><th>Dev + unit test</th></tr></thead>
   <tbody>
     <tr><td>Disable button (+ robots.txt do infra làm)</td><td><strong>2 ngày</strong></td></tr>
     <tr><td>Redis lock</td><td><strong>11 ngày</strong></td></tr>
     <tr><td>Optimistic lock</td><td><strong>21 ngày</strong></td></tr>
   </tbody>
 </table>
-<p><strong>Đội đã nhìn thấy giải pháp đúng ngay từ 2024.</strong> Optimistic lock nằm trên bàn, được ước lượng đàng hoàng, và bị loại vì 21 ngày so với 2. Lý do ghi ra là hợp lý ở thời điểm đó: phương án 4 xoá được mọi request mang UA ấy, xử lý <em>phần lớn</em> nguyên nhân quan sát được; phương án 2 và 3 "tương đối phức tạp, khó test trên staging/production, và lúc test sẽ ảnh hưởng tới sản phẩm thật".</p>
-<p>Lý do thứ hai mới là chỗ đáng dừng lại. Không kiểm chứng được đã trở thành lý do để loại giải pháp đúng. Và cái bẫy nằm ở chữ <em>phần lớn</em>: phương án 4 xoá được bảy trên chín trường hợp quan sát được, nên chỉ số sẽ đẹp. Nó không xoá được cơ chế.</p>
+<p><strong>Đội đã nhìn thấy solution đúng ngay từ 2024.</strong> Optimistic locking nằm trên bàn, được estimate đàng hoàng, và bị loại vì 21 ngày so với 2. Lý do nêu ra thời điểm đó là hợp lý: option 4 loại bỏ mọi request mang UA đó, xử lý <em>phần lớn</em> nguyên nhân quan sát được; option 2 và 3 thì "tương đối phức tạp, khó test trên staging hoặc production, và lúc test sẽ ảnh hưởng tới product thật".</p>
+<p>Lý do thứ hai mới là chỗ đáng dừng lại. <strong>Không verify được đã trở thành lý do để loại solution đúng.</strong> Và cái bẫy nằm ở chữ <em>phần lớn</em>: option 4 xoá được bảy trên chín case quan sát được, nên metric sẽ đẹp. Nó không xoá được mechanism.</p>
 
-<h3 id="phase-1-fix">3.7 Thứ đã ship: hai file cấu hình và một đoạn JavaScript</h3>
+<h3 id="phase-1-fix">3.7 Thứ được ship: hai file config và một đoạn JavaScript</h3>
 <pre><code>if ($http_user_agent ~* (google-bot)) {
     return 403;
 }</code></pre>
-<p>Đặt trong khối cấu hình của các đường dẫn đặt chỗ, không đặt toàn cục. Đội phải liệt kê các URL cần được index — trang chi tiết sản phẩm, danh sách, lịch giá thấp nhất, trang chờ tìm kiếm — và xác nhận không URL nào nằm dưới <code>/reservation</code>. Thay đổi thứ hai là disable nút đặt chỗ sau cú click đầu, cho cả ba module sản phẩm và cả bản PC lẫn mobile.</p>
-<p>Một hệ quả không ai ghi ra: pattern <code>google-bot</code> có gạch nối, nên nó <strong>không</strong> khớp chuỗi <code>Googlebot/2.1</code> của crawler thật. Thực tế rule này chỉ chặn đúng cái UA giả — nỗi lo SEO là thừa, nhưng đúng vì lý do tình cờ.</p>
+<p>Đặt trong config block của các booking path, không đặt global. Đội đã liệt kê các URL cần index — product detail, listing, lowest-fare calendar, search waiting page — và xác nhận không URL nào nằm dưới <code>/reservation</code>. Thay đổi thứ hai là disable booking button sau click đầu tiên, áp cho cả ba product module và cả build desktop lẫn mobile.</p>
+<p>Một hệ quả không ai ghi lại: pattern <code>google-bot</code> có gạch nối, nên nó <strong>không</strong> match <code>Googlebot/2.1</code> của crawler thật. Thực tế rule này chỉ chặn đúng UA giả — nỗi lo SEO là thừa, nhưng đúng một cách tình cờ.</p>
 
-<h3 id="curl-test">3.8 Tái hiện một race bằng hai dòng cURL</h3>
-<p>Không có công cụ load test cho luồng có 3-D Secure, nên cách tái hiện là thủ công — và đơn giản đến mức đáng học:</p>
+<h3 id="curl-test">3.8 Reproduce một race bằng hai dòng cURL</h3>
+<p>Không có load-testing tool cho một flow có 3-D Secure, nên việc reproduce làm thủ công — và đơn giản đủ để đáng học:</p>
 <ol>
-  <li>Đi tới màn confirm bằng trình duyệt thật, mở DevTools, <strong>Copy as cURL</strong> để lấy trọn header và cookie của phiên đang sống.</li>
-  <li>Tạo một script chứa <strong>hai</strong> lệnh cURL tới <code>/reservation/book</code> với <strong>cùng một transaction key</strong> — một lệnh gắn <code>user-agent: google-bot</code>, một lệnh giữ UA bình thường.</li>
-  <li>Chạy rồi đọc mã trạng thái: <code>503</code> là bị chặn, <code>302</code> là đi qua.</li>
-  <li>Kiểm chứng ở tầng dữ liệu, không chỉ ở tầng HTTP.</li>
+  <li>Đi tới màn confirm bằng browser thật, mở DevTools, <strong>Copy as cURL</strong> để lấy header và cookie của session đang sống.</li>
+  <li>Tạo một script gồm <strong>hai</strong> cURL call tới <code>/reservation/book</code> dùng <strong>cùng một transaction key</strong> — một cái gắn <code>user-agent: google-bot</code>, một cái giữ UA bình thường.</li>
+  <li>Chạy và đọc status code: <code>503</code> là bị chặn, <code>302</code> là đi qua.</li>
+  <li>Verify ở data layer, không chỉ ở HTTP layer.</li>
 </ol>
-<p>Bước 4 mới là bước làm cho bài test có giá trị. Mã HTTP chỉ nói request bị chặn; chỉ có bảng dữ liệu mới nói booking có bị tạo trùng hay không.</p>
-<p>Các điểm kiểm là: nút bị disable sau khi click; UA bị chặn ở <code>/reservation/*</code> nhưng <strong>được phép</strong> ở đường khác, để tránh chặn quá tay; và <strong>Googlebot chính danh không bị ảnh hưởng</strong>, kiểm bằng cách lấy UA chính thức trong tài liệu của Google, bắn vào các URL cần index, rồi đối chiếu với log Googlebot thật trên chính các URL đó.</p>
+<p>Bước 4 mới là thứ làm cho test có giá trị. HTTP code chỉ nói request đã bị chặn; chỉ có table mới nói duplicate booking có được tạo ra hay không.</p>
+<p>Các checkpoint là: button bị disable sau click; UA bị chặn ở <code>/reservation/*</code> nhưng <strong>được phép</strong> ở nơi khác, để tránh over-blocking; và <strong>Googlebot authentic không bị ảnh hưởng</strong>, test bằng cách lấy UA chính thức từ documentation của Google, bắn vào các URL cần index, và đối chiếu với log thật của Googlebot trên chính các URL đó.</p>
 
-<h3 id="no-uat">3.9 Không nghiệm thu được — và thứ được dùng thay thế</h3>
-<p>Khi giả lập UA thì nhận đúng <code>503</code>, nhưng luồng đặt chỗ <em>bình thường</em> lại trả về <code>500</code>, và nghi ngờ hướng về tương tác với 3-D Secure. Tái hiện điều đó trên staging kèm cả luồng thanh toán thật là việc không khả thi.</p>
-<p>Quyết định là release rồi xác minh bằng log production trong một tháng, với hai điều kiện nghiệm thu: request đặt chỗ mang UA đó <strong>có</strong> bị chặn và đếm được trong log, và booking gốc của người dùng thật <strong>vẫn</strong> hoàn tất bình thường.</p>
-<p>Điều kiện thứ hai quan trọng ngang thứ nhất. Một bản vá chặn nhầm cả người dùng thật cũng làm hết alert y như một bản vá đúng — nên tiêu chí phải có cả bằng chứng dương tính, không chỉ sự vắng mặt của lỗi.</p>
+<h3 id="no-uat">3.9 Không acceptance test được — và thứ thay thế nó</h3>
+<p>Giả lập UA thì trả về đúng <code>503</code>, nhưng booking flow <em>bình thường</em> lại trả về <code>500</code>, và nghi ngờ hướng về tương tác với 3-D Secure. Reproduce chuyện đó trên staging kèm cả payment flow thật là không khả thi.</p>
+<p>Quyết định là release rồi verify bằng production log trong một tháng, với hai acceptance condition: booking request mang UA đó <strong>có</strong> bị chặn và đếm được trong log, và booking gốc của user thật <strong>vẫn</strong> complete bình thường.</p>
+<p>Condition thứ hai quan trọng ngang condition thứ nhất. Một patch chặn nhầm cả user thật cũng làm alert im lặng hiệu quả y như một patch đúng — nên tiêu chí phải bao gồm cả <strong>positive evidence</strong>, không chỉ sự vắng mặt của error.</p>
 
-<h3 id="monitoring">3.10 Số liệu là thật, và kết luận vẫn sai</h3>
+<h3 id="monitoring">3.10 Con số là thật, và kết luận vẫn sai</h3>
 <table>
-  <thead><tr><th></th><th>Vé máy bay</th><th>Khách sạn</th><th>Gói combo</th></tr></thead>
+  <thead><tr><th></th><th>Flight</th><th>Hotel</th><th>Package</th></tr></thead>
   <tbody>
     <tr><td>Request trước fix (3 ngày)</td><td>3</td><td>0</td><td>0</td></tr>
     <tr><td>Request bị chặn sau fix (33 ngày)</td><td><strong>117</strong></td><td><strong>0</strong></td><td><strong>0</strong></td></tr>
   </tbody>
 </table>
-<p>Trung bình khoảng 3,5 request/ngày bị chặn, có ngày lên 18. Không có alert ITN trùng nào. Ticket đóng một tháng sau đó.</p>
-<p>Cột khách sạn và gói combo bằng 0 chính là lời giải cho câu hỏi ở <a href="#frequency">mục 2</a>: tác nhân đó chỉ bao giờ chạm vào đường đặt chỗ của vé máy bay. Đó là lý do mảng khách sạn chỉ có đúng một vụ trong ba năm — và cũng là lý do vụ đó không bao giờ xác định được nguyên nhân. Nó không cùng họ với bảy vụ kia.</p>
-<p>Kết luận "đã sửa" đúng với dữ liệu trong tay. Nó chỉ không đúng với hệ thống.</p>
+<p>Khoảng 3,5 request bị chặn mỗi ngày, đỉnh 18. Không có duplicate-ITN alert nào. Ticket đóng một tháng sau.</p>
+<p>Các số 0 ở cột hotel và package trả lời câu hỏi ở <a href="#frequency">§2</a>: agent đó chỉ bao giờ chạm vào flight booking path. Đó là lý do bên hotel chỉ có đúng một case trong ba năm — và cũng là lý do case đó không bao giờ giải thích được. Nó không cùng họ với bảy case kia.</p>
+<p>Kết luận "đã fix" đúng với data trong tay. Nó chỉ không đúng với hệ thống.</p>
 
-<h2 id="gap">4. Khoảng trống mà lần một để lại</h2>
-<p>Ba thứ vẫn còn nguyên: check-then-act ở backend, không đổi một dòng; <code>/reservation/book</code> vẫn nhận <code>GET</code>, vẫn là một URL fetch được; và caller vẫn bỏ qua <code>Booking is in progress</code>.</p>
-<p>Thứ được sửa là danh sách những kẻ đã bị bắt gặp gõ cửa. Danh sách đó không bao giờ đầy.</p>
+<h2 id="gap">4. Thứ mà lần một để lại</h2>
+<p>Ba thứ không bị đụng tới: check-then-act ở backend, không đổi một dòng; <code>/reservation/book</code> vẫn nhận <code>GET</code>, vẫn là một URL fetch được; và caller vẫn bỏ qua <code>Booking is in progress</code>.</p>
+<p>Thứ được fix là danh sách những kẻ đã bị bắt gặp gõ cửa. Danh sách đó không bao giờ đầy.</p>
 
 <h2 id="recurrence">5. Lần hai — cùng hành vi, khác bộ quần áo</h2>
-<p>Khoảng một năm rưỡi sau: cùng hành khách, cùng hành trình, hai ITN, hai PNR, cách nhau <strong>23 mili-giây</strong>.</p>
+<p>Khoảng một năm rưỡi sau: cùng passenger, cùng itinerary, hai ITN, hai PNR, cách nhau <strong>23 mili-giây</strong>.</p>
 
-<h3 id="nginx-logs">5.1 Lần này có log nginx</h3>
-<p>Đợt điều tra thứ hai nhanh hơn hẳn — mở ticket ngày 8, có root cause ngày 11 — vì nó đọc log <strong>nginx</strong> chứ không chỉ log ứng dụng, và nginx có ghi method HTTP, thứ log ứng dụng không ghi.</p>
+<h3 id="nginx-logs">5.1 Lần này có nginx log</h3>
+<p>Đợt điều tra thứ hai đi nhanh hơn hẳn — mở ticket ngày 8, có root cause ngày 11 — vì nó đọc <strong>nginx log</strong> chứ không chỉ application log, và nginx ghi HTTP method, thứ application log không có.</p>
 <pre><code>03:59:50   GET   /reservation/confirm   referer=…/input?is_three_d_secure_error=1
 03:59:57   HEAD  /reservation/card_settle_error?…   referer: -
 04:02:22   GET   /reservation/book_after_three_d_secure?…result=0…
 04:02:22   HEAD  /reservation/book    referer: -   status 302   &lt;- the copy
 04:02:22   GET   /reservation/book    referer: -   status 302   &lt;- the real one</code></pre>
-<p>Người dùng đã trượt 3-D Secure một lần rồi thử lại — một phiên dài, nhiều lần quay lại, đúng loại phiên hay sinh chuyện. Một request <code>HEAD</code> xuất hiện hai lần, cả hai đều không referer, cả hai đều bám theo một URL trình duyệt vừa gặp; cái thứ hai nhắm thẳng vào endpoint đặt chỗ. User-Agent của nó giống hệt trình duyệt người dùng. Không còn <code>google-bot</code> nào để mà chặn. Và một lần nữa, hai request <code>book</code> rơi vào hai instance web khác nhau.</p>
-<p>Log backend cho thấy cả hai đi trọn: cùng transaction id, cùng authentication id, và <strong>cả hai đều trả về thành công</strong>. Kết luận của đội về nguồn phát: bất kỳ tầng nào phía trước — trình duyệt, proxy, CDN, load balancer — đều có thể phát <code>HEAD</code> để thăm dò; theo log thì nhiều khả năng là trình duyệt hoặc phần mềm antivirus.</p>
+<p>User đã fail 3-D Secure một lần rồi retry — một session dài với nhiều lần quay lại, đúng loại session hay sinh chuyện. Một <code>HEAD</code> request xuất hiện hai lần, cả hai đều không có referer, cả hai đều bám theo một URL mà browser vừa gặp; cái thứ hai nhắm thẳng vào booking endpoint. User-Agent của nó giống hệt UA của browser người dùng. Không còn <code>google-bot</code> nào để mà chặn. Và một lần nữa hai request <code>book</code> rơi vào hai web instance khác nhau.</p>
+<p>Backend log cho thấy cả hai chạy tới cùng: cùng transaction id, cùng authentication id, và <strong>cả hai đều trả về success</strong>. Kết luận của đội về source: bất kỳ layer nào phía trước — browser, proxy, CDN, load balancer — đều có thể phát <code>HEAD</code> để probe; theo log thì nhiều khả năng là browser hoặc antivirus software.</p>
 
-<h3 id="head-routing">5.2 Nguyên nhân thứ nhất — <code>HEAD</code> được định tuyến vào view của <code>GET</code></h3>
-<p>Framework định tuyến <code>HEAD</code> vào cùng view với <code>GET</code>, đúng theo đặc tả HTTP: <code>HEAD</code> là <code>GET</code> không kèm body. Nhưng đặc tả cũng nói cả hai phải <strong>safe</strong> — không gây side effect. Ở đây <code>GET</code> tạo booking, nên <code>HEAD</code> cũng tạo booking.</p>
-<p>Cái bẫy để nhớ: <code>HEAD</code> là thứ mà trình duyệt, phần mềm bảo mật, prefetcher, link preview và monitoring probe phát đi liên tục, thường là không ai biết. Nếu <code>GET</code> của bạn có side effect thì <code>HEAD</code> cũng có.</p>
+<h3 id="head-routing">5.2 Nguyên nhân thứ nhất — <code>HEAD</code> bị route vào view của <code>GET</code></h3>
+<p>Framework route <code>HEAD</code> vào cùng view với <code>GET</code>, đúng theo HTTP spec: <code>HEAD</code> là <code>GET</code> không có body. Nhưng spec cũng nói cả hai phải <strong>safe</strong> — không side effect. Ở đây <code>GET</code> tạo booking, nên <code>HEAD</code> cũng tạo booking.</p>
+<p>Cái bẫy đáng nhớ: <code>HEAD</code> là thứ mà browser, security software, prefetcher, link preview và monitoring probe phát đi liên tục, thường là không ai biết. Nếu <code>GET</code> của bạn có side effect thì <code>HEAD</code> cũng có.</p>
 
-<h3 id="version">5.3 Nguyên nhân thứ hai — cơ chế version không thể hoạt động</h3>
-<p>Chi tiết đắt giá nhất của cả sự cố: hệ thống vốn đã có một cơ chế giống optimistic lock, dùng cột thời điểm cập nhật làm version.</p>
+<h3 id="version">5.3 Nguyên nhân thứ hai — cái version không thể hoạt động</h3>
+<p>Chi tiết giá trị nhất của cả incident: hệ thống <strong>đã có sẵn</strong> một cơ chế giống optimistic lock, dùng update timestamp của row làm version.</p>
 <pre><code>UPDATE SESSION_INFO
    SET VALUE = /*value*/, UPD_PSN = /*updPsn*/, UPD_DT = /*updDt*/
  WHERE TRANSACTION_KEY = /*transactionKey*/
    AND date_format(UPD_DT, '%Y%m%d%H%i%s') = /*updDtAsVersion*/</code></pre>
-<p>Độ phân giải: giây. Thậm chí còn có đoạn code cộng thêm một giây khi thời điểm update trùng version hiện tại, chỉ để mệnh đề <code>WHERE</code> không tự chặn chính mình. Trong khi đó hai request cách nhau 23 mili-giây. Cả hai đọc ra cùng một <code>UPD_DT</code>, cả hai thấy <code>Init</code>, cả hai câu update có điều kiện đều khớp, cả hai đều báo thành công.</p>
-<p>Một version có độ phân giải thô hơn tốc độ đến của request thì không phải version. Nó chỉ trông giống một cái khoá. Cơ chế ấy có tồn tại, được viết cẩn thận và có comment, và về mặt cấu trúc thì không có khả năng bắt được đúng thứ nó sinh ra để bắt.</p>
+<p>Resolution: giây. Thậm chí còn có đoạn code cộng thêm một giây khi update timestamp bằng đúng version hiện tại, chỉ để mệnh đề <code>WHERE</code> không tự chặn chính mình. Trong khi đó hai request cách nhau 23 mili-giây. Cả hai đọc ra cùng <code>UPD_DT</code>, cả hai thấy <code>Init</code>, cả hai conditional update đều match, cả hai đều báo success.</p>
+<p>Một version có resolution thô hơn tốc độ đến của request thì không phải là version. Nó chỉ trông giống một cái lock. Cơ chế có tồn tại, được viết cẩn thận và có comment, và về mặt cấu trúc thì không có khả năng bắt được đúng thứ nó sinh ra để bắt.</p>
 
-<h3 id="options-2026">5.4 Sáu phương án trên hai tầng</h3>
-<p>Ở tầng web có hai: khai báo <code>HEAD</code> thành một view riêng trong routing config và cho nó từ chối, hoặc kiểm tra request method bên trong handler đặt chỗ. Phương án đầu được chọn, vì ràng buộc về method thuộc về <strong>cấu hình định tuyến</strong>, không thuộc về code nghiệp vụ — đặt trong config thì nó nằm một chỗ và không phải nhớ thêm một nhánh trong mỗi handler mới.</p>
+<h3 id="options-2026">5.4 Sáu option trên hai tier</h3>
+<p>Ở web tier có hai: khai báo <code>HEAD</code> thành view riêng trong routing config và cho nó refuse, hoặc check request method bên trong booking handler. Cái thứ nhất được chọn, vì constraint về method thuộc về <strong>routing configuration</strong>, không thuộc về business code — nằm trong config thì nó ở một chỗ và không bắt ai phải nhớ thêm một nhánh trong mọi handler mới.</p>
 <p>Ở backend có bốn:</p>
 <table>
-  <thead><tr><th>#</th><th>Phương án</th><th>Đánh đổi</th><th>Est</th></tr></thead>
+  <thead><tr><th>#</th><th>Option</th><th>Trade-off</th><th>Est.</th></tr></thead>
   <tbody>
-    <tr><td>1</td><td>Nâng timestamp lên độ chính xác micro-giây</td><td>phân biệt mịn hơn, nhưng <strong>chỉ giảm xác suất</strong>; đổi format ảnh hưởng nhiều nơi</td><td>4 ngày</td></tr>
-    <tr><td>2</td><td>Thêm cột trạng thái booking riêng</td><td>dễ theo dõi, nhưng phải đồng bộ với trạng thái nằm trong blob, và dữ liệu cũ phải backfill</td><td>6 ngày</td></tr>
-    <tr><td>3</td><td><strong>Thêm cột <code>VERSION</code></strong></td><td><strong>không phụ thuộc độ chính xác datetime</strong>; mọi update đều phải tăng nó</td><td><strong>5 ngày</strong></td></tr>
-    <tr><td>4</td><td>Thêm điều kiện so khớp chuỗi trên cột JSON</td><td>dễ nhất, chỉ sửa câu update; không dùng được index, vỡ nếu format JSON đổi</td><td>3 ngày</td></tr>
+    <tr><td>1</td><td>Nâng timestamp lên microsecond precision</td><td>phân biệt mịn hơn, nhưng <strong>chỉ giảm probability</strong>; đổi format ảnh hưởng nhiều nơi</td><td>4 ngày</td></tr>
+    <tr><td>2</td><td>Thêm một column booking-status riêng</td><td>dễ theo dõi hơn, nhưng phải sync với status nằm trong blob, và data cũ cần backfill</td><td>6 ngày</td></tr>
+    <tr><td>3</td><td><strong>Thêm column <code>VERSION</code></strong></td><td><strong>độc lập với datetime precision</strong>; mọi update đều phải increment nó</td><td><strong>5 ngày</strong></td></tr>
+    <tr><td>4</td><td>Thêm string match vào JSON blob</td><td>dễ nhất, chỉ đổi câu update; không dùng được index, vỡ nếu JSON format đổi</td><td>3 ngày</td></tr>
   </tbody>
 </table>
-<p><strong>Phương án rẻ nhất bị loại, và loại vì lý do đúng.</strong> Phương án 4 tốn ba ngày và sẽ chạy được. Nó bị loại vì hai lý do đều là về tương lai chứ không phải hiện tại: nó khoá tính đúng đắn vào định dạng serialize của một cột blob, và nó không dùng được index. Đây là loại lập luận thường bị "nhưng nó chạy mà" đè bẹp.</p>
-<p><strong>Phương án 1 phơi bày một cách suy nghĩ sai rất phổ biến.</strong> Tăng độ phân giải đồng hồ từ giây lên micro-giây làm xác suất va chạm nhỏ đi rất nhiều — nhưng không làm nó bằng không. Chính file điều tra viết thẳng: <em>"chỉ giảm khả năng booking trùng; với những request giống nhau đến micro-giây thì vẫn có khả năng tạo booking trùng"</em>. Một correctness bug không được sửa bằng cách làm nó hiếm hơn.</p>
+<p><strong>Option rẻ nhất bị loại, và loại vì lý do đúng.</strong> Option 4 tốn ba ngày và sẽ chạy được. Nó bị loại vì hai lý do đều là về tương lai chứ không phải hiện tại: nó gắn correctness vào serialization format của một blob column, và nó không dùng được index. Đây là loại lập luận thường bị "nhưng nó chạy mà" đè bẹp.</p>
+<p><strong>Option 1 phơi bày một cách nghĩ sai rất phổ biến.</strong> Nâng clock resolution từ giây lên microsecond làm collision khó xảy ra hơn nhiều — nhưng không phải là không thể. Investigation file viết thẳng: <em>"chỉ giảm khả năng booking trùng; với những request giống nhau đến microsecond thì vẫn có khả năng tạo booking trùng"</em>. Một correctness bug không được fix bằng cách làm nó hiếm hơn.</p>
 
-<h3 id="conditional-write">5.5 Quyết định chuyển sang số dòng bị update</h3>
+<h3 id="conditional-write">5.5 Quyết định chuyển sang row count</h3>
 <figure>
-  <img src="assets/case-studies/12-duplicate-booking-race-condition/02-conditional-write.svg" alt="Hai khung được so sánh. Khung trái, check-then-act, gồm select trạng thái, rồi một lệnh if trên giá trị vừa đọc, rồi một câu update vô điều kiện, với khoảng trống giữa bước một và bước ba được đánh dấu là chỗ sinh ra sự cố. Khung phải, ghi có điều kiện, gồm select trạng thái kèm version, rồi câu update tăng version có mệnh đề where ràng theo version đã đọc, rồi bước kiểm tra số dòng bị update phải bằng một." width="880" height="420" loading="lazy">
-  <figcaption>Bước kiểm tra và bước hành động nhập làm một câu lệnh, và database là bên phân xử ai thắng.</figcaption>
+  <img src="assets/case-studies/12-duplicate-booking-race-condition/02-conditional-write.svg" alt="Hai panel so sánh. Panel trái, check-then-act, gồm select status, rồi một câu if trên giá trị vừa đọc, rồi một update không điều kiện, với gap giữa bước một và bước ba được đánh dấu là chỗ sinh ra incident. Panel phải, conditional write, gồm select status kèm version, rồi một update tăng version có where clause trên version vừa đọc, rồi một bước check số row đã update bằng một." width="880" height="420" loading="lazy">
+  <figcaption>Check và act gộp thành một statement, và database phân xử ai thắng.</figcaption>
 </figure>
-<p>Ở tầng web, hai view trên cùng một endpoint, tách theo method:</p>
+<p>Ở web tier, hai view trên cùng một endpoint, tách theo method:</p>
 <pre><code>config.add_view(
     context        = BookContext,
     view           = context_as_view,
@@ -241,8 +241,8 @@ config.add_view(
 <pre><code>def view_book_metadata(self):
     logger.info('API booking with request method HEAD rejected')
     return HTTPMethodNotAllowed(headers={'Allow': 'GET, POST'})</code></pre>
-<p>Hai chi tiết nhỏ mà đúng: trả <strong>405 kèm header <code>Allow</code></strong>, đúng chuẩn HTTP và cho client biết cái gì được phép, và <strong>ghi log mỗi lần từ chối</strong> — chính dòng log này là thứ cho phép nghiệm thu bằng monitoring khi không nghiệm thu được theo cách thường.</p>
-<p>Ở backend, bước chuyển trạng thái từ đọc-rồi-quyết-định thành ghi có điều kiện:</p>
+<p>Hai chi tiết nhỏ làm đúng: trả <strong>405 kèm header <code>Allow</code></strong>, đúng chuẩn HTTP và cho client biết cái gì được phép, và <strong>log mỗi lần reject</strong> — chính dòng log đó là thứ khiến acceptance dựa trên monitoring khả thi khi acceptance test thì không.</p>
+<p>Ở backend, state transition chuyển từ read-then-decide thành một conditional write:</p>
 <pre><code>UPDATE SESSION_INFO
    SET VALUE   = /*value*/,
        UPD_DT  = /*updDt*/,
@@ -254,7 +254,7 @@ config.add_view(
 if (count != 1) {
     return error(...);        // lost the race
 }</code></pre>
-<p>Và phía gọi biến "thua race" thành một câu trả lời nghiệp vụ đúng:</p>
+<p>Và caller biến "thua race" thành một câu trả lời nghiệp vụ đúng:</p>
 <pre><code>sessionOut = setUpdateInformation(productInfo, request);
 if (sessionOut.getErrorDetail() != null) {
     // update matched no rows -> re-read to see who won
@@ -264,110 +264,110 @@ if (sessionOut.getErrorDetail() != null) {
         return FAILED;
     }
 }</code></pre>
-<p>Đây là điểm chuyển thật sự. Quyết định không còn nằm ở giá trị đọc được, mà nằm ở số dòng bị update. <code>count != 1</code> là một sự kiện nguyên tử do database phân xử. Không còn khoảng trống nào giữa kiểm tra và hành động, vì chúng đã là cùng một câu lệnh.</p>
+<p>Đây mới là điểm chuyển thật sự. Quyết định không còn nằm ở giá trị vừa đọc; nó nằm ở <strong>số row được update</strong>. <code>count != 1</code> là một atomic event do database phân xử. Không còn gap nào giữa check và act, vì chúng là cùng một statement.</p>
 
-<h3 id="sql-report">5.6 Thay đổi schema được review như một artifact riêng</h3>
+<h3 id="sql-report">5.6 Schema change được review như một artifact riêng</h3>
 <pre><code>ALTER TABLE &lt;schema&gt;.SESSION_INFO
   ADD COLUMN VERSION int DEFAULT 0 NOT NULL
   COMMENT 'Version number for optimistic locking'
   AFTER GOODS_VALUE;</code></pre>
-<p><code>DEFAULT 0 NOT NULL</code> là thứ khiến migration này tương thích ngược: mọi dòng đang tồn tại — tức mọi phiên đặt chỗ đang mở lúc deploy — nhận giá trị 0 mà không cần backfill, và câu update mới khớp ngay với chúng.</p>
-<p>Tài liệu còn kèm <strong>so sánh execution plan trước và sau</strong>. Câu lệnh cũ và mới được EXPLAIN cạnh nhau kèm thời gian thực thi, và kết quả là cùng kiểu truy cập trên cùng bảng: điều kiện thêm vào không làm đổi query plan. Đây là bước hay bị bỏ. Thêm một điều kiện vào câu lệnh nằm trên đường đi của mọi giao dịch là thay đổi có thể làm sập hiệu năng, và chứng minh nó không đổi plan rẻ hơn nhiều so với phát hiện điều ngược lại trên production.</p>
-<p>Thứ ba, quy trình chạy được ghi rõ tới từng lệnh: host, tài khoản, và đường dẫn file SQL theo ngày.</p>
+<p><code>DEFAULT 0 NOT NULL</code> là thứ khiến migration này backward compatible: mọi row đang tồn tại — tức mọi booking session đang mở lúc deploy — nhận giá trị 0 mà không cần backfill, và statement mới match chúng ngay.</p>
+<p>Tài liệu còn mang theo một <strong>so sánh execution plan trước/sau</strong>. Statement cũ và mới được <code>EXPLAIN</code> cạnh nhau kèm execution time, và kết quả là cùng access path trên cùng table: predicate thêm vào không làm đổi query plan. Đây là bước hay bị bỏ. Thêm một điều kiện vào statement nằm trên đường đi của mọi transaction có thể làm sập performance, và chứng minh nó không đổi thì rẻ hơn nhiều so với phát hiện điều ngược lại trên production.</p>
+<p>Thứ ba, execution procedure được ghi lại từng lệnh: host, account, và đường dẫn theo ngày của file SQL.</p>
 
-<h3 id="unit-tests">5.7 Mười bảy unit test, chia theo tầng</h3>
+<h3 id="unit-tests">5.7 Mười bảy unit test, chia theo tier</h3>
 <table>
   <thead><tr><th>Nhóm</th><th>Case</th><th>Kỳ vọng</th></tr></thead>
   <tbody>
-    <tr><td>Web</td><td>Chỉ gửi <code>HEAD</code>, cho từng dòng trong bốn dòng sản phẩm</td><td>không gọi API booking</td></tr>
-    <tr><td>Web</td><td>Gửi đồng thời <code>GET</code> và <code>HEAD</code></td><td>không trùng; một thành công, một thất bại</td></tr>
-    <tr><td>Backend</td><td>Gửi hai request booking</td><td>một thành công, một thất bại</td></tr>
-    <tr><td>Hồi quy</td><td>Booking bình thường, cả bốn dòng sản phẩm</td><td>thành công</td></tr>
-    <tr><td>Hồi quy</td><td>Update từ màn input, và từ màn confirm</td><td><strong>version có thay đổi</strong></td></tr>
+    <tr><td>Web</td><td>Chỉ <code>HEAD</code>, cho từng product line trong bốn dòng</td><td>không gọi booking API</td></tr>
+    <tr><td>Web</td><td><code>GET</code> + <code>HEAD</code> đồng thời</td><td>không duplicate; một thành công, một thất bại</td></tr>
+    <tr><td>Backend</td><td>Hai booking request</td><td>một thành công, một thất bại</td></tr>
+    <tr><td>Regression</td><td>Booking bình thường, cả bốn product line</td><td>thành công</td></tr>
+    <tr><td>Regression</td><td>Update từ màn input, và từ màn confirm</td><td><strong>version có thay đổi</strong></td></tr>
   </tbody>
 </table>
-<p>Dòng cuối chứa hai case tinh tế nhất. Cột version nằm trên bảng phiên <strong>dùng chung</strong>, nên nếu một đường update nào đó quên tăng nó, cột sẽ đứng yên và khoá lặng lẽ mất tác dụng ở đúng chỗ không ai nhìn. Chúng kiểm tra rằng khoá vẫn <em>sống</em> trên các đường đi bình thường, chứ không chỉ chặn được khi có tấn công.</p>
+<p>Dòng cuối chứa hai case tinh tế nhất. Column version nằm trên một session table <strong>dùng chung</strong>, nên nếu một update path nào đó quên increment nó, column sẽ đứng yên và lock lặng lẽ ngừng hoạt động ở đúng chỗ không ai nhìn. Chúng verify rằng lock vẫn còn <em>sống</em> trên các path bình thường, chứ không chỉ verify rằng nó chặn được khi bị tấn công.</p>
 
-<h3 id="integration-tests">5.8 Ba mươi chín case tích hợp trên một ma trận có sẵn</h3>
-<p>QA không viết test case từ đầu. Họ bắt đầu từ một checklist bề mặt hồi quy dùng chung cho mọi thay đổi chạm vào luồng đặt chỗ:</p>
+<h3 id="integration-tests">5.8 Ba mươi chín integration case trên một matrix có sẵn</h3>
+<p>QA không viết case từ đầu. Họ bắt đầu từ một regression-surface checklist dùng chung cho mọi thay đổi chạm vào booking flow:</p>
 <table>
-  <thead><tr><th>Chiều</th><th>Các giá trị</th></tr></thead>
+  <thead><tr><th>Chiều</th><th>Giá trị</th></tr></thead>
   <tbody>
-    <tr><td>Nguồn vé</td><td>GDS lớn, NDC aggregator, nguồn nội địa</td></tr>
-    <tr><td>Loại vé</td><td>PEX · PrivateFare · ALLOT</td></tr>
-    <tr><td>Loại chuyến</td><td>một chiều · khứ hồi · bay thẳng · nối chuyến · vòng · open-jaw · xuất phát nước ngoài · interline</td></tr>
-    <tr><td>Site bán</td><td>năm thương hiệu cộng metasearch</td></tr>
-    <tr><td>Thiết bị</td><td>trình duyệt desktop trên hai hệ điều hành · app và trình duyệt trên cả hai nền tảng di động · simulator</td></tr>
-    <tr><td>Hành vi</td><td>tìm lại · <strong>quay lại bằng nút Back của trình duyệt</strong></td></tr>
-    <tr><td>Hành khách</td><td>một người lớn · nhiều người lớn · có trẻ em · có em bé</td></tr>
-    <tr><td>Chứng từ</td><td>xác nhận thanh toán · voucher · e-ticket, gồm cả in tại cửa hàng tiện lợi</td></tr>
+    <tr><td>Ticket source</td><td>GDS lớn, NDC aggregator, nguồn nội địa</td></tr>
+    <tr><td>Fare type</td><td>PEX · PrivateFare · ALLOT</td></tr>
+    <tr><td>Trip type</td><td>one-way · round-trip · direct · connecting · circle · open-jaw · foreign origin · interline</td></tr>
+    <tr><td>Selling site</td><td>năm brand cộng metasearch</td></tr>
+    <tr><td>Device</td><td>desktop browser trên hai OS · mobile app và browser trên cả hai platform · simulator</td></tr>
+    <tr><td>Behaviour</td><td>re-search · <strong>quay lại bằng nút Back của browser</strong></td></tr>
+    <tr><td>Passenger</td><td>một adult · nhiều adult · có child · có infant</td></tr>
+    <tr><td>Document</td><td>payment confirmation · voucher · e-ticket, gồm cả in tại convenience store</td></tr>
   </tbody>
 </table>
-<p>Ma trận này giải thích vì sao một bản vá năm ngày lại kéo theo một đợt release lớn: bề mặt hồi quy là tổ hợp, không phải tuyến tính.</p>
-<p>Biên giữa trình duyệt và tầng web được test theo <strong>thứ tự và số lượng</strong>, chứ không chỉ "gửi HEAD thì bị chặn": chỉ <code>HEAD</code>, chỉ <code>GET</code>, <code>HEAD</code> rồi <code>GET</code>, <code>GET</code> rồi <code>HEAD</code>, năm lần <code>HEAD</code> rồi một <code>GET</code>, và cả hai cùng thời điểm — lặp cho bốn dòng sản phẩm.</p>
-<p>Biên giữa tầng web và backend mới là chỗ test cái khoá: hai request đồng thời cùng transaction key phải cho một thành công và một thất bại không ghi gì; năm request đồng thời phải cho đúng một thành công; và — kỹ thuật sắc nhất của cả đợt — <strong>chèn delay xử lý vào request thứ nhất trước khi gửi request thứ hai</strong>. Một race 23 ms không thể tái hiện đáng tin bằng cách bấm nhanh; nới cửa sổ ra biến một sự kiện xác suất thành một sự kiện tất định.</p>
-<p>Các case end-to-end đặt chỗ thật cho từng tổ hợp và ghi lại <strong>số ITN thật sự được tạo</strong> làm bằng chứng, kỳ vọng luôn là đúng một. Một nhóm nhỏ kiểm chứng chính migration: phiên mới tạo bắt đầu từ 0, các đường update đều tăng, và <strong>transaction tạo trước lệnh <code>ALTER</code> đọc ra 0</strong> — câu hỏi "chuyện gì xảy ra với các phiên đang mở lúc deploy" được hỏi thành một test case, chứ không để thành một phát hiện lúc 2 giờ sáng. Nhóm cuối hồi quy những thứ nằm ngoài scope sửa nhưng dùng chung bảng phiên.</p>
-<p>Toàn bộ ba mươi chín case đều pass.</p>
+<p>Matrix này là lý do một patch năm ngày kéo theo một release lớn: regression surface là tổ hợp, không phải tuyến tính.</p>
+<p>Biên giữa browser và web tier được test theo <strong>thứ tự và số lượng</strong>, không chỉ là "một HEAD thì bị chặn": chỉ <code>HEAD</code>, chỉ <code>GET</code>, <code>HEAD</code> rồi <code>GET</code>, <code>GET</code> rồi <code>HEAD</code>, năm <code>HEAD</code> rồi một <code>GET</code>, và cả hai cùng lúc — lặp trên cả bốn product line.</p>
+<p>Biên giữa web tier và backend là chỗ chính cái lock được test: hai concurrent request cùng transaction key phải cho một thành công và một thất bại không ghi gì; năm concurrent request phải cho đúng một thành công; và — kỹ thuật sắc nhất của cả đợt — <strong>một processing delay được inject vào request đầu trước khi gửi request thứ hai</strong>. Một race 23 ms không thể reproduce đáng tin bằng cách click nhanh; nới rộng window biến một sự kiện xác suất thành tất định.</p>
+<p>Các end-to-end case book itinerary thật trên từng tổ hợp và ghi lại <strong>số ITN thực sự được tạo</strong> làm evidence, kỳ vọng đúng một mỗi lần. Một nhóm nhỏ verify migration: session mới bắt đầu từ 0, update thì increment, và <strong>một transaction tạo trước <code>ALTER</code> đọc ra 0</strong> — câu hỏi "chuyện gì xảy ra với session đang mở lúc deploy" được hỏi thành một test case thay vì bị phát hiện lúc 2 giờ sáng. Nhóm cuối regress những thứ ngoài scope thay đổi nhưng vẫn dùng chung session table.</p>
+<p>Cả ba mươi chín case đều pass.</p>
 
-<h3 id="late-cost">5.9 Cái giá của việc sửa muộn</h3>
-<p>Phạm vi ảnh hưởng của bản sửa lần hai: năm repository, bốn dòng sản phẩm, năm thương hiệu cộng metasearch, mười hai màn hình, ba mươi chín case tích hợp, mười bảy unit test và một thay đổi schema. So với lần một: hai file cấu hình nginx và một đoạn JavaScript.</p>
-<p>Đặt guard đúng chỗ sau ba năm đắt hơn nhiều so với đặt nó đúng chỗ ngay từ đầu — không phải vì code khó hơn, mà vì <strong>số bề mặt phải kiểm tra lại đã nhân lên</strong>. Ước lượng 21 ngày bị từ chối năm 2024 rốt cuộc được làm với năm ngày công; phần chênh lệch không nằm ở việc viết code, nó nằm ở tất cả những thứ vây quanh.</p>
+<h3 id="late-cost">5.9 Cái giá của việc fix muộn</h3>
+<p>Blast radius của bản fix lần hai: năm repository, bốn product line, năm brand cộng metasearch, mười hai màn hình, ba mươi chín integration case, mười bảy unit test và một schema change. So với lần một: hai file config nginx và một đoạn JavaScript.</p>
+<p>Đặt guard đúng chỗ sau ba năm đắt hơn nhiều so với đặt nó đúng chỗ ngay từ đầu — không phải vì code khó hơn, mà vì <strong>số surface phải verify lại đã nhân lên</strong>. Estimate 21 ngày bị từ chối năm 2024 rốt cuộc được làm với năm ngày công; phần chênh lệch không nằm ở việc viết code, nó nằm ở tất cả những thứ vây quanh.</p>
 
-<h3 id="release">5.10 Một đường lùi, dựng sẵn ngay ngày đầu</h3>
-<p>Lần này cũng không nghiệm thu được, nên điều kiện release được ghi thành ba chân thay thế: <strong>source review</strong>, vì tính đúng đắn ở đây nằm trong cấu trúc câu lệnh và đọc được bằng mắt — mệnh đề <code>WHERE VERSION = ?</code> hoặc có hoặc không; <strong>review bộ kịch bản tích hợp</strong>, soi kịch bản thay vì soi kết quả; và <strong>giám sát sau release</strong>.</p>
-<p>Ngay hôm sau release, các revert MR được tạo sẵn cho từng module. Đây là đường lùi dự phòng, không phải một cú rollback đã xảy ra: bản vá không bị gỡ, các MR chỉ nằm chờ ở trạng thái sẵn sàng merge để nếu cần quay lui thì mất vài phút thay vì phải viết ngược lại thay đổi dưới áp lực sự cố.</p>
-<p>Đó là chân thứ tư. Khi bạn không thể chứng minh bản vá đúng trước khi release, thứ bạn chuẩn bị là một <strong>chi phí sai thấp</strong>. Đội không nâng được độ tin cậy, nên họ hạ chi phí của kịch bản xấu.</p>
-<p>Một chi tiết đúng: script database <strong>không</strong> nằm trong danh sách revert. Thêm một cột có giá trị mặc định là thay đổi tương thích ngược — code cũ không đọc cột đó, code mới thì cần nó. Revert cột đi sẽ biến một lần rollback thành hai lần migration.</p>
+<h3 id="release">5.10 Một đường lùi, dựng ngay ngày đầu</h3>
+<p>Acceptance test lại một lần nữa không khả thi, nên release condition được viết thành ba chân thay thế: <strong>source review</strong>, vì correctness ở đây nằm trong cấu trúc của một statement và đọc được bằng mắt — mệnh đề <code>WHERE VERSION = ?</code> hoặc có hoặc không; <strong>review các integration scenario</strong>, soi case thay vì soi kết quả; và <strong>monitoring sau release</strong>.</p>
+<p>Ngày sau release, revert MR được chuẩn bị sẵn cho các module. Đây là một đường lùi ở trạng thái chờ, không phải một rollback đã xảy ra: patch không bị gỡ, các MR chỉ nằm sẵn sàng merge để nếu cần lùi thì mất vài phút thay vì phải viết ngược lại thay đổi dưới áp lực incident.</p>
+<p>Đó là chân thứ tư. Khi bạn không thể chứng minh một patch là đúng trước khi release, thứ bạn chuẩn bị là <strong>chi phí sai thấp</strong>. Đội không nâng được confidence, nên họ hạ chi phí của kịch bản xấu.</p>
+<p>Một chi tiết làm đúng: database script <strong>không</strong> nằm trong danh sách revert. Thêm một column có default là thay đổi backward compatible — code cũ không đọc nó, code mới thì cần nó. Revert column đi sẽ biến một lần rollback thành hai lần migration.</p>
 
-<h2 id="two-costumes">6. Cùng một tác nhân, hai bộ quần áo</h2>
+<h2 id="two-costumes">6. Một tác nhân, hai bộ quần áo</h2>
 <table>
   <thead><tr><th></th><th>Lần một</th><th>Lần hai</th></tr></thead>
   <tbody>
     <tr><td>Bối cảnh</td><td>ngay sau 3DS redirect</td><td>ngay sau 3DS redirect</td></tr>
-    <tr><td>Bản sao trông thế nào</td><td>UA chứa <code>google-bot</code></td><td><code>HEAD</code>, không referer, UA của trình duyệt</td></tr>
-    <tr><td>Đến từ đâu</td><td>mạng tiêu dùng của chính người dùng</td><td>mạng của chính người dùng</td></tr>
-    <tr><td>Khoảng cách</td><td>2 ms</td><td>23 ms</td></tr>
-    <tr><td>Chẩn đoán</td><td>"Googlebot crawl trang đặt chỗ"</td><td>"trình duyệt hoặc antivirus thăm dò"</td></tr>
-    <tr><td>Bản vá</td><td>chặn chuỗi UA ở nginx</td><td>từ chối method <code>HEAD</code> ở routing</td></tr>
-    <tr><td>Lỗi nền</td><td>check-then-act, version theo giây</td><td><strong>giống hệt</strong></td></tr>
+    <tr><td>Bản sao trông thế nào</td><td>UA chứa <code>google-bot</code></td><td><code>HEAD</code>, không referer, UA của browser</td></tr>
+    <tr><td>Đến từ đâu</td><td>consumer network của chính user</td><td>network của chính user</td></tr>
+    <tr><td>Gap</td><td>2 ms</td><td>23 ms</td></tr>
+    <tr><td>Diagnosis</td><td>"Googlebot crawl trang booking"</td><td>"browser hoặc antivirus probe"</td></tr>
+    <tr><td>Patch</td><td>chặn một chuỗi UA ở nginx</td><td>reject method <code>HEAD</code> ở routing</td></tr>
+    <tr><td>Defect nền</td><td>check-then-act, version resolution giây</td><td><strong>y hệt</strong></td></tr>
     <tr><td>Chi phí</td><td>2 ngày</td><td>5 ngày + 39 case + một migration</td></tr>
   </tbody>
 </table>
-<p>Hai lần, đội chặn <em>cái bề ngoài</em> của bản sao. Bề ngoài đổi; cơ chế thì không. Điều làm lần hai khác không phải là nó tìm ra một nguyên nhân mới — nó sửa đúng chỗ hai request gặp nhau, thay vì chỗ chúng đi vào.</p>
+<p>Hai lần, đội chặn thứ mà bản sao <em>trông giống</em>. Vẻ ngoài đổi; mechanism thì không. Thứ làm lần hai khác đi không phải là nó tìm ra nguyên nhân mới — nó fix chỗ hai request gặp nhau, thay vì chỗ chúng đi vào.</p>
 
 <h2 id="takeaways">7. Mười điều rút ra</h2>
 <ol>
-  <li><strong>Check-then-act không phải mutual exclusion.</strong> Đọc một cờ rồi hành động dựa trên nó chỉ đúng khi không ai ghi cờ đó ở giữa. Guard này sống nhiều năm, đọc vào thấy hợp lý, và vẫn chặn tốt — với mọi request đến muộn. Điều kiện thất bại của nó vô hình khi đọc code tuần tự.</li>
-  <li><strong>Version thô hơn tốc độ đến của request thì không phải version.</strong> Timestamp làm version token trông rất hợp lý cho tới khi hai sự kiện rơi vào cùng một khoảng làm tròn — mà hai request trùng thì theo định nghĩa là hai sự kiện gần nhau. Một số nguyên tăng dần không có độ phân giải để mà thua.</li>
-  <li><strong>Làm một correctness bug hiếm đi không phải là sửa nó.</strong> Đây là ranh giới giữa "ít gặp hơn" và "không thể xảy ra", và nó đáng được giữ ngay cả khi phương án yếu hơn rẻ hơn một ngày công.</li>
-  <li><strong>Chặn theo danh tính thì phải liệt kê vô hạn; chặn theo bản chất thì chỉ cần một lần.</strong> Một chuỗi UA không bao giờ là danh sách đầy đủ. Điểm ghi thì hữu hạn: chỉ một dòng mà cả hai request phải đi qua.</li>
-  <li><strong>Cái tên bạn đặt cho nguyên nhân sẽ chọn hộ giải pháp.</strong> Gọi nó là "Googlebot" thì chặn Googlebot là bản vá hiển nhiên. Bằng chứng phản bác đã nằm sẵn trong file điều tra; không ai xét lại chẩn đoán vì alert đã hết.</li>
-  <li><strong>Một phép kiểm tra phòng thủ chỉ đáng giá bằng cách caller xử lý kết quả.</strong> Backend trả <code>Booking is in progress</code>; tầng web ghi một dòng warning rồi đi tiếp. Thế còn tệ hơn không có guard, vì log khiến mọi người tin là đã có bảo vệ.</li>
-  <li><strong>Trong hệ thống nhiều instance, chỗ duy nhất hai request gặp nhau là tầng lưu trữ chung.</strong> Mọi khoá trong tiến trình đều vô nghĩa theo cấu trúc, không phải theo cấu hình.</li>
-  <li><strong>"Hết alert" không đồng nghĩa với "đã sửa".</strong> Tiêu chí hợp lý, dữ liệu thật, kết luận sai — và 2,5 năm là khoảng cách giữa việc sửa triệu chứng và việc biết mình mới chỉ sửa triệu chứng. Câu hỏi đáng đặt ở buổi review: <em>nếu nguyên nhân mà ta tin là đúng bị sai, thì ta sẽ thấy gì?</em></li>
-  <li><strong>Không kiểm chứng được không phải lý do để chọn giải pháp yếu hơn — nhưng nó đã là.</strong> Các phương án sâu bị loại một phần vì khó test; sáu tháng sau, đúng lý do đó lại được dùng để bỏ nghiệm thu cho chính bản vá đã chọn. Khi "khó test" trở thành tiêu chí chọn giải pháp, hệ thống sẽ trôi dần về phía những bản vá dễ test chứ không phải những bản vá đúng.</li>
-  <li><strong>Khi không thể nâng độ tin cậy, hãy hạ chi phí sai.</strong> Điều kiện đo được trong log, review kịch bản, giám sát, revert dựng sẵn. Đó là quản trị rủi ro, không phải bỏ qua rủi ro.</li>
+  <li><strong>Check-then-act không phải mutual exclusion.</strong> Đọc một flag rồi hành động dựa trên nó chỉ đúng khi không ai ghi flag đó ở giữa. Guard này sống nhiều năm, đọc vào thấy hợp lý, và hoạt động — với mọi request đến muộn. Failure condition của nó vô hình khi đọc code tuần tự.</li>
+  <li><strong>Một version thô hơn tốc độ đến của request thì không phải version.</strong> Timestamp làm version token trông hoàn toàn hợp lý cho tới khi hai event rơi vào cùng một rounding interval — mà hai duplicate request thì theo định nghĩa là hai event gần nhau. Một monotonic integer không có resolution để mà mất.</li>
+  <li><strong>Làm một correctness bug hiếm đi không phải là fix nó.</strong> Đây là ranh giới giữa "ít gặp hơn" và "không thể xảy ra", và nó đáng giữ ngay cả khi option yếu hơn rẻ hơn một ngày.</li>
+  <li><strong>Chặn theo identity thì cần một danh sách vô hạn; chặn theo bản chất thì chỉ cần một lần.</strong> Một chuỗi UA không bao giờ là một enumeration đầy đủ. Write point thì hữu hạn: một row mà cả hai request đều phải đi qua.</li>
+  <li><strong>Cái tên bạn đặt cho nguyên nhân sẽ chọn hộ bạn solution.</strong> Gọi nó là "Googlebot" thì chặn Googlebot là patch hiển nhiên. Bằng chứng phản bác đã nằm sẵn trong investigation file; không ai xét lại diagnosis vì alert đã im.</li>
+  <li><strong>Một defensive check đáng giá đúng bằng thứ caller làm với kết quả của nó.</strong> Backend trả <code>Booking is in progress</code>; web tier log một warning rồi đi tiếp. Thế còn tệ hơn không có guard, vì dòng log khiến mọi người tin là đã có bảo vệ.</li>
+  <li><strong>Trong hệ thống multi-instance, chỗ duy nhất hai request gặp nhau là shared storage.</strong> Mọi in-process lock đều vô nghĩa về mặt cấu trúc, không phải về mặt config.</li>
+  <li><strong>"Alert đã im" không phải là "đã fix".</strong> Tiêu chí hợp lý, data thật, kết luận sai — và 2,5 năm giữa việc fix symptom và việc biết ra đó mới chỉ là symptom. Câu hỏi đáng đặt trong buổi review đó: <em>nếu nguyên nhân ta tin là đúng bị sai, ta sẽ thấy gì?</em></li>
+  <li><strong>Không verify được không phải lý do để chọn solution yếu hơn — nhưng nó đã là.</strong> Các option sâu bị loại một phần vì khó test; sáu tháng sau, đúng lý do đó lại loại bỏ acceptance test cho chính patch đã chọn. Khi "khó test" thành tiêu chí lựa chọn, hệ thống trôi dần về phía những patch dễ test chứ không phải những patch đúng.</li>
+  <li><strong>Khi không nâng được confidence, hãy hạ chi phí sai.</strong> Log condition đo được, scenario review, monitoring, revert dựng sẵn. Đó là risk management, không phải risk denial.</li>
 </ol>
 
-<h3 id="if-again">Nếu làm lại từ đầu</h3>
-<p>Cách phòng thủ mạnh nhất không phải chặn request thứ hai mà làm cho nó <strong>vô hại</strong>: một idempotency key sinh theo từng ý định đặt chỗ, gửi kèm request, có unique constraint phía sau. Request thứ hai — bất kể đến từ đâu, bằng method gì, cách nhau bao lâu — nhận lại đúng kết quả của request thứ nhất thay vì tạo booking mới.</p>
-<p>Optimistic lock hoạt động được <strong>vì hai bản sao chia sẻ cùng một dòng phiên</strong>. Giả định đó đang gánh toàn bộ bản vá và không được viết ra ở đâu cả. Hai tab, hai thiết bị, hoặc retry sau khi phiên hết hạn thì nó không thấy.</p>
-<p>Và ở tầng thiết kế: một hành động tạo booking không nên là một URL <code>GET</code>. Nó là <code>GET</code> chỉ vì 3-D Secure trả người dùng về bằng redirect. Mẫu đúng là redirect về một endpoint <em>xác nhận</em> idempotent, và chính endpoint đó mới thực hiện lệnh — thì không có thứ gì fetch một URL mà tạo được booking.</p>
+<h3 id="if-again">Nếu được thiết kế lại</h3>
+<p>Phòng thủ mạnh nhất không phải chặn request thứ hai mà làm cho nó <strong>vô hại</strong>: một idempotency key sinh ra cho mỗi booking intent, gửi kèm request, với một unique constraint đứng sau. Request thứ hai — đến từ đâu, method gì, cách nhau bao lâu cũng vậy — nhận về kết quả của request thứ nhất thay vì tạo một booking mới.</p>
+<p>Optimistic lock hoạt động <strong>vì cả hai duplicate chia sẻ cùng một session row</strong>. Giả định đó gánh toàn bộ patch và không được ghi lại ở đâu cả. Hai tab, hai device, hoặc một retry sau khi session expire sẽ vô hình với nó.</p>
+<p>Và ở mức thiết kế: một action tạo booking không nên là một <code>GET</code> URL. Nó là <code>GET</code> chỉ vì 3-D Secure trả user về bằng redirect. Pattern đúng là redirect tới một confirmation endpoint idempotent, endpoint đó mới thực thi command — và khi ấy không gì có thể tạo booking bằng cách fetch một URL.</p>
 
 <h2 id="questions">8. Câu hỏi tự luyện</h2>
 <ol>
-  <li>Một endpoint đặt chỗ có guard <code>if (status != PROCESSED) { book(); }</code>. Guard này chặn được gì và không chặn được gì? Viết lại cho đúng.</li>
-  <li>Vì sao một request <code>HEAD</code> lại có thể thực thi business logic? Phòng ở tầng nào, và vì sao không phòng trong handler?</li>
-  <li>Bạn có một optimistic lock dùng <code>UPDATE … WHERE updated_at = ?</code> với <code>updated_at</code> là timestamp độ phân giải giây. Chỉ ra điều kiện thất bại và đề xuất cách sửa.</li>
-  <li>Cho bốn phương án backend ở <a href="#options-2026">mục 5.4</a> với ước lượng 3, 4, 5 và 6 ngày, chọn một và bảo vệ lựa chọn. Phương án 3 ngày sai ở đâu?</li>
-  <li>Thiết kế idempotency cho một API tạo booking. Khoá sinh ở đâu, sống bao lâu, và request lặp lại nhận về cái gì?</li>
-  <li>Thêm một cột version để làm optimistic lock vào bảng đang có traffic sống: trình tự rollout thế nào để không request nào thất bại lúc deploy? Các phiên đang mở thì sao?</li>
-  <li>Bạn không thể tái hiện một race condition ở staging. Thiết kế bộ điều kiện nghiệm thu cho phép release.</li>
-  <li>Làm sao viết một integration test <em>tất định</em> cho một race có cửa sổ 23 ms?</li>
-  <li>Alert của bạn group theo session id và cảnh báo khi count lớn hơn 1. Alert này <em>thật sự</em> đang nói gì về nguyên nhân?</li>
-  <li>Bản vá của bạn làm hết alert trong 33 ngày và có 117 lần chặn ghi nhận được. Bằng chứng này chứng minh được điều gì, và <strong>không</strong> chứng minh được điều gì?</li>
+  <li>Một booking endpoint có guard <code>if (status != PROCESSED) { book(); }</code>. Guard này chặn được gì và không chặn được gì? Viết lại cho đúng.</li>
+  <li>Vì sao một <code>HEAD</code> request có thể thực thi business logic? Bạn phòng ở layer nào, và vì sao không phòng bên trong handler?</li>
+  <li>Bạn có một optimistic lock dùng <code>UPDATE … WHERE updated_at = ?</code> với <code>updated_at</code> là timestamp resolution giây. Chỉ ra failure condition và đề xuất cách fix.</li>
+  <li>Cho bốn backend option ở <a href="#options-2026">§5.4</a>, estimate 3, 4, 5 và 6 ngày. Chọn một và bảo vệ lựa chọn. Option 3 ngày sai ở đâu?</li>
+  <li>Thiết kế idempotency cho một booking-creation API. Key sinh ở đâu, sống bao lâu, và một repeat request nhận về cái gì?</li>
+  <li>Bạn đang thêm một version column để làm optimistic locking vào một table đang có live traffic. Rollout sequence thế nào để không request nào fail lúc deploy? Còn các session đang mở thì sao?</li>
+  <li>Bạn không reproduce được một race condition trên staging. Thiết kế bộ acceptance criteria cho phép bạn release.</li>
+  <li>Làm sao viết một integration test <em>tất định</em> cho một race có window 23 ms?</li>
+  <li>Alert của bạn group theo session id và bắn khi count vượt quá một. Alert đó <em>thật sự</em> đang nói gì với bạn về nguyên nhân?</li>
+  <li>Patch của bạn cho ra 33 ngày không alert và 117 lần block ghi nhận được. Bằng chứng này chứng minh điều gì, và <strong>không</strong> chứng minh điều gì?</li>
 </ol>
 
 <h2 id="anonymisation">9. Ghi chú về việc ẩn danh</h2>
-<p>Bài viết dựa trên một sự cố production có thật. Tên công ty, tên thương hiệu và site, tên người, mã ticket nội bộ, số hiệu booking, host, IP, token phiên và mọi đường dẫn nội bộ đã được lược bỏ. Các vai trò được gọi bằng chức năng. Tên module được đặt lại theo chức năng. Các đoạn code, log và SQL là bản rút gọn đã khử định danh, giữ đúng cấu trúc logic.</p>
-<p>Từ vựng nghiệp vụ ngành — GDS, PNR, ITN, churning và ADM, 3-D Secure, <code>HEAD</code>, optimistic locking, cùng các tên bảng và cột chung chung — được giữ nguyên, vì đó là thứ làm bài đọc được và nó không định danh tổ chức nào.</p>
+<p>Bài viết dựa trên một production incident có thật. Tên công ty, tên brand và site, tên người, ticket id nội bộ, số booking, host, IP, session token và URL nội bộ đã được lược bỏ. Người được gọi theo vai trò. Module được đặt tên theo chức năng. Code, log và SQL là các trích đoạn đã rút gọn và khử định danh, giữ nguyên logic.</p>
+<p>Từ vựng ngành — GDS, PNR, ITN, churning và ADM, 3-D Secure, <code>HEAD</code>, optimistic locking, cùng các tên table và column chung chung — được giữ lại, vì đó là thứ làm bài đọc được và nó không định danh tổ chức nào.</p>
