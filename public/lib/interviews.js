@@ -55,6 +55,9 @@ export const Interviews = {
     const c = this.find(id);
     if (!c) throw new Error('No such company.');
     if (c.own) throw new Error('That company is already in your journal.');
+    const sourceNote = c.source?.url
+      ? 'Source: ' + (c.source.label || c.source.url) + ' — ' + c.source.url
+      : '';
     return this.save({
       name: c.name,
       role: c.role,
@@ -62,7 +65,17 @@ export const Interviews = {
       result: c.result,
       stack: c.stack || [],
       // Drop every id: these become new rows, not an edit of the seed.
-      questions: (c.questions || []).map(q => ({ round: q.round, q: q.q, a: q.a, note: q.note }))
+      questions: (c.questions || []).map(q => ({
+        round: q.round,
+        q: q.q,
+        a: q.a,
+        note: [q.note, sourceNote].filter(Boolean).join('\n\n'),
+        diagrams: (q.diagrams || []).map(diagram => ({
+          ...diagram,
+          flaws: [...(diagram.flaws || [])],
+          upgrades: [...(diagram.upgrades || [])]
+        }))
+      }))
     });
   },
 

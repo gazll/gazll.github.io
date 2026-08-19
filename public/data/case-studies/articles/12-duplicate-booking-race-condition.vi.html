@@ -1,373 +1,90 @@
-<h2 id="context">1. Một hành động booking, đồng thời là một URL fetch được</h2>
-<p>Hệ thống là một OTA bán vé máy bay quốc tế, hotel và package. Một core phục vụ năm brand cộng traffic từ metasearch, chia làm hai tier: <strong>web/BFF tier</strong> viết bằng Python chạy nhiều instance sau load balancer, và <strong>booking backend</strong> viết bằng Java giữ session state trong table <code>SESSION_INFO</code> rồi gọi GDS để tạo record tại hãng.</p>
-<p>Hai identifier cần phân biệt. <strong>ITN</strong> là itinerary number — booking record của chính OTA. <strong>PNR</strong> là record tại GDS. Một user intent lẽ ra phải sinh ra đúng một cái mỗi loại.</p>
-<p>Booking flow chạy <code>input → confirm → complete</code>. Ở bước cuối, browser gọi <code>/reservation/book</code>, web tier forward sang backend, backend đọc session, check status, đánh dấu in progress, rồi <strong>spawn một async thread</strong> gọi GDS để tạo PNR và sinh ITN.</p>
-<p>Session state là một state machine bốn giá trị: <code>Init</code> (cho phép booking), <code>Booking</code> (đang xử lý), <code>Complete</code> (xong), <code>Error</code> (lỗi). Giữa lúc đọc status đó và lúc ghi nó có một <strong>gap</strong>, và business logic chạy bên trong gap đó.</p>
-<p>Một chi tiết kiến trúc trở thành trung tâm của cả câu chuyện: <strong><code>/reservation/book</code> nhận cả <code>GET</code> lẫn <code>POST</code></strong>. Nó buộc phải nhận <code>GET</code>, vì sau khi 3-D Secure authenticate xong, payment gateway redirect user quay lại flow — mà redirect thì luôn là <code>GET</code>.</p>
-<p>Nói cách khác: hành động tạo booking là một URL fetch được. Và trên Internet, thứ gì fetch được thì sẽ bị fetch — bởi browser, bởi security software, bởi proxy, bởi bất cứ thứ gì nhìn thấy một link.</p>
+<p>Một booking system tạo hai airline record cho cùng passenger và flight, chỉ cách nhau vài mili-giây. Lần điều tra đầu đổ lỗi cho crawler rồi chặn User-Agent của nó. Alert im suốt hai năm rưỡi. Sau đó cùng defect quay lại dưới dạng request <code>HEAD</code>.</p>
+<p>Bug thật không nằm ở identity của request. Nó nằm trong check-then-act window mà mọi request đều đi qua. Incident này cho thấy một diagnosis hợp lý vẫn có thể tạo metric thuyết phục trong khi invariant bị vi phạm chưa hề được sửa.</p>
 
-<h2 id="detection">2. Alert nói cụ thể hơn cách người ta đọc nó</h2>
-<p>Không ai report. Cũng không có exception nào trong log. Một SQL batch chạy định kỳ phát hiện:</p>
-<pre><code>SELECT   t.session_id, COUNT(t.itn_no)
-FROM     itinerary_tracking t
-         JOIN order_item o ON o.itn_no  = t.itn_no
-         JOIN orders     r ON r.order_id = o.order_id
-WHERE    t.session_id IS NOT NULL
-  AND    r.interline_flag &lt;&gt; '1'
-  AND    t.tracked_at &gt;= &lt;15 minutes ago&gt;
-GROUP BY t.session_id
-HAVING   COUNT(t.itn_no) &gt; 1</code></pre>
-<p>Detector group theo <code>session_id</code>. Nó không so passenger name hay flight number. Nó hỏi một câu hẹp hơn nhiều: <em>một browsing session có sinh ra nhiều hơn một ITN không?</em></p>
-<p>Nghĩa là ngay từ đầu, thứ được alert đã không phải "khách book nhầm hai lần". Nó là một session, hai booking — <strong>signature</strong> của concurrent duplicate request, chứ không phải hai hành động độc lập của user. Suốt đợt điều tra đầu tiên, chưa ai đọc alert theo hướng đó.</p>
+<h2 id="context">1. Invariant và unsafe boundary</h2>
+<p>OTA có Python web tier sau load balancer và Java booking backend. Backend lưu booking state trong <code>SESSION_INFO</code>, rồi gọi GDS để tạo PNR của hãng và itinerary number, hay ITN, của OTA. Một booking intent phải tạo đúng một PNR và một ITN.</p>
+<p>Session state đi qua <code>Init → Booking → Complete</code> hoặc <code>Error</code>. Browser gọi <code>/reservation/book</code>; backend đọc <code>Init</code>, đổi sang <code>Booking</code>, rồi bắt đầu một asynchronous GDS call.</p>
+<p>Endpoint nhận cả <code>POST</code> lẫn <code>GET</code> vì payment redirect của 3-D Secure quay về qua GET URL. Như vậy một state-changing action có thể bị browser, link scanner hoặc security software fetch. Method filter giảm accidental call, nhưng correctness vẫn phải chịu được duplicate request từ bất kỳ nguồn nào.</p>
 
-<h3 id="frequency">Tần suất, và vì sao một bug hiếm vẫn được ưu tiên</h3>
-<table>
-  <thead><tr><th>Giai đoạn</th><th>Số case (flight)</th></tr></thead>
-  <tbody>
-    <tr><td>05–09/2023</td><td>1 · 1 · 1 · 0 · 0</td></tr>
-    <tr><td>10/2023</td><td>3</td></tr>
-    <tr><td>11/2023</td><td>1</td></tr>
-    <tr><td>12/2023</td><td><strong>5</strong></td></tr>
-    <tr><td>01–08/2024</td><td>1 · 0 · 1 · 2 · 0 · 0 · 0 · 1</td></tr>
-  </tbody>
-</table>
-<p>Cộng thêm đúng một case bên hotel, tháng 07/2023. Một tới hai case mỗi tháng, với cluster tháng 12/2023 kích hoạt việc điều tra. Chênh lệch giữa flight và hotel — 17 case so với 1 — được giải thích ở <a href="#monitoring">§3.10</a>, và lời giải thích đó không nằm trong code.</p>
-<p>Một duplicate record trong hệ thống nội bộ nghe như display bug. Trong ngành travel thì không. Team ticketing gọi tên ba loại thiệt hại.</p>
-<p><strong>Hãng bay có thể cancel cả hai record.</strong> Phát hiện hai booking cùng passenger trên cùng flight, hệ thống của carrier tự cancel — và cancel <em>cả hai</em>, không giữ lại một. Chỉ record đã ticketed mới an toàn. Ở state "đã book, chưa ticketed", sự cố này có thể làm khách mất chỗ hoàn toàn.</p>
-<p><strong>Churning penalty là tiền thật.</strong> Book rồi cancel nhiều lần bị phạt qua ADM (Agency Debit Memo), trung bình khoảng 5.000 JPY mỗi record. Về cơ bản mọi carrier đều phạt, một vài hãng đặc biệt khắt khe.</p>
-<p><strong>Double ticketing tạo ra refund obligation</strong>, kéo theo một quy trình refund thủ công.</p>
-<p>Và thứ biến nó từ bug thành operational risk: window để xử lý phụ thuộc giờ làm việc. Cách duy nhất giới hạn thiệt hại là có người cancel một trong hai record trước khi hãng ra tay. Sự cố phát sinh ban đêm hoặc cuối tuần thì không ai xử lý được.</p>
-<p>Đây là lý do một incident tần suất thấp vẫn được ưu tiên: expected cost của nó không tỉ lệ với <em>số lần</em> xảy ra, mà tỉ lệ với <em>thời điểm</em> xảy ra.</p>
+<h2 id="evidence">2. Evidence thực sự nói gì?</h2>
+<p>Một scheduled query—not exception hay customer report—phát hiện incident:</p>
+<pre><code>SELECT session_id, COUNT(itn_no)
+FROM itinerary_tracking
+WHERE tracked_at &gt;= &lt;15 minutes ago&gt;
+GROUP BY session_id
+HAVING COUNT(itn_no) &gt; 1;</code></pre>
+<p>Grouping key là chi tiết quyết định. Alert không nói “cùng passenger book hai lần”. Nó nói <strong>một session sinh nhiều ITN</strong>, tín hiệu mạnh rằng một booking intent đã bị execute trùng.</p>
+<p>Incident hiếm—thường từ không đến hai case mỗi tháng—nhưng đắt. Airline có thể hủy cả hai duplicate reservation, churning có thể sinh Agency Debit Memo, còn double ticketing kéo theo manual refund. Case xảy ra ban đêm nguy hiểm hơn vì xử lý phụ thuộc business hour.</p>
+<p>Staging không reproduce được race, nên team dựng lại hai request từ compressed log trên mọi backend instance, nối bằng transaction key rồi đặt hai timeline cạnh nhau. Evidence hữu ích xuất hiện: request đến cách nhau 2 ms và cùng lọt qua read/write window dài 25 ms.</p>
 
-<h2 id="phase-1">3. Lần một — chặn source</h2>
-
-<h3 id="ticket-timeline">3.1 Ticket đi 17 tháng trước khi có dev đụng vào</h3>
-<table>
-  <thead><tr><th>Thời điểm</th><th>Việc</th></tr></thead>
-  <tbody>
-    <tr><td>12/2023</td><td>Operations mở ticket sau cluster năm case</td></tr>
-    <tr><td>12/2023</td><td>Team ticketing trả lời về risk: cancel cả hai record, churning, refund</td></tr>
-    <tr><td>07/2024</td><td>Đổi classification từ <em>Enhancement Request</em> sang <em>Investigation</em>, chuyển sang maintenance project</td></tr>
-    <tr><td>08/2024</td><td>Dev nhận</td></tr>
-    <tr><td>09/2024</td><td>Chốt hướng: mở rộng alert trước mắt, fix module về lâu dài</td></tr>
-    <tr><td>11/2024</td><td>Dev yêu cầu <strong>toàn bộ</strong> list ITN duplicate của các tháng còn lại</td></tr>
-    <tr><td>12/2024</td><td>Có root cause và solution</td></tr>
-    <tr><td>04/2025</td><td>Release</td></tr>
-    <tr><td>05/2025</td><td>Đóng ticket</td></tr>
-  </tbody>
-</table>
-<p>Bảy tháng đầu ticket nằm im vì bị classify sai — <em>Enhancement Request</em> thay vì <em>Investigation</em>. Một incident làm mất tiền bị xếp cùng hàng với các đề xuất cải tiến UI.</p>
-
-<h3 id="investigation">3.2 Điều tra thứ không reproduce được</h3>
-<p>Staging không reproduce được, nên công việc thành khảo cổ log:</p>
-<ol>
-  <li><strong>Yêu cầu list đầy đủ các cặp ITN duplicate</strong> theo từng tháng — không phải vài sample. Đây là bước hay bị bỏ: chỉ điều tra hai cặp thì phân bố nguyên nhân sẽ ra sai.</li>
-  <li>Với mỗi cặp, <code>zgrep</code> số ITN trên <strong>toàn bộ</strong> backend log đã nén của mọi instance trong ngày đó.</li>
-  <li>Từ dòng log đầu tiên tìm ra <strong>transaction key</strong>, rồi grep lại theo key đó để lấy trọn vẹn cả hai flow.</li>
-  <li><strong>Đặt hai flow cạnh nhau theo cột</strong> và so từng timestamp.</li>
-</ol>
-
-<h3 id="the-race">3.3 Hai mươi lăm mili-giây</h3>
+<h2 id="race">3. Guard chỉ là check-then-act</h2>
 <figure>
-  <img src="assets/case-studies/12-duplicate-booking-race-condition/01-race-window.svg" alt="Hai lane request đặt cạnh nhau. Request một select session lúc 15:21:44,300 và đọc ra status Init; request hai select lúc 15:21:44,302 và đọc đúng giá trị Init đó. Cả hai đều qua được status check và cả hai đều update status thành Booking, tạo ra hai PNR riêng biệt. Một dấu ngoặc đánh dấu window 25 mili-giây giữa lúc request một đọc và lúc nó ghi xong." width="880" height="460" loading="lazy">
-  <figcaption>Window từ lúc request 1 đọc tới lúc nó ghi xong là 25 ms. Hai request đến cách nhau 2 ms.</figcaption>
+  <img src="assets/case-studies/12-duplicate-booking-race-condition/01-race-window.svg" alt="Hai request cùng đọc Init trước khi bên nào ghi Booking, rồi tạo hai booking riêng trong race window 25 mili-giây." width="880" height="460" loading="lazy">
+  <figcaption>Cả hai request cùng đọc <code>Init</code>; write của request này chưa visible khi request kia check.</figcaption>
 </figure>
-<p>Không có gì bí ẩn ở đây. Hai request đọc cùng một giá trị trước khi bên nào kịp ghi.</p>
-
-<h3 id="guard">3.4 Có một guard, và nó không phải guard</h3>
-<pre><code>// Read the status from the session
-if (productInfo.getBookingStatus() != null) {
-    if (BOOKING_PROCESSED.equals(productInfo.getBookingStatus())) {
-        return FAILED;   // "Booking is in progress"
-    }
-    if (BOOKING_COMPLETED.equals(productInfo.getBookingStatus())) {
-        return FAILED;   // "Booking is already completed"
-    }
+<pre><code>if (BOOKING_PROCESSED.equals(productInfo.getBookingStatus())) {
+    return FAILED;
+}
+if (BOOKING_COMPLETED.equals(productInfo.getBookingStatus())) {
+    return FAILED;
 }
 
-// ... only then write the status and start the booking thread
 productInfo.setBookingStatus(BOOKING_PROCESSED);
 sessionTable.update(...);
 new BookingThread(...).start();</code></pre>
-<p>Đây là <strong>check-then-act</strong>, không phải mutual exclusion. Nó chặn được request đến <em>muộn</em>, sau khi request đầu đã ghi xong. Nó không chặn được request đến <em>cùng lúc</em> — mà "cùng lúc" chính là định nghĩa của vấn đề.</p>
-<p>Hai yếu tố làm hố sâu thêm. Booking chạy async và GDS call mất vài giây, nên window mà cả hai request cùng thấy stale state rộng hơn nhiều so với một database transaction. Và hai request rơi vào <strong>hai instance khác nhau</strong> sau load balancer, khiến mọi in-process lock — <code>synchronized</code>, local lock, in-memory cache — vô dụng theo cấu trúc chứ không phải theo config. Chỗ duy nhất hai request gặp nhau là database.</p>
+<p>Guard này chặn request đến sau khi status update. Nó không thể chặn hai request cùng đọc trước khi update nào commit. Code nhìn tuần tự; production execution thì không.</p>
+<p>Hai request còn rơi vào hai application instance khác nhau. Java <code>synchronized</code> hay local cache lock không thể bảo vệ invariant. Database row là shared point duy nhất mà cả hai bắt buộc đi qua.</p>
 
-<h3 id="not-googlebot">3.5 Cái "Googlebot" hoá ra không phải Googlebot</h3>
-<p>Trong chín cặp duplicate, bảy cặp mang User-Agent chứa chuỗi <code>google-bot</code>, một cặp nghi double-click, và một cặp bên hotel không bao giờ giải thích được. Từ đó ticket gọi tên nguyên nhân là "Googlebot crawl trang booking". Bằng chứng nằm trong chính investigation file lại nói khác.</p>
-<p><strong>Thứ nhất, các IP không thuộc Google.</strong> Reverse DNS của những IP đó resolve về consumer ISP Nhật Bản: mobile carrier, ADSL và fibre gia đình, MVNO. Googlebot thật đi từ IP range của Google và verify được bằng reverse DNS về <code>googlebot.com</code>.</p>
-<p><strong>Thứ hai, UA không phải UA của Googlebot.</strong> Googlebot thật gửi:</p>
-<pre><code>Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5X Build/MMB29P) AppleWebKit/537.36
-(KHTML, like Gecko) Chrome/W.X.Y.Z Mobile Safari/537.36
-(compatible; Googlebot/2.1; +http://www.google.com/bot.html)</code></pre>
-<p>Booking log chỉ chứa token <code>google-bot</code> — có gạch nối, không có URL bot.html, không có prefix Mozilla. Investigation file đã ghi nhận điều này khi bàn về robots.txt: <em>"theo documentation của Google thì đây không phải google-bot authentic, nên có thể không hoạt động"</em>. Nhận định đúng — nhưng được dùng để loại bỏ <strong>solution</strong> robots.txt, không phải để xét lại <strong>diagnosis</strong>.</p>
-<p><strong>Thứ ba, và quyết định nhất, nó đi cùng user thật.</strong> Một trace tháng 10/2024, cùng endpoint, trong cùng một giây:</p>
-<pre><code>13:17:11,535  /reservation/book   ua=google-bot          remote ip 106.x.x.92
-13:17:11,538  /reservation/book   ua=google-bot          → started_booking
-13:17:11,563  /reservation/book   ua=Mozilla/5.0 (iPhone; CPU iPhone OS 17_6_1 …)
-                                  referer=&lt;3-D Secure authentication gateway&gt;
-                                  remote ip 106.x.x.9x
-13:17:11,565  /reservation/book   ua=Mozilla/5.0 (iPhone …)  → started_booking
-13:17:11,684  /reservation/book   ua=google-bot          → started_booking
-13:17:11,810  /reservation/book   ua=google-bot
-              WARNING BookingAsync has error status, but can continue this,
-                      {'message': 'Booking is in progress', 'id': '101'}</code></pre>
-<p>Đọc ba dòng cuối. Request <code>google-bot</code> thứ ba <strong>đã bị guard bắt</strong> — backend trả về đúng <code>Booking is in progress</code>. Web tier log nó ở mức <code>WARNING</code>, kèm cụm <em>"but can continue this"</em>, rồi đi tiếp.</p>
-<p>Guard không im lặng. Nó đã nói. Caller được viết để bỏ qua thứ nó nói. Một defensive check ở backend chỉ đáng giá đúng bằng cách caller xử lý kết quả của nó.</p>
-<p>Ghép ba mảnh lại: một thứ gì đó trên chính device hoặc network của user replay lại booking URL ngay sau khi 3-D Secure redirect về, tự khai mình là <code>google-bot</code>. Điều đó khớp với security software scan link, một browser extension, hoặc carrier proxy. Nó không khớp với một search engine.</p>
-<p>Diagnosis "Googlebot" dẫn thẳng tới solution "chặn Googlebot". Cái tên sai đã chọn hộ patch.</p>
+<h2 id="false-fix">4. Một false fix đầy thuyết phục</h2>
+<p>Bảy trong chín duplicate pair chứa token <code>google-bot</code> trong User-Agent. Incident được gọi là “Googlebot crawl booking page”, và tên gọi ấy dẫn thẳng tới solution.</p>
+<p>Chính evidence lại phản bác diagnosis. Source IP thuộc consumer network, không phải verified Google range. User-Agent không khớp crawler format của Google. Quan trọng nhất, nó xuất hiện cạnh mobile request thật của user ngay sau 3-D Secure redirect. Một duplicate về sau thậm chí bị backend guard từ chối, nhưng web tier chỉ log error rồi tiếp tục.</p>
+<p>Patch được release chặn User-Agent đó tại nginx và thêm client-side suppression. Monitoring ghi nhận 117 request bị block trong 33 ngày và không còn duplicate alert. Số liệu hoàn toàn thật, nhưng chỉ chứng minh một observed trigger đã biến mất. Nó không chứng minh booking creation đã atomic.</p>
+<p>Đây là diagnostic trap: khi cause được gọi theo vẻ ngoài—“Googlebot”—solution sẽ nhắm vào vẻ ngoài. Correctness fix phải nhắm vào invariant mà mọi duplicate đều phải đi qua.</p>
 
-<h3 id="options-2024">3.6 Bốn ý tưởng, và cái giá của chúng</h3>
-<p>Đây là phần giá trị nhất của lần một, và nó không nằm trong ticket — chỉ có trong investigation file.</p>
-<table>
-  <thead><tr><th>#</th><th>Ý tưởng</th><th>Đánh giá</th></tr></thead>
-  <tbody>
-    <tr><td>1</td><td>Thêm rule <code>robots.txt</code> cộng disable booking button</td><td><em>"không phải google-bot authentic, nên có thể không hoạt động"</em></td></tr>
-    <tr><td>2</td><td>Chặn repeat booking call ở web tier</td><td>impact nhỏ, nhưng logic de-duplication tốn thời gian</td></tr>
-    <tr><td>3</td><td>Chặn repeat booking call ở backend</td><td>impact lớn, tốn thời gian</td></tr>
-    <tr><td>4</td><td>Chặn UA ở nginx</td><td>chặn được tất cả, đơn giản</td></tr>
-  </tbody>
-</table>
-<p>Và estimate cho các hướng đi sâu:</p>
-<table>
-  <thead><tr><th>Solution</th><th>Dev + unit test</th></tr></thead>
-  <tbody>
-    <tr><td>Disable button (+ robots.txt do infra làm)</td><td><strong>2 ngày</strong></td></tr>
-    <tr><td>Redis lock</td><td><strong>11 ngày</strong></td></tr>
-    <tr><td>Optimistic lock</td><td><strong>21 ngày</strong></td></tr>
-  </tbody>
-</table>
-<p><strong>Đội đã nhìn thấy solution đúng ngay từ 2024.</strong> Optimistic locking nằm trên bàn, được estimate đàng hoàng, và bị loại vì 21 ngày so với 2. Lý do nêu ra thời điểm đó là hợp lý: option 4 loại bỏ mọi request mang UA đó, xử lý <em>phần lớn</em> nguyên nhân quan sát được; option 2 và 3 thì "tương đối phức tạp, khó test trên staging hoặc production, và lúc test sẽ ảnh hưởng tới product thật".</p>
-<p>Lý do thứ hai mới là chỗ đáng dừng lại. <strong>Không verify được đã trở thành lý do để loại solution đúng.</strong> Và cái bẫy nằm ở chữ <em>phần lớn</em>: option 4 xoá được bảy trên chín case quan sát được, nên metric sẽ đẹp. Nó không xoá được mechanism.</p>
+<h2 id="recurrence">5. Cùng mechanism, khác bộ đồ</h2>
+<p>Hai năm rưỡi sau, hai request tới cách nhau 23 ms với User-Agent bình thường của browser. Lần này duplicate là request <code>HEAD</code>. Framework routing xử lý HEAD như GET, nên metadata probe chạy thẳng vào booking handler.</p>
+<p>Bộ đồ đổi từ suspicious User-Agent sang unexpected HTTP method. Mechanism nền vẫn y hệt: cả hai request đọc cùng session state, qua cùng guard và bắt đầu hai booking riêng.</p>
+<p>Optimistic-lock token hiện có cũng không phân xử được race. Nó tái sử dụng update timestamp có resolution một giây. Hai request cách nhau 23 ms thấy cùng rounded value nên cả hai update đều match. Tăng precision chỉ làm collision ít hơn, không làm nó bất khả thi; probability reduction không phải correctness guarantee.</p>
 
-<h3 id="phase-1-fix">3.7 Thứ được ship: hai file config và một đoạn JavaScript</h3>
-<pre><code>if ($http_user_agent ~* (google-bot)) {
-    return 403;
-}</code></pre>
-<p>Đặt trong config block của các booking path, không đặt global. Đội đã liệt kê các URL cần index — product detail, listing, lowest-fare calendar, search waiting page — và xác nhận không URL nào nằm dưới <code>/reservation</code>. Thay đổi thứ hai là disable booking button sau click đầu tiên, áp cho cả ba product module và cả build desktop lẫn mobile.</p>
-<p>Một hệ quả không ai ghi lại: pattern <code>google-bot</code> có gạch nối, nên nó <strong>không</strong> match <code>Googlebot/2.1</code> của crawler thật. Thực tế rule này chỉ chặn đúng UA giả — nỗi lo SEO là thừa, nhưng đúng một cách tình cờ.</p>
-
-<h3 id="curl-test">3.8 Reproduce một race bằng hai dòng cURL</h3>
-<p>Không có load-testing tool cho một flow có 3-D Secure, nên việc reproduce làm thủ công — và đơn giản đủ để đáng học:</p>
-<ol>
-  <li>Đi tới màn confirm bằng browser thật, mở DevTools, <strong>Copy as cURL</strong> để lấy header và cookie của session đang sống.</li>
-  <li>Tạo một script gồm <strong>hai</strong> cURL call tới <code>/reservation/book</code> dùng <strong>cùng một transaction key</strong> — một cái gắn <code>user-agent: google-bot</code>, một cái giữ UA bình thường.</li>
-  <li>Chạy và đọc status code: <code>503</code> là bị chặn, <code>302</code> là đi qua.</li>
-  <li>Verify ở data layer, không chỉ ở HTTP layer.</li>
-</ol>
-<p>Bước 4 mới là thứ làm cho test có giá trị. HTTP code chỉ nói request đã bị chặn; chỉ có table mới nói duplicate booking có được tạo ra hay không.</p>
-<p>Các checkpoint là: button bị disable sau click; UA bị chặn ở <code>/reservation/*</code> nhưng <strong>được phép</strong> ở nơi khác, để tránh over-blocking; và <strong>Googlebot authentic không bị ảnh hưởng</strong>, test bằng cách lấy UA chính thức từ documentation của Google, bắn vào các URL cần index, và đối chiếu với log thật của Googlebot trên chính các URL đó.</p>
-
-<h3 id="no-uat">3.9 Không acceptance test được — và thứ thay thế nó</h3>
-<p>Giả lập UA thì trả về đúng <code>503</code>, nhưng booking flow <em>bình thường</em> lại trả về <code>500</code>, và nghi ngờ hướng về tương tác với 3-D Secure. Reproduce chuyện đó trên staging kèm cả payment flow thật là không khả thi.</p>
-<p>Quyết định là release rồi verify bằng production log trong một tháng, với hai acceptance condition: booking request mang UA đó <strong>có</strong> bị chặn và đếm được trong log, và booking gốc của user thật <strong>vẫn</strong> complete bình thường.</p>
-<p>Condition thứ hai quan trọng ngang condition thứ nhất. Một patch chặn nhầm cả user thật cũng làm alert im lặng hiệu quả y như một patch đúng — nên tiêu chí phải bao gồm cả <strong>positive evidence</strong>, không chỉ sự vắng mặt của error.</p>
-
-<h3 id="monitoring">3.10 Con số là thật, và kết luận vẫn sai</h3>
-<table>
-  <thead><tr><th></th><th>Flight</th><th>Hotel</th><th>Package</th></tr></thead>
-  <tbody>
-    <tr><td>Request trước fix (3 ngày)</td><td>3</td><td>0</td><td>0</td></tr>
-    <tr><td>Request bị chặn sau fix (33 ngày)</td><td><strong>117</strong></td><td><strong>0</strong></td><td><strong>0</strong></td></tr>
-  </tbody>
-</table>
-<p>Khoảng 3,5 request bị chặn mỗi ngày, đỉnh 18. Không có duplicate-ITN alert nào. Ticket đóng một tháng sau.</p>
-<p>Các số 0 ở cột hotel và package trả lời câu hỏi ở <a href="#frequency">§2</a>: agent đó chỉ bao giờ chạm vào flight booking path. Đó là lý do bên hotel chỉ có đúng một case trong ba năm — và cũng là lý do case đó không bao giờ giải thích được. Nó không cùng họ với bảy case kia.</p>
-<p>Kết luận "đã fix" đúng với data trong tay. Nó chỉ không đúng với hệ thống.</p>
-
-<h2 id="gap">4. Thứ mà lần một để lại</h2>
-<p>Ba thứ không bị đụng tới: check-then-act ở backend, không đổi một dòng; <code>/reservation/book</code> vẫn nhận <code>GET</code>, vẫn là một URL fetch được; và caller vẫn bỏ qua <code>Booking is in progress</code>.</p>
-<p>Thứ được fix là danh sách những kẻ đã bị bắt gặp gõ cửa. Danh sách đó không bao giờ đầy.</p>
-
-<h2 id="recurrence">5. Lần hai — cùng hành vi, khác bộ quần áo</h2>
-<p>Khoảng một năm rưỡi sau: cùng passenger, cùng itinerary, hai ITN, hai PNR, cách nhau <strong>23 mili-giây</strong>.</p>
-
-<h3 id="nginx-logs">5.1 Lần này có nginx log</h3>
-<p>Đợt điều tra thứ hai đi nhanh hơn hẳn — mở ticket ngày 8, có root cause ngày 11 — vì nó đọc <strong>nginx log</strong> chứ không chỉ application log, và nginx ghi HTTP method, thứ application log không có.</p>
-<pre><code>03:59:50   GET   /reservation/confirm   referer=…/input?is_three_d_secure_error=1
-03:59:57   HEAD  /reservation/card_settle_error?…   referer: -
-04:02:22   GET   /reservation/book_after_three_d_secure?…result=0…
-04:02:22   HEAD  /reservation/book    referer: -   status 302   &lt;- the copy
-04:02:22   GET   /reservation/book    referer: -   status 302   &lt;- the real one</code></pre>
-<p>User đã fail 3-D Secure một lần rồi retry — một session dài với nhiều lần quay lại, đúng loại session hay sinh chuyện. Một <code>HEAD</code> request xuất hiện hai lần, cả hai đều không có referer, cả hai đều bám theo một URL mà browser vừa gặp; cái thứ hai nhắm thẳng vào booking endpoint. User-Agent của nó giống hệt UA của browser người dùng. Không còn <code>google-bot</code> nào để mà chặn. Và một lần nữa hai request <code>book</code> rơi vào hai web instance khác nhau.</p>
-<p>Backend log cho thấy cả hai chạy tới cùng: cùng transaction id, cùng authentication id, và <strong>cả hai đều trả về success</strong>. Kết luận của đội về source: bất kỳ layer nào phía trước — browser, proxy, CDN, load balancer — đều có thể phát <code>HEAD</code> để probe; theo log thì nhiều khả năng là browser hoặc antivirus software.</p>
-
-<h3 id="head-routing">5.2 Nguyên nhân thứ nhất — <code>HEAD</code> bị route vào view của <code>GET</code></h3>
-<p>Framework route <code>HEAD</code> vào cùng view với <code>GET</code>, đúng theo HTTP spec: <code>HEAD</code> là <code>GET</code> không có body. Nhưng spec cũng nói cả hai phải <strong>safe</strong> — không side effect. Ở đây <code>GET</code> tạo booking, nên <code>HEAD</code> cũng tạo booking.</p>
-<p>Cái bẫy đáng nhớ: <code>HEAD</code> là thứ mà browser, security software, prefetcher, link preview và monitoring probe phát đi liên tục, thường là không ai biết. Nếu <code>GET</code> của bạn có side effect thì <code>HEAD</code> cũng có.</p>
-
-<h3 id="version">5.3 Nguyên nhân thứ hai — cái version không thể hoạt động</h3>
-<p>Chi tiết giá trị nhất của cả incident: hệ thống <strong>đã có sẵn</strong> một cơ chế giống optimistic lock, dùng update timestamp của row làm version.</p>
-<pre><code>UPDATE SESSION_INFO
-   SET VALUE = /*value*/, UPD_PSN = /*updPsn*/, UPD_DT = /*updDt*/
- WHERE TRANSACTION_KEY = /*transactionKey*/
-   AND date_format(UPD_DT, '%Y%m%d%H%i%s') = /*updDtAsVersion*/</code></pre>
-<p>Resolution: giây. Thậm chí còn có đoạn code cộng thêm một giây khi update timestamp bằng đúng version hiện tại, chỉ để mệnh đề <code>WHERE</code> không tự chặn chính mình. Trong khi đó hai request cách nhau 23 mili-giây. Cả hai đọc ra cùng <code>UPD_DT</code>, cả hai thấy <code>Init</code>, cả hai conditional update đều match, cả hai đều báo success.</p>
-<p>Một version có resolution thô hơn tốc độ đến của request thì không phải là version. Nó chỉ trông giống một cái lock. Cơ chế có tồn tại, được viết cẩn thận và có comment, và về mặt cấu trúc thì không có khả năng bắt được đúng thứ nó sinh ra để bắt.</p>
-
-<h3 id="options-2026">5.4 Sáu option trên hai tier</h3>
-<p>Ở web tier có hai: khai báo <code>HEAD</code> thành view riêng trong routing config và cho nó refuse, hoặc check request method bên trong booking handler. Cái thứ nhất được chọn, vì constraint về method thuộc về <strong>routing configuration</strong>, không thuộc về business code — nằm trong config thì nó ở một chỗ và không bắt ai phải nhớ thêm một nhánh trong mọi handler mới.</p>
-<p>Ở backend có bốn:</p>
-<table>
-  <thead><tr><th>#</th><th>Option</th><th>Trade-off</th><th>Est.</th></tr></thead>
-  <tbody>
-    <tr><td>1</td><td>Nâng timestamp lên microsecond precision</td><td>phân biệt mịn hơn, nhưng <strong>chỉ giảm probability</strong>; đổi format ảnh hưởng nhiều nơi</td><td>4 ngày</td></tr>
-    <tr><td>2</td><td>Thêm một column booking-status riêng</td><td>dễ theo dõi hơn, nhưng phải sync với status nằm trong blob, và data cũ cần backfill</td><td>6 ngày</td></tr>
-    <tr><td>3</td><td><strong>Thêm column <code>VERSION</code></strong></td><td><strong>độc lập với datetime precision</strong>; mọi update đều phải increment nó</td><td><strong>5 ngày</strong></td></tr>
-    <tr><td>4</td><td>Thêm string match vào JSON blob</td><td>dễ nhất, chỉ đổi câu update; không dùng được index, vỡ nếu JSON format đổi</td><td>3 ngày</td></tr>
-  </tbody>
-</table>
-<p><strong>Option rẻ nhất bị loại, và loại vì lý do đúng.</strong> Option 4 tốn ba ngày và sẽ chạy được. Nó bị loại vì hai lý do đều là về tương lai chứ không phải hiện tại: nó gắn correctness vào serialization format của một blob column, và nó không dùng được index. Đây là loại lập luận thường bị "nhưng nó chạy mà" đè bẹp.</p>
-<p><strong>Option 1 phơi bày một cách nghĩ sai rất phổ biến.</strong> Nâng clock resolution từ giây lên microsecond làm collision khó xảy ra hơn nhiều — nhưng không phải là không thể. Investigation file viết thẳng: <em>"chỉ giảm khả năng booking trùng; với những request giống nhau đến microsecond thì vẫn có khả năng tạo booking trùng"</em>. Một correctness bug không được fix bằng cách làm nó hiếm hơn.</p>
-
-<h3 id="conditional-write">5.5 Quyết định chuyển sang row count</h3>
+<h2 id="correct-fix">6. Đưa quyết định vào một atomic write</h2>
+<p>Permanent fix thêm integer column <code>VERSION</code>. Mọi session update đều increment nó, còn booking transition match version đã đọc:</p>
 <figure>
-  <img src="assets/case-studies/12-duplicate-booking-race-condition/02-conditional-write.svg" alt="Hai panel so sánh. Panel trái, check-then-act, gồm select status, rồi một câu if trên giá trị vừa đọc, rồi một update không điều kiện, với gap giữa bước một và bước ba được đánh dấu là chỗ sinh ra incident. Panel phải, conditional write, gồm select status kèm version, rồi một update tăng version có where clause trên version vừa đọc, rồi một bước check số row đã update bằng một." width="880" height="420" loading="lazy">
-  <figcaption>Check và act gộp thành một statement, và database phân xử ai thắng.</figcaption>
+  <img src="assets/case-studies/12-duplicate-booking-race-condition/02-conditional-write.svg" alt="So sánh check-then-act với conditional update dùng affected-row count để database chọn đúng một winner." width="880" height="420" loading="lazy">
+  <figcaption>Database, không phải application read trước đó, quyết định request nào thắng.</figcaption>
 </figure>
-<p>Ở web tier, hai view trên cùng một endpoint, tách theo method:</p>
-<pre><code>config.add_view(
-    context        = BookContext,
-    view           = context_as_view,
-    attr           = 'view_book_metadata',
-    request_method = ('HEAD'),
-)
-
-config.add_view(
-    context        = BookContext,
-    view           = context_as_view,
-    attr           = 'view_book',
-    request_method = ('POST', 'GET'),
-)</code></pre>
-<pre><code>def view_book_metadata(self):
-    logger.info('API booking with request method HEAD rejected')
-    return HTTPMethodNotAllowed(headers={'Allow': 'GET, POST'})</code></pre>
-<p>Hai chi tiết nhỏ làm đúng: trả <strong>405 kèm header <code>Allow</code></strong>, đúng chuẩn HTTP và cho client biết cái gì được phép, và <strong>log mỗi lần reject</strong> — chính dòng log đó là thứ khiến acceptance dựa trên monitoring khả thi khi acceptance test thì không.</p>
-<p>Ở backend, state transition chuyển từ read-then-decide thành một conditional write:</p>
 <pre><code>UPDATE SESSION_INFO
-   SET VALUE   = /*value*/,
-       UPD_DT  = /*updDt*/,
+   SET VALUE   = ?,
+       UPD_DT  = ?,
        VERSION = VERSION + 1
- WHERE TRANSACTION_KEY    = /*transactionKey*/
-   AND AUTHENTICATION_KEY = /*authenticationKey*/
-   AND VERSION            = /*version*/</code></pre>
+ WHERE TRANSACTION_KEY    = ?
+   AND AUTHENTICATION_KEY = ?
+   AND VERSION            = ?;</code></pre>
 <pre><code>int count = jdbcManager.updateBySqlFile(sqlFileName, sessionInfo).execute();
 if (count != 1) {
-    return error(...);        // lost the race
+    return FAILED; // another request won the transition
 }</code></pre>
-<p>Và caller biến "thua race" thành một câu trả lời nghiệp vụ đúng:</p>
-<pre><code>sessionOut = setUpdateInformation(productInfo, request);
-if (sessionOut.getErrorDetail() != null) {
-    // update matched no rows -> re-read to see who won
-    ProductInfo info = selectSessionInfo(...).getProductInfo();
-    if (BOOKING_PROCESSED.equals(info.getBookingStatus())) {
-        logger.error("Duplicate request booking detected. Booking is already progressing");
-        return FAILED;
-    }
-}</code></pre>
-<p>Đây mới là điểm chuyển thật sự. Quyết định không còn nằm ở giá trị vừa đọc; nó nằm ở <strong>số row được update</strong>. <code>count != 1</code> là một atomic event do database phân xử. Không còn gap nào giữa check và act, vì chúng là cùng một statement.</p>
+<p>Giờ check và act là cùng một statement. Hai contender có thể đọc cùng version, nhưng chỉ một bên update được. Winner đổi version; predicate của loser match zero row. Affected-row count chính là atomic decision.</p>
+<p>Web tier đồng thời route <code>HEAD</code> sang handler trả <code>405 Method Not Allowed</code> kèm <code>Allow: GET, POST</code>. Nó loại một accidental trigger đã biết và làm HTTP semantics đúng hơn. Đây là defense in depth, không phải concurrency guarantee.</p>
 
-<h3 id="sql-report">5.6 Schema change được review như một artifact riêng</h3>
-<pre><code>ALTER TABLE &lt;schema&gt;.SESSION_INFO
-  ADD COLUMN VERSION int DEFAULT 0 NOT NULL
-  COMMENT 'Version number for optimistic locking'
-  AFTER GOODS_VALUE;</code></pre>
-<p><code>DEFAULT 0 NOT NULL</code> là thứ khiến migration này backward compatible: mọi row đang tồn tại — tức mọi booking session đang mở lúc deploy — nhận giá trị 0 mà không cần backfill, và statement mới match chúng ngay.</p>
-<p>Tài liệu còn mang theo một <strong>so sánh execution plan trước/sau</strong>. Statement cũ và mới được <code>EXPLAIN</code> cạnh nhau kèm execution time, và kết quả là cùng access path trên cùng table: predicate thêm vào không làm đổi query plan. Đây là bước hay bị bỏ. Thêm một điều kiện vào statement nằm trên đường đi của mọi transaction có thể làm sập performance, và chứng minh nó không đổi thì rẻ hơn nhiều so với phát hiện điều ngược lại trên production.</p>
-<p>Thứ ba, execution procedure được ghi lại từng lệnh: host, account, và đường dẫn theo ngày của file SQL.</p>
+<h2 id="verification">7. Verify invariant, rollout và rollback</h2>
+<p>Schema migration dùng <code>VERSION INT DEFAULT 0 NOT NULL</code>, nên live session đang tồn tại nhận token hợp lệ mà không cần backfill riêng. Execution plan trước và sau predicate được so sánh để xác nhận hot update giữ nguyên access path.</p>
+<p>Test assert outcome thay vì implementation detail: hai concurrent booking call cho một success và một failure; năm call cho đúng một success; update bình thường increment version; HEAD không bao giờ chạm booking API. Một controlled delay nới rộng window 23 ms, biến probabilistic race thành deterministic integration test.</p>
+<p>Thay đổi đi qua năm repository, bốn product line, mười hai screen và một shared session table. Team chạy 17 unit test cùng 39 integration scenario, monitor rejection lẫn booking signal sau release và chuẩn bị sẵn revert change. Additive database column được giữ khi rollback vì old code có thể bỏ qua nó an toàn.</p>
 
-<h3 id="unit-tests">5.7 Mười bảy unit test, chia theo tier</h3>
-<table>
-  <thead><tr><th>Nhóm</th><th>Case</th><th>Kỳ vọng</th></tr></thead>
-  <tbody>
-    <tr><td>Web</td><td>Chỉ <code>HEAD</code>, cho từng product line trong bốn dòng</td><td>không gọi booking API</td></tr>
-    <tr><td>Web</td><td><code>GET</code> + <code>HEAD</code> đồng thời</td><td>không duplicate; một thành công, một thất bại</td></tr>
-    <tr><td>Backend</td><td>Hai booking request</td><td>một thành công, một thất bại</td></tr>
-    <tr><td>Regression</td><td>Booking bình thường, cả bốn product line</td><td>thành công</td></tr>
-    <tr><td>Regression</td><td>Update từ màn input, và từ màn confirm</td><td><strong>version có thay đổi</strong></td></tr>
-  </tbody>
-</table>
-<p>Dòng cuối chứa hai case tinh tế nhất. Column version nằm trên một session table <strong>dùng chung</strong>, nên nếu một update path nào đó quên increment nó, column sẽ đứng yên và lock lặng lẽ ngừng hoạt động ở đúng chỗ không ai nhìn. Chúng verify rằng lock vẫn còn <em>sống</em> trên các path bình thường, chứ không chỉ verify rằng nó chặn được khi bị tấn công.</p>
+<h2 id="limits">8. Fix này đảm bảo gì—và không đảm bảo gì?</h2>
+<p>Version check hoạt động vì hai duplicate request chia sẻ một session row. Duplicate từ hai session, device hoặc expired session có thể vượt boundary này. API design mạnh hơn dùng idempotency key sinh theo booking intent và bảo vệ bằng unique constraint; mọi retry khi đó trả original outcome thay vì tạo booking khác.</p>
+<p>State-changing command cũng không nên ẩn sau fetchable GET. Redirect của 3-D Secure có thể về một idempotent confirmation endpoint, rồi endpoint đó submit hoặc resume booking command dưới cùng intent key.</p>
+<p>Bài học kỹ thuật rất gọn: xác định invariant, tìm shared serialization point và để một atomic write chọn winner. Edge filter giảm noise. Nó không thể thay database-enforced correctness.</p>
 
-<h3 id="integration-tests">5.8 Ba mươi chín integration case trên một matrix có sẵn</h3>
-<p>QA không viết case từ đầu. Họ bắt đầu từ một regression-surface checklist dùng chung cho mọi thay đổi chạm vào booking flow:</p>
-<table>
-  <thead><tr><th>Chiều</th><th>Giá trị</th></tr></thead>
-  <tbody>
-    <tr><td>Ticket source</td><td>GDS lớn, NDC aggregator, nguồn nội địa</td></tr>
-    <tr><td>Fare type</td><td>PEX · PrivateFare · ALLOT</td></tr>
-    <tr><td>Trip type</td><td>one-way · round-trip · direct · connecting · circle · open-jaw · foreign origin · interline</td></tr>
-    <tr><td>Selling site</td><td>năm brand cộng metasearch</td></tr>
-    <tr><td>Device</td><td>desktop browser trên hai OS · mobile app và browser trên cả hai platform · simulator</td></tr>
-    <tr><td>Behaviour</td><td>re-search · <strong>quay lại bằng nút Back của browser</strong></td></tr>
-    <tr><td>Passenger</td><td>một adult · nhiều adult · có child · có infant</td></tr>
-    <tr><td>Document</td><td>payment confirmation · voucher · e-ticket, gồm cả in tại convenience store</td></tr>
-  </tbody>
-</table>
-<p>Matrix này là lý do một patch năm ngày kéo theo một release lớn: regression surface là tổ hợp, không phải tuyến tính.</p>
-<p>Biên giữa browser và web tier được test theo <strong>thứ tự và số lượng</strong>, không chỉ là "một HEAD thì bị chặn": chỉ <code>HEAD</code>, chỉ <code>GET</code>, <code>HEAD</code> rồi <code>GET</code>, <code>GET</code> rồi <code>HEAD</code>, năm <code>HEAD</code> rồi một <code>GET</code>, và cả hai cùng lúc — lặp trên cả bốn product line.</p>
-<p>Biên giữa web tier và backend là chỗ chính cái lock được test: hai concurrent request cùng transaction key phải cho một thành công và một thất bại không ghi gì; năm concurrent request phải cho đúng một thành công; và — kỹ thuật sắc nhất của cả đợt — <strong>một processing delay được inject vào request đầu trước khi gửi request thứ hai</strong>. Một race 23 ms không thể reproduce đáng tin bằng cách click nhanh; nới rộng window biến một sự kiện xác suất thành tất định.</p>
-<p>Các end-to-end case book itinerary thật trên từng tổ hợp và ghi lại <strong>số ITN thực sự được tạo</strong> làm evidence, kỳ vọng đúng một mỗi lần. Một nhóm nhỏ verify migration: session mới bắt đầu từ 0, update thì increment, và <strong>một transaction tạo trước <code>ALTER</code> đọc ra 0</strong> — câu hỏi "chuyện gì xảy ra với session đang mở lúc deploy" được hỏi thành một test case thay vì bị phát hiện lúc 2 giờ sáng. Nhóm cuối regress những thứ ngoài scope thay đổi nhưng vẫn dùng chung session table.</p>
-<p>Cả ba mươi chín case đều pass.</p>
-
-<h3 id="late-cost">5.9 Cái giá của việc fix muộn</h3>
-<p>Blast radius của bản fix lần hai: năm repository, bốn product line, năm brand cộng metasearch, mười hai màn hình, ba mươi chín integration case, mười bảy unit test và một schema change. So với lần một: hai file config nginx và một đoạn JavaScript.</p>
-<p>Đặt guard đúng chỗ sau ba năm đắt hơn nhiều so với đặt nó đúng chỗ ngay từ đầu — không phải vì code khó hơn, mà vì <strong>số surface phải verify lại đã nhân lên</strong>. Estimate 21 ngày bị từ chối năm 2024 rốt cuộc được làm với năm ngày công; phần chênh lệch không nằm ở việc viết code, nó nằm ở tất cả những thứ vây quanh.</p>
-
-<h3 id="release">5.10 Một đường lùi, dựng ngay ngày đầu</h3>
-<p>Acceptance test lại một lần nữa không khả thi, nên release condition được viết thành ba chân thay thế: <strong>source review</strong>, vì correctness ở đây nằm trong cấu trúc của một statement và đọc được bằng mắt — mệnh đề <code>WHERE VERSION = ?</code> hoặc có hoặc không; <strong>review các integration scenario</strong>, soi case thay vì soi kết quả; và <strong>monitoring sau release</strong>.</p>
-<p>Ngày sau release, revert MR được chuẩn bị sẵn cho các module. Đây là một đường lùi ở trạng thái chờ, không phải một rollback đã xảy ra: patch không bị gỡ, các MR chỉ nằm sẵn sàng merge để nếu cần lùi thì mất vài phút thay vì phải viết ngược lại thay đổi dưới áp lực incident.</p>
-<p>Đó là chân thứ tư. Khi bạn không thể chứng minh một patch là đúng trước khi release, thứ bạn chuẩn bị là <strong>chi phí sai thấp</strong>. Đội không nâng được confidence, nên họ hạ chi phí của kịch bản xấu.</p>
-<p>Một chi tiết làm đúng: database script <strong>không</strong> nằm trong danh sách revert. Thêm một column có default là thay đổi backward compatible — code cũ không đọc nó, code mới thì cần nó. Revert column đi sẽ biến một lần rollback thành hai lần migration.</p>
-
-<h2 id="two-costumes">6. Một tác nhân, hai bộ quần áo</h2>
-<table>
-  <thead><tr><th></th><th>Lần một</th><th>Lần hai</th></tr></thead>
-  <tbody>
-    <tr><td>Bối cảnh</td><td>ngay sau 3DS redirect</td><td>ngay sau 3DS redirect</td></tr>
-    <tr><td>Bản sao trông thế nào</td><td>UA chứa <code>google-bot</code></td><td><code>HEAD</code>, không referer, UA của browser</td></tr>
-    <tr><td>Đến từ đâu</td><td>consumer network của chính user</td><td>network của chính user</td></tr>
-    <tr><td>Gap</td><td>2 ms</td><td>23 ms</td></tr>
-    <tr><td>Diagnosis</td><td>"Googlebot crawl trang booking"</td><td>"browser hoặc antivirus probe"</td></tr>
-    <tr><td>Patch</td><td>chặn một chuỗi UA ở nginx</td><td>reject method <code>HEAD</code> ở routing</td></tr>
-    <tr><td>Defect nền</td><td>check-then-act, version resolution giây</td><td><strong>y hệt</strong></td></tr>
-    <tr><td>Chi phí</td><td>2 ngày</td><td>5 ngày + 39 case + một migration</td></tr>
-  </tbody>
-</table>
-<p>Hai lần, đội chặn thứ mà bản sao <em>trông giống</em>. Vẻ ngoài đổi; mechanism thì không. Thứ làm lần hai khác đi không phải là nó tìm ra nguyên nhân mới — nó fix chỗ hai request gặp nhau, thay vì chỗ chúng đi vào.</p>
-
-<h2 id="takeaways">7. Mười điều rút ra</h2>
+<h2 id="takeaways">9. Review checklist</h2>
 <ol>
-  <li><strong>Check-then-act không phải mutual exclusion.</strong> Đọc một flag rồi hành động dựa trên nó chỉ đúng khi không ai ghi flag đó ở giữa. Guard này sống nhiều năm, đọc vào thấy hợp lý, và hoạt động — với mọi request đến muộn. Failure condition của nó vô hình khi đọc code tuần tự.</li>
-  <li><strong>Một version thô hơn tốc độ đến của request thì không phải version.</strong> Timestamp làm version token trông hoàn toàn hợp lý cho tới khi hai event rơi vào cùng một rounding interval — mà hai duplicate request thì theo định nghĩa là hai event gần nhau. Một monotonic integer không có resolution để mà mất.</li>
-  <li><strong>Làm một correctness bug hiếm đi không phải là fix nó.</strong> Đây là ranh giới giữa "ít gặp hơn" và "không thể xảy ra", và nó đáng giữ ngay cả khi option yếu hơn rẻ hơn một ngày.</li>
-  <li><strong>Chặn theo identity thì cần một danh sách vô hạn; chặn theo bản chất thì chỉ cần một lần.</strong> Một chuỗi UA không bao giờ là một enumeration đầy đủ. Write point thì hữu hạn: một row mà cả hai request đều phải đi qua.</li>
-  <li><strong>Cái tên bạn đặt cho nguyên nhân sẽ chọn hộ bạn solution.</strong> Gọi nó là "Googlebot" thì chặn Googlebot là patch hiển nhiên. Bằng chứng phản bác đã nằm sẵn trong investigation file; không ai xét lại diagnosis vì alert đã im.</li>
-  <li><strong>Một defensive check đáng giá đúng bằng thứ caller làm với kết quả của nó.</strong> Backend trả <code>Booking is in progress</code>; web tier log một warning rồi đi tiếp. Thế còn tệ hơn không có guard, vì dòng log khiến mọi người tin là đã có bảo vệ.</li>
-  <li><strong>Trong hệ thống multi-instance, chỗ duy nhất hai request gặp nhau là shared storage.</strong> Mọi in-process lock đều vô nghĩa về mặt cấu trúc, không phải về mặt config.</li>
-  <li><strong>"Alert đã im" không phải là "đã fix".</strong> Tiêu chí hợp lý, data thật, kết luận sai — và 2,5 năm giữa việc fix symptom và việc biết ra đó mới chỉ là symptom. Câu hỏi đáng đặt trong buổi review đó: <em>nếu nguyên nhân ta tin là đúng bị sai, ta sẽ thấy gì?</em></li>
-  <li><strong>Không verify được không phải lý do để chọn solution yếu hơn — nhưng nó đã là.</strong> Các option sâu bị loại một phần vì khó test; sáu tháng sau, đúng lý do đó lại loại bỏ acceptance test cho chính patch đã chọn. Khi "khó test" thành tiêu chí lựa chọn, hệ thống trôi dần về phía những patch dễ test chứ không phải những patch đúng.</li>
-  <li><strong>Khi không nâng được confidence, hãy hạ chi phí sai.</strong> Log condition đo được, scenario review, monitoring, revert dựng sẵn. Đó là risk management, không phải risk denial.</li>
+  <li><strong>Check-then-act không phải mutual exclusion.</strong> Hãy hỏi ai có thể write giữa read và action.</li>
+  <li><strong>Timestamp là version token yếu.</strong> Resolution và clock semantics tạo collision mà monotonic integer tránh được.</li>
+  <li><strong>Alert im không chứng minh invariant.</strong> Đo cả duplicate bị reject lẫn normal transition thành công.</li>
+  <li><strong>Multi-instance lock cần shared arbitration.</strong> Local synchronization không bảo vệ work được route sang process khác.</li>
+  <li><strong>Test race một cách tất định.</strong> Inject barrier hoặc delay rồi assert đúng một committed side effect.</li>
+  <li><strong>Ghi rõ boundary.</strong> Optimistic locking bảo vệ một row; idempotency bảo vệ một business intent.</li>
 </ol>
 
-<h3 id="if-again">Nếu được thiết kế lại</h3>
-<p>Phòng thủ mạnh nhất không phải chặn request thứ hai mà làm cho nó <strong>vô hại</strong>: một idempotency key sinh ra cho mỗi booking intent, gửi kèm request, với một unique constraint đứng sau. Request thứ hai — đến từ đâu, method gì, cách nhau bao lâu cũng vậy — nhận về kết quả của request thứ nhất thay vì tạo một booking mới.</p>
-<p>Optimistic lock hoạt động <strong>vì cả hai duplicate chia sẻ cùng một session row</strong>. Giả định đó gánh toàn bộ patch và không được ghi lại ở đâu cả. Hai tab, hai device, hoặc một retry sau khi session expire sẽ vô hình với nó.</p>
-<p>Và ở mức thiết kế: một action tạo booking không nên là một <code>GET</code> URL. Nó là <code>GET</code> chỉ vì 3-D Secure trả user về bằng redirect. Pattern đúng là redirect tới một confirmation endpoint idempotent, endpoint đó mới thực thi command — và khi ấy không gì có thể tạo booking bằng cách fetch một URL.</p>
-
-<h2 id="questions">8. Câu hỏi tự luyện</h2>
-<ol>
-  <li>Một booking endpoint có guard <code>if (status != PROCESSED) { book(); }</code>. Guard này chặn được gì và không chặn được gì? Viết lại cho đúng.</li>
-  <li>Vì sao một <code>HEAD</code> request có thể thực thi business logic? Bạn phòng ở layer nào, và vì sao không phòng bên trong handler?</li>
-  <li>Bạn có một optimistic lock dùng <code>UPDATE … WHERE updated_at = ?</code> với <code>updated_at</code> là timestamp resolution giây. Chỉ ra failure condition và đề xuất cách fix.</li>
-  <li>Cho bốn backend option ở <a href="#options-2026">§5.4</a>, estimate 3, 4, 5 và 6 ngày. Chọn một và bảo vệ lựa chọn. Option 3 ngày sai ở đâu?</li>
-  <li>Thiết kế idempotency cho một booking-creation API. Key sinh ở đâu, sống bao lâu, và một repeat request nhận về cái gì?</li>
-  <li>Bạn đang thêm một version column để làm optimistic locking vào một table đang có live traffic. Rollout sequence thế nào để không request nào fail lúc deploy? Còn các session đang mở thì sao?</li>
-  <li>Bạn không reproduce được một race condition trên staging. Thiết kế bộ acceptance criteria cho phép bạn release.</li>
-  <li>Làm sao viết một integration test <em>tất định</em> cho một race có window 23 ms?</li>
-  <li>Alert của bạn group theo session id và bắn khi count vượt quá một. Alert đó <em>thật sự</em> đang nói gì với bạn về nguyên nhân?</li>
-  <li>Patch của bạn cho ra 33 ngày không alert và 117 lần block ghi nhận được. Bằng chứng này chứng minh điều gì, và <strong>không</strong> chứng minh điều gì?</li>
-</ol>
-
-<h2 id="anonymisation">9. Ghi chú về việc ẩn danh</h2>
-<p>Bài viết dựa trên một production incident có thật. Tên công ty, tên brand và site, tên người, ticket id nội bộ, số booking, host, IP, session token và URL nội bộ đã được lược bỏ. Người được gọi theo vai trò. Module được đặt tên theo chức năng. Code, log và SQL là các trích đoạn đã rút gọn và khử định danh, giữ nguyên logic.</p>
-<p>Từ vựng ngành — GDS, PNR, ITN, churning và ADM, 3-D Secure, <code>HEAD</code>, optimistic locking, cùng các tên table và column chung chung — được giữ lại, vì đó là thứ làm bài đọc được và nó không định danh tổ chức nào.</p>
+<h2 id="anonymisation">10. Ghi chú ẩn danh</h2>
+<p>Bài viết dựa trên một production incident có thật. Company, brand, person, ticket, host, IP, booking và internal URL identifier đã được loại bỏ. Code, SQL và timeline được rút gọn nhưng giữ nguyên concurrency behavior.</p>

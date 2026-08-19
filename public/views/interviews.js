@@ -5,8 +5,47 @@ import { Interviews } from '../lib/interviews.js';
 import { Auth } from '../lib/auth.js';
 import { escapeHtml as esc, renderUser, inlineUser } from '../lib/markdown.js';
 import { chevSVG } from '../lib/ui.js';
+import { mountMermaidDiagrams } from '../lib/mermaid.js';
 
 const RESULT = { pending: 'Pending', passed: 'Passed', offer: 'Offer', failed: 'Rejected' };
+const ENTRY_KIND = {
+  playbook: 'Learning playbook',
+  'community-report': 'Community report'
+};
+const SOURCE_ORIGINS = new Set(['https://voz.vn']);
+
+function sourceHref(value) {
+  try {
+    const url = new URL(value);
+    return SOURCE_ORIGINS.has(url.origin) ? url.href : '#';
+  } catch {
+    return '#';
+  }
+}
+
+function sourceLabel(source) {
+  if (source?.label) return source.label;
+  try { return new URL(source?.url).hostname; }
+  catch { return 'external source'; }
+}
+
+function interviewDiagrams(diagrams = []) {
+  if (!diagrams.length) return '';
+  const cards = diagrams.map(diagram => {
+    const flaws = (diagram.flaws || []).map(row => '<li>' + inlineUser(row) + '</li>').join('');
+    const upgrades = (diagram.upgrades || []).map(row => '<li>' + inlineUser(row) + '</li>').join('');
+    return '<figure class="iv-diagram" data-diagram-frame><figcaption><span>' + esc(diagram.phase || 'Diagram review')
+      + '</span><strong>' + esc(diagram.title) + '</strong></figcaption>'
+      + '<div class="iv-diagram-viewport"><pre class="mermaid" data-mermaid-diagram>' + esc(diagram.mermaid) + '</pre></div>'
+      + '<p class="iv-diagram-status" data-mermaid-status hidden>Diagram renderer unavailable; Mermaid source remains below.</p>'
+      + ((flaws || upgrades) ? '<div class="iv-diagram-review">'
+        + (flaws ? '<section><h5>Lỗ hổng</h5><ul>' + flaws + '</ul></section>' : '')
+        + (upgrades ? '<section><h5>Nâng cấp</h5><ul>' + upgrades + '</ul></section>' : '') + '</div>' : '')
+      + '<details class="iv-diagram-source"><summary>Mermaid source</summary><pre><code>' + esc(diagram.mermaid)
+      + '</code></pre></details></figure>';
+  }).join('');
+  return '<section class="iv-diagrams"><h4>Diagram review &amp; upgraded design</h4>' + cards + '</section>';
+}
 
 export function renderInterviews() {
   return '<div id="ivRoot" class="iv-root"><div class="page"><p class="intro">Loading…</p></div></div>';
@@ -39,7 +78,7 @@ function paint(root, repaint) {
 
   let html = '<section class="hero"><div class="hero-head"><div>'
     + '<h2>Gazl Try — interview journal</h2>'
-    + '<p class="intro">Companies interviewed · what they asked · how I answered.</p>'
+    + '<p class="intro">Interview experiences · preparation playbooks · technically reviewed answers.</p>'
     + '</div></div></section>';
 
   if (Interviews.error) {
@@ -52,7 +91,7 @@ function paint(root, repaint) {
     : '';
 
   html += '<div class="toolbar">'
-    + '<span class="sectioncount">' + cos.length + (cos.length === 1 ? ' company' : ' companies') + breakdown
+    + '<span class="sectioncount">' + cos.length + (cos.length === 1 ? ' entry' : ' entries') + breakdown
     + ' · ' + totalQ + (totalQ === 1 ? ' question' : ' questions')
     + (editable ? '' : ' · <span class="ro">read-only</span>') + '</span>'
     + '<div class="tb-actions">'
@@ -90,6 +129,14 @@ function companyCard(c, editable) {
 
   // Seed rows live in the repo, not the Sheet: importing is the only write.
   const seedBadge = c.own ? '' : '<span class="seed-badge">Sample</span>';
+  const kindBadge = ENTRY_KIND[c.kind]
+    ? '<span class="entry-kind">' + ENTRY_KIND[c.kind] + '</span>'
+    : '';
+  const source = c.source?.url
+    ? '<a class="iv-source" href="' + esc(sourceHref(c.source.url))
+      + '" target="_blank" rel="noopener noreferrer">Source: '
+      + esc(sourceLabel(c.source)) + ' ↗</a>'
+    : '';
   let actions = '';
   if (editable && c.own) {
     actions = '<div class="co-actions">'
@@ -108,14 +155,15 @@ function companyCard(c, editable) {
       + '<span class="qtext">' + inlineUser(it.q) + '</span>'
       + '<span class="qmeta">' + round + chevSVG + '</span></button>'
       + '<div class="qbody"><div class="qbody-inner"><div class="answer"><div>'
-      + '<div class="ans-label">How I answered</div>' + renderUser(it.a) + note
+      + '<div class="ans-label">How I answered</div>' + renderUser(it.a) + interviewDiagrams(it.diagrams) + note
       + '</div></div></div></div></div>';
   }).join('');
 
   return '<div class="company' + (c.own ? '' : ' is-seed') + '">'
     + '<div class="company-head"><h3>' + esc(c.name) + '</h3>'
-    + seedBadge + res + actions + '</div>'
+    + seedBadge + kindBadge + res + actions + '</div>'
     + (meta ? '<div class="company-meta">' + meta + '</div>' : '')
+    + source
     + (stack ? '<div class="tags">' + stack + '</div>' : '')
     + (qs || '<p class="intro empty-q">No questions recorded yet.</p>')
     + '</div>';
@@ -157,6 +205,7 @@ function field(name, label, type, placeholder, required) {
 
 /** One question block; the answer and note fields accept markdown. */
 function questionRow(q = {}, idx = 0) {
+  const diagrams = JSON.stringify(q.diagrams || []);
   return '<div class="qrow" data-qrow>'
     + '<div class="qrow-head"><span class="qid">Q' + (idx + 1) + '</span>'
     + '<input type="text" data-f="round" placeholder="Round (e.g. Round 1 · Technical)" value="' + esc(q.round || '') + '">'
@@ -164,6 +213,7 @@ function questionRow(q = {}, idx = 0) {
     + '<textarea data-f="q" rows="2" placeholder="What they asked *">' + esc(q.q || '') + '</textarea>'
     + '<textarea data-f="a" rows="4" placeholder="How I answered (**bold**, `code` and - lists work here)">' + esc(q.a || '') + '</textarea>'
     + '<textarea data-f="note" rows="2" placeholder="Takeaway / what to do differently">' + esc(q.note || '') + '</textarea>'
+    + '<textarea data-f="diagrams" hidden>' + esc(diagrams) + '</textarea>'
     + '</div>';
 }
 
@@ -177,6 +227,13 @@ function wire(root, repaint) {
     head.addEventListener('click', () => {
       const open = card.classList.toggle('open');
       head.setAttribute('aria-expanded', open);
+      if (open && !card.dataset.mermaidMounted && card.querySelector('[data-mermaid-diagram]')) {
+        card.dataset.mermaidMounted = 'true';
+        requestAnimationFrame(async () => {
+          const rendered = await mountMermaidDiagrams(card);
+          if (!rendered) delete card.dataset.mermaidMounted;
+        });
+      }
     });
   });
 
@@ -256,7 +313,9 @@ function wire(root, repaint) {
 
     const questions = [...qlist.querySelectorAll('[data-qrow]')].map(r => {
       const get = f => r.querySelector('[data-f="' + f + '"]').value.trim();
-      return { round: get('round'), q: get('q'), a: get('a'), note: get('note') };
+      let diagrams = [];
+      try { diagrams = JSON.parse(get('diagrams') || '[]'); } catch (error) {}
+      return { round: get('round'), q: get('q'), a: get('a'), note: get('note'), diagrams };
     }).filter(q => q.q);        // drop empty blocks so the Sheet stays clean
 
     const company = {

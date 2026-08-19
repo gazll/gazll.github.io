@@ -1,22 +1,22 @@
 {
   "body_file": "data/case-studies/articles/12-duplicate-booking-race-condition.html",
   "guide": {
-    "title": "Read this as a story about naming the cause wrongly, and only second as a concurrency bug.",
-    "problem": "A booking endpoint created two itinerary records for the same passenger on the same flight, tens of milliseconds apart. The backend guard was a check-then-act across a 25 ms window, and the optimistic-lock mechanism protecting it used a timestamp with one-second resolution — coarser than the interval between the duplicate requests it existed to catch.",
-    "core_idea": "Stop deciding on the value that was read and start deciding on the number of rows a conditional write actually updated. An explicit monotonic VERSION column turns the state transition into one atomic statement the database adjudicates, so there is no gap left between checking and acting. Blocking the request at the edge, by User-Agent or by HTTP method, only removes the disguise the duplicate happened to be wearing.",
-    "outcome": "The first fix blocked a User-Agent string and produced honest, real numbers: 117 blocked requests over 33 days and zero duplicate alerts. It was declared fixed. Two and a half years later the identical mechanism returned wearing a HEAD request with the user's own browser UA, and the correct fix — rejected in 2024 at 21 days against 2 — was finally built in 5 days across 5 repositories, 12 screens and 39 integration cases.",
+    "title": "A race-condition case about fixing the violated invariant, not the request's latest disguise.",
+    "problem": "Two requests arrived milliseconds apart, both read the booking session as available, and both created airline records. The guard was check-then-act across a 25 ms window; its optimistic-lock timestamp had only one-second resolution.",
+    "core_idea": "Make the state transition a conditional database write using a monotonic VERSION column. Exactly one request updates the expected version; affected-row count identifies the winner without leaving a gap between check and act.",
+    "outcome": "A User-Agent block suppressed one trigger and stopped alerts for two and a half years, but the race returned as HEAD. The final fix combined database-enforced optimistic locking, explicit HEAD rejection and deterministic concurrency tests.",
     "takeaways": [
-      "Check-then-act is not mutual exclusion. Reading a flag and then acting on it is only correct if nobody writes that flag in between, and the failure condition is invisible when the code is read sequentially — this guard looked reasonable and worked for every request that arrived late.",
-      "A version whose resolution is coarser than the arrival rate of requests is not a version, it only looks like a lock. Two duplicate requests are by definition two events close together, so a second-resolution timestamp will place both in the same rounding interval every time it matters.",
-      "Making a correctness bug rarer is not fixing it. Raising the timestamp to microsecond precision drove the collision probability very low and was correctly rejected for exactly that reason: the line between less frequent and impossible is worth defending even when the weaker option costs a day less.",
-      "Blocking by identity requires an infinite list; blocking by nature requires it once. A User-Agent string is never a complete enumeration of everything that might replay a URL, but there is exactly one database row that every duplicate request must pass through.",
-      "The alerts stopping is not the same as the bug being fixed, and the name given to a cause silently chooses the solution. Calling the agent Googlebot made blocking Googlebot the obvious patch, and the evidence contradicting that diagnosis was already sitting in the investigation file."
+      "Check-then-act is not mutual exclusion: two requests can read the same state before either write becomes visible, even when the code looks correct sequentially.",
+      "A timestamp whose resolution is coarser than request arrival is not a reliable version token; higher precision lowers probability but does not create a guarantee.",
+      "Blocking a User-Agent or HTTP method removes a known trigger, not the race. Correctness belongs at the shared database transition every contender must cross.",
+      "Affected-row count turns optimistic locking into an explicit decision: one conditional update succeeds, all losing contenders observe zero updated rows.",
+      "The row version protects one session, not the whole booking intent. Cross-session retries still need an idempotency key backed by a unique constraint."
     ],
     "review_lenses": [
-      "Where does this system decide something by reading a value first and writing it afterwards, and what happens if a second request reads between those two steps?",
-      "If a GET or HEAD on any endpoint here has a side effect, which layer refuses it — routing configuration, or an if statement that every new handler has to remember?",
-      "When acceptance testing is impossible, what measurable evidence replaces it, and does that evidence include a positive signal that the normal path still works?",
-      "Which assumption is silently carrying a fix — here, that both duplicates share one session row — and which real duplicates would fall outside it?"
+      "Invariant: which business effect must happen exactly once, and which shared row or unique key can adjudicate it atomically?",
+      "Concurrency: where is the read/write gap, and can requests reach it through different processes, methods, retries or devices?",
+      "Evidence: do quiet alerts prove the invariant, or only that one observed trigger has stopped producing the old signature?",
+      "Verification: can a barrier or injected delay reproduce the race deterministically and assert exactly one committed side effect?"
     ]
   }
 }

@@ -60,6 +60,7 @@ export const SystemDesign = {
         level: row.level || 'advanced',
         featured: Boolean(row.featured),
         diagram: row.diagram,
+        source_url: row.source_url || '',
         reference_image: referenceImage,
         source_items: [...(row.source_items || [])],
         ...localized,

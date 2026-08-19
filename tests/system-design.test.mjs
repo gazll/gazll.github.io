@@ -95,6 +95,24 @@ test('every blueprint can answer the shared failure-review lenses', async () => 
   assert.match(view, /data = design\.data_model/);
 });
 
+test('RabbitMQ tenant fairness separates routing from scheduling', async () => {
+  const design = catalog.designs.find(row => row.slug === 'multi-tenant-rabbitmq-fairness');
+  assert.ok(design);
+  assert.equal(design.source_url, 'https://voz.vn/t/hoi-dap-xin-tu-van-kien-truc-rabbitmq-giai-quyet-bai-toan-load-balancing-tenant-fairness-tranh-tinh-trang-1-user-spam-lam-tac-nghen-user-khac.1263215/');
+  for (const lang of ['en', 'vi']) {
+    const body = design[lang];
+    assert.match(body.scope, /routing (?:is not|không phải) scheduling/i);
+    assert.ok(body.stack.some(row => /Deficit Round Robin/.test(row)), `${lang}: no cost-aware scheduler`);
+    assert.ok(body.capacity.some(row => /prefetch/i.test(row)), `${lang}: prefetch boundary missing`);
+    assert.ok(body.tradeoffs.some(row => /Queue per tenant/i.test(row)), `${lang}: queue topology trade-off missing`);
+    assert.equal(body.failure_review?.length, 5, `${lang}: five answered failure-review prompts required`);
+  }
+
+  const view = await readFile(path.join(publicRoot, 'views/system-design.js'), 'utf8');
+  assert.match(view, /'https:\/\/voz\.vn'/);
+  assert.match(view, /'https:\/\/www\.rabbitmq\.com'/);
+});
+
 test('Topic 18 keeps the durable flash-sale lifecycle and scale-in guidance', () => {
   const design = catalog.designs.find(row => row.slug === 'flash-sale-booking-inventory-bottleneck');
   assert.ok(design);

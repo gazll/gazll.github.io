@@ -38,7 +38,7 @@ var SHEETS = {
   notes:               ['user_id', 'item_id', 'body', 'updated_at'],
   study_log:           ['user_id', 'item_id', 'opened_at'],
   interviews:          ['id', 'user_id', 'name', 'role', 'happened_on', 'result', 'stack', 'sort_order', 'created_at', 'updated_at'],
-  interview_questions: ['id', 'interview_id', 'user_id', 'round', 'q', 'a', 'note', 'sort_order'],
+  interview_questions: ['id', 'interview_id', 'user_id', 'round', 'q', 'a', 'note', 'sort_order', 'diagrams_json'],
 
   /** Fshare tool: folders the user has opened. One row per (user, linkcode). */
   fshare_history:      ['user_id', 'linkcode', 'name', 'hits', 'last_at'],
@@ -401,7 +401,8 @@ var ACTIONS = {
     var byInterview = {};
     qs.sort(bySort).forEach(function (q) {
       (byInterview[q.interview_id] = byInterview[q.interview_id] || []).push({
-        id: q.id, round: q.round, q: q.q, a: q.a, note: q.note
+        id: q.id, round: q.round, q: q.q, a: q.a, note: q.note,
+        diagrams: parseJsonArray(q.diagrams_json)
       });
     });
 
@@ -449,10 +450,12 @@ var ACTIONS = {
       qt.deleteWhere(function (r) { return r.user_id === user.sub && r.interview_id === id; });
       if (questions.length) {
         qt.appendAll(questions.map(function (q, i) {
+          var diagramsJson = JSON.stringify(asArray(q.diagrams));
+          if (diagramsJson.length > 40000) throw publicError('Diagram của một câu hỏi vượt giới hạn 40.000 ký tự.');
           return {
             id: q.id || uuid(), interview_id: id, user_id: user.sub,
             round: String(q.round || ''), q: String(q.q || ''),
-            a: String(q.a || ''), note: String(q.note || ''), sort_order: i
+            a: String(q.a || ''), note: String(q.note || ''), diagrams_json: diagramsJson, sort_order: i
           };
         }));
       }
@@ -538,6 +541,16 @@ function table(name) {
     headers.forEach(function (h, i) {
       if (/_at$/.test(h)) sh.getRange(2, i + 1, sh.getMaxRows() - 1, 1).setNumberFormat('@');
     });
+  } else {
+    // Schema changes are append-only. Fill newly declared trailing headers so
+    // an existing deployment can adopt them without recreating the Sheet.
+    var width = Math.max(sh.getLastColumn(), 1);
+    var actual = sh.getRange(1, 1, 1, width).getValues()[0];
+    for (var h = 0; h < headers.length; h++) {
+      var found = String(actual[h] || '');
+      if (found && found !== headers[h]) throw new Error('Header không khớp ở sheet ' + name + ': ' + found);
+      if (!found) sh.getRange(1, h + 1).setValue(headers[h]).setFontWeight('bold');
+    }
   }
 
   var api = {
@@ -635,6 +648,13 @@ function withLock(fn) {
 /* ------------------------------------------------------------------ */
 
 function asArray(v) { return Array.isArray(v) ? v : []; }
+function parseJsonArray(v) {
+  if (!v) return [];
+  try {
+    var parsed = JSON.parse(String(v));
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (err) { return []; }
+}
 function trim(s) { return String(s == null ? '' : s).trim(); }
 function nowIso() { return new Date().toISOString(); }
 function extend(a, b) { for (var k in b) a[k] = b[k]; return a; }

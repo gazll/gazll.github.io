@@ -25,7 +25,8 @@ let dir, Interviews, Auth;
 const SEED = {
   companies: [
     { name: 'Rakuten', role: 'Senior Backend Engineer', date: '2026-07', result: 'pending',
-      stack: ['Java'], questions: [{ round: 'Vòng 1 · Coding', q: 'LC 30', a: 'sliding window', note: 'n' }] },
+      stack: ['Java'], questions: [{ round: 'Vòng 1 · Coding', q: 'LC 30', a: 'sliding window', note: 'n',
+        diagrams: [{ title: 'Window', mermaid: 'flowchart LR\nA --> B', flaws: [], upgrades: [] }] }] },
     { name: 'Công ty mẫu', role: 'SBE', date: '2026-06', result: 'pending', stack: [], questions: [] }
   ]
 };
@@ -66,6 +67,45 @@ test('master interview data includes the embedIT backpressure question', () => {
   assert.ok(question, 'embedIT includes a backpressure question');
   assert.match(question.a, /bounded queue/i);
   assert.match(question.a, /consumer/i);
+});
+
+test('master interview data includes the reviewed VOZ playbook and ATM report', () => {
+  const playbook = MASTER.companies.find(company => company.kind === 'playbook');
+  const atm = MASTER.companies.find(company => company.kind === 'community-report');
+  assert.equal(playbook.source.url, 'https://voz.vn/t/lam-chu-system-design-interview-trong-vong-1-tuan.981368/');
+  assert.ok(playbook.questions.length >= 5);
+  assert.match(playbook.questions.map(row => row.a).join('\n'), /trade-off/i);
+  assert.ok(atm.questions.some(row => /ATM/i.test(row.q)));
+  assert.ok(atm.questions.some(row => /idempotency/i.test(row.a)));
+  assert.ok(atm.questions.some(row => /ledger/i.test(row.a)));
+  assert.equal(playbook.questions[0].diagrams.length, 1);
+  const review = atm.questions.find(row => /diagram ATM/i.test(row.q));
+  assert.ok(review, 'ATM report includes a diagram-by-diagram technical review');
+  assert.equal(review.diagrams.length, 6);
+  assert.ok(review.diagrams.some(diagram => diagram.mermaid.startsWith('sequenceDiagram\n')));
+  assert.ok(review.diagrams.some(diagram => diagram.mermaid.startsWith('stateDiagram-v2\n')));
+  assert.ok(review.diagrams.every(diagram => diagram.flaws.length >= 2 && diagram.upgrades.length >= 2));
+  assert.match(review.a, /dual-write/i);
+  assert.match(atm.questions[0].a, /FUNDS_RESERVED → DISPENSE_REQUESTED → DISPENSED → POSTED/);
+  assert.match(atm.questions[0].a, /không giữ DB transaction/i);
+});
+
+test('Gazl Try lazy-renders reviewed Mermaid diagrams and preserves their source safely', () => {
+  const view = readFileSync(PUBLIC + 'views/interviews.js', 'utf8');
+  assert.match(view, /requestAnimationFrame\(async \(\) =>/);
+  assert.match(view, /mountMermaidDiagrams\(card\)/);
+  assert.doesNotMatch(view, /wire\(root, repaint\);\s*mountMermaidDiagrams\(root\)/);
+  assert.match(view, /data-mermaid-diagram/);
+  assert.match(view, /interviewDiagrams\(it\.diagrams\)/);
+  assert.match(view, /esc\(diagram\.mermaid\)/);
+});
+
+test('the Apps Script schema round-trips diagrams with an append-only column', () => {
+  const backend = readFileSync(new URL('../apps-script/Code.gs', import.meta.url), 'utf8');
+  assert.match(backend, /'note', 'sort_order', 'diagrams_json'/);
+  assert.match(backend, /diagrams: parseJsonArray\(q\.diagrams_json\)/);
+  assert.match(backend, /diagrams_json: diagramsJson/);
+  assert.match(backend, /Schema changes are append-only/);
 });
 
 before(async () => {
@@ -128,6 +168,7 @@ test('importSeed copies the seed row into the Sheet and the seed card drops out'
   assert.equal(after.length, 1, 'no duplicate after import');
   assert.equal(after[0].own, true, 'the surviving Rakuten is the own row');
   assert.equal(after[0].questions.length, 1, 'questions came across');
+  assert.equal(after[0].questions[0].diagrams.length, 1, 'diagram attachments came across');
 });
 
 test('importSeed does not send the seed id, so the backend creates a new row', async () => {
@@ -139,6 +180,19 @@ test('importSeed does not send the seed id, so the backend creates a new row', a
   const save = calls.find(c => c.action === 'interviews.save');
   assert.equal(save.payload.company.id, undefined, 'seed-0 must not travel to the backend');
   assert.ok(save.payload.company.questions.every(q => q.id === undefined));
+});
+
+test('importSeed preserves external attribution inside the editable copy', async () => {
+  SEED.companies[0].source = { label: 'Source label', url: 'https://voz.vn/thread' };
+  const calls = stubFetch({ remote: [] });
+  signIn();
+  await Interviews.load();
+  await Interviews.importSeed('seed-0');
+
+  const save = calls.find(c => c.action === 'interviews.save');
+  assert.match(save.payload.company.questions[0].note, /Source label/);
+  assert.match(save.payload.company.questions[0].note, /https:\/\/voz\.vn\/thread/);
+  delete SEED.companies[0].source;
 });
 
 test('importSeed refuses a row that is already the reader\'s own', async () => {

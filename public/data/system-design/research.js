@@ -21,7 +21,8 @@ export const SYSTEM_DESIGN_RESEARCH = {
     'scaling-1m-to-10m-requests': ['transactions', 'messaging', 'caching', 'search-ranking', 'data-evolution', 'reliability'],
     'scaling-technique-catalogue': ['data-evolution', 'observability'],
     'flash-sale-booking-inventory-bottleneck': ['flash-sale', 'elastic-scaling', 'transactions', 'rate-limiting'],
-    'api-gateway-identity-edge': ['reliability', 'rate-limiting', 'identity-edge']
+    'api-gateway-identity-edge': ['reliability', 'rate-limiting', 'identity-edge'],
+    'multi-tenant-rabbitmq-fairness': ['tenant-fairness', 'messaging', 'rate-limiting']
   },
   packs: {
     'flash-sale': {
@@ -273,6 +274,51 @@ export const SYSTEM_DESIGN_RESEARCH = {
         ['RabbitMQ — Reliability and data safety', 'https://www.rabbitmq.com/docs/reliability'],
         ['RabbitMQ — Dead Letter Exchanges', 'https://www.rabbitmq.com/docs/dlx'],
         ['Azure — Competing Consumers pattern', 'https://learn.microsoft.com/en-us/azure/architecture/patterns/competing-consumers']
+      ]
+    },
+    'tenant-fairness': {
+      en: {
+        title: 'Multi-tenant fairness over RabbitMQ',
+        intro: 'RabbitMQ transports admitted work; it does not infer tenant fairness. Keep the broker topology bounded and make quota, scheduling cost and in-flight ownership explicit.',
+        sections: [
+          { title: 'Separate the three fairness boundaries', items: [
+            'Admission fairness bounds accepted backlog and rate per tenant before work enters the broker. Dispatch fairness chooses which active tenant runs next; execution fairness limits concurrent downstream cost after delivery.',
+            'A fair message count is not fair resource use when jobs vary in duration or API cost. Deficit Round Robin can charge an estimated cost and preserve unused credit without scanning every inactive tenant.'
+          ]},
+          { title: 'Use broker controls for their real purpose', items: [
+            'Prefetch limits unacknowledged deliveries per consumer and can improve throughput, but a large prefetch also creates an invisible client-side backlog. Size it near measured worker concurrency; do not treat it as a tenant scheduler.',
+            'Message priority expresses a small number of service classes, not fairness among arbitrary tenants. Hash exchanges spread routing keys across bounded shards, but a noisy tenant can still block neighbors in the same shard.'
+          ]},
+          { title: 'Operate fairness as an SLO', items: [
+            'Measure oldest runnable age and admission rejections by tenant tier, plus scheduler lag, in-flight cost, redeliveries and downstream saturation. Aggregate queue depth can look healthy while one tenant waits indefinitely.',
+            'Give retries a separate bounded budget, preserve tenant and cost metadata, and make effects idempotent. A poison workload must reach quarantine without repeatedly consuming another tenant’s reserved share.'
+          ]}
+        ]
+      },
+      vi: {
+        title: 'Fairness đa tenant trên RabbitMQ',
+        intro: 'RabbitMQ vận chuyển work đã được admit; broker không tự suy ra tenant fairness. Giữ topology hữu hạn và làm rõ quota, scheduling cost cùng quyền sở hữu in-flight.',
+        sections: [
+          { title: 'Tách ba fairness boundary', items: [
+            'Admission fairness giới hạn backlog và rate được nhận theo tenant trước broker. Dispatch fairness chọn active tenant chạy kế tiếp; execution fairness giới hạn downstream cost đồng thời sau delivery.',
+            'Chia đều số message chưa chắc chia đều resource khi job khác duration hoặc API cost. Deficit Round Robin có thể tính estimated cost, giữ credit chưa dùng mà không scan mọi inactive tenant.'
+          ]},
+          { title: 'Dùng broker control đúng vai trò', items: [
+            'Prefetch giới hạn delivery chưa ACK theo consumer và có thể tăng throughput, nhưng prefetch lớn cũng tạo backlog vô hình phía client. Size gần concurrency đã đo; đừng xem nó là tenant scheduler.',
+            'Message priority biểu diễn vài service class, không đảm bảo fairness giữa tenant tùy ý. Hash exchange phân tán routing key qua số shard hữu hạn, nhưng noisy tenant vẫn có thể block hàng xóm trong cùng shard.'
+          ]},
+          { title: 'Vận hành fairness như một SLO', items: [
+            'Đo oldest runnable age và admission rejection theo tenant tier, cùng scheduler lag, in-flight cost, redelivery và downstream saturation. Aggregate queue depth có thể đẹp trong lúc một tenant chờ vô hạn.',
+            'Cho retry một budget riêng có giới hạn, giữ tenant và cost metadata, làm effect idempotent. Poison workload phải vào quarantine mà không liên tục ăn reserved share của tenant khác.'
+          ]}
+        ]
+      },
+      sources: [
+        ['RabbitMQ — Consumer prefetch', 'https://www.rabbitmq.com/docs/consumer-prefetch'],
+        ['RabbitMQ — Consumers and queue parallelism', 'https://www.rabbitmq.com/docs/consumers'],
+        ['RabbitMQ — Priority queues', 'https://www.rabbitmq.com/docs/priority'],
+        ['RabbitMQ — Modulus hash exchange', 'https://www.rabbitmq.com/docs/modulus-hash-exchange'],
+        ['RabbitMQ — Memory use', 'https://www.rabbitmq.com/docs/memory-use']
       ]
     },
     caching: {

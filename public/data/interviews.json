@@ -39,6 +39,254 @@
           "note": "Nêu bounded queue + admission trước resource khan hiếm, consumer pull/prefetch, signal queue age/lag và overload contract. Không trả lời chỉ là “dùng Kafka/RabbitMQ”."
         }
       ]
+    },
+    {
+      "kind": "playbook",
+      "name": "System Design Interview — 1-week playbook",
+      "role": "Editorial synthesis · Junior–Middle SWE",
+      "date": "2024-07",
+      "stack": [
+        "System Design",
+        "Interview framework",
+        "Requirements",
+        "Estimation",
+        "Trade-offs"
+      ],
+      "source": {
+        "label": "VOZ thread by hieunm3538",
+        "url": "https://voz.vn/t/lam-chu-system-design-interview-trong-vong-1-tuan.981368/"
+      },
+      "questions": [
+        {
+          "round": "Interview framework",
+          "q": "Nên điều phối một buổi System Design Interview 45–60 phút như thế nào?",
+          "a": "Dùng timebox để giữ cuộc trao đổi có cấu trúc, nhưng điều chỉnh theo interviewer:\n\n1. **0–5 phút · Scope:** chốt actor, 2–3 use case chính, out-of-scope và câu hỏi còn mơ hồ.\n2. **5–10 phút · Quality:** chọn 2–3 non-functional requirement thật sự chi phối thiết kế; ước lượng order of magnitude nếu nó thay đổi quyết định.\n3. **10–15 phút · Contract:** nêu core entity và API/event quan trọng, chưa sa vào mọi column.\n4. **15–30 phút · High-level design:** vẽ request path và data path tối thiểu chạy được end-to-end.\n5. **30–50 phút · Deep dive:** để interviewer chọn bottleneck; bàn consistency, partitioning, hot key, failure, idempotency hoặc observability.\n6. **Cuối buổi · Close:** tóm tắt invariant, trade-off đã chọn, giới hạn và bước scale tiếp theo.\n\nMỗi box phải tạo ra một quyết định. Đừng dành mười phút tính số rồi không dùng chúng, cũng đừng vẽ mười service trước khi biết hệ thống cần đảm bảo điều gì.",
+          "note": "Framework là bản đồ hội thoại, không phải kịch bản phải đọc đủ. Nếu interviewer muốn đi thẳng vào database hoặc failure mode, hãy theo họ và nói rõ phần nào đang được giả định.",
+          "diagrams": [
+            {
+              "phase": "Rebuilt & improved",
+              "title": "Interview loop: mỗi bước phải tạo ra một quyết định",
+              "mermaid": "flowchart LR\n  S[Scope + non-goals] --> I[Invariant + NFR]\n  I --> E[Estimate only what changes design]\n  E --> C[Entities + API or events]\n  C --> H[Minimal end-to-end design]\n  H --> D[Deep dive chosen by risk]\n  D --> F[Failure + operations]\n  F --> T[Trade-off + evolution trigger]\n  T -. new evidence .-> I",
+              "flaws": [
+                "Flow gốc dừng ở high-level design nên dễ tạo sơ đồ happy-path mà thiếu crash point, recovery và operability.",
+                "Requirements tách functional/NFR nhưng chưa buộc ứng viên nêu invariant hay dùng estimation để đổi một quyết định cụ thể."
+              ],
+              "upgrades": [
+                "Thêm deep dive, failure/operations và closing trade-off; interviewer có thể nhảy vào bất kỳ risk nào mà flow vẫn không mất phương hướng.",
+                "Tạo feedback loop: dữ kiện mới phải quay lại sửa assumption hoặc invariant, không cố bảo vệ diagram ban đầu."
+              ]
+            }
+          ]
+        },
+        {
+          "round": "Requirements",
+          "q": "Cần hỏi gì trước khi bắt đầu vẽ kiến trúc?",
+          "a": "Hỏi theo bốn nhóm:\n\n- **Use case:** ai gọi, command/read chính là gì, bước nào nằm ngoài scope?\n- **Invariant:** điều gì tuyệt đối không được sai—mất tiền, oversell, duplicate booking, lộ dữ liệu hay mất message?\n- **Scale và skew:** average/peak RPS, payload, read/write ratio, retention, tenant hay key nóng nhất.\n- **Quality và failure:** latency/SLO, availability, consistency, durability, region, recovery objective và degraded behavior.\n\nBiến câu trả lời thành câu design: “withdrawal không được double-spend nên ledger write cần local ACID + idempotency”; “feed chấp nhận stale vài giây nên có thể fan-out async”; “video lớn nên blob đi trực tiếp object storage, metadata mới qua API”.\n\nNếu interviewer không cho số, nêu assumption có phạm vi rồi tiếp tục. Khả năng tiến lên với assumption minh bạch thường quan trọng hơn đoán đúng một con số tưởng tượng.",
+          "note": "NFR kiểu “high availability, high consistency, low latency” chưa đủ. Phải hỏi: cho operation nào, ở percentile nào, trong failure nào và cái giá business của việc vi phạm là gì?"
+        },
+        {
+          "round": "Estimation",
+          "q": "Estimation trong System Design có mục đích gì, và khi nào có thể bỏ qua?",
+          "a": "Estimation chỉ đáng làm khi nó đổi kiến trúc. Tính theo order of magnitude:\n\n- peak request rate và concurrency bằng Little's Law `L = λ × W`;\n- write rate, retention và tổng storage;\n- bandwidth cho payload lớn;\n- hot-key hoặc tenant skew, không chỉ average toàn hệ thống.\n\nSau mỗi số phải có hệ quả: “2.000 write/s trên một relational primary còn là load-test question, chưa tự động đòi sharding”; “50 GB/s media egress khiến CDN/object storage trở thành critical path”; “một celebrity nhận 20% traffic khiến average RPS vô nghĩa”.\n\nCó thể rút ngắn estimation khi interviewer đã cho throughput hoặc khi bài tập tập trung vào correctness. Hãy nói rõ: “Số này chưa thay đổi design, em chuyển sang invariant và failure path; em sẽ quay lại nếu cần capacity plan.”",
+          "note": "Một benchmark không có workload, batching, durability, hardware và percentile không thể dùng để chọn database."
+        },
+        {
+          "round": "Practice patterns",
+          "q": "Trong một tuần nên luyện những dạng bài nào để tái sử dụng được nhiều pattern nhất?",
+          "a": "Chọn ít bài nhưng buộc mỗi bài trả lời một nhóm constraint:\n\n- **Wallet/ATM:** ledger, idempotency, transaction state, reconciliation.\n- **Booking/inventory:** contention, hold/expiry, conditional write, oversell.\n- **Social feed:** fan-out on write/read, celebrity skew, cache và pagination.\n- **Live comments/chat:** WebSocket/SSE, presence, ordering, offline delivery và backpressure.\n- **Top-K/search:** streaming aggregation, approximate algorithm, partition merge.\n- **Metrics/logging:** ingestion burst, Kafka partitioning, OLAP/time-series retention.\n- **Delivery/ride sharing:** geospatial index, location freshness, matching và surge hotspot.\n\nVới mỗi bài, tự làm lại bốn lần: happy path, hot key, dependency timeout và regional/data recovery. Pattern chỉ có giá trị khi biết failure contract của nó.",
+          "note": "Không học theo “đề này dùng Kafka, đề kia dùng Redis”. Học theo invariant, workload shape và failure mode khiến một component trở nên cần thiết."
+        },
+        {
+          "round": "Communication",
+          "q": "Làm sao trình bày trade-off để câu trả lời không biến thành keyword dumping?",
+          "a": "Dùng cấu trúc **constraint → option → cost → evidence → trigger**:\n\n“Withdrawal cần serializable effect theo account. Em bắt đầu bằng một relational ledger và conditional update trong local transaction. Redis lock thêm lease/failover semantics nhưng không thay constraint dưới ledger, nên chưa dùng. Nếu một account trở thành hot key và row-lock wait vượt SLO, em đo lock time rồi cân nhắc partition/actor model.”\n\nNêu ít nhất một phương án bị loại và lý do. Mọi component trên sơ đồ phải trả lời một requirement; nếu xóa nó mà không vi phạm requirement nào thì nó chưa cần xuất hiện. Khi bị challenge, cập nhật design công khai thay vì bảo vệ sơ đồ cũ bằng mọi giá.",
+          "note": "Interviewer thường đánh giá cách bạn đổi quyết định khi có dữ kiện mới. Một sơ đồ đơn giản nhưng invariant rõ đáng tin hơn sơ đồ nhiều logo không có failure behavior."
+        },
+        {
+          "round": "7-day plan",
+          "q": "Lịch ôn một tuần thực tế nên được chia như thế nào?",
+          "a": "- **Ngày 1:** framework, requirement, estimation; làm một đề trong 45 phút và ghi lại chỗ hết giờ.\n- **Ngày 2:** storage, index, replication, partitioning và consistency; luyện Wallet/ATM.\n- **Ngày 3:** cache, queue, backpressure, idempotency; luyện Feed hoặc Metrics.\n- **Ngày 4:** contention, lock, hot key, retry; luyện Booking/Inventory.\n- **Ngày 5:** real-time, ordering, presence, offline path; luyện Chat/Live Comments.\n- **Ngày 6:** hai mock interview có timer; sau mỗi buổi viết lại design từ feedback, không chỉ xem video.\n- **Ngày 7:** ôn error log cá nhân, rehearsal opening/closing và một mock nhẹ.\n\nMỗi ngày phải tạo một artifact: diagram, API, invariant list, failure table và 3 trade-off. Một tuần đủ để có framework và pattern vocabulary; không thay thế kinh nghiệm production.",
+          "note": "Mục tiêu của tuần ôn gấp là giao tiếp có cấu trúc và tránh lỗi nền. Đừng tự tuyên bố “master System Design” sau bảy ngày."
+        }
+      ]
+    },
+    {
+      "kind": "community-report",
+      "name": "G*** · Community interview report",
+      "role": "SWE · System Design · Design an ATM",
+      "date": "2024-07",
+      "stack": [
+        "ATM",
+        "Ledger",
+        "SQL transactions",
+        "Idempotency",
+        "Reconciliation",
+        "Security"
+      ],
+      "source": {
+        "label": "VOZ interview report and technical discussion",
+        "url": "https://voz.vn/t/lam-chu-system-design-interview-trong-vong-1-tuan.981368/page-2"
+      },
+      "questions": [
+        {
+          "round": "System Design · Reported prompt",
+          "q": "Design an ATM system: authenticate bằng PIN, xem balance, deposit/withdraw, mỗi account chỉ có một transaction tại một thời điểm; peak khoảng 1.000 RPS.",
+          "a": "**Scope trước:** ATM là thiết bị vật lý không đáng tin tuyệt đối; money authority mới là source of truth. Chốt card liên kết một hay nhiều account, loại deposit, denomination/cash inventory, timeout, giới hạn rút và behavior khi dispenser hoặc mạng lỗi.\n\n**Core model:** `Account`, `Card`, `Atm`, `AtmSession`, `Operation`, `AccountHold`, immutable `LedgerEntry`, `BalanceProjection`, `CashCassette`, `DeviceEvidence`, `IdempotencyRecord` và `OutboxEvent`. Withdrawal đi qua `CREATED → FUNDS_RESERVED → DISPENSE_REQUESTED → DISPENSED → POSTED`; nhánh lỗi là `FAILED`, `UNKNOWN` hoặc `REVERSED`.\n\n**API contract:** `POST /withdrawals` nhận account, ATM, amount và `Idempotency-Key`, trả `operation_id + state`; `GET /operations/{id}` là đường phục hồi sau timeout. Deposit là resource riêng vì cash có thể chỉ được provisional credit trước khi đếm/xác minh. Không dùng `POST /transaction {action}` cho mọi workflow.\n\n**Critical path withdrawal:**\n\n1. ATM tạo `operation_id`, gửi encrypted PIN block qua mTLS. Auth/HSM verify PIN, áp attempt limit/card-capture policy và cấp session ngắn hạn scoped cho card, ATM và allowed action.\n2. Money service mở local DB transaction, claim idempotency key, kiểm tra available balance, tạo `AccountHold` cùng operation/outbox và enforce chỉ một active money operation theo account; commit rồi nhả mọi row lock.\n3. Sau commit, gửi dispense command chứa `operation_id`; tuyệt đối không giữ DB transaction trong lúc chờ hardware.\n4. Evidence `cash_dispensed` kích hoạt transaction mới để post balanced ledger entries, cập nhật balance projection, consume hold và ghi outbox. Evidence thất bại chắc chắn thì release hold; outcome mơ hồ giữ `UNKNOWN` để reconciliation đọc device journal và cassette counter.\n5. Receipt, notification, fraud và statement consume committed outbox event; chúng có thể lag/replay nhưng không được sửa committed balance trực tiếp.\n\n**Read path:** current/available balance đọc từ projection được update cùng transaction với hold/ledger; statement và historical balance có thể dùng snapshot/read model rebuild được từ ledger.\n\n**Scale:** 1.000 RPS chưa biện minh cho nhiều writable database hay microservice. Tách auth, balance-read và withdrawal mix, đo lock wait/hot account, connection occupancy, writer I/O cùng reconciliation age rồi mới thêm replica, partition hoặc cell.\n\n**Degraded mode:** core banking, HSM hoặc ledger authority không khỏe thì cash movement fail closed; cached balance không bao giờ cấp quyền rút. Deposit cash có thể được nhận ở trạng thái pending theo policy, nhưng chỉ thành available balance sau evidence và verification đã định nghĩa.\n\n**Operations:** audit bất biến, reconciliation theo operation/ATM/cassette, alert stuck `UNKNOWN`, idempotency conflict, unbalanced entry, negative available balance, dispenser mismatch, outbox lag và restore/replay debt.",
+          "note": "Bản trả lời trong thread dùng nhiều service/queue và distributed lock nhưng chưa có transaction status rõ. Bản biên tập ưu tiên ledger invariant, local ACID, physical-cash failure và reconciliation."
+        },
+        {
+          "round": "Diagram review · Original → production-grade",
+          "q": "Các diagram ATM trong bài gốc hở ở đâu? Sau mỗi câu hỏi deep-dive nên bổ sung và cải tiến diagram như thế nào?",
+          "a": "**Kết luận review:** cả hai architecture trong thread đều bắt đầu từ component thay vì invariant. Bản đầu dùng queue như synchronous RPC và đặt Redis distributed lock trước transaction; bản sửa loại lock nhưng lại tách Transaction DB khỏi Balance DB, khiến một withdrawal trở thành dual-write. Reconciliation không thể biến hai nguồn ghi thành một ACID commit, còn CDN, aggregate worker và nhiều load balancer được thêm trước khi có workload chứng minh.\n\n**Cách nâng cấp trong buổi phỏng vấn:** không vẽ final diagram ngay. Bắt đầu bằng một money authority nhỏ, rồi để mỗi câu trả lời deep-dive làm diagram tiến hóa:\n\n1. Trả lời **scope/physical cash** → thêm ATM device, dispenser evidence, cash cassette và trạng thái `UNKNOWN`; đây là distributed workflow thật sự.\n2. Trả lời **source of truth** → thay mutable `User.balance` bằng immutable ledger; balance projection chỉ update cùng local transaction.\n3. Trả lời **concurrency** → ghi rõ serialization theo account ngay trong Ledger DB bằng conditional update/row lock; xóa Redis lock khỏi correctness path.\n4. Trả lời **retry** → thêm idempotency record và `operation_id`; timeout đọc lại state thay vì chạy lệnh mới.\n5. Trả lời **failure/reconciliation** → thêm durable state machine và reconciliation đọc device journal/cassette evidence; compensation tạo ledger entry mới.\n6. Trả lời **async boundary** → thêm transactional outbox rồi mới nối broker tới notification, fraud, statement; broker không quyết định committed balance.\n7. Trả lời **historical balance** → thêm snapshot/read model có thể rebuild từ ledger, không tạo writable Balance DB thứ hai.\n8. Trả lời **capacity** → chỉ thêm replica, partition hay service split khi lock wait, writer capacity, recovery window hoặc isolation vượt ngưỡng đã nêu.\n\n**Phần được improve:** data ownership trở nên đơn nghĩa; critical path còn một local ACID boundary; API retry có contract; physical cash có unknown state; async work có outbox; reconciliation có evidence; và mọi box trên diagram đều trả lời một requirement hoặc failure mode.",
+          "note": "Các hình dưới đây là bản dựng lại để review và bản thiết kế mới bằng Mermaid, không phải ảnh sao chép từ thread. Mục tiêu là thấy design thay đổi vì câu hỏi nào.",
+          "diagrams": [
+            {
+              "phase": "Original reconstruction · Data",
+              "title": "Mutable balance và transaction audit chưa đủ làm money model",
+              "mermaid": "flowchart LR\n  subgraph UDB[User DB]\n    U[User: id, ATM number, balance]\n    A[Auth: user id, ATM number, PIN hash]\n  end\n  T[Transaction: id, user id, action, old balance, new balance]\n  U -. copied before and after .-> T\n  A -. authenticates .-> U",
+              "flaws": [
+                "`balance` là mutable source of truth nhưng Transaction chỉ giữ old/new value; không có balanced ledger, currency, status, version hay uniqueness theo operation.",
+                "PIN hash nằm cạnh application data và model gộp user, account, card, ATM; thiếu session, retry evidence, cash cassette cùng audit transition."
+              ],
+              "upgrades": [
+                "Tách Card/Account/ATM nhưng giữ Account, Transaction, LedgerEntry, balance projection và IdempotencyRecord trong cùng money authority.",
+                "PIN verification thuộc auth/HSM boundary; transaction state và device evidence phải tồn tại trước khi nói tới cache, queue hay service split."
+              ]
+            },
+            {
+              "phase": "Original reconstruction · Architecture",
+              "title": "Queue và Redis lock đang che một synchronous money transaction",
+              "mermaid": "flowchart LR\n  C[Client] --> G[Gateway]\n  G --> B[Balance service] --> U[(User DB)]\n  G --> A[Auth service] --> Q1[[Message queue]] --> TDB[(Transaction DB)]\n  G --> T[Transaction service] --> TDB\n  T --> Q2[[Message queue]] --> L[Redis distributed lock]\n  L -. lease by user id .-> T",
+              "flaws": [
+                "Queue nằm trên auth/lock request path nhưng client vẫn cần kết quả tức thời; nó thêm timeout, duplicate và ordering mà chưa tạo asynchronous value.",
+                "Redis lease không bảo vệ balance invariant sau pause/failover; Balance service và Transaction service cũng chưa có một commit boundary chung."
+              ],
+              "upgrades": [
+                "Đưa serialization vào authoritative database transaction và dùng idempotency key; Redis chỉ còn rate limit hoặc state có thể rebuild.",
+                "Chỉ publish event sau money commit bằng outbox, cho consumer thật sự async như notification, fraud hoặc statement."
+              ]
+            },
+            {
+              "phase": "Thread revision · Still unsafe",
+              "title": "Tách Transaction DB và Balance DB tạo dual-write mới",
+              "mermaid": "flowchart LR\n  C[Client] --> G[Gateway]\n  G --> T[Transaction service]\n  T --> TD[(Transaction DB)]\n  T --> BD[(Balance DB)]\n  TD --> AG[Aggregate worker] --> AD[(Aggregate DB)]\n  TD --> R[Reconciliation worker]\n  AD --> R\n  BD --> R\n  T --> MQ[[Message queue]] --> R\n  G -. private query .-> CDN[CDN]",
+              "flaws": [
+                "Transaction service ghi hai database nên crash giữa hai commit vẫn lệch tiền; reconciliation chỉ phát hiện/sửa sau, không tạo atomicity.",
+                "Aggregate DB, scheduler, CDN và các load balancer làm diagram lớn nhưng chưa trả requirement 1.000 RPS; reconciliation lại có quyền chạm nhiều authority."
+              ],
+              "upgrades": [
+                "Gộp ledger, transaction state, balance projection, idempotency và outbox vào một local ACID boundary; read model chỉ consume committed event và rebuild được.",
+                "Bỏ CDN khỏi balance query mặc định; scale stateless API trước, rồi thêm replica/partition theo metric và consistency contract cụ thể."
+              ]
+            },
+            {
+              "phase": "Upgraded critical path",
+              "title": "Một money authority, explicit cash workflow và async sau commit",
+              "mermaid": "flowchart LR\n  ATM[ATM device + cash journal] --> G[Gateway: mTLS, rate limit]\n  G --> AU[Auth + HSM]\n  G --> M[Money service]\n  M --> DB[(Ledger DB: account, hold, operation, entries, balance, idempotency, outbox)]\n  M -->|dispense command with operation id| ATM\n  ATM -->|dispensed, failed or unknown evidence| M\n  DB --> O[Outbox relay] --> MQ[[Broker]]\n  MQ --> N[Notification and fraud]\n  MQ --> RM[Statement read model]\n  X[Reconciliation] --> DB\n  X -. device journal and cassette evidence .-> ATM",
+              "flaws": [
+                "Local ACID vẫn không thể commit cùng hardware nhả tiền; `UNKNOWN` và reconciliation là phần bắt buộc, không phải dấu hiệu thiết kế thất bại.",
+                "Một writer authority có giới hạn throughput và blast radius; phải benchmark lock skew, failover, restore và reconciliation window."
+              ],
+              "upgrades": [
+                "Reservation commit atomically với operation/idempotency; sau evidence, ledger entries, balance projection và outbox lại commit trong một transaction mới. Không giữ DB lock qua hardware I/O.",
+                "Broker chỉ nhận event đã commit; read model, notification và fraud có thể lag/replay mà không đổi committed balance."
+              ]
+            },
+            {
+              "phase": "Upgraded sequence",
+              "title": "Withdrawal qua hai local transaction và một hardware boundary",
+              "mermaid": "sequenceDiagram\n  participant ATM as ATM device\n  participant API as Gateway and Money API\n  participant DB as Ledger DB\n  participant REC as Reconciliation\n  ATM->>API: POST /withdrawals + Idempotency-Key\n  API->>DB: TX create operation + reserve funds\n  DB-->>API: FUNDS_RESERVED committed\n  API-->>ATM: dispense operation_id\n  Note over API,ATM: No DB lock is held across device I/O\n  alt cash dispensed\n    ATM->>API: DISPENSED evidence\n    API->>DB: TX post ledger + consume hold + outbox\n    DB-->>API: POSTED\n  else definite failure\n    ATM->>API: FAILED evidence\n    API->>DB: TX release hold + mark FAILED\n  else timeout or ambiguous result\n    API->>DB: mark UNKNOWN\n    REC->>ATM: read journal and cassette evidence\n    REC->>DB: idempotent POST or compensating RELEASE\n  end\n  ATM->>API: GET /operations/operation_id",
+              "flaws": [
+                "Nếu giữ row lock từ lúc reserve tới lúc cash ra, một hardware timeout sẽ biến thành DB contention và connection exhaustion.",
+                "Nếu timeout bị coi là failure, retry có thể nhả tiền lần hai hoặc refund trong khi cash lần đầu đã ra."
+              ],
+              "upgrades": [
+                "Tách reserve và post thành hai local transaction, nối bằng durable operation state cùng evidence từ device.",
+                "Retry đọc cùng operation bằng idempotency key; outcome mơ hồ đi qua reconciliation thay vì đoán."
+              ]
+            },
+            {
+              "phase": "Upgraded state machine",
+              "title": "Chỉ transition hợp lệ mới được chạm money state",
+              "mermaid": "stateDiagram-v2\n  [*] --> CREATED\n  CREATED --> FUNDS_RESERVED: reserve committed\n  CREATED --> FAILED: validation or insufficient funds\n  FUNDS_RESERVED --> DISPENSE_REQUESTED: command sent\n  DISPENSE_REQUESTED --> DISPENSED: cash evidence\n  DISPENSE_REQUESTED --> FAILED: definite no-cash evidence\n  DISPENSE_REQUESTED --> UNKNOWN: timeout or ambiguous evidence\n  DISPENSED --> POSTED: ledger post committed\n  UNKNOWN --> POSTED: reconciliation proves cash out\n  UNKNOWN --> REVERSED: reconciliation proves no cash\n  FAILED --> REVERSED: release hold\n  POSTED --> [*]\n  REVERSED --> [*]",
+              "flaws": [
+                "State `POSTED → DISPENSED` khiến ledger hoàn tất trước khi biết cash có ra và làm pending debit khó giải thích cho user.",
+                "Một cột status không có transition guard vẫn cho phép replay hoặc hai worker ghi các state mâu thuẫn."
+              ],
+              "upgrades": [
+                "Dùng conditional transition theo current state/version; terminal state không quay lại processing khi message bị redeliver.",
+                "`UNKNOWN` là state vận hành có owner, deadline và evidence; compensation tạo entry mới, không xóa history."
+              ]
+            }
+          ]
+        },
+        {
+          "round": "Deep dive · API and PIN security",
+          "q": "API ATM nên thiết kế thế nào, và có được gửi PIN rồi đổi lấy JWT như API web thông thường không?",
+          "a": "Không gửi PIN dạng text trong JSON và không biến một lần nhập bốn số thành bearer token quyền rộng. ATM tạo encrypted PIN block theo protocol/card context, truyền qua mTLS từ device đã đăng ký; auth boundary chuyển/verify block trong HSM để application không thấy clear PIN. Áp attempt counter, velocity limit, card-capture/lock policy, key rotation và audit nhưng không log PAN/PIN block nhạy cảm.\n\nAPI theo business resource: `POST /atm-sessions`, `POST /withdrawals`, `POST /deposits`, `GET /operations/{operation_id}`. Withdrawal nhận account, amount, ATM id và `Idempotency-Key`; session ngắn hạn bị scope theo card, ATM, action và expiry. Authorization vẫn kiểm tra lại account/card state ở money service, không tin `user_id` client gửi.\n\nSau timeout, ATM gọi operation resource bằng cùng identity/idempotency context. Response phải trả state `processing`, `unknown`, `posted`, `failed` hoặc `reversed`; không ép client đoán từ HTTP timeout.",
+          "note": "Trong interview có thể nói HSM/PIN block ở mức boundary và threat model; không cần thuộc mọi chi tiết ISO, nhưng phải tránh thiết kế nhận raw PIN rồi phát JWT chung chung."
+        },
+        {
+          "round": "Deep dive · Deposit and degraded mode",
+          "q": "Cash deposit và lúc ATM mất kết nối có dùng chung flow với withdrawal được không?",
+          "a": "Không. Withdrawal đưa cash ra nên phải reserve funds trước; cash deposit nhận vật thể chưa chắc hợp lệ nên thường tạo `DepositOperation` cùng device evidence, denomination/image/envelope reference và **provisional credit**. Chỉ chuyển thành available balance sau khi máy hoặc back-office verification đạt policy; discrepancy sinh adjustment entry có audit thay vì sửa history.\n\nKhi HSM, ledger authority hoặc network không khỏe, withdrawal mặc định fail closed. Cached balance hay replica lag không đủ quyền cho cash movement. Chỉ hỗ trợ offline/stand-in withdrawal nếu business chủ động chấp nhận fraud exposure, với per-card/per-ATM floor limit, signed offline counter, expiry, tamper evidence và reconciliation bắt buộc—đây là một product/risk decision riêng, không phải fallback kỹ thuật miễn phí.\n\nATM vẫn có thể lưu durable local journal cho command/evidence chưa gửi được. Khi kết nối lại, replay bằng stable operation id; server deduplicate và không coi thứ tự network arrival là thứ tự business effect.",
+          "note": "Deposit, withdrawal và balance read có failure contract khác nhau; gom tất cả vào `POST /transaction {action}` sẽ giấu mất khác biệt quan trọng nhất."
+        },
+        {
+          "round": "Deep dive · Ledger",
+          "q": "Balance và transaction history: cái nào là source of truth? Làm sao tránh hai service cùng sửa tiền?",
+          "a": "Authoritative state nên là **immutable double-entry ledger** hoặc journal tương đương: mỗi business transaction sinh các entry có tổng debit bằng tổng credit. Balance là projection có thể lưu cùng DB để đọc nhanh, nhưng chỉ được update trong cùng local transaction với ledger entries.\n\nMột service/module sở hữu write model và invariant. Service khác gọi API hoặc consume committed event; không tự ghi chung account table. Database-per-service không phải mục tiêu tự thân: nếu tách service làm một money transition phải qua hai database, ta đã đổi một local ACID transaction thành distributed workflow phức tạp hơn.\n\nCác constraint hữu ích gồm unique `(account_id, operation_id)`, balanced-entry check, monotonic account version và amount/currency validation. Event cho analytics/notification được phát bằng transactional outbox sau commit; Kafka không phải cơ chế làm hai balance trở nên atomic.",
+          "note": "Tách read model được; đừng tách authoritative debit và credit chỉ để sơ đồ trông giống microservices."
+        },
+        {
+          "round": "Deep dive · Concurrency",
+          "q": "“Only one transaction per account at a time” nên dùng distributed lock, pessimistic lock hay optimistic locking?",
+          "a": "Đặt serialization tại nơi invariant được commit:\n\n- Với contention thấp, dùng optimistic conditional update: `UPDATE account SET version=version+1 ... WHERE id=? AND version=?`; zero row nghĩa là thua race và retry có giới hạn.\n- Với withdrawal cần đọc rồi ghi và contention đáng kể, dùng DB transaction với `SELECT ... FOR UPDATE` hoặc atomic balance predicate như `UPDATE ... SET balance=balance-? WHERE id=? AND balance>=?`.\n- Luôn có unique idempotency key để retry không tạo transition thứ hai.\n\nRedis/distributed lock có thể điều tiết work trước DB, nhưng lease có thể hết khi process pause; hai holder có thể cùng tin mình sở hữu lock. Nếu external resource nhận command từ lease holder, cần fencing token và resource phải từ chối token cũ. Với money row đã ở relational DB, thêm Redis lock thường tạo thêm failure mode mà DB constraint vẫn phải bắt lại.",
+          "note": "Lock không thay business constraint. Correctness phải còn đúng nếu lock service restart, lease hết hạn hoặc client bị pause lâu hơn TTL."
+        },
+        {
+          "round": "Deep dive · Retry",
+          "q": "Client timeout rồi retry withdrawal: làm sao bảo đảm không trừ tiền hai lần?",
+          "a": "Client tạo idempotency key cho **một business intent** và giữ nguyên key khi retry. Server lưu key, request fingerprint, trạng thái và response trong cùng transaction với money transition.\n\n- Key mới: claim bằng unique constraint rồi thực thi.\n- Cùng key + cùng payload: trả state/result đã có; nếu còn processing thì trả trạng thái rõ thay vì chạy lại.\n- Cùng key + payload khác: reject conflict.\n- Crash sau commit trước response: retry đọc được committed result.\n\nTTL phải dài hơn retry/reconciliation window; operation quan trọng có thể giữ lâu theo audit policy. Exactly-once delivery không cần được hứa: at-least-once request cộng idempotent effect và database uniqueness là contract thực tế hơn.",
+          "note": "Idempotency key phải gắn với intent, không phải mỗi HTTP attempt; sinh key mới khi retry sẽ vô hiệu hóa toàn bộ cơ chế."
+        },
+        {
+          "round": "Deep dive · Physical failure",
+          "q": "Database đã debit nhưng ATM không dispense cash, hoặc timeout khiến server không biết cash có ra hay chưa: xử lý thế nào?",
+          "a": "Không thể bọc database và máy nhả tiền vào một ACID transaction. Dùng durable state machine:\n\n1. authorize/reserve funds và ghi operation;\n2. gửi dispense command có operation id;\n3. nhận device evidence rồi chuyển `DISPENSED` và post/settle;\n4. nếu chắc chắn dispense thất bại thì reverse reservation;\n5. nếu outcome mơ hồ thì giữ `UNKNOWN`, không tự động debit hoặc refund lần nữa, đưa vào reconciliation theo device journal, cassette counter và ledger.\n\nMọi transition idempotent và audit được. Compensation là một entry đảo chiều mới, không xóa ledger cũ. Timeout chỉ nói caller không nhận response; nó không chứng minh operation thất bại.",
+          "note": "Đây là failure path quan trọng nhất của ATM nhưng thường bị bỏ khỏi câu trả lời chỉ có API, cache và load balancer."
+        },
+        {
+          "round": "Deep dive · Historical balance",
+          "q": "Làm sao trả lời “balance của account mười ngày trước là bao nhiêu?” mà không sum toàn bộ lịch sử từ ngày đầu?",
+          "a": "Ledger entry cần `effective_at`, sequence/order ổn định và account id. Tạo periodic snapshot/checkpoint gồm balance tại sequence N, rồi cộng delta từ N tới thời điểm cần hỏi.\n\nCurrent balance vẫn được materialize trong cùng transaction với ledger. Historical query dùng snapshot gần nhất + entries sau snapshot; monthly statement có thể build async vào object storage. Nếu có backdated correction, dùng adjustment entry với cả recorded time và effective time, rồi rebuild snapshot bị ảnh hưởng.\n\nIndex theo `(account_id, effective_at, sequence)` và retention/audit policy rõ. Data lake phù hợp cho analytics/statement batch, không phải authoritative current balance trên withdrawal path.",
+          "note": "Snapshot là acceleration artifact; ledger vẫn là bằng chứng. Rebuild và reconciliation phải chứng minh projection khớp journal."
+        },
+        {
+          "round": "Deep dive · Distributed transaction",
+          "q": "Khi nào dùng local transaction, Saga hay 2PC cho ATM/payment workflow?",
+          "a": "Ưu tiên theo thứ tự:\n\n- **Local transaction:** gom các invariant có thể colocate—transaction record, ledger entries, balance projection, idempotency và outbox. Đây là lựa chọn mặc định cho money mutation.\n- **Saga:** dùng khi workflow bắt buộc qua nhiều owner/resource và mỗi bước có forward recovery hoặc compensation rõ, ví dụ authorize funds → dispense cash → settle/reverse. Saga cho eventual business consistency, không tạo isolation như một DB transaction.\n- **2PC/XA:** chỉ khi mọi participant hỗ trợ, latency/availability trade-off chấp nhận được và đội vận hành hiểu coordinator recovery, prepared transaction cùng heuristic failure. Không tự implement 2PC bằng vài API call.\n\nKhông chọn pattern bằng keyword. Vẽ crash point, retry, idempotency, ordering, compensation và trạng thái stuck cho từng boundary trước.",
+          "note": "Saga không “rollback” thế giới vật lý; cash đã dispense không thể xóa bằng database rollback. Compensation là business action mới."
+        },
+        {
+          "round": "Deep dive · Receipt delivery",
+          "q": "Transaction receipt/PDF có cần CDN không?",
+          "a": "Thường không nằm trên critical path và mỗi receipt chỉ vài người được phép xem, nên cache hit cross-user thấp. Lưu object bằng key không đoán được trong object storage, mã hóa, kiểm tra authorization rồi cấp signed URL ngắn hạn là đủ cho phần lớn workload.\n\nCDN chỉ đáng thêm khi đo được egress/latency toàn cầu hoặc cùng immutable artifact được tải nhiều lần. Nếu dùng, cache key phải tách tenant/user đúng, không cache authorization response sai scope và TTL phải phù hợp quyền thu hồi.\n\nStatement tháng có thể generate async từ ledger/read model rồi lưu object. CDN không giúp query balance nhanh và không được xuất hiện chỉ vì sơ đồ “hệ thống lớn” thường có CDN.",
+          "note": "Mọi box phải trả một requirement. Với private receipt ít reuse, CDN có thể tăng security surface mà không tạo hit rate đáng kể."
+        },
+        {
+          "round": "Deep dive · Redis",
+          "q": "Redis được phép giữ state nào trong ATM system, và distributed lock bằng Redis có an toàn không?",
+          "a": "Redis phù hợp cho derived/replaceable state: rate-limit counter, short-lived session hint, cached read, routing/presence hoặc admission token. Money, ledger, idempotency record và audit evidence không nên chỉ sống trong Redis nếu mất acknowledged write sau failover là không chấp nhận được.\n\nRedis lock cần ít nhất unique owner token, atomic compare-and-delete, TTL, retry/backoff và hiểu failover semantics. TTL giải dead client nhưng tạo lease: holder bị pause có thể chạy tiếp sau khi lease hết. Với side effect cần correctness, dùng fencing token tăng đơn điệu và resource đích phải reject token cũ—hoặc đặt arbitration trực tiếp trong authoritative DB.\n\nKết luận không phải “Redis tốt/xấu”, mà là failure contract của state có khớp durability, consistency và recovery của công cụ không.",
+          "note": "Official Redis documentation cũng nêu mutual exclusion/liveness requirements, cảnh báo failover-based lock và khuyến nghị fencing token cho use case cần correctness."
+        },
+        {
+          "round": "Deep dive · Capacity",
+          "q": "Peak 1.000 RPS ảnh hưởng thiết kế thế nào? Có cần Kafka, sharding và nhiều database ngay không?",
+          "a": "Tách workload trước: authenticate/read balance/withdrawal có cost và consistency khác nhau. Tính concurrency từ latency, read/write ratio, hot account/ATM, transaction duration và connection budget.\n\nMột relational database được index đúng có thể là điểm khởi đầu hợp lý cho 1.000 RPS, nhưng phải load test đúng transaction: durability bật, realistic contention, connection pool, replication và p99. Không suy ra capacity từ benchmark single GET hoặc framework hello-world.\n\nKafka chỉ cần khi có async consumer thật—outbox events cho notification, analytics, fraud hoặc statement—not để làm committed balance “consistent”. Sharding chỉ thêm khi writer capacity, storage, maintenance window hoặc tenant isolation đã có evidence; partition key thường là account, nhưng hot account vẫn cần admission/serialization.\n\nTrình bày trigger scale: lock wait, connection occupancy, writer CPU/I/O, replication lag, queue age và recovery time. Sau đó mới chọn read replica, partition, batching hay service split.",
+          "note": "Capacity plan phải ghi workload, hardware, durability, batching và percentile. “Component X đạt N RPS” không tự chứng minh end-to-end system đạt N RPS."
+        }
+      ]
     }
   ]
 }

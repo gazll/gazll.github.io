@@ -129,7 +129,8 @@ const SOURCE_ORIGINS = new Set([
   'https://engineering.tiki.vn',
   'https://discord.com',
   'https://blog.cloudmentor.pro',
-  'https://shopify.engineering'
+  'https://shopify.engineering',
+  'https://voz.vn'
 ]);
 const sourceHref = value => {
   try {
@@ -458,7 +459,7 @@ const RESEARCH_ORIGINS = new Set([
   'https://redis.io', 'https://docs.stripe.com', 'https://www.postgresql.org',
   'https://kafka.apache.org', 'https://learn.microsoft.com', 'https://www.elastic.co',
   'https://opentelemetry.io', 'https://www.rfc-editor.org', 'https://docs.spring.io',
-  'https://openid.net', 'https://resilience4j.readme.io', 'https://www.openpolicyagent.org'
+  'https://openid.net', 'https://resilience4j.readme.io', 'https://www.openpolicyagent.org', 'https://www.rabbitmq.com'
 ]);
 
 function safeResearchHref(value) {
@@ -533,10 +534,14 @@ function articleShell(header, body) {
 }
 
 function renderDesignArticle(design) {
+  const source = design.source_url ? sourceHref(design.source_url) : '';
   const tags = design.tags.map(tag => '<span>' + escapeHtml(tag) + '</span>').join('');
   const header = '<header class="sd-article-head">'
     + '<p class="cs-eyebrow">Blueprint ' + numberLabel(design.n) + ' · ' + escapeHtml(design.effort || '45 min') + ' ' + levelMarkup(design) + '</p>'
-    + '<h1 id="design-' + escapeHtml(design.slug) + '-title">' + escapeHtml(design.title) + '</h1><p>' + escapeHtml(design.excerpt) + '</p><div class="cs-tags">' + tags + '</div></header>';
+    + '<h1 id="design-' + escapeHtml(design.slug) + '-title">' + escapeHtml(design.title) + '</h1><p>' + escapeHtml(design.excerpt) + '</p><div class="cs-tags">' + tags + '</div>'
+    + (source && source !== '#' ? '<p class="sd-blueprint-source"><span>' + text().sourceLabel + '</span><a href="'
+      + escapeHtml(source) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(design.source_label || 'Discussion prompt') + ' ↗</a></p>' : '')
+    + '</header>';
   const body = '<article class="sd-article-body" data-sd-body>'
     + '<section class="sd-section sd-scope"><h2 id="problem-framing">' + text().scope + '</h2>'
     + renderScope(design.scope) + '</section>'

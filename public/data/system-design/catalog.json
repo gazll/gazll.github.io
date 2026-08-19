@@ -2645,6 +2645,207 @@
           }
         ]
       }
+    },
+    {
+      "n": 20,
+      "slug": "multi-tenant-rabbitmq-fairness",
+      "category": "product-systems",
+      "effort": "55 min",
+      "level": "advanced",
+      "featured": true,
+      "source_url": "https://voz.vn/t/hoi-dap-xin-tu-van-kien-truc-rabbitmq-giai-quyet-bai-toan-load-balancing-tenant-fairness-tranh-tinh-trang-1-user-spam-lam-tac-nghen-user-khac.1263215/",
+      "source_items": [],
+      "diagram": "flowchart LR\n  T[Tenants] --> A[Admission: quota + backlog cap]\n  A --> J[(Durable job store)]\n  J --> S[DRR scheduler by active tenant]\n  S --> X[RabbitMQ exchange]\n  X --> Q1[[Interactive queue]]\n  X --> Q2[[Bulk shard queues]]\n  Q1 --> W[Bounded workers]\n  Q2 --> W\n  W --> D[Downstream stages]\n  W -->|ACK after idempotent effect| X\n  W --> R[[Bounded retry / DLQ]]\n  R --> S",
+      "en": {
+        "title": "Fair multi-tenant work scheduling with RabbitMQ",
+        "excerpt": "Prevent one tenant's thousand jobs from hiding another tenant's single job by separating admission, scheduling and execution fairness instead of asking prefetch to solve all three.",
+        "scope": "Users submit URLs into a multi-stage worker pipeline. Tenant A can enqueue 1,000 jobs while tenant B submits one latency-sensitive job. The goal is bounded wait and predictable resource share without creating one queue and consumer per tenant. RabbitMQ remains the durable delivery layer; a cost-aware scheduler owns fairness.\n\nThe key distinction is that routing is not scheduling: hashing tenants, raising prefetch or assigning message priority can improve distribution or throughput, but none alone guarantees that a noisy tenant cannot monopolize downstream capacity.",
+        "functional": [
+          "Accept a job with a tenant id, idempotency key, service class, estimated cost and deadline; return accepted, deferred or rejected explicitly.",
+          "Apply per-tenant rate, pending-work and concurrent-cost limits before publishing runnable work.",
+          "Schedule active tenants with Deficit Round Robin, allowing tier weights while guaranteeing progress for every tenant inside its contract.",
+          "Route admitted jobs to a bounded number of interactive and bulk queues, then preserve tenant context through every processing stage.",
+          "Retry transient failures with a separate budget and quarantine poison jobs without resetting their tenant cost.",
+          "Expose job state and cancellation without using RabbitMQ queue position as the product source of truth."
+        ],
+        "quality": [
+          "Fairness: a sustained bulk producer cannot make another admitted tenant wait indefinitely; define maximum runnable age per service tier.",
+          "Backpressure: per-tenant and global backlog are bounded in jobs and estimated cost; overload returns 429 or a truthful deferred state before broker memory becomes the limit.",
+          "Isolation: one tenant's retries, slow target host or downstream rate limit cannot consume every worker, connection or retry slot.",
+          "Delivery: assume at-least-once; ACK only after an idempotent stage effect is durable, and make redelivery safe.",
+          "Availability: scheduler failover may pause dispatch but cannot lose accepted jobs or duplicate an irreversible effect.",
+          "Operability: tenant identity must not become an unbounded metrics label; retain drill-down through sampled logs or a queryable fairness ledger."
+        ],
+        "capacity": [
+          "Model arrival rate, active tenants, jobs per burst, cost distribution and downstream limits separately; 10,000 registered users are not 10,000 simultaneously active queues.",
+          "Set each tenant's pending-cost cap from useful waiting time: admitted backlog must drain before its deadline at the tenant's guaranteed service rate.",
+          "Choose a fixed shard count from broker CPU, recovery time and hot-key skew, then benchmark it; hashing spreads load but does not provide fairness inside a shard.",
+          "Set consumer prefetch near measured executor concurrency and processing-time variance. Prefetch 1 is not a network round trip per message under steady push delivery, while a large value reserves invisible work at consumers.",
+          "Scale workers from oldest runnable age, admitted cost, service time and downstream headroom—not raw queue depth alone.",
+          "Reserve explicit capacity for interactive work and cap bulk share; shed bulk before borrowing capacity required by the interactive SLO."
+        ],
+        "diagram_title": "Admission and cost-aware scheduling before RabbitMQ workers",
+        "data_model": [
+          "Job — job_id, tenant_id, idempotency_key, stage, service_class, estimated_cost, deadline, attempt and state. The durable job store owns lifecycle; a broker delivery is a command to attempt one transition.",
+          "Tenant budget — tenant_id, tier, arrival rate, burst, pending_cost_limit, max_in_flight_cost and retry_budget. Version policy so an operator can explain why a job was admitted or rejected.",
+          "Scheduler state — active tenant, deficit, quantum, cursor and leased cost. Persist enough to rebuild safely; Redis may accelerate active-set operations but must not be the only record of accepted work.",
+          "Stage result — job_id, stage, input_version, output_reference and completed_at under a uniqueness constraint. The constraint turns redelivery into a no-op instead of a duplicate side effect.",
+          "Fairness event — decision id, tenant, policy version, charged cost, wait age and reason code. Keep it queryable with bounded retention rather than attaching tenant_id to every time-series metric."
+        ],
+        "stack": [
+          "Admission API plus relational job store: commit accepted work and an outbox atomically, enforce idempotency and pending limits, and return 429 with Retry-After when the tenant budget is exhausted.",
+          "Deficit Round Robin dispatcher over active tenants: charge estimated work rather than message count, apply tier weights, lease jobs transactionally and publish through the outbox. Weighted Fair Queuing is an alternative when tighter latency bounds justify more scheduling cost.",
+          "RabbitMQ quorum queues for durable stage commands where replicated delivery is required; use a bounded set of queues by service class and shard, publisher confirms, manual ACKs and explicit dead-letter policy.",
+          "Separate channels/consumers with bounded executors: tune per-consumer prefetch to actual concurrency. RabbitMQ consumer priority selects preferred consumers; it is not tenant priority or a fairness algorithm.",
+          "Token buckets and bulkheads at downstream boundaries: enforce tenant/host/API concurrency after delivery because fair dispatch cannot prevent a long job from occupying every scarce connection.",
+          "Observability: publish scheduler lag, oldest runnable age by bounded tier, admitted/served cost share, in-flight cost, redelivery and DLQ age; provide sampled tenant drill-down outside high-cardinality metric labels."
+        ],
+        "tradeoffs": [
+          "Queue per tenant vs bounded queues — dedicated queues give hard isolation and simple per-tenant visibility, but every queue replica is a broker process with metadata and recovery cost. Use them for a small active set or contractual isolation, not automatically for every registered account.",
+          "Hash shards vs fair scheduler — hashing is cheap and preserves tenant affinity, but collisions leave head-of-line blocking inside a shard. A scheduler adds state and a dispatch hop in exchange for an enforceable service share.",
+          "Message priority vs service classes — priority can move urgent ready messages ahead, but it does not measure tenant consumption and strict priority can starve lower classes. Prefer a few isolated queues with reserved worker shares when starvation is unacceptable.",
+          "Prefetch throughput vs fairness — larger prefetch amortizes delivery overhead and keeps workers busy, but reserves work outside broker visibility. Bound it by executor slots and variability instead of raising it until queue depth falls.",
+          "Exact cost vs estimated cost — message count is simple but unfair for heterogeneous jobs; perfect cost is unknowable before execution. Start with coarse weights, feed observed duration back into policy and cap estimation error with max in-flight cost.",
+          "Scheduler database vs Redis — a database makes accepted work and leases recoverable in one authority; Redis makes active-set scheduling fast. If Redis is used, rebuild it from durable job state and define behavior during cache loss.",
+          "Reserved interactive pool vs utilization — reservation protects latency during bulk floods but can idle. Allow controlled borrowing only when it is preemptible and the reserved capacity can be restored before the SLO is breached."
+        ],
+        "source_label": "Discussion prompt adapted and independently verified",
+        "code_samples": [
+          {
+            "title": "Lease one fair batch",
+            "language": "sql",
+            "note": "The scheduler selects the tenant first; SKIP LOCKED only lets dispatcher replicas lease different runnable rows safely.",
+            "code": "BEGIN;\n\nSELECT job_id, estimated_cost\nFROM job\nWHERE tenant_id = :tenant_id\n  AND state = 'RUNNABLE'\n  AND estimated_cost <= :deficit\nORDER BY created_at\nFOR UPDATE SKIP LOCKED\nLIMIT :batch_size;\n\nUPDATE job\nSET state = 'LEASED', lease_until = now() + interval '30 seconds'\nWHERE job_id = ANY(:job_ids);\n\nCOMMIT;",
+            "run": "psql scheduler.sql --set tenant_id=tenant-b --set deficit=20"
+          }
+        ],
+        "tags": [
+          "RabbitMQ",
+          "Multi-tenancy",
+          "Fair scheduling",
+          "DRR",
+          "Backpressure",
+          "Prefetch",
+          "Bulkheads"
+        ],
+        "failure_review": [
+          {
+            "question": "What invariant can break?",
+            "answer": "An admitted tenant must make progress within its service contract, and a stage effect must occur at most once logically despite at-least-once delivery. Quotas, DRR deficit and idempotent stage records protect those two invariants."
+          },
+          {
+            "question": "Which metric detects unfairness first?",
+            "answer": "Oldest runnable age and served-to-admitted cost share by bounded service tier reveal starvation before aggregate queue depth. Correlate them with scheduler lag, in-flight cost and downstream saturation."
+          },
+          {
+            "question": "How is the blast radius contained?",
+            "answer": "Bound pending and in-flight cost per tenant, separate interactive from bulk capacity, and scope retry, connection and downstream limiters. A noisy tenant can exhaust only its own budget and shared bulk allowance."
+          },
+          {
+            "question": "Can retry duplicate or reorder work?",
+            "answer": "Yes. ACK loss and consumer failure redeliver work, while delayed retries reorder it. Consumers fence state transitions by job/stage version, persist effects idempotently and guarantee ordering only for entities that require it."
+          },
+          {
+            "question": "How do we repair and prove recovery?",
+            "answer": "Rebuild scheduler state from durable runnable and leased jobs, expire abandoned leases, replay the outbox with stable message IDs and reconcile stage results. Recovery is complete when old runnable age drains without duplicate effects or tier-share violations."
+          }
+        ]
+      },
+      "vi": {
+        "title": "Lập lịch work đa tenant công bằng với RabbitMQ",
+        "excerpt": "Ngăn 1.000 job của một tenant che mất job duy nhất của tenant khác bằng cách tách admission, scheduling và execution fairness, thay vì bắt prefetch giải cả ba.",
+        "scope": "User gửi URL vào pipeline worker nhiều stage. Tenant A có thể enqueue 1.000 job trong khi tenant B gửi một job nhạy latency. Mục tiêu là thời gian chờ hữu hạn và resource share dự đoán được mà không tạo một queue cùng consumer cho mỗi tenant. RabbitMQ vẫn là durable delivery layer; scheduler hiểu cost mới sở hữu fairness.\n\nPhân biệt cốt lõi: routing không phải scheduling. Hash tenant, tăng prefetch hay gán message priority có thể cải thiện distribution hoặc throughput, nhưng từng cách riêng lẻ không đảm bảo noisy tenant không độc chiếm downstream capacity.",
+        "functional": [
+          "Nhận job kèm tenant id, idempotency key, service class, estimated cost và deadline; trả accepted, deferred hoặc rejected rõ ràng.",
+          "Áp per-tenant rate, pending-work và concurrent-cost limit trước khi publish runnable work.",
+          "Schedule active tenant bằng Deficit Round Robin, cho phép weight theo tier nhưng vẫn đảm bảo mọi tenant trong contract đều tiến triển.",
+          "Route job đã admit vào số lượng hữu hạn interactive/bulk queue, rồi giữ tenant context xuyên suốt mọi processing stage.",
+          "Retry lỗi transient bằng budget riêng và quarantine poison job mà không reset tenant cost.",
+          "Expose job state cùng cancellation mà không dùng vị trí trong RabbitMQ queue làm product source of truth."
+        ],
+        "quality": [
+          "Fairness: bulk producer liên tục không thể khiến tenant đã admit chờ vô hạn; định nghĩa maximum runnable age cho mỗi service tier.",
+          "Backpressure: per-tenant và global backlog bị giới hạn theo số job lẫn estimated cost; overload trả 429 hoặc deferred trung thực trước khi broker memory thành giới hạn.",
+          "Isolation: retry, target host chậm hoặc downstream rate limit của một tenant không được ăn hết worker, connection hay retry slot.",
+          "Delivery: giả định at-least-once; chỉ ACK sau khi effect idempotent của stage đã durable và redelivery phải an toàn.",
+          "Availability: scheduler failover có thể tạm dừng dispatch nhưng không được làm mất accepted job hay lặp irreversible effect.",
+          "Operability: tenant identity không được thành metrics label vô hạn; drill-down qua sampled log hoặc fairness ledger có thể query."
+        ],
+        "capacity": [
+          "Model riêng arrival rate, active tenant, jobs mỗi burst, cost distribution và downstream limit; 10.000 registered user không đồng nghĩa 10.000 active queue cùng lúc.",
+          "Đặt pending-cost cap theo useful waiting time: admitted backlog phải drain trước deadline ở guaranteed service rate của tenant.",
+          "Chọn fixed shard count theo broker CPU, recovery time và hot-key skew rồi benchmark; hashing phân tán load nhưng không tạo fairness trong shard.",
+          "Đặt consumer prefetch gần executor concurrency và processing-time variance đã đo. Prefetch 1 không tạo một network round trip cho mỗi message trong steady push delivery, còn giá trị lớn giữ backlog vô hình ở consumer.",
+          "Scale worker theo oldest runnable age, admitted cost, service time và downstream headroom, không chỉ raw queue depth.",
+          "Reserve capacity rõ cho interactive work và cap bulk share; shed bulk trước khi mượn phần capacity cần để giữ interactive SLO."
+        ],
+        "diagram_title": "Admission và cost-aware scheduling trước RabbitMQ worker",
+        "data_model": [
+          "Job — job_id, tenant_id, idempotency_key, stage, service_class, estimated_cost, deadline, attempt và state. Durable job store sở hữu lifecycle; broker delivery chỉ là lệnh thử một transition.",
+          "Tenant budget — tenant_id, tier, arrival rate, burst, pending_cost_limit, max_in_flight_cost và retry_budget. Version policy để operator giải thích được vì sao job được nhận hoặc từ chối.",
+          "Scheduler state — active tenant, deficit, quantum, cursor và leased cost. Persist đủ để rebuild an toàn; Redis có thể tăng tốc active-set nhưng không được là record duy nhất của accepted work.",
+          "Stage result — job_id, stage, input_version, output_reference và completed_at dưới unique constraint. Constraint biến redelivery thành no-op thay vì duplicate side effect.",
+          "Fairness event — decision id, tenant, policy version, charged cost, wait age và reason code. Giữ queryable với retention hữu hạn thay vì gắn tenant_id vào mọi time-series metric."
+        ],
+        "stack": [
+          "Admission API cùng relational job store: commit accepted work và outbox atomically, enforce idempotency/pending limit, trả 429 kèm Retry-After khi tenant hết budget.",
+          "Deficit Round Robin dispatcher trên active tenant: tính estimated work thay vì message count, áp tier weight, lease job bằng transaction và publish qua outbox. Weighted Fair Queuing là lựa chọn khi latency bound chặt đáng trả scheduling cost cao hơn.",
+          "RabbitMQ quorum queue cho durable stage command khi cần replicated delivery; dùng tập queue hữu hạn theo service class và shard, publisher confirm, manual ACK cùng dead-letter policy rõ.",
+          "Channel/consumer riêng với bounded executor: tune per-consumer prefetch theo concurrency thật. RabbitMQ consumer priority chọn preferred consumer; nó không phải tenant priority hay fairness algorithm.",
+          "Token bucket và bulkhead tại downstream boundary: enforce tenant/host/API concurrency sau delivery vì fair dispatch không ngăn long job chiếm mọi scarce connection.",
+          "Observability: publish scheduler lag, oldest runnable age theo bounded tier, admitted/served cost share, in-flight cost, redelivery và DLQ age; tenant drill-down dùng sample ngoài metrics label high-cardinality."
+        ],
+        "tradeoffs": [
+          "Queue per tenant vs bounded queues — dedicated queue cho hard isolation và visibility đơn giản, nhưng mỗi queue replica là một broker process kèm metadata/recovery cost. Chỉ dùng cho active set nhỏ hoặc isolation có hợp đồng, không tự động cho mọi account đăng ký.",
+          "Hash shard vs fair scheduler — hashing rẻ và giữ tenant affinity, nhưng collision vẫn gây head-of-line blocking trong shard. Scheduler thêm state và một dispatch hop để đổi lấy service share enforce được.",
+          "Message priority vs service class — priority có thể đưa urgent ready message lên trước, nhưng không đo tenant consumption và strict priority có thể làm đói class thấp. Dùng vài queue cô lập với reserved worker share khi không chấp nhận starvation.",
+          "Prefetch throughput vs fairness — prefetch lớn amortize delivery overhead và giữ worker bận nhưng reserve work ngoài broker visibility. Bound theo executor slot và variance thay vì tăng tới khi queue depth giảm.",
+          "Exact cost vs estimated cost — message count đơn giản nhưng bất công với job không đồng nhất; perfect cost không biết được trước execution. Khởi đầu bằng coarse weight, đưa observed duration về policy và cap estimation error bằng max in-flight cost.",
+          "Scheduler database vs Redis — database làm accepted work và lease recoverable trong một authority; Redis giúp active-set scheduling nhanh. Nếu dùng Redis, phải rebuild từ durable job state và định nghĩa behavior khi cache mất.",
+          "Reserved interactive pool vs utilization — reservation bảo vệ latency khi bulk flood nhưng có thể idle. Chỉ cho borrow có kiểm soát khi preemptible và restore được reserved capacity trước lúc breach SLO."
+        ],
+        "source_label": "Đề bài thảo luận được biên soạn và kiểm chứng độc lập",
+        "code_samples": [
+          {
+            "title": "Lease một fair batch",
+            "language": "sql",
+            "note": "Scheduler chọn tenant trước; SKIP LOCKED chỉ giúp các dispatcher replica lease những runnable row khác nhau an toàn.",
+            "code": "BEGIN;\n\nSELECT job_id, estimated_cost\nFROM job\nWHERE tenant_id = :tenant_id\n  AND state = 'RUNNABLE'\n  AND estimated_cost <= :deficit\nORDER BY created_at\nFOR UPDATE SKIP LOCKED\nLIMIT :batch_size;\n\nUPDATE job\nSET state = 'LEASED', lease_until = now() + interval '30 seconds'\nWHERE job_id = ANY(:job_ids);\n\nCOMMIT;",
+            "run": "psql scheduler.sql --set tenant_id=tenant-b --set deficit=20"
+          }
+        ],
+        "tags": [
+          "RabbitMQ",
+          "Multi-tenancy",
+          "Fair scheduling",
+          "DRR",
+          "Backpressure",
+          "Prefetch",
+          "Bulkhead"
+        ],
+        "failure_review": [
+          {
+            "question": "Invariant nào có thể break?",
+            "answer": "Tenant đã admit phải tiến triển trong service contract, và stage effect chỉ được xảy ra một lần về mặt logic dù delivery at-least-once. Quota, DRR deficit cùng idempotent stage record bảo vệ hai invariant này."
+          },
+          {
+            "question": "Metric nào phát hiện unfairness đầu tiên?",
+            "answer": "Oldest runnable age và served/admitted cost share theo bounded service tier lộ starvation trước aggregate queue depth. Correlate với scheduler lag, in-flight cost và downstream saturation."
+          },
+          {
+            "question": "Blast radius được contain thế nào?",
+            "answer": "Bound pending/in-flight cost theo tenant, tách interactive khỏi bulk capacity, scope retry, connection và downstream limiter. Noisy tenant chỉ làm cạn budget riêng cùng shared bulk allowance."
+          },
+          {
+            "question": "Retry có duplicate hoặc reorder work không?",
+            "answer": "Có. ACK loss và consumer failure gây redelivery, delayed retry làm reorder. Consumer fence state transition theo job/stage version, persist effect idempotently và chỉ guarantee order cho entity thực sự cần."
+          },
+          {
+            "question": "Repair và prove recovery thế nào?",
+            "answer": "Rebuild scheduler state từ durable runnable/leased job, expire lease bị bỏ, replay outbox bằng stable message ID và reconcile stage result. Recovery xong khi old runnable age drain mà không có duplicate effect hay vi phạm tier share."
+          }
+        ]
+      }
     }
   ],
   "case_overviews": {

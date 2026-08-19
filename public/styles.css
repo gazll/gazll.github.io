@@ -501,6 +501,31 @@
   .cs-source span{font-family:"IBM Plex Mono",monospace;font-size:10px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted)}
   .cs-source a{color:var(--emerald-deep);text-decoration:none}
   .cs-source a:hover{text-decoration:underline;text-underline-offset:3px}
+  .sd-blueprint-source{display:flex;align-items:center;gap:10px;margin:16px 0 0!important;font-size:12px!important}
+  .sd-blueprint-source span{font-family:"IBM Plex Mono",monospace;font-size:10px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted)}
+  .sd-blueprint-source a{color:var(--emerald-deep);text-decoration:none}
+  .sd-blueprint-source a:hover{text-decoration:underline;text-underline-offset:3px}
+  .iv-diagrams{display:grid;gap:16px;margin-top:22px}
+  .iv-diagrams>h4{margin:0;font-family:"Space Grotesk",sans-serif;color:var(--ink)}
+  .iv-diagram{margin:0;border:1px solid #cdd5ef;border-radius:12px;background:#FBFCFE;overflow:hidden}
+  .iv-diagram>figcaption{display:flex;align-items:baseline;gap:10px;padding:11px 14px;border-bottom:1px solid #dce2f2;background:var(--indigo-soft)}
+  .iv-diagram>figcaption span{font-family:"IBM Plex Mono",monospace;font-size:9px;text-transform:uppercase;letter-spacing:.6px;color:var(--indigo)}
+  .iv-diagram>figcaption strong{font-family:"Space Grotesk",sans-serif;color:var(--ink)}
+  .iv-diagram-viewport{overflow:auto;background:#fff}
+  .iv-diagram-viewport>.mermaid{margin:0;padding:22px 14px;min-height:180px;display:grid;place-items:center;white-space:pre}
+  .iv-diagram-viewport>.mermaid[data-processed]{display:block;min-height:0}
+  .iv-diagram-viewport>.mermaid svg{display:block;width:100%;max-width:none;height:auto}
+  .iv-diagram-review{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:14px;border-top:1px solid var(--line)}
+  .iv-diagram-review section{padding:11px 12px;border-radius:9px;background:var(--surface)}
+  .iv-diagram-review section:first-child{border-left:3px solid var(--red)}
+  .iv-diagram-review section:last-child{border-left:3px solid var(--emerald)}
+  .iv-diagram-review h5{margin:0 0 6px;font-family:"IBM Plex Mono",monospace;font-size:10px;text-transform:uppercase;letter-spacing:.5px}
+  .iv-diagram-review ul{margin:0;padding-left:18px}
+  .iv-diagram-review li{margin:5px 0;font-size:12px;line-height:1.55}
+  .iv-diagram-status{margin:0;padding:10px 14px;background:#faf5e9;color:#70582f;font-size:11px}
+  .iv-diagram-source{border-top:1px solid var(--line);background:#F7F9FC}
+  .iv-diagram-source summary{cursor:pointer;padding:8px 14px;font-family:"IBM Plex Mono",monospace;font-size:10px;color:var(--muted)}
+  .iv-diagram-source pre{margin:0;border:0;border-radius:0;max-height:300px}
 
   .cs-lightbox{width:min(96vw,1500px);max-width:none;max-height:94vh;padding:46px 18px 18px;border:1px solid var(--line-strong);
     border-radius:14px;background:var(--surface);box-shadow:0 28px 80px -24px rgba(8,25,45,.7);overflow:auto}
@@ -811,6 +836,12 @@
   .seed-badge{font-family:"IBM Plex Mono",monospace;font-size:10.5px;font-weight:600;letter-spacing:.4px;
     text-transform:uppercase;padding:3px 9px;border-radius:999px;white-space:nowrap;
     color:var(--indigo);border:1px solid #cdd5ef;background:var(--indigo-soft)}
+  .entry-kind{font-family:"IBM Plex Mono",monospace;font-size:10.5px;font-weight:600;letter-spacing:.35px;
+    text-transform:uppercase;padding:3px 9px;border-radius:999px;white-space:nowrap;
+    color:var(--emerald-deep);border:1px solid #cfe6da;background:var(--emerald-soft)}
+  .iv-source{display:inline-flex;margin:0 0 4px;font-family:"IBM Plex Mono",monospace;font-size:11px;
+    color:var(--indigo);text-decoration:none;border-bottom:1px solid #cdd5ef}
+  .iv-source:hover{color:var(--ink);border-bottom-color:var(--ink)}
   .company .qcard{margin-top:10px}
   .qround{font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--indigo);background:var(--indigo-soft);
     border:1px solid #cdd5ef;border-radius:999px;padding:2px 8px;white-space:nowrap}
@@ -1102,6 +1133,9 @@
     .qcopy{padding:4px}
     .qcopy-label{display:none}
     .answer{padding:2px 14px 16px 14px}
+    .iv-diagram>figcaption{align-items:flex-start;flex-direction:column;gap:4px}
+    .iv-diagram-review{grid-template-columns:1fr;padding:10px}
+    .iv-diagram-viewport>.mermaid{padding:18px 8px}
     /* page (markdown views) */
     .page{padding:20px 18px}
     /* Player: the scrub takes its own row so the buttons keep a tappable size. */

@@ -1,22 +1,22 @@
 {
   "body_file": "data/case-studies/articles/12-duplicate-booking-race-condition.vi.html",
   "guide": {
-    "title": "Đọc bài này như một câu chuyện về việc đặt sai tên cho nguyên nhân, rồi mới tới chuyện concurrency.",
-    "problem": "Một booking endpoint tạo hai itinerary record cho cùng một passenger trên cùng một flight, cách nhau vài chục mili-giây. Guard ở backend là một phép check-then-act trên window 25 ms, còn cơ chế optimistic lock bảo vệ nó lại dùng timestamp có resolution một giây — thô hơn chính khoảng cách giữa hai duplicate request mà nó sinh ra để bắt.",
-    "core_idea": "Ngừng quyết định dựa trên giá trị vừa đọc, chuyển sang quyết định dựa trên số row mà một conditional write thực sự update được. Một column VERSION monotonic tường minh biến state transition thành một atomic statement do database phân xử, nên không còn gap nào giữa check và act. Chặn request ở biên, theo User-Agent hay theo HTTP method, chỉ gỡ đi bộ quần áo mà bản sao tình cờ đang mặc.",
-    "outcome": "Patch đầu chặn một User-Agent string và cho ra số liệu thật, trung thực: 117 request bị chặn trong 33 ngày và không có duplicate alert nào. Nó được kết luận là đã fix. Hai năm rưỡi sau, đúng mechanism đó quay lại dưới dạng một HEAD request mang UA của chính browser người dùng, và solution đúng — từng bị loại năm 2024 vì 21 ngày so với 2 — cuối cùng được làm trong 5 ngày, trải trên 5 repository, 12 màn hình và 39 integration case.",
+    "title": "Một case race condition về sửa invariant bị vi phạm, không chạy theo lớp ngụy trang mới của request.",
+    "problem": "Hai request đến cách nhau vài mili-giây, cùng đọc booking session là available rồi cùng tạo airline record. Guard là check-then-act trên window 25 ms; optimistic-lock timestamp chỉ có resolution một giây.",
+    "core_idea": "Biến state transition thành conditional database write với column VERSION monotonic. Đúng một request update expected version; affected-row count xác định winner mà không để lại gap giữa check và act.",
+    "outcome": "User-Agent block dập một trigger và khiến alert im hai năm rưỡi, nhưng race quay lại dưới dạng HEAD. Final fix kết hợp database-enforced optimistic locking, explicit HEAD rejection và deterministic concurrency test.",
     "takeaways": [
-      "Check-then-act không phải mutual exclusion. Đọc một flag rồi hành động dựa trên nó chỉ đúng khi không ai ghi flag đó ở giữa, và failure condition của nó vô hình khi đọc code tuần tự — guard này đọc vào thấy hợp lý và vẫn chặn tốt mọi request đến muộn.",
-      "Một version có resolution thô hơn tốc độ đến của request thì không phải version, nó chỉ trông giống một cái lock. Hai duplicate request thì theo định nghĩa là hai event gần nhau, nên timestamp tới giây sẽ đặt cả hai vào cùng một rounding interval đúng vào lúc điều đó quan trọng nhất.",
-      "Làm một correctness bug hiếm đi không phải là fix nó. Nâng timestamp lên microsecond precision kéo probability va chạm xuống rất thấp và bị loại đúng vì lý do đó: ranh giới giữa ít gặp hơn và không thể xảy ra đáng được giữ, kể cả khi option yếu hơn rẻ hơn một ngày công.",
-      "Chặn theo identity thì phải liệt kê vô hạn; chặn theo bản chất thì chỉ cần một lần. Một User-Agent string không bao giờ là enumeration đầy đủ của mọi thứ có thể replay một URL, nhưng chỉ có đúng một row mà mọi duplicate request đều phải đi qua.",
-      "Hết alert không đồng nghĩa với đã fix xong, và cái tên đặt cho nguyên nhân sẽ lặng lẽ chọn hộ solution. Gọi tác nhân là Googlebot thì chặn Googlebot thành patch hiển nhiên, trong khi bằng chứng phản bác diagnosis đó vốn đã nằm sẵn trong chính investigation file."
+      "Check-then-act không phải mutual exclusion: hai request có thể đọc cùng state trước khi write nào visible, dù code trông hoàn toàn đúng khi đọc tuần tự.",
+      "Timestamp có resolution thô hơn request arrival không phải version token đáng tin; precision cao hơn chỉ giảm probability chứ không tạo guarantee.",
+      "Chặn User-Agent hay HTTP method chỉ bỏ một trigger đã biết, không bỏ race. Correctness phải nằm ở shared database transition mà mọi contender đi qua.",
+      "Affected-row count biến optimistic locking thành quyết định rõ ràng: một conditional update thành công, mọi contender thua thấy zero updated row.",
+      "Row version bảo vệ một session, không bảo vệ toàn booking intent. Retry qua session khác vẫn cần idempotency key đứng sau unique constraint."
     ],
     "review_lenses": [
-      "Trong hệ thống này, chỗ nào đang quyết định bằng cách đọc một giá trị trước rồi mới ghi, và chuyện gì xảy ra nếu một request thứ hai đọc xen vào giữa hai bước đó?",
-      "Nếu một GET hay HEAD lên bất kỳ endpoint nào ở đây có side effect, layer nào từ chối nó — routing configuration, hay một câu if mà mỗi handler mới đều phải nhớ?",
-      "Khi không acceptance test được, evidence đo được nào thay thế, và evidence đó có bao gồm positive signal rằng flow bình thường vẫn chạy không?",
-      "Assumption nào đang lặng lẽ gánh cả patch — ở đây là việc hai bản sao chia sẻ cùng một session row — và những duplicate thật nào sẽ nằm ngoài assumption đó?"
+      "Invariant: business effect nào phải xảy ra đúng một lần, và shared row hay unique key nào có thể atomic adjudicate nó?",
+      "Concurrency: read/write gap nằm đâu, và request có thể tới đó qua process, method, retry hoặc device khác nhau không?",
+      "Evidence: alert im có chứng minh invariant hay chỉ cho thấy một observed trigger không còn tạo signature cũ?",
+      "Verification: barrier hoặc injected delay có thể reproduce race tất định và assert đúng một committed side effect không?"
     ]
   }
 }
