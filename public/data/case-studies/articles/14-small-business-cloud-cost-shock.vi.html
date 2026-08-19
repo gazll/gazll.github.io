@@ -6,7 +6,7 @@
 <p>Thiết kế chịu ảnh hưởng từ kinh nghiệm ở chính những hệ thống lớn đó. Account plan ban đầu tách development, staging và production, sau đó thêm account riêng cho identity, deployment và long-term log. IAM Identity Center cấp permission set; CodePipeline, CodeBuild và CodeDeploy tạo CI/CD hub; một account khác giữ audit log tập trung.</p>
 <figure class="cs-figure cs-figure-wide">
   <button type="button" data-zoom-image aria-label="Mở cấu trúc AWS account dự kiến ở kích thước đầy đủ">
-    <img src="assets/case-studies/14-small-business-cloud-cost-shock/01-figure.jpg" width="2000" height="1454" loading="lazy" decoding="async" alt="AWS organization dự kiến gồm development, staging, production, identity, deployment và log archive account.">
+    <img src="assets/case-studies/14-small-business-cloud-cost-shock/01-figure.webp" width="2000" height="1454" loading="lazy" decoding="async" alt="AWS organization dự kiến gồm development, staging, production, identity, deployment và log archive account.">
   </button>
   <figcaption>Account topology dự kiến: isolation mạnh nhưng quá nhiều operational surface cho một team rất nhỏ.</figcaption>
 </figure>
@@ -16,7 +16,7 @@
 <p>Kiến trúc dự kiến kết hợp Route 53, WAF, CloudFront và S3 ở edge; Cognito cùng API Gateway; hai ECS cluster sau load balancer; hai RDS database; Step Functions và batch job; nhiều VPC endpoint; CloudWatch, Firehose và log archive; cộng với deployment, security và governance service.</p>
 <figure class="cs-figure cs-figure-wide">
   <button type="button" data-zoom-image aria-label="Mở AWS architecture dự kiến ở kích thước đầy đủ">
-    <img src="assets/case-studies/14-small-business-cloud-cost-shock/02-figure.jpg" width="2784" height="1704" loading="lazy" decoding="async" alt="Cloud Exam Pro AWS architecture dự kiến với ECS và RDS nhân đôi, load balancer, private endpoint, logging và CI/CD service.">
+    <img src="assets/case-studies/14-small-business-cloud-cost-shock/02-figure.webp" width="2784" height="1704" loading="lazy" decoding="async" alt="Cloud Exam Pro AWS architecture dự kiến với ECS và RDS nhân đôi, load balancer, private endpoint, logging và CI/CD service.">
   </button>
   <figcaption>Kiến trúc dự kiến tích lũy nhiều component always-on và control-plane tính theo giờ trước khi launch.</figcaption>
 </figure>
@@ -27,14 +27,14 @@
 <p>Trước khi hoàn tất toàn bộ thiết kế, team bỏ staging, account deployment riêng và account log archive. GitHub Actions thay AWS CI/CD hub. Development với production vẫn tách biệt và IAM vẫn centralized.</p>
 <figure class="cs-figure cs-figure-wide">
   <button type="button" data-zoom-image aria-label="Mở cấu trúc AWS account đã đơn giản hóa ở kích thước đầy đủ">
-    <img src="assets/case-studies/14-small-business-cloud-cost-shock/03-figure.jpg" width="2110" height="1192" loading="lazy" decoding="async" alt="AWS organization đã đơn giản hóa, giữ identity, development và production account, bỏ staging, deployment và log archive account.">
+    <img src="assets/case-studies/14-small-business-cloud-cost-shock/03-figure.webp" width="2110" height="1192" loading="lazy" decoding="async" alt="AWS organization đã đơn giản hóa, giữ identity, development và production account, bỏ staging, deployment và log archive account.">
   </button>
   <figcaption>Organization sửa lại giữ identity cùng dev/prod separation và bỏ ba account surface dự kiến.</figcaption>
 </figure>
 <p>Kiến trúc chạy thật nhỏ hơn nhưng vẫn tinh vi: path ECS/RDS riêng cho user và operator, load balancer, API Gateway, Cognito, batch workflow, VPC endpoint cùng các security và observability service thông thường. Phân biệt này rất quan trọng. Xóa account có thể giảm governance work nhưng không tự xóa billable resource nằm trong các account còn lại.</p>
 <figure class="cs-figure cs-figure-wide">
   <button type="button" data-zoom-image aria-label="Mở AWS architecture đang chạy đã đơn giản hóa ở kích thước đầy đủ">
-    <img src="assets/case-studies/14-small-business-cloud-cost-shock/04-figure.jpg" width="2768" height="1536" loading="lazy" decoding="async" alt="Kiến trúc đang chạy đã đơn giản hóa với dev và production, hai path ECS/RDS, load balancer, batch processing và VPC endpoint.">
+    <img src="assets/case-studies/14-small-business-cloud-cost-shock/04-figure.webp" width="2768" height="1536" loading="lazy" decoding="async" alt="Kiến trúc đang chạy đã đơn giản hóa với dev và production, hai path ECS/RDS, load balancer, batch processing và VPC endpoint.">
   </button>
   <figcaption>Simplified chưa đồng nghĩa cheap: stateful layer và networking layer nhân đôi vẫn còn rõ trên sơ đồ.</figcaption>
 </figure>

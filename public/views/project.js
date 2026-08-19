@@ -1,6 +1,8 @@
 import { escapeHtml, renderMarkdown } from '../lib/markdown.js';
 import { ProjectDocs } from '../lib/project.js';
 import { Content } from '../lib/content.js';
+import { contentDateFacts } from '../lib/content-dates.js';
+import { setArticleStructuredData } from '../lib/structured-data.js';
 import { anchorHref, decorateHeadingPermalinks, scrollToAnchor, withRouteLanguage } from '../lib/anchors.js';
 
 let mountToken = 0;
@@ -63,12 +65,23 @@ function renderModules(modules) {
     + '<p>' + escapeHtml(module.role) + '</p></article>').join('') + '</div>';
 }
 
+function dateFacts(row) {
+  return contentDateFacts(row, Content.lang).map(fact => '<span><b>' + escapeHtml(fact.label) + '</b> <time datetime="'
+    + escapeHtml(fact.value) + '">' + escapeHtml(fact.formatted) + '</time></span>').join('');
+}
+
+function updatedBadge(row) {
+  const facts = contentDateFacts(row, Content.lang);
+  const fact = facts.find(candidate => candidate.kind === 'updated') || facts.at(-1);
+  return fact ? '<time class="pj-updated" datetime="' + escapeHtml(fact.value) + '">' + escapeHtml(fact.label + ' ' + fact.formatted) + '</time>' : '';
+}
+
 function renderSamples(samples, bodies) {
   return '<div class="pj-sample-list">' + (samples || []).map((sample, index) => {
     const body = bodies.get(sample.id) || '';
     return '<details class="pj-sample"' + (index < 3 ? ' open' : '') + ' id="sample-' + escapeHtml(sample.id) + '">'
       + '<summary><span><strong>' + escapeHtml(sample.title) + '</strong><small>'
-      + escapeHtml(sample.focus) + '</small></span><code>' + escapeHtml(sample.language) + '</code></summary>'
+      + escapeHtml(sample.focus) + '</small>' + updatedBadge(sample) + '</span><code>' + escapeHtml(sample.language) + '</code></summary>'
       + '<div class="pj-sample-body"><div class="pj-source-line"><span>' + text('sampleSource') + '</span><code>'
       + escapeHtml(sample.source) + '</code>' + (sample.id === 'gateway-config' ? '<em>' + text('sanitized') + '</em>' : '') + '</div>'
       + '<pre><code class="language-' + escapeHtml(sample.language) + '">' + escapeHtml(body) + '</code></pre></div></details>';
@@ -89,7 +102,8 @@ function renderDocuments(documents, bodies) {
         const body = bodies.get(documentMeta.id) || '';
         return '<details class="pj-doc"' + (groups.length === 0 && index === 0 ? ' open' : '')
           + ' id="doc-' + escapeHtml(documentMeta.id) + '"><summary><span><strong>'
-          + escapeHtml(documentMeta.title) + '</strong><small>' + escapeHtml(documentMeta.source) + '</small></span>'
+          + escapeHtml(documentMeta.title) + '</strong><small>' + escapeHtml(documentMeta.source) + '</small>'
+          + updatedBadge(documentMeta) + '</span>'
           + '<b>↘</b></summary><div class="pj-doc-body">' + renderMarkdown(body, {
             headingPrefix: 'doc-' + documentMeta.id,
             headingRoute: PROJECT_ROUTE,
@@ -125,7 +139,8 @@ function renderArticle(manifest, documentBodies, sampleBodies) {
     + '<p class="pj-deck">' + escapeHtml(project.intro) + '</p>' + stats
     + '<div class="pj-meta"><span><b>' + text('status') + '</b> ' + escapeHtml(project.status) + '</span>'
     + '<span><b>' + text('sourceSnapshot') + '</b> ' + escapeHtml(manifest.snapshot) + '</span>'
-    + '<span><b>' + text('root') + '</b> <code>' + escapeHtml(project.source_root) + '</code></span></div>'
+    + '<span><b>' + text('root') + '</b> <code>' + escapeHtml(project.source_root) + '</code></span>'
+    + dateFacts(manifest) + '</div>'
     + '<p class="pj-note">' + escapeHtml(project.owner_note) + '</p></header>'
     + '<details class="pj-toc-mobile"><summary>' + text('contents') + '</summary><nav>' + renderToc() + '</nav></details>'
     + '<div class="pj-grid"><aside class="pj-toc"><p>' + text('contents') + '</p><nav>' + renderToc() + '</nav></aside>'
@@ -186,6 +201,12 @@ export async function mountProject(host, routeParts = [], anchor = '') {
     root.innerHTML = renderArticle(manifest, new Map(documentBodies), new Map(sampleBodies));
     decorateHeadingPermalinks(root);
     document.title = 'CalebZone Project · Backend Engineering';
+    setArticleStructuredData(manifest, {
+      headline: localizedManifest(manifest).project.title,
+      description: localizedManifest(manifest).project.intro,
+      lang: Content.lang,
+      url: window.location.href
+    });
     wireToc(root);
     if (anchor) requestAnimationFrame(() => scrollToAnchor(root, anchor, { behavior: 'auto' }));
   } catch (error) {

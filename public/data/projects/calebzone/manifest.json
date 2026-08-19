@@ -30,11 +30,26 @@
         "documents": "Các tài liệu source bên dưới được giữ như reading material có thể mở/đóng. Heading, table và fenced code block được render tại chỗ; source path luôn hiển thị trên mỗi entry."
       },
       "modules": [
-        { "name": "core", "role": "Shared domain primitive, error model, validation, search specification và exception handling dùng chung." },
-        { "name": "auth", "role": "Authentication, user, role, permission, JWT issuance và các security-specific API." },
-        { "name": "air", "role": "Flight-search bounded context với hexagonal port, Redis cache, persistence và Sabre integration." },
-        { "name": "ai-recognition", "role": "Flight/search recognition service với reactive infrastructure và security/configuration pattern dùng chung." },
-        { "name": "gateway", "role": "Reactive edge: routing, JWT verification, identity forwarding, rate limiting, retry, circuit breaker và observability." }
+        {
+          "name": "core",
+          "role": "Shared domain primitive, error model, validation, search specification và exception handling dùng chung."
+        },
+        {
+          "name": "auth",
+          "role": "Authentication, user, role, permission, JWT issuance và các security-specific API."
+        },
+        {
+          "name": "air",
+          "role": "Flight-search bounded context với hexagonal port, Redis cache, persistence và Sabre integration."
+        },
+        {
+          "name": "ai-recognition",
+          "role": "Flight/search recognition service với reactive infrastructure và security/configuration pattern dùng chung."
+        },
+        {
+          "name": "gateway",
+          "role": "Reactive edge: routing, JWT verification, identity forwarding, rate limiting, retry, circuit breaker và observability."
+        }
       ],
       "requirements": [
         "Expose một client-facing gateway ở port 8080 và route traffic auth, air, AI tới các service độc lập.",
@@ -68,11 +83,26 @@
     "Sabre GDS adapter"
   ],
   "modules": [
-    { "name": "core", "role": "Shared domain primitives, error model, validation, search specifications and reusable exception handling." },
-    { "name": "auth", "role": "Authentication, users, roles, permissions, JWT issuance and security-specific APIs." },
-    { "name": "air", "role": "Flight search bounded context with hexagonal ports, Redis cache, persistence and Sabre integration." },
-    { "name": "ai-recognition", "role": "Flight/search recognition service with reactive infrastructure and shared security/configuration patterns." },
-    { "name": "gateway", "role": "Reactive edge: routing, JWT verification, identity forwarding, rate limiting, retries, circuit breakers and observability." }
+    {
+      "name": "core",
+      "role": "Shared domain primitives, error model, validation, search specifications and reusable exception handling."
+    },
+    {
+      "name": "auth",
+      "role": "Authentication, users, roles, permissions, JWT issuance and security-specific APIs."
+    },
+    {
+      "name": "air",
+      "role": "Flight search bounded context with hexagonal ports, Redis cache, persistence and Sabre integration."
+    },
+    {
+      "name": "ai-recognition",
+      "role": "Flight/search recognition service with reactive infrastructure and shared security/configuration patterns."
+    },
+    {
+      "name": "gateway",
+      "role": "Reactive edge: routing, JWT verification, identity forwarding, rate limiting, retries, circuit breakers and observability."
+    }
   ],
   "requirements": [
     "Expose one client-facing gateway on port 8080 and route auth, air and AI traffic to independent services.",
@@ -93,27 +123,196 @@
     ]
   },
   "documents": [
-    { "id": "repository-readme", "title": "Repository overview", "category": "Overview", "source": "README.md", "file": "projects/calebzone/docs/01-repository-readme.md" },
-    { "id": "api-spec", "title": "RealWorld API specification", "category": "API contract", "source": "doc/README.md", "file": "projects/calebzone/docs/02-realworld-api-spec.md" },
-    { "id": "architecture-investigate", "title": "DDD, layered, hexagonal and clean architecture investigation", "category": "Architecture", "source": "doc/architecture_investigate.md", "file": "projects/calebzone/docs/03-architecture-investigate.md" },
-    { "id": "air-architecture", "title": "Air module architecture", "category": "Architecture", "source": "air/ARCHITECTURE.md", "file": "projects/calebzone/docs/04-air-architecture.md" },
-    { "id": "gateway-architecture", "title": "Gateway architecture overview", "category": "Gateway", "source": "gateway/ARCHITECTURE_OVERVIEW.md", "file": "projects/calebzone/docs/05-gateway-architecture.md" },
-    { "id": "gateway-api", "title": "Gateway API documentation", "category": "Gateway", "source": "gateway/API_DOCUMENTATION.md", "file": "projects/calebzone/docs/06-gateway-api.md" },
-    { "id": "gateway-readme", "title": "Gateway README", "category": "Gateway", "source": "gateway/README.md", "file": "projects/calebzone/docs/07-gateway-readme.md" },
-    { "id": "gateway-readme-en", "title": "Gateway README (English)", "category": "Gateway", "source": "gateway/README_EN.md", "file": "projects/calebzone/docs/08-gateway-readme-en.md" },
-    { "id": "gateway-implementation", "title": "Gateway implementation summary", "category": "Implementation", "source": "gateway/IMPLEMENTATION_SUMMARY_NEW.md", "file": "projects/calebzone/docs/09-gateway-implementation.md" },
-    { "id": "gateway-quick-start", "title": "Gateway quick start", "category": "Operations", "source": "gateway/QUICK_START.md", "file": "projects/calebzone/docs/10-gateway-quick-start.md" },
-    { "id": "gateway-checklist", "title": "Gateway development checklist", "category": "Operations", "source": "gateway/DEVELOPMENT_CHECKLIST.md", "file": "projects/calebzone/docs/11-gateway-checklist.md" },
-    { "id": "exception-i18n", "title": "Exception handling and i18n guide", "category": "Cross-cutting", "source": "doc/EXCEPTION_HANDLING_I18N.md", "file": "projects/calebzone/docs/12-exception-i18n.md" },
-    { "id": "exception-summary", "title": "Exception handling implementation summary", "category": "Cross-cutting", "source": "doc/IMPLEMENTATION_SUMMARY.md", "file": "projects/calebzone/docs/13-exception-summary.md" }
+    {
+      "id": "repository-readme",
+      "title": "Repository overview",
+      "category": "Overview",
+      "source": "README.md",
+      "file": "projects/calebzone/docs/01-repository-readme.md",
+      "created_at": "2026-08-12",
+      "updated_at": "2026-08-12"
+    },
+    {
+      "id": "api-spec",
+      "title": "RealWorld API specification",
+      "category": "API contract",
+      "source": "doc/README.md",
+      "file": "projects/calebzone/docs/02-realworld-api-spec.md",
+      "created_at": "2026-08-12",
+      "updated_at": "2026-08-12"
+    },
+    {
+      "id": "architecture-investigate",
+      "title": "DDD, layered, hexagonal and clean architecture investigation",
+      "category": "Architecture",
+      "source": "doc/architecture_investigate.md",
+      "file": "projects/calebzone/docs/03-architecture-investigate.md",
+      "created_at": "2026-08-12",
+      "updated_at": "2026-08-12"
+    },
+    {
+      "id": "air-architecture",
+      "title": "Air module architecture",
+      "category": "Architecture",
+      "source": "air/ARCHITECTURE.md",
+      "file": "projects/calebzone/docs/04-air-architecture.md",
+      "created_at": "2026-08-12",
+      "updated_at": "2026-08-12"
+    },
+    {
+      "id": "gateway-architecture",
+      "title": "Gateway architecture overview",
+      "category": "Gateway",
+      "source": "gateway/ARCHITECTURE_OVERVIEW.md",
+      "file": "projects/calebzone/docs/05-gateway-architecture.md",
+      "created_at": "2026-08-12",
+      "updated_at": "2026-08-12"
+    },
+    {
+      "id": "gateway-api",
+      "title": "Gateway API documentation",
+      "category": "Gateway",
+      "source": "gateway/API_DOCUMENTATION.md",
+      "file": "projects/calebzone/docs/06-gateway-api.md",
+      "created_at": "2026-08-12",
+      "updated_at": "2026-08-12"
+    },
+    {
+      "id": "gateway-readme",
+      "title": "Gateway README",
+      "category": "Gateway",
+      "source": "gateway/README.md",
+      "file": "projects/calebzone/docs/07-gateway-readme.md",
+      "created_at": "2026-08-12",
+      "updated_at": "2026-08-12"
+    },
+    {
+      "id": "gateway-readme-en",
+      "title": "Gateway README (English)",
+      "category": "Gateway",
+      "source": "gateway/README_EN.md",
+      "file": "projects/calebzone/docs/08-gateway-readme-en.md",
+      "created_at": "2026-08-12",
+      "updated_at": "2026-08-12"
+    },
+    {
+      "id": "gateway-implementation",
+      "title": "Gateway implementation summary",
+      "category": "Implementation",
+      "source": "gateway/IMPLEMENTATION_SUMMARY_NEW.md",
+      "file": "projects/calebzone/docs/09-gateway-implementation.md",
+      "created_at": "2026-08-12",
+      "updated_at": "2026-08-12"
+    },
+    {
+      "id": "gateway-quick-start",
+      "title": "Gateway quick start",
+      "category": "Operations",
+      "source": "gateway/QUICK_START.md",
+      "file": "projects/calebzone/docs/10-gateway-quick-start.md",
+      "created_at": "2026-08-12",
+      "updated_at": "2026-08-12"
+    },
+    {
+      "id": "gateway-checklist",
+      "title": "Gateway development checklist",
+      "category": "Operations",
+      "source": "gateway/DEVELOPMENT_CHECKLIST.md",
+      "file": "projects/calebzone/docs/11-gateway-checklist.md",
+      "created_at": "2026-08-12",
+      "updated_at": "2026-08-12"
+    },
+    {
+      "id": "exception-i18n",
+      "title": "Exception handling and i18n guide",
+      "category": "Cross-cutting",
+      "source": "doc/EXCEPTION_HANDLING_I18N.md",
+      "file": "projects/calebzone/docs/12-exception-i18n.md",
+      "created_at": "2026-08-12",
+      "updated_at": "2026-08-12"
+    },
+    {
+      "id": "exception-summary",
+      "title": "Exception handling implementation summary",
+      "category": "Cross-cutting",
+      "source": "doc/IMPLEMENTATION_SUMMARY.md",
+      "file": "projects/calebzone/docs/13-exception-summary.md",
+      "created_at": "2026-08-12",
+      "updated_at": "2026-08-12"
+    }
   ],
   "samples": [
-    { "id": "root-pom", "title": "Maven module and version baseline", "language": "xml", "focus": "Five-module build, Java 21 and shared dependency management.", "source": "pom.xml", "file": "projects/calebzone/samples/01-root-pom.xml" },
-    { "id": "gateway-routes", "title": "Gateway route definitions", "language": "java", "focus": "Path predicates, retries, circuit breakers and downstream URIs.", "source": "gateway/src/main/java/com/calebzone/gateway/config/GatewayRoutesConfig.java", "file": "projects/calebzone/samples/02-gateway-routes.java" },
-    { "id": "gateway-security", "title": "Gateway JWT security boundary", "language": "java", "focus": "Public endpoint allow-list and reactive JWT decoder.", "source": "gateway/src/main/java/com/calebzone/gateway/config/SecurityConfig.java", "file": "projects/calebzone/samples/03-gateway-security.java" },
-    { "id": "identity-forwarding", "title": "Verified identity forwarding", "language": "java", "focus": "Copying claims to downstream headers after Spring Security authentication.", "source": "gateway/src/main/java/com/calebzone/gateway/filter/factory/AuthenticationFilter.java", "file": "projects/calebzone/samples/04-identity-forwarding.java" },
-    { "id": "gateway-config", "title": "Gateway development configuration", "language": "yaml", "focus": "Ports, Redis rate limits, retry policy and service URLs.", "source": "gateway/src/main/resources/application-dev.yml", "file": "projects/calebzone/samples/05-gateway-config.yml" },
-    { "id": "flight-use-case", "title": "Flight search application service", "language": "java", "focus": "Input use case plus cache and external supplier output ports.", "source": "air/src/main/java/com/calebzone/air/application/search/service/SearchFlightsService.java", "file": "projects/calebzone/samples/06-flight-use-case.java" },
-    { "id": "problem-details", "title": "Shared RFC 7807-style error handling", "language": "java", "focus": "Localized messages, field errors and trace id enrichment.", "source": "core/src/main/java/com/calebzone/core/exception/GlobalExceptionHandler.java", "file": "projects/calebzone/samples/07-problem-details.java" }
-  ]
+    {
+      "id": "root-pom",
+      "title": "Maven module and version baseline",
+      "language": "xml",
+      "focus": "Five-module build, Java 21 and shared dependency management.",
+      "source": "pom.xml",
+      "file": "projects/calebzone/samples/01-root-pom.xml",
+      "created_at": "2026-08-12",
+      "updated_at": "2026-08-12"
+    },
+    {
+      "id": "gateway-routes",
+      "title": "Gateway route definitions",
+      "language": "java",
+      "focus": "Path predicates, retries, circuit breakers and downstream URIs.",
+      "source": "gateway/src/main/java/com/calebzone/gateway/config/GatewayRoutesConfig.java",
+      "file": "projects/calebzone/samples/02-gateway-routes.java",
+      "created_at": "2026-08-12",
+      "updated_at": "2026-08-12"
+    },
+    {
+      "id": "gateway-security",
+      "title": "Gateway JWT security boundary",
+      "language": "java",
+      "focus": "Public endpoint allow-list and reactive JWT decoder.",
+      "source": "gateway/src/main/java/com/calebzone/gateway/config/SecurityConfig.java",
+      "file": "projects/calebzone/samples/03-gateway-security.java",
+      "created_at": "2026-08-12",
+      "updated_at": "2026-08-12"
+    },
+    {
+      "id": "identity-forwarding",
+      "title": "Verified identity forwarding",
+      "language": "java",
+      "focus": "Copying claims to downstream headers after Spring Security authentication.",
+      "source": "gateway/src/main/java/com/calebzone/gateway/filter/factory/AuthenticationFilter.java",
+      "file": "projects/calebzone/samples/04-identity-forwarding.java",
+      "created_at": "2026-08-12",
+      "updated_at": "2026-08-12"
+    },
+    {
+      "id": "gateway-config",
+      "title": "Gateway development configuration",
+      "language": "yaml",
+      "focus": "Ports, Redis rate limits, retry policy and service URLs.",
+      "source": "gateway/src/main/resources/application-dev.yml",
+      "file": "projects/calebzone/samples/05-gateway-config.yml",
+      "created_at": "2026-08-12",
+      "updated_at": "2026-08-12"
+    },
+    {
+      "id": "flight-use-case",
+      "title": "Flight search application service",
+      "language": "java",
+      "focus": "Input use case plus cache and external supplier output ports.",
+      "source": "air/src/main/java/com/calebzone/air/application/search/service/SearchFlightsService.java",
+      "file": "projects/calebzone/samples/06-flight-use-case.java",
+      "created_at": "2026-08-12",
+      "updated_at": "2026-08-12"
+    },
+    {
+      "id": "problem-details",
+      "title": "Shared RFC 7807-style error handling",
+      "language": "java",
+      "focus": "Localized messages, field errors and trace id enrichment.",
+      "source": "core/src/main/java/com/calebzone/core/exception/GlobalExceptionHandler.java",
+      "file": "projects/calebzone/samples/07-problem-details.java",
+      "created_at": "2026-08-12",
+      "updated_at": "2026-08-12"
+    }
+  ],
+  "created_at": "2026-08-12",
+  "updated_at": "2026-08-12"
 }

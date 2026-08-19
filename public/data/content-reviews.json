@@ -1267,5 +1267,149 @@
       "https://www.rfc-editor.org/rfc/rfc8725.html",
       "https://openid.net/specs/openid-connect-discovery-1_0.html"
     ]
+  },
+  "09-distributed-tx-fintech.distributed-transaction-patterns.q1": {
+    "reviewed_at": "2026-08-19",
+    "target_versions": [
+      "PostgreSQL current two-phase transaction reference",
+      "AWS Prescriptive Guidance current Saga pattern"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://www.postgresql.org/docs/current/sql-prepare-transaction.html",
+      "https://docs.aws.amazon.com/prescriptive-guidance/latest/modernization-data-persistence/saga-pattern.html"
+    ]
+  },
+  "09-distributed-tx-fintech.distributed-transaction-patterns.q2": {
+    "reviewed_at": "2026-08-19",
+    "target_versions": [
+      "AWS Prescriptive Guidance current Saga pattern",
+      "AWS Prescriptive Guidance current Saga orchestration pattern"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://docs.aws.amazon.com/prescriptive-guidance/latest/modernization-data-persistence/saga-pattern.html",
+      "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/saga-orchestration.html"
+    ]
+  },
+  "09-distributed-tx-fintech.distributed-transaction-patterns.q3": {
+    "reviewed_at": "2026-08-19",
+    "target_versions": [
+      "AWS Prescriptive Guidance current Transactional Outbox pattern",
+      "Apache Kafka 4.2 design documentation"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html",
+      "https://kafka.apache.org/42/design/design/"
+    ]
+  },
+  "09-distributed-tx-fintech.distributed-transaction-patterns.q4": {
+    "reviewed_at": "2026-08-19",
+    "target_versions": [
+      "Apache Seata 2.1 TCC mode"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://seata.apache.org/docs/v2.1/user/mode/tcc/"
+    ]
+  },
+  "09-distributed-tx-fintech.distributed-transaction-patterns.q5": {
+    "reviewed_at": "2026-08-19",
+    "target_versions": [
+      "AWS Prescriptive Guidance current Saga pattern",
+      "AWS Prescriptive Guidance current Transactional Outbox pattern"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://docs.aws.amazon.com/prescriptive-guidance/latest/modernization-data-persistence/saga-pattern.html",
+      "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html"
+    ]
+  },
+  "09-distributed-tx-fintech.distributed-transaction-patterns.q6": {
+    "reviewed_at": "2026-08-19",
+    "target_versions": [
+      "Redis current distributed locks reference",
+      "PostgreSQL current constraints reference"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://redis.io/docs/latest/develop/clients/patterns/distributed-locks/",
+      "https://www.postgresql.org/docs/current/ddl-constraints.html"
+    ]
+  },
+  "09-distributed-tx-fintech.correctness-where-money-is-involved.q1": {
+    "reviewed_at": "2026-08-19",
+    "target_versions": [
+      "Stripe API current low-level error guidance",
+      "Stripe PaymentIntents current status guidance"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://docs.stripe.com/error-low-level",
+      "https://docs.stripe.com/payments/payment-intents/verifying-status"
+    ]
+  },
+  "09-distributed-tx-fintech.correctness-where-money-is-involved.q2": {
+    "reviewed_at": "2026-08-19",
+    "target_versions": [
+      "Stripe API current idempotent request behavior",
+      "PostgreSQL current unique constraints reference"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.stripe.com/api/idempotent_requests",
+      "https://www.postgresql.org/docs/current/ddl-constraints.html"
+    ]
+  },
+  "09-distributed-tx-fintech.correctness-where-money-is-involved.q3": {
+    "reviewed_at": "2026-08-19",
+    "target_versions": [
+      "TigerBeetle current financial accounting reference"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://docs.tigerbeetle.com/coding/financial-accounting/"
+    ]
+  },
+  "09-distributed-tx-fintech.correctness-where-money-is-involved.q4": {
+    "reviewed_at": "2026-08-19",
+    "target_versions": [
+      "Java SE 25 BigDecimal",
+      "PostgreSQL current numeric types reference"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/math/BigDecimal.html",
+      "https://www.postgresql.org/docs/current/datatype-numeric.html"
+    ]
+  },
+  "09-distributed-tx-fintech.correctness-where-money-is-involved.q5": {
+    "reviewed_at": "2026-08-19",
+    "target_versions": [
+      "PostgreSQL current transaction isolation reference",
+      "PostgreSQL current explicit locking reference",
+      "PostgreSQL current constraints reference"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://www.postgresql.org/docs/current/transaction-iso.html",
+      "https://www.postgresql.org/docs/current/explicit-locking.html",
+      "https://www.postgresql.org/docs/current/ddl-constraints.html"
+    ]
+  },
+  "09-distributed-tx-fintech.correctness-where-money-is-involved.q6": {
+    "reviewed_at": "2026-08-19",
+    "target_versions": [
+      "Apache Kafka 4.2 delivery semantics",
+      "Stripe PaymentIntents current status guidance",
+      "PostgreSQL current transaction isolation reference"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://kafka.apache.org/42/design/design/",
+      "https://docs.stripe.com/payments/payment-intents/verifying-status",
+      "https://www.postgresql.org/docs/current/transaction-iso.html"
+    ]
   }
 }

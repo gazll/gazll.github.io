@@ -14,6 +14,9 @@ test('CI delegates to tools/check.mjs instead of enumerating test files', async 
 
   assert.ok(testFiles.length > 0);
   assert.match(workflow, /node tools\/check\.mjs/);
+  assert.match(workflow, /fetch-depth: 0/);
+  assert.match(workflow, /stamp-content-dates\.mjs --check/);
+  assert.match(workflow, /build-content-index\.mjs --check/);
   for (const name of testFiles) {
     assert.ok(!workflow.includes(name),
       `deploy.yml names ${name} directly — let check.mjs discover it instead`);
@@ -37,4 +40,15 @@ test('checks skip vendored third-party code', async () => {
   const source = await readFile(path.join(root, 'tools/check.mjs'), 'utf8');
   const occurrences = source.match(/vendor/g) || [];
   assert.ok(occurrences.length >= 2, 'both the syntax and console stages must skip vendor/');
+});
+
+test('content date stamping covers metadata, new files and check-only CI mode', async () => {
+  const source = await readFile(path.join(root, 'tools/stamp-content-dates.mjs'), 'utf8');
+  assert.match(source, /process\.argv\.includes\('--check'\)/);
+  assert.match(source, /if \(!commits\.length\) return \{ created_at: today, updated_at: today \}/);
+  assert.match(source, /topicMetaHistory = jsonRowsHistory/);
+  assert.match(source, /caseMetaHistory = jsonRowsHistory/);
+  assert.match(source, /projectHistory = jsonRowsHistory/);
+  assert.match(source, /documentHistory = jsonRowsHistory/);
+  assert.match(source, /interviewHistory = jsonRowsHistory/);
 });

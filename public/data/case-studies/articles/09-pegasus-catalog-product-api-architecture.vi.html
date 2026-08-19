@@ -25,7 +25,7 @@
 <p><strong>Pegasus architecture:</strong></p>
 <figure class="cs-figure cs-figure-wide">
   <button type="button" data-zoom-image aria-label="Mở hình 1 ở kích thước đầy đủ">
-    <img src="assets/case-studies/09-pegasus-catalog-product-api-architecture/01-figure.png" width="1600" height="550" loading="lazy" decoding="async" alt="Hình 1 cho Pegasus - Catalog Product API architecture">
+    <img src="assets/case-studies/09-pegasus-catalog-product-api-architecture/01-figure.webp" width="1600" height="550" loading="lazy" decoding="async" alt="Hình 1 cho Pegasus - Catalog Product API architecture">
   </button>
   <figcaption>Hình 1 · Pegasus — Catalog Product API architecture</figcaption>
 </figure>
@@ -53,21 +53,21 @@
 <p>One node:</p>
 <figure class="cs-figure cs-figure-wide">
   <button type="button" data-zoom-image aria-label="Mở hình 2 ở kích thước đầy đủ">
-    <img src="assets/case-studies/09-pegasus-catalog-product-api-architecture/02-figure.png" width="1600" height="643" loading="lazy" decoding="async" alt="Hình 2 cho Entry point">
+    <img src="assets/case-studies/09-pegasus-catalog-product-api-architecture/02-figure.webp" width="1600" height="643" loading="lazy" decoding="async" alt="Hình 2 cho Entry point">
   </button>
   <figcaption>Hình 2 · Entry point</figcaption>
 </figure>
 <p>Two nodes:</p>
 <figure class="cs-figure cs-figure-wide">
   <button type="button" data-zoom-image aria-label="Mở hình 3 ở kích thước đầy đủ">
-    <img src="assets/case-studies/09-pegasus-catalog-product-api-architecture/03-figure.png" width="1600" height="683" loading="lazy" decoding="async" alt="Hình 3 cho Entry point">
+    <img src="assets/case-studies/09-pegasus-catalog-product-api-architecture/03-figure.webp" width="1600" height="683" loading="lazy" decoding="async" alt="Hình 3 cho Entry point">
   </button>
   <figcaption>Hình 3 · Entry point</figcaption>
 </figure>
 <p>Tình hình tốt hơn nhiều với L4 load balancer:</p>
 <figure class="cs-figure cs-figure-wide">
   <button type="button" data-zoom-image aria-label="Mở hình 4 ở kích thước đầy đủ">
-    <img src="assets/case-studies/09-pegasus-catalog-product-api-architecture/04-figure.png" width="1228" height="544" loading="lazy" decoding="async" alt="Hình 4 cho Entry point">
+    <img src="assets/case-studies/09-pegasus-catalog-product-api-architecture/04-figure.webp" width="1228" height="544" loading="lazy" decoding="async" alt="Hình 4 cho Entry point">
   </button>
   <figcaption>Hình 4 · Entry point</figcaption>
 </figure>
@@ -87,14 +87,14 @@
 <p><strong>No output cache:</strong></p>
 <figure class="cs-figure cs-figure-wide">
   <button type="button" data-zoom-image aria-label="Mở hình 5 ở kích thước đầy đủ">
-    <img src="assets/case-studies/09-pegasus-catalog-product-api-architecture/05-figure.png" width="1600" height="681" loading="lazy" decoding="async" alt="Hình 5 cho In-memory cache">
+    <img src="assets/case-studies/09-pegasus-catalog-product-api-architecture/05-figure.webp" width="1600" height="681" loading="lazy" decoding="async" alt="Hình 5 cho In-memory cache">
   </button>
   <figcaption>Hình 5 · In-memory cache</figcaption>
 </figure>
 <p><strong>With output cache:</strong></p>
 <figure class="cs-figure cs-figure-wide">
   <button type="button" data-zoom-image aria-label="Mở hình 6 ở kích thước đầy đủ">
-    <img src="assets/case-studies/09-pegasus-catalog-product-api-architecture/06-figure.png" width="1600" height="670" loading="lazy" decoding="async" alt="Hình 6 cho In-memory cache">
+    <img src="assets/case-studies/09-pegasus-catalog-product-api-architecture/06-figure.webp" width="1600" height="670" loading="lazy" decoding="async" alt="Hình 6 cho In-memory cache">
   </button>
   <figcaption>Hình 6 · In-memory cache</figcaption>
 </figure>
@@ -109,7 +109,7 @@
 <p>Với multi API, không thể trả cache trực tiếp nên giữ compressed version trong cache không có lợi. Thay vào đó chỉ cache plaintext version. Khi trả về client, Snappy compress hiệu quả hơn Gzip dù payload tăng khoảng 2x–3x. Benchmark cho thấy latency giảm 50% sau khi chuyển sang Snappy (15ms xuống 6ms).</p>
 <figure class="cs-figure cs-figure-wide">
   <button type="button" data-zoom-image aria-label="Mở hình 7 ở kích thước đầy đủ">
-    <img src="assets/case-studies/09-pegasus-catalog-product-api-architecture/07-figure.png" width="1432" height="732" loading="lazy" decoding="async" alt="Hình 7 cho compressor">
+    <img src="assets/case-studies/09-pegasus-catalog-product-api-architecture/07-figure.webp" width="1432" height="732" loading="lazy" decoding="async" alt="Hình 7 cho compressor">
   </button>
   <figcaption>Hình 7 · Compressor</figcaption>
 </figure>
@@ -118,33 +118,33 @@
 <p>Traffic của chúng tôi được chia thành hai nguồn: từ web để render HTML và từ API cho JavaScript hoặc mobile app.</p>
 <figure class="cs-figure">
   <button type="button" data-zoom-image aria-label="Mở hình 8 ở kích thước đầy đủ">
-    <img src="assets/case-studies/09-pegasus-catalog-product-api-architecture/08-figure.png" width="761" height="301" loading="lazy" decoding="async" alt="Hình 8 cho compressor">
+    <img src="assets/case-studies/09-pegasus-catalog-product-api-architecture/08-figure.webp" width="761" height="301" loading="lazy" decoding="async" alt="Hình 8 cho compressor">
   </button>
   <figcaption>Hình 8 · Compressor</figcaption>
 </figure>
 <p><strong>Từ web:</strong></p>
 <figure class="cs-figure cs-figure-wide">
   <button type="button" data-zoom-image aria-label="Mở hình 9 ở kích thước đầy đủ">
-    <img src="assets/case-studies/09-pegasus-catalog-product-api-architecture/09-figure.png" width="1540" height="790" loading="lazy" decoding="async" alt="Hình 9 cho compressor">
+    <img src="assets/case-studies/09-pegasus-catalog-product-api-architecture/09-figure.webp" width="1540" height="790" loading="lazy" decoding="async" alt="Hình 9 cho compressor">
   </button>
   <figcaption>Hình 9 · Compressor</figcaption>
 </figure>
 <figure class="cs-figure cs-figure-wide">
   <button type="button" data-zoom-image aria-label="Mở hình 10 ở kích thước đầy đủ">
-    <img src="assets/case-studies/09-pegasus-catalog-product-api-architecture/10-figure.png" width="1514" height="848" loading="lazy" decoding="async" alt="Hình 10 cho Compressor">
+    <img src="assets/case-studies/09-pegasus-catalog-product-api-architecture/10-figure.webp" width="1514" height="848" loading="lazy" decoding="async" alt="Hình 10 cho Compressor">
   </button>
   <figcaption>Hình 10 · Compressor</figcaption>
 </figure>
 <p><strong>Từ API:</strong></p>
 <figure class="cs-figure cs-figure-wide">
   <button type="button" data-zoom-image aria-label="Mở hình 11 ở kích thước đầy đủ">
-    <img src="assets/case-studies/09-pegasus-catalog-product-api-architecture/11-figure.png" width="1520" height="810" loading="lazy" decoding="async" alt="Hình 11 cho Compressor">
+    <img src="assets/case-studies/09-pegasus-catalog-product-api-architecture/11-figure.webp" width="1520" height="810" loading="lazy" decoding="async" alt="Hình 11 cho Compressor">
   </button>
   <figcaption>Hình 11 · Compressor</figcaption>
 </figure>
 <figure class="cs-figure cs-figure-wide">
   <button type="button" data-zoom-image aria-label="Mở hình 12 ở kích thước đầy đủ">
-    <img src="assets/case-studies/09-pegasus-catalog-product-api-architecture/12-figure.png" width="1526" height="844" loading="lazy" decoding="async" alt="Hình 12 cho Compressor">
+    <img src="assets/case-studies/09-pegasus-catalog-product-api-architecture/12-figure.webp" width="1526" height="844" loading="lazy" decoding="async" alt="Hình 12 cho Compressor">
   </button>
   <figcaption>Hình 12 · Compressor</figcaption>
 </figure>

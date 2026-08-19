@@ -25,6 +25,7 @@ let dir, Interviews, Auth;
 const SEED = {
   companies: [
     { name: 'Rakuten', role: 'Senior Backend Engineer', date: '2026-07', result: 'pending',
+      references: [{ label: 'PostgreSQL', url: 'https://www.postgresql.org/docs/current/' }],
       stack: ['Java'], questions: [{ round: 'Vòng 1 · Coding', q: 'LC 30', a: 'sliding window', note: 'n',
         diagrams: [{ title: 'Window', mermaid: 'flowchart LR\nA --> B', flaws: [], upgrades: [] }] }] },
     { name: 'Công ty mẫu', role: 'SBE', date: '2026-06', result: 'pending', stack: [], questions: [] }
@@ -86,25 +87,51 @@ test('master interview data includes the reviewed VOZ playbook and ATM report', 
   assert.ok(review.diagrams.some(diagram => diagram.mermaid.startsWith('stateDiagram-v2\n')));
   assert.ok(review.diagrams.every(diagram => diagram.flaws.length >= 2 && diagram.upgrades.length >= 2));
   assert.match(review.a, /dual-write/i);
-  assert.match(atm.questions[0].a, /FUNDS_RESERVED → DISPENSE_REQUESTED → DISPENSED → POSTED/);
+  assert.match(atm.questions[0].a, /FUNDS_RESERVED → DISPENSE_REQUESTED → POSTED/);
+  assert.match(atm.questions[0].a, /CANCELLED/);
+  assert.match(atm.questions[0].a, /REVERSED.*compensation/);
   assert.match(atm.questions[0].a, /không giữ DB transaction/i);
+  assert.ok(atm.references.length >= 5);
+  assert.ok(atm.references.every(reference => reference.url.startsWith('https://')));
+  for (const company of MASTER.companies) {
+    assert.match(company.created_at, /^\d{4}-\d{2}-\d{2}$/);
+    assert.match(company.updated_at, /^\d{4}-\d{2}-\d{2}$/);
+    assert.ok(company.slug);
+  }
 });
 
 test('Gazl Try lazy-renders reviewed Mermaid diagrams and preserves their source safely', () => {
   const view = readFileSync(PUBLIC + 'views/interviews.js', 'utf8');
-  assert.match(view, /requestAnimationFrame\(async \(\) =>/);
-  assert.match(view, /mountMermaidDiagrams\(card\)/);
-  assert.doesNotMatch(view, /wire\(root, repaint\);\s*mountMermaidDiagrams\(root\)/);
-  assert.match(view, /data-mermaid-diagram/);
-  assert.match(view, /interviewDiagrams\(it\.diagrams\)/);
-  assert.match(view, /esc\(diagram\.mermaid\)/);
+
+  // Diagram text round-trips through the Sheet, so it is reader-authored: every
+  // place it reaches HTML must escape it. Asserting the absence of an unescaped
+  // interpolation catches a new call site, which pinning one spelling did not.
+  const uses = [...view.matchAll(/(.{0,12})diagram\.mermaid/g)].map(m => m[1]);
+  assert.ok(uses.length > 0, 'the view must render the Mermaid source at all');
+  for (const before of uses) {
+    assert.match(before, /esc\($/, `diagram.mermaid reached HTML unescaped (after "${before}")`);
+  }
+  assert.match(view, /data-mermaid-diagram/, 'the renderer needs its mount hook');
+  assert.match(view, /interviewDiagrams\(it\.diagrams\)/, 'questions must render their diagrams');
+
+  // Lazy means the renderer is only reached from the open handler. A call from
+  // paint() would pull ~800K on every journal render, open cards or not.
+  const mounts = [...view.matchAll(/mountMermaidDiagrams\(/g)].map(m => m.index);
+  assert.equal(mounts.length, 1, 'exactly one mount call site keeps the laziness reviewable');
+  const guard = view.lastIndexOf('.open', mounts[0]);
+  assert.ok(guard > 0 && mounts[0] - guard < 400,
+    'the mount call must sit behind the group-open guard, not run at paint time');
 });
 
-test('the Apps Script schema round-trips diagrams with an append-only column', () => {
+test('the Apps Script schema round-trips revisions, diagrams and references with append-only columns', () => {
   const backend = readFileSync(new URL('../apps-script/Code.gs', import.meta.url), 'utf8');
   assert.match(backend, /'note', 'sort_order', 'diagrams_json'/);
-  assert.match(backend, /diagrams: parseJsonArray\(q\.diagrams_json\)/);
+  assert.match(backend, /diagrams: parseStoredDiagrams\(q\.diagrams_json\)/);
   assert.match(backend, /diagrams_json: diagramsJson/);
+  assert.match(backend, /'active_question_set', 'references_json'/);
+  assert.match(backend, /references: parseStoredReferences\(r\.references_json\)/);
+  assert.match(backend, /created_at: iso\(r\.created_at\)\.slice\(0, 10\)/);
+  assert.ok(backend.indexOf('qt.appendAll(prepared.map') < backend.indexOf('t.update(existing._row, fields)'));
   assert.match(backend, /Schema changes are append-only/);
 });
 
@@ -169,6 +196,7 @@ test('importSeed copies the seed row into the Sheet and the seed card drops out'
   assert.equal(after[0].own, true, 'the surviving Rakuten is the own row');
   assert.equal(after[0].questions.length, 1, 'questions came across');
   assert.equal(after[0].questions[0].diagrams.length, 1, 'diagram attachments came across');
+  assert.equal(after[0].references[0].label, 'PostgreSQL', 'primary references came across');
 });
 
 test('importSeed does not send the seed id, so the backend creates a new row', async () => {

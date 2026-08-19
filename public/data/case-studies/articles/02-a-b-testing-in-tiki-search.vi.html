@@ -23,7 +23,7 @@
 <p>Đây là cách distribution CTR điển hình trong Tiki Search:</p>
 <figure class="cs-figure">
   <button type="button" data-zoom-image aria-label="Mở hình 1 ở kích thước đầy đủ">
-    <img src="assets/case-studies/02-a-b-testing-in-tiki-search/01-figure.png" width="640" height="480" loading="lazy" decoding="async" alt="Hình 1 về CTR distribution">
+    <img src="assets/case-studies/02-a-b-testing-in-tiki-search/01-figure.webp" width="640" height="480" loading="lazy" decoding="async" alt="Hình 1 về CTR distribution">
   </button>
   <figcaption>Hình 1 · CTR Distribution</figcaption>
 </figure>
@@ -36,7 +36,7 @@
 <p>Khó model CTR distribution trực tiếp vì các peak do user có ít “view” tạo ra. Thay vào đó, hãy model gián tiếp bắt đầu từ “views”. Đây là views distribution điển hình trong Tiki Search:</p>
 <figure class="cs-figure">
   <button type="button" data-zoom-image aria-label="Mở hình 2 ở kích thước đầy đủ">
-    <img src="assets/case-studies/02-a-b-testing-in-tiki-search/02-figure.png" width="640" height="480" loading="lazy" decoding="async" alt="Hình 2 về CTR distribution modeling">
+    <img src="assets/case-studies/02-a-b-testing-in-tiki-search/02-figure.webp" width="640" height="480" loading="lazy" decoding="async" alt="Hình 2 về CTR distribution modeling">
   </button>
   <figcaption>Hình 2 · CTR distribution modeling</figcaption>
 </figure>
@@ -58,7 +58,7 @@ plt.tight_layout()
 plt.show()</code></pre>
 <figure class="cs-figure">
   <button type="button" data-zoom-image aria-label="Mở hình 3 ở kích thước đầy đủ">
-    <img src="assets/case-studies/02-a-b-testing-in-tiki-search/03-figure.png" width="640" height="480" loading="lazy" decoding="async" alt="Hình 3 về CTR distribution modeling">
+    <img src="assets/case-studies/02-a-b-testing-in-tiki-search/03-figure.webp" width="640" height="480" loading="lazy" decoding="async" alt="Hình 3 về CTR distribution modeling">
   </button>
   <figcaption>Hình 3 · CTR distribution modeling</figcaption>
 </figure>
@@ -67,14 +67,14 @@ plt.show()</code></pre>
 <p>Có thể estimate ground-truth CTR distribution bằng historical CTR, nhưng chỉ lấy user đã tạo đủ “view” để CTR quan sát gần ground truth hơn. Đây là distribution tương ứng trong Tiki Search:</p>
 <figure class="cs-figure">
   <button type="button" data-zoom-image aria-label="Mở hình 4 ở kích thước đầy đủ">
-    <img src="assets/case-studies/02-a-b-testing-in-tiki-search/04-figure.png" width="640" height="480" loading="lazy" decoding="async" alt="Hình 4 về CTR distribution modeling">
+    <img src="assets/case-studies/02-a-b-testing-in-tiki-search/04-figure.webp" width="640" height="480" loading="lazy" decoding="async" alt="Hình 4 về CTR distribution modeling">
   </button>
   <figcaption>Hình 4 · CTR distribution modeling</figcaption>
 </figure>
 <p>Cách tốt để simulate là dùng beta distribution. Nó nằm trong khoảng 0–1 và expectation được biểu diễn bằng hai parameter <code>alpha</code> và <code>beta</code>. Chúng tôi sẽ dùng fact này ở phần sau. Nếu muốn hiểu trực quan hơn vì sao beta distribution phù hợp, hãy đọc <a href="https://towardsdatascience.com/beta-distribution-intuition-examples-and-derivation-cf00f4db57af" target="_blank" rel="noopener noreferrer">bài blog này</a>. Đây là công thức expectation:</p>
 <figure class="cs-figure">
   <button type="button" data-zoom-image aria-label="Mở hình 5 ở kích thước đầy đủ">
-    <img src="assets/case-studies/02-a-b-testing-in-tiki-search/05-figure.png" width="170" height="62" loading="lazy" decoding="async" alt="Hình 5 về CTR distribution modeling">
+    <img src="assets/case-studies/02-a-b-testing-in-tiki-search/05-figure.webp" width="170" height="62" loading="lazy" decoding="async" alt="Hình 5 về CTR distribution modeling">
   </button>
   <figcaption>Hình 5 · CTR distribution modeling</figcaption>
 </figure>
@@ -94,7 +94,7 @@ plt.tight_layout()
 plt.show()</code></pre>
 <figure class="cs-figure">
   <button type="button" data-zoom-image aria-label="Mở hình 6 ở kích thước đầy đủ">
-    <img src="assets/case-studies/02-a-b-testing-in-tiki-search/06-figure.png" width="640" height="480" loading="lazy" decoding="async" alt="Hình 6 về CTR distribution modeling">
+    <img src="assets/case-studies/02-a-b-testing-in-tiki-search/06-figure.webp" width="640" height="480" loading="lazy" decoding="async" alt="Hình 6 về CTR distribution modeling">
   </button>
   <figcaption>Hình 6 · CTR distribution modeling</figcaption>
 </figure>
@@ -178,7 +178,7 @@ p_values_mannwhitney = mannwhitney(ctrs_a_1, ctrs_a_2)</code></pre>
 plot_pvalues(p_values_mannwhitney, &#39;p-values in A/A test (Mann-Whitney)&#39;)</code></pre>
 <figure class="cs-figure cs-figure-wide">
   <button type="button" data-zoom-image aria-label="Mở hình 7 ở kích thước đầy đủ">
-    <img src="assets/case-studies/02-a-b-testing-in-tiki-search/07-figure.png" width="1280" height="480" loading="lazy" decoding="async" alt="Hình 7 về CTR distribution modeling">
+    <img src="assets/case-studies/02-a-b-testing-in-tiki-search/07-figure.webp" width="1280" height="480" loading="lazy" decoding="async" alt="Hình 7 về CTR distribution modeling">
   </button>
   <figcaption>Hình 7 · CTR distribution modeling</figcaption>
 </figure>
@@ -198,7 +198,7 @@ plot_pvalues(p_values_mannwhitney, &#39;p-values in A/A test (Mann-Whitney)&#39;
 plot_pvalues_cdf(p_values_mannwhitney, &#39;p-values CDF in A/A test (Mann-Whitney)&#39;)</code></pre>
 <figure class="cs-figure cs-figure-wide">
   <button type="button" data-zoom-image aria-label="Mở hình 8 ở kích thước đầy đủ">
-    <img src="assets/case-studies/02-a-b-testing-in-tiki-search/08-figure.png" width="1280" height="480" loading="lazy" decoding="async" alt="Hình 8 về CTR distribution modeling">
+    <img src="assets/case-studies/02-a-b-testing-in-tiki-search/08-figure.webp" width="1280" height="480" loading="lazy" decoding="async" alt="Hình 8 về CTR distribution modeling">
   </button>
   <figcaption>Hình 8 · CTR distribution modeling</figcaption>
 </figure>
@@ -212,14 +212,14 @@ plot_pvalues(p_values_mannwhitney, &#39;p-values in A/B test (Mann-Whitney)&#39;
 plot_pvalues_cdf(p_values_mannwhitney, &#39;p-values CDF in A/B test (Mann-Whitney)&#39;)</code></pre>
 <figure class="cs-figure cs-figure-wide">
   <button type="button" data-zoom-image aria-label="Mở hình 9 ở kích thước đầy đủ">
-    <img src="assets/case-studies/02-a-b-testing-in-tiki-search/09-figure.png" width="1280" height="480" loading="lazy" decoding="async" alt="Hình 9 về CTR distribution modeling">
+    <img src="assets/case-studies/02-a-b-testing-in-tiki-search/09-figure.webp" width="1280" height="480" loading="lazy" decoding="async" alt="Hình 9 về CTR distribution modeling">
   </button>
   <figcaption>Hình 9 · CTR distribution modeling</figcaption>
 </figure>
 <p>Và cả đồ thị CDF:</p>
 <figure class="cs-figure cs-figure-wide">
   <button type="button" data-zoom-image aria-label="Mở hình 10 ở kích thước đầy đủ">
-    <img src="assets/case-studies/02-a-b-testing-in-tiki-search/10-figure.png" width="1280" height="480" loading="lazy" decoding="async" alt="Hình 10 về CTR distribution modeling">
+    <img src="assets/case-studies/02-a-b-testing-in-tiki-search/10-figure.webp" width="1280" height="480" loading="lazy" decoding="async" alt="Hình 10 về CTR distribution modeling">
   </button>
   <figcaption>Hình 10 · CTR distribution modeling</figcaption>
 </figure>
@@ -391,14 +391,14 @@ plot_all_buckets(N=20000, experiments=2000, mu=1, sigma2=4.5, success_rate=0.02,
 <p>Đây là biểu đồ p-value cho A/A test trên 2000 distribution ngẫu nhiên được tạo từ dữ liệu thực của chúng tôi:</p>
 <figure class="cs-figure cs-figure-wide">
   <button type="button" data-zoom-image aria-label="Mở hình 16 ở kích thước đầy đủ">
-    <img src="assets/case-studies/02-a-b-testing-in-tiki-search/16-figure.png" width="1280" height="480" loading="lazy" decoding="async" alt="Hình 16 cho dữ liệu thực">
+    <img src="assets/case-studies/02-a-b-testing-in-tiki-search/16-figure.webp" width="1280" height="480" loading="lazy" decoding="async" alt="Hình 16 cho dữ liệu thực">
   </button>
   <figcaption>Hình 16 · Dữ liệu thực</figcaption>
 </figure>
 <p>Và đây là biểu đồ CDF cho nó:</p>
 <figure class="cs-figure cs-figure-wide">
   <button type="button" data-zoom-image aria-label="Mở hình 17 ở kích thước đầy đủ">
-    <img src="assets/case-studies/02-a-b-testing-in-tiki-search/17-figure.png" width="1280" height="480" loading="lazy" decoding="async" alt="Hình 17 cho dữ liệu thực">
+    <img src="assets/case-studies/02-a-b-testing-in-tiki-search/17-figure.webp" width="1280" height="480" loading="lazy" decoding="async" alt="Hình 17 cho dữ liệu thực">
   </button>
   <figcaption>Hình 17 · Dữ liệu thực</figcaption>
 </figure>

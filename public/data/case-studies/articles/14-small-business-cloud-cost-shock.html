@@ -6,7 +6,7 @@
 <p>The design was influenced by experience on exactly those larger systems. The original account plan separated development, staging and production, then added dedicated accounts for identity, deployment and long-term logs. IAM Identity Center supplied permission sets; CodePipeline, CodeBuild and CodeDeploy formed a CI/CD hub; another account retained centralized audit logs.</p>
 <figure class="cs-figure cs-figure-wide">
   <button type="button" data-zoom-image aria-label="Open the proposed AWS account structure at full size">
-    <img src="assets/case-studies/14-small-business-cloud-cost-shock/01-figure.jpg" width="2000" height="1454" loading="lazy" decoding="async" alt="Proposed AWS organization with development, staging, production, identity, deployment and log archive accounts.">
+    <img src="assets/case-studies/14-small-business-cloud-cost-shock/01-figure.webp" width="2000" height="1454" loading="lazy" decoding="async" alt="Proposed AWS organization with development, staging, production, identity, deployment and log archive accounts.">
   </button>
   <figcaption>Proposed account topology: strong isolation, but many operational surfaces for a very small team.</figcaption>
 </figure>
@@ -16,7 +16,7 @@
 <p>The original architecture combined Route 53, WAF, CloudFront and S3 at the edge; Cognito and API Gateway; two ECS clusters behind load balancers; two RDS databases; Step Functions and batch jobs; multiple VPC endpoints; CloudWatch, Firehose and a log archive; plus deployment, security and governance services.</p>
 <figure class="cs-figure cs-figure-wide">
   <button type="button" data-zoom-image aria-label="Open the proposed AWS architecture at full size">
-    <img src="assets/case-studies/14-small-business-cloud-cost-shock/02-figure.jpg" width="2784" height="1704" loading="lazy" decoding="async" alt="Proposed Cloud Exam Pro AWS architecture with duplicated ECS and RDS stacks, load balancers, private endpoints, logging and CI/CD services.">
+    <img src="assets/case-studies/14-small-business-cloud-cost-shock/02-figure.webp" width="2784" height="1704" loading="lazy" decoding="async" alt="Proposed Cloud Exam Pro AWS architecture with duplicated ECS and RDS stacks, load balancers, private endpoints, logging and CI/CD services.">
   </button>
   <figcaption>The proposed architecture accumulated multiple always-on and per-hour control-plane components before launch.</figcaption>
 </figure>
@@ -27,14 +27,14 @@
 <p>Before completing the full design, the team removed staging, the dedicated deployment account and the log-archive account. GitHub Actions replaced the AWS CI/CD hub. Development and production remained separated, with IAM centralized.</p>
 <figure class="cs-figure cs-figure-wide">
   <button type="button" data-zoom-image aria-label="Open the simplified AWS account structure at full size">
-    <img src="assets/case-studies/14-small-business-cloud-cost-shock/03-figure.jpg" width="2110" height="1192" loading="lazy" decoding="async" alt="Simplified AWS organization retaining identity, development and production accounts while removing staging, deployment and log archive accounts.">
+    <img src="assets/case-studies/14-small-business-cloud-cost-shock/03-figure.webp" width="2110" height="1192" loading="lazy" decoding="async" alt="Simplified AWS organization retaining identity, development and production accounts while removing staging, deployment and log archive accounts.">
   </button>
   <figcaption>The revised organization kept identity plus dev/prod separation and removed three planned account surfaces.</figcaption>
 </figure>
 <p>The running architecture was smaller but still sophisticated: separate user and operator ECS/RDS paths, load balancers, API Gateway, Cognito, batch workflows, VPC endpoints and the usual security and observability services. This distinction matters. Deleting accounts can reduce governance work without deleting the billable resources inside the remaining accounts.</p>
 <figure class="cs-figure cs-figure-wide">
   <button type="button" data-zoom-image aria-label="Open the simplified running AWS architecture at full size">
-    <img src="assets/case-studies/14-small-business-cloud-cost-shock/04-figure.jpg" width="2768" height="1536" loading="lazy" decoding="async" alt="Simplified running architecture with dev and production, two ECS and RDS application paths, load balancers, batch processing and VPC endpoints.">
+    <img src="assets/case-studies/14-small-business-cloud-cost-shock/04-figure.webp" width="2768" height="1536" loading="lazy" decoding="async" alt="Simplified running architecture with dev and production, two ECS and RDS application paths, load balancers, batch processing and VPC endpoints.">
   </button>
   <figcaption>Simplified does not yet mean cheap: duplicated stateful and networking layers remain visible.</figcaption>
 </figure>

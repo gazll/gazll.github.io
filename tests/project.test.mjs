@@ -8,6 +8,7 @@ const root = path.resolve(import.meta.dirname, '..');
 const publicRoot = path.join(root, 'public');
 const projectRoot = path.join(publicRoot, 'data/projects/calebzone');
 const manifest = JSON.parse(await readFile(path.join(projectRoot, 'manifest.json'), 'utf8'));
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 test('CalebZone Project manifest exposes an SRS, source documents and implementation samples', async () => {
   assert.equal(manifest.version, 1);
@@ -17,10 +18,14 @@ test('CalebZone Project manifest exposes an SRS, source documents and implementa
   assert.ok(manifest.architecture.diagram.startsWith('flowchart TB\n'));
   assert.equal(new Set(manifest.documents.map(row => row.id)).size, manifest.documents.length);
   assert.equal(new Set(manifest.samples.map(row => row.id)).size, manifest.samples.length);
+  assert.match(manifest.created_at, ISO_DATE);
+  assert.match(manifest.updated_at, ISO_DATE);
 
   for (const row of [...manifest.documents, ...manifest.samples]) {
     assert.match(row.file, /^projects\/calebzone\/(?:docs|samples)\/[a-z0-9-]+\.(?:md|java|xml|yml)$/);
     await access(path.join(publicRoot, 'data', row.file));
+    assert.match(row.created_at, ISO_DATE, row.id + ': created_at');
+    assert.match(row.updated_at, ISO_DATE, row.id + ': updated_at');
   }
 });
 

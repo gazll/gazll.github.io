@@ -32,7 +32,9 @@
           "java.time",
           "Clock & skew"
         ]
-      }
+      },
+      "created_at": "2026-07-31",
+      "updated_at": "2026-08-17"
     },
     "2": {
       "topic_type": "core",
@@ -64,7 +66,9 @@
           "Java vs Go",
           "GraalVM"
         ]
-      }
+      },
+      "created_at": "2026-07-31",
+      "updated_at": "2026-08-11"
     },
     "3": {
       "topic_type": "core",
@@ -106,7 +110,9 @@
           "Application events",
           "Spring Cache"
         ]
-      }
+      },
+      "created_at": "2026-07-31",
+      "updated_at": "2026-08-12"
     },
     "4": {
       "topic_type": "design",
@@ -138,7 +144,9 @@
           "Reactive vs VT",
           "Versioning"
         ]
-      }
+      },
+      "created_at": "2026-07-31",
+      "updated_at": "2026-08-12"
     },
     "5": {
       "topic_type": "data",
@@ -174,7 +182,9 @@
           "Schema design",
           "Constraints"
         ]
-      }
+      },
+      "created_at": "2026-07-31",
+      "updated_at": "2026-08-17"
     },
     "6": {
       "topic_type": "data",
@@ -206,7 +216,9 @@
           "CAP/PACELC",
           "CDC"
         ]
-      }
+      },
+      "created_at": "2026-07-31",
+      "updated_at": "2026-08-17"
     },
     "7": {
       "topic_type": "data",
@@ -244,7 +256,9 @@
           "Redis",
           "Search engine"
         ]
-      }
+      },
+      "created_at": "2026-07-31",
+      "updated_at": "2026-08-12"
     },
     "8": {
       "topic_type": "data",
@@ -280,7 +294,9 @@
           "Consumer tuning",
           "Schema Registry"
         ]
-      }
+      },
+      "created_at": "2026-07-31",
+      "updated_at": "2026-08-12"
     },
     "9": {
       "topic_type": "design",
@@ -314,7 +330,9 @@
           "Double-entry",
           "BigDecimal"
         ]
-      }
+      },
+      "created_at": "2026-07-31",
+      "updated_at": "2026-08-12"
     },
     "10": {
       "topic_type": "design",
@@ -348,7 +366,9 @@
           "Load shedding",
           "Cache topology"
         ]
-      }
+      },
+      "created_at": "2026-07-31",
+      "updated_at": "2026-08-12"
     },
     "11": {
       "topic_type": "design",
@@ -380,7 +400,9 @@
           "Leaderboard",
           "Chat"
         ]
-      }
+      },
+      "created_at": "2026-07-31",
+      "updated_at": "2026-08-12"
     },
     "12": {
       "topic_type": "design",
@@ -420,7 +442,9 @@
           "ArchUnit",
           "Spring Modulith"
         ]
-      }
+      },
+      "created_at": "2026-07-31",
+      "updated_at": "2026-08-12"
     },
     "13": {
       "topic_type": "platform",
@@ -466,7 +490,9 @@
           "Data protection",
           "Supply chain"
         ]
-      }
+      },
+      "created_at": "2026-07-31",
+      "updated_at": "2026-08-11"
     },
     "14": {
       "topic_type": "platform",
@@ -500,7 +526,9 @@
           "Service mesh",
           "CI/CD"
         ]
-      }
+      },
+      "created_at": "2026-07-31",
+      "updated_at": "2026-08-12"
     },
     "15": {
       "topic_type": "core",
@@ -534,7 +562,9 @@
           "TCP/UDP/NIO",
           "HTTP request lifecycle"
         ]
-      }
+      },
+      "created_at": "2026-07-31",
+      "updated_at": "2026-08-12"
     },
     "16": {
       "topic_type": "algorithm",
@@ -570,7 +600,9 @@
           "ADR / design doc",
           "Code review"
         ]
-      }
+      },
+      "created_at": "2026-07-31",
+      "updated_at": "2026-08-12"
     },
     "17": {
       "topic_type": "design",
@@ -604,7 +636,9 @@
           "Bulk API",
           "Webhooks"
         ]
-      }
+      },
+      "created_at": "2026-07-31",
+      "updated_at": "2026-08-12"
     },
     "18": {
       "topic_type": "data",
@@ -640,7 +674,9 @@
           "Bulk writes",
           "SKIP LOCKED"
         ]
-      }
+      },
+      "created_at": "2026-07-31",
+      "updated_at": "2026-08-18"
     },
     "19": {
       "topic_type": "algorithm",
@@ -680,7 +716,9 @@
           "DP",
           "LC 30"
         ]
-      }
+      },
+      "created_at": "2026-07-31",
+      "updated_at": "2026-08-11"
     },
     "20": {
       "topic_type": "platform",
@@ -712,7 +750,9 @@
           "Alert fatigue",
           "Postmortem"
         ]
-      }
+      },
+      "created_at": "2026-07-31",
+      "updated_at": "2026-08-12"
     },
     "21": {
       "topic_type": "platform",
@@ -746,7 +786,9 @@
           "async-profiler",
           "tcpdump"
         ]
-      }
+      },
+      "created_at": "2026-07-31",
+      "updated_at": "2026-08-11"
     },
     "22": {
       "topic_type": "algorithm",
@@ -778,7 +820,9 @@
           "TTL store",
           "Class diagram"
         ]
-      }
+      },
+      "created_at": "2026-07-31",
+      "updated_at": "2026-08-11"
     },
     "23": {
       "topic_type": "algorithm",
@@ -810,7 +854,9 @@
           "ReadWriteLock",
           "Virtual threads"
         ]
-      }
+      },
+      "created_at": "2026-07-31",
+      "updated_at": "2026-08-17"
     },
     "24": {
       "topic_type": "design",
@@ -842,7 +888,9 @@
           "Event storming",
           "ACL"
         ]
-      }
+      },
+      "created_at": "2026-07-31",
+      "updated_at": "2026-08-11"
     },
     "25": {
       "topic_type": "microservice",
@@ -876,7 +924,9 @@
           "Scheduled jobs"
         ],
         "label": "Microservices at Scale — Technical Mastery Track"
-      }
+      },
+      "created_at": "2026-07-31",
+      "updated_at": "2026-08-18"
     },
     "26": {
       "topic_type": "core",
@@ -908,7 +958,9 @@
           "Flaky tests",
           "Mutation testing"
         ]
-      }
+      },
+      "created_at": "2026-08-10",
+      "updated_at": "2026-08-11"
     },
     "27": {
       "topic_type": "design",
@@ -940,7 +992,9 @@
           "Timeouts",
           "Cells"
         ]
-      }
+      },
+      "created_at": "2026-08-12",
+      "updated_at": "2026-08-12"
     }
   }
 }

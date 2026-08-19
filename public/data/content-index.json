@@ -1,0 +1,2756 @@
+{
+  "version": 1,
+  "topics": [
+    {
+      "n": 1,
+      "item_ids": [
+        "01-java-core-jvm.memory-execution-model.q1",
+        "01-java-core-jvm.memory-execution-model.q2",
+        "01-java-core-jvm.memory-execution-model.q3",
+        "01-java-core-jvm.memory-execution-model.q4",
+        "01-java-core-jvm.memory-execution-model.q5",
+        "01-java-core-jvm.concurrency.q1",
+        "01-java-core-jvm.concurrency.q2",
+        "01-java-core-jvm.concurrency.q3",
+        "01-java-core-jvm.concurrency.q4",
+        "01-java-core-jvm.concurrency.q5",
+        "01-java-core-jvm.concurrency.q6",
+        "01-java-core-jvm.language-fundamentals.q1",
+        "01-java-core-jvm.language-fundamentals.q2",
+        "01-java-core-jvm.language-fundamentals.q3",
+        "01-java-core-jvm.language-fundamentals.q4",
+        "01-java-core-jvm.language-fundamentals.q5",
+        "01-java-core-jvm.language-fundamentals.q6",
+        "01-java-core-jvm.language-fundamentals.q7",
+        "01-java-core-jvm.language-fundamentals.q8",
+        "01-java-core-jvm.collections-data-structures.q1",
+        "01-java-core-jvm.collections-data-structures.q2",
+        "01-java-core-jvm.collections-data-structures.q3",
+        "01-java-core-jvm.collections-data-structures.q4",
+        "01-java-core-jvm.collections-data-structures.q5",
+        "01-java-core-jvm.collections-data-structures.q6"
+      ],
+      "track_item_ids": [
+        "01-java-core-jvm.memory-execution-model.q1",
+        "01-java-core-jvm.memory-execution-model.q2",
+        "01-java-core-jvm.memory-execution-model.q3",
+        "01-java-core-jvm.memory-execution-model.q4",
+        "01-java-core-jvm.memory-execution-model.q5",
+        "01-java-core-jvm.concurrency.q1",
+        "01-java-core-jvm.concurrency.q2",
+        "01-java-core-jvm.concurrency.q3",
+        "01-java-core-jvm.concurrency.q4",
+        "01-java-core-jvm.concurrency.q5",
+        "01-java-core-jvm.concurrency.q6",
+        "01-java-core-jvm.language-fundamentals.q1",
+        "01-java-core-jvm.language-fundamentals.q2",
+        "01-java-core-jvm.language-fundamentals.q3",
+        "01-java-core-jvm.language-fundamentals.q4",
+        "01-java-core-jvm.language-fundamentals.q5",
+        "01-java-core-jvm.language-fundamentals.q6",
+        "01-java-core-jvm.language-fundamentals.q7",
+        "01-java-core-jvm.language-fundamentals.q8",
+        "01-java-core-jvm.collections-data-structures.q1",
+        "01-java-core-jvm.collections-data-structures.q2",
+        "01-java-core-jvm.collections-data-structures.q3",
+        "01-java-core-jvm.collections-data-structures.q4",
+        "01-java-core-jvm.collections-data-structures.q5",
+        "01-java-core-jvm.collections-data-structures.q6"
+      ]
+    },
+    {
+      "n": 2,
+      "item_ids": [
+        "02-java-8-25-java-vs-go.release-timeline.q1",
+        "02-java-8-25-java-vs-go.release-timeline.q2",
+        "02-java-8-25-java-vs-go.release-timeline.q3",
+        "02-java-8-25-java-vs-go.release-timeline.q4",
+        "02-java-8-25-java-vs-go.release-timeline.q5",
+        "02-java-8-25-java-vs-go.release-timeline.q6",
+        "02-java-8-25-java-vs-go.release-timeline.q7",
+        "02-java-8-25-java-vs-go.java-vs-go-2025-2026.q1",
+        "02-java-8-25-java-vs-go.java-vs-go-2025-2026.q2",
+        "02-java-8-25-java-vs-go.java-vs-go-2025-2026.q3",
+        "02-java-8-25-java-vs-go.java-vs-go-2025-2026.q4",
+        "02-java-8-25-java-vs-go.java-vs-go-2025-2026.q5",
+        "02-java-8-25-java-vs-go.java-vs-go-2025-2026.q6"
+      ],
+      "track_item_ids": [
+        "02-java-8-25-java-vs-go.release-timeline.q1",
+        "02-java-8-25-java-vs-go.release-timeline.q2",
+        "02-java-8-25-java-vs-go.release-timeline.q3",
+        "02-java-8-25-java-vs-go.release-timeline.q4",
+        "02-java-8-25-java-vs-go.release-timeline.q5",
+        "02-java-8-25-java-vs-go.release-timeline.q6",
+        "02-java-8-25-java-vs-go.release-timeline.q7",
+        "02-java-8-25-java-vs-go.java-vs-go-2025-2026.q1",
+        "02-java-8-25-java-vs-go.java-vs-go-2025-2026.q2",
+        "02-java-8-25-java-vs-go.java-vs-go-2025-2026.q3",
+        "02-java-8-25-java-vs-go.java-vs-go-2025-2026.q4",
+        "02-java-8-25-java-vs-go.java-vs-go-2025-2026.q5",
+        "02-java-8-25-java-vs-go.java-vs-go-2025-2026.q6"
+      ]
+    },
+    {
+      "n": 3,
+      "item_ids": [
+        "03-spring-boot-deep-build.ioc-container-transactions.q1",
+        "03-spring-boot-deep-build.ioc-container-transactions.q2",
+        "03-spring-boot-deep-build.ioc-container-transactions.q3",
+        "03-spring-boot-deep-build.ioc-container-transactions.q4",
+        "03-spring-boot-deep-build.ioc-container-transactions.q5",
+        "03-spring-boot-deep-build.ioc-container-transactions.q6",
+        "03-spring-boot-deep-build.auto-configuration-build.q1",
+        "03-spring-boot-deep-build.auto-configuration-build.q2",
+        "03-spring-boot-deep-build.auto-configuration-build.q3",
+        "03-spring-boot-deep-build.auto-configuration-build.q4",
+        "03-spring-boot-deep-build.auto-configuration-build.q5",
+        "03-spring-boot-deep-build.auto-configuration-build.q6",
+        "03-spring-boot-deep-build.auto-configuration-build.q7",
+        "03-spring-boot-deep-build.auto-configuration-build.q8",
+        "03-spring-boot-deep-build.auto-configuration-build.q9",
+        "03-spring-boot-deep-build.auto-configuration-build.q10",
+        "03-spring-boot-deep-build.auto-configuration-build.q11",
+        "03-spring-boot-deep-build.auto-configuration-build.q12",
+        "03-spring-boot-deep-build.auto-configuration-build.q13",
+        "03-spring-boot-deep-build.auto-configuration-build.q14",
+        "03-spring-boot-deep-build.bean-lifecycle-request-flow.q1",
+        "03-spring-boot-deep-build.bean-lifecycle-request-flow.q2",
+        "03-spring-boot-deep-build.bean-lifecycle-request-flow.q3"
+      ],
+      "track_item_ids": [
+        "03-spring-boot-deep-build.ioc-container-transactions.q1",
+        "03-spring-boot-deep-build.ioc-container-transactions.q2",
+        "03-spring-boot-deep-build.ioc-container-transactions.q3",
+        "03-spring-boot-deep-build.ioc-container-transactions.q4",
+        "03-spring-boot-deep-build.ioc-container-transactions.q5",
+        "03-spring-boot-deep-build.ioc-container-transactions.q6",
+        "03-spring-boot-deep-build.auto-configuration-build.q1",
+        "03-spring-boot-deep-build.auto-configuration-build.q2",
+        "03-spring-boot-deep-build.auto-configuration-build.q3",
+        "03-spring-boot-deep-build.auto-configuration-build.q4",
+        "03-spring-boot-deep-build.auto-configuration-build.q5",
+        "03-spring-boot-deep-build.auto-configuration-build.q6",
+        "03-spring-boot-deep-build.auto-configuration-build.q7",
+        "03-spring-boot-deep-build.auto-configuration-build.q8",
+        "03-spring-boot-deep-build.auto-configuration-build.q9",
+        "03-spring-boot-deep-build.auto-configuration-build.q10",
+        "03-spring-boot-deep-build.auto-configuration-build.q11",
+        "03-spring-boot-deep-build.auto-configuration-build.q12",
+        "03-spring-boot-deep-build.auto-configuration-build.q13",
+        "03-spring-boot-deep-build.auto-configuration-build.q14",
+        "03-spring-boot-deep-build.bean-lifecycle-request-flow.q1",
+        "03-spring-boot-deep-build.bean-lifecycle-request-flow.q2",
+        "03-spring-boot-deep-build.bean-lifecycle-request-flow.q3"
+      ]
+    },
+    {
+      "n": 4,
+      "item_ids": [
+        "04-rest-grpc-webflux.protocols.q1",
+        "04-rest-grpc-webflux.protocols.q2",
+        "04-rest-grpc-webflux.protocols.q3",
+        "04-rest-grpc-webflux.protocols.q4",
+        "04-rest-grpc-webflux.protocols.q5",
+        "04-rest-grpc-webflux.protocols.q6",
+        "04-rest-grpc-webflux.reactive-webflux.q1",
+        "04-rest-grpc-webflux.reactive-webflux.q2",
+        "04-rest-grpc-webflux.reactive-webflux.q3",
+        "04-rest-grpc-webflux.reactive-webflux.q4",
+        "04-rest-grpc-webflux.reactive-webflux.q5"
+      ],
+      "track_item_ids": [
+        "04-rest-grpc-webflux.protocols.q1",
+        "04-rest-grpc-webflux.protocols.q2",
+        "04-rest-grpc-webflux.protocols.q3",
+        "04-rest-grpc-webflux.protocols.q4",
+        "04-rest-grpc-webflux.protocols.q5",
+        "04-rest-grpc-webflux.protocols.q6",
+        "04-rest-grpc-webflux.reactive-webflux.q1",
+        "04-rest-grpc-webflux.reactive-webflux.q2",
+        "04-rest-grpc-webflux.reactive-webflux.q3",
+        "04-rest-grpc-webflux.reactive-webflux.q4",
+        "04-rest-grpc-webflux.reactive-webflux.q5"
+      ]
+    },
+    {
+      "n": 5,
+      "item_ids": [
+        "05-db-core-index-lock.indexes-what-they-really-are.q1",
+        "05-db-core-index-lock.indexes-what-they-really-are.q2",
+        "05-db-core-index-lock.indexes-what-they-really-are.q3",
+        "05-db-core-index-lock.indexes-what-they-really-are.q4",
+        "05-db-core-index-lock.indexes-what-they-really-are.q5",
+        "05-db-core-index-lock.indexes-what-they-really-are.q6",
+        "05-db-core-index-lock.indexes-what-they-really-are.q7",
+        "05-db-core-index-lock.transactions-mvcc-locking.q1",
+        "05-db-core-index-lock.transactions-mvcc-locking.q2",
+        "05-db-core-index-lock.transactions-mvcc-locking.q3",
+        "05-db-core-index-lock.transactions-mvcc-locking.q4",
+        "05-db-core-index-lock.transactions-mvcc-locking.q5",
+        "05-db-core-index-lock.transactions-mvcc-locking.q6",
+        "05-db-core-index-lock.transactions-mvcc-locking.q7",
+        "05-db-core-index-lock.modelling-the-schema.q1",
+        "05-db-core-index-lock.modelling-the-schema.q2"
+      ],
+      "track_item_ids": [
+        "05-db-core-index-lock.indexes-what-they-really-are.q1",
+        "05-db-core-index-lock.indexes-what-they-really-are.q2",
+        "05-db-core-index-lock.indexes-what-they-really-are.q3",
+        "05-db-core-index-lock.indexes-what-they-really-are.q4",
+        "05-db-core-index-lock.indexes-what-they-really-are.q5",
+        "05-db-core-index-lock.indexes-what-they-really-are.q6",
+        "05-db-core-index-lock.indexes-what-they-really-are.q7",
+        "05-db-core-index-lock.transactions-mvcc-locking.q1",
+        "05-db-core-index-lock.transactions-mvcc-locking.q2",
+        "05-db-core-index-lock.transactions-mvcc-locking.q3",
+        "05-db-core-index-lock.transactions-mvcc-locking.q4",
+        "05-db-core-index-lock.transactions-mvcc-locking.q5",
+        "05-db-core-index-lock.transactions-mvcc-locking.q6",
+        "05-db-core-index-lock.transactions-mvcc-locking.q7",
+        "05-db-core-index-lock.modelling-the-schema.q1",
+        "05-db-core-index-lock.modelling-the-schema.q2"
+      ]
+    },
+    {
+      "n": 6,
+      "item_ids": [
+        "06-db-scaling.replication-consistency.q1",
+        "06-db-scaling.replication-consistency.q2",
+        "06-db-scaling.replication-consistency.q3",
+        "06-db-scaling.replication-consistency.q4",
+        "06-db-scaling.sharding-partitioning.q1",
+        "06-db-scaling.sharding-partitioning.q2",
+        "06-db-scaling.sharding-partitioning.q3",
+        "06-db-scaling.sharding-partitioning.q4",
+        "06-db-scaling.sharding-partitioning.q5",
+        "06-db-scaling.sharding-partitioning.q6",
+        "06-db-scaling.sharding-partitioning.q7"
+      ],
+      "track_item_ids": [
+        "06-db-scaling.replication-consistency.q1",
+        "06-db-scaling.replication-consistency.q2",
+        "06-db-scaling.replication-consistency.q3",
+        "06-db-scaling.replication-consistency.q4",
+        "06-db-scaling.sharding-partitioning.q1",
+        "06-db-scaling.sharding-partitioning.q2",
+        "06-db-scaling.sharding-partitioning.q3",
+        "06-db-scaling.sharding-partitioning.q4",
+        "06-db-scaling.sharding-partitioning.q5",
+        "06-db-scaling.sharding-partitioning.q6",
+        "06-db-scaling.sharding-partitioning.q7"
+      ]
+    },
+    {
+      "n": 7,
+      "item_ids": [
+        "07-sql-nosql-db-engines.the-big-picture.q1",
+        "07-sql-nosql-db-engines.the-big-picture.q2",
+        "07-sql-nosql-db-engines.the-big-picture.q3",
+        "07-sql-nosql-db-engines.the-big-picture.q4",
+        "07-sql-nosql-db-engines.engine-by-engine.q1",
+        "07-sql-nosql-db-engines.engine-by-engine.q2",
+        "07-sql-nosql-db-engines.engine-by-engine.q3",
+        "07-sql-nosql-db-engines.engine-by-engine.q4",
+        "07-sql-nosql-db-engines.engine-by-engine.q5",
+        "07-sql-nosql-db-engines.engine-by-engine.q6",
+        "07-sql-nosql-db-engines.engine-by-engine.q7",
+        "07-sql-nosql-db-engines.engine-by-engine.q8",
+        "07-sql-nosql-db-engines.engine-by-engine.q9"
+      ],
+      "track_item_ids": [
+        "07-sql-nosql-db-engines.the-big-picture.q1",
+        "07-sql-nosql-db-engines.the-big-picture.q2",
+        "07-sql-nosql-db-engines.the-big-picture.q3",
+        "07-sql-nosql-db-engines.the-big-picture.q4",
+        "07-sql-nosql-db-engines.engine-by-engine.q1",
+        "07-sql-nosql-db-engines.engine-by-engine.q2",
+        "07-sql-nosql-db-engines.engine-by-engine.q3",
+        "07-sql-nosql-db-engines.engine-by-engine.q4",
+        "07-sql-nosql-db-engines.engine-by-engine.q5",
+        "07-sql-nosql-db-engines.engine-by-engine.q6",
+        "07-sql-nosql-db-engines.engine-by-engine.q7",
+        "07-sql-nosql-db-engines.engine-by-engine.q8",
+        "07-sql-nosql-db-engines.engine-by-engine.q9"
+      ]
+    },
+    {
+      "n": 8,
+      "item_ids": [
+        "08-message-queue.the-two-models.q1",
+        "08-message-queue.the-two-models.q2",
+        "08-message-queue.the-two-models.q3",
+        "08-message-queue.reliability-delivery-semantics.q1",
+        "08-message-queue.reliability-delivery-semantics.q2",
+        "08-message-queue.reliability-delivery-semantics.q3",
+        "08-message-queue.reliability-delivery-semantics.q4",
+        "08-message-queue.reliability-delivery-semantics.q5",
+        "08-message-queue.reliability-delivery-semantics.q6",
+        "08-message-queue.reliability-delivery-semantics.q7",
+        "08-message-queue.reliability-delivery-semantics.q8",
+        "08-message-queue.reliability-delivery-semantics.q9",
+        "08-message-queue.reliability-delivery-semantics.q10"
+      ],
+      "track_item_ids": [
+        "08-message-queue.the-two-models.q1",
+        "08-message-queue.the-two-models.q2",
+        "08-message-queue.the-two-models.q3",
+        "08-message-queue.reliability-delivery-semantics.q1",
+        "08-message-queue.reliability-delivery-semantics.q2",
+        "08-message-queue.reliability-delivery-semantics.q3",
+        "08-message-queue.reliability-delivery-semantics.q4",
+        "08-message-queue.reliability-delivery-semantics.q5",
+        "08-message-queue.reliability-delivery-semantics.q6",
+        "08-message-queue.reliability-delivery-semantics.q7",
+        "08-message-queue.reliability-delivery-semantics.q8",
+        "08-message-queue.reliability-delivery-semantics.q9",
+        "08-message-queue.reliability-delivery-semantics.q10"
+      ]
+    },
+    {
+      "n": 9,
+      "item_ids": [
+        "09-distributed-tx-fintech.distributed-transaction-patterns.q1",
+        "09-distributed-tx-fintech.distributed-transaction-patterns.q2",
+        "09-distributed-tx-fintech.distributed-transaction-patterns.q3",
+        "09-distributed-tx-fintech.distributed-transaction-patterns.q4",
+        "09-distributed-tx-fintech.distributed-transaction-patterns.q5",
+        "09-distributed-tx-fintech.distributed-transaction-patterns.q6",
+        "09-distributed-tx-fintech.correctness-where-money-is-involved.q1",
+        "09-distributed-tx-fintech.correctness-where-money-is-involved.q2",
+        "09-distributed-tx-fintech.correctness-where-money-is-involved.q3",
+        "09-distributed-tx-fintech.correctness-where-money-is-involved.q4",
+        "09-distributed-tx-fintech.correctness-where-money-is-involved.q5",
+        "09-distributed-tx-fintech.correctness-where-money-is-involved.q6"
+      ],
+      "track_item_ids": [
+        "09-distributed-tx-fintech.distributed-transaction-patterns.q1",
+        "09-distributed-tx-fintech.distributed-transaction-patterns.q2",
+        "09-distributed-tx-fintech.distributed-transaction-patterns.q3",
+        "09-distributed-tx-fintech.distributed-transaction-patterns.q4",
+        "09-distributed-tx-fintech.distributed-transaction-patterns.q5",
+        "09-distributed-tx-fintech.distributed-transaction-patterns.q6",
+        "09-distributed-tx-fintech.correctness-where-money-is-involved.q1",
+        "09-distributed-tx-fintech.correctness-where-money-is-involved.q2",
+        "09-distributed-tx-fintech.correctness-where-money-is-involved.q3",
+        "09-distributed-tx-fintech.correctness-where-money-is-involved.q4",
+        "09-distributed-tx-fintech.correctness-where-money-is-involved.q5",
+        "09-distributed-tx-fintech.correctness-where-money-is-involved.q6"
+      ]
+    },
+    {
+      "n": 10,
+      "item_ids": [
+        "10-system-design-rate-limit.framework-building-blocks.q1",
+        "10-system-design-rate-limit.framework-building-blocks.q2",
+        "10-system-design-rate-limit.framework-building-blocks.q3",
+        "10-system-design-rate-limit.framework-building-blocks.q4",
+        "10-system-design-rate-limit.framework-building-blocks.q5",
+        "10-system-design-rate-limit.framework-building-blocks.q6",
+        "10-system-design-rate-limit.rate-limiting-in-depth.q1",
+        "10-system-design-rate-limit.rate-limiting-in-depth.q2",
+        "10-system-design-rate-limit.rate-limiting-in-depth.q3",
+        "10-system-design-rate-limit.rate-limiting-in-depth.q4",
+        "10-system-design-rate-limit.rate-limiting-in-depth.q5",
+        "10-system-design-rate-limit.surviving-high-load.q1",
+        "10-system-design-rate-limit.surviving-high-load.q2",
+        "10-system-design-rate-limit.surviving-high-load.q3",
+        "10-system-design-rate-limit.surviving-high-load.q4"
+      ],
+      "track_item_ids": []
+    },
+    {
+      "n": 11,
+      "item_ids": [
+        "11-system-design-cases.the-big-prompts.q1",
+        "11-system-design-cases.the-big-prompts.q2",
+        "11-system-design-cases.the-big-prompts.q3",
+        "11-system-design-cases.the-big-prompts.q4",
+        "11-system-design-cases.the-big-prompts.q5",
+        "11-system-design-cases.the-big-prompts.q6",
+        "11-system-design-cases.the-big-prompts.q7",
+        "11-system-design-cases.the-big-prompts.q8",
+        "11-system-design-cases.the-big-prompts.q9",
+        "11-system-design-cases.the-big-prompts.q10",
+        "11-system-design-cases.the-big-prompts.q11",
+        "11-system-design-cases.the-big-prompts.q12",
+        "11-system-design-cases.the-big-prompts.q13",
+        "11-system-design-cases.the-big-prompts.q14",
+        "11-system-design-cases.the-big-prompts.q15",
+        "11-system-design-cases.the-big-prompts.q16",
+        "11-system-design-cases.the-big-prompts.q17",
+        "11-system-design-cases.the-big-prompts.q18",
+        "11-system-design-cases.the-big-prompts.q19",
+        "11-system-design-cases.the-big-prompts.q20"
+      ],
+      "track_item_ids": []
+    },
+    {
+      "n": 12,
+      "item_ids": [
+        "12-architecture-patterns.architecture-styles.q1",
+        "12-architecture-patterns.architecture-styles.q2",
+        "12-architecture-patterns.architecture-styles.q3",
+        "12-architecture-patterns.architecture-styles.q4",
+        "12-architecture-patterns.domain-driven-design.q1",
+        "12-architecture-patterns.domain-driven-design.q2",
+        "12-architecture-patterns.domain-driven-design.q3",
+        "12-architecture-patterns.domain-driven-design.q4",
+        "12-architecture-patterns.patterns-principles.q1",
+        "12-architecture-patterns.patterns-principles.q2",
+        "12-architecture-patterns.patterns-principles.q3",
+        "12-architecture-patterns.patterns-principles.q4",
+        "12-architecture-patterns.patterns-principles.q5",
+        "12-architecture-patterns.patterns-principles.q6",
+        "12-architecture-patterns.clean-layered-building-it-for-real.q1",
+        "12-architecture-patterns.clean-layered-building-it-for-real.q2",
+        "12-architecture-patterns.clean-layered-building-it-for-real.q3",
+        "12-architecture-patterns.clean-layered-building-it-for-real.q4",
+        "12-architecture-patterns.clean-layered-building-it-for-real.q5",
+        "12-architecture-patterns.clean-layered-building-it-for-real.q6",
+        "12-architecture-patterns.clean-layered-building-it-for-real.q7",
+        "12-architecture-patterns.clean-layered-building-it-for-real.q8"
+      ],
+      "track_item_ids": [
+        "12-architecture-patterns.architecture-styles.q1",
+        "12-architecture-patterns.architecture-styles.q2",
+        "12-architecture-patterns.architecture-styles.q3",
+        "12-architecture-patterns.architecture-styles.q4",
+        "12-architecture-patterns.domain-driven-design.q1",
+        "12-architecture-patterns.domain-driven-design.q2",
+        "12-architecture-patterns.domain-driven-design.q3",
+        "12-architecture-patterns.domain-driven-design.q4",
+        "12-architecture-patterns.patterns-principles.q1",
+        "12-architecture-patterns.patterns-principles.q2",
+        "12-architecture-patterns.patterns-principles.q3",
+        "12-architecture-patterns.patterns-principles.q4",
+        "12-architecture-patterns.patterns-principles.q5",
+        "12-architecture-patterns.patterns-principles.q6",
+        "12-architecture-patterns.clean-layered-building-it-for-real.q1",
+        "12-architecture-patterns.clean-layered-building-it-for-real.q2",
+        "12-architecture-patterns.clean-layered-building-it-for-real.q3",
+        "12-architecture-patterns.clean-layered-building-it-for-real.q4",
+        "12-architecture-patterns.clean-layered-building-it-for-real.q5",
+        "12-architecture-patterns.clean-layered-building-it-for-real.q6",
+        "12-architecture-patterns.clean-layered-building-it-for-real.q7",
+        "12-architecture-patterns.clean-layered-building-it-for-real.q8"
+      ]
+    },
+    {
+      "n": 13,
+      "item_ids": [
+        "13-security-oauth2.oauth2-oidc.q1",
+        "13-security-oauth2.oauth2-oidc.q2",
+        "13-security-oauth2.oauth2-oidc.q3",
+        "13-security-oauth2.jwt-tokens.q1",
+        "13-security-oauth2.jwt-tokens.q2",
+        "13-security-oauth2.jwt-tokens.q3",
+        "13-security-oauth2.designing-the-auth-system.q1",
+        "13-security-oauth2.designing-the-auth-system.q2",
+        "13-security-oauth2.designing-the-auth-system.q3",
+        "13-security-oauth2.designing-the-auth-system.q4",
+        "13-security-oauth2.designing-the-auth-system.q5",
+        "13-security-oauth2.designing-the-auth-system.q6",
+        "13-security-oauth2.designing-the-auth-system.q7",
+        "13-security-oauth2.keycloak-in-practice.q1",
+        "13-security-oauth2.keycloak-in-practice.q2",
+        "13-security-oauth2.keycloak-in-practice.q3",
+        "13-security-oauth2.keycloak-in-practice.q4",
+        "13-security-oauth2.keycloak-in-practice.q5",
+        "13-security-oauth2.keycloak-in-practice.q6",
+        "13-security-oauth2.secure-coding-at-the-boundary.q1",
+        "13-security-oauth2.secure-coding-at-the-boundary.q2",
+        "13-security-oauth2.secure-coding-at-the-boundary.q3",
+        "13-security-oauth2.secure-coding-at-the-boundary.q4",
+        "13-security-oauth2.protecting-the-data-you-store.q1",
+        "13-security-oauth2.protecting-the-data-you-store.q2",
+        "13-security-oauth2.protecting-the-data-you-store.q3",
+        "13-security-oauth2.protecting-the-data-you-store.q4"
+      ],
+      "track_item_ids": [
+        "13-security-oauth2.oauth2-oidc.q1",
+        "13-security-oauth2.oauth2-oidc.q2",
+        "13-security-oauth2.oauth2-oidc.q3",
+        "13-security-oauth2.jwt-tokens.q1",
+        "13-security-oauth2.jwt-tokens.q2",
+        "13-security-oauth2.jwt-tokens.q3",
+        "13-security-oauth2.designing-the-auth-system.q1",
+        "13-security-oauth2.designing-the-auth-system.q2",
+        "13-security-oauth2.designing-the-auth-system.q3",
+        "13-security-oauth2.designing-the-auth-system.q4",
+        "13-security-oauth2.designing-the-auth-system.q5",
+        "13-security-oauth2.designing-the-auth-system.q6",
+        "13-security-oauth2.designing-the-auth-system.q7",
+        "13-security-oauth2.keycloak-in-practice.q1",
+        "13-security-oauth2.keycloak-in-practice.q2",
+        "13-security-oauth2.keycloak-in-practice.q3",
+        "13-security-oauth2.keycloak-in-practice.q4",
+        "13-security-oauth2.keycloak-in-practice.q5",
+        "13-security-oauth2.keycloak-in-practice.q6",
+        "13-security-oauth2.secure-coding-at-the-boundary.q1",
+        "13-security-oauth2.secure-coding-at-the-boundary.q2",
+        "13-security-oauth2.secure-coding-at-the-boundary.q3",
+        "13-security-oauth2.secure-coding-at-the-boundary.q4",
+        "13-security-oauth2.protecting-the-data-you-store.q1",
+        "13-security-oauth2.protecting-the-data-you-store.q2",
+        "13-security-oauth2.protecting-the-data-you-store.q3",
+        "13-security-oauth2.protecting-the-data-you-store.q4"
+      ]
+    },
+    {
+      "n": 14,
+      "item_ids": [
+        "14-devops-k8s-best-practices.docker-kubernetes.q1",
+        "14-devops-k8s-best-practices.docker-kubernetes.q2",
+        "14-devops-k8s-best-practices.docker-kubernetes.q3",
+        "14-devops-k8s-best-practices.docker-kubernetes.q4",
+        "14-devops-k8s-best-practices.docker-kubernetes.q5",
+        "14-devops-k8s-best-practices.docker-kubernetes.q6",
+        "14-devops-k8s-best-practices.web-server-networking-observability.q1",
+        "14-devops-k8s-best-practices.web-server-networking-observability.q2",
+        "14-devops-k8s-best-practices.web-server-networking-observability.q3",
+        "14-devops-k8s-best-practices.web-server-networking-observability.q4",
+        "14-devops-k8s-best-practices.ci-cd-2026-best-practices.q1",
+        "14-devops-k8s-best-practices.ci-cd-2026-best-practices.q2",
+        "14-devops-k8s-best-practices.ci-cd-2026-best-practices.q3",
+        "14-devops-k8s-best-practices.ci-cd-2026-best-practices.q4",
+        "14-devops-k8s-best-practices.ci-cd-2026-best-practices.q5",
+        "14-devops-k8s-best-practices.ci-cd-2026-best-practices.q6",
+        "14-devops-k8s-best-practices.ci-cd-2026-best-practices.q7"
+      ],
+      "track_item_ids": [
+        "14-devops-k8s-best-practices.docker-kubernetes.q1",
+        "14-devops-k8s-best-practices.docker-kubernetes.q2",
+        "14-devops-k8s-best-practices.docker-kubernetes.q3",
+        "14-devops-k8s-best-practices.docker-kubernetes.q4",
+        "14-devops-k8s-best-practices.docker-kubernetes.q5",
+        "14-devops-k8s-best-practices.docker-kubernetes.q6",
+        "14-devops-k8s-best-practices.web-server-networking-observability.q1",
+        "14-devops-k8s-best-practices.web-server-networking-observability.q2",
+        "14-devops-k8s-best-practices.web-server-networking-observability.q3",
+        "14-devops-k8s-best-practices.web-server-networking-observability.q4",
+        "14-devops-k8s-best-practices.ci-cd-2026-best-practices.q1",
+        "14-devops-k8s-best-practices.ci-cd-2026-best-practices.q2",
+        "14-devops-k8s-best-practices.ci-cd-2026-best-practices.q3",
+        "14-devops-k8s-best-practices.ci-cd-2026-best-practices.q4",
+        "14-devops-k8s-best-practices.ci-cd-2026-best-practices.q5",
+        "14-devops-k8s-best-practices.ci-cd-2026-best-practices.q6",
+        "14-devops-k8s-best-practices.ci-cd-2026-best-practices.q7"
+      ]
+    },
+    {
+      "n": 15,
+      "item_ids": [
+        "15-network-i-o-models.web-protocols.q1",
+        "15-network-i-o-models.web-protocols.q2",
+        "15-network-i-o-models.web-protocols.q3",
+        "15-network-i-o-models.realtime-event-driven.q1",
+        "15-network-i-o-models.realtime-event-driven.q2",
+        "15-network-i-o-models.realtime-event-driven.q3",
+        "15-network-i-o-models.threading-network-programming.q1",
+        "15-network-i-o-models.threading-network-programming.q2",
+        "15-network-i-o-models.threading-network-programming.q3",
+        "15-network-i-o-models.threading-network-programming.q4",
+        "15-network-i-o-models.threading-network-programming.q5",
+        "15-network-i-o-models.threading-network-programming.q6"
+      ],
+      "track_item_ids": [
+        "15-network-i-o-models.web-protocols.q1",
+        "15-network-i-o-models.web-protocols.q2",
+        "15-network-i-o-models.web-protocols.q3",
+        "15-network-i-o-models.realtime-event-driven.q1",
+        "15-network-i-o-models.realtime-event-driven.q2",
+        "15-network-i-o-models.realtime-event-driven.q3",
+        "15-network-i-o-models.threading-network-programming.q1",
+        "15-network-i-o-models.threading-network-programming.q2",
+        "15-network-i-o-models.threading-network-programming.q3",
+        "15-network-i-o-models.threading-network-programming.q4",
+        "15-network-i-o-models.threading-network-programming.q5",
+        "15-network-i-o-models.threading-network-programming.q6"
+      ]
+    },
+    {
+      "n": 16,
+      "item_ids": [
+        "16-project-concurrency-whiteboard.presenting-dissecting-the-ota-project.q1",
+        "16-project-concurrency-whiteboard.presenting-dissecting-the-ota-project.q2",
+        "16-project-concurrency-whiteboard.presenting-dissecting-the-ota-project.q3",
+        "16-project-concurrency-whiteboard.presenting-dissecting-the-ota-project.q4",
+        "16-project-concurrency-whiteboard.presenting-dissecting-the-ota-project.q5",
+        "16-project-concurrency-whiteboard.technical-storytelling-fundamentals.q1",
+        "16-project-concurrency-whiteboard.technical-storytelling-fundamentals.q2",
+        "16-project-concurrency-whiteboard.technical-storytelling-fundamentals.q3",
+        "16-project-concurrency-whiteboard.technical-storytelling-fundamentals.q4",
+        "16-project-concurrency-whiteboard.technical-storytelling-fundamentals.q5",
+        "16-project-concurrency-whiteboard.technical-storytelling-fundamentals.q6",
+        "16-project-concurrency-whiteboard.technical-storytelling-fundamentals.q7",
+        "16-project-concurrency-whiteboard.whiteboard-dsa.q1",
+        "16-project-concurrency-whiteboard.whiteboard-dsa.q2",
+        "16-project-concurrency-whiteboard.whiteboard-dsa.q3",
+        "16-project-concurrency-whiteboard.whiteboard-dsa.q4"
+      ],
+      "track_item_ids": [
+        "16-project-concurrency-whiteboard.technical-storytelling-fundamentals.q1",
+        "16-project-concurrency-whiteboard.technical-storytelling-fundamentals.q2",
+        "16-project-concurrency-whiteboard.technical-storytelling-fundamentals.q3",
+        "16-project-concurrency-whiteboard.technical-storytelling-fundamentals.q4",
+        "16-project-concurrency-whiteboard.technical-storytelling-fundamentals.q5",
+        "16-project-concurrency-whiteboard.technical-storytelling-fundamentals.q6",
+        "16-project-concurrency-whiteboard.technical-storytelling-fundamentals.q7",
+        "16-project-concurrency-whiteboard.whiteboard-dsa.q2",
+        "16-project-concurrency-whiteboard.whiteboard-dsa.q3",
+        "16-project-concurrency-whiteboard.whiteboard-dsa.q4"
+      ]
+    },
+    {
+      "n": 17,
+      "item_ids": [
+        "17-rest-api-design.modelling-resources-uris.q1",
+        "17-rest-api-design.modelling-resources-uris.q2",
+        "17-rest-api-design.modelling-resources-uris.q3",
+        "17-rest-api-design.modelling-resources-uris.q4",
+        "17-rest-api-design.contracts-errors-lifecycle.q1",
+        "17-rest-api-design.contracts-errors-lifecycle.q2",
+        "17-rest-api-design.contracts-errors-lifecycle.q3",
+        "17-rest-api-design.contracts-errors-lifecycle.q4",
+        "17-rest-api-design.contracts-errors-lifecycle.q5",
+        "17-rest-api-design.contracts-errors-lifecycle.q6",
+        "17-rest-api-design.contracts-errors-lifecycle.q7"
+      ],
+      "track_item_ids": [
+        "17-rest-api-design.modelling-resources-uris.q1",
+        "17-rest-api-design.modelling-resources-uris.q2",
+        "17-rest-api-design.modelling-resources-uris.q3",
+        "17-rest-api-design.modelling-resources-uris.q4",
+        "17-rest-api-design.contracts-errors-lifecycle.q1",
+        "17-rest-api-design.contracts-errors-lifecycle.q2",
+        "17-rest-api-design.contracts-errors-lifecycle.q3",
+        "17-rest-api-design.contracts-errors-lifecycle.q4",
+        "17-rest-api-design.contracts-errors-lifecycle.q5",
+        "17-rest-api-design.contracts-errors-lifecycle.q6",
+        "17-rest-api-design.contracts-errors-lifecycle.q7"
+      ]
+    },
+    {
+      "n": 18,
+      "item_ids": [
+        "18-query-optimization.measure-first-reading-the-execution-plan.q1",
+        "18-query-optimization.measure-first-reading-the-execution-plan.q2",
+        "18-query-optimization.measure-first-reading-the-execution-plan.q3",
+        "18-query-optimization.measure-first-reading-the-execution-plan.q4",
+        "18-query-optimization.measure-first-reading-the-execution-plan.q5",
+        "18-query-optimization.measure-first-reading-the-execution-plan.q6",
+        "18-query-optimization.measure-first-reading-the-execution-plan.q7",
+        "18-query-optimization.rewriting-the-query-reshaping-the-model.q1",
+        "18-query-optimization.rewriting-the-query-reshaping-the-model.q2",
+        "18-query-optimization.rewriting-the-query-reshaping-the-model.q3",
+        "18-query-optimization.rewriting-the-query-reshaping-the-model.q4",
+        "18-query-optimization.rewriting-the-query-reshaping-the-model.q5"
+      ],
+      "track_item_ids": [
+        "18-query-optimization.measure-first-reading-the-execution-plan.q1",
+        "18-query-optimization.measure-first-reading-the-execution-plan.q2",
+        "18-query-optimization.measure-first-reading-the-execution-plan.q3",
+        "18-query-optimization.measure-first-reading-the-execution-plan.q4",
+        "18-query-optimization.measure-first-reading-the-execution-plan.q5",
+        "18-query-optimization.measure-first-reading-the-execution-plan.q6",
+        "18-query-optimization.measure-first-reading-the-execution-plan.q7",
+        "18-query-optimization.rewriting-the-query-reshaping-the-model.q1",
+        "18-query-optimization.rewriting-the-query-reshaping-the-model.q2",
+        "18-query-optimization.rewriting-the-query-reshaping-the-model.q3",
+        "18-query-optimization.rewriting-the-query-reshaping-the-model.q4",
+        "18-query-optimization.rewriting-the-query-reshaping-the-model.q5"
+      ]
+    },
+    {
+      "n": 19,
+      "item_ids": [
+        "19-dsa-leetcode.the-solving-framework-core-patterns.q1",
+        "19-dsa-leetcode.the-solving-framework-core-patterns.q2",
+        "19-dsa-leetcode.the-solving-framework-core-patterns.q3",
+        "19-dsa-leetcode.the-solving-framework-core-patterns.q4",
+        "19-dsa-leetcode.the-patterns-that-keep-coming-up.q1",
+        "19-dsa-leetcode.the-patterns-that-keep-coming-up.q2",
+        "19-dsa-leetcode.the-patterns-that-keep-coming-up.q3",
+        "19-dsa-leetcode.the-patterns-that-keep-coming-up.q4",
+        "19-dsa-leetcode.the-patterns-that-keep-coming-up.q5",
+        "19-dsa-leetcode.the-patterns-that-keep-coming-up.q6",
+        "19-dsa-leetcode.the-patterns-that-keep-coming-up.q7",
+        "19-dsa-leetcode.the-patterns-that-keep-coming-up.q8",
+        "19-dsa-leetcode.fifteen-patterns-visualized.q1",
+        "19-dsa-leetcode.fifteen-patterns-visualized.q2",
+        "19-dsa-leetcode.fifteen-patterns-visualized.q3",
+        "19-dsa-leetcode.fifteen-patterns-visualized.q4",
+        "19-dsa-leetcode.fifteen-patterns-visualized.q5",
+        "19-dsa-leetcode.fifteen-patterns-visualized.q6",
+        "19-dsa-leetcode.fifteen-patterns-visualized.q7",
+        "19-dsa-leetcode.fifteen-patterns-visualized.q8",
+        "19-dsa-leetcode.fifteen-patterns-visualized.q9",
+        "19-dsa-leetcode.fifteen-patterns-visualized.q10",
+        "19-dsa-leetcode.fifteen-patterns-visualized.q11",
+        "19-dsa-leetcode.fifteen-patterns-visualized.q12",
+        "19-dsa-leetcode.fifteen-patterns-visualized.q13",
+        "19-dsa-leetcode.fifteen-patterns-visualized.q14",
+        "19-dsa-leetcode.fifteen-patterns-visualized.q15"
+      ],
+      "track_item_ids": [
+        "19-dsa-leetcode.the-solving-framework-core-patterns.q1",
+        "19-dsa-leetcode.the-solving-framework-core-patterns.q2",
+        "19-dsa-leetcode.the-solving-framework-core-patterns.q3",
+        "19-dsa-leetcode.the-solving-framework-core-patterns.q4",
+        "19-dsa-leetcode.the-patterns-that-keep-coming-up.q1",
+        "19-dsa-leetcode.the-patterns-that-keep-coming-up.q2",
+        "19-dsa-leetcode.the-patterns-that-keep-coming-up.q3",
+        "19-dsa-leetcode.the-patterns-that-keep-coming-up.q4",
+        "19-dsa-leetcode.the-patterns-that-keep-coming-up.q5",
+        "19-dsa-leetcode.the-patterns-that-keep-coming-up.q6",
+        "19-dsa-leetcode.the-patterns-that-keep-coming-up.q7",
+        "19-dsa-leetcode.the-patterns-that-keep-coming-up.q8",
+        "19-dsa-leetcode.fifteen-patterns-visualized.q1",
+        "19-dsa-leetcode.fifteen-patterns-visualized.q2",
+        "19-dsa-leetcode.fifteen-patterns-visualized.q3",
+        "19-dsa-leetcode.fifteen-patterns-visualized.q4",
+        "19-dsa-leetcode.fifteen-patterns-visualized.q5",
+        "19-dsa-leetcode.fifteen-patterns-visualized.q6",
+        "19-dsa-leetcode.fifteen-patterns-visualized.q7",
+        "19-dsa-leetcode.fifteen-patterns-visualized.q8",
+        "19-dsa-leetcode.fifteen-patterns-visualized.q9",
+        "19-dsa-leetcode.fifteen-patterns-visualized.q10",
+        "19-dsa-leetcode.fifteen-patterns-visualized.q11",
+        "19-dsa-leetcode.fifteen-patterns-visualized.q12",
+        "19-dsa-leetcode.fifteen-patterns-visualized.q13",
+        "19-dsa-leetcode.fifteen-patterns-visualized.q14",
+        "19-dsa-leetcode.fifteen-patterns-visualized.q15"
+      ]
+    },
+    {
+      "n": 20,
+      "item_ids": [
+        "20-observability-sre.the-three-pillars-how-to-measure.q1",
+        "20-observability-sre.the-three-pillars-how-to-measure.q2",
+        "20-observability-sre.the-three-pillars-how-to-measure.q3",
+        "20-observability-sre.the-three-pillars-how-to-measure.q4",
+        "20-observability-sre.slos-alerting-incidents.q1",
+        "20-observability-sre.slos-alerting-incidents.q2",
+        "20-observability-sre.slos-alerting-incidents.q3",
+        "20-observability-sre.slos-alerting-incidents.q4"
+      ],
+      "track_item_ids": [
+        "20-observability-sre.the-three-pillars-how-to-measure.q1",
+        "20-observability-sre.the-three-pillars-how-to-measure.q2",
+        "20-observability-sre.the-three-pillars-how-to-measure.q3",
+        "20-observability-sre.the-three-pillars-how-to-measure.q4",
+        "20-observability-sre.slos-alerting-incidents.q1",
+        "20-observability-sre.slos-alerting-incidents.q2",
+        "20-observability-sre.slos-alerting-incidents.q3",
+        "20-observability-sre.slos-alerting-incidents.q4"
+      ]
+    },
+    {
+      "n": 21,
+      "item_ids": [
+        "21-linux-production-debug.diagnosing-the-system.q1",
+        "21-linux-production-debug.diagnosing-the-system.q2",
+        "21-linux-production-debug.diagnosing-the-system.q3",
+        "21-linux-production-debug.diagnosing-the-system.q4",
+        "21-linux-production-debug.jvm-network-deep-dive-on-prod.q1",
+        "21-linux-production-debug.jvm-network-deep-dive-on-prod.q2",
+        "21-linux-production-debug.jvm-network-deep-dive-on-prod.q3",
+        "21-linux-production-debug.jvm-network-deep-dive-on-prod.q4"
+      ],
+      "track_item_ids": [
+        "21-linux-production-debug.diagnosing-the-system.q1",
+        "21-linux-production-debug.diagnosing-the-system.q2",
+        "21-linux-production-debug.diagnosing-the-system.q3",
+        "21-linux-production-debug.diagnosing-the-system.q4",
+        "21-linux-production-debug.jvm-network-deep-dive-on-prod.q1",
+        "21-linux-production-debug.jvm-network-deep-dive-on-prod.q2",
+        "21-linux-production-debug.jvm-network-deep-dive-on-prod.q3",
+        "21-linux-production-debug.jvm-network-deep-dive-on-prod.q4"
+      ]
+    },
+    {
+      "n": 22,
+      "item_ids": [
+        "22-low-level-design-ood.the-lld-framework-classic-problems.q1",
+        "22-low-level-design-ood.the-lld-framework-classic-problems.q2",
+        "22-low-level-design-ood.the-lld-framework-classic-problems.q3",
+        "22-low-level-design-ood.the-lld-framework-classic-problems.q4",
+        "22-low-level-design-ood.patterns-in-interview-code.q1",
+        "22-low-level-design-ood.patterns-in-interview-code.q2",
+        "22-low-level-design-ood.patterns-in-interview-code.q3",
+        "22-low-level-design-ood.patterns-in-interview-code.q4",
+        "22-low-level-design-ood.patterns-in-interview-code.q5"
+      ],
+      "track_item_ids": [
+        "22-low-level-design-ood.the-lld-framework-classic-problems.q1",
+        "22-low-level-design-ood.the-lld-framework-classic-problems.q2",
+        "22-low-level-design-ood.the-lld-framework-classic-problems.q3",
+        "22-low-level-design-ood.the-lld-framework-classic-problems.q4",
+        "22-low-level-design-ood.patterns-in-interview-code.q1",
+        "22-low-level-design-ood.patterns-in-interview-code.q2",
+        "22-low-level-design-ood.patterns-in-interview-code.q3",
+        "22-low-level-design-ood.patterns-in-interview-code.q4",
+        "22-low-level-design-ood.patterns-in-interview-code.q5"
+      ]
+    },
+    {
+      "n": 23,
+      "item_ids": [
+        "23-java-concurrency-coding.classic-synchronisation-problems.q1",
+        "23-java-concurrency-coding.classic-synchronisation-problems.q2",
+        "23-java-concurrency-coding.classic-synchronisation-problems.q3",
+        "23-java-concurrency-coding.classic-synchronisation-problems.q4",
+        "23-java-concurrency-coding.async-the-modern-toolkit.q1",
+        "23-java-concurrency-coding.async-the-modern-toolkit.q2",
+        "23-java-concurrency-coding.async-the-modern-toolkit.q3",
+        "23-java-concurrency-coding.async-the-modern-toolkit.q4",
+        "23-java-concurrency-coding.async-the-modern-toolkit.q5"
+      ],
+      "track_item_ids": [
+        "23-java-concurrency-coding.classic-synchronisation-problems.q1",
+        "23-java-concurrency-coding.classic-synchronisation-problems.q2",
+        "23-java-concurrency-coding.classic-synchronisation-problems.q3",
+        "23-java-concurrency-coding.classic-synchronisation-problems.q4",
+        "23-java-concurrency-coding.async-the-modern-toolkit.q1",
+        "23-java-concurrency-coding.async-the-modern-toolkit.q2",
+        "23-java-concurrency-coding.async-the-modern-toolkit.q3",
+        "23-java-concurrency-coding.async-the-modern-toolkit.q4",
+        "23-java-concurrency-coding.async-the-modern-toolkit.q5"
+      ]
+    },
+    {
+      "n": 24,
+      "item_ids": [
+        "24-domain-driven-design.strategic-splitting-the-domain.q1",
+        "24-domain-driven-design.strategic-splitting-the-domain.q2",
+        "24-domain-driven-design.strategic-splitting-the-domain.q3",
+        "24-domain-driven-design.strategic-splitting-the-domain.q4",
+        "24-domain-driven-design.tactical-modelling-it.q1",
+        "24-domain-driven-design.tactical-modelling-it.q2",
+        "24-domain-driven-design.tactical-modelling-it.q3",
+        "24-domain-driven-design.tactical-modelling-it.q4"
+      ],
+      "track_item_ids": [
+        "24-domain-driven-design.strategic-splitting-the-domain.q1",
+        "24-domain-driven-design.strategic-splitting-the-domain.q2",
+        "24-domain-driven-design.strategic-splitting-the-domain.q3",
+        "24-domain-driven-design.strategic-splitting-the-domain.q4",
+        "24-domain-driven-design.tactical-modelling-it.q1",
+        "24-domain-driven-design.tactical-modelling-it.q2",
+        "24-domain-driven-design.tactical-modelling-it.q3",
+        "24-domain-driven-design.tactical-modelling-it.q4"
+      ]
+    },
+    {
+      "n": 25,
+      "item_ids": [
+        "25-microservice.01-cascading-failure-retry-storm.q1",
+        "25-microservice.01-cascading-failure-retry-storm.q2",
+        "25-microservice.01-cascading-failure-retry-storm.q3",
+        "25-microservice.01-cascading-failure-retry-storm.q4",
+        "25-microservice.01-cascading-failure-retry-storm.q5",
+        "25-microservice.01-cascading-failure-retry-storm.q6",
+        "25-microservice.02-pool-exhaustion-connection-thread.q1",
+        "25-microservice.02-pool-exhaustion-connection-thread.q2",
+        "25-microservice.02-pool-exhaustion-connection-thread.q3",
+        "25-microservice.02-pool-exhaustion-connection-thread.q4",
+        "25-microservice.02-pool-exhaustion-connection-thread.q5",
+        "25-microservice.03-distributed-data-consistency.q1",
+        "25-microservice.03-distributed-data-consistency.q2",
+        "25-microservice.03-distributed-data-consistency.q3",
+        "25-microservice.03-distributed-data-consistency.q4",
+        "25-microservice.03-distributed-data-consistency.q5",
+        "25-microservice.04-messaging-event-driven-at-scale.q1",
+        "25-microservice.04-messaging-event-driven-at-scale.q2",
+        "25-microservice.04-messaging-event-driven-at-scale.q3",
+        "25-microservice.04-messaging-event-driven-at-scale.q4",
+        "25-microservice.05-caching-pitfalls.q1",
+        "25-microservice.05-caching-pitfalls.q2",
+        "25-microservice.05-caching-pitfalls.q3",
+        "25-microservice.05-caching-pitfalls.q4",
+        "25-microservice.05-caching-pitfalls.q5",
+        "25-microservice.05-caching-pitfalls.q6",
+        "25-microservice.05-caching-pitfalls.q7",
+        "25-microservice.05-caching-pitfalls.q8",
+        "25-microservice.05-caching-pitfalls.q9",
+        "25-microservice.06-hot-partition-db-bottleneck.q1",
+        "25-microservice.06-hot-partition-db-bottleneck.q2",
+        "25-microservice.06-hot-partition-db-bottleneck.q3",
+        "25-microservice.07-observability-debugging.q1",
+        "25-microservice.07-observability-debugging.q2",
+        "25-microservice.07-observability-debugging.q3",
+        "25-microservice.08-operational-concerns.q1",
+        "25-microservice.08-operational-concerns.q2",
+        "25-microservice.08-operational-concerns.q3",
+        "25-microservice.08-operational-concerns.q4",
+        "25-microservice.09-idempotency-the-central-link.q1",
+        "25-microservice.09-idempotency-the-central-link.q2",
+        "25-microservice.09-idempotency-the-central-link.q3",
+        "25-microservice.10-system-design-putting-it-all-together.q1",
+        "25-microservice.10-system-design-putting-it-all-together.q2",
+        "25-microservice.10-system-design-putting-it-all-together.q3",
+        "25-microservice.10-system-design-putting-it-all-together.q4",
+        "25-microservice.10-system-design-putting-it-all-together.q5",
+        "25-microservice.10-system-design-putting-it-all-together.q6"
+      ],
+      "track_item_ids": [
+        "25-microservice.01-cascading-failure-retry-storm.q1",
+        "25-microservice.01-cascading-failure-retry-storm.q2",
+        "25-microservice.01-cascading-failure-retry-storm.q3",
+        "25-microservice.01-cascading-failure-retry-storm.q4",
+        "25-microservice.01-cascading-failure-retry-storm.q5",
+        "25-microservice.01-cascading-failure-retry-storm.q6",
+        "25-microservice.02-pool-exhaustion-connection-thread.q1",
+        "25-microservice.02-pool-exhaustion-connection-thread.q2",
+        "25-microservice.02-pool-exhaustion-connection-thread.q3",
+        "25-microservice.02-pool-exhaustion-connection-thread.q4",
+        "25-microservice.02-pool-exhaustion-connection-thread.q5",
+        "25-microservice.03-distributed-data-consistency.q1",
+        "25-microservice.03-distributed-data-consistency.q2",
+        "25-microservice.03-distributed-data-consistency.q3",
+        "25-microservice.03-distributed-data-consistency.q4",
+        "25-microservice.03-distributed-data-consistency.q5",
+        "25-microservice.04-messaging-event-driven-at-scale.q1",
+        "25-microservice.04-messaging-event-driven-at-scale.q2",
+        "25-microservice.04-messaging-event-driven-at-scale.q3",
+        "25-microservice.04-messaging-event-driven-at-scale.q4",
+        "25-microservice.05-caching-pitfalls.q1",
+        "25-microservice.05-caching-pitfalls.q2",
+        "25-microservice.05-caching-pitfalls.q3",
+        "25-microservice.05-caching-pitfalls.q4",
+        "25-microservice.05-caching-pitfalls.q5",
+        "25-microservice.05-caching-pitfalls.q6",
+        "25-microservice.05-caching-pitfalls.q7",
+        "25-microservice.05-caching-pitfalls.q8",
+        "25-microservice.05-caching-pitfalls.q9",
+        "25-microservice.06-hot-partition-db-bottleneck.q1",
+        "25-microservice.06-hot-partition-db-bottleneck.q2",
+        "25-microservice.06-hot-partition-db-bottleneck.q3",
+        "25-microservice.07-observability-debugging.q1",
+        "25-microservice.07-observability-debugging.q2",
+        "25-microservice.07-observability-debugging.q3",
+        "25-microservice.08-operational-concerns.q1",
+        "25-microservice.08-operational-concerns.q2",
+        "25-microservice.08-operational-concerns.q3",
+        "25-microservice.08-operational-concerns.q4",
+        "25-microservice.09-idempotency-the-central-link.q1",
+        "25-microservice.09-idempotency-the-central-link.q2",
+        "25-microservice.09-idempotency-the-central-link.q3",
+        "25-microservice.10-system-design-putting-it-all-together.q1",
+        "25-microservice.10-system-design-putting-it-all-together.q2",
+        "25-microservice.10-system-design-putting-it-all-together.q3",
+        "25-microservice.10-system-design-putting-it-all-together.q4",
+        "25-microservice.10-system-design-putting-it-all-together.q5",
+        "25-microservice.10-system-design-putting-it-all-together.q6"
+      ]
+    },
+    {
+      "n": 26,
+      "item_ids": [
+        "26-testing-strategy.what-a-test-is-for.q1",
+        "26-testing-strategy.what-a-test-is-for.q2",
+        "26-testing-strategy.what-a-test-is-for.q3",
+        "26-testing-strategy.what-a-test-is-for.q4",
+        "26-testing-strategy.integration-tests-that-tell-the-truth.q1",
+        "26-testing-strategy.integration-tests-that-tell-the-truth.q2",
+        "26-testing-strategy.integration-tests-that-tell-the-truth.q3",
+        "26-testing-strategy.integration-tests-that-tell-the-truth.q4",
+        "26-testing-strategy.testing-what-usually-breaks.q1",
+        "26-testing-strategy.testing-what-usually-breaks.q2",
+        "26-testing-strategy.testing-what-usually-breaks.q3",
+        "26-testing-strategy.testing-what-usually-breaks.q4",
+        "26-testing-strategy.testing-what-usually-breaks.q5"
+      ],
+      "track_item_ids": [
+        "26-testing-strategy.what-a-test-is-for.q1",
+        "26-testing-strategy.what-a-test-is-for.q2",
+        "26-testing-strategy.what-a-test-is-for.q3",
+        "26-testing-strategy.what-a-test-is-for.q4",
+        "26-testing-strategy.integration-tests-that-tell-the-truth.q1",
+        "26-testing-strategy.integration-tests-that-tell-the-truth.q2",
+        "26-testing-strategy.integration-tests-that-tell-the-truth.q3",
+        "26-testing-strategy.integration-tests-that-tell-the-truth.q4",
+        "26-testing-strategy.testing-what-usually-breaks.q1",
+        "26-testing-strategy.testing-what-usually-breaks.q2",
+        "26-testing-strategy.testing-what-usually-breaks.q3",
+        "26-testing-strategy.testing-what-usually-breaks.q4",
+        "26-testing-strategy.testing-what-usually-breaks.q5"
+      ]
+    },
+    {
+      "n": 27,
+      "item_ids": [
+        "27-api-gateway-identity-edge.the-edge-in-four-sizes.q1",
+        "27-api-gateway-identity-edge.the-edge-in-four-sizes.q2",
+        "27-api-gateway-identity-edge.the-edge-in-four-sizes.q3",
+        "27-api-gateway-identity-edge.gateway-configuration-that-matters.q1",
+        "27-api-gateway-identity-edge.gateway-configuration-that-matters.q2",
+        "27-api-gateway-identity-edge.gateway-configuration-that-matters.q3",
+        "27-api-gateway-identity-edge.gateway-configuration-that-matters.q4",
+        "27-api-gateway-identity-edge.identity-at-the-edge.q1",
+        "27-api-gateway-identity-edge.identity-at-the-edge.q2",
+        "27-api-gateway-identity-edge.identity-at-the-edge.q3",
+        "27-api-gateway-identity-edge.identity-at-the-edge.q4",
+        "27-api-gateway-identity-edge.authorization-without-a-bottleneck.q1",
+        "27-api-gateway-identity-edge.authorization-without-a-bottleneck.q2",
+        "27-api-gateway-identity-edge.introducing-a-gateway-into-a-running-system.q1",
+        "27-api-gateway-identity-edge.introducing-a-gateway-into-a-running-system.q2",
+        "27-api-gateway-identity-edge.introducing-a-gateway-into-a-running-system.q3",
+        "27-api-gateway-identity-edge.internal-calls-sync-async-or-neither.q1",
+        "27-api-gateway-identity-edge.internal-calls-sync-async-or-neither.q2"
+      ],
+      "track_item_ids": []
+    }
+  ],
+  "items": {
+    "01-java-core-jvm.memory-execution-model.q1": {
+      "en": "How does the Java Memory Model (JMM) work: happens-before, volatile, and visibility?",
+      "vi": "Java Memory Model (JMM): happens-before, volatile và visibility hoạt động ra sao?"
+    },
+    "01-java-core-jvm.memory-execution-model.q2": {
+      "en": "Heap vs stack, escape analysis, and TLAB — why do they matter for performance?",
+      "vi": "Heap vs stack, escape analysis và TLAB — vì sao quan trọng với performance?"
+    },
+    "01-java-core-jvm.memory-execution-model.q3": {
+      "en": "Comparing GCs: Serial, Parallel, G1, ZGC, Shenandoah — when do you pick which?",
+      "vi": "So sánh các GC: Serial, Parallel, G1, ZGC, Shenandoah — khi nào chọn cái nào?"
+    },
+    "01-java-core-jvm.memory-execution-model.q4": {
+      "en": "GC tuning: heap generations, minor vs major/full GC, and signs of a memory leak?",
+      "vi": "GC tuning: heap generation, minor vs major/full GC, và dấu hiệu memory leak?"
+    },
+    "01-java-core-jvm.memory-execution-model.q5": {
+      "en": "What are JIT compilation, the interpreter, C1/C2, tiered compilation, and warmup?",
+      "vi": "JIT compilation: interpreter, C1/C2, tiered compilation và warmup là gì?"
+    },
+    "01-java-core-jvm.concurrency.q1": {
+      "en": "Traditional thread pools vs Virtual Threads (Project Loom) — what's the core difference?",
+      "vi": "Thread pool truyền thống vs Virtual Threads (Project Loom) — khác biệt cốt lõi?"
+    },
+    "01-java-core-jvm.concurrency.q2": {
+      "en": "What do structured concurrency and ScopedValue (Java 21/25) solve compared to ThreadLocal?",
+      "vi": "Structured concurrency và ScopedValue (Java 21/25) giải quyết gì so với ThreadLocal?"
+    },
+    "01-java-core-jvm.concurrency.q3": {
+      "en": "How does ConcurrentHashMap work? Why is it faster than Hashtable/synchronizedMap?",
+      "vi": "ConcurrentHashMap hoạt động thế nào? Vì sao nhanh hơn Hashtable/synchronizedMap?"
+    },
+    "01-java-core-jvm.concurrency.q4": {
+      "en": "synchronized vs ReentrantLock vs StampedLock — when do you pick which?",
+      "vi": "synchronized vs ReentrantLock vs StampedLock — chọn khi nào?"
+    },
+    "01-java-core-jvm.concurrency.q5": {
+      "en": "How do you compose an async pipeline with CompletableFuture, and how is it different from Future?",
+      "vi": "CompletableFuture: compose async pipeline thế nào, khác Future ra sao?"
+    },
+    "01-java-core-jvm.concurrency.q6": {
+      "en": "Concurrency, multithreading and parallelism — what is the real difference, and how does it change the design you pick?",
+      "vi": "Concurrency, multithreading và parallelism khác nhau thật sự ở đâu, và điều đó đổi thiết kế bạn chọn thế nào?"
+    },
+    "01-java-core-jvm.language-fundamentals.q1": {
+      "en": "The equals()/hashCode() contract — what happens if you violate it?",
+      "vi": "Hợp đồng equals()/hashCode() — vi phạm gây hậu quả gì?"
+    },
+    "01-java-core-jvm.language-fundamentals.q2": {
+      "en": "Immutability and the String pool — why does String's immutability matter?",
+      "vi": "Immutability và String pool — vì sao String bất biến lại quan trọng?"
+    },
+    "01-java-core-jvm.language-fundamentals.q3": {
+      "en": "Checked vs unchecked exceptions — the modern backend philosophy for error handling?",
+      "vi": "Checked vs unchecked exception — triết lý xử lý lỗi ở backend hiện đại?"
+    },
+    "01-java-core-jvm.language-fundamentals.q4": {
+      "en": "ClassLoaders and the delegation mechanism — when do they cause problems?",
+      "vi": "ClassLoader và cơ chế delegation — khi nào gây vấn đề?"
+    },
+    "01-java-core-jvm.language-fundamentals.q5": {
+      "en": "What is off-heap / direct memory used for?",
+      "vi": "Off-heap / direct memory dùng để làm gì?"
+    },
+    "01-java-core-jvm.language-fundamentals.q6": {
+      "en": "Which java.time type belongs where, and why must LocalDateTime never store when something happened?",
+      "vi": "Kiểu java.time nào dùng ở đâu, và vì sao không được dùng LocalDateTime để lưu thời điểm một việc đã xảy ra?"
+    },
+    "01-java-core-jvm.language-fundamentals.q7": {
+      "en": "Which clock do you read in production, and what breaks when the machine's clock moves?",
+      "vi": "Trong production thì đọc đồng hồ nào, và cái gì hỏng khi đồng hồ của máy bị dịch?"
+    },
+    "01-java-core-jvm.language-fundamentals.q8": {
+      "en": "Why can `com.acme.Order cannot be cast to com.acme.Order` happen, and how do you prove which loader is at fault?",
+      "vi": "Vì sao xảy ra `com.acme.Order cannot be cast to com.acme.Order`, và làm sao chứng minh loader nào gây ra?"
+    },
+    "01-java-core-jvm.collections-data-structures.q1": {
+      "en": "How does HashMap work? Hashing, buckets, collisions, treeify, resize?",
+      "vi": "HashMap hoạt động thế nào? Hashing, bucket, collision, treeify, resize?"
+    },
+    "01-java-core-jvm.collections-data-structures.q2": {
+      "en": "ArrayList vs LinkedList — how do they differ and when do you choose which?",
+      "vi": "ArrayList vs LinkedList — khác nhau và chọn khi nào?"
+    },
+    "01-java-core-jvm.collections-data-structures.q3": {
+      "en": "How do HashSet / LinkedHashSet / TreeSet differ?",
+      "vi": "HashSet / LinkedHashSet / TreeSet khác gì?"
+    },
+    "01-java-core-jvm.collections-data-structures.q4": {
+      "en": "Cheat sheet: which collection for which situation?",
+      "vi": "Cheat-sheet: chọn collection nào cho tình huống nào?"
+    },
+    "01-java-core-jvm.collections-data-structures.q5": {
+      "en": "HashMap vs ConcurrentHashMap — and what do initial capacity, load factor and threshold actually control?",
+      "vi": "HashMap vs ConcurrentHashMap — initial capacity, load factor và threshold thật sự điều khiển cái gì?"
+    },
+    "01-java-core-jvm.collections-data-structures.q6": {
+      "en": "A class is used as a HashMap key — why must it override both `equals` and `hashCode`, and what exactly breaks when only one of them is there?",
+      "vi": "Một class dùng làm key của HashMap — vì sao phải override cả `equals` lẫn `hashCode`, và hỏng chính xác chỗ nào khi chỉ có một trong hai?"
+    },
+    "02-java-8-25-java-vs-go.release-timeline.q1": {
+      "en": "How did Java 8 change the way Java is written?",
+      "vi": "Java 8 đã thay đổi cách viết Java thế nào?"
+    },
+    "02-java-8-25-java-vs-go.release-timeline.q2": {
+      "en": "What does Java 11 bring that matters (compared to 8)?",
+      "vi": "Java 11 mang lại gì đáng kể (so với 8)?"
+    },
+    "02-java-8-25-java-vs-go.release-timeline.q3": {
+      "en": "How did Java 13–16 lay the groundwork for 17 (text blocks, switch, records)?",
+      "vi": "Java 13–16 chuẩn bị nền cho 17 thế nào (text blocks, switch, records)?"
+    },
+    "02-java-8-25-java-vs-go.release-timeline.q4": {
+      "en": "Java 17 (LTS) — what's the key feature set?",
+      "vi": "Java 17 (LTS) — bộ tính năng then chốt?"
+    },
+    "02-java-8-25-java-vs-go.release-timeline.q5": {
+      "en": "Java 21 (LTS) — why is it a 'game-changer' for concurrency?",
+      "vi": "Java 21 (LTS) — vì sao là bản 'đổi cuộc chơi' về concurrency?"
+    },
+    "02-java-8-25-java-vs-go.release-timeline.q6": {
+      "en": "Java 25 (GA 9/2025) — what matters most for production and high-load systems?",
+      "vi": "Java 25 (GA 9/2025) — điểm nào quan trọng nhất cho production và high-load workload?"
+    },
+    "02-java-8-25-java-vs-go.release-timeline.q7": {
+      "en": "Why do enterprises stick to LTS releases instead of the latest version every 6 months?",
+      "vi": "Vì sao enterprise bám LTS thay vì bản mới nhất mỗi 6 tháng?"
+    },
+    "02-java-8-25-java-vs-go.java-vs-go-2025-2026.q1": {
+      "en": "Virtual Threads vs Goroutines — how do the models differ?",
+      "vi": "Virtual Threads vs Goroutines — mô hình khác nhau ra sao?"
+    },
+    "02-java-8-25-java-vs-go.java-vs-go-2025-2026.q2": {
+      "en": "How should Java and Go performance be compared for a real backend workload?",
+      "vi": "Nên so hiệu năng Java và Go thế nào cho một backend workload thực tế?"
+    },
+    "02-java-8-25-java-vs-go.java-vs-go-2025-2026.q3": {
+      "en": "When do you pick Java, when do you pick Go? What's the polyglot model?",
+      "vi": "Khi nào chọn Java, khi nào chọn Go? Mô hình polyglot là gì?"
+    },
+    "02-java-8-25-java-vs-go.java-vs-go-2025-2026.q4": {
+      "en": "GraalVM Native Image — which Java weakness does it address relative to Go?",
+      "vi": "GraalVM Native Image — giải quyết điểm yếu nào của Java so với Go?"
+    },
+    "02-java-8-25-java-vs-go.java-vs-go-2025-2026.q5": {
+      "en": "What's the future of Java: Project Loom, Valhalla, Panama?",
+      "vi": "Tương lai của Java: Project Loom, Valhalla, Panama là gì?"
+    },
+    "02-java-8-25-java-vs-go.java-vs-go-2025-2026.q6": {
+      "en": "Records, sealed classes, and pattern matching combine to create what programming style?",
+      "vi": "Records, sealed classes, pattern matching kết hợp tạo phong cách lập trình gì?"
+    },
+    "03-spring-boot-deep-build.ioc-container-transactions.q1": {
+      "en": "How does the IoC/DI container work? Bean scopes and lifecycle?",
+      "vi": "IoC/DI container hoạt động thế nào? Bean scopes và vòng đời?"
+    },
+    "03-spring-boot-deep-build.ioc-container-transactions.q2": {
+      "en": "How does @Transactional actually run? Why does self-invocation lose the transaction?",
+      "vi": "@Transactional thật sự chạy ra sao? Vì sao self-invocation mất transaction?"
+    },
+    "03-spring-boot-deep-build.ioc-container-transactions.q3": {
+      "en": "Propagation REQUIRED / REQUIRES_NEW / NESTED — when to use each?",
+      "vi": "Propagation REQUIRED / REQUIRES_NEW / NESTED — dùng khi nào?"
+    },
+    "03-spring-boot-deep-build.ioc-container-transactions.q4": {
+      "en": "Spring AOP: how does the proxy work, and what are its limitations?",
+      "vi": "Spring AOP: proxy hoạt động ra sao, hạn chế gì?"
+    },
+    "03-spring-boot-deep-build.ioc-container-transactions.q5": {
+      "en": "How do Spring application events behave around a transaction, and when does an event have to become an outbox row?",
+      "vi": "Spring application event hành xử thế nào quanh một transaction, và khi nào một event buộc phải thành một dòng outbox?"
+    },
+    "03-spring-boot-deep-build.ioc-container-transactions.q6": {
+      "en": "Spring Cache turns caching into one annotation. Which of its defaults will hurt you in production?",
+      "vi": "Spring Cache biến caching thành một annotation. Default nào của nó sẽ làm bạn đau trong production?"
+    },
+    "03-spring-boot-deep-build.auto-configuration-build.q1": {
+      "en": "How does Spring Boot auto-configuration work under the hood?",
+      "vi": "Spring Boot auto-configuration làm việc như thế nào dưới nắp?"
+    },
+    "03-spring-boot-deep-build.auto-configuration-build.q2": {
+      "en": "What is a starter dependency and why is it convenient?",
+      "vi": "Starter dependency là gì và vì sao tiện?"
+    },
+    "03-spring-boot-deep-build.auto-configuration-build.q3": {
+      "en": "Deep-dive POM: dependencyManagement, BOM, scope, transitive dependencies, exclusion — what do you need to know?",
+      "vi": "POM chuyên sâu: dependencyManagement, BOM, scope, transitive, exclusion — cần nắm gì?"
+    },
+    "03-spring-boot-deep-build.auto-configuration-build.q4": {
+      "en": "Maven vs Gradle — what's the difference, and when to pick which?",
+      "vi": "Maven vs Gradle — khác biệt và khi nào chọn?"
+    },
+    "03-spring-boot-deep-build.auto-configuration-build.q5": {
+      "en": "Spring profiles & externalized config — best practices for managing configuration?",
+      "vi": "Spring profiles & externalized config — best practice quản lý config?"
+    },
+    "03-spring-boot-deep-build.auto-configuration-build.q6": {
+      "en": "@Async and @Scheduled — what should you watch out for?",
+      "vi": "@Async và @Scheduled — lưu ý gì khi dùng?"
+    },
+    "03-spring-boot-deep-build.auto-configuration-build.q7": {
+      "en": "Spring Boot Actuator & observing an application?",
+      "vi": "Spring Boot Actuator & quan sát ứng dụng?"
+    },
+    "03-spring-boot-deep-build.auto-configuration-build.q8": {
+      "en": "Validation (Bean Validation) and centralized error handling?",
+      "vi": "Validation (Bean Validation) và xử lý lỗi tập trung?"
+    },
+    "03-spring-boot-deep-build.auto-configuration-build.q9": {
+      "en": "How do you configure HikariCP in Spring Boot for a high-traffic service?",
+      "vi": "HikariCP config trong Spring Boot cho high-load service?"
+    },
+    "03-spring-boot-deep-build.auto-configuration-build.q10": {
+      "en": "Testing strategy for a Spring Boot service: test pyramid, slice tests, Testcontainers, contract tests?",
+      "vi": "Chiến lược testing cho service Spring Boot: test pyramid, slice test, Testcontainers, contract test?"
+    },
+    "03-spring-boot-deep-build.auto-configuration-build.q11": {
+      "en": "What platform baseline and migration plan should a Spring service use in the Boot 4 generation?",
+      "vi": "Dịch vụ Spring nên chọn platform baseline và kế hoạch migration nào trong thế hệ Boot 4?"
+    },
+    "03-spring-boot-deep-build.auto-configuration-build.q12": {
+      "en": "How does Spring Boot wire HikariCP, and what happens from @Transactional to Connection.close()?",
+      "vi": "Spring Boot wire HikariCP ra sao, và điều gì xảy ra từ @Transactional đến Connection.close()?"
+    },
+    "03-spring-boot-deep-build.auto-configuration-build.q13": {
+      "en": "Why does the same Hikari maximumPoolSize have different memory and connection effects on MySQL, PostgreSQL, and Oracle?",
+      "vi": "Vì sao cùng một Hikari maximumPoolSize lại tạo tác động memory và connection khác nhau trên MySQL, PostgreSQL và Oracle?"
+    },
+    "03-spring-boot-deep-build.auto-configuration-build.q14": {
+      "en": "How should you budget connections and align Hikari, JDBC, and database timeouts for autoscaling, rolling deploys, and failover?",
+      "vi": "Nên budget connection và căn chỉnh timeout của Hikari, JDBC và database thế nào cho autoscaling, rolling deploy và failover?"
+    },
+    "03-spring-boot-deep-build.bean-lifecycle-request-flow.q1": {
+      "en": "The full bean lifecycle: what are the 8 stages, and where do the intervention hooks sit?",
+      "vi": "Bean lifecycle đầy đủ: 8 giai đoạn và hook can thiệp nằm ở đâu?"
+    },
+    "03-spring-boot-deep-build.bean-lifecycle-request-flow.q2": {
+      "en": "How does a request flow through DispatcherServlet? Filter vs Interceptor vs ArgumentResolver vs MessageConverter?",
+      "vi": "Request đi qua DispatcherServlet thế nào? Filter vs Interceptor vs ArgumentResolver vs MessageConverter?"
+    },
+    "03-spring-boot-deep-build.bean-lifecycle-request-flow.q3": {
+      "en": "The JSON boundary is a contract. Which ObjectMapper decisions become breaking changes, and what leaks if you serialize an entity?",
+      "vi": "Biên JSON là một contract. Quyết định nào của ObjectMapper trở thành breaking change, và serialize entity thì rò cái gì?"
+    },
+    "04-rest-grpc-webflux.protocols.q1": {
+      "en": "REST principles, HTTP method idempotency, and correct status codes?",
+      "vi": "Nguyên tắc REST, tính idempotent của HTTP method và status code đúng?"
+    },
+    "04-rest-grpc-webflux.protocols.q2": {
+      "en": "REST vs gRPC — what's the difference and when to use which?",
+      "vi": "REST vs gRPC — khác biệt và khi nào dùng cái nào?"
+    },
+    "04-rest-grpc-webflux.protocols.q3": {
+      "en": "What are gRPC's streaming modes?",
+      "vi": "Các kiểu streaming của gRPC?"
+    },
+    "04-rest-grpc-webflux.protocols.q4": {
+      "en": "What API versioning strategy avoids breaking clients?",
+      "vi": "Chiến lược versioning API để không phá client?"
+    },
+    "04-rest-grpc-webflux.protocols.q5": {
+      "en": "How do you design pagination/filtering for a large list API?",
+      "vi": "Thiết kế pagination/filtering cho API danh sách lớn?"
+    },
+    "04-rest-grpc-webflux.protocols.q6": {
+      "en": "GraphQL vs REST — when does each fit?",
+      "vi": "GraphQL vs REST — khi nào hợp?"
+    },
+    "04-rest-grpc-webflux.reactive-webflux.q1": {
+      "en": "Reactive programming (WebFlux): what are Mono/Flux, the event loop, and backpressure?",
+      "vi": "Lập trình reactive (WebFlux): Mono/Flux, event loop và backpressure là gì?"
+    },
+    "04-rest-grpc-webflux.reactive-webflux.q2": {
+      "en": "Reactive (WebFlux) vs Virtual Threads — which should you pick in 2025–2026?",
+      "vi": "Reactive (WebFlux) vs Virtual Threads — năm 2025–2026 nên chọn gì?"
+    },
+    "04-rest-grpc-webflux.reactive-webflux.q3": {
+      "en": "Reactor: error handling and commonly used operators?",
+      "vi": "Reactor: xử lý lỗi và một số operator thường dùng?"
+    },
+    "04-rest-grpc-webflux.reactive-webflux.q4": {
+      "en": "WebSocket vs SSE — how do you choose for real-time features?",
+      "vi": "WebSocket vs SSE — chọn cho real-time thế nào?"
+    },
+    "04-rest-grpc-webflux.reactive-webflux.q5": {
+      "en": "What benefits does a contract-first approach with OpenAPI/Protobuf bring?",
+      "vi": "Contract-first với OpenAPI/Protobuf mang lại lợi ích gì?"
+    },
+    "05-db-core-index-lock.indexes-what-they-really-are.q1": {
+      "en": "What is an index? What index data structures exist and what are they used for?",
+      "vi": "Index là gì? Có những cấu trúc dữ liệu index nào và dùng cho mục đích gì?"
+    },
+    "05-db-core-index-lock.indexes-what-they-really-are.q2": {
+      "en": "The B+Tree algorithm: why is lookup O(log n), and what are page split and fanout?",
+      "vi": "Thuật toán B+Tree: vì sao tra cứu là O(log n), page split và fanout là gì?"
+    },
+    "05-db-core-index-lock.indexes-what-they-really-are.q3": {
+      "en": "What's the difference between a clustered and a secondary index in InnoDB? What are the consequences for choosing a PK?",
+      "vi": "Clustered vs secondary index trong InnoDB khác gì? Hệ quả khi chọn PK?"
+    },
+    "05-db-core-index-lock.indexes-what-they-really-are.q4": {
+      "en": "Composite index (a,b,c): leftmost-prefix rule and covering index?",
+      "vi": "Composite index (a,b,c): leftmost-prefix và covering index?"
+    },
+    "05-db-core-index-lock.indexes-what-they-really-are.q5": {
+      "en": "In which cases does an index NOT get used even though the column has one?",
+      "vi": "Các trường hợp index KHÔNG được dùng dù cột có index?"
+    },
+    "05-db-core-index-lock.indexes-what-they-really-are.q6": {
+      "en": "How do selectivity and cardinality affect the optimizer's decisions?",
+      "vi": "Selectivity và cardinality ảnh hưởng quyết định của optimizer thế nào?"
+    },
+    "05-db-core-index-lock.indexes-what-they-really-are.q7": {
+      "en": "You inherit a table keyed by a random UUIDv4 and inserts keep getting slower — what happens in InnoDB versus PostgreSQL, and what can you change without replacing the key?",
+      "vi": "Bạn nhận một bảng có khoá chính là UUIDv4 ngẫu nhiên và insert ngày càng chậm — InnoDB và PostgreSQL hỏng khác nhau ra sao, và đổi được gì mà không phải thay khoá?"
+    },
+    "05-db-core-index-lock.transactions-mvcc-locking.q1": {
+      "en": "The 4 isolation levels and their corresponding anomalies? MySQL vs Postgres defaults?",
+      "vi": "4 isolation levels và anomaly tương ứng? Mặc định MySQL vs Postgres?"
+    },
+    "05-db-core-index-lock.transactions-mvcc-locking.q2": {
+      "en": "MVCC in InnoDB, and why doesn't MySQL's RR suffer phantoms the way the ANSI standard predicts?",
+      "vi": "MVCC trong InnoDB và vì sao RR của MySQL không bị phantom như chuẩn ANSI?"
+    },
+    "05-db-core-index-lock.transactions-mvcc-locking.q3": {
+      "en": "Record / gap / next-key locks, and optimistic vs pessimistic locking?",
+      "vi": "Record / gap / next-key lock và optimistic vs pessimistic locking?"
+    },
+    "05-db-core-index-lock.transactions-mvcc-locking.q4": {
+      "en": "Deadlocks: how do they happen, how does InnoDB handle them, and how do you prevent them?",
+      "vi": "Deadlock: xảy ra thế nào, InnoDB xử lý, phòng ngừa ra sao?"
+    },
+    "05-db-core-index-lock.transactions-mvcc-locking.q5": {
+      "en": "Reading EXPLAIN: which columns to check first? What are the warning signs that something needs optimizing?",
+      "vi": "Đọc EXPLAIN: cột nào nhìn trước? Dấu hiệu cần tối ưu?"
+    },
+    "05-db-core-index-lock.transactions-mvcc-locking.q6": {
+      "en": "What common query optimization techniques exist beyond indexing?",
+      "vi": "Các kỹ thuật tối ưu query thường gặp ngoài index?"
+    },
+    "05-db-core-index-lock.transactions-mvcc-locking.q7": {
+      "en": "LSM-tree vs B+Tree — why do write-heavy databases choose LSM?",
+      "vi": "LSM-tree vs B+Tree — vì sao DB write-heavy chọn LSM?"
+    },
+    "05-db-core-index-lock.modelling-the-schema.q1": {
+      "en": "Why is a database constraint stronger than the same rule enforced in application code?",
+      "vi": "Vì sao một constraint ở database mạnh hơn chính luật đó khi được kiểm trong code ứng dụng?"
+    },
+    "05-db-core-index-lock.modelling-the-schema.q2": {
+      "en": "Which schema decisions are hardest to reverse later — keys, soft delete, enums, and the nullable-everything habit?",
+      "vi": "Quyết định schema nào khó đảo ngược nhất về sau — key, soft delete, enum, và thói quen để nullable hết?"
+    },
+    "06-db-scaling.replication-consistency.q1": {
+      "en": "What's the difference between async/semi-sync/sync replication? What problems does replication lag cause?",
+      "vi": "Replication async/semi-sync/sync khác gì? Replication lag gây hệ quả gì?"
+    },
+    "06-db-scaling.replication-consistency.q2": {
+      "en": "How do you guarantee read-after-write consistency when reading from a replica?",
+      "vi": "Đảm bảo read-after-write consistency khi đọc từ replica?"
+    },
+    "06-db-scaling.replication-consistency.q3": {
+      "en": "Master-slave vs multi-master — what's the trade-off?",
+      "vi": "Master-slave vs multi-master — trade-off?"
+    },
+    "06-db-scaling.replication-consistency.q4": {
+      "en": "Case: six nodes are added to a Cassandra/ScyllaDB cluster and some customers' balances start coming back empty. What are the candidates, and how do you separate them?",
+      "vi": "Case: thêm sáu node vào cụm Cassandra/ScyllaDB và số dư của một số khách hàng bắt đầu trả về rỗng. Các nghi phạm là gì, và tách chúng ra bằng cách nào?"
+    },
+    "06-db-scaling.sharding-partitioning.q1": {
+      "en": "What's the difference between partitioning and sharding? How do you choose a shard key?",
+      "vi": "Partitioning vs sharding khác gì? Chọn shard key thế nào?"
+    },
+    "06-db-scaling.sharding-partitioning.q2": {
+      "en": "Why is resharding painful? How does consistent hashing help?",
+      "vi": "Resharding vì sao đau? Consistent hashing giúp gì?"
+    },
+    "06-db-scaling.sharding-partitioning.q3": {
+      "en": "Generating global IDs once you've sharded: Snowflake vs UUID?",
+      "vi": "Sinh ID toàn cục khi đã shard: Snowflake vs UUID?"
+    },
+    "06-db-scaling.sharding-partitioning.q4": {
+      "en": "Explain CAP and PACELC. Which side does fintech lean toward?",
+      "vi": "Giải thích CAP và PACELC. Fintech nghiêng phía nào?"
+    },
+    "06-db-scaling.sharding-partitioning.q5": {
+      "en": "What is distributed consensus (Raft/Paxos) used for — at what depth do you need to know it?",
+      "vi": "Distributed consensus (Raft/Paxos) dùng để làm gì — nắm ở mức nào?"
+    },
+    "06-db-scaling.sharding-partitioning.q6": {
+      "en": "N+1 in JPA/Hibernate — how do you detect and fix it?",
+      "vi": "N+1 trong JPA/Hibernate — phát hiện và xử lý?"
+    },
+    "06-db-scaling.sharding-partitioning.q7": {
+      "en": "What is CDC (Change Data Capture) / Debezium used for?",
+      "vi": "CDC (Change Data Capture) / Debezium dùng để làm gì?"
+    },
+    "07-sql-nosql-db-engines.the-big-picture.q1": {
+      "en": "SQL vs NoSQL — how do you choose based on the problem?",
+      "vi": "SQL vs NoSQL — chọn cái nào theo bài toán?"
+    },
+    "07-sql-nosql-db-engines.the-big-picture.q2": {
+      "en": "The types of NoSQL and their typical use cases?",
+      "vi": "Các loại NoSQL và use case điển hình?"
+    },
+    "07-sql-nosql-db-engines.the-big-picture.q3": {
+      "en": "ACID vs BASE — the philosophical trade-off?",
+      "vi": "ACID vs BASE — trade-off triết lý?"
+    },
+    "07-sql-nosql-db-engines.the-big-picture.q4": {
+      "en": "CAP: what do Consistency, Availability and Partition Tolerance actually promise—and does SQL automatically choose C while NoSQL chooses A?",
+      "vi": "CAP: Consistency, Availability và Partition Tolerance thực sự hứa hẹn gì — có phải SQL tự chọn C còn NoSQL chọn A?"
+    },
+    "07-sql-nosql-db-engines.engine-by-engine.q1": {
+      "en": "Why do large enterprises still favor Oracle — from features down to physical storage?",
+      "vi": "Vì sao doanh nghiệp lớn vẫn chuộng Oracle — từ tính năng tới vật lý?"
+    },
+    "07-sql-nosql-db-engines.engine-by-engine.q2": {
+      "en": "Why is MySQL/InnoDB widely used, and where does it fit best?",
+      "vi": "Vì sao MySQL/InnoDB được dùng rộng rãi, và nó hợp nhất ở đâu?"
+    },
+    "07-sql-nosql-db-engines.engine-by-engine.q3": {
+      "en": "How does PostgreSQL differ from MySQL, and why is it on the rise?",
+      "vi": "PostgreSQL khác MySQL ra sao và vì sao đang lên ngôi?"
+    },
+    "07-sql-nosql-db-engines.engine-by-engine.q4": {
+      "en": "When can MongoDB's document model make reads efficient, and what does it trade away?",
+      "vi": "Khi nào document model của MongoDB giúp đọc hiệu quả, và nó trade-off gì?"
+    },
+    "07-sql-nosql-db-engines.engine-by-engine.q5": {
+      "en": "MongoDB: sharding and the consistency model?",
+      "vi": "MongoDB: sharding và consistency model?"
+    },
+    "07-sql-nosql-db-engines.engine-by-engine.q6": {
+      "en": "Redis: why is it fast, what data structures does it offer, and how does persistence work?",
+      "vi": "Redis: vì sao nhanh, các cấu trúc dữ liệu và persistence?"
+    },
+    "07-sql-nosql-db-engines.engine-by-engine.q7": {
+      "en": "A decision framework: how do you choose a DB for a specific use case?",
+      "vi": "Khung quyết định: chọn DB cho một use case cụ thể?"
+    },
+    "07-sql-nosql-db-engines.engine-by-engine.q8": {
+      "en": "Oracle vs MySQL/InnoDB: when does the enterprise premium buy something real?",
+      "vi": "Oracle vs MySQL/InnoDB: khi nào “phần premium enterprise” của Oracle thật sự đáng tiền?"
+    },
+    "07-sql-nosql-db-engines.engine-by-engine.q9": {
+      "en": "When does a search engine earn its place next to the database, and what must it never own?",
+      "vi": "Khi nào một search engine xứng đáng đứng cạnh database, và nó tuyệt đối không được sở hữu cái gì?"
+    },
+    "08-message-queue.the-two-models.q1": {
+      "en": "The RabbitMQ model: exchange, queue, binding, routing key?",
+      "vi": "Mô hình RabbitMQ: exchange, queue, binding, routing key?"
+    },
+    "08-message-queue.the-two-models.q2": {
+      "en": "The Kafka model: topic, partition, offset, consumer group?",
+      "vi": "Mô hình Kafka: topic, partition, offset, consumer group?"
+    },
+    "08-message-queue.the-two-models.q3": {
+      "en": "RabbitMQ vs Kafka — when do you use which?",
+      "vi": "RabbitMQ vs Kafka — khi nào dùng cái nào?"
+    },
+    "08-message-queue.reliability-delivery-semantics.q1": {
+      "en": "What do the delivery semantics at-most-once / at-least-once / exactly-once mean?",
+      "vi": "Delivery semantics: at-most / at-least / exactly-once nghĩa là gì?"
+    },
+    "08-message-queue.reliability-delivery-semantics.q2": {
+      "en": "How do RabbitMQ Publisher Confirms and consumer ack/prefetch work?",
+      "vi": "RabbitMQ Publisher Confirms và consumer ack/prefetch hoạt động ra sao?"
+    },
+    "08-message-queue.reliability-delivery-semantics.q3": {
+      "en": "How does Kafka guarantee durability: replication, ISR, acks?",
+      "vi": "Kafka đảm bảo độ bền thế nào: replication, ISR, acks?"
+    },
+    "08-message-queue.reliability-delivery-semantics.q4": {
+      "en": "Ordering: how do the two brokers guarantee it?",
+      "vi": "Ordering: hai broker đảm bảo thứ tự thế nào?"
+    },
+    "08-message-queue.reliability-delivery-semantics.q5": {
+      "en": "DLQ and poison messages — how are they handled?",
+      "vi": "DLQ và poison message — xử lý thế nào?"
+    },
+    "08-message-queue.reliability-delivery-semantics.q6": {
+      "en": "Idempotent consumer — how do you implement dedup?",
+      "vi": "Idempotent consumer — triển khai dedup thế nào?"
+    },
+    "08-message-queue.reliability-delivery-semantics.q7": {
+      "en": "The Outbox pattern with a message queue — why is it needed?",
+      "vi": "Outbox pattern với message queue — vì sao cần?"
+    },
+    "08-message-queue.reliability-delivery-semantics.q8": {
+      "en": "Event-driven architecture & event sourcing — concepts and trade-offs?",
+      "vi": "Event-driven architecture & event sourcing — khái niệm và trade-off?"
+    },
+    "08-message-queue.reliability-delivery-semantics.q9": {
+      "en": "Your consumer group rebalances every few minutes and reprocesses messages. Which settings cause that, and how do you stop it?",
+      "vi": "Consumer group cứ vài phút lại rebalance và xử lý lại message. Config nào gây ra, và chặn kiểu gì?"
+    },
+    "08-message-queue.reliability-delivery-semantics.q10": {
+      "en": "An event is a published contract you cannot recall. How do you design and evolve one without breaking consumers you do not control?",
+      "vi": "Event là một contract đã phát đi và không rút lại được. Thiết kế và tiến hoá nó thế nào để không phá những consumer mình không kiểm soát?"
+    },
+    "09-distributed-tx-fintech.distributed-transaction-patterns.q1": {
+      "en": "Why avoid 2PC in microservices?",
+      "vi": "Vì sao tránh 2PC trong micro-services?"
+    },
+    "09-distributed-tx-fintech.distributed-transaction-patterns.q2": {
+      "en": "Saga: choreography vs orchestration? Compensating transaction?",
+      "vi": "Saga: choreography vs orchestration? Compensating transaction?"
+    },
+    "09-distributed-tx-fintech.distributed-transaction-patterns.q3": {
+      "en": "The Outbox pattern, and why is dual-write dangerous?",
+      "vi": "Outbox pattern và vì sao dual-write nguy hiểm?"
+    },
+    "09-distributed-tx-fintech.distributed-transaction-patterns.q4": {
+      "en": "How does TCC (Try-Confirm-Cancel) differ from Saga?",
+      "vi": "TCC (Try-Confirm-Cancel) khác Saga thế nào?"
+    },
+    "09-distributed-tx-fintech.distributed-transaction-patterns.q5": {
+      "en": "Two services need to stay consistent without a distributed transaction — what are the options?",
+      "vi": "Hai service phải giữ consistent state mà không có distributed transaction — các lựa chọn?"
+    },
+    "09-distributed-tx-fintech.distributed-transaction-patterns.q6": {
+      "en": "Distributed lock (Redis/Redlock) — when to use it, and what are the risks?",
+      "vi": "Distributed lock (Redis/Redlock) — khi nào dùng và rủi ro?"
+    },
+    "09-distributed-tx-fintech.correctness-where-money-is-involved.q1": {
+      "en": "Real-world scenario: a call to a PSP/bank times out and you don't know whether the money was already deducted?",
+      "vi": "Tình huống thực chiến: gọi PSP/ngân hàng timeout, không biết tiền đã trừ chưa?"
+    },
+    "09-distributed-tx-fintech.correctness-where-money-is-involved.q2": {
+      "en": "Idempotency in payments: how do you implement it airtight?",
+      "vi": "Idempotency trong thanh toán: triển khai thế nào cho kín?"
+    },
+    "09-distributed-tx-fintech.correctness-where-money-is-involved.q3": {
+      "en": "Double-entry bookkeeping — why is it the gold standard for a ledger?",
+      "vi": "Double-entry bookkeeping — vì sao là chuẩn vàng cho ledger?"
+    },
+    "09-distributed-tx-fintech.correctness-where-money-is-involved.q4": {
+      "en": "Why not use float for money? What's the correct way to store it?",
+      "vi": "Vì sao không dùng float cho tiền? Lưu trữ đúng cách?"
+    },
+    "09-distributed-tx-fintech.correctness-where-money-is-involved.q5": {
+      "en": "How do you prevent double-spend / balance races under high load?",
+      "vi": "Chống double-spend / race trên số dư under high load?"
+    },
+    "09-distributed-tx-fintech.correctness-where-money-is-involved.q6": {
+      "en": "Eventual consistency in fintech: where is it acceptable, and where is it forbidden?",
+      "vi": "Eventual consistency trong fintech: chấp nhận ở đâu, cấm ở đâu?"
+    },
+    "10-system-design-rate-limit.framework-building-blocks.q1": {
+      "en": "How would you lead a 45-minute system-design interview from requirements to a defensible design, and decide which assumptions, capacities, risks, and trade-offs deserve a deep dive?",
+      "vi": "Trong một buổi phỏng vấn system design 45 phút, bạn sẽ dẫn dắt từ bước làm rõ yêu cầu đến một thiết kế có cơ sở như thế nào, và quyết định giả định, ước lượng năng lực, rủi ro và trade-off nào cần đào sâu?"
+    },
+    "10-system-design-rate-limit.framework-building-blocks.q2": {
+      "en": "Given daily volume, peak-to-average ratio, payload size, replication, and retention, how do you estimate read/write QPS, storage, bandwidth, and the first capacity threshold that changes the architecture?",
+      "vi": "Với daily traffic, peak/average ratio, kích thước payload, replication và retention, bạn ước lượng read/write QPS, storage, bandwidth và capacity threshold đầu tiên làm thay đổi kiến trúc như thế nào?"
+    },
+    "10-system-design-rate-limit.framework-building-blocks.q3": {
+      "en": "For a read-heavy service, which caching pattern and invalidation contract would you choose, and how would you prevent stale decisions and cache stampedes?",
+      "vi": "Với một read-heavy service, bạn chọn caching pattern và hợp đồng invalidation nào, và làm sao ngăn quyết định dựa trên dữ liệu stale cũng như cache stampede?"
+    },
+    "10-system-design-rate-limit.framework-building-blocks.q4": {
+      "en": "When should traffic be routed at L4 versus L7, and how do protocol behavior, connection reuse, health checks, and session or cache locality affect that choice?",
+      "vi": "Khi nào traffic nên được route ở L4 thay vì L7, và hành vi protocol, connection reuse, health check cùng session/cache locality ảnh hưởng đến lựa chọn đó như thế nào?"
+    },
+    "10-system-design-rate-limit.framework-building-blocks.q5": {
+      "en": "Which responses may a CDN safely serve for this workload, how should cache keys, TTLs, and purge behavior be defined, and where must the origin remain authoritative?",
+      "vi": "Với workload này, CDN được phép phục vụ những response nào một cách an toàn; cache key, TTL và purge behavior nên được định nghĩa ra sao; và ở đâu origin vẫn phải là nguồn sự thật?"
+    },
+    "10-system-design-rate-limit.framework-building-blocks.q6": {
+      "en": "For a service running on ten pods, when do you use an L1 local cache, a shared L2 cache, or both—and how will you bound stale reads, invalidation loss, deploy compatibility, and origin fallback?",
+      "vi": "Với service chạy trên mười pod, khi nào bạn dùng L1 local cache, L2 shared cache hoặc cả hai—và bạn sẽ giới hạn stale read, invalidation bị mất, compatibility khi deploy và fallback về origin như thế nào?"
+    },
+    "10-system-design-rate-limit.rate-limiting-in-depth.q1": {
+      "en": "Design a token-bucket limit for a named API: what is the key, refill rate, burst allowance, client response contract, and atomic state in single-node and distributed deployments?",
+      "vi": "Thiết kế token-bucket limit cho một API cụ thể: key là gì, refill rate, burst allowance, response contract cho client và atomic state ở deployment single-node lẫn distributed được xác định thế nào?"
+    },
+    "10-system-design-rate-limit.rate-limiting-in-depth.q2": {
+      "en": "Compare token and leaky buckets for an API and a quota-bound downstream: which arrival and output behavior, queue bound, latency, and drop policy make each appropriate?",
+      "vi": "So sánh token bucket và leaky bucket cho API và downstream có quota: hành vi arrival/output, giới hạn queue, latency và drop policy nào khiến từng lựa chọn phù hợp?"
+    },
+    "10-system-design-rate-limit.rate-limiting-in-depth.q3": {
+      "en": "For a per-user limit, how do fixed windows, sliding-window logs, and sliding-window counters differ in boundary overshoot, accuracy, state cost, and an atomic distributed implementation?",
+      "vi": "Với limit theo user, fixed window, sliding-window log và sliding-window counter khác nhau thế nào về boundary overshoot, accuracy, state cost và cách triển khai distributed có atomicity?"
+    },
+    "10-system-design-rate-limit.rate-limiting-in-depth.q4": {
+      "en": "How would you implement a Redis-backed shared rate limiter so refill and consumption are atomic, keys expire safely, Cluster key placement and time source are explicit, and outage behavior is deliberate?",
+      "vi": "Bạn triển khai shared rate limiter dùng Redis như thế nào để refill và consume là atomic, key hết hạn an toàn, Cluster key placement và time source được nêu rõ, còn hành vi khi outage là có chủ đích?"
+    },
+    "10-system-design-rate-limit.rate-limiting-in-depth.q5": {
+      "en": "Which limits belong at the edge, gateway, service, and downstream boundary, and how do rate limit, quota, concurrency limit, and overload shedding differ in keying, response, and policy?",
+      "vi": "Những limit nào thuộc edge, gateway, service và downstream boundary, và rate limit, quota, concurrency limit cùng overload shedding khác nhau thế nào về keying, response và policy?"
+    },
+    "10-system-design-rate-limit.surviving-high-load.q1": {
+      "en": "Given sustained overload, how would you sequence workload reduction, asynchronous work, caching, isolation, and autoscaling while preserving the critical path and its invariants?",
+      "vi": "Khi hệ thống quá tải kéo dài, bạn sẽ sắp xếp workload reduction, asynchronous work, caching, isolation và autoscaling như thế nào để vẫn bảo vệ critical path cùng các bất biến của nó?"
+    },
+    "10-system-design-rate-limit.surviving-high-load.q2": {
+      "en": "When a dependency or worker queue saturates, how do you set bounded queues, admission or concurrency limits, priorities, and shedding rules—and which signals trigger and reverse them?",
+      "vi": "Khi dependency hoặc worker queue bão hoà, bạn đặt bounded queue, admission/concurrency limit, priority và shedding rule như thế nào—và tín hiệu nào kích hoạt rồi gỡ chúng?"
+    },
+    "10-system-design-rate-limit.surviving-high-load.q3": {
+      "en": "Given measured read/write load and access patterns, which database-scaling step would you choose next, and what metric, failure mode, and exit criterion justify that choice?",
+      "vi": "Với read/write load và access pattern đã đo, bạn sẽ chọn bước scale database nào tiếp theo, và metric, failure mode cùng exit criterion nào biện minh cho lựa chọn đó?"
+    },
+    "10-system-design-rate-limit.surviving-high-load.q4": {
+      "en": "An endpoint’s p99 has regressed: how do you use metrics, tracing, profiles, and queue, lock, connection, or GC signals to prove the constraint and select a safe experiment?",
+      "vi": "p99 của một endpoint bị xấu đi: bạn dùng metrics, tracing, profile và tín hiệu từ queue, lock, connection hoặc GC như thế nào để chứng minh bottleneck và chọn một thí nghiệm an toàn?"
+    },
+    "11-system-design-cases.the-big-prompts.q1": {
+      "en": "Design a wallet-to-wallet payment system. Which ledger invariants must be atomic, and how do you handle idempotency, PSP timeouts or unknown outcomes, and reconciliation without coupling the design to an OTA booking flow?",
+      "vi": "Thiết kế hệ thống chuyển tiền giữa các ví. Những bất biến nào của ledger phải được giữ atomic, và bạn xử lý idempotency, timeout hoặc kết quả chưa rõ từ PSP, cùng reconciliation như thế nào mà không trộn với OTA booking flow?"
+    },
+    "11-system-design-cases.the-big-prompts.q2": {
+      "en": "Design a notification platform for OTP, transactional, and marketing messages. Define acceptance and delivery semantics, preference enforcement, deduplication, retries and DLQ ownership, provider failover, and delivery-status trust.",
+      "vi": "Thiết kế nền tảng notification cho OTP, transactional và marketing message. Hãy định nghĩa acceptance/delivery semantics, enforcement preference, deduplication, quyền sở hữu retry/DLQ, provider failover và mức độ tin cậy của delivery status."
+    },
+    "11-system-design-cases.the-big-prompts.q3": {
+      "en": "Design a URL shortener with custom aliases and analytics. How do redirect semantics and cache policy support mutable versus permanent destinations, while privacy, abuse prevention, and click measurement remain explicit?",
+      "vi": "Thiết kế URL shortener có custom alias và analytics. Redirect semantics cùng cache policy hỗ trợ destination có thể thay đổi so với destination vĩnh viễn như thế nào, đồng thời vẫn làm rõ privacy, chống abuse và click measurement?"
+    },
+    "11-system-design-cases.the-big-prompts.q4": {
+      "en": "Design a home feed for regular users and celebrities. Choose a fan-out strategy and specify ordering/ranking, pagination, deletion and privacy propagation, freshness, and the celebrity path.",
+      "vi": "Thiết kế home feed cho user thông thường và celebrity. Hãy chọn chiến lược fan-out, rồi quy định ordering/ranking, pagination, lan truyền deletion/privacy, freshness và flow cho celebrity."
+    },
+    "11-system-design-cases.the-big-prompts.q5": {
+      "en": "Design a shared rate-limiting service for stateless gateways across regions. Which limits require an exact global decision, which may be approximate, and how do allocation, Redis Cluster, latency, and outage behavior affect the answer?",
+      "vi": "Thiết kế shared rate-limiting service cho các stateless gateway ở nhiều region. Limit nào cần quyết định global chính xác, limit nào có thể xấp xỉ, và allocation, Redis Cluster, latency cùng hành vi khi outage ảnh hưởng đến đáp án ra sao?"
+    },
+    "11-system-design-cases.the-big-prompts.q6": {
+      "en": "Design a real-time leaderboard. Define update volume, rank accuracy, tie-breaking, retention and recovery, and how regional or sharded scores produce an honest global top-N and user rank.",
+      "vi": "Thiết kế real-time leaderboard. Hãy xác định update volume, rank accuracy, tie-breaking, retention/recovery, và cách score theo region hoặc shard tạo ra global top-N cùng user rank trung thực."
+    },
+    "11-system-design-cases.the-big-prompts.q7": {
+      "en": "Design a distributed cache whose data remains disposable. How do source-of-truth ownership, tenancy, eviction, fill and invalidation, hot keys, cold start, and cache loss shape the design?",
+      "vi": "Thiết kế distributed cache mà dữ liệu trong đó vẫn có thể bị mất. Source-of-truth ownership, tenancy, eviction, fill/invalidation, hot key, cold start và cache loss định hình thiết kế như thế nào?"
+    },
+    "11-system-design-cases.the-big-prompts.q8": {
+      "en": "Design a chat service for one-to-one and group conversations. State the ordering and delivery guarantees, multi-device/offline behavior, connection routing, storage partition and time-bucket strategy, backpressure, and the effect of end-to-end encryption.",
+      "vi": "Thiết kế chat service cho hội thoại một-một và nhóm. Hãy nêu ordering/delivery guarantee, hành vi multi-device/offline, connection routing, chiến lược partition/time bucket cho storage, backpressure và tác động của end-to-end encryption."
+    },
+    "11-system-design-cases.the-big-prompts.q9": {
+      "en": "Design typeahead for a multilingual catalogue. Define latency and quality targets, prefix/fuzzy/personalized retrieval, index and serving freshness, ranking evaluation, and abuse or cost limits.",
+      "vi": "Thiết kế typeahead cho catalogue đa ngôn ngữ. Hãy xác định mục tiêu latency/chất lượng, retrieval theo prefix/fuzzy/personalization, freshness của index/serving, đánh giá ranking và giới hạn abuse/cost."
+    },
+    "11-system-design-cases.the-big-prompts.q10": {
+      "en": "Design a resumable direct-to-object-store upload flow. How do authorization and tenant ownership, checksums, part finalization, quota, malware handling, abandoned uploads, and retention turn bytes into an available object safely?",
+      "vi": "Thiết kế upload flow trực tiếp đến object store có thể resume. Authorization/tenant ownership, checksum, part finalization, quota, xử lý malware, upload bị bỏ dở và retention biến byte thành available object một cách an toàn như thế nào?"
+    },
+    "11-system-design-cases.the-big-prompts.q11": {
+      "en": "Design an idempotent, asynchronous `POST /payments` contract. How are request fingerprinting, duplicate/replay behavior, durable state transitions, PSP execution, unknown outcomes, and reconciliation defined?",
+      "vi": "Thiết kế contract idempotent, async cho `POST /payments`. Bạn định nghĩa fingerprint request, hành vi duplicate/replay, state transition bền vững, thực thi với PSP, kết quả chưa rõ và reconciliation như thế nào?"
+    },
+    "11-system-design-cases.the-big-prompts.q12": {
+      "en": "Given a proposed system design, how would you review scope, workload, contracts, state ownership, critical paths, failure behavior, operations, and trade-offs—and turn each gap into a concrete follow-up question?",
+      "vi": "Với một system design được đề xuất, bạn review scope, workload, contract, state ownership, critical path, failure behavior, operations và trade-off như thế nào—và biến từng khoảng trống thành follow-up question cụ thể?"
+    },
+    "11-system-design-cases.the-big-prompts.q13": {
+      "en": "A travel marketplace receives 1M requests/day, a 100:1 search-to-booking ratio, and 250 search requests/sec at peak. Design its availability and booking paths. What may search promise, which write is authoritative, and how do holds, Kafka fan-out, and replay keep one unit from being confirmed twice?",
+      "vi": "Một travel marketplace nhận 1 triệu request/ngày, tỷ lệ search:booking 100:1 và khoảng 250 request search/giây at peak. Hãy thiết kế hai đường availability và booking. Search được phép hứa gì, write nào có thẩm quyền, và hold, fan-out qua Kafka cùng replay giữ một unit không bị confirm hai lần ra sao?"
+    },
+    "11-system-design-cases.the-big-prompts.q14": {
+      "en": "A checkout returns `PENDING` after a PSP timeout, then a provider webhook arrives after the hold may have expired. Design the state machine and recovery path. How do expiry, event publishing, retries, and late success avoid confirming or charging one unit twice during queue lag and consumer replay?",
+      "vi": "Một khách checkout nhận `PENDING` do PSP timeout, rồi webhook của provider tới khi hold có thể đã hết hạn. Hãy thiết kế state machine và recovery path. Expiry, event publish, retry và late success được xử lý thế nào để queue lag hay consumer replay không confirm hoặc charge một unit hai lần?"
+    },
+    "11-system-design-cases.the-big-prompts.q15": {
+      "en": "A supplied e-commerce architecture claims 1M DAU and a 10x promotion, while the shared planning tiers are 1M and 10M requests/day. Normalize the workload, then evolve CDN, gateway, search, cart and a checkout Saga from 1M to 10M without premature service or database sharding. Which lane scales first, and how do local outboxes preserve order, inventory and payment correctness?",
+      "vi": "Một kiến trúc e-commerce được cung cấp ghi 1M DAU và promotion 10x, còn planning tier chung là 1M và 10M requests/day. Hãy chuẩn hoá workload, rồi tiến hoá CDN, gateway, search, cart và checkout Saga từ 1M lên 10M mà không shard service/database quá sớm. Lane nào scale trước, và local outbox giữ correctness của order, inventory, payment ra sao?"
+    },
+    "11-system-design-cases.the-big-prompts.q16": {
+      "en": "The same e-commerce system approaches 100M requests/day, or needs cells because restore time and regional blast radius already exceed target. How do you choose routing and authority boundaries for checkout, order, inventory and payment, migrate without independent dual writes, and keep event replay from applying a payment or compensation twice?",
+      "vi": "Cùng hệ thống e-commerce tiến gần 100M requests/day, hoặc cần cell vì restore time và regional blast radius đã vượt target. Hãy chọn routing/authority boundary cho checkout, order, inventory, payment, migrate mà không independent dual write, và giữ event replay không apply payment hay compensation hai lần ra sao?"
+    },
+    "11-system-design-cases.the-big-prompts.q17": {
+      "en": "An API has worsening p99 latency for both reads and writes. A proposal says to add read replicas, Redis, and distributed locks immediately. How do you diagnose the actual bottleneck, choose the cheapest effective technique, and distinguish a performance mechanism from a correctness mechanism?",
+      "vi": "Một API có p99 ngày càng xấu ở cả read lẫn write. Đề xuất là thêm read replica, Redis và distributed lock ngay lập tức. Bạn chẩn đoán nút thắt thật, chọn kỹ thuật rẻ nhất có hiệu quả, và phân biệt cơ chế hiệu năng với cơ chế đúng đắn như thế nào?"
+    },
+    "11-system-design-cases.the-big-prompts.q18": {
+      "en": "Checkout needs one fulfilment job, while payment, notification, search indexing, and analytics all need to observe state changes; catalogue reads also need a freshness contract. Choose between RabbitMQ and Kafka, and between cache and replicas. What durability, ordering, replay, and failure behavior must the design state explicitly?",
+      "vi": "Checkout cần một fulfilment job, còn payment, notification, search indexing và analytics đều phải quan sát state change; catalogue read cũng cần freshness contract. Hãy chọn giữa RabbitMQ/Kafka và cache/replica. Thiết kế phải nêu rõ durability, ordering, replay và failure behavior nào?"
+    },
+    "11-system-design-cases.the-big-prompts.q19": {
+      "en": "A flash sale has 50,000 visitors refreshing five times in 60 seconds. One hot SKU has a 12 ms atomic-hold benchmark. Design a bounded admission and reservation path: calculate the useful per-SKU limit, decide what the client sees, and preserve inventory when demand is far above capacity.",
+      "vi": "Một flash sale có 50.000 visitor refresh năm lần trong 60 giây. Một hot SKU có benchmark atomic hold 12 ms. Hãy thiết kế đường admission và reservation hữu hạn: tính limit hữu ích theo SKU, quyết định client nhìn thấy gì, và giữ inventory đúng khi demand vượt xa capacity."
+    },
+    "11-system-design-cases.the-big-prompts.q20": {
+      "en": "During a flash sale, Redis is lost, an expired hold races with delayed PSP success, and the gateway, client, and payment webhook all retry. Define the authoritative state, idempotency boundary, expiry rule, and reconciliation path so neither oversell nor a duplicate charge can occur.",
+      "vi": "Trong flash sale, Redis bị mất, hold hết hạn chạy đua với PSP success đến muộn, còn gateway, client và payment webhook đều retry. Hãy định nghĩa authoritative state, idempotency boundary, expiry rule và reconciliation path để không oversell cũng không charge trùng."
+    },
+    "12-architecture-patterns.architecture-styles.q1": {
+      "en": "Layered (n-tier) architecture: pros/cons?",
+      "vi": "Layered (n-tier) architecture: ưu/nhược?"
+    },
+    "12-architecture-patterns.architecture-styles.q2": {
+      "en": "Hexagonal (Ports & Adapters): what's the core idea?",
+      "vi": "Hexagonal (Ports & Adapters): ý tưởng cốt lõi?"
+    },
+    "12-architecture-patterns.architecture-styles.q3": {
+      "en": "Clean Architecture and the Dependency Rule?",
+      "vi": "Clean Architecture và Dependency Rule?"
+    },
+    "12-architecture-patterns.architecture-styles.q4": {
+      "en": "Layered vs Hexagonal/Clean — when to pick which?",
+      "vi": "So sánh Layered vs Hexagonal/Clean — chọn khi nào?"
+    },
+    "12-architecture-patterns.domain-driven-design.q1": {
+      "en": "Strategic DDD: bounded context, ubiquitous language, context mapping?",
+      "vi": "DDD chiến lược: bounded context, ubiquitous language, context mapping?"
+    },
+    "12-architecture-patterns.domain-driven-design.q2": {
+      "en": "Tactical DDD: entity, value object, aggregate, repository, domain event?",
+      "vi": "DDD tactical: entity, value object, aggregate, repository, domain event?"
+    },
+    "12-architecture-patterns.domain-driven-design.q3": {
+      "en": "When SHOULD and SHOULDN'T you use DDD?",
+      "vi": "Khi nào DÙNG và KHÔNG nên dùng DDD?"
+    },
+    "12-architecture-patterns.domain-driven-design.q4": {
+      "en": "CQRS and Event Sourcing — when do they make sense?",
+      "vi": "CQRS và Event Sourcing — khi nào hợp lý?"
+    },
+    "12-architecture-patterns.patterns-principles.q1": {
+      "en": "Which design patterns should a senior engineer know cold (and why)?",
+      "vi": "Các design pattern senior nên dùng thuần thục (và vì sao)?"
+    },
+    "12-architecture-patterns.patterns-principles.q2": {
+      "en": "SOLID — a pragmatic reading for backend engineers?",
+      "vi": "SOLID — diễn giải thực dụng cho backend?"
+    },
+    "12-architecture-patterns.patterns-principles.q3": {
+      "en": "Common anti-patterns: distributed monolith, anemic domain, god object?",
+      "vi": "Anti-patterns hay gặp: distributed monolith, anemic domain, god object?"
+    },
+    "12-architecture-patterns.patterns-principles.q4": {
+      "en": "Coupling & cohesion — the design compass?",
+      "vi": "Coupling & cohesion — la bàn thiết kế?"
+    },
+    "12-architecture-patterns.patterns-principles.q5": {
+      "en": "Modular monolith vs micro-services — when do you split?",
+      "vi": "Modular monolith vs micro-services — khi nào tách?"
+    },
+    "12-architecture-patterns.patterns-principles.q6": {
+      "en": "What does an Anti-Corruption Layer (ACL) do when integrating with a legacy system?",
+      "vi": "Anti-Corruption Layer (ACL) để làm gì khi tích hợp hệ legacy?"
+    },
+    "12-architecture-patterns.clean-layered-building-it-for-real.q1": {
+      "en": "What does a real-world package structure for a Spring Boot service look like under Clean/Hexagonal?",
+      "vi": "Cấu trúc package thực tế cho một service Spring Boot theo Clean/Hexagonal?"
+    },
+    "12-architecture-patterns.clean-layered-building-it-for-real.q2": {
+      "en": "Domain model and JPA entity: two separate classes, or share one class?",
+      "vi": "Domain model và JPA entity: tách làm hai hay dùng chung một class?"
+    },
+    "12-architecture-patterns.clean-layered-building-it-for-real.q3": {
+      "en": "How should a use case (application service) be designed? One class per use case, or grouped into a service?",
+      "vi": "Use case (application service) thiết kế thế nào? Một class một use case hay gom vào service?"
+    },
+    "12-architecture-patterns.clean-layered-building-it-for-real.q4": {
+      "en": "How do you enforce the Dependency Rule? Without tooling, the architecture drifts within 3 months.",
+      "vi": "Cưỡng chế Dependency Rule bằng gì? Không có công cụ thì kiến trúc trôi sau 3 tháng."
+    },
+    "12-architecture-patterns.clean-layered-building-it-for-real.q5": {
+      "en": "Which layer should transactions, validation, and mapping live in?",
+      "vi": "Transaction, validation và mapping đặt ở tầng nào?"
+    },
+    "12-architecture-patterns.clean-layered-building-it-for-real.q6": {
+      "en": "How does the test pyramid map onto the layers? Why does Clean make testing cheaper?",
+      "vi": "Test pyramid ánh xạ vào các tầng thế nào? Vì sao Clean làm test rẻ hơn?"
+    },
+    "12-architecture-patterns.clean-layered-building-it-for-real.q7": {
+      "en": "How do you migrate a running layered codebase to Clean, step by step?",
+      "vi": "Chuyển một codebase layered đang chạy sang Clean từng bước thế nào?"
+    },
+    "12-architecture-patterns.clean-layered-building-it-for-real.q8": {
+      "en": "Package-by-layer vs package-by-feature, and Spring Modulith for a modular monolith?",
+      "vi": "Package-by-layer vs package-by-feature, và Spring Modulith cho modular monolith?"
+    },
+    "13-security-oauth2.oauth2-oidc.q1": {
+      "en": "OAuth 2.x: what are the roles, modern flows, and flows to avoid?",
+      "vi": "OAuth 2.x: các role, flow hiện đại và flow cần tránh là gì?"
+    },
+    "13-security-oauth2.oauth2-oidc.q2": {
+      "en": "How does Authorization Code + PKCE work, and why is PKCE needed?",
+      "vi": "Authorization Code + PKCE hoạt động ra sao và vì sao cần PKCE?"
+    },
+    "13-security-oauth2.oauth2-oidc.q3": {
+      "en": "What's the difference between OAuth2 and OIDC?",
+      "vi": "OAuth2 vs OIDC khác gì?"
+    },
+    "13-security-oauth2.jwt-tokens.q1": {
+      "en": "What is the JWT structure, and how is it signed and verified?",
+      "vi": "JWT structure, signing và verification?"
+    },
+    "13-security-oauth2.jwt-tokens.q2": {
+      "en": "JWT (stateless) vs opaque token / session — what are the trade-offs?",
+      "vi": "JWT (stateless) vs opaque token / session — trade-off?"
+    },
+    "13-security-oauth2.jwt-tokens.q3": {
+      "en": "Access token vs refresh token, and what's the revocation strategy?",
+      "vi": "Access token vs refresh token và chiến lược thu hồi?"
+    },
+    "13-security-oauth2.designing-the-auth-system.q1": {
+      "en": "How would you design the authentication/authorization system for microservices (SSO + gateway)?",
+      "vi": "Thiết kế authentication/authorization system cho microservices (SSO + gateway)?"
+    },
+    "13-security-oauth2.designing-the-auth-system.q2": {
+      "en": "What is mTLS, and how is it used for service-to-service authentication?",
+      "vi": "mTLS và service-to-service authentication?"
+    },
+    "13-security-oauth2.designing-the-auth-system.q3": {
+      "en": "How should OWASP Top 10:2025 and API Security Top 10:2023 shape backend controls?",
+      "vi": "OWASP Top 10:2025 và API Security Top 10:2023 nên định hình backend control thế nào?"
+    },
+    "13-security-oauth2.designing-the-auth-system.q4": {
+      "en": "How do you manage secrets properly?",
+      "vi": "Quản lý secrets đúng cách?"
+    },
+    "13-security-oauth2.designing-the-auth-system.q5": {
+      "en": "How do you protect auth endpoints from brute-force/credential stuffing?",
+      "vi": "Bảo vệ endpoint auth khỏi brute-force/credential stuffing?"
+    },
+    "13-security-oauth2.designing-the-auth-system.q6": {
+      "en": "RBAC vs ABAC — which authorization model should you choose?",
+      "vi": "RBAC vs ABAC — chọn authorization model nào?"
+    },
+    "13-security-oauth2.designing-the-auth-system.q7": {
+      "en": "API key vs OAuth token — when do you use which?",
+      "vi": "API key vs OAuth token — khi nào dùng cái nào?"
+    },
+    "13-security-oauth2.keycloak-in-practice.q1": {
+      "en": "What is Keycloak, and what are realms, clients and its core endpoints?",
+      "vi": "Keycloak là gì, và realm, client cùng các endpoint cốt lõi là gì?"
+    },
+    "13-security-oauth2.keycloak-in-practice.q2": {
+      "en": "How does a Spring Boot service validate a Keycloak token, and what must you verify?",
+      "vi": "Service Spring Boot validate token Keycloak thế nào, và phải kiểm những gì?"
+    },
+    "13-security-oauth2.keycloak-in-practice.q3": {
+      "en": "Where do Keycloak roles land in the token, and how do you map them to Spring authorities?",
+      "vi": "Role của Keycloak nằm ở đâu trong token, và map sang authority của Spring thế nào?"
+    },
+    "13-security-oauth2.keycloak-in-practice.q4": {
+      "en": "How do services call each other with Keycloak, and what is token exchange for?",
+      "vi": "Các service gọi nhau với Keycloak thế nào, và token exchange để làm gì?"
+    },
+    "13-security-oauth2.keycloak-in-practice.q5": {
+      "en": "What breaks when you run Keycloak in production?",
+      "vi": "Chạy Keycloak trong production thì vỡ ở đâu?"
+    },
+    "13-security-oauth2.keycloak-in-practice.q6": {
+      "en": "Keycloak vs a managed IdP vs rolling your own — how do you argue the choice?",
+      "vi": "Keycloak vs IdP managed vs tự viết — lập luận chọn thế nào?"
+    },
+    "13-security-oauth2.secure-coding-at-the-boundary.q1": {
+      "en": "Injection is more than SQL. Where does untrusted input still reach an interpreter in a modern Spring service?",
+      "vi": "Injection không chỉ có SQL. Trong một service Spring hiện đại, input không tin cậy còn chạm tới interpreter ở đâu?"
+    },
+    "13-security-oauth2.secure-coding-at-the-boundary.q2": {
+      "en": "A user sets their own role by adding one field to the request body. How does mass assignment happen and how is it closed?",
+      "vi": "User tự đặt role của mình chỉ bằng cách thêm một field vào body. Mass assignment xảy ra thế nào và bịt ra sao?"
+    },
+    "13-security-oauth2.secure-coding-at-the-boundary.q3": {
+      "en": "Which parsing and deserialization features turn \"just reading input\" into remote code execution or a denial of service?",
+      "vi": "Tính năng parse và deserialize nào biến \"chỉ đọc input thôi mà\" thành RCE hoặc DoS?"
+    },
+    "13-security-oauth2.secure-coding-at-the-boundary.q4": {
+      "en": "Your service fetches a URL the user supplied. What is the full SSRF blast radius and what actually stops it?",
+      "vi": "Service của bạn fetch một URL do user nhập. Bán kính thiệt hại của SSRF tới đâu và cái gì thật sự chặn được?"
+    },
+    "13-security-oauth2.protecting-the-data-you-store.q1": {
+      "en": "Storage is encrypted, so the data is safe. Which attacks does that actually stop, and which does it not?",
+      "vi": "Encrypted disk nên data an toàn. Thật ra nó chặn được attack nào và không chặn được cái nào?"
+    },
+    "13-security-oauth2.protecting-the-data-you-store.q2": {
+      "en": "Where does sensitive data actually leak in a well-built system, and how do you close those paths?",
+      "vi": "Trong một hệ thống làm tử tế thì dữ liệu nhạy cảm thật ra rò ở đâu, và bịt các đường đó thế nào?"
+    },
+    "13-security-oauth2.protecting-the-data-you-store.q3": {
+      "en": "How do retention, deletion requests and an immutable audit trail coexist when the two requirements contradict each other?",
+      "vi": "Retention, yêu cầu xoá dữ liệu và audit trail bất biến sống chung thế nào khi hai yêu cầu này mâu thuẫn nhau?"
+    },
+    "13-security-oauth2.protecting-the-data-you-store.q4": {
+      "en": "Most of your running code came from other people. How do you keep dependencies and images from becoming the breach?",
+      "vi": "Phần lớn code đang chạy là của người khác viết. Làm sao để dependency và image không trở thành lỗ hổng?"
+    },
+    "14-devops-k8s-best-practices.docker-kubernetes.q1": {
+      "en": "Docker: image layers, multi-stage builds, and common commands?",
+      "vi": "Docker: image layers, multi-stage build và lệnh thường dùng?"
+    },
+    "14-devops-k8s-best-practices.docker-kubernetes.q2": {
+      "en": "Kubernetes architecture: control plane, nodes, and pods?",
+      "vi": "Kiến trúc Kubernetes: control plane, node, pod?"
+    },
+    "14-devops-k8s-best-practices.docker-kubernetes.q3": {
+      "en": "Deployment vs. StatefulSet—what differs, and when should each be used?",
+      "vi": "Deployment vs StatefulSet — khác nhau và khi nào dùng?"
+    },
+    "14-devops-k8s-best-practices.docker-kubernetes.q4": {
+      "en": "What are the most useful kubectl commands, and how do you 'deploy a new pod' or perform a rolling update?",
+      "vi": "kubectl thường dùng và cách 'deploy pod mới' / rolling update?"
+    },
+    "14-devops-k8s-best-practices.docker-kubernetes.q5": {
+      "en": "What roles do Service, Ingress, ConfigMap, and Secret play?",
+      "vi": "Service, Ingress, ConfigMap, Secret — vai trò?"
+    },
+    "14-devops-k8s-best-practices.docker-kubernetes.q6": {
+      "en": "Why are liveness, readiness, and startup probes separate?",
+      "vi": "Liveness / readiness / startup probe — vì sao không gộp?"
+    },
+    "14-devops-k8s-best-practices.web-server-networking-observability.q1": {
+      "en": "How does Nginx work as a reverse proxy and load balancer?",
+      "vi": "Nginx làm reverse proxy / load balancer thế nào?"
+    },
+    "14-devops-k8s-best-practices.web-server-networking-observability.q2": {
+      "en": "How do you manage high-volume logs with structured logging and ELK/Loki?",
+      "vi": "Quản lý log lượng lớn: structured logging và ELK/Loki?"
+    },
+    "14-devops-k8s-best-practices.web-server-networking-observability.q3": {
+      "en": "How does distributed tracing work in Kubernetes with OpenTelemetry and Jaeger?",
+      "vi": "Distributed tracing trong K8s: OpenTelemetry + Jaeger hoạt động ra sao?"
+    },
+    "14-devops-k8s-best-practices.web-server-networking-observability.q4": {
+      "en": "What are the three pillars of observability and the RED/USE metrics?",
+      "vi": "Ba trụ cột observability và metrics RED/USE?"
+    },
+    "14-devops-k8s-best-practices.ci-cd-2026-best-practices.q1": {
+      "en": "What does a typical CI/CD pipeline look like, and how do blue-green and canary deployments compare?",
+      "vi": "Pipeline CI/CD điển hình và deployment strategy (blue-green vs canary)?"
+    },
+    "14-devops-k8s-best-practices.ci-cd-2026-best-practices.q2": {
+      "en": "What problems does a service mesh such as Istio or Linkerd solve, and what are the 2026 best practices?",
+      "vi": "Service mesh (Istio/Linkerd) giải quyết gì — best practice 2026?"
+    },
+    "14-devops-k8s-best-practices.ci-cd-2026-best-practices.q3": {
+      "en": "Which backend architecture practices remain sound in 2026, and when do they become cargo cult?",
+      "vi": "Backend architecture practice nào còn vững trong 2026, và khi nào chúng thành cargo cult?"
+    },
+    "14-devops-k8s-best-practices.ci-cd-2026-best-practices.q4": {
+      "en": "Why are GitOps and Infrastructure as Code important?",
+      "vi": "GitOps và Infrastructure as Code — vì sao quan trọng?"
+    },
+    "14-devops-k8s-best-practices.ci-cd-2026-best-practices.q5": {
+      "en": "What does zero-trust security mean in microservices?",
+      "vi": "Zero-trust security trong micro-services nghĩa là gì?"
+    },
+    "14-devops-k8s-best-practices.ci-cd-2026-best-practices.q6": {
+      "en": "How do graceful shutdown and connection draining keep Kubernetes rolling updates from dropping in-flight requests?",
+      "vi": "Graceful shutdown & connection draining: rolling update K8s không rớt request đang xử lý thế nào?"
+    },
+    "14-devops-k8s-best-practices.ci-cd-2026-best-practices.q7": {
+      "en": "How do versioned migrations with Flyway/Liquibase and expand-contract change a live database with zero downtime?",
+      "vi": "Migration schema zero-downtime: versioned migration (Flyway/Liquibase) & expand-contract đổi DB khi đang chạy?"
+    },
+    "15-network-i-o-models.web-protocols.q1": {
+      "en": "How do HTTP and HTTPS differ? How does a TLS 1.3 handshake work?",
+      "vi": "HTTP vs HTTPS khác gì? TLS handshake (1.3) diễn ra thế nào?"
+    },
+    "15-network-i-o-models.web-protocols.q2": {
+      "en": "How do HTTP/1.1, HTTP/2, and HTTP/3 differ, and why was HTTP/3 introduced?",
+      "vi": "HTTP/1.1 vs HTTP/2 vs HTTP/3 — khác biệt và vì sao có HTTP/3?"
+    },
+    "15-network-i-o-models.web-protocols.q3": {
+      "en": "What makes a well-designed RESTful API: Richardson maturity, idempotency, status codes, and versioning?",
+      "vi": "RESTful API 'chuẩn': Richardson maturity, idempotency, status code, versioning?"
+    },
+    "15-network-i-o-models.realtime-event-driven.q1": {
+      "en": "How do polling, SSE, and WebSocket compare, and how does event-driven architecture differ from realtime delivery to clients?",
+      "vi": "Polling vs SSE vs WebSocket — và event-driven khác gì với realtime ra client?"
+    },
+    "15-network-i-o-models.realtime-event-driven.q2": {
+      "en": "How does event-driven programming differ from conventional sequential programming in mindset and code?",
+      "vi": "Event-driven vs lập trình tuần tự thông thường — khác gì về tư duy & code?"
+    },
+    "15-network-i-o-models.realtime-event-driven.q3": {
+      "en": "How do the I/O models of Spring MVC, WebFlux, Vert.x, and Go compare?",
+      "vi": "So sánh mô hình I/O: Spring MVC vs WebFlux vs Vert.x vs Go — cơ chế?"
+    },
+    "15-network-i-o-models.threading-network-programming.q1": {
+      "en": "How does multithreading work in Spring Boot, from an incoming request to the thread pools?",
+      "vi": "Multi-thread trong Spring Boot hoạt động ra sao — từ request tới thread pool?"
+    },
+    "15-network-i-o-models.threading-network-programming.q2": {
+      "en": "In network programming, how do TCP and UDP, blocking and non-blocking I/O, and the C10K problem relate?",
+      "vi": "Network programming: TCP vs UDP, blocking vs non-blocking I/O, vấn đề C10K?"
+    },
+    "15-network-i-o-models.threading-network-programming.q3": {
+      "en": "Why are keep-alive and connection pooling critical in microservices?",
+      "vi": "Keep-alive, connection pooling và vì sao quan trọng cho microservice?"
+    },
+    "15-network-i-o-models.threading-network-programming.q4": {
+      "en": "Why is gRPC over HTTP/2 efficient for internal service communication?",
+      "vi": "gRPC trên HTTP/2: vì sao hiệu quả cho giao tiếp nội bộ?"
+    },
+    "15-network-i-o-models.threading-network-programming.q5": {
+      "en": "How should you combine idempotency, retries, timeouts, backoff, and circuit breakers at the network boundary?",
+      "vi": "Idempotency & retry ở tầng network: timeout, backoff, circuit breaker?"
+    },
+    "15-network-i-o-models.threading-network-programming.q6": {
+      "en": "What is the end-to-end lifecycle of an HTTP request, from DNS resolution until the client renders the response?",
+      "vi": "Vòng đời end-to-end của một HTTP request: từ DNS tới lúc client render response?"
+    },
+    "16-project-concurrency-whiteboard.presenting-dissecting-the-ota-project.q1": {
+      "en": "Given an OTA flight-booking brief, sketch the system for search, hold, payment, and ticketing. Which assumptions, ownership boundaries, and browse-versus-commit consistency rules would you state before drawing?",
+      "vi": "Với một đề bài OTA flight-booking, hãy phác thảo hệ thống cho search, hold, payment và ticketing. Bạn sẽ nêu những giả định, ownership boundary và quy tắc consistency giữa browse với commit nào trước khi vẽ?"
+    },
+    "16-project-concurrency-whiteboard.presenting-dissecting-the-ota-project.q2": {
+      "en": "Two users race to reserve the same flight seat. Design the hold state machine, database invariant, expiry behavior, idempotency, payment-after-expiry path, and supplier reconciliation that prevent double booking.",
+      "vi": "Hai user tranh nhau cùng một ghế bay. Hãy thiết kế hold state machine, database invariant, hành vi expiry, idempotency, payment flow sau khi hold hết hạn và supplier reconciliation để ngăn double booking."
+    },
+    "16-project-concurrency-whiteboard.presenting-dissecting-the-ota-project.q3": {
+      "en": "If an airline permits controlled overbooking, how would you model sellable inventory, policy ownership and versioning, concurrent sales, carrier reconciliation, audit, and legal or customer-experience guardrails?",
+      "vi": "Nếu hãng bay cho phép overbooking có kiểm soát, bạn sẽ mô hình hoá sellable inventory, ownership/versioning của policy, concurrent sale, carrier reconciliation, audit và các guardrail về pháp lý hoặc trải nghiệm khách hàng như thế nào?"
+    },
+    "16-project-concurrency-whiteboard.presenting-dissecting-the-ota-project.q4": {
+      "en": "Design a browse-to-book flow when price and availability sources are stale or slow. How do cache and freshness contracts, quote binding, final revalidation, customer messaging, and supplier failure handling preserve both speed and correctness?",
+      "vi": "Thiết kế flow từ browse đến book khi nguồn giá và availability stale hoặc chậm. Cache/freshness contract, quote binding, final revalidation, thông báo cho khách và xử lý supplier failure bảo toàn cả tốc độ lẫn correctness như thế nào?"
+    },
+    "16-project-concurrency-whiteboard.presenting-dissecting-the-ota-project.q5": {
+      "en": "Design the long-running OTA booking saga from hold through payment and ticket issue. Specify durable states and timers, transaction boundaries, idempotency, retries, unknown PSP/GDS outcomes, compensation, and reconciliation.",
+      "vi": "Thiết kế OTA booking saga chạy dài từ hold qua payment đến ticket issue. Hãy quy định durable state/timer, transaction boundary, idempotency, retry, kết quả PSP/GDS chưa rõ, compensation và reconciliation."
+    },
+    "16-project-concurrency-whiteboard.technical-storytelling-fundamentals.q1": {
+      "en": "When asked, 'Tell me about your most challenging project,' how do you demonstrate technical depth?",
+      "vi": "Câu hỏi 'chia sẻ dự án thử thách nhất' — kể thế nào để bật chiều sâu kỹ thuật?"
+    },
+    "16-project-concurrency-whiteboard.technical-storytelling-fundamentals.q2": {
+      "en": "When asked, 'What is your current scope or task?' and then probed deeply, how should you prepare?",
+      "vi": "Khi bị hỏi 'scope/task hiện tại của bạn là gì' rồi đào sâu — chuẩn bị thế nào?"
+    },
+    "16-project-concurrency-whiteboard.technical-storytelling-fundamentals.q3": {
+      "en": "Which concurrency problems are commonly asked beyond seat holds, and how should you approach them?",
+      "vi": "Các bài toán concurrency hay được hỏi (ngoài seat-hold) và cách tiếp cận?"
+    },
+    "16-project-concurrency-whiteboard.technical-storytelling-fundamentals.q4": {
+      "en": "At scale, how do you fan out real-time updates to thousands of clients?",
+      "vi": "Bài toán real-time at scale: fan-out cập nhật tới hàng nghìn client?"
+    },
+    "16-project-concurrency-whiteboard.technical-storytelling-fundamentals.q5": {
+      "en": "Fundamentals for a rapid review: NoSQL vs. SQL, Redis, indexes (partitioning/sharding/composite), GC, networking, and security?",
+      "vi": "Nền tảng cần ôn nhanh: NoSQL vs SQL, Redis, Index (partition/shard/composite), GC, Network, Security?"
+    },
+    "16-project-concurrency-whiteboard.technical-storytelling-fundamentals.q6": {
+      "en": "How do you write a design doc or ADR that actually gets a decision made — and how does that become an interview answer?",
+      "vi": "Viết design doc hay ADR thế nào để thật sự chốt được một quyết định — và biến nó thành câu trả lời phỏng vấn ra sao?"
+    },
+    "16-project-concurrency-whiteboard.technical-storytelling-fundamentals.q7": {
+      "en": "How do you review other people's code and argue for engineering investment without becoming the person everyone routes around?",
+      "vi": "Review code người khác và bảo vệ các khoản đầu tư kỹ thuật thế nào để không thành người ai cũng tìm cách né?"
+    },
+    "16-project-concurrency-whiteboard.whiteboard-dsa.q1": {
+      "en": "Whiteboard exercise: a gateway must enforce per-tenant and per-endpoint limits across 50 stateless instances. How would you clarify requirements, choose an algorithm, model atomic distributed state, handle failures, and explain the trade-offs?",
+      "vi": "Bài whiteboard: một gateway phải áp limit theo tenant và endpoint trên 50 stateless instance. Bạn sẽ làm rõ yêu cầu, chọn thuật toán, mô hình hoá distributed state có atomicity, xử lý failure và trình bày trade-off như thế nào?"
+    },
+    "16-project-concurrency-whiteboard.whiteboard-dsa.q2": {
+      "en": "Whiteboard DSA: how does a senior engineer approach a problem beyond merely producing the answer?",
+      "vi": "Whiteboard DSA: phương pháp tiếp cận của một senior (không chỉ ra đáp án)?"
+    },
+    "16-project-concurrency-whiteboard.whiteboard-dsa.q3": {
+      "en": "Which edge cases should you proactively raise when solving an algorithm problem?",
+      "vi": "Checklist edge case cần chủ động nêu khi giải thuật toán?"
+    },
+    "16-project-concurrency-whiteboard.whiteboard-dsa.q4": {
+      "en": "Which questions can you ask the interviewer to demonstrate depth, particularly in an OTA or fintech domain?",
+      "vi": "Các câu hỏi ngược thể hiện chiều sâu (phù hợp domain OTA/fintech)?"
+    },
+    "17-rest-api-design.modelling-resources-uris.q1": {
+      "en": "How should resources and URIs be modelled when moving from a use case to an API?",
+      "vi": "Từ use case tới resource: mô hình hoá và đặt tên URI thế nào cho đúng?"
+    },
+    "17-rest-api-design.modelling-resources-uris.q2": {
+      "en": "How should non-CRUD actions such as cancellation, refund, and ticket issuance be mapped to REST?",
+      "vi": "Hành động không phải CRUD (cancel, refund, issue ticket) ánh xạ vào REST ra sao?"
+    },
+    "17-rest-api-design.modelling-resources-uris.q3": {
+      "en": "PUT vs PATCH: how do JSON Merge Patch and JSON Patch differ, and when should each be used?",
+      "vi": "PUT vs PATCH: JSON Merge Patch và JSON Patch khác nhau thế nào, chọn cái nào?"
+    },
+    "17-rest-api-design.modelling-resources-uris.q4": {
+      "en": "How can bulk APIs and field selection reduce chattiness without switching to GraphQL?",
+      "vi": "Bulk API và field selection: giảm chattiness mà không phải chuyển sang GraphQL?"
+    },
+    "17-rest-api-design.contracts-errors-lifecycle.q1": {
+      "en": "How should an Idempotency-Key be designed end to end for POST requests that create bookings or payments?",
+      "vi": "Idempotency-Key: thiết kế đầu-cuối cho POST tạo booking / thanh toán?"
+    },
+    "17-rest-api-design.contracts-errors-lifecycle.q2": {
+      "en": "How should errors be standardized with RFC 9457 Problem Details, and why should it be used?",
+      "vi": "Chuẩn hoá lỗi: RFC 9457 Problem Details gồm gì và vì sao nên dùng?"
+    },
+    "17-rest-api-design.contracts-errors-lifecycle.q3": {
+      "en": "For a long-running REST operation, when should you use 202 with polling, a webhook, or streaming?",
+      "vi": "Long-running operation trong REST: 202 + polling, webhook hay streaming?"
+    },
+    "17-rest-api-design.contracts-errors-lifecycle.q4": {
+      "en": "How do you roll out deprecation and safely retire an old API version in production?",
+      "vi": "Deprecation & versioning thực chiến: rollout và tắt một version cũ thế nào cho an toàn?"
+    },
+    "17-rest-api-design.contracts-errors-lifecycle.q5": {
+      "en": "How should cursor pagination, HTTP caching, conditional requests, and rate-limit fields work together?",
+      "vi": "Cursor pagination, HTTP caching, conditional request và rate-limit field nên phối hợp như thế nào?"
+    },
+    "17-rest-api-design.contracts-errors-lifecycle.q6": {
+      "en": "You have to deliver webhooks to hundreds of partner endpoints you do not control. What does that system actually need?",
+      "vi": "Bạn phải gửi webhook tới hàng trăm endpoint của đối tác mà mình không kiểm soát. Hệ thống đó thật sự cần những gì?"
+    },
+    "17-rest-api-design.contracts-errors-lifecycle.q7": {
+      "en": "A payment provider posts a webhook to you. What must the handler do before it trusts a single field?",
+      "vi": "Một payment provider gửi webhook tới bạn. Handler phải làm gì trước khi tin dù chỉ một field?"
+    },
+    "18-query-optimization.measure-first-reading-the-execution-plan.q1": {
+      "en": "What is the standard process for investigating a slow query, and where should you start?",
+      "vi": "Quy trình chuẩn khi gặp một query chậm: bắt đầu từ đâu?"
+    },
+    "18-query-optimization.measure-first-reading-the-execution-plan.q2": {
+      "en": "How do you read EXPLAIN ANALYZE in depth, and what do estimated versus actual rows, loops, and buffers reveal?",
+      "vi": "Đọc sâu EXPLAIN ANALYZE: rows ước lượng vs thực tế, loops và buffers nói lên điều gì?"
+    },
+    "18-query-optimization.measure-first-reading-the-execution-plan.q3": {
+      "en": "How does the optimiser choose join algorithms and join order, and when does it choose incorrectly?",
+      "vi": "Join algorithm và join order: optimizer chọn thế nào, và khi nào nó chọn sai?"
+    },
+    "18-query-optimization.measure-first-reading-the-execution-plan.q4": {
+      "en": "How do you trace a plan regression when a previously fast query suddenly becomes slow?",
+      "vi": "Plan regression: query đang nhanh bỗng chậm — truy nguyên thế nào?"
+    },
+    "18-query-optimization.measure-first-reading-the-execution-plan.q5": {
+      "en": "What is a parameter-sensitive plan, and how do you diagnose a cached plan that is fast for one value but slow for another?",
+      "vi": "Parameter-sensitive plan là gì, và chẩn đoán cached plan nhanh với giá trị này nhưng chậm với giá trị khác như thế nào?"
+    },
+    "18-query-optimization.measure-first-reading-the-execution-plan.q6": {
+      "en": "Where do EXPLAIN's shared hit and read numbers come from — PostgreSQL's buffer cache",
+      "vi": "Những con số shared hit và shared read trong EXPLAIN đến từ đâu — bộ đệm cache của PostgreSQL"
+    },
+    "18-query-optimization.measure-first-reading-the-execution-plan.q7": {
+      "en": "Sizing shared_buffers, and the write side: checkpoints, bgwriter and full-page writes",
+      "vi": "Sizing shared_buffers, và mặt ghi: checkpoint, bgwriter và full-page write"
+    },
+    "18-query-optimization.rewriting-the-query-reshaping-the-model.q1": {
+      "en": "How should WHERE predicates be written so that indexes can actually be used?",
+      "vi": "Sargable predicate: viết WHERE thế nào để index thật sự được dùng?"
+    },
+    "18-query-optimization.rewriting-the-query-reshaping-the-model.q2": {
+      "en": "How should COUNT(*) and pagination be handled on a table with tens of millions of rows?",
+      "vi": "COUNT(*) và pagination trên table vài chục triệu dòng?"
+    },
+    "18-query-optimization.rewriting-the-query-reshaping-the-model.q3": {
+      "en": "For heavy aggregation, should you pre-aggregate, use a materialized view, or move the workload to OLAP?",
+      "vi": "Aggregation nặng: pre-aggregate, materialized view hay đẩy sang OLAP?"
+    },
+    "18-query-optimization.rewriting-the-query-reshaping-the-model.q4": {
+      "en": "How do you optimize the application layer through connection pools, statement timeouts, batching, and fetch size?",
+      "vi": "Tối ưu ở tầng ứng dụng: connection pool, statement timeout, batch và fetch size?"
+    },
+    "18-query-optimization.rewriting-the-query-reshaping-the-model.q5": {
+      "en": "A job must insert two million rows and process a work queue. What breaks if you treat it like ordinary application writes?",
+      "vi": "Một job phải chèn hai triệu dòng và xử lý một work queue. Coi nó như ghi dữ liệu bình thường thì hỏng ở đâu?"
+    },
+    "19-dsa-leetcode.the-solving-framework-core-patterns.q1": {
+      "en": "What is the six-step framework for solving a coding interview problem while thinking out loud?",
+      "vi": "Khung sáu bước giải một bài coding interview (nói ra thành tiếng)?"
+    },
+    "19-dsa-leetcode.the-solving-framework-core-patterns.q2": {
+      "en": "Sliding window: what is the general template, and how do fixed-size and variable-size windows differ?",
+      "vi": "Sliding window: khung chung, và phân biệt fixed-size với variable-size?"
+    },
+    "19-dsa-leetcode.the-solving-framework-core-patterns.q3": {
+      "en": "LC 30 · Substring with Concatenation of All Words — Rakuten has asked this problem; how do you solve it?",
+      "vi": "LC 30 · Substring with Concatenation of All Words — Rakuten đã hỏi bài này, giải thế nào?"
+    },
+    "19-dsa-leetcode.the-solving-framework-core-patterns.q4": {
+      "en": "Two pointers: how do you recognize the pattern, and what common variants should you know?",
+      "vi": "Two pointers: nhận dạng và các biến thể hay gặp?"
+    },
+    "19-dsa-leetcode.the-patterns-that-keep-coming-up.q1": {
+      "en": "Hash map + prefix sum: how do subarray-sum problems work, and why can sliding window fail?",
+      "vi": "Hash map + prefix sum: dạng bài subarray sum và vì sao sliding window không dùng được?"
+    },
+    "19-dsa-leetcode.the-patterns-that-keep-coming-up.q2": {
+      "en": "Heaps and top-K: when should you use a heap, quickselect, or sorting?",
+      "vi": "Heap và top-K: khi nào heap, khi nào quickselect, khi nào sort?"
+    },
+    "19-dsa-leetcode.the-patterns-that-keep-coming-up.q3": {
+      "en": "Binary search on the answer: how do you recognize a 'minimize the maximum' problem?",
+      "vi": "Binary search on answer: nhận dạng dạng 'tối thiểu hoá giá trị lớn nhất'?"
+    },
+    "19-dsa-leetcode.the-patterns-that-keep-coming-up.q4": {
+      "en": "Graphs: when should you choose BFS, DFS, topological sort, or Dijkstra?",
+      "vi": "Graph: BFS, DFS, topological sort và Dijkstra — chọn cái nào?"
+    },
+    "19-dsa-leetcode.the-patterns-that-keep-coming-up.q5": {
+      "en": "How do you distinguish dynamic programming from backtracking, and derive either solution instead of memorizing templates?",
+      "vi": "Phân biệt dynamic programming với backtracking và tự suy ra lời giải thay vì học thuộc template như thế nào?"
+    },
+    "19-dsa-leetcode.the-patterns-that-keep-coming-up.q6": {
+      "en": "When should you use a monotonic stack or deque, and how do interval and sweep-line problems relate?",
+      "vi": "Khi nào nên dùng monotonic stack/deque, và bài toán interval liên hệ với sweep line như thế nào?"
+    },
+    "19-dsa-leetcode.the-patterns-that-keep-coming-up.q7": {
+      "en": "How should you reason about tree traversal, BST invariants, and tries?",
+      "vi": "Nên lập luận về tree traversal, BST invariant và trie như thế nào?"
+    },
+    "19-dsa-leetcode.the-patterns-that-keep-coming-up.q8": {
+      "en": "Which bit-manipulation techniques are worth knowing, and what correctness traps matter in Java?",
+      "vi": "Những kỹ thuật bit manipulation nào đáng biết, và Java có bẫy correctness gì?"
+    },
+    "19-dsa-leetcode.fifteen-patterns-visualized.q1": {
+      "en": "Two pointers: trace the converging scan that finds a pair summing to a target.",
+      "vi": "Two pointers: lần theo phép quét hội tụ tìm cặp có tổng bằng target."
+    },
+    "19-dsa-leetcode.fifteen-patterns-visualized.q2": {
+      "en": "Sliding window: trace a fixed window of size 3 as it slides, and show what changes per step.",
+      "vi": "Sliding window: lần theo cửa sổ cố định size 3 khi nó trượt, và cho thấy mỗi bước đổi gì."
+    },
+    "19-dsa-leetcode.fifteen-patterns-visualized.q3": {
+      "en": "Binary search: trace the halving, and state the invariant that makes it correct.",
+      "vi": "Binary search: lần theo phép chia đôi, và nêu invariant làm nó đúng."
+    },
+    "19-dsa-leetcode.fifteen-patterns-visualized.q4": {
+      "en": "Frequency counting: trace building a count map, and say when an array beats a HashMap.",
+      "vi": "Frequency counting: lần theo cách dựng count map, và khi nào mảng thắng HashMap."
+    },
+    "19-dsa-leetcode.fifteen-patterns-visualized.q5": {
+      "en": "Matrix traversal: trace a spiral walk and show how the four shrinking boundaries stay correct.",
+      "vi": "Matrix traversal: lần theo phép quét xoắn ốc và cho thấy bốn biên co lại vẫn đúng thế nào."
+    },
+    "19-dsa-leetcode.fifteen-patterns-visualized.q6": {
+      "en": "Monotonic stack: trace \"next greater element\" and explain the amortised O(n).",
+      "vi": "Monotonic stack: lần theo bài \"next greater element\" và giải thích O(n) khấu hao."
+    },
+    "19-dsa-leetcode.fifteen-patterns-visualized.q7": {
+      "en": "Prefix sum: trace the build, and show why it answers any range query in O(1).",
+      "vi": "Prefix sum: lần theo bước dựng, và cho thấy vì sao mọi truy vấn khoảng chỉ tốn O(1)."
+    },
+    "19-dsa-leetcode.fifteen-patterns-visualized.q8": {
+      "en": "Overlapping intervals: trace the merge, and justify why sorting by start is the right move.",
+      "vi": "Overlapping intervals: lần theo phép merge, và giải thích vì sao sort theo start là đúng."
+    },
+    "19-dsa-leetcode.fifteen-patterns-visualized.q9": {
+      "en": "Greedy: trace coin change with canonical denominations, and state when greedy is provably wrong.",
+      "vi": "Greedy: lần theo bài đổi tiền với hệ mệnh giá chuẩn, và nêu khi nào greedy sai chắc chắn."
+    },
+    "19-dsa-leetcode.fifteen-patterns-visualized.q10": {
+      "en": "Top-K with a heap: trace the min-heap of size K and explain why it beats sorting.",
+      "vi": "Top-K bằng heap: lần theo min-heap size K và giải thích vì sao nó hơn sort."
+    },
+    "19-dsa-leetcode.fifteen-patterns-visualized.q11": {
+      "en": "Backtracking: trace the explore-then-undo loop and show where pruning cuts the tree.",
+      "vi": "Backtracking: lần theo vòng chọn-rồi-hoàn-tác và chỉ ra chỗ pruning cắt cây."
+    },
+    "19-dsa-leetcode.fifteen-patterns-visualized.q12": {
+      "en": "Binary tree traversal: trace inorder and say which traversal each problem actually needs.",
+      "vi": "Duyệt cây nhị phân: lần theo inorder và nói mỗi bài thực sự cần lối duyệt nào."
+    },
+    "19-dsa-leetcode.fifteen-patterns-visualized.q13": {
+      "en": "DFS vs BFS on a graph: trace both from the same node and show why BFS alone finds shortest paths.",
+      "vi": "DFS vs BFS trên graph: lần theo cả hai từ cùng một nút và cho thấy vì sao chỉ BFS tìm được đường ngắn nhất."
+    },
+    "19-dsa-leetcode.fifteen-patterns-visualized.q14": {
+      "en": "Level-order BFS: trace the per-level loop and explain the size snapshot.",
+      "vi": "BFS theo tầng: lần theo vòng lặp từng tầng và giải thích việc chụp size."
+    },
+    "19-dsa-leetcode.fifteen-patterns-visualized.q15": {
+      "en": "Dynamic programming: fill a DP table by hand and derive the recurrence from the table.",
+      "vi": "Dynamic programming: điền table DP bằng tay và suy ra công thức truy hồi từ chính cái table."
+    },
+    "20-observability-sre.the-three-pillars-how-to-measure.q1": {
+      "en": "How do metrics, logs, and traces differ, and when should each be used?",
+      "vi": "Metrics, logs và traces khác nhau thế nào — khi nào dùng cái nào?"
+    },
+    "20-observability-sre.the-three-pillars-how-to-measure.q2": {
+      "en": "How does OpenTelemetry propagate trace context across services and through message queues?",
+      "vi": "OpenTelemetry: trace context lan truyền qua service và qua message queue thế nào?"
+    },
+    "20-observability-sre.the-three-pillars-how-to-measure.q3": {
+      "en": "How do RED and USE guide metric selection for services and resources?",
+      "vi": "RED và USE: chọn metric nào cho service, cho tài nguyên?"
+    },
+    "20-observability-sre.the-three-pillars-how-to-measure.q4": {
+      "en": "Why can one bad label cause a cardinality explosion that takes down the entire metrics system?",
+      "vi": "Cardinality explosion: vì sao một label sai làm sập cả hệ metric?"
+    },
+    "20-observability-sre.slos-alerting-incidents.q1": {
+      "en": "What decisions should SLI, SLO, SLA, and an error budget drive?",
+      "vi": "SLI, SLO, SLA và error budget dùng để quyết định điều gì?"
+    },
+    "20-observability-sre.slos-alerting-incidents.q2": {
+      "en": "How should alerts be designed to avoid fatigue: should they fire on symptoms or causes?",
+      "vi": "Thiết kế cảnh báo không gây mệt mỏi: alert trên triệu chứng hay trên nguyên nhân?"
+    },
+    "20-observability-sre.slos-alerting-incidents.q3": {
+      "en": "What is the incident-response process from the initial page through the postmortem?",
+      "vi": "Quy trình xử lý sự cố: từ lúc bị page tới postmortem?"
+    },
+    "20-observability-sre.slos-alerting-incidents.q4": {
+      "en": "How should structured logging and correlation be designed so logs are actually searchable?",
+      "vi": "Structured logging và correlation: log thế nào để tra ra được?"
+    },
+    "21-linux-production-debug.diagnosing-the-system.q1": {
+      "en": "A server suddenly becomes slow: which commands do you run in the first 60 seconds?",
+      "vi": "Server chậm bất thường: quy trình 60 giây đầu tiên gõ lệnh gì?"
+    },
+    "21-linux-production-debug.diagnosing-the-system.q2": {
+      "en": "How should you interpret load average, iowait, and CPU steal?",
+      "vi": "Load average, iowait và CPU steal: đọc thế nào cho đúng?"
+    },
+    "21-linux-production-debug.diagnosing-the-system.q3": {
+      "en": "Running out of file descriptors or ephemeral ports: what are the symptoms and fixes?",
+      "vi": "Hết file descriptor hoặc hết ephemeral port: dấu hiệu và cách xử lý?"
+    },
+    "21-linux-production-debug.diagnosing-the-system.q4": {
+      "en": "The OOM killer terminated a service: how do you trace the cause and prevent it?",
+      "vi": "OOM killer giết service: truy nguyên và phòng ngừa thế nào?"
+    },
+    "21-linux-production-debug.jvm-network-deep-dive-on-prod.q1": {
+      "en": "How do you read a thread dump to find deadlocks and blocked threads?",
+      "vi": "Thread dump: đọc thế nào để tìm deadlock và thread bị chặn?"
+    },
+    "21-linux-production-debug.jvm-network-deep-dive-on-prod.q2": {
+      "en": "How do you use a heap dump to find the source of a memory leak?",
+      "vi": "Heap dump và memory leak: tìm thủ phạm bằng cách nào?"
+    },
+    "21-linux-production-debug.jvm-network-deep-dive-on-prod.q3": {
+      "en": "How safe are async-profiler and JFR for profiling in production?",
+      "vi": "Profiling trên production: async-profiler và JFR — an toàn tới đâu?"
+    },
+    "21-linux-production-debug.jvm-network-deep-dive-on-prod.q4": {
+      "en": "How do tcpdump, ss, and netstat help debug networking between two services?",
+      "vi": "tcpdump, ss và netstat: bắt lỗi mạng giữa hai service?"
+    },
+    "22-low-level-design-ood.the-lld-framework-classic-problems.q1": {
+      "en": "How does a low-level design interview differ from system design, and what five-step framework should you use?",
+      "vi": "Vòng LLD khác system design thế nào? Khung 5 bước để trả lời?"
+    },
+    "22-low-level-design-ood.the-lld-framework-classic-problems.q2": {
+      "en": "How do you design an LRU cache with O(1) get and put, and why do you choose those data structures?",
+      "vi": "Thiết kế LRU cache với get/put O(1) — code và vì sao chọn cấu trúc đó?"
+    },
+    "22-low-level-design-ood.the-lld-framework-classic-problems.q3": {
+      "en": "How do you design and code token-bucket and sliding-window rate limiters?",
+      "vi": "Thiết kế rate limiter: token bucket và sliding window — code?"
+    },
+    "22-low-level-design-ood.the-lld-framework-classic-problems.q4": {
+      "en": "How should classes be divided when designing a parking lot or elevator system?",
+      "vi": "Thiết kế bãi đỗ xe / thang máy: chia class thế nào?"
+    },
+    "22-low-level-design-ood.patterns-in-interview-code.q1": {
+      "en": "How do you reference SOLID naturally in an LLD interview without sounding formulaic?",
+      "vi": "SOLID trong một bài LLD: nêu ở đâu cho tự nhiên, không sáo rỗng?"
+    },
+    "22-low-level-design-ood.patterns-in-interview-code.q2": {
+      "en": "When should you choose Strategy, State, or Chain of Responsibility?",
+      "vi": "Strategy, State và Chain of Responsibility: chọn cái nào?"
+    },
+    "22-low-level-design-ood.patterns-in-interview-code.q3": {
+      "en": "What thread-safety questions arise in an LLD interview, and how should you answer them?",
+      "vi": "Thread-safety trong bài LLD: interviewer sẽ hỏi gì và trả lời thế nào?"
+    },
+    "22-low-level-design-ood.patterns-in-interview-code.q4": {
+      "en": "How do you design an in-memory key-value store with TTL?",
+      "vi": "Thiết kế in-memory key-value store có TTL?"
+    },
+    "22-low-level-design-ood.patterns-in-interview-code.q5": {
+      "en": "How do you design an object model for testability, invariants, and deterministic concurrency tests?",
+      "vi": "Thiết kế object model để dễ test, bảo vệ invariant và kiểm thử concurrency có tính deterministic như thế nào?"
+    },
+    "23-java-concurrency-coding.classic-synchronisation-problems.q1": {
+      "en": "Bounded blocking queue: how would you implement it with wait/notify and with Lock/Condition?",
+      "vi": "Bounded blocking queue: cài bằng wait/notify và bằng Lock/Condition?"
+    },
+    "23-java-concurrency-coding.classic-synchronisation-problems.q2": {
+      "en": "Printing in strict alternating order (print FooBar / print in order): what are the approaches and trade-offs?",
+      "vi": "In xen kẽ theo thứ tự (print FooBar / print in order): các cách và trade-off?"
+    },
+    "23-java-concurrency-coding.classic-synchronisation-problems.q3": {
+      "en": "Dining philosophers: which approaches prevent deadlock?",
+      "vi": "Dining philosophers: tránh deadlock bằng những cách nào?"
+    },
+    "23-java-concurrency-coding.classic-synchronisation-problems.q4": {
+      "en": "Read-heavy, write-light workloads: ReadWriteLock, StampedLock, or copy-on-write?",
+      "vi": "Đọc nhiều ghi ít: ReadWriteLock, StampedLock hay copy-on-write?"
+    },
+    "23-java-concurrency-coding.async-the-modern-toolkit.q1": {
+      "en": "CompletableFuture: how do you correctly make parallel calls, handle failures, and enforce timeouts?",
+      "vi": "CompletableFuture: gọi song song, xử lý lỗi và timeout thế nào cho đúng?"
+    },
+    "23-java-concurrency-coding.async-the-modern-toolkit.q2": {
+      "en": "CountDownLatch, CyclicBarrier, Semaphore, and Phaser: how do they differ?",
+      "vi": "CountDownLatch, CyclicBarrier, Semaphore và Phaser: phân biệt?"
+    },
+    "23-java-concurrency-coding.async-the-modern-toolkit.q3": {
+      "en": "Atomics and CAS: how do you implement a lock-free counter/stack, and what is the ABA problem?",
+      "vi": "Atomic và CAS: tự cài counter/stack lock-free, ABA problem là gì?"
+    },
+    "23-java-concurrency-coding.async-the-modern-toolkit.q4": {
+      "en": "Virtual threads (Java 21+): how do they change the way you write concurrency code?",
+      "vi": "Virtual threads (Java 21+): viết lại bài concurrency thế nào?"
+    },
+    "23-java-concurrency-coding.async-the-modern-toolkit.q5": {
+      "en": "Interview drill: 20 threads each add one million to a `volatile int counter`. Is the total right, and how do you prove your answer?",
+      "vi": "Bài tập phỏng vấn: 20 luồng, mỗi luồng cộng một triệu vào `volatile int counter`. Tổng có đúng không, và chứng minh câu trả lời thế nào?"
+    },
+    "24-domain-driven-design.strategic-splitting-the-domain.q1": {
+      "en": "What problem does DDD actually solve? What does ubiquitous language really mean?",
+      "vi": "DDD thực ra giải quyết vấn đề gì? Ubiquitous language nghĩa là gì cho đúng?"
+    },
+    "24-domain-driven-design.strategic-splitting-the-domain.q2": {
+      "en": "Bounded contexts: how do you identify the right boundaries?",
+      "vi": "Bounded context: xác định ranh giới bằng cách nào cho đúng?"
+    },
+    "24-domain-driven-design.strategic-splitting-the-domain.q3": {
+      "en": "Context mapping: what relationships can exist between two bounded contexts?",
+      "vi": "Context mapping: các kiểu quan hệ giữa hai bounded context?"
+    },
+    "24-domain-driven-design.strategic-splitting-the-domain.q4": {
+      "en": "Event storming: how do you run a workshop that reveals the boundaries?",
+      "vi": "Event storming: chạy một buổi thế nào để ra được ranh giới?"
+    },
+    "24-domain-driven-design.tactical-modelling-it.q1": {
+      "en": "Entity vs. Value Object: what distinguishes them, and why are Value Objects more useful than they seem?",
+      "vi": "Entity vs Value Object: phân biệt và vì sao Value Object đáng dùng hơn ta tưởng?"
+    },
+    "24-domain-driven-design.tactical-modelling-it.q2": {
+      "en": "Aggregates: where should the boundary lie, and how large should an aggregate be?",
+      "vi": "Aggregate: ranh giới đặt ở đâu, to nhỏ thế nào cho đúng?"
+    },
+    "24-domain-driven-design.tactical-modelling-it.q3": {
+      "en": "How do domain events differ from integration events, and where should each be published?",
+      "vi": "Domain event và integration event khác nhau chỗ nào? Phát ở đâu cho đúng?"
+    },
+    "24-domain-driven-design.tactical-modelling-it.q4": {
+      "en": "Repository, Factory, and Domain Service: where does each belong, and when is it needed?",
+      "vi": "Repository, Factory và Domain Service — mỗi thứ đặt ở đâu và khi nào cần?"
+    },
+    "25-microservice.01-cascading-failure-retry-storm.q1": {
+      "en": "Why can one slow downstream service take down every upstream service even when CPU utilization is still low?",
+      "vi": "Vì sao một service downstream chậm làm sập cả upstream dù CPU chưa cao?"
+    },
+    "25-microservice.01-cascading-failure-retry-storm.q2": {
+      "en": "How should timeouts be configured?",
+      "vi": "Timeout đặt thế nào cho đúng?"
+    },
+    "25-microservice.01-cascading-failure-retry-storm.q3": {
+      "en": "Circuit breakers: the three states and key Resilience4j parameters",
+      "vi": "Circuit breaker: 3 state và tham số Resilience4j"
+    },
+    "25-microservice.01-cascading-failure-retry-storm.q4": {
+      "en": "Bulkheads: semaphore vs thread pool, and what changes with virtual threads?",
+      "vi": "Bulkhead: semaphore vs thread-pool, với virtual thread?"
+    },
+    "25-microservice.01-cascading-failure-retry-storm.q5": {
+      "en": "Safe retries: jitter and retry budgets",
+      "vi": "Retry an toàn: jitter, retry budget"
+    },
+    "25-microservice.01-cascading-failure-retry-storm.q6": {
+      "en": "Load shedding — the last line of defense",
+      "vi": "Load shedding — tuyến phòng thủ cuối"
+    },
+    "25-microservice.02-pool-exhaustion-connection-thread.q1": {
+      "en": "Connection-pool sizing: why is a larger pool not always better?",
+      "vi": "Sizing connection pool: vì sao pool to không phải lúc nào cũng tốt?"
+    },
+    "25-microservice.02-pool-exhaustion-connection-thread.q2": {
+      "en": "Aggregate connections across instances exceed max_connections",
+      "vi": "Tổng connection cross-instance vượt max_connections"
+    },
+    "25-microservice.02-pool-exhaustion-connection-thread.q3": {
+      "en": "HikariCP: critical parameters",
+      "vi": "HikariCP: tham số sống còn"
+    },
+    "25-microservice.02-pool-exhaustion-connection-thread.q4": {
+      "en": "Thread pools: the queueCapacity gotcha",
+      "vi": "Thread pool: gotcha queueCapacity"
+    },
+    "25-microservice.02-pool-exhaustion-connection-thread.q5": {
+      "en": "Virtual threads remove the I/O-bound bottleneck—and introduce new traps",
+      "vi": "Virtual thread gỡ nút I/O-bound + cạm bẫy"
+    },
+    "25-microservice.03-distributed-data-consistency.q1": {
+      "en": "The dual-write problem — why is this code subtly wrong?",
+      "vi": "Dual-write problem — vì sao đoạn này sai tinh vi?"
+    },
+    "25-microservice.03-distributed-data-consistency.q2": {
+      "en": "Transactional Outbox: polling vs CDC",
+      "vi": "Transactional Outbox: polling vs CDC"
+    },
+    "25-microservice.03-distributed-data-consistency.q3": {
+      "en": "Sagas: orchestration vs choreography and compensation traps",
+      "vi": "Saga: orchestration vs choreography + cạm bẫy compensation"
+    },
+    "25-microservice.03-distributed-data-consistency.q4": {
+      "en": "Where does eventual consistency hurt?",
+      "vi": "Eventual consistency đau ở đâu"
+    },
+    "25-microservice.03-distributed-data-consistency.q5": {
+      "en": "What does “exactly once” guarantee, and where does that guarantee end?",
+      "vi": "“Exactly once” bảo đảm điều gì, và boundary của bảo đảm nằm ở đâu?"
+    },
+    "25-microservice.04-messaging-event-driven-at-scale.q1": {
+      "en": "Backpressure and queue buildup: RabbitMQ vs Kafka",
+      "vi": "Backpressure & queue buildup: RabbitMQ vs Kafka"
+    },
+    "25-microservice.04-messaging-event-driven-at-scale.q2": {
+      "en": "Message ordering under horizontal scale",
+      "vi": "Message ordering khi scale ngang"
+    },
+    "25-microservice.04-messaging-event-driven-at-scale.q3": {
+      "en": "Poison messages and DLQs",
+      "vi": "Poison message & DLQ"
+    },
+    "25-microservice.04-messaging-event-driven-at-scale.q4": {
+      "en": "RabbitMQ Publisher Confirms: three modes and ConcurrentSkipListMap",
+      "vi": "RabbitMQ Publisher Confirms: 3 mode + ConcurrentSkipListMap"
+    },
+    "25-microservice.05-caching-pitfalls.q1": {
+      "en": "Cache stampede (thundering herd)",
+      "vi": "Cache stampede (thundering herd)"
+    },
+    "25-microservice.05-caching-pitfalls.q2": {
+      "en": "Hot keys",
+      "vi": "Hot key"
+    },
+    "25-microservice.05-caching-pitfalls.q3": {
+      "en": "Cache penetration",
+      "vi": "Cache penetration"
+    },
+    "25-microservice.05-caching-pitfalls.q4": {
+      "en": "Cache avalanches and invalidation",
+      "vi": "Cache avalanche & invalidation"
+    },
+    "25-microservice.05-caching-pitfalls.q5": {
+      "en": "The read-path patterns: cache-aside, read-through, refresh-ahead",
+      "vi": "Ba pattern đường đọc: cache-aside, read-through, refresh-ahead"
+    },
+    "25-microservice.05-caching-pitfalls.q6": {
+      "en": "The write-path patterns: write-through, write-behind, write-around",
+      "vi": "Ba pattern đường ghi: write-through, write-behind, write-around"
+    },
+    "25-microservice.05-caching-pitfalls.q7": {
+      "en": "Two sizing mistakes that turn the cache into the incident",
+      "vi": "Hai lỗi sizing biến cache thành sự cố"
+    },
+    "25-microservice.05-caching-pitfalls.q8": {
+      "en": "Redis beyond the cache: which structure answers which problem",
+      "vi": "Redis ngoài việc cache: cấu trúc nào giải bài toán nào"
+    },
+    "25-microservice.05-caching-pitfalls.q9": {
+      "en": "What Redis actually guarantees before you keep state in it",
+      "vi": "Redis thật sự bảo đảm những gì trước khi bạn để state vào đó"
+    },
+    "25-microservice.06-hot-partition-db-bottleneck.q1": {
+      "en": "Hot partitions: why does skew remain after sharding?",
+      "vi": "Hot partition: shard rồi vẫn lệch"
+    },
+    "25-microservice.06-hot-partition-db-bottleneck.q2": {
+      "en": "Read-replica lag",
+      "vi": "Read replica lag"
+    },
+    "25-microservice.06-hot-partition-db-bottleneck.q3": {
+      "en": "N+1 and unindexed queries",
+      "vi": "N+1 & query không index"
+    },
+    "25-microservice.07-observability-debugging.q1": {
+      "en": "Distributed tracing",
+      "vi": "Distributed tracing"
+    },
+    "25-microservice.07-observability-debugging.q2": {
+      "en": "Metrics: RED, USE, and p99",
+      "vi": "Metrics: RED, USE, và p99"
+    },
+    "25-microservice.07-observability-debugging.q3": {
+      "en": "Sampling and health checks",
+      "vi": "Sampling & health check"
+    },
+    "25-microservice.08-operational-concerns.q1": {
+      "en": "API versioning and backward compatibility",
+      "vi": "API versioning & backward compatibility"
+    },
+    "25-microservice.08-operational-concerns.q2": {
+      "en": "Safe deployments",
+      "vi": "Deployment an toàn"
+    },
+    "25-microservice.08-operational-concerns.q3": {
+      "en": "Autoscaling lag and API gateways",
+      "vi": "Autoscaling lag & API gateway"
+    },
+    "25-microservice.08-operational-concerns.q4": {
+      "en": "Scheduled and background jobs across N replicas",
+      "vi": "Job theo lịch và job nền khi chạy N replica"
+    },
+    "25-microservice.09-idempotency-the-central-link.q1": {
+      "en": "How does an idempotency key work?",
+      "vi": "Cơ chế idempotency key"
+    },
+    "25-microservice.09-idempotency-the-central-link.q2": {
+      "en": "Idempotent consumers and the inbox pattern",
+      "vi": "Idempotent consumer / inbox pattern"
+    },
+    "25-microservice.09-idempotency-the-central-link.q3": {
+      "en": "Why is idempotency the central link?",
+      "vi": "Vì sao idempotency là trung tâm"
+    },
+    "25-microservice.10-system-design-putting-it-all-together.q1": {
+      "en": "A system-design framework and back-of-the-envelope estimates",
+      "vi": "Khung tiếp cận & back-of-envelope"
+    },
+    "25-microservice.10-system-design-putting-it-all-together.q2": {
+      "en": "Service boundaries: synchronous or asynchronous?",
+      "vi": "Ranh giới service: sync hay async?"
+    },
+    "25-microservice.10-system-design-putting-it-all-together.q3": {
+      "en": "Data models and partitioning",
+      "vi": "Data model & phân mảnh"
+    },
+    "25-microservice.10-system-design-putting-it-all-together.q4": {
+      "en": "Worked example: design an end-to-end money-transfer flow",
+      "vi": "Bài toán mẫu: thiết kế money-transfer flow end-to-end"
+    },
+    "25-microservice.10-system-design-putting-it-all-together.q5": {
+      "en": "A trade-off framework — there is no universally correct architecture",
+      "vi": "Khung trade-off — không có kiến trúc đúng"
+    },
+    "25-microservice.10-system-design-putting-it-all-together.q6": {
+      "en": "Priority order for fintech money flows",
+      "vi": "Thứ tự ưu tiên cho money flow fintech"
+    },
+    "26-testing-strategy.what-a-test-is-for.q1": {
+      "en": "Why do heavily mocked unit tests break on every refactor even though behaviour never changed?",
+      "vi": "Vì sao unit test mock dày đặc cứ refactor là đỏ, dù behaviour không hề đổi?"
+    },
+    "26-testing-strategy.what-a-test-is-for.q2": {
+      "en": "Dummy, stub, spy, mock, fake — which double do you reach for, and why do seniors prefer fakes?",
+      "vi": "Dummy, stub, spy, mock, fake — chọn cái nào, và vì sao senior thường chọn fake?"
+    },
+    "26-testing-strategy.what-a-test-is-for.q3": {
+      "en": "Which bugs never show up in unit tests, and what does that imply for where you spend test budget?",
+      "vi": "Bug nào không bao giờ lộ ra ở unit test, và điều đó nói gì về chỗ nên đầu tư test?"
+    },
+    "26-testing-strategy.what-a-test-is-for.q4": {
+      "en": "How do you build test data so the suite stays readable, and where does property-based testing pay off?",
+      "vi": "Dựng test data thế nào để bộ test còn đọc được, và property-based testing đáng dùng ở đâu?"
+    },
+    "26-testing-strategy.integration-tests-that-tell-the-truth.q1": {
+      "en": "Why does an H2-backed test suite pass while production fails, and how do you run the real engine without wrecking build time?",
+      "vi": "Vì sao bộ test chạy H2 thì xanh mà production vẫn hỏng, và chạy engine thật kiểu gì để không phá build time?"
+    },
+    "26-testing-strategy.integration-tests-that-tell-the-truth.q2": {
+      "en": "Why does @Transactional on a test hide real bugs, and how do you test transaction boundaries honestly?",
+      "vi": "Vì sao gắn @Transactional lên test lại che mất bug thật, và test ranh giới transaction thế nào cho trung thực?"
+    },
+    "26-testing-strategy.integration-tests-that-tell-the-truth.q3": {
+      "en": "Your Spring test suite takes 14 minutes, mostly starting contexts. What is actually happening and how do you fix it?",
+      "vi": "Bộ test Spring chạy 14 phút, phần lớn là khởi động context. Thật ra chuyện gì đang xảy ra và sửa thế nào?"
+    },
+    "26-testing-strategy.integration-tests-that-tell-the-truth.q4": {
+      "en": "Two teams, two services, one broken deploy. How do contract tests catch it when neither side runs the other in CI?",
+      "vi": "Hai team, hai service, một lần deploy hỏng. Contract test bắt được kiểu gì khi không bên nào chạy bên kia trong CI?"
+    },
+    "26-testing-strategy.testing-what-usually-breaks.q1": {
+      "en": "How do you test logic that depends on time — expiry, schedules, time zones — without sleeping or waiting for midnight?",
+      "vi": "Test logic phụ thuộc thời gian — hết hạn, lịch chạy, timezone — thế nào mà không sleep và không phải chờ tới nửa đêm?"
+    },
+    "26-testing-strategy.testing-what-usually-breaks.q2": {
+      "en": "How do you write a test that actually reproduces a race, and why does a green concurrency test prove so little?",
+      "vi": "Viết test tái hiện được race thế nào, và vì sao test concurrency xanh lại chứng minh rất ít?"
+    },
+    "26-testing-strategy.testing-what-usually-breaks.q3": {
+      "en": "Your retry, timeout, circuit breaker and compensation logic has never run in a test. How do you inject failure on purpose?",
+      "vi": "Retry, timeout, circuit breaker và compensation chưa từng chạy trong test lần nào. Tiêm lỗi có chủ đích thế nào?"
+    },
+    "26-testing-strategy.testing-what-usually-breaks.q4": {
+      "en": "A load test reports p99 = 80 ms while users complain. What is the test lying about?",
+      "vi": "Load test báo p99 = 80 ms mà user vẫn kêu chậm. Bài test đang nói dối chỗ nào?"
+    },
+    "26-testing-strategy.testing-what-usually-breaks.q5": {
+      "en": "A test fails once a week and passes on rerun. What is the policy, and why is high coverage no defence?",
+      "vi": "Một test mỗi tuần đỏ một lần, chạy lại là xanh. Chính sách xử lý là gì, và vì sao coverage cao không cứu được?"
+    },
+    "27-api-gateway-identity-edge.the-edge-in-four-sizes.q1": {
+      "en": "How do you turn 10k, 100k, 1M and 100M requests a day into the peak rate the edge is sized for, and what does one extra hop cost at each tier?",
+      "vi": "Làm sao đổi 10k, 100k, 1M và 100M request mỗi ngày thành peak rate để size edge, và thêm một hop tốn gì ở mỗi tier?"
+    },
+    "27-api-gateway-identity-edge.the-edge-in-four-sizes.q2": {
+      "en": "At each traffic tier, which edge capability is not needed, worth it, mandatory, or needs its own scaling story?",
+      "vi": "Ở mỗi traffic tier, edge capability nào không cần, nên có, bắt buộc, hoặc cần một scaling story riêng?"
+    },
+    "27-api-gateway-identity-edge.the-edge-in-four-sizes.q3": {
+      "en": "Which signals say a tier boundary has been crossed before the incident does?",
+      "vi": "Tín hiệu nào cho biết đã vượt qua ranh giới tier trước khi incident xảy ra?"
+    },
+    "27-api-gateway-identity-edge.gateway-configuration-that-matters.q1": {
+      "en": "In Spring Cloud Gateway, what does a request pass through in route, predicate and filter order, and where should authentication sit?",
+      "vi": "Trong Spring Cloud Gateway, request đi qua route, predicate và filter theo thứ tự nào, và authN nên nằm ở đâu?"
+    },
+    "27-api-gateway-identity-edge.gateway-configuration-that-matters.q2": {
+      "en": "How should gateway, downstream and client timeouts relate, and why is the edge the fastest place to build a retry storm?",
+      "vi": "Timeout của gateway, downstream và client nên liên hệ ra sao, và vì sao edge là nơi nhanh nhất tạo retry storm?"
+    },
+    "27-api-gateway-identity-edge.gateway-configuration-that-matters.q3": {
+      "en": "How do CircuitBreaker and RequestRateLimiter filters change gateway behaviour, and what is the per-tier verdict?",
+      "vi": "CircuitBreaker và RequestRateLimiter filter làm gateway đổi behavior thế nào, và phán quyết theo tier là gì?"
+    },
+    "27-api-gateway-identity-edge.gateway-configuration-that-matters.q4": {
+      "en": "What connection-pool and request-hygiene settings matter at the edge, and what must the gateway strip or never trust?",
+      "vi": "Connection pool và request hygiene nào quan trọng ở edge, và gateway phải strip hoặc không được tin gì?"
+    },
+    "27-api-gateway-identity-edge.identity-at-the-edge.q1": {
+      "en": "Who verifies the token: gateway only, service only, or both? What does each choice cost and leave open?",
+      "vi": "Ai verify token: chỉ gateway, chỉ service, hay cả hai? Mỗi lựa chọn tốn gì và bỏ ngỏ gì?"
+    },
+    "27-api-gateway-identity-edge.identity-at-the-edge.q2": {
+      "en": "How should the edge verify a JWT, including JWKS fetch, kid rotation, clock skew, iss, aud and exp?",
+      "vi": "Edge nên verify JWT thế nào, gồm JWKS fetch, kid rotation, clock skew, iss, aud và exp?"
+    },
+    "27-api-gateway-identity-edge.identity-at-the-edge.q3": {
+      "en": "When does opaque-token introspection make sense, and how should identity be passed inward without trusting a client header?",
+      "vi": "Khi nào opaque-token introspection hợp lý, và truyền identity vào trong thế nào mà không tin client header?"
+    },
+    "27-api-gateway-identity-edge.identity-at-the-edge.q4": {
+      "en": "How should revocation, logout and IdP failure work at the edge, and what changes at each tier?",
+      "vi": "Revocation, logout và IdP failure nên hoạt động thế nào ở edge, và mỗi tier thay đổi ra sao?"
+    },
+    "27-api-gateway-identity-edge.authorization-without-a-bottleneck.q1": {
+      "en": "What may the gateway authorize coarsely, what must stay in the service, and where does tenant resolution belong?",
+      "vi": "Gateway được coarse-authorize gì, gì phải để service quyết định, và tenant resolution thuộc đâu?"
+    },
+    "27-api-gateway-identity-edge.authorization-without-a-bottleneck.q2": {
+      "en": "Should roles live in the token or in a policy decision point such as OPA or Cedar, and what can decision caching safely accept?",
+      "vi": "Nên để role trong token hay trong policy decision point như OPA/Cedar, và decision cache được phép stale tới đâu?"
+    },
+    "27-api-gateway-identity-edge.introducing-a-gateway-into-a-running-system.q1": {
+      "en": "What belongs at the CDN, L4 load balancer, gateway, mesh and service, and what happens when the same control is configured twice?",
+      "vi": "CDN, L4 load balancer, gateway, mesh và service nên sở hữu gì, và chuyện gì xảy ra khi cùng một control bị cấu hình hai lần?"
+    },
+    "27-api-gateway-identity-edge.introducing-a-gateway-into-a-running-system.q2": {
+      "en": "How do you keep the gateway from becoming a single point of failure while migrating a running system?",
+      "vi": "Làm sao gateway không thành single point of failure khi migrate một hệ thống đang chạy?"
+    },
+    "27-api-gateway-identity-edge.introducing-a-gateway-into-a-running-system.q3": {
+      "en": "How do you operate the edge: trace propagation, correlation ids, RED metrics, 504 interpretation, warm-up and connection storms?",
+      "vi": "Vận hành edge thế nào: trace propagation, correlation id, RED metrics, ý nghĩa 504, warm-up và connection storm?"
+    },
+    "27-api-gateway-identity-edge.internal-calls-sync-async-or-neither.q1": {
+      "en": "What decision rule chooses synchronous or asynchronous work per hop, and when is REST or gRPC worth the change?",
+      "vi": "Quy tắc nào chọn sync hay async cho từng hop, và khi nào REST hoặc gRPC đáng để đổi?"
+    },
+    "27-api-gateway-identity-edge.internal-calls-sync-async-or-neither.q2": {
+      "en": "What do you gain and owe when moving a hop onto a queue, and why must east-west traffic bypass the edge gateway?",
+      "vi": "Đưa một hop lên queue được gì và phải trả giá gì, và vì sao east-west traffic phải bypass edge gateway?"
+    }
+  }
+}

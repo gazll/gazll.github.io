@@ -11,6 +11,9 @@
 import { renderMarkdown, escapeHtml } from './lib/markdown.js';
 import { chevSVG, BADGE, debounce } from './lib/ui.js';
 import { Content } from './lib/content.js';
+import { contentDateFacts, formatContentDate } from './lib/content-dates.js';
+import { clearArticleStructuredData, setArticleStructuredData } from './lib/structured-data.js';
+import { setPageMetadata } from './lib/page-metadata.js';
 import { crossRefResolver } from './lib/cross-ref.js';
 import { copyText } from './lib/clipboard.js';
 import {
@@ -246,13 +249,18 @@ function qcard(it) {
   const copyBtn = '<button class="qcopy" type="button" data-copy-qid="' + safeId + '"'
     + ' aria-label="Copy link to this question" title="Copy link to this question">'
     + COPY_LINK_SVG + '<span class="qcopy-label">Copy link</span></button>';
+  const reviewed = formatContentDate(it.reviewed_at, Content.lang);
+  const reviewDate = reviewed ? '<time class="qreview" datetime="' + escapeHtml(it.reviewed_at)
+    + '" title="Technically reviewed ' + escapeHtml(reviewed) + '">Reviewed ' + escapeHtml(reviewed) + '</time>' : '';
+  const mobileReview = reviewed ? '<p class="qreview-mobile">Technically reviewed <time datetime="'
+    + escapeHtml(it.reviewed_at) + '">' + escapeHtml(reviewed) + '</time></p>' : '';
   return '<div class="qcard' + diffClass + done + '" id="question-' + safeId + '" data-qid="' + safeId + '">'
     + '<div class="qtop"><button class="qhead" aria-expanded="false">'
     + '<span class="qid" title="' + safeId + '">Q' + seq + '</span>'
     + badge
     + '<span class="qtext">' + it.q + '</span>'
-    + chevSVG + '</button><div class="qmeta">' + copyBtn + langBtn + '</div></div>'
-    + '<div class="qbody"><div class="qbody-inner"><div class="answer">'
+    + chevSVG + '</button><div class="qmeta">' + reviewDate + copyBtn + langBtn + '</div></div>'
+    + '<div class="qbody"><div class="qbody-inner"><div class="answer">' + mobileReview
     + '<div class="answer-body">' + renderAnswerMarkdown(it, it.a) + '</div>' + noteBox(it.id)
     + '</div></div></div></div>';
 }
@@ -523,14 +531,22 @@ function currentRoute() {
 function currentViewId() {
   return currentRoute().id;
 }
-function route() {
+let routeRun = 0;
+async function route() {
+  const run = ++routeRun;
   const lang = routeLanguageFromHash(location.hash, Content.lang);
   if (lang !== Content.lang) {
-    Content.setLang(lang).then(() => route());
+    await Content.setLang(lang);
+    if (run === routeRun) route();
     return;
   }
   updateRouteLanguage(lang);
   const currentRouteState = currentRoute();
+  if (currentRouteState.id === 'track' && currentRouteState.parts[0]) {
+    await Content.ensureTopic(currentRouteState.parts[0]);
+    if (run !== routeRun) return;
+    TOPICS = Content.topics;
+  }
   if (currentRouteState.anchor) showView(currentRouteState.id, currentRouteState.parts, currentRouteState.anchor);
   else showView(currentRouteState.id, currentRouteState.parts);
 }
@@ -549,6 +565,7 @@ function routeFromNavigation() {
 }
 
 function showView(id, routeParts = [], anchor = '') {
+  clearArticleStructuredData();
   // Swap only the view-* class; `nav-open` and anything else stays put.
   document.body.classList.forEach(c => { if (c.startsWith('view-')) document.body.classList.remove(c); });
   document.body.classList.add('view-' + id);
@@ -560,7 +577,7 @@ function showView(id, routeParts = [], anchor = '') {
   // The header shows the topic, not the view, so the tab title carries the
   // view name — the nav panel's aria-current is the other half of that.
   const v0 = VIEWS.find(x => x.id === id);
-  if (v0) document.title = v0.label + ' · Backend Engineering';
+  if (v0) setPageMetadata({ title: v0.label, description: v0.desc, url: window.location.href });
   const track = document.getElementById('view-track');
   const host = document.getElementById('view-host');
   let linkedCard = null;
@@ -648,7 +665,7 @@ function cacheTopicEls() {
 const pad2 = n => String(n).padStart(2, '0');
 
 function topicProgress(t) {
-  const ids = t.sections.flatMap(s => s.items.map(it => it.id));
+  const ids = t.item_ids || [];
   let done = 0;
   for (const id of ids) if (Store.reviewed.has(id)) done++;
   return { done, total: ids.length };
@@ -809,6 +826,13 @@ function topicHeadingLink(topic, id, label, className = 'topic-heading-anchor') 
     + '" aria-label="Link to this section">' + escapeHtml(label) + '</a>';
 }
 
+function topicDates(topic) {
+  const facts = contentDateFacts(topic, Content.lang);
+  return '<div class="content-dates">' + facts.map(fact => '<span><b>' + escapeHtml(fact.label)
+    + '</b><time datetime="' + escapeHtml(fact.value) + '">' + escapeHtml(fact.formatted) + '</time></span>').join('')
+    + '</div>';
+}
+
 function renderDay() {
   // panel.innerHTML below detaches every card; stop their timers first.
   stopDsaPlayers(panel);
@@ -827,12 +851,20 @@ function renderDay() {
     + (TOPIC_TYPE_LABEL[t.topic_type] || t.topic_type).toUpperCase() + '</small>' + t.n + '</div>'
     + '<div><h2 id="' + escapeHtml(topicTitleId) + '">' + topicHeadingLink(t, topicTitleId, t.title)
     + '</h2><p class="intro">' + t.intro + '</p>'
+    + topicDates(t)
     + '<div class="tags">' + t.tags.map(tag => '<span class="tag">' + tag + '</span>').join('') + '</div></div>'
     + '</div></section>'
     + '<div class="toolbar">'
     + '<span class="sectioncount">' + topicQcount + ' items · ' + t.sections.length + ' sections</span>'
     + '<div class="tb-actions"><button class="btn-ghost" id="toggleAll">Expand all</button></div>'
     + '</div>' + sectionsHTML;
+
+  setArticleStructuredData(t, {
+    headline: t.title,
+    description: t.intro,
+    lang: Content.lang,
+    url: window.location.href
+  });
 
   wireQcards(panel, () => { updateProgress(); paintTopicButton(); });
   decorateHeadingPermalinks(panel);
@@ -856,6 +888,7 @@ function renderDay() {
   const nextBtn = document.getElementById('nextBtn');
   nextBtn.disabled = current === TOPICS.length - 1;
   nextBtn.textContent = current === TOPICS.length - 1 ? 'Finished ✓' : 'Next topic →';
+  prefetchNearbyTopics();
 }
 
 /** Select and reveal the topic named by a question deep link. */
@@ -919,8 +952,14 @@ function updateProgress() {
   document.getElementById('ring').style.setProperty('--p', totalQ ? Math.round(done / totalQ * 100) : 0);
 }
 
-function goTo(i) {
+let topicLoadRun = 0;
+async function goTo(i) {
   if (i < 0 || i >= TOPICS.length) return;
+  const run = ++topicLoadRun;
+  const target = TOPICS[i];
+  await Content.ensureTopic(target.key);
+  if (run !== topicLoadRun) return;
+  TOPICS = Content.topics;
   if (isTrackActive() && questionIdFromRoute(currentRoute().parts)) {
     history.replaceState(null, '', withRouteLanguage('#/track', Content.lang));
   }
@@ -930,6 +969,13 @@ function goTo(i) {
   paintTopicButton();
   paintLangSwitch();
   window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function prefetchNearbyTopics() {
+  const work = () => [TOPICS[current - 1], TOPICS[current + 1]].filter(Boolean)
+    .forEach(topic => Content.ensureTopic(topic.key).catch(() => {}));
+  if (typeof requestIdleCallback === 'function') requestIdleCallback(work, { timeout: 1500 });
+  else setTimeout(work, 400);
 }
 
 /* ---------- sync status indicator ---------- */
@@ -971,8 +1017,16 @@ function mountSyncState(el) {
 
 async function init() {
   try {
-    await Content.load();
+    const initial = currentRoute();
+    await Content.load(initial.id === 'track' ? initial.parts[0] : '');
     TOPICS = Content.topics;
+    if (initial.id === 'track' && initial.parts[0]) {
+      let requested = '';
+      try { requested = decodeURIComponent(initial.parts[0]); } catch (error) {}
+      const topicKey = requested.split('.')[0];
+      const requestedIndex = TOPICS.findIndex(topic => topic.key === topicKey || topic.n === Number(requested));
+      if (requestedIndex >= 0) current = requestedIndex;
+    }
   } catch (e) {
     panel.innerHTML = '<section class="hero"><div style="padding:8px 4px">'
       + '<h2>Could not load the content</h2>'

@@ -3,15 +3,22 @@ import { copyText } from '../lib/clipboard.js';
 import { Content } from '../lib/content.js';
 import { SystemDesign } from '../lib/system-design.js';
 import { CaseStudies } from '../lib/case-studies.js';
+import { contentActivityDate, contentDateFacts } from '../lib/content-dates.js';
+import { setArticleStructuredData } from '../lib/structured-data.js';
+import { setPageMetadata } from '../lib/page-metadata.js';
 import { mountMermaidDiagrams } from '../lib/mermaid.js';
 import { systemDesignQuestionUrl } from '../lib/question-links.js';
 import { crossRefResolver } from '../lib/cross-ref.js';
 import { bulletParts, labelledParts, sentences } from '../lib/prose.js';
+import { announce } from '../lib/ui.js';
 import { rememberOpened, restoreCard, stickyGroupHeads, takeOpened } from '../lib/reading-position.js';
 import { SYSTEM_DESIGN_RESEARCH } from '../data/system-design/research.js';
 import { anchorHref, decorateHeadingPermalinks, scrollToAnchor, withRouteLanguage } from '../lib/anchors.js';
+import { PROMPT_ORIGINS, PUBLISHER_ORIGINS, REFERENCE_ORIGINS, originGuard } from '../lib/constants.js';
 
 let mountToken = 0;
+let librarySort = 'curriculum';
+let libraryObserver = null;
 
 const COPY = {
   en: {
@@ -53,7 +60,10 @@ const COPY = {
     problem: 'Problem', coreIdea: 'Core idea', outcome: 'Outcome', takeaways: 'Key takeaways', review: 'Review questions', sourceLabel: 'Source',
     original: 'Original article', synthesisBody: 'Editorial case study', toc: 'On this page', tocToggle: 'Collapse contents',
     loading: 'Loading the System Design library…',
-    unavailable: 'Could not load System Design', missing: 'Design not found', retry: 'Back to the library'
+    unavailable: 'Could not load System Design', missing: 'Design not found', retry: 'Back to the library',
+    order: 'Order', curriculumOrder: 'Curriculum', recentOrder: 'Recently updated',
+    latestTitle: 'Latest updates', latestDescription: 'Blueprints and production cases in one feed, newest editorial activity first.',
+    curriculumStatus: 'System designs restored to curriculum order.', recentStatus: 'System designs sorted by latest activity.'
   },
   vi: {
     eyebrow: 'Experience · Design library', blueprints: n => n === 1 ? 'blueprint' : 'blueprints', cases: n => n === 1 ? 'production case' : 'production cases',
@@ -94,7 +104,10 @@ const COPY = {
     problem: 'Problem', coreIdea: 'Core idea', outcome: 'Outcome', takeaways: 'Key takeaways', review: 'Review questions', sourceLabel: 'Source',
     original: 'Original article', synthesisBody: 'Editorial case study', toc: 'On this page', tocToggle: 'Collapse contents',
     loading: 'Đang tải thư viện System Design…',
-    unavailable: 'Không thể tải System Design', missing: 'Không tìm thấy bài thiết kế', retry: 'Quay lại thư viện'
+    unavailable: 'Không thể tải System Design', missing: 'Không tìm thấy bài thiết kế', retry: 'Quay lại thư viện',
+    order: 'Sắp xếp', curriculumOrder: 'Lộ trình', recentOrder: 'Mới cập nhật',
+    latestTitle: 'Cập nhật mới nhất', latestDescription: 'Blueprint và production case trong một feed, xếp theo hoạt động biên tập mới nhất.',
+    curriculumStatus: 'Đã đưa System Design về thứ tự lộ trình.', recentStatus: 'Đã xếp System Design theo hoạt động mới nhất.'
   }
 };
 
@@ -114,6 +127,21 @@ const GROUP_ANCHOR_IDS = Object.freeze({
 });
 const groupAnchorId = category => GROUP_ANCHOR_IDS[category.id] || 'sd-group-' + category.id;
 
+function updatedDate(row) {
+  const facts = contentDateFacts(row, Content.lang);
+  const fact = facts.find(candidate => candidate.kind === 'updated') || facts.at(-1);
+  return fact ? '<time class="content-updated" datetime="' + escapeHtml(fact.value) + '">'
+    + escapeHtml(fact.label + ' ' + fact.formatted) + '</time>' : '';
+}
+
+function dateBlock(row, includePublished = false) {
+  const facts = contentDateFacts(row, Content.lang, { includePublished });
+  if (!facts.length) return '';
+  return '<div class="content-dates">' + facts.map(fact => '<span><b>' + escapeHtml(fact.label)
+    + '</b><time datetime="' + escapeHtml(fact.value) + '">' + escapeHtml(fact.formatted) + '</time></span>').join('')
+    + '</div>';
+}
+
 /* Desktop-only preference. The mobile <details> TOC must stay unaffected by it,
    so nothing here touches .sd-toc-mobile. */
 const TOC_KEY = 'gazl.sd.toc';
@@ -123,29 +151,17 @@ function tocCollapsed() {
 function storeTocCollapsed(collapsed) {
   try { localStorage.setItem(TOC_KEY, collapsed ? '0' : '1'); } catch (error) {}
 }
-// Attribution is the publisher URL and nothing else, so an unexpected host is
-// never rendered as an external link.
-const SOURCE_ORIGINS = new Set([
-  'https://engineering.tiki.vn',
-  'https://discord.com',
-  'https://blog.cloudmentor.pro',
-  'https://shopify.engineering',
-  'https://voz.vn'
-]);
-const sourceHref = value => {
-  try {
-    const url = new URL(value);
-    return SOURCE_ORIGINS.has(url.origin) ? url.href : '#';
-  } catch {
-    return '#';
-  }
-};
+// A production case credits its publisher; a blueprint links the thread that
+// posed its question. Separate guards keep a prompt from passing as a credit.
+const sourceHref = originGuard(PUBLISHER_ORIGINS);
+const promptHref = originGuard(PROMPT_ORIGINS, '');
 
 function renderDesignCard(design) {
   return '<a class="sd-card" data-card-key="' + escapeHtml(design.slug) + '" href="'
     + escapeHtml(withRouteLanguage('#/system-design/' + encodeURIComponent(design.slug), Content.lang)) + '">'
     + '<span class="sd-card-num">' + numberLabel(design.n) + '</span><span class="sd-card-main">'
-    + '<span class="sd-card-type">Blueprint · ' + escapeHtml(design.effort || '45 min') + levelMarkup(design) + '</span>'
+    + '<span class="sd-card-type">Blueprint · ' + escapeHtml(design.effort || '45 min') + levelMarkup(design)
+    + updatedDate(design) + '</span>'
     + '<strong>' + escapeHtml(design.title) + '</strong><span>' + escapeHtml(design.excerpt) + '</span>'
     + '<span class="sd-card-tags">' + design.tags.slice(0, 4).map(tag => '<i>' + escapeHtml(tag) + '</i>').join('') + '</span>'
     + '</span><span class="sd-card-arrow" aria-hidden="true">→</span></a>';
@@ -155,15 +171,17 @@ function renderCaseCard(article) {
   return '<a class="sd-card sd-case-card" data-card-key="case/' + escapeHtml(article.slug) + '" href="'
     + escapeHtml(withRouteLanguage('#/system-design/case/' + encodeURIComponent(article.slug), Content.lang)) + '">'
     + '<span class="sd-case-art"><img src="' + escapeHtml(article.cover_image) + '" alt="" loading="lazy"></span>'
-    + '<span class="sd-card-main"><span class="sd-card-type">' + text().production + ' · ' + escapeHtml(article.company) + levelMarkup(article) + '</span>'
+    + '<span class="sd-card-main"><span class="sd-card-type">' + text().production + ' · ' + escapeHtml(article.company)
+    + levelMarkup(article) + updatedDate(article) + '</span>'
     + '<strong>' + escapeHtml(article.title) + '</strong><span>' + escapeHtml(article.excerpt) + '</span>'
     + '<span class="sd-card-tags">' + article.tags.slice(0, 4).map(tag => '<i>' + escapeHtml(tag) + '</i>').join('') + '</span>'
     + '</span><span class="sd-card-arrow" aria-hidden="true">→</span></a>';
 }
 
 function renderLibrary(collection) {
-  const groups = collection.categories.map(category => {
-    const designs = collection.designs.filter(design => design.category === category.id);
+  const curriculumGroups = collection.categories.map(category => {
+    const designs = collection.designs.filter(design => design.category === category.id)
+      .sort((a, b) => a.n - b.n);
     if (!designs.length) return '';
     const anchorId = groupAnchorId(category);
     return '<section class="sd-group" aria-labelledby="' + escapeHtml(anchorId) + '">'
@@ -171,17 +189,48 @@ function renderLibrary(collection) {
       + escapeHtml(category.label) + '</h2><span>' + escapeHtml(category.description) + '</span></div><b>' + designs.length + '</b></header>'
       + '<div class="sd-list">' + designs.map(renderDesignCard).join('') + '</div></section>';
   }).join('');
+  const recentRows = [
+    ...collection.designs.map(row => ({ kind: 'design', row })),
+    ...collection.cases.map(row => ({ kind: 'case', row }))
+  ].sort((a, b) => contentActivityDate(b.row).localeCompare(contentActivityDate(a.row))
+    || a.row.n - b.row.n);
+  const recentGroup = '<section class="sd-group content-latest"><header><div><p>' + text().eyebrow
+    + '</p><h2 id="sd-group-latest">' + text().latestTitle + '</h2><span>' + text().latestDescription
+    + '</span></div><b>' + recentRows.length + '</b></header><div class="sd-list">'
+    + recentRows.map(item => item.kind === 'case' ? renderCaseCard(item.row) : renderDesignCard(item.row)).join('')
+    + '</div></section>';
+  const productionGroup = '<section class="sd-group sd-production"><header><div><p>' + text().production
+    + '</p><h2 id="sd-group-production-cases">' + escapeHtml(collection.production.label) + '</h2><span>'
+    + escapeHtml(collection.production.description) + '</span></div><b>' + collection.cases.length
+    + '</b></header><div class="sd-list">' + collection.cases.map(renderCaseCard).join('') + '</div></section>';
 
   return '<div class="sd-library"><header class="sd-hero"><p class="cs-eyebrow">' + escapeHtml(collection.library.eyebrow) + '</p>'
     + '<h1 id="sd-library-title">' + escapeHtml(collection.library.title) + '</h1><p>' + escapeHtml(collection.library.intro) + '</p>'
     + '<div class="cs-library-stats"><span><b>' + collection.designs.length + '</b> '
     + text().blueprints(collection.designs.length) + '</span><span><b>' + collection.cases.length + '</b> '
-    + text().cases(collection.cases.length) + '</span><span>Mermaid · EN/VI</span></div></header>'
-    + groups
-    + '<section class="sd-group sd-production"><header><div><p>' + text().production + '</p><h2 id="sd-group-production-cases">'
-    + escapeHtml(collection.production.label) + '</h2><span>' + escapeHtml(collection.production.description)
-    + '</span></div><b>' + collection.cases.length + '</b></header><div class="sd-list">'
-    + collection.cases.map(renderCaseCard).join('') + '</div></section></div>';
+    + text().cases(collection.cases.length) + '</span><span>Mermaid · EN/VI</span></div>'
+    + '<div class="content-sort" role="group" aria-label="' + text().order + '"><span>' + text().order + '</span>'
+    + '<button type="button" data-content-sort="curriculum" aria-pressed="' + (librarySort === 'curriculum') + '">'
+    + text().curriculumOrder + '</button><button type="button" data-content-sort="recent" aria-pressed="'
+    + (librarySort === 'recent') + '">' + text().recentOrder + '</button></div>'
+    + '</header>'
+    + (librarySort === 'recent' ? recentGroup : curriculumGroups + productionGroup) + '</div>';
+}
+
+function wireLibrarySort(root, collection) {
+  root.querySelectorAll('[data-content-sort]').forEach(button => button.addEventListener('click', () => {
+    if (button.dataset.contentSort === librarySort) return;
+    librarySort = button.dataset.contentSort;
+    announce(librarySort === 'recent' ? text().recentStatus : text().curriculumStatus);
+    libraryObserver?.disconnect();
+    root.innerHTML = renderLibrary(collection);
+    decorateHeadingPermalinks(root);
+    libraryObserver = stickyGroupHeads(root, '.sd-group>header');
+    wireLibrarySort(root, collection);
+    requestAnimationFrame(() => {
+      root.querySelector('[data-content-sort="' + librarySort + '"]')?.focus();
+    });
+  }));
 }
 
 function list(items) {
@@ -454,20 +503,7 @@ function tradeoffSection(design) {
     + cards + '</div>' + failureReviewSection(design) + '</section>';
 }
 
-const RESEARCH_ORIGINS = new Set([
-  'https://sre.google', 'https://docs.aws.amazon.com', 'https://developers.cloudflare.com',
-  'https://redis.io', 'https://docs.stripe.com', 'https://www.postgresql.org',
-  'https://kafka.apache.org', 'https://learn.microsoft.com', 'https://www.elastic.co',
-  'https://opentelemetry.io', 'https://www.rfc-editor.org', 'https://docs.spring.io',
-  'https://openid.net', 'https://resilience4j.readme.io', 'https://www.openpolicyagent.org', 'https://www.rabbitmq.com'
-]);
-
-function safeResearchHref(value) {
-  try {
-    const url = new URL(value);
-    return url.protocol === 'https:' && RESEARCH_ORIGINS.has(url.origin) ? url.href : '';
-  } catch (error) { return ''; }
-}
+const safeResearchHref = originGuard(REFERENCE_ORIGINS, '');
 
 function renderResearch(design) {
   const ids = SYSTEM_DESIGN_RESEARCH.assignments[design.slug] || [];
@@ -534,12 +570,13 @@ function articleShell(header, body) {
 }
 
 function renderDesignArticle(design) {
-  const source = design.source_url ? sourceHref(design.source_url) : '';
+  const source = promptHref(design.source_url || '');
   const tags = design.tags.map(tag => '<span>' + escapeHtml(tag) + '</span>').join('');
   const header = '<header class="sd-article-head">'
     + '<p class="cs-eyebrow">Blueprint ' + numberLabel(design.n) + ' · ' + escapeHtml(design.effort || '45 min') + ' ' + levelMarkup(design) + '</p>'
     + '<h1 id="design-' + escapeHtml(design.slug) + '-title">' + escapeHtml(design.title) + '</h1><p>' + escapeHtml(design.excerpt) + '</p><div class="cs-tags">' + tags + '</div>'
-    + (source && source !== '#' ? '<p class="sd-blueprint-source"><span>' + text().sourceLabel + '</span><a href="'
+    + dateBlock(design)
+    + (source ? '<p class="sd-blueprint-source"><span>' + text().sourceLabel + '</span><a href="'
       + escapeHtml(source) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(design.source_label || 'Discussion prompt') + ' ↗</a></p>' : '')
     + '</header>';
   const body = '<article class="sd-article-body" data-sd-body>'
@@ -586,6 +623,7 @@ function renderProductionArticle(article, overview, archivedBody) {
   const header = '<header class="sd-article-head">'
     + '<p class="cs-eyebrow">' + text().production + ' · ' + escapeHtml(article.company) + ' ' + levelMarkup(article) + '</p><h1 id="system-case-' + escapeHtml(article.slug) + '-title">' + escapeHtml(article.title) + '</h1>'
     + '<p>' + escapeHtml(article.excerpt) + '</p><div class="cs-tags">' + tags + '</div>'
+    + dateBlock(article, true)
     + '<div class="cs-archive-note"><b>' + archiveLabel + '</b><span>' + archiveNote + '</span></div></header>';
   const body = '<article class="sd-article-body" data-sd-body>'
     + '<section class="sd-section sd-scope"><h2 id="architecture-lens">' + text().architecture + '</h2>'
@@ -761,8 +799,10 @@ async function showRoute(root, collection, routeParts, token, anchor = '') {
   if (!routeParts.length) {
     root.innerHTML = renderLibrary(collection);
     decorateHeadingPermalinks(root);
-    stickyGroupHeads(root, '.sd-group>header');
-    document.title = collection.library.title + ' · Backend Engineering';
+    libraryObserver?.disconnect();
+    libraryObserver = stickyGroupHeads(root, '.sd-group>header');
+    wireLibrarySort(root, collection);
+    setPageMetadata({ title: collection.library.title, description: collection.library.intro, url: window.location.href });
     // An anchor is an explicit destination and outranks the card the reader
     // came back from.
     if (!anchor) restoreCard(root, takeOpened(RETURN_SURFACE));
@@ -771,6 +811,7 @@ async function showRoute(root, collection, routeParts, token, anchor = '') {
 
   let html = '';
   let opened = '';
+  let structuredRow = null;
   if (routeParts[0] === 'case') {
     let slug = '';
     try { slug = decodeURIComponent(routeParts[1] || ''); } catch (error) {}
@@ -780,6 +821,7 @@ async function showRoute(root, collection, routeParts, token, anchor = '') {
       if (token !== mountToken) return;
       html = renderProductionArticle(article, collection.caseOverview(slug), archivedBody);
       opened = 'case/' + article.slug;
+      structuredRow = article;
       document.title = article.title + ' · Backend Engineering';
     }
   } else {
@@ -789,6 +831,7 @@ async function showRoute(root, collection, routeParts, token, anchor = '') {
     if (design) {
       html = renderDesignArticle(design);
       opened = design.slug;
+      structuredRow = design;
       document.title = design.title + ' · Backend Engineering';
     }
   }
@@ -801,6 +844,14 @@ async function showRoute(root, collection, routeParts, token, anchor = '') {
   }
 
   root.innerHTML = html;
+  setArticleStructuredData(structuredRow, {
+    headline: structuredRow.title,
+    description: structuredRow.excerpt || structuredRow.lens,
+    image: structuredRow.cover_image || structuredRow.reference_image?.src,
+    lang: Content.lang,
+    url: window.location.href,
+    sourceUrl: structuredRow.source_url
+  });
   rememberOpened(RETURN_SURFACE, opened);
   decorateHeadingPermalinks(root);
   buildToc(root, routeParts);
@@ -823,6 +874,8 @@ export function renderSystemDesign() {
 
 export async function mountSystemDesign(host, routeParts = [], anchor = '') {
   const token = ++mountToken;
+  libraryObserver?.disconnect();
+  libraryObserver = null;
   const root = host.querySelector('[data-system-design-root]');
   if (!root) return;
   try {

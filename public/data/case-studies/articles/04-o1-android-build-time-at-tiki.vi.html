@@ -1,6 +1,6 @@
 <figure class="cs-figure cs-figure-wide">
   <button type="button" data-zoom-image aria-label="Mở hình 1 ở kích thước đầy đủ">
-    <img src="assets/case-studies/04-o1-android-build-time-at-tiki/01-figure.jpeg" width="2000" height="595" loading="lazy" decoding="async" alt="Photo by Benjamin Suter on Unsplash">
+    <img src="assets/case-studies/04-o1-android-build-time-at-tiki/01-figure.webp" width="2000" height="595" loading="lazy" decoding="async" alt="Photo by Benjamin Suter on Unsplash">
   </button>
   <figcaption>Photo by <a href="https://unsplash.com/@benjaminjsuter" target="_blank" rel="noopener noreferrer">Benjamin Suter</a><strong> </strong>on <a href="https://unsplash.com/photos/CgoRzWX4CDg" target="_blank" rel="noopener noreferrer">Unsplash</a></figcaption>
 </figure>
@@ -8,14 +8,14 @@
 <p>Build time luôn là vấn đề lớn đối với các Android developer. Để giảm build time, developer thường chia project thành nhiều module để tận dụng <a href="https://guides.gradle.org/performance/#parallel_execution" target="_blank" rel="noopener noreferrer">parallel execution</a> của Gradle. Tại Tiki, chúng tôi modularize project theo approach “per feature”, nghĩa là mỗi feature nằm trong một module riêng.</p>
 <figure class="cs-figure cs-figure-wide">
   <button type="button" data-zoom-image aria-label="Mở hình 2 ở kích thước đầy đủ">
-    <img src="assets/case-studies/04-o1-android-build-time-at-tiki/02-figure.png" width="1870" height="1052" loading="lazy" decoding="async" alt="Figure 2 cho The problem">
+    <img src="assets/case-studies/04-o1-android-build-time-at-tiki/02-figure.webp" width="1870" height="1052" loading="lazy" decoding="async" alt="Figure 2 cho The problem">
   </button>
   <figcaption>Figure 2 · The problem</figcaption>
 </figure>
 <p>Khi phát triển feature mới hoặc duy trì feature cũ, các nhà phát triển Tiki thường phải thực hiện những thay đổi trong <code>:data</code> module khiến toàn bộ dự án phải compile lại vì hầu hết các feature module của chúng tôi đều dựa trên nó. Toàn bộ quá trình sẽ mất khoảng 5–8 phút. Bạn càng có nhiều module/feature thì quá trình xây dựng sẽ càng mất nhiều thời gian. Chúng tôi gọi đây là <strong>O(n) build time</strong>.</p>
 <figure class="cs-figure cs-figure-wide">
   <button type="button" data-zoom-image aria-label="Mở hình 3 ở kích thước đầy đủ">
-    <img src="assets/case-studies/04-o1-android-build-time-at-tiki/03-figure.png" width="1870" height="1052" loading="lazy" decoding="async" alt="Figure 3 cho The problem">
+    <img src="assets/case-studies/04-o1-android-build-time-at-tiki/03-figure.webp" width="1870" height="1052" loading="lazy" decoding="async" alt="Figure 3 cho The problem">
   </button>
   <figcaption>Figure 3 · The problem</figcaption>
 </figure>
@@ -50,7 +50,7 @@ implementation project(&quot;:search&quot;)
 <p>Đối với lệnh xây dựng cụ thể này, chỉ có 3 module được compile lại nếu có gì đó thay đổi trong <code>:data</code> module.</p>
 <figure class="cs-figure cs-figure-wide">
   <button type="button" data-zoom-image aria-label="Mở hình 4 ở kích thước đầy đủ">
-    <img src="assets/case-studies/04-o1-android-build-time-at-tiki/04-figure.png" width="1870" height="1052" loading="lazy" decoding="async" alt="Figure 4 cho The solution">
+    <img src="assets/case-studies/04-o1-android-build-time-at-tiki/04-figure.webp" width="1870" height="1052" loading="lazy" decoding="async" alt="Figure 4 cho The solution">
   </button>
   <figcaption>Figure 4 · The solution</figcaption>
 </figure>
@@ -109,7 +109,7 @@ fun activity(): HomeActivity
 <p>Cuối cùng, chúng tôi nghĩ ra một technique đơn giản gọi là <strong>fake source set</strong>: tạo một fake source set để thay thế real source đang bị thiếu.</p>
 <figure class="cs-figure">
   <button type="button" data-zoom-image aria-label="Mở hình 5 ở kích thước đầy đủ">
-    <img src="assets/case-studies/04-o1-android-build-time-at-tiki/05-figure.png" width="422" height="383" loading="lazy" decoding="async" alt="Figure 5 cho Implementation detail">
+    <img src="assets/case-studies/04-o1-android-build-time-at-tiki/05-figure.webp" width="422" height="383" loading="lazy" decoding="async" alt="Figure 5 cho Implementation detail">
   </button>
   <figcaption>Figure 5 · Implementation detail</figcaption>
 </figure>
@@ -160,7 +160,7 @@ interface HomeActivityModule</code></pre>
 <p>Sau khi triển khai ý tưởng này vào dự án Tiki Android, build time đã giảm đi một nửa. Một trong những điểm cộng của việc này là kích thước APK gỡ lỗi trở nên thực sự nhỏ do tất cả feature của ứng dụng bị loại trừ, điều này cũng sẽ tiết kiệm rất nhiều thời gian khi triển khai APK trên thiết bị thử nghiệm.</p>
 <figure class="cs-figure cs-figure-wide">
   <button type="button" data-zoom-image aria-label="Mở hình 6 ở kích thước đầy đủ">
-    <img src="assets/case-studies/04-o1-android-build-time-at-tiki/06-figure.jpeg" width="2000" height="475" loading="lazy" decoding="async" alt="Figure 6 cho The result">
+    <img src="assets/case-studies/04-o1-android-build-time-at-tiki/06-figure.webp" width="2000" height="475" loading="lazy" decoding="async" alt="Figure 6 cho The result">
   </button>
   <figcaption>Figure 6 · The result</figcaption>
 </figure>

@@ -3,23 +3,35 @@
    only own rows get Edit/Delete, seed entries get "Save to my journal" instead. */
 import { Interviews } from '../lib/interviews.js';
 import { Auth } from '../lib/auth.js';
+import { Content } from '../lib/content.js';
 import { escapeHtml as esc, renderUser, inlineUser } from '../lib/markdown.js';
 import { chevSVG } from '../lib/ui.js';
 import { mountMermaidDiagrams } from '../lib/mermaid.js';
+import { PROMPT_ORIGINS, REFERENCE_ORIGINS, originGuard } from '../lib/constants.js';
+import { contentDateFacts } from '../lib/content-dates.js';
 
 const RESULT = { pending: 'Pending', passed: 'Passed', offer: 'Offer', failed: 'Rejected' };
 const ENTRY_KIND = {
   playbook: 'Learning playbook',
   'community-report': 'Community report'
 };
-const SOURCE_ORIGINS = new Set(['https://voz.vn']);
+// Only an own interview was actually answered by the reader; a playbook or a
+// community report carries a reviewed answer, so the label must not claim it.
+const ANSWER_LABEL = {
+  playbook: 'Reviewed answer',
+  'community-report': 'Reviewed answer'
+};
+const sourceHref = originGuard([PROMPT_ORIGINS, REFERENCE_ORIGINS]);
 
-function sourceHref(value) {
+/** Hidden JSON payloads the form carries but never edits. Refusing a corrupt
+    one keeps a save from quietly replacing it with an empty list. */
+function parseHidden(raw, what) {
   try {
-    const url = new URL(value);
-    return SOURCE_ORIGINS.has(url.origin) ? url.href : '#';
+    const parsed = JSON.parse(raw || '[]');
+    if (!Array.isArray(parsed)) throw new Error('not an array');
+    return parsed;
   } catch {
-    return '#';
+    throw new Error('The ' + what + ' data on this entry could not be read, so saving would erase it. Reload the page and try again.');
   }
 }
 
@@ -29,22 +41,44 @@ function sourceLabel(source) {
   catch { return 'external source'; }
 }
 
+function interviewReferences(references = []) {
+  const rows = Array.isArray(references)
+    ? references.filter(reference => reference?.url && sourceHref(reference.url) !== '#')
+    : [];
+  if (!rows.length) return '';
+  return '<aside class="iv-references"><strong>Primary references</strong><ul>'
+    + rows.map(reference => '<li><a href="' + esc(sourceHref(reference.url))
+      + '" target="_blank" rel="noopener noreferrer">' + esc(sourceLabel(reference)) + ' ↗</a></li>').join('')
+    + '</ul></aside>';
+}
+
+function interviewDates(company) {
+  const facts = contentDateFacts(company, Content.lang);
+  if (!facts.length) return '';
+  return '<div class="content-dates iv-content-dates">' + facts.map(fact => '<span><b>' + esc(fact.label)
+    + '</b><time datetime="' + esc(fact.value) + '">' + esc(fact.formatted) + '</time></span>').join('') + '</div>';
+}
+
 function interviewDiagrams(diagrams = []) {
-  if (!diagrams.length) return '';
-  const cards = diagrams.map(diagram => {
-    const flaws = (diagram.flaws || []).map(row => '<li>' + inlineUser(row) + '</li>').join('');
-    const upgrades = (diagram.upgrades || []).map(row => '<li>' + inlineUser(row) + '</li>').join('');
+  const rows = Array.isArray(diagrams) ? diagrams.filter(row => row && typeof row === 'object') : [];
+  if (!rows.length) return '';
+  const cards = rows.map(diagram => {
+    const flaws = (Array.isArray(diagram.flaws) ? diagram.flaws : [])
+      .map(row => '<li>' + inlineUser(row) + '</li>').join('');
+    const upgrades = (Array.isArray(diagram.upgrades) ? diagram.upgrades : [])
+      .map(row => '<li>' + inlineUser(row) + '</li>').join('');
     return '<figure class="iv-diagram" data-diagram-frame><figcaption><span>' + esc(diagram.phase || 'Diagram review')
-      + '</span><strong>' + esc(diagram.title) + '</strong></figcaption>'
-      + '<div class="iv-diagram-viewport"><pre class="mermaid" data-mermaid-diagram>' + esc(diagram.mermaid) + '</pre></div>'
+      + '</span><strong>' + esc(diagram.title || 'Untitled diagram') + '</strong></figcaption>'
+      + '<div class="iv-diagram-viewport"><pre class="mermaid" data-mermaid-diagram>' + esc(diagram.mermaid || '') + '</pre></div>'
       + '<p class="iv-diagram-status" data-mermaid-status hidden>Diagram renderer unavailable; Mermaid source remains below.</p>'
       + ((flaws || upgrades) ? '<div class="iv-diagram-review">'
-        + (flaws ? '<section><h5>Lỗ hổng</h5><ul>' + flaws + '</ul></section>' : '')
-        + (upgrades ? '<section><h5>Nâng cấp</h5><ul>' + upgrades + '</ul></section>' : '') + '</div>' : '')
-      + '<details class="iv-diagram-source"><summary>Mermaid source</summary><pre><code>' + esc(diagram.mermaid)
+        + (flaws ? '<section><h5>Flaws</h5><ul>' + flaws + '</ul></section>' : '')
+        + (upgrades ? '<section><h5>Upgrades</h5><ul>' + upgrades + '</ul></section>' : '') + '</div>' : '')
+      + '<details class="iv-diagram-source"><summary>Mermaid source</summary><pre><code>' + esc(diagram.mermaid || '')
       + '</code></pre></details></figure>';
   }).join('');
-  return '<section class="iv-diagrams"><h4>Diagram review &amp; upgraded design</h4>' + cards + '</section>';
+  return '<details class="iv-diagrams"><summary>Diagram review &amp; upgraded design <span>'
+    + rows.length + '</span></summary><div class="iv-diagram-list">' + cards + '</div></details>';
 }
 
 export function renderInterviews() {
@@ -132,6 +166,7 @@ function companyCard(c, editable) {
   const kindBadge = ENTRY_KIND[c.kind]
     ? '<span class="entry-kind">' + ENTRY_KIND[c.kind] + '</span>'
     : '';
+  const answerLabel = ANSWER_LABEL[c.kind] || 'How I answered';
   const source = c.source?.url
     ? '<a class="iv-source" href="' + esc(sourceHref(c.source.url))
       + '" target="_blank" rel="noopener noreferrer">Source: '
@@ -155,7 +190,7 @@ function companyCard(c, editable) {
       + '<span class="qtext">' + inlineUser(it.q) + '</span>'
       + '<span class="qmeta">' + round + chevSVG + '</span></button>'
       + '<div class="qbody"><div class="qbody-inner"><div class="answer"><div>'
-      + '<div class="ans-label">How I answered</div>' + renderUser(it.a) + interviewDiagrams(it.diagrams) + note
+      + '<div class="ans-label">' + answerLabel + '</div>' + renderUser(it.a) + interviewDiagrams(it.diagrams) + note
       + '</div></div></div></div></div>';
   }).join('');
 
@@ -163,8 +198,10 @@ function companyCard(c, editable) {
     + '<div class="company-head"><h3>' + esc(c.name) + '</h3>'
     + seedBadge + kindBadge + res + actions + '</div>'
     + (meta ? '<div class="company-meta">' + meta + '</div>' : '')
+    + interviewDates(c)
     + source
     + (stack ? '<div class="tags">' + stack + '</div>' : '')
+    + interviewReferences(c.references)
     + (qs || '<p class="intro empty-q">No questions recorded yet.</p>')
     + '</div>';
 }
@@ -176,6 +213,7 @@ function formDialog() {
     + '<form id="ivForm" class="modal-form">'
     + '<h3 id="ivTitle">Add company</h3>'
     + '<input type="hidden" name="id">'
+    + '<textarea name="references" hidden></textarea>'
     + '<div class="fgrid">'
     + field('name', 'Company name *', 'text', 'e.g. Grab', true)
     + field('role', 'Role', 'text', 'e.g. Senior Backend Engineer')
@@ -227,15 +265,17 @@ function wire(root, repaint) {
     head.addEventListener('click', () => {
       const open = card.classList.toggle('open');
       head.setAttribute('aria-expanded', open);
-      if (open && !card.dataset.mermaidMounted && card.querySelector('[data-mermaid-diagram]')) {
-        card.dataset.mermaidMounted = 'true';
-        requestAnimationFrame(async () => {
-          const rendered = await mountMermaidDiagrams(card);
-          if (!rendered) delete card.dataset.mermaidMounted;
-        });
-      }
     });
   });
+
+  root.querySelectorAll('.iv-diagrams').forEach(group => group.addEventListener('toggle', () => {
+    if (!group.open || group.dataset.mermaidMounted) return;
+    group.dataset.mermaidMounted = 'true';
+    requestAnimationFrame(async () => {
+      const rendered = await mountMermaidDiagrams(group);
+      if (!rendered) delete group.dataset.mermaidMounted;
+    });
+  }));
 
   const dlg = root.querySelector('#ivDialog');
   const form = root.querySelector('#ivForm');
@@ -265,6 +305,7 @@ function wire(root, repaint) {
     form.date.value = company?.date || '';
     form.result.value = company?.result || 'pending';
     form.stack.value = (company?.stack || []).join(', ');
+    form.references.value = JSON.stringify(company?.references || []);
     qlist.innerHTML = '';
     (company?.questions || []).forEach(q => addQ(q));
     if (!qlist.children.length) addQ();
@@ -311,12 +352,21 @@ function wire(root, repaint) {
     e.preventDefault();
     const save = root.querySelector('#ivSave');
 
-    const questions = [...qlist.querySelectorAll('[data-qrow]')].map(r => {
-      const get = f => r.querySelector('[data-f="' + f + '"]').value.trim();
-      let diagrams = [];
-      try { diagrams = JSON.parse(get('diagrams') || '[]'); } catch (error) {}
-      return { round: get('round'), q: get('q'), a: get('a'), note: get('note'), diagrams };
-    }).filter(q => q.q);        // drop empty blocks so the Sheet stays clean
+    let questions, references;
+    try {
+      questions = [...qlist.querySelectorAll('[data-qrow]')].map(r => {
+        const get = f => r.querySelector('[data-f="' + f + '"]').value.trim();
+        return {
+          round: get('round'), q: get('q'), a: get('a'), note: get('note'),
+          diagrams: parseHidden(get('diagrams'), 'diagram')
+        };
+      }).filter(q => q.q);      // drop empty blocks so the Sheet stays clean
+      references = parseHidden(form.references.value, 'reference');
+    } catch (err) {
+      errEl.textContent = err.message;
+      errEl.hidden = false;
+      return;
+    }
 
     const company = {
       id: form.id.value || undefined,
@@ -325,6 +375,7 @@ function wire(root, repaint) {
       date: form.date.value.trim(),
       result: form.result.value,
       stack: form.stack.value.split(',').map(s => s.trim()).filter(Boolean),
+      references,
       questions
     };
 

@@ -106,6 +106,37 @@ async function loadBackend() {
   return context;
 }
 
+test('interview diagram and reference payloads are normalized before persistence', async () => {
+  const backend = await loadBackend();
+  const diagram = backend.normalizeDiagrams([{
+    phase: 'Critical path',
+    title: 'Reserve then post',
+    mermaid: 'sequenceDiagram\n  A->>B: reserve',
+    flaws: ['one'],
+    upgrades: ['two']
+  }]);
+  assert.equal(JSON.parse(JSON.stringify(diagram))[0].title, 'Reserve then post');
+  assert.throws(
+    () => backend.normalizeDiagrams([{ mermaid: 'flowchart LR\n%%{init: {}}%%\nA --> B' }]),
+    /directive/i
+  );
+  assert.throws(
+    () => backend.normalizeDiagrams([{ mermaid: 'classDiagram\nA <|-- B' }]),
+    /flowchart, sequenceDiagram/i
+  );
+
+  const references = backend.normalizeReferences([{ label: 'PostgreSQL', url: 'https://www.postgresql.org/docs/current/' }]);
+  assert.equal(JSON.parse(JSON.stringify(references))[0].label, 'PostgreSQL');
+  assert.throws(() => backend.normalizeReferences([{ label: 'bad', url: 'http://example.test' }]), /HTTPS/);
+
+  assert.throws(() => backend.ACTIONS['interviews.save']({ sub: 'u1' }, {
+    company: {
+      name: 'Unsafe payload',
+      questions: [{ q: 'q', diagrams: [{ mermaid: 'flowchart LR\n%%{init: {}}%%\nA --> B' }] }]
+    }
+  }), /directive/i, 'validation must fail before the lock or Sheet is touched');
+});
+
 async function loadApi() {
   const source = await readFile(path.join(root, 'public/lib/api.js'), 'utf8');
   const requests = [];

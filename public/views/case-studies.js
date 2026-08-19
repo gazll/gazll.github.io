@@ -1,11 +1,18 @@
 import { escapeHtml } from '../lib/markdown.js';
+import { PUBLISHER_ORIGINS, originGuard } from '../lib/constants.js';
 import { Content } from '../lib/content.js';
 import { CaseStudies } from '../lib/case-studies.js';
+import { contentActivityDate, contentDateFacts } from '../lib/content-dates.js';
+import { setArticleStructuredData } from '../lib/structured-data.js';
+import { setPageMetadata } from '../lib/page-metadata.js';
 import { bulletParts, sentences } from '../lib/prose.js';
+import { announce } from '../lib/ui.js';
 import { rememberOpened, restoreCard, stickyGroupHeads, takeOpened } from '../lib/reading-position.js';
 import { anchorHref, decorateHeadingPermalinks, scrollToAnchor, withRouteLanguage } from '../lib/anchors.js';
 
 let mountToken = 0;
+let librarySort = 'curriculum';
+let libraryObserver = null;
 const TOC_STATE_KEY = 'gazl.caseTocCollapsed';
 const RETURN_SURFACE = 'case-studies';
 
@@ -27,6 +34,9 @@ const COPY = {
     missing: 'That article is not in this collection.', back: 'Back to case studies', loading: 'Loading case studies…',
     unavailable: 'Could not load this collection', unavailableTitle: 'The case-study files are unavailable.', retry: 'Try again',
     levelCore: 'Core', levelAdvanced: 'Advanced', levelExtra: 'Extra', featured: 'Featured',
+    order: 'Order', curriculumOrder: 'Curriculum', recentOrder: 'Recently updated',
+    latestTitle: 'Latest updates', latestDescription: 'Every case study in one feed, newest editorial activity first.',
+    curriculumStatus: 'Case studies restored to curriculum order.', recentStatus: 'Case studies sorted by latest activity.',
     locale: 'en'
   },
   vi: {
@@ -46,6 +56,9 @@ const COPY = {
     missing: 'Bài viết này không có trong bộ sưu tập.', back: 'Quay lại Case Studies', loading: 'Đang tải case study…',
     unavailable: 'Không thể tải bộ sưu tập', unavailableTitle: 'Các file case study hiện không khả dụng.', retry: 'Thử lại',
     levelCore: 'Core', levelAdvanced: 'Advanced', levelExtra: 'Extra', featured: 'Nổi bật',
+    order: 'Sắp xếp', curriculumOrder: 'Lộ trình', recentOrder: 'Mới cập nhật',
+    latestTitle: 'Cập nhật mới nhất', latestDescription: 'Toàn bộ case study trong một feed, xếp theo hoạt động biên tập mới nhất.',
+    curriculumStatus: 'Đã đưa case study về thứ tự lộ trình.', recentStatus: 'Đã xếp case study theo hoạt động mới nhất.',
     locale: 'vi-VN'
   }
 };
@@ -63,20 +76,7 @@ function levelMarkup(article) {
     + (article?.featured ? '<span class="featured-mark" title="' + text().featured + '" aria-label="' + text().featured + '">★</span>' : '');
 }
 
-const SOURCE_ORIGINS = new Set([
-  'https://engineering.tiki.vn',
-  'https://discord.com',
-  'https://blog.cloudmentor.pro',
-  'https://shopify.engineering'
-]);
-const sourceHref = value => {
-  try {
-    const url = new URL(value);
-    return SOURCE_ORIGINS.has(url.origin) ? url.href : '#';
-  } catch {
-    return '#';
-  }
-};
+const sourceHref = originGuard(PUBLISHER_ORIGINS);
 
 // Archived rows name their publisher; locally authored rows name their kind.
 const bylineLabel = article => article.first_party ? text().firstParty : article.editorial ? text().editorial : article.company;
@@ -87,11 +87,10 @@ function sourceCount(articles) {
   return publishers.size + (articles.some(a => !hasExternalSource(a)) ? 1 : 0);
 }
 
-function formatDate(value) {
-  const date = new Date(value + 'T00:00:00Z');
-  return Number.isNaN(date.getTime())
-    ? value
-    : new Intl.DateTimeFormat(text().locale, { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }).format(date);
+function dateMarkup(row, includePublished = false) {
+  const facts = contentDateFacts(row, Content.lang, { includePublished });
+  return facts.map(fact => '<span><b>' + escapeHtml(fact.label) + '</b><time datetime="'
+    + escapeHtml(fact.value) + '">' + escapeHtml(fact.formatted) + '</time></span>').join('');
 }
 
 function renderCard(article, category) {
@@ -106,7 +105,9 @@ function renderCard(article, category) {
     + '<strong>' + escapeHtml(article.title) + '</strong>'
     + '<span class="cs-card-excerpt">' + escapeHtml(article.excerpt) + '</span>'
     + '<span class="cs-card-meta"><span>' + escapeHtml(category.label) + '</span><span>'
-    + article.read_minutes + ' ' + text().minuteRead + '</span></span>'
+    + article.read_minutes + ' ' + text().minuteRead + '</span>'
+    + contentDateFacts(article, Content.lang).slice(-1).map(fact => '<span>' + escapeHtml(fact.label) + ' '
+      + escapeHtml(fact.formatted) + '</span>').join('') + '</span>'
     + '</span><span class="cs-card-arrow" aria-hidden="true">→</span></a>';
 }
 
@@ -115,8 +116,10 @@ function renderLibrary(collection) {
   // Direct legacy article URLs remain routable for existing bookmarks.
   const articles = (collection.articles || []).filter(article => article.category !== MOVED_TO_SYSTEM_DESIGN);
   const categories = (collection.categories || []).filter(category => category.id !== MOVED_TO_SYSTEM_DESIGN);
-  const groups = categories.map(category => {
-    const rows = articles.filter(article => article.category === category.id);
+  const categoryById = new Map(categories.map(category => [category.id, category]));
+  const curriculumGroups = categories.map(category => {
+    const rows = articles.filter(article => article.category === category.id)
+      .sort((a, b) => a.n - b.n);
     if (!rows.length) return '';
     return '<section class="cs-category" aria-labelledby="cs-category-' + escapeHtml(category.id) + '">'
       + '<header class="cs-category-head"><div><p>' + text().collection + '</p><h2 id="cs-category-' + escapeHtml(category.id) + '">'
@@ -124,6 +127,13 @@ function renderLibrary(collection) {
       + '<b>' + rows.length + '</b></header>'
       + '<div class="cs-card-grid">' + rows.map(article => renderCard(article, category)).join('') + '</div></section>';
   }).join('');
+  const recentGroup = '<section class="cs-category content-latest" aria-labelledby="case-latest-title">'
+    + '<header class="cs-category-head"><div><p>' + text().collection + '</p><h2 id="case-latest-title">'
+    + text().latestTitle + '</h2><span>' + text().latestDescription + '</span></div><b>' + articles.length + '</b></header>'
+    + '<div class="cs-card-grid">' + [...articles]
+      .sort((a, b) => contentActivityDate(b).localeCompare(contentActivityDate(a)) || a.n - b.n)
+      .map(article => renderCard(article, categoryById.get(article.category))).join('') + '</div></section>';
+  const groups = librarySort === 'recent' ? recentGroup : curriculumGroups;
 
   return '<div class="cs-library">'
     + '<header class="cs-library-hero"><p class="cs-eyebrow">' + escapeHtml(collection.library.eyebrow) + '</p>'
@@ -133,8 +143,29 @@ function renderLibrary(collection) {
     // their own source rather than a missing one.
     + '<div class="cs-library-stats"><span><b>' + articles.length + '</b> ' + text().cases(articles.length) + '</span>'
     + '<span><b>' + sourceCount(articles) + '</b> ' + text().sources(sourceCount(articles)) + '</span>'
-    + '<span>' + text().availableLanguage + '</span></div></header>'
+    + '<span>' + text().availableLanguage + '</span></div>'
+    + '<div class="content-sort" role="group" aria-label="' + text().order + '"><span>' + text().order + '</span>'
+    + '<button type="button" data-content-sort="curriculum" aria-pressed="' + (librarySort === 'curriculum') + '">'
+    + text().curriculumOrder + '</button><button type="button" data-content-sort="recent" aria-pressed="'
+    + (librarySort === 'recent') + '">' + text().recentOrder + '</button></div>'
+    + '</header>'
     + groups + '</div>';
+}
+
+function wireLibrarySort(root, collection) {
+  root.querySelectorAll('[data-content-sort]').forEach(button => button.addEventListener('click', () => {
+    if (button.dataset.contentSort === librarySort) return;
+    librarySort = button.dataset.contentSort;
+    announce(librarySort === 'recent' ? text().recentStatus : text().curriculumStatus);
+    libraryObserver?.disconnect();
+    root.innerHTML = renderLibrary(collection);
+    decorateHeadingPermalinks(root);
+    libraryObserver = stickyGroupHeads(root, '.cs-category-head');
+    wireLibrarySort(root, collection);
+    requestAnimationFrame(() => {
+      root.querySelector('[data-content-sort="' + librarySort + '"]')?.focus();
+    });
+  }));
 }
 
 function articleMeta(article) {
@@ -152,7 +183,7 @@ function articleMeta(article) {
     + escapeHtml(bylineLabel(article)) + ' · ' + escapeHtml(article.category_label) + ' ' + levelMarkup(article) + '</p>'
     + '<h1 id="case-study-' + escapeHtml(article.slug) + '-title">' + escapeHtml(article.title) + '</h1>'
     + '<p class="cs-deck">' + escapeHtml(article.excerpt) + '</p>'
-    + '<div class="cs-byline"><span>' + formatDate(article.published_at) + '</span>' + origin
+    + '<div class="cs-byline content-dates">' + dateMarkup(article, hasExternalSource(article)) + origin
     + '<span class="cs-language">' + escapeHtml(languageLabel(article)) + '</span></div>'
     + '<div class="cs-tags">' + tags + '</div>'
     + (!hasExternalSource(article) ? '' : '<div class="cs-archive-note"><b>' + archiveLabel + '</b><span>' + archiveNote + '</span></div>')
@@ -303,6 +334,14 @@ async function showArticle(root, collection, slug, token, anchor = '') {
   rememberOpened(RETURN_SURFACE, article.slug);
   decorateHeadingPermalinks(root);
   document.title = article.title + ' · Backend Engineering';
+  setArticleStructuredData(article, {
+    headline: article.title,
+    description: article.excerpt,
+    image: article.cover_image,
+    lang: Content.lang,
+    url: window.location.href,
+    sourceUrl: article.source_url
+  });
   buildToc(root, article.slug);
   wireTocToggle(root);
   wireLightbox(root);
@@ -316,6 +355,8 @@ export function renderCaseStudies() {
 
 export async function mountCaseStudies(host, routeParts = [], anchor = '') {
   const token = ++mountToken;
+  libraryObserver?.disconnect();
+  libraryObserver = null;
   const root = host.querySelector('[data-case-root]');
   if (!root) return;
 
@@ -326,8 +367,11 @@ export async function mountCaseStudies(host, routeParts = [], anchor = '') {
     if (slug) await showArticle(root, collection, slug, token, anchor);
     else {
       root.innerHTML = renderLibrary(collection);
+      setPageMetadata({ title: collection.library.title, description: collection.library.intro, url: window.location.href });
       decorateHeadingPermalinks(root);
-      stickyGroupHeads(root, '.cs-category-head');
+      libraryObserver?.disconnect();
+      libraryObserver = stickyGroupHeads(root, '.cs-category-head');
+      wireLibrarySort(root, collection);
       // An anchor is an explicit destination and outranks the card the reader
       // came back from.
       if (!anchor) restoreCard(root, takeOpened(RETURN_SURFACE));

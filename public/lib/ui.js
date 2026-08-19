@@ -17,6 +17,16 @@ export function debounce(fn, ms) {
 }
 
 /** Local calendar day. toISOString() would bucket by UTC and shift the day. */
+/** Announce a state change through the one live region in index.html.
+    Re-announcing the same string needs a clearing tick, or a screen reader
+    treats the unchanged text as nothing to say. */
+export function announce(message) {
+  const node = document.getElementById('liveStatus');
+  if (!node) return;
+  node.textContent = '';
+  requestAnimationFrame(() => { node.textContent = message; });
+}
+
 export function localDay(d = new Date()) {
   const p = n => String(n).padStart(2, '0');
   return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());

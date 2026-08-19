@@ -33,7 +33,7 @@
 <p>Hệ thống có một command queue. Nếu external system muốn cập nhật inventory, nó gửi command tới Inventory system. Command được lưu trong queue, đóng vai trò transaction log để duy trì system state. Hai data source cuối cùng phải consistent là command queue và persistent database; persistent database offset luôn nhỏ hơn hoặc bằng latest offset của command queue.</p>
 <figure class="cs-figure">
   <button type="button" data-zoom-image aria-label="Mở sơ đồ Consistency model ở kích thước đầy đủ">
-    <img src="assets/case-studies/01-arcturus-inventory-processing-system/01-consistency-model.jpeg" width="783" height="370" loading="lazy" decoding="async" alt="Offset command queue chảy qua transaction processor vào persistent database">
+    <img src="assets/case-studies/01-arcturus-inventory-processing-system/01-consistency-model.webp" width="783" height="370" loading="lazy" decoding="async" alt="Offset command queue chảy qua transaction processor vào persistent database">
   </button>
   <figcaption>Consistency model: queue offset đóng vai trò checkpoint cho persistence và recovery.</figcaption>
 </figure>
@@ -49,7 +49,7 @@
 <h3 id="processing-model">4.2. Processing model.</h3>
 <figure class="cs-figure">
   <button type="button" data-zoom-image aria-label="Mở sơ đồ Processing model Arcturus ở kích thước đầy đủ">
-    <img src="assets/case-studies/01-arcturus-inventory-processing-system/02-processing-model.jpeg" width="641" height="421" loading="lazy" decoding="async" alt="Processing model Arcturus với ring buffer lệnh và thay đổi, cache in-memory, database và durability async">
+    <img src="assets/case-studies/01-arcturus-inventory-processing-system/02-processing-model.webp" width="641" height="421" loading="lazy" decoding="async" alt="Processing model Arcturus với ring buffer lệnh và thay đổi, cache in-memory, database và durability async">
   </button>
   <figcaption>Processing model: thực thi trên local memory, sau đó batch change sang persistent storage async.</figcaption>
 </figure>
@@ -72,7 +72,7 @@
 </ul>
 <figure class="cs-figure cs-figure-wide">
   <button type="button" data-zoom-image aria-label="Mở sơ đồ tích hợp thanh toán ở kích thước đầy đủ">
-    <img src="assets/case-studies/01-arcturus-inventory-processing-system/03-checkout-integration.jpeg" width="1076" height="281" loading="lazy" decoding="async" alt="Checkout flow qua Checkout, Inventory Processor, Order Database và Inventory Check Scheduler">
+    <img src="assets/case-studies/01-arcturus-inventory-processing-system/03-checkout-integration.webp" width="1076" height="281" loading="lazy" decoding="async" alt="Checkout flow qua Checkout, Inventory Processor, Order Database và Inventory Check Scheduler">
   </button>
   <figcaption>Checkout integration: reserve trước, sau đó confirm hoặc reverse kết quả order.</figcaption>
 </figure>
@@ -84,7 +84,7 @@
 <p>Việc duy trì tính logic và data consistency sẽ dễ dàng hơn nhiều.</p>
 <figure class="cs-figure cs-figure-wide">
   <button type="button" data-zoom-image aria-label="Mở sơ đồ tích hợp kho ở kích thước đầy đủ">
-    <img src="assets/case-studies/01-arcturus-inventory-processing-system/04-warehouse-integration.jpeg" width="951" height="281" loading="lazy" decoding="async" alt="Warehouse và checkout updates hội tụ trên một command flow trước Inventory Processor">
+    <img src="assets/case-studies/01-arcturus-inventory-processing-system/04-warehouse-integration.webp" width="951" height="281" loading="lazy" decoding="async" alt="Warehouse và checkout updates hội tụ trên một command flow trước Inventory Processor">
   </button>
   <figcaption>Warehouse integration: mọi thay đổi inventory đều đi vào cùng một command flow.</figcaption>
 </figure>
@@ -92,7 +92,7 @@
 <h3 id="overall-architecture">4.5. Overall architecture.</h3>
 <figure class="cs-figure cs-figure-wide">
   <button type="button" data-zoom-image aria-label="Mở sơ đồ Arcturus overall architecture ở kích thước đầy đủ">
-    <img src="assets/case-studies/01-arcturus-inventory-processing-system/05-overall-architecture.jpeg" width="1201" height="341" loading="lazy" decoding="async" alt="Arcturus overall architecture kết nối checkout, warehouse, event bus, API, command queue, processor và inventory database">
+    <img src="assets/case-studies/01-arcturus-inventory-processing-system/05-overall-architecture.webp" width="1201" height="341" loading="lazy" decoding="async" alt="Arcturus overall architecture kết nối checkout, warehouse, event bus, API, command queue, processor và inventory database">
   </button>
   <figcaption>Overall architecture của Arcturus Inventory Processing System.</figcaption>
 </figure>
@@ -112,7 +112,7 @@
 <p>Chỉ process transaction trong memory, không tính database, Inventory Processor đạt <strong>350k transactions/s</strong> với nhiều operation trên một key.</p>
 <figure class="cs-figure cs-figure-compact">
   <button type="button" data-zoom-image aria-label="Mở kết quả in-memory benchmark ở kích thước đầy đủ">
-    <img src="assets/case-studies/01-arcturus-inventory-processing-system/06-in-memory-benchmark.png" width="680" height="46" loading="lazy" decoding="async" alt="In-memory benchmark output hiển thị transaction rate cho single và multiple operations">
+    <img src="assets/case-studies/01-arcturus-inventory-processing-system/06-in-memory-benchmark.webp" width="680" height="46" loading="lazy" decoding="async" alt="In-memory benchmark output hiển thị transaction rate cho single và multiple operations">
   </button>
   <figcaption>In-memory transaction benchmark output.</figcaption>
 </figure>
@@ -121,20 +121,20 @@
 <p>Trên Staging, chúng tôi có thể xử lý tối đa <strong>5.600 requests/s</strong>:</p>
 <figure class="cs-figure cs-figure-wide">
   <button type="button" data-zoom-image aria-label="Mở tổng quan về throughput dàn ở kích thước đầy đủ">
-    <img src="assets/case-studies/01-arcturus-inventory-processing-system/07-throughput-overview.png" width="1400" height="411" loading="lazy" decoding="async" alt="Staging throughput test output theo từng stage giữa các parallel workers">
+    <img src="assets/case-studies/01-arcturus-inventory-processing-system/07-throughput-overview.webp" width="1400" height="411" loading="lazy" decoding="async" alt="Staging throughput test output theo từng stage giữa các parallel workers">
   </button>
   <figcaption>Staging throughput test theo từng stage giữa các parallel workers.</figcaption>
 </figure>
 <figure class="cs-figure cs-figure-wide">
   <button type="button" data-zoom-image aria-label="Mở chi tiết throughput dàn ở kích thước đầy đủ">
-    <img src="assets/case-studies/01-arcturus-inventory-processing-system/08-throughput-detail.png" width="1400" height="395" loading="lazy" decoding="async" alt="Arcturus staging throughput test output chi tiết">
+    <img src="assets/case-studies/01-arcturus-inventory-processing-system/08-throughput-detail.webp" width="1400" height="395" loading="lazy" decoding="async" alt="Arcturus staging throughput test output chi tiết">
   </button>
   <figcaption>Chi tiết của staging throughput test.</figcaption>
 </figure>
 <h4>Latency</h4>
 <figure class="cs-figure cs-figure-wide">
   <button type="button" data-zoom-image aria-label="Mở biểu đồ latency yêu cầu ở kích thước đầy đủ">
-    <img src="assets/case-studies/01-arcturus-inventory-processing-system/09-latency.png" width="1360" height="516" loading="lazy" decoding="async" alt="Grafana request latency chart với average khoảng 7 ms trong khoảng thời gian được hiển thị">
+    <img src="assets/case-studies/01-arcturus-inventory-processing-system/09-latency.webp" width="1360" height="516" loading="lazy" decoding="async" alt="Grafana request latency chart với average khoảng 7 ms trong khoảng thời gian được hiển thị">
   </button>
   <figcaption>Request latency trong quá trình benchmark.</figcaption>
 </figure>
@@ -142,14 +142,14 @@
 <p>AVG cache hit: 99%</p>
 <figure class="cs-figure cs-figure-wide">
   <button type="button" data-zoom-image aria-label="Mở biểu đồ Guava cache hit rate ở kích thước đầy đủ">
-    <img src="assets/case-studies/01-arcturus-inventory-processing-system/10-cache-hit.png" width="1350" height="462" loading="lazy" decoding="async" alt="Grafana Guava cache hit rate với average 99%">
+    <img src="assets/case-studies/01-arcturus-inventory-processing-system/10-cache-hit.webp" width="1350" height="462" loading="lazy" decoding="async" alt="Grafana Guava cache hit rate với average 99%">
   </button>
   <figcaption>Guava cache hit rate, average 99%.</figcaption>
 </figure>
 <p>Database load rate: 0,3 requests/s</p>
 <figure class="cs-figure cs-figure-wide">
   <button type="button" data-zoom-image aria-label="Mở biểu đồ tốc độ tải database trực tiếp ở kích thước đầy đủ">
-    <img src="assets/case-studies/01-arcturus-inventory-processing-system/11-database-load-rate.png" width="1358" height="520" loading="lazy" decoding="async" alt="Grafana direct database load rate với baseline thấp và một spike ngắn">
+    <img src="assets/case-studies/01-arcturus-inventory-processing-system/11-database-load-rate.webp" width="1358" height="520" loading="lazy" decoding="async" alt="Grafana direct database load rate với baseline thấp và một spike ngắn">
   </button>
   <figcaption>Direct database load rate trong benchmark window.</figcaption>
 </figure>

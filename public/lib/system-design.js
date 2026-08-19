@@ -25,7 +25,9 @@ export const SystemDesign = {
         throw error;
       });
     }
-    await Promise.all([this._loadPromise, CaseStudies.load(lang)]);
+    // Migrated source notes need full answers, but paying that cost is deferred
+    // until this library (or Search) is actually opened.
+    await Promise.all([this._loadPromise, CaseStudies.load(lang), Content.loadAll()]);
     this.apply(lang);
     return this;
   },
@@ -59,6 +61,9 @@ export const SystemDesign = {
         effort: row.effort,
         level: row.level || 'advanced',
         featured: Boolean(row.featured),
+        created_at: row.created_at || '',
+        updated_at: row.updated_at || '',
+        reviewed_at: row.reviewed_at || '',
         diagram: row.diagram,
         source_url: row.source_url || '',
         reference_image: referenceImage,

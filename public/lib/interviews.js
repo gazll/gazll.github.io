@@ -64,12 +64,15 @@ export const Interviews = {
       date: c.date,
       result: c.result,
       stack: c.stack || [],
+      references: (c.references || []).map(reference => ({ ...reference })),
       // Drop every id: these become new rows, not an edit of the seed.
-      questions: (c.questions || []).map(q => ({
+      questions: (c.questions || []).map((q, i) => ({
         round: q.round,
         q: q.q,
         a: q.a,
-        note: [q.note, sourceNote].filter(Boolean).join('\n\n'),
+        // Attribution belongs to the entry, not to each question: repeating it
+        // on every row would bury the reader's own takeaways under one URL.
+        note: [q.note, i === 0 ? sourceNote : ''].filter(Boolean).join('\n\n'),
         diagrams: (q.diagrams || []).map(diagram => ({
           ...diagram,
           flaws: [...(diagram.flaws || [])],

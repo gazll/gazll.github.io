@@ -37,8 +37,8 @@ var SHEETS = {
   progress:            ['user_id', 'item_id', 'reviewed_at'],
   notes:               ['user_id', 'item_id', 'body', 'updated_at'],
   study_log:           ['user_id', 'item_id', 'opened_at'],
-  interviews:          ['id', 'user_id', 'name', 'role', 'happened_on', 'result', 'stack', 'sort_order', 'created_at', 'updated_at'],
-  interview_questions: ['id', 'interview_id', 'user_id', 'round', 'q', 'a', 'note', 'sort_order', 'diagrams_json'],
+  interviews:          ['id', 'user_id', 'name', 'role', 'happened_on', 'result', 'stack', 'sort_order', 'created_at', 'updated_at', 'active_question_set', 'references_json'],
+  interview_questions: ['id', 'interview_id', 'user_id', 'round', 'q', 'a', 'note', 'sort_order', 'diagrams_json', 'question_set_id'],
 
   /** Fshare tool: folders the user has opened. One row per (user, linkcode). */
   fshare_history:      ['user_id', 'linkcode', 'name', 'hits', 'last_at'],
@@ -398,21 +398,26 @@ var ACTIONS = {
   /** Companies with their questions nested, so the view needs one call. */
   'interviews.list': function (user) {
     var qs = mine(table('interview_questions').read(), user);
-    var byInterview = {};
+    var bySet = {};
     qs.sort(bySort).forEach(function (q) {
-      (byInterview[q.interview_id] = byInterview[q.interview_id] || []).push({
+      var key = String(q.interview_id) + '|' + String(q.question_set_id || '');
+      (bySet[key] = bySet[key] || []).push({
         id: q.id, round: q.round, q: q.q, a: q.a, note: q.note,
-        diagrams: parseJsonArray(q.diagrams_json)
+        diagrams: parseStoredDiagrams(q.diagrams_json)
       });
     });
 
     return {
       companies: mine(table('interviews').read(), user).sort(bySort).map(function (r) {
+        var key = String(r.id) + '|' + String(r.active_question_set || '');
         return {
           id: r.id, name: r.name, role: r.role, date: r.happened_on, result: r.result || 'pending',
           stack: String(r.stack || '').split(',').map(trim).filter(Boolean),
           sort_order: Number(r.sort_order) || 0,
-          questions: byInterview[r.id] || []
+          created_at: iso(r.created_at).slice(0, 10),
+          updated_at: iso(r.updated_at).slice(0, 10),
+          references: parseStoredReferences(r.references_json),
+          questions: bySet[key] || []
         };
       })
     };
@@ -422,14 +427,31 @@ var ACTIONS = {
   'interviews.save': function (user, p) {
     var c = p.company || {};
     if (!String(c.name || '').trim()) throw publicError('Tên công ty không được để trống.');
+    var referencesJson = JSON.stringify(normalizeReferences(c.references));
+    if (referencesJson.length > 24000) throw publicError('Danh sách tài liệu vượt giới hạn 24.000 ký tự.');
     var questions = asArray(c.questions);
     if (questions.length > 200) throw publicError('Tối đa 200 câu hỏi cho một công ty.');
+    // Validate and serialize everything before touching the Sheet. A rejected
+    // diagram must never arrive after the old question set has been deleted.
+    var prepared = questions.map(function (q, i) {
+      var diagramsJson = JSON.stringify(normalizeDiagrams(q.diagrams));
+      if (diagramsJson.length > 40000) throw publicError('Diagram của một câu hỏi vượt giới hạn 40.000 ký tự.');
+      return {
+        round: limitedString(q.round, 200, 'Round'),
+        q: limitedString(q.q, 10000, 'Câu hỏi'),
+        a: limitedString(q.a, 40000, 'Câu trả lời'),
+        note: limitedString(q.note, 10000, 'Takeaway'),
+        diagrams_json: diagramsJson,
+        sort_order: i
+      };
+    });
 
     return withLock(function () {
       var t = table('interviews');
       var rows = mine(t.read(), user);
       var existing = c.id ? findBy(rows, 'id', c.id) : null;
       var id = existing ? existing.id : uuid();
+      var questionSetId = uuid();
 
       var fields = {
         id: id, user_id: user.sub,
@@ -439,26 +461,30 @@ var ACTIONS = {
         result: ['pending', 'passed', 'offer', 'failed'].indexOf(c.result) >= 0 ? c.result : 'pending',
         stack: asArray(c.stack).map(trim).filter(Boolean).join(', '),
         sort_order: Number(c.sort_order) || 0,
-        updated_at: nowIso()
+        updated_at: nowIso(),
+        active_question_set: questionSetId,
+        references_json: referencesJson
       };
+
+      // Append the complete replacement first. The company row is the commit
+      // pointer: until it switches active_question_set, readers keep seeing the
+      // old complete set. A failed append can therefore leave only an orphan,
+      // never a half-empty interview.
+      var qt = table('interview_questions');
+      qt.appendAll(prepared.map(function (q) {
+        return extend({ id: uuid(), interview_id: id, user_id: user.sub, question_set_id: questionSetId }, q);
+      }));
 
       if (existing) t.update(existing._row, fields);
       else t.appendAll([extend(fields, { created_at: nowIso() })]);
 
-      // Replace rather than diff: keeps row order identical to the UI.
-      var qt = table('interview_questions');
-      qt.deleteWhere(function (r) { return r.user_id === user.sub && r.interview_id === id; });
-      if (questions.length) {
-        qt.appendAll(questions.map(function (q, i) {
-          var diagramsJson = JSON.stringify(asArray(q.diagrams));
-          if (diagramsJson.length > 40000) throw publicError('Diagram của một câu hỏi vượt giới hạn 40.000 ký tự.');
-          return {
-            id: q.id || uuid(), interview_id: id, user_id: user.sub,
-            round: String(q.round || ''), q: String(q.q || ''),
-            a: String(q.a || ''), note: String(q.note || ''), diagrams_json: diagramsJson, sort_order: i
-          };
-        }));
-      }
+      // Cleanup is best-effort after activation. If it fails, list() ignores
+      // inactive sets and a later save/delete can remove them safely.
+      try {
+        qt.deleteWhere(function (r) {
+          return r.user_id === user.sub && r.interview_id === id && String(r.question_set_id || '') !== questionSetId;
+        });
+      } catch (cleanupErr) {}
       return { id: id };
     });
   },
@@ -648,12 +674,59 @@ function withLock(fn) {
 /* ------------------------------------------------------------------ */
 
 function asArray(v) { return Array.isArray(v) ? v : []; }
-function parseJsonArray(v) {
+function limitedString(v, max, label) {
+  var value = String(v == null ? '' : v);
+  if (value.length > max) throw publicError(label + ' vượt giới hạn ' + max + ' ký tự.');
+  return value;
+}
+function normalizeDiagramList(v, label) {
+  var rows = asArray(v);
+  if (rows.length > 20) throw publicError(label + ' có tối đa 20 dòng.');
+  return rows.map(function (row) { return limitedString(row, 1000, label); });
+}
+function normalizeDiagrams(v) {
+  var rows = asArray(v);
+  if (rows.length > 10) throw publicError('Mỗi câu hỏi có tối đa 10 diagram.');
+  return rows.map(function (raw) {
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw publicError('Diagram không đúng cấu trúc.');
+    var mermaid = limitedString(raw.mermaid, 12000, 'Mermaid source');
+    if (!/^(?:flowchart\s+(?:LR|RL|TB|BT|TD)|sequenceDiagram|stateDiagram-v2)\n/.test(mermaid)) {
+      throw publicError('Chỉ hỗ trợ flowchart, sequenceDiagram và stateDiagram-v2.');
+    }
+    if (/%%\{|<\/?(?:script|iframe)|javascript:/i.test(mermaid)) throw publicError('Mermaid source chứa directive không được hỗ trợ.');
+    return {
+      phase: limitedString(raw.phase, 120, 'Diagram phase'),
+      title: limitedString(raw.title, 240, 'Diagram title'),
+      mermaid: mermaid,
+      flaws: normalizeDiagramList(raw.flaws, 'Lỗ hổng'),
+      upgrades: normalizeDiagramList(raw.upgrades, 'Nâng cấp')
+    };
+  });
+}
+function parseStoredDiagrams(v) {
   if (!v) return [];
   try {
     var parsed = JSON.parse(String(v));
-    return Array.isArray(parsed) ? parsed : [];
+    return normalizeDiagrams(parsed);
   } catch (err) { return []; }
+}
+function normalizeReferences(v) {
+  var rows = asArray(v);
+  if (rows.length > 20) throw publicError('Tối đa 20 tài liệu tham khảo.');
+  return rows.map(function (raw) {
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw publicError('Tài liệu tham khảo không đúng cấu trúc.');
+    var url = limitedString(raw.url, 2000, 'Reference URL').trim();
+    if (!/^https:\/\//i.test(url)) throw publicError('Reference URL phải dùng HTTPS.');
+    return {
+      label: limitedString(raw.label, 240, 'Reference label').trim(),
+      url: url
+    };
+  });
+}
+function parseStoredReferences(v) {
+  if (!v) return [];
+  try { return normalizeReferences(JSON.parse(String(v))); }
+  catch (err) { return []; }
 }
 function trim(s) { return String(s == null ? '' : s).trim(); }
 function nowIso() { return new Date().toISOString(); }

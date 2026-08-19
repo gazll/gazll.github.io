@@ -4,9 +4,9 @@
    are complete English sources and always load — including the Microservices
    track, filed as topic_type "microservice" like any other topic (n=25).
    Every topic's complete Vietnamese companion lives alongside it as
-   data/topics/NN-slug.vi.json and is fetched eagerly too, so switching
-   language never needs a refetch. Applying a language must not mutate the
-   other language's source. */
+   data/topics/NN-slug.vi.json. The active pair loads on demand; the generated
+   title index keeps global navigation stable without downloading every full
+   answer. Applying a language must not mutate the other language's source. */
 import { test, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
@@ -18,6 +18,8 @@ const pub = path.join(root, 'public');
 
 const MANIFEST = JSON.parse(await readFile(path.join(pub, 'data/manifest.json'), 'utf8'));
 const META = JSON.parse(await readFile(path.join(pub, 'data/meta.json'), 'utf8'));
+const REVIEWS = JSON.parse(await readFile(path.join(pub, 'data/content-reviews.json'), 'utf8'));
+const INDEX = JSON.parse(await readFile(path.join(pub, 'data/content-index.json'), 'utf8'));
 const TRACK_ROWS = MANIFEST.topics.filter(row => !row.surface || row.surface === 'track');
 const PARTIAL_SYSTEM_DESIGN_IDS = MANIFEST.topics.flatMap(row => row.system_design_items || []);
 const TOPIC_FILES = new Map();
@@ -42,6 +44,8 @@ async function load({ lang, metaOverride, topicOverrides, dropVi } = {}) {
     fetched.push(url);
     if (url === 'data/manifest.json') return { ok: true, json: async () => structuredClone(MANIFEST) };
     if (url === 'data/meta.json') return { ok: true, json: async () => structuredClone(metaOverride || META) };
+    if (url === 'data/content-reviews.json') return { ok: true, json: async () => structuredClone(REVIEWS) };
+    if (url === 'data/content-index.json') return { ok: true, json: async () => structuredClone(INDEX) };
     if (topicOverrides && topicOverrides[url]) return { ok: true, json: async () => structuredClone(topicOverrides[url]) };
     if (TOPIC_FILES.has(url)) return { ok: true, json: async () => structuredClone(TOPIC_FILES.get(url)) };
     if (!dropVi && TOPIC_VI_FILES.has(url)) return { ok: true, json: async () => structuredClone(TOPIC_VI_FILES.get(url)) };
@@ -54,8 +58,33 @@ async function load({ lang, metaOverride, topicOverrides, dropVi } = {}) {
 }
 
 const topic = (Content, n) => Content.topics.find(t => t.n === n);
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 beforeEach(() => { delete globalThis.fetch; });
+
+test('the lightweight index exactly mirrors authored questions and track visibility', () => {
+  assert.equal(INDEX.version, 1);
+  const indexedTopics = new Map(INDEX.topics.map(topic => [topic.n, topic]));
+  const expectedIds = [];
+  for (const row of MANIFEST.topics) {
+    const items = TOPIC_FILES.get('data/' + row.file).sections.flatMap(section => section.items);
+    const viItems = TOPIC_VI_FILES.get('data/' + row.file.replace(/\.json$/, '.vi.json'))
+      .sections.flatMap(section => section.items);
+    const viById = new Map(viItems.map(item => [item.id, item]));
+    const ids = items.map(item => item.id);
+    const moved = new Set(row.system_design_items || []);
+    expectedIds.push(...ids);
+    assert.deepEqual(indexedTopics.get(row.n)?.item_ids, ids, `${row.file}: indexed item ids drifted`);
+    assert.deepEqual(indexedTopics.get(row.n)?.track_item_ids,
+      row.surface && row.surface !== 'track' ? [] : ids.filter(id => !moved.has(id)),
+      `${row.file}: indexed Track visibility drifted`);
+    for (const item of items) {
+      assert.deepEqual(INDEX.items[item.id], { en: item.q, vi: viById.get(item.id)?.q || '' },
+        `${item.id}: indexed question drifted`);
+    }
+  }
+  assert.deepEqual(Object.keys(INDEX.items).sort(), expectedIds.sort());
+});
 
 test('English is the default language and every Study Track topic loads, including microservice', async () => {
   const { Content } = await load();
@@ -63,6 +92,19 @@ test('English is the default language and every Study Track topic loads, includi
   await Content.load();
   assert.equal(Content.topics.length, TRACK_ROWS.length);
   assert.equal(topic(Content, 25).topic_type, 'microservice');
+});
+
+test('every topic exposes Git-derived written and updated dates', async () => {
+  const { Content } = await load();
+  await Content.load();
+  for (const row of MANIFEST.topics) {
+    const metadata = META.topics[String(row.n)];
+    assert.match(metadata.created_at, ISO_DATE, row.file + ': created_at');
+    assert.match(metadata.updated_at, ISO_DATE, row.file + ': updated_at');
+    assert.ok(metadata.created_at <= metadata.updated_at, row.file + ': dates are reversed');
+  }
+  assert.match(Content.topics[0].created_at, ISO_DATE);
+  assert.match(Content.topics[0].updated_at, ISO_DATE);
 });
 
 test('moved System Design sources leave the Study Track but remain available by immutable item id', async () => {
@@ -119,16 +161,44 @@ test('switching to Vietnamese shows the complete source, and back again needs no
   assert.equal(enItem.a, enBase.sections[0].items[0].a);
 });
 
-test('a stored language choice is honoured, and both languages are fetched upfront', async () => {
+test('a stored language choice is honoured, and only the active bilingual topic is fetched upfront', async () => {
   const { Content, fetched } = await load({ lang: 'vi' });
   assert.equal(Content.lang, 'vi');
   await Content.load();
 
-  const expected = ['data/manifest.json', 'data/meta.json',
-    ...MANIFEST.topics.map(r => 'data/' + r.file),
-    ...MANIFEST.topics.map(r => 'data/' + r.file.replace(/\.json$/, '.vi.json'))
-  ];
+  const first = MANIFEST.topics.find(row => !row.surface || row.surface === 'track');
+  const expected = ['data/manifest.json', 'data/meta.json', 'data/content-reviews.json', 'data/content-index.json',
+    'data/' + first.file, 'data/' + first.file.replace(/\.json$/, '.vi.json')];
   assert.deepEqual([...fetched].sort(), [...expected].sort());
+});
+
+test('another topic loads on demand and loadAll pays for the corpus only when requested', async () => {
+  const { Content, fetched } = await load();
+  await Content.load();
+  assert.equal(topic(Content, 2).sections.length, 0, 'an unopened topic should remain a metadata shell');
+
+  await Content.ensureTopic(2);
+  assert.ok(topic(Content, 2).sections.length > 0);
+  assert.equal(fetched.filter(url => /topics\/02-/.test(url)).length, 2, 'EN and VI should each load once');
+
+  await Content.loadAll();
+  assert.ok(Content.topics.every(row => row.sections.length > 0));
+  const after = fetched.length;
+  await Content.loadAll();
+  assert.equal(fetched.length, after, 'the complete corpus should be cached');
+  assert.equal(Content.totalTopicItems, TRACK_ROWS.reduce((sum, row) => {
+    const indexRow = INDEX.topics.find(candidate => candidate.n === row.n);
+    return sum + indexRow.track_item_ids.length;
+  }, 0));
+});
+
+test('technical review provenance is attached to the exact immutable item', async () => {
+  const { Content } = await load();
+  await Content.load();
+  const [id, review] = Object.entries(REVIEWS)[0];
+  const item = Content.topics.flatMap(row => row.sections).flatMap(section => section.items)
+    .find(candidate => candidate.id === id);
+  assert.equal(item?.reviewed_at, review.reviewed_at);
 });
 
 test('a missing .vi.json degrades to the English base instead of throwing', async () => {

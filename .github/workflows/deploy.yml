@@ -22,6 +22,8 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@v7
         with:
@@ -76,7 +78,10 @@ jobs:
       # tests/*.test.mjs. Test files are discovered from disk, so adding one
       # does not also require editing this workflow.
       - name: Run checks
-        run: node tools/check.mjs
+        run: |
+          node tools/build-content-index.mjs --check
+          node tools/stamp-content-dates.mjs --check
+          node tools/check.mjs
 
       # Stamp only the artifact that will be uploaded. Tests intentionally run
       # against the source module paths before their deploy-only ?v= query.

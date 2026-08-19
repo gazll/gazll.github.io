@@ -397,6 +397,12 @@ tạo language state riêng cho Case Studies.
 Chạy đủ, theo thứ tự:
 
 ```bash
+# 0. cập nhật ngày viết/sửa từ lịch sử Git cho Topic, Case Study và System Design
+node tools/stamp-content-dates.mjs
+
+# CI dùng chế độ chỉ kiểm tra, không ghi file
+node tools/stamp-content-dates.mjs --check
+
 # 1. cấu trúc — phải OK
 node tools/validate-content.mjs --stats
 
@@ -482,6 +488,9 @@ sạch dấu vết.
 - [ ] Không có run nào > 300 ký tự; ô bảng dài đã tách bằng `<br>`
 - [ ] SVG marker id đặt theo id mục
 - [ ] **Đã sửa cả `.json` và `.vi.json`**
+- [ ] Đã chạy `node tools/stamp-content-dates.mjs` để cập nhật ngày viết/sửa
+- [ ] Đã chạy `node tools/build-content-index.mjs` sau khi đổi câu hỏi hoặc `item_id`
+- [ ] `reviewed_at` chỉ được cập nhật sau technical review có nguồn; công cụ Git không tự sinh ngày này
 - [ ] `validate-content.mjs` OK · `audit-content.mjs` no drift
 - [ ] Test pass · không có `console.*`
 - [ ] Đã mở trang bấm thử EN/VI

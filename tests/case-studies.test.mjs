@@ -3,6 +3,7 @@ import { access, readFile, readdir } from 'node:fs/promises';
 import path from 'node:path';
 import test from 'node:test';
 import { pathToFileURL } from 'node:url';
+import { PUBLISHER_ORIGINS } from '../public/lib/constants.js';
 
 const root = path.resolve(import.meta.dirname, '..');
 const publicRoot = path.join(root, 'public');
@@ -10,6 +11,7 @@ const dataRoot = path.join(publicRoot, 'data');
 const manifest = JSON.parse(await readFile(path.join(dataRoot, 'case-studies/manifest.json'), 'utf8'));
 const meta = JSON.parse(await readFile(path.join(dataRoot, 'case-studies/meta.json'), 'utf8'));
 const contentFiles = new Map();
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 for (const article of manifest.articles) {
   for (const lang of ['en', 'vi']) {
@@ -68,7 +70,9 @@ test('case studies use stable Topic-style numbering and separate localized metad
       assert.equal('source_url' in article, false,
         `${article.slug}: a locally authored case study has no external source to link`);
     } else {
-      assert.match(article.source_url, /^https:\/\/(?:engineering\.tiki\.vn|discord\.com|blog\.cloudmentor\.pro|shopify\.engineering)\//,
+      // Read the allowlist rather than restating it: a fourth spelling of this
+      // list is how the validator ended up allowing less than the views did.
+      assert.ok(PUBLISHER_ORIGINS.some(origin => article.source_url.startsWith(origin + '/')),
         `${article.slug}: public source must stay on an approved publisher`);
       assert.ok(article.company);
     }
@@ -79,6 +83,10 @@ test('case studies use stable Topic-style numbering and separate localized metad
     assert.ok(['cover', 'contain'].includes(article.cover_fit), `${article.slug}: invalid cover fit`);
     await access(path.join(publicRoot, article.cover_image));
     assert.ok(Number.isInteger(article.read_minutes) && article.read_minutes > 0);
+    assert.match(article.created_at, ISO_DATE, `${article.slug}: created_at`);
+    assert.match(article.updated_at, ISO_DATE, `${article.slug}: updated_at`);
+    assert.ok(article.created_at <= article.updated_at, `${article.slug}: dates are reversed`);
+    if (article.reviewed_at) assert.match(article.reviewed_at, /^\d{4}-\d{2}-\d{2}$/, `${article.slug}: reviewed_at`);
     for (const lang of ['en', 'vi']) {
       const localized = meta.articles[String(article.n)][lang];
       assert.ok(localized.title && localized.excerpt, `${key}: incomplete ${lang} metadata`);
@@ -142,6 +150,8 @@ test('paired long-form bodies preserve structure, code and all local figures', a
         const src = /\bsrc="([^"]+)"/.exec(attrs)?.[1];
         const alt = /\balt="([^"]+)"/.exec(attrs)?.[1];
         assert.ok(src?.startsWith(`assets/case-studies/${key}/`), `${key}: image folder must match its number`);
+        assert.match(src, /\.(?:webp|gif|svg)$/,
+          `${key}: static figures must use the optimized WebP derivative`);
         assert.ok(alt?.trim(), `${key}: ${lang} image needs descriptive alt text`);
         assert.match(attrs, /\bwidth="\d+"/);
         assert.match(attrs, /\bheight="\d+"/);
@@ -216,10 +226,13 @@ test('Experience exposes the global language switch while remaining outside Stud
   assert.match(view, /CaseStudies\.load\(Content\.lang\)/);
   assert.match(view, /renderGuide\(guide, article\)/);
   assert.match(view, /class="cs-origin"/);
-  assert.match(view, /https:\/\/discord\.com/,
-    'the Discord source must survive the publisher URL allowlist');
-  assert.match(view, /https:\/\/shopify\.engineering/,
-    'the Shopify source must survive the publisher URL allowlist');
+  // The origins moved to lib/constants.js, so assert the list itself plus the
+  // view's use of it. Grepping the view for a literal only proved a copy existed.
+  assert.match(view, /sourceHref = originGuard\(PUBLISHER_ORIGINS\)/,
+    'the reader view must guard outbound links with the shared publisher list');
+  for (const origin of ['https://discord.com', 'https://shopify.engineering']) {
+    assert.ok(PUBLISHER_ORIGINS.includes(origin), `${origin} must stay an approved publisher`);
+  }
   assert.match(view, /article\.cover_image/);
   assert.match(view, /hasExternalSource\s*=\s*article\s*=>\s*!article\.first_party\s*&&\s*!article\.editorial/,
     'source visibility must cover both first-party incidents and editorial case studies');

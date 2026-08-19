@@ -1,10 +1,10 @@
 /* Site-wide search over the three reading surfaces.
 
-   There is no build step and no server, so the index is built in the browser
-   from the data that is already loaded: Study Track content is in memory from
-   startup, and the two Experience libraries are fetched on first search and
-   then cached by their own data models. That is the whole reason this file
-   holds no fetch of its own except the case-study article bodies.
+   There is no server-side search, so the full index is built in the browser
+   only when Search first opens. The Study Track starts with one active topic;
+   Search then asks for the remaining topics and Experience libraries, which
+   their data models fetch once and cache. This file therefore owns no content
+   fetches of its own except the optional case-study article bodies.
 
    Two rules the rest of the file follows:
 
@@ -462,8 +462,11 @@ export const SearchIndex = {
     this.enriched = false;
     this._enriching = null;
     this._building = (async () => {
-      // A library that will not load must not take the whole search with it:
-      // the Study Track is already in memory and is most of the material.
+      // A library that will not load must not take the whole search with it.
+      // Study Track is independent and remains searchable by itself.
+      try {
+        await Content.loadAll();
+      } catch (error) {}
       try {
         await SystemDesign.load(want);
       } catch (error) {}

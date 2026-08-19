@@ -32,9 +32,11 @@
       "published_at": "2020-11-12",
       "read_minutes": 13,
       "original_language": "en",
-      "cover_image": "assets/case-studies/01-arcturus-inventory-processing-system/02-processing-model.jpeg",
+      "cover_image": "assets/case-studies/01-arcturus-inventory-processing-system/02-processing-model.webp",
       "cover_fit": "cover",
-      "source_url": "https://engineering.tiki.vn/arcturus-inventory-processing-system/"
+      "source_url": "https://engineering.tiki.vn/arcturus-inventory-processing-system/",
+      "created_at": "2026-08-05",
+      "updated_at": "2026-08-19"
     },
     {
       "n": 2,
@@ -47,9 +49,11 @@
       "published_at": "2021-09-01",
       "read_minutes": 17,
       "original_language": "en",
-      "cover_image": "assets/case-studies/02-a-b-testing-in-tiki-search/04-figure.png",
+      "cover_image": "assets/case-studies/02-a-b-testing-in-tiki-search/04-figure.webp",
       "cover_fit": "cover",
-      "source_url": "https://engineering.tiki.vn/a-b-testing-in-tiki-search/"
+      "source_url": "https://engineering.tiki.vn/a-b-testing-in-tiki-search/",
+      "created_at": "2026-08-05",
+      "updated_at": "2026-08-19"
     },
     {
       "n": 3,
@@ -62,9 +66,11 @@
       "published_at": "2020-08-14",
       "read_minutes": 14,
       "original_language": "vi",
-      "cover_image": "assets/case-studies/03-tiki-scale-in-10-years/01-figure.png",
+      "cover_image": "assets/case-studies/03-tiki-scale-in-10-years/01-figure.webp",
       "cover_fit": "cover",
-      "source_url": "https://engineering.tiki.vn/tiki-scale-in-10-years/"
+      "source_url": "https://engineering.tiki.vn/tiki-scale-in-10-years/",
+      "created_at": "2026-08-05",
+      "updated_at": "2026-08-19"
     },
     {
       "n": 4,
@@ -77,9 +83,11 @@
       "published_at": "2020-01-18",
       "read_minutes": 5,
       "original_language": "en",
-      "cover_image": "assets/case-studies/04-o1-android-build-time-at-tiki/01-figure.jpeg",
+      "cover_image": "assets/case-studies/04-o1-android-build-time-at-tiki/01-figure.webp",
       "cover_fit": "cover",
-      "source_url": "https://engineering.tiki.vn/o1-android-build-time-at-tiki/"
+      "source_url": "https://engineering.tiki.vn/o1-android-build-time-at-tiki/",
+      "created_at": "2026-08-05",
+      "updated_at": "2026-08-19"
     },
     {
       "n": 5,
@@ -92,9 +100,11 @@
       "published_at": "2020-01-04",
       "read_minutes": 9,
       "original_language": "vi",
-      "cover_image": "assets/case-studies/05-scale-and-whats-next/01-figure.png",
+      "cover_image": "assets/case-studies/05-scale-and-whats-next/01-figure.webp",
       "cover_fit": "contain",
-      "source_url": "https://engineering.tiki.vn/scale-and-whats-next/"
+      "source_url": "https://engineering.tiki.vn/scale-and-whats-next/",
+      "created_at": "2026-08-05",
+      "updated_at": "2026-08-19"
     },
     {
       "n": 6,
@@ -107,9 +117,11 @@
       "published_at": "2019-12-15",
       "read_minutes": 6,
       "original_language": "vi",
-      "cover_image": "assets/case-studies/06-tai-sao-tiki-chon-react-native/01-figure.jpeg",
+      "cover_image": "assets/case-studies/06-tai-sao-tiki-chon-react-native/01-figure.webp",
       "cover_fit": "cover",
-      "source_url": "https://engineering.tiki.vn/tai-sao-tiki-chon-react-native/"
+      "source_url": "https://engineering.tiki.vn/tai-sao-tiki-chon-react-native/",
+      "created_at": "2026-08-05",
+      "updated_at": "2026-08-19"
     },
     {
       "n": 7,
@@ -122,9 +134,11 @@
       "published_at": "2019-11-18",
       "read_minutes": 7,
       "original_language": "en",
-      "cover_image": "assets/case-studies/07-into-the-demand-forecast-of-tiki-operations/01-figure.png",
+      "cover_image": "assets/case-studies/07-into-the-demand-forecast-of-tiki-operations/01-figure.webp",
       "cover_fit": "cover",
-      "source_url": "https://engineering.tiki.vn/into-the-demand-forecast-of-tiki-operations/"
+      "source_url": "https://engineering.tiki.vn/into-the-demand-forecast-of-tiki-operations/",
+      "created_at": "2026-08-05",
+      "updated_at": "2026-08-19"
     },
     {
       "n": 8,
@@ -137,9 +151,11 @@
       "published_at": "2019-10-09",
       "read_minutes": 6,
       "original_language": "en",
-      "cover_image": "assets/case-studies/08-applying-machine-learning-to-solve-brand-logo-detection-problem/01-figure.png",
+      "cover_image": "assets/case-studies/08-applying-machine-learning-to-solve-brand-logo-detection-problem/01-figure.webp",
       "cover_fit": "cover",
-      "source_url": "https://engineering.tiki.vn/applying-machine-learning-to-solve-brand-logo-detection-problem/"
+      "source_url": "https://engineering.tiki.vn/applying-machine-learning-to-solve-brand-logo-detection-problem/",
+      "created_at": "2026-08-05",
+      "updated_at": "2026-08-19"
     },
     {
       "n": 9,
@@ -152,9 +168,11 @@
       "published_at": "2019-09-23",
       "read_minutes": 7,
       "original_language": "en",
-      "cover_image": "assets/case-studies/09-pegasus-catalog-product-api-architecture/08-figure.png",
+      "cover_image": "assets/case-studies/09-pegasus-catalog-product-api-architecture/08-figure.webp",
       "cover_fit": "contain",
-      "source_url": "https://engineering.tiki.vn/pegasus-catalog-product-api-architecture/"
+      "source_url": "https://engineering.tiki.vn/pegasus-catalog-product-api-architecture/",
+      "created_at": "2026-08-05",
+      "updated_at": "2026-08-19"
     },
     {
       "n": 10,
@@ -167,9 +185,11 @@
       "published_at": "2018-08-06",
       "read_minutes": 12,
       "original_language": "vi",
-      "cover_image": "assets/case-studies/10-xac-thuc-va-phan-quyen-trong-microservices/05-figure.png",
+      "cover_image": "assets/case-studies/10-xac-thuc-va-phan-quyen-trong-microservices/05-figure.webp",
       "cover_fit": "contain",
-      "source_url": "https://engineering.tiki.vn/xac-thuc-va-phan-quyen-trong-microservices/"
+      "source_url": "https://engineering.tiki.vn/xac-thuc-va-phan-quyen-trong-microservices/",
+      "created_at": "2026-08-05",
+      "updated_at": "2026-08-19"
     },
     {
       "n": 11,
@@ -182,9 +202,11 @@
       "published_at": "2020-04-25",
       "read_minutes": 9,
       "original_language": "en",
-      "cover_image": "assets/case-studies/11-how-to-handle-hot-deals-at-the-peak-time/01-figure.jpeg",
+      "cover_image": "assets/case-studies/11-how-to-handle-hot-deals-at-the-peak-time/01-figure.webp",
       "cover_fit": "contain",
-      "source_url": "https://engineering.tiki.vn/how-to-handle-hot-deals-at-the-peak-time/"
+      "source_url": "https://engineering.tiki.vn/how-to-handle-hot-deals-at-the-peak-time/",
+      "created_at": "2026-08-05",
+      "updated_at": "2026-08-19"
     },
     {
       "n": 12,
@@ -195,10 +217,12 @@
       "featured": true,
       "first_party": true,
       "published_at": "2026-08-18",
-      "read_minutes": 14,
+      "read_minutes": 7,
       "original_language": "vi",
       "cover_image": "assets/case-studies/12-duplicate-booking-race-condition/01-race-window.svg",
-      "cover_fit": "contain"
+      "cover_fit": "contain",
+      "created_at": "2026-08-18",
+      "updated_at": "2026-08-19"
     },
     {
       "n": 13,
@@ -210,11 +234,13 @@
       "content_kind": "synthesis",
       "company": "Discord Engineering",
       "published_at": "2023-03-06",
-      "read_minutes": 12,
+      "read_minutes": 7,
       "original_language": "en",
       "cover_image": "assets/case-studies/13-how-discord-stores-trillions-of-messages/01-architecture.svg",
       "cover_fit": "contain",
-      "source_url": "https://discord.com/blog/how-discord-stores-trillions-of-messages"
+      "source_url": "https://discord.com/blog/how-discord-stores-trillions-of-messages",
+      "created_at": "2026-08-18",
+      "updated_at": "2026-08-18"
     },
     {
       "n": 14,
@@ -226,11 +252,13 @@
       "content_kind": "synthesis",
       "company": "Cloud Blog Pro",
       "published_at": "2025-12-12",
-      "read_minutes": 13,
+      "read_minutes": 7,
       "original_language": "vi",
-      "cover_image": "assets/case-studies/14-small-business-cloud-cost-shock/02-figure.jpg",
+      "cover_image": "assets/case-studies/14-small-business-cloud-cost-shock/02-figure.webp",
       "cover_fit": "contain",
-      "source_url": "https://blog.cloudmentor.pro/posts/aws-startup-xay-dung-ha-tang-aws-lon-va-khung-hoang-chi-phi"
+      "source_url": "https://blog.cloudmentor.pro/posts/aws-startup-xay-dung-ha-tang-aws-lon-va-khung-hoang-chi-phi",
+      "created_at": "2026-08-18",
+      "updated_at": "2026-08-19"
     },
     {
       "n": 15,
@@ -242,10 +270,12 @@
       "editorial": true,
       "content_kind": "synthesis",
       "published_at": "2026-08-18",
-      "read_minutes": 12,
+      "read_minutes": 6,
       "original_language": "vi",
       "cover_image": "assets/case-studies/15-transactional-outbox-order-workflow/01-outbox-flow.svg",
-      "cover_fit": "contain"
+      "cover_fit": "contain",
+      "created_at": "2026-08-18",
+      "updated_at": "2026-08-18"
     },
     {
       "n": 16,
@@ -257,11 +287,14 @@
       "content_kind": "synthesis",
       "company": "Shopify Engineering",
       "published_at": "2026-05-12",
-      "read_minutes": 14,
+      "read_minutes": 9,
       "original_language": "en",
       "cover_image": "assets/case-studies/16-shopify-mysql-inventory-reservations/01-reservation-flow.svg",
       "cover_fit": "contain",
-      "source_url": "https://shopify.engineering/scaling-inventory-reservations"
+      "source_url": "https://shopify.engineering/scaling-inventory-reservations",
+      "created_at": "2026-08-19",
+      "updated_at": "2026-08-19",
+      "reviewed_at": "2026-08-19"
     }
   ]
 }

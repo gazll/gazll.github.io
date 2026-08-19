@@ -15,7 +15,7 @@
 */
 import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { TOPIC_TYPES, DIFFICULTIES } from '../public/lib/constants.js';
+import { TOPIC_TYPES, DIFFICULTIES, PROMPT_ORIGINS, PUBLISHER_ORIGINS } from '../public/lib/constants.js';
 
 // fileURLToPath, not .pathname — on Windows the latter yields "/D:/…", which
 // node then resolves against the current drive as "D:\D:\…".
@@ -353,11 +353,39 @@ if (!catalog) {
     if (typeof article.featured !== 'boolean') sd(id, 'featured must be boolean');
   }
 
-  // The reader's only attribution is the publication URL, and the view uses an
-  // explicit publisher allowlist — so a wrong URL silently loses the credit.
+  // The reader's only attribution is the publication URL, and the views drop a
+  // link whose origin is unknown — so a wrong URL silently loses the credit.
+  // Both lists come from lib/constants.js: a copy here would drift out of step
+  // with what actually renders, which is exactly how cloudmentor went unchecked.
+  const originChecker = origins => {
+    const allowed = new Set(origins);
+    return value => {
+      try {
+        const url = new URL(value);
+        return url.protocol === 'https:' && allowed.has(url.origin) && url.pathname.length > 1;
+      } catch (error) { return false; }
+    };
+  };
+  const isPublisher = originChecker(PUBLISHER_ORIGINS);
+  const isPrompt = originChecker(PROMPT_ORIGINS);
+
   for (const article of architectureRows) {
-    if (!/^https:\/\/(?:engineering\.tiki\.vn|discord\.com|shopify\.engineering)\/.+/.test(article.source_url || '')) {
+    if (!isPublisher(article.source_url || '')) {
       sd(`case "${article.slug}"`, `source_url is not an approved publisher URL: "${article.source_url}"`);
+    }
+  }
+
+  // A blueprint's source_url is the thread that posed the question, never a
+  // publisher credit. Nothing checked it before, so a typo shipped as no link.
+  for (const design of catalog.designs || []) {
+    if (!design.source_url) continue;
+    if (!isPrompt(design.source_url)) {
+      sd(`design "${design.slug}"`, `source_url is not an approved discussion origin: "${design.source_url}"`);
+    }
+    for (const lang of ['en', 'vi']) {
+      if (!String(design[lang]?.source_label || '').trim()) {
+        sd(`design "${design.slug}"`, `source_url needs a ${lang}.source_label naming what the link is`);
+      }
     }
   }
 

@@ -147,7 +147,9 @@
           "Failure review",
           "Trade-off"
         ]
-      }
+      },
+      "created_at": "2026-08-10",
+      "updated_at": "2026-08-12"
     },
     {
       "n": 2,
@@ -250,7 +252,9 @@
           "Caffeine",
           "Invalidation"
         ]
-      }
+      },
+      "created_at": "2026-08-10",
+      "updated_at": "2026-08-12"
     },
     {
       "n": 3,
@@ -353,7 +357,9 @@
           "Deadline",
           "Autoscaling"
         ]
-      }
+      },
+      "created_at": "2026-08-10",
+      "updated_at": "2026-08-12"
     },
     {
       "n": 4,
@@ -477,7 +483,9 @@
           "Atomicity",
           "Gateway"
         ]
-      }
+      },
+      "created_at": "2026-08-10",
+      "updated_at": "2026-08-12"
     },
     {
       "n": 5,
@@ -596,7 +604,9 @@
           "Reconciliation",
           "Fintech"
         ]
-      }
+      },
+      "created_at": "2026-08-10",
+      "updated_at": "2026-08-12"
     },
     {
       "n": 6,
@@ -696,7 +706,9 @@
           "Queue",
           "Preference"
         ]
-      }
+      },
+      "created_at": "2026-08-10",
+      "updated_at": "2026-08-12"
     },
     {
       "n": 7,
@@ -796,7 +808,9 @@
           "Key-value",
           "Analytics"
         ]
-      }
+      },
+      "created_at": "2026-08-10",
+      "updated_at": "2026-08-12"
     },
     {
       "n": 8,
@@ -896,7 +910,9 @@
           "Graph",
           "Kafka"
         ]
-      }
+      },
+      "created_at": "2026-08-10",
+      "updated_at": "2026-08-12"
     },
     {
       "n": 9,
@@ -996,7 +1012,9 @@
           "Season",
           "Audit"
         ]
-      }
+      },
+      "created_at": "2026-08-10",
+      "updated_at": "2026-08-12"
     },
     {
       "n": 10,
@@ -1114,7 +1132,9 @@
           "Replication",
           "Hot key"
         ]
-      }
+      },
+      "created_at": "2026-08-10",
+      "updated_at": "2026-08-12"
     },
     {
       "n": 11,
@@ -1214,7 +1234,9 @@
           "Fan-out",
           "Multi-device"
         ]
-      }
+      },
+      "created_at": "2026-08-10",
+      "updated_at": "2026-08-12"
     },
     {
       "n": 12,
@@ -1314,7 +1336,9 @@
           "Edge cache",
           "Moderation"
         ]
-      }
+      },
+      "created_at": "2026-08-10",
+      "updated_at": "2026-08-12"
     },
     {
       "n": 13,
@@ -1414,7 +1438,9 @@
           "Erasure coding",
           "CDN"
         ]
-      }
+      },
+      "created_at": "2026-08-10",
+      "updated_at": "2026-08-12"
     },
     {
       "n": 14,
@@ -1554,7 +1580,9 @@
           "GDS",
           "Realtime"
         ]
-      }
+      },
+      "created_at": "2026-08-10",
+      "updated_at": "2026-08-12"
     },
     {
       "n": 15,
@@ -1673,7 +1701,9 @@
           "Search",
           "Idempotency"
         ]
-      }
+      },
+      "created_at": "2026-08-10",
+      "updated_at": "2026-08-12"
     },
     {
       "n": 16,
@@ -1951,7 +1981,9 @@
           "Kafka",
           "Capacity"
         ]
-      }
+      },
+      "created_at": "2026-08-10",
+      "updated_at": "2026-08-12"
     },
     {
       "n": 17,
@@ -2096,7 +2128,9 @@
           "Backpressure",
           "Caching"
         ]
-      }
+      },
+      "created_at": "2026-08-10",
+      "updated_at": "2026-08-12"
     },
     {
       "n": 18,
@@ -2365,7 +2399,9 @@
           "Queueing",
           "Capacity"
         ]
-      }
+      },
+      "created_at": "2026-08-10",
+      "updated_at": "2026-08-12"
     },
     {
       "n": 19,
@@ -2439,9 +2475,9 @@
         ],
         "stack": [
           "CDN and L4 boundary: terminate or pass through transport concerns, cache safe public bytes and shed obvious abuse before the application gateway; do not put object authorization here.",
-      "Spring Cloud Gateway 5.0.2: use the selected Server WebFlux or Server Web MVC starter from the 2025.1.2 release train, and keep route predicates, ordered filters and effective configuration under test.",
-      "Runtime baseline: use a supported Java LTS and verify vendor patch support against the selected Boot/Cloud train; JDK 25 is the current LTS reference at review time, not a throughput assumption.",
-      "Resilience4j 2.4.0: use CircuitBreaker, TimeLimiter and RateLimiter concepts for local protection, but choose one retry/breaker owner per hop and avoid hiding distributed state behind an in-process default. 2.4.0 is the release that adds Spring Boot 4 support via the separate resilience4j-spring-boot4 starter.",
+          "Spring Cloud Gateway 5.0.2: use the selected Server WebFlux or Server Web MVC starter from the 2025.1.2 release train, and keep route predicates, ordered filters and effective configuration under test.",
+          "Runtime baseline: use a supported Java LTS and verify vendor patch support against the selected Boot/Cloud train; JDK 25 is the current LTS reference at review time, not a throughput assumption.",
+          "Resilience4j 2.4.0: use CircuitBreaker, TimeLimiter and RateLimiter concepts for local protection, but choose one retry/breaker owner per hop and avoid hiding distributed state behind an in-process default. 2.4.0 is the release that adds Spring Boot 4 support via the separate resilience4j-spring-boot4 starter.",
           "Redis rate limiter and cache: use atomic token-bucket checks, short-lived policy/JWKS metadata and bounded decision cache; isolate limiter state by region or cell when a global store becomes a failure amplifier.",
           "Identity provider and keys: use OAuth/OIDC discovery, short-lived access tokens, overlapping signing keys and regional JWKS availability; validate issuer, audience, algorithm and time at the consumer boundary.",
           "PDP: use OPA/Rego, Cedar or a service-local policy module only for decisions that need dynamic context; version bundles, cache with a stated staleness bound and keep the service invariant local.",
@@ -2564,9 +2600,9 @@
         ],
         "stack": [
           "CDN và L4 boundary: xử lý transport, cache public byte an toàn và shed abuse rõ ràng trước application gateway; không đặt object authorization ở đây.",
-      "Spring Cloud Gateway 5.0.2: dùng starter Server WebFlux hoặc Server Web MVC đã chọn trong release train 2025.1.2, đưa route predicate, ordered filter và effective config vào test.",
-      "Runtime baseline: dùng Java LTS còn được vendor hỗ trợ và verify patch support theo Boot/Cloud train đã chọn; ở thời điểm review, JDK 25 là mốc LTS hiện hành, không phải throughput assumption.",
-      "Resilience4j 2.4.0: dùng khái niệm CircuitBreaker, TimeLimiter và RateLimiter cho protection local, nhưng mỗi hop phải có một retry/breaker owner và không giấu distributed state sau default in-process. 2.4.0 là bản thêm hỗ trợ Spring Boot 4 qua starter riêng resilience4j-spring-boot4.",
+          "Spring Cloud Gateway 5.0.2: dùng starter Server WebFlux hoặc Server Web MVC đã chọn trong release train 2025.1.2, đưa route predicate, ordered filter và effective config vào test.",
+          "Runtime baseline: dùng Java LTS còn được vendor hỗ trợ và verify patch support theo Boot/Cloud train đã chọn; ở thời điểm review, JDK 25 là mốc LTS hiện hành, không phải throughput assumption.",
+          "Resilience4j 2.4.0: dùng khái niệm CircuitBreaker, TimeLimiter và RateLimiter cho protection local, nhưng mỗi hop phải có một retry/breaker owner và không giấu distributed state sau default in-process. 2.4.0 là bản thêm hỗ trợ Spring Boot 4 qua starter riêng resilience4j-spring-boot4.",
           "Redis rate limiter và cache: dùng token-bucket check atomic, policy/JWKS metadata ngắn hạn và decision cache có giới hạn; isolate limiter state theo region/cell khi global store khuếch đại failure.",
           "Identity provider và key: dùng OAuth/OIDC discovery, access token ngắn hạn, signing key overlap và JWKS theo region; consumer phải validate issuer, audience, algorithm và time.",
           "PDP: dùng OPA/Rego, Cedar hoặc policy module local khi decision cần context động; version bundle, cache với staleness bound rõ và giữ invariant trong service.",
@@ -2644,7 +2680,9 @@
             "answer": "Restore last-known-good config, refresh key có overlap, rebuild counter có thể bỏ và replay policy an toàn, rồi verify error budget, queue age, key refresh, decision consistency cùng reconciliation debt. Recovery chỉ được coi là xong khi degraded contract kết thúc mà không có authorization hay business transition không giải thích được."
           }
         ]
-      }
+      },
+      "created_at": "2026-08-12",
+      "updated_at": "2026-08-12"
     },
     {
       "n": 20,
@@ -2677,6 +2715,8 @@
           "Operability: tenant identity must not become an unbounded metrics label; retain drill-down through sampled logs or a queryable fairness ledger."
         ],
         "capacity": [
+          "Size the pipeline by peak submission rate with the daily volume beside it: ~25 rps peak (100k jobs/day) at T2, ~250 rps peak (1M jobs/day) at T3, ~25,000 rps peak (100M jobs/day) at T4. Tenant submission is steady B2B traffic, so plan 3–5× the average — except for a tenant running a bulk import, which concentrates like campaign traffic at 10–20×.",
+          "Judge the cost-aware scheduler per tier: not needed at T1, where one worker pool drains everything before anyone waits; worth it at T2, once a second tenant can delay the first; mandatory at T3, where one bulk import fills every worker for minutes; needs its own scaling story at T4, because the active-tenant set, the deficit state and the lease table stop fitting one scheduler process.",
           "Model arrival rate, active tenants, jobs per burst, cost distribution and downstream limits separately; 10,000 registered users are not 10,000 simultaneously active queues.",
           "Set each tenant's pending-cost cap from useful waiting time: admitted backlog must drain before its deadline at the tenant's guaranteed service rate.",
           "Choose a fixed shard count from broker CPU, recovery time and hot-key skew, then benchmark it; hashing spreads load but does not provide fairness inside a shard.",
@@ -2772,6 +2812,8 @@
           "Operability: tenant identity không được thành metrics label vô hạn; drill-down qua sampled log hoặc fairness ledger có thể query."
         ],
         "capacity": [
+          "Size pipeline theo peak submission rate, kèm daily volume trong ngoặc: ~25 rps peak (100k job/ngày) ở T2, ~250 rps peak (1 triệu job/ngày) ở T3, ~25.000 rps peak (100 triệu job/ngày) ở T4. Tenant submission là traffic B2B đều, nên tính 3–5× average — trừ tenant đang chạy bulk import, dồn như campaign traffic ở mức 10–20×.",
+          "Đánh giá cost-aware scheduler theo từng tier: không cần ở T1, khi một worker pool drain hết trước lúc có ai phải chờ; nên có ở T2, khi tenant thứ hai đã có thể làm tenant đầu chậm lại; bắt buộc ở T3, nơi một bulk import chiếm hết worker trong nhiều phút; cần scale riêng ở T4, vì active-tenant set, deficit state và lease table không còn vừa một scheduler process.",
           "Model riêng arrival rate, active tenant, jobs mỗi burst, cost distribution và downstream limit; 10.000 registered user không đồng nghĩa 10.000 active queue cùng lúc.",
           "Đặt pending-cost cap theo useful waiting time: admitted backlog phải drain trước deadline ở guaranteed service rate của tenant.",
           "Chọn fixed shard count theo broker CPU, recovery time và hot-key skew rồi benchmark; hashing phân tán load nhưng không tạo fairness trong shard.",
@@ -2845,7 +2887,10 @@
             "answer": "Rebuild scheduler state từ durable runnable/leased job, expire lease bị bỏ, replay outbox bằng stable message ID và reconcile stage result. Recovery xong khi old runnable age drain mà không có duplicate effect hay vi phạm tier share."
           }
         ]
-      }
+      },
+      "created_at": "2026-08-19",
+      "updated_at": "2026-08-19",
+      "reviewed_at": "2026-08-19"
     }
   ],
   "case_overviews": {

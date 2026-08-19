@@ -3,6 +3,7 @@ import { access, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import test from 'node:test';
 import { pathToFileURL } from 'node:url';
+import { PROMPT_ORIGINS, PUBLISHER_ORIGINS, REFERENCE_ORIGINS } from '../public/lib/constants.js';
 
 const root = path.resolve(import.meta.dirname, '..');
 const publicRoot = path.join(root, 'public');
@@ -12,6 +13,7 @@ const catalog = JSON.parse(await readFile(path.join(dataRoot, 'system-design/cat
 const manifest = JSON.parse(await readFile(path.join(dataRoot, 'manifest.json'), 'utf8'));
 const caseManifest = JSON.parse(await readFile(path.join(dataRoot, 'case-studies/manifest.json'), 'utf8'));
 const movedRows = manifest.topics.filter(row => row.surface === 'system-design');
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 async function movedSourceIds() {
   const ids = [];
@@ -53,6 +55,10 @@ test('the catalog is a complete bilingual System Design library', () => {
     assert.match(design.slug, /^[a-z0-9]+(?:-[a-z0-9]+)*$/);
     assert.ok(categoryIds.includes(design.category), `${design.slug}: unknown category`);
     assert.ok(design.effort);
+    assert.match(design.created_at, ISO_DATE, `${design.slug}: created_at`);
+    assert.match(design.updated_at, ISO_DATE, `${design.slug}: updated_at`);
+    assert.ok(design.created_at <= design.updated_at, `${design.slug}: dates are reversed`);
+    if (design.reviewed_at) assert.match(design.reviewed_at, /^\d{4}-\d{2}-\d{2}$/, `${design.slug}: reviewed_at`);
     assert.match(design.diagram, /^flowchart\s+(?:LR|RL|TB|BT|TD)\n/);
     assert.doesNotMatch(design.diagram, /<svg|<script/i);
     // source_items is optional: a design migrated from the Study Track carries
@@ -109,8 +115,13 @@ test('RabbitMQ tenant fairness separates routing from scheduling', async () => {
   }
 
   const view = await readFile(path.join(publicRoot, 'views/system-design.js'), 'utf8');
-  assert.match(view, /'https:\/\/voz\.vn'/);
-  assert.match(view, /'https:\/\/www\.rabbitmq\.com'/);
+  assert.ok(PROMPT_ORIGINS.includes('https://voz.vn'), 'the discussion prompt origin must be approved');
+  assert.ok(REFERENCE_ORIGINS.includes('https://www.rabbitmq.com'), 'the primary RabbitMQ docs must be citable');
+  assert.match(view, /promptHref = originGuard\(PROMPT_ORIGINS, ''\)/,
+    'a blueprint links its prompt through the prompt guard');
+  // A prompt thread is the question, not a credit: it must never pass as one.
+  assert.ok(!PUBLISHER_ORIGINS.some(origin => PROMPT_ORIGINS.includes(origin)),
+    'prompt origins must stay out of the publisher allowlist');
 });
 
 test('Topic 18 keeps the durable flash-sale lifecycle and scale-in guidance', () => {
@@ -375,8 +386,9 @@ test('Experience routing, Case Studies migration and Mermaid security are wired 
   assert.match(systemView, /sd-case-guide-depth/);
   assert.match(systemView, /escapeHtml\(article\.company\)/,
     'production evidence should render its actual publisher, not a hard-coded company');
-  assert.match(systemView, /https:\/\/discord\.com/,
-    'the Discord source must survive the publisher URL allowlist');
+  assert.match(systemView, /sourceHref = originGuard\(PUBLISHER_ORIGINS\)/,
+    'production-case credits must use the shared publisher list');
+  assert.ok(PUBLISHER_ORIGINS.includes('https://discord.com'));
   assert.match(systemView, /closest\('\.sd-toc-mobile'\)\?\.removeAttribute\('open'\)/);
   assert.match(caseView, /MOVED_TO_SYSTEM_DESIGN = 'systems-architecture'/);
   assert.match(caseView, /filter\(article => article\.category !== MOVED_TO_SYSTEM_DESIGN\)/);
