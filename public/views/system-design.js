@@ -125,7 +125,12 @@ function storeTocCollapsed(collapsed) {
 }
 // Attribution is the publisher URL and nothing else, so an unexpected host is
 // never rendered as an external link.
-const SOURCE_ORIGINS = new Set(['https://engineering.tiki.vn', 'https://discord.com', 'https://blog.cloudmentor.pro']);
+const SOURCE_ORIGINS = new Set([
+  'https://engineering.tiki.vn',
+  'https://discord.com',
+  'https://blog.cloudmentor.pro',
+  'https://shopify.engineering'
+]);
 const sourceHref = value => {
   try {
     const url = new URL(value);

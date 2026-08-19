@@ -196,7 +196,7 @@ test('all Systems & Architecture at Scale cases moved into System Design with Me
     .sort();
   const actual = Object.keys(catalog.case_overviews).sort();
 
-  assert.equal(expected.length, 5);
+  assert.equal(expected.length, 6);
   assert.deepEqual(actual, expected);
   for (const [slug, overview] of Object.entries(catalog.case_overviews)) {
     assert.match(overview.diagram, /^flowchart\s+(?:LR|RL|TB|BT|TD)\n/, slug);
@@ -308,7 +308,7 @@ test('the shared loader resolves migrated notes and switches the whole collectio
           `${design.slug}: localized image metadata lost in apply()`);
       }
     }
-    assert.equal(SystemDesign.cases.length, 5);
+    assert.equal(SystemDesign.cases.length, 6);
     assert.equal(SystemDesign.designs.flatMap(design => design.sourceNotes).length, 59);
     const itemId = catalog.designs[4].source_items[0];
     assert.equal(SystemDesign.designForSourceItem(itemId).slug, 'payment-ledger');

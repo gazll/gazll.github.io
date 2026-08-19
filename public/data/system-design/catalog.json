@@ -2702,6 +2702,17 @@
         "title": "Discord: cô lập hot partition của message",
         "lens": "Thay database rất quan trọng, nhưng control point kiến trúc nằm ở upstream: route một channel vào cùng data-service instance, coalesce read giống nhau, giới hạn concurrency và kiểm chứng storage cutover độc lập với dual-write path."
       }
+    },
+    "shopify-mysql-inventory-reservations": {
+      "diagram": "flowchart LR\n  C[Concurrent checkouts] --> U[Bounded reservation units]\n  U -->|FOR UPDATE SKIP LOCKED| H[Active holds]\n  L[(Inventory ledger)] --> R[Inline replenishment]\n  R --> U\n  H -->|payment succeeds| L\n  H -->|expires or releases| R\n  O[Connection attribution] --> P[ProxySQL and MySQL capacity]",
+      "en": {
+        "title": "Shopify: bounded inventory reservations in MySQL",
+        "lens": "The migration closed a cross-store atomicity gap by colocating holds and the ledger, then spread hot-item contention across bounded unit rows. The design is complete only with refill serialization, engine-aware locking, connection attribution and a shadowed cutover."
+      },
+      "vi": {
+        "title": "Shopify: bounded inventory reservation trong MySQL",
+        "lens": "Migration đóng cross-store atomicity gap bằng cách colocate hold với ledger, rồi trải hot-item contention qua bounded unit row. Thiết kế chỉ hoàn chỉnh khi có refill serialization, engine-aware locking, connection attribution và shadowed cutover."
+      }
     }
   }
 }

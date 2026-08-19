@@ -68,7 +68,7 @@ test('case studies use stable Topic-style numbering and separate localized metad
       assert.equal('source_url' in article, false,
         `${article.slug}: a locally authored case study has no external source to link`);
     } else {
-      assert.match(article.source_url, /^https:\/\/(?:engineering\.tiki\.vn|discord\.com|blog\.cloudmentor\.pro)\//,
+      assert.match(article.source_url, /^https:\/\/(?:engineering\.tiki\.vn|discord\.com|blog\.cloudmentor\.pro|shopify\.engineering)\//,
         `${article.slug}: public source must stay on an approved publisher`);
       assert.ok(article.company);
     }
@@ -218,6 +218,8 @@ test('Experience exposes the global language switch while remaining outside Stud
   assert.match(view, /class="cs-origin"/);
   assert.match(view, /https:\/\/discord\.com/,
     'the Discord source must survive the publisher URL allowlist');
+  assert.match(view, /https:\/\/shopify\.engineering/,
+    'the Shopify source must survive the publisher URL allowlist');
   assert.match(view, /article\.cover_image/);
   assert.match(view, /hasExternalSource\s*=\s*article\s*=>\s*!article\.first_party\s*&&\s*!article\.editorial/,
     'source visibility must cover both first-party incidents and editorial case studies');

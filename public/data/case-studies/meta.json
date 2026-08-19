@@ -415,6 +415,19 @@
         "excerpt": "Service A phải cập nhật database và báo Service B mà không làm mất bên nào. Transactional Outbox đóng atomicity gap; idempotency và Saga hoàn thiện thiết kế production.",
         "tags": ["Transactional Outbox", "Idempotency", "At-least-once", "Saga", "Message queue", "Order workflow"]
       }
+    },
+    "16": {
+      "key": "16-shopify-mysql-inventory-reservations",
+      "en": {
+        "title": "How Shopify replaced Redis with MySQL for inventory reservations",
+        "excerpt": "How Shopify colocated temporary reservations with its inventory ledger, then used bounded per-unit rows, SKIP LOCKED and connection attribution to preserve correctness at flash-sale scale.",
+        "tags": ["MySQL", "Redis", "SKIP LOCKED", "Inventory reservation", "Flash sale", "Database concurrency"]
+      },
+      "vi": {
+        "title": "Shopify thay Redis bằng MySQL cho inventory reservation như thế nào?",
+        "excerpt": "Cách Shopify đưa temporary reservation về cùng inventory ledger, rồi dùng bounded per-unit rows, SKIP LOCKED và connection attribution để giữ correctness ở quy mô flash sale.",
+        "tags": ["MySQL", "Redis", "SKIP LOCKED", "Inventory reservation", "Flash sale", "Database concurrency"]
+      }
     }
   }
 }

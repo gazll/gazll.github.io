@@ -63,7 +63,12 @@ function levelMarkup(article) {
     + (article?.featured ? '<span class="featured-mark" title="' + text().featured + '" aria-label="' + text().featured + '">★</span>' : '');
 }
 
-const SOURCE_ORIGINS = new Set(['https://engineering.tiki.vn', 'https://discord.com', 'https://blog.cloudmentor.pro']);
+const SOURCE_ORIGINS = new Set([
+  'https://engineering.tiki.vn',
+  'https://discord.com',
+  'https://blog.cloudmentor.pro',
+  'https://shopify.engineering'
+]);
 const sourceHref = value => {
   try {
     const url = new URL(value);

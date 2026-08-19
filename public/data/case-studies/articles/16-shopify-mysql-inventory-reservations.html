@@ -1,0 +1,102 @@
+<p>“Shopify removed Redis and went back to MySQL” is an attractive headline, but it hides the real engineering decision. Redis was not failing at fast atomic counters. The costly part was splitting one business invariant—available inventory—between a temporary-reservation counter in Redis and an authoritative ledger in MySQL. Shopify changed the state boundary, the relational model and the way it observed shared database capacity.</p>
+<p>This case study is an editorial synthesis of Shopify Engineering's May 2026 account. The $5.1 million sales-per-minute peak, percentage reductions and CPU figures below are Shopify's reported Black Friday 2025 results. They describe one production workload, not a universal MySQL-versus-Redis benchmark.</p>
+
+<h2 id="1-the-invariant-before-the-technology">1. Start with the invariant, not the technology</h2>
+<p>Oversell protection has two important transitions. <strong>Reserve</strong> creates a short hold while payment is in progress. <strong>Claim</strong> permanently deducts the paid units from the inventory ledger. The exact hold length is a policy; Shopify's article says several minutes and does not establish a fixed ten-minute value.</p>
+<p>Two opposite errors matter. If two buyers claim the final unit, the merchant must cancel an order: overselling. If the system continues to count an expired or already-claimed hold, it rejects a buyer even though stock exists: underselling or false sold-out. Correctness therefore means more than preventing a negative counter. Reserve, expiry, release and claim must preserve one inventory invariant across crashes and concurrency.</p>
+<p>The problem also includes location. A unit available in one warehouse may not satisfy a checkout assigned to another fulfillment group. A global counter can be numerically correct and still make the wrong fulfillment promise. Shopify's replacement needed high throughput, multi-location awareness and an atomic relationship with the ledger.</p>
+
+<h2 id="2-why-the-redis-design-became-expensive">2. Why the Redis design became expensive</h2>
+<p>The earlier model stored a quantity key per item in Redis. Reserving decremented the counter; releasing incremented it. This is exactly the kind of concurrency Redis handles well. The weakness appeared later, when successful payment required both a permanent MySQL ledger change and cleanup of the Redis reservation.</p>
+<p>No local ACID transaction covered both stores. Updating MySQL first created a crash window before Redis cleanup; updating Redis first created the inverse window before the ledger change. Retries, idempotency and reconciliation can reduce the risk, but they form a distributed workflow with more states, alerts and repair procedures. Redis also lacked the multi-location representation needed by the new design and required a separate production cluster.</p>
+<p>The lesson is narrower than “cache adds complexity.” A derived read cache can often tolerate staleness and rebuild from truth. A reservation is coordination state on the checkout correctness path. Once two systems jointly decide whether a unit may be sold, synchronization is part of the product invariant rather than merely cache invalidation.</p>
+
+<h2 id="3-a-hot-counter-cannot-scale-by-wishing">3. A hot counter cannot scale by wishing</h2>
+<p>Moving the same quantity counter into MySQL would close the atomicity gap but serialize a flash sale. Thousands of transactions for one popular variant would all update one record. Row-level locking protects correctness, yet it turns the row into a queue and consumes connections while callers wait.</p>
+<p>A naïve “one row per unit” design can still serialize if every transaction selects the same first candidate and waits for it. The important change is not merely expanding quantity into rows. The query must allow contenders to pass locked candidates and acquire other units.</p>
+<pre><code>CREATE TABLE reservation_units (
+  shop_id bigint NOT NULL,
+  inventory_item_id bigint NOT NULL,
+  inventory_group_id bigint NOT NULL,
+  id bigint NOT NULL,
+  PRIMARY KEY (shop_id, inventory_item_id, inventory_group_id, id)
+);
+
+SELECT id
+FROM reservation_units
+WHERE shop_id = ?
+  AND inventory_item_id = ?
+  AND inventory_group_id = ?
+LIMIT ?
+FOR UPDATE SKIP LOCKED;</code></pre>
+<p><code>SKIP LOCKED</code> makes the returned view intentionally inconsistent: a caller does not see eligible rows currently locked by another transaction. That is useful for queue-like claiming, where waiting for the first row is unnecessary. It is not appropriate for a general report that expects a complete snapshot.</p>
+
+<h2 id="4-bounded-unit-rows-and-inline-replenishment">4. Bounded unit rows and inline replenishment</h2>
+<p>Representing every physical unit forever would cause row explosion. Shopify described an item with 50,000 units across ten locations: a literal model would create 500,000 available-unit rows. Instead, the team capped the available pool at 1,000 rows per item/location combination. The ledger still retained the authoritative quantity; the pool represented only a bounded amount of immediately claimable capacity.</p>
+<figure class="cs-figure cs-figure-wide">
+  <button type="button" data-zoom-image aria-label="Open Shopify inventory reservation flow at full size">
+    <img src="assets/case-studies/16-shopify-mysql-inventory-reservations/01-reservation-flow.svg" width="1200" height="650" loading="lazy" decoding="async" alt="Checkout transaction claims bounded reservation-unit rows beside the MySQL inventory ledger using SKIP LOCKED.">
+  </button>
+  <figcaption>State locality closes the Redis–MySQL atomicity gap; bounded rows spread contention without mirroring all stock.</figcaption>
+</figure>
+<p>The value 1,000 was selected from observed peak reservation rates during flash sales. It is a capacity parameter with two costs: too small and the pool refills frequently during bursts; too large and the table plus lock scan become unnecessarily expensive. A different system must derive its own cap from hot-key concurrency, refill time, location skew and acceptable database footprint.</p>
+<p>When the pool empties but ledger stock remains, the reserve path performs replenishment inline. A lock lets one transaction refill while other reservations for that item wait, preventing every checkout from racing to insert the same capacity. This creates a deliberate slow path: a buyer is not shown false sold-out merely because the buffer was temporarily empty.</p>
+<p>Inline refill does not mean expiry has become free or that every system can delete its cleanup jobs. Shopify's available calculation excludes active, unexpired reservations, so expired holds become eligible capacity during replenishment. A production implementation must still define timestamps, clock semantics, claim-versus-expiry races, audit retention and any physical cleanup needed for reservation records.</p>
+
+<h2 id="5-innodb-details-became-architecture">5. InnoDB details became architecture</h2>
+<p>The first prototype used an auto-increment primary key and filtered through a secondary index. InnoDB locked both the secondary-index record and the clustered primary-key record. Making <code>(shop_id, inventory_item_id, inventory_group_id, id)</code> the primary key aligned lookup and clustering, reducing the observed lock count from two per reserved unit to one.</p>
+<p>An empty pool exposed another engine behavior. Under MySQL's default <code>REPEATABLE READ</code>, the locking read could acquire a gap lock including the supremum pseudo-record. That lock interfered with the insert needed to refill the empty range and contributed to deadlocks. Shopify used <code>READ COMMITTED</code> for these transactions so replenishment could insert without the same gap-lock behavior.</p>
+<p>This is not a recommendation to lower isolation globally. The choice belongs to this transaction and must be verified on the exact MySQL version, indexes and query plan. <code>READ COMMITTED</code> changes what repeated reads may observe; application invariants must come from locking writes and constraints rather than an assumed snapshot.</p>
+<pre><code>BEGIN;
+
+SELECT id
+FROM reservation_units
+WHERE shop_id = ?
+  AND inventory_item_id = ?
+  AND inventory_group_id = ?
+LIMIT ?
+FOR UPDATE SKIP LOCKED;
+
+DELETE FROM reservation_units
+WHERE shop_id = ? AND inventory_item_id = ?
+  AND inventory_group_id = ? AND id IN (...);
+
+INSERT INTO reserved_quantities (...)
+VALUES (...);
+
+COMMIT;</code></pre>
+<p>Lock ordering mattered across tables as well. The team observed a cycle when reserve inserted into <code>reserved_quantities</code> before deleting unit rows while claim touched the reservation table in a conflicting order. Standardizing reserve to delete units first and then insert the hold removed that circular wait. Deadlock retry remains prudent, but deterministic ordering reduces how often it is needed.</p>
+
+<h2 id="6-batching-the-cart-without-changing-correctness">6. Batch the cart without changing correctness</h2>
+<p>A checkout usually contains several line items. Issuing one database round trip for each item increases latency and holds application resources longer. Shopify batched the locking selects with <code>UNION ALL</code>, keeping each branch's item/location predicate and limit while sending one statement.</p>
+<pre><code>(SELECT id, inventory_item_id
+ FROM reservation_units
+ WHERE shop_id = ? AND inventory_item_id = ? AND inventory_group_id = ?
+ LIMIT ? FOR UPDATE SKIP LOCKED)
+UNION ALL
+(SELECT id, inventory_item_id
+ FROM reservation_units
+ WHERE shop_id = ? AND inventory_item_id = ? AND inventory_group_id = ?
+ LIMIT ? FOR UPDATE SKIP LOCKED);</code></pre>
+<p>Batching reduces protocol and connection overhead; it does not remove the need to verify that every cart line acquired its requested quantity before committing. A partial result must lead to the explicit business outcome—retry after refill, choose another fulfillment location, or reject the whole reservation according to policy—not silently create a partially protected order.</p>
+
+<h2 id="7-the-bottleneck-was-connection-occupancy">7. The bottleneck was connection occupancy</h2>
+<p>After query and lock work, production tests still hit a throughput ceiling below target. Reservation P90 latency was acceptable and database CPU was not saturated. The visible symptoms were queued MySQL threads, bursts of CPU when queued work ran and backend connection exhaustion at ProxySQL.</p>
+<p>Aggregate connection counts said capacity was gone but not who held it. Shopify annotated SQL with a business-process tag such as <code>/* conn_tag:checkout_completion */</code>. ProxySQL-side tracking attributed total connection hold time to callers. This revealed other checkout work retaining connections across long transactions; reservations were the new load that exposed a pool already close to depletion.</p>
+<p>Cleaning the wider checkout path removed 50% of reads and 33% of transactions on the primary database. The team also revisited a conservatively old InnoDB thread-concurrency setting. Together, the changes removed the ceiling. During high-volume flash sales, Shopify reported writer CPU below 50% and reader CPU below 16%.</p>
+<p>The metric lesson is important: query duration is not connection occupancy. A process can execute individually fast statements while holding a connection across application work or multiple waits. For a shared database, review transaction duration, connection-seconds by caller, queue time, lock wait, rollback/deadlock rate and CPU together.</p>
+
+<h2 id="8-shadow-mode-and-the-decision-boundary">8. Shadow mode and the decision boundary</h2>
+<p>Shopify did not make MySQL authoritative in one step. In shadow mode, reservations were written to both systems while Redis remained the source of truth. Engineers compared business outcomes and performance on real traffic; Redis continued to honor existing reservations while MySQL accumulated its own state, avoiding a separate in-flight data migration.</p>
+<p>After validation, traffic moved gradually pod by pod, from lower-volume pods toward the largest merchants. The dual-write path and a kill switch preserved a rollback route until confidence was high. Shadowing temporarily accepts the very dual-write complexity the final design removes, but uses it as a bounded migration mechanism rather than a permanent correctness dependency.</p>
+<p>The reusable conclusion is conditional. Colocating coordination state with authoritative state can be worth more than raw cache speed when both must change atomically. A relational database with <code>SKIP LOCKED</code> can support high-throughput claiming when contention is spread across rows and the full shared-resource path is measured. Redis remains appropriate for many caches, rate limits, ephemeral coordination and queues; this case says to price the consistency boundary and operational surface, not to remove Redis by slogan.</p>
+
+<h2 id="9-design-review-questions">9. Design review questions</h2>
+<ol>
+  <li>Which invariant is currently split across Redis and the ledger, and can a crash violate it after either write?</li>
+  <li>Does the row model create independent lock targets, or does every buyer still queue on one item row?</li>
+  <li>How was the bounded-pool cap derived, and what measured event triggers replenishment or resizing?</li>
+  <li>What does an empty locking read lock under the chosen MySQL version and isolation level?</li>
+  <li>Can connection hold time be attributed to a business caller, not only a SQL digest?</li>
+  <li>How will shadow output be compared, cutover be staged and rollback remain safe?</li>
+</ol>

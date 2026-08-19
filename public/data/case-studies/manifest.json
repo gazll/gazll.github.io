@@ -246,6 +246,22 @@
       "original_language": "vi",
       "cover_image": "assets/case-studies/15-transactional-outbox-order-workflow/01-outbox-flow.svg",
       "cover_fit": "contain"
+    },
+    {
+      "n": 16,
+      "file": "case-studies/16-shopify-mysql-inventory-reservations.json",
+      "slug": "shopify-mysql-inventory-reservations",
+      "category": "systems-architecture",
+      "level": "advanced",
+      "featured": true,
+      "content_kind": "synthesis",
+      "company": "Shopify Engineering",
+      "published_at": "2026-05-12",
+      "read_minutes": 14,
+      "original_language": "en",
+      "cover_image": "assets/case-studies/16-shopify-mysql-inventory-reservations/01-reservation-flow.svg",
+      "cover_fit": "contain",
+      "source_url": "https://shopify.engineering/scaling-inventory-reservations"
     }
   ]
 }

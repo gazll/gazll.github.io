@@ -1,0 +1,22 @@
+{
+  "body_file": "data/case-studies/articles/16-shopify-mysql-inventory-reservations.html",
+  "guide": {
+    "title": "Read this as a state-locality and contention-design case—not as proof that MySQL always beats Redis.",
+    "problem": "Shopify kept short-lived inventory reservations in Redis while the authoritative inventory ledger lived in MySQL. Reserve operations were fast, but claiming a paid order required changes in two stores without one ACID boundary; the counter also lacked multi-location semantics and imposed a separate cluster's operating cost.",
+    "core_idea": "Move reservations beside the ledger and replace one hot quantity row with a bounded pool of rows representing reservable units. SELECT FOR UPDATE SKIP LOCKED lets concurrent checkouts acquire different rows; inline replenishment, READ COMMITTED isolation, a composite primary key and consistent lock ordering address the edge cases created by that model.",
+    "outcome": "Shopify reported meeting its 2025 peak targets after also finding the real throughput ceiling in database-connection usage outside reservation queries. Checkout cleanup removed 50% of primary reads and 33% of primary transactions; during high-volume flash sales, writer CPU stayed below 50% and reader CPU below 16%.",
+    "takeaways": [
+      "Redis was not removed because it was slow. It handled counter concurrency well; the architectural problem was that temporary reservations and the authoritative ledger could not participate in one local transaction, creating oversell and undersell failure windows.",
+      "SKIP LOCKED does not make a hot counter parallel. Parallelism came from changing the data model to independently lockable unit rows; SKIP LOCKED then allowed transactions to bypass rows already owned by another checkout.",
+      "The 1,000-row cap is workload-derived capacity, not a universal constant. It balances burst absorption against table and scan size and must be recalculated from peak reservation rate, replenishment latency, inventory distribution and database headroom.",
+      "Database correctness still required engine-aware work: READ COMMITTED avoided empty-range gap locks, a composite clustered key reduced locks per unit, consistent table ordering removed a deadlock cycle, and UNION ALL reduced cart-level round trips.",
+      "Low database CPU did not mean spare end-to-end capacity. Per-caller SQL tags at the application and ProxySQL layers exposed long connection hold times elsewhere in checkout, showing why connection occupancy must be measured alongside query latency and CPU."
+    ],
+    "review_lenses": [
+      "Atomicity: which reserve, release, expiry and claim transitions must commit with the ledger, and what invariant survives a crash at every transaction boundary?",
+      "Contention: what is the hottest item-location concurrency, how many independently lockable units exist, and what happens when demand exceeds both stock and pool capacity?",
+      "Database behavior: verify isolation-level semantics, query plans, lock counts, deadlock retries and empty-pool insertion behavior on the exact MySQL version and schema.",
+      "Operations: attribute connection hold time by caller, test shared-database neighbor safety, run shadow comparisons, and preserve an explicit rollback path during gradual cutover."
+    ]
+  }
+}

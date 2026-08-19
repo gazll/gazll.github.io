@@ -1,0 +1,102 @@
+<p>“Shopify bỏ Redis để quay về MySQL” là headline hấp dẫn nhưng che mất quyết định kỹ thuật thật. Redis không thất bại ở bài toán atomic counter tốc độ cao. Phần đắt đỏ nằm ở việc tách một business invariant—inventory khả dụng—giữa temporary-reservation counter trong Redis và authoritative ledger trong MySQL. Shopify đã thay state boundary, relational model và cách quan sát shared database capacity.</p>
+<p>Case study này là editorial synthesis từ bài Shopify Engineering tháng 5/2026. Peak 5,1 triệu USD sales mỗi phút, các tỷ lệ cắt giảm và số CPU bên dưới đều là kết quả Shopify báo cáo cho Black Friday 2025. Chúng mô tả một production workload, không phải benchmark MySQL-versus-Redis phổ quát.</p>
+
+<h2 id="1-the-invariant-before-the-technology">1. Bắt đầu từ invariant, không từ technology</h2>
+<p>Oversell protection có hai transition quan trọng. <strong>Reserve</strong> tạo hold ngắn khi payment đang xử lý. <strong>Claim</strong> trừ vĩnh viễn các unit đã thanh toán khỏi inventory ledger. Thời lượng hold cụ thể là policy; bài Shopify nói “vài phút”, không xác nhận một giá trị cố định 10 phút.</p>
+<p>Có hai lỗi ngược chiều. Nếu hai buyer cùng claim unit cuối, merchant phải hủy một order: oversell. Nếu system tiếp tục tính một hold đã hết hạn hoặc đã claim, nó từ chối buyer dù stock còn: undersell hay false sold-out. Correctness vì thế không chỉ là ngăn counter âm. Reserve, expiry, release và claim phải giữ một inventory invariant qua crash lẫn concurrency.</p>
+<p>Bài toán còn có location. Unit sẵn ở warehouse này có thể không đáp ứng checkout được gán cho fulfillment group khác. Global counter có thể đúng về số nhưng vẫn hứa fulfillment sai. Thiết kế thay thế của Shopify phải đồng thời có high throughput, multi-location awareness và atomic relationship với ledger.</p>
+
+<h2 id="2-why-the-redis-design-became-expensive">2. Vì sao Redis design trở nên đắt đỏ</h2>
+<p>Model trước đó giữ một quantity key cho mỗi item trong Redis. Reserve thì decrement counter; release thì increment. Đây chính là kiểu concurrency Redis xử lý tốt. Điểm yếu xuất hiện sau đó, khi payment thành công đòi hỏi cả permanent ledger change trong MySQL lẫn cleanup reservation trong Redis.</p>
+<p>Không local ACID transaction nào bao trùm hai store. Update MySQL trước tạo crash window trước khi cleanup Redis; update Redis trước tạo window ngược lại trước ledger change. Retry, idempotency và reconciliation có thể giảm rủi ro, nhưng chúng tạo một distributed workflow với nhiều state, alert và repair procedure hơn. Redis cũng thiếu biểu diễn multi-location mà thiết kế mới cần và đòi hỏi một production cluster riêng.</p>
+<p>Bài học hẹp hơn câu “cache làm tăng complexity”. Derived read cache thường có thể chấp nhận stale rồi rebuild từ source of truth. Reservation là coordination state trên correctness path của checkout. Khi hai system cùng quyết định một unit có được bán hay không, synchronization trở thành một phần product invariant chứ không chỉ là cache invalidation.</p>
+
+<h2 id="3-a-hot-counter-cannot-scale-by-wishing">3. Hot counter không scale chỉ bằng mong muốn</h2>
+<p>Đưa nguyên quantity counter đó vào MySQL sẽ đóng atomicity gap nhưng serialize flash sale. Hàng nghìn transaction cho một variant phổ biến đều update cùng record. Row-level lock bảo vệ correctness, nhưng biến row thành queue và giữ connection trong lúc caller chờ.</p>
+<p>Thiết kế “mỗi unit một row” ngây thơ vẫn có thể serialize nếu mọi transaction cùng select candidate đầu rồi chờ nó. Thay đổi quan trọng không chỉ là bung quantity thành nhiều row. Query phải cho contender đi qua candidate đang lock để lấy unit khác.</p>
+<pre><code>CREATE TABLE reservation_units (
+  shop_id bigint NOT NULL,
+  inventory_item_id bigint NOT NULL,
+  inventory_group_id bigint NOT NULL,
+  id bigint NOT NULL,
+  PRIMARY KEY (shop_id, inventory_item_id, inventory_group_id, id)
+);
+
+SELECT id
+FROM reservation_units
+WHERE shop_id = ?
+  AND inventory_item_id = ?
+  AND inventory_group_id = ?
+LIMIT ?
+FOR UPDATE SKIP LOCKED;</code></pre>
+<p><code>SKIP LOCKED</code> cố ý tạo view không nhất quán: caller không thấy eligible row đang bị transaction khác lock. Điều này hữu ích cho queue-like claiming, nơi không cần chờ row đầu tiên. Nó không phù hợp với general report đòi hỏi snapshot đầy đủ.</p>
+
+<h2 id="4-bounded-unit-rows-and-inline-replenishment">4. Bounded unit rows và inline replenishment</h2>
+<p>Biểu diễn mọi physical unit mãi mãi sẽ gây row explosion. Shopify đưa ví dụ một item có 50.000 unit ở mười location: literal model sẽ tạo 500.000 available-unit row. Thay vào đó, team cap available pool ở 1.000 row cho mỗi cặp item/location. Ledger vẫn giữ authoritative quantity; pool chỉ biểu diễn một lượng bounded capacity có thể claim ngay.</p>
+<figure class="cs-figure cs-figure-wide">
+  <button type="button" data-zoom-image aria-label="Mở toàn màn hình luồng inventory reservation của Shopify">
+    <img src="assets/case-studies/16-shopify-mysql-inventory-reservations/01-reservation-flow.svg" width="1200" height="650" loading="lazy" decoding="async" alt="Checkout transaction claim các bounded reservation-unit row cạnh MySQL inventory ledger bằng SKIP LOCKED.">
+  </button>
+  <figcaption>State locality đóng atomicity gap Redis–MySQL; bounded row phân tán contention mà không mirror toàn bộ stock.</figcaption>
+</figure>
+<p>Giá trị 1.000 được chọn từ observed peak reservation rate trong flash sale. Đây là capacity parameter có hai phía chi phí: quá nhỏ thì pool refill thường xuyên khi burst; quá lớn thì table và lock scan đắt không cần thiết. System khác phải suy ra cap riêng từ hot-key concurrency, refill time, location skew và database footprint chấp nhận được.</p>
+<p>Khi pool rỗng nhưng ledger vẫn còn stock, reserve path thực hiện replenishment inline. Một lock cho phép một transaction refill trong khi các reservation khác của item đó chờ, tránh mọi checkout cùng đua insert một lượng capacity giống nhau. Đây là slow path có chủ đích: buyer không bị báo false sold-out chỉ vì buffer tạm hết.</p>
+<p>Inline refill không có nghĩa expiry trở thành miễn phí hoặc system nào cũng xóa được cleanup job. Available calculation của Shopify loại active, unexpired reservation, nên hold hết hạn trở lại thành eligible capacity khi replenishment. Production implementation vẫn phải định nghĩa timestamp, clock semantics, race giữa claim và expiry, audit retention cùng physical cleanup cần thiết cho reservation record.</p>
+
+<h2 id="5-innodb-details-became-architecture">5. Chi tiết InnoDB trở thành architecture</h2>
+<p>Prototype đầu dùng auto-increment primary key và filter qua secondary index. InnoDB lock cả secondary-index record lẫn clustered primary-key record. Dùng <code>(shop_id, inventory_item_id, inventory_group_id, id)</code> làm primary key khiến lookup khớp clustering, giảm observed lock count từ hai xuống một trên mỗi reserved unit.</p>
+<p>Empty pool làm lộ một engine behavior khác. Dưới <code>REPEATABLE READ</code> mặc định của MySQL, locking read có thể lấy gap lock gồm cả supremum pseudo-record. Lock đó cản insert cần thiết để refill empty range và góp phần tạo deadlock. Shopify dùng <code>READ COMMITTED</code> cho các transaction này để replenishment insert mà không gặp cùng gap-lock behavior.</p>
+<p>Đây không phải khuyến nghị hạ isolation trên toàn hệ thống. Lựa chọn thuộc về transaction này và phải được kiểm chứng trên đúng MySQL version, index cùng query plan. <code>READ COMMITTED</code> thay đổi điều repeated read có thể thấy; application invariant phải đến từ locking write và constraint thay vì một snapshot được ngầm giả định.</p>
+<pre><code>BEGIN;
+
+SELECT id
+FROM reservation_units
+WHERE shop_id = ?
+  AND inventory_item_id = ?
+  AND inventory_group_id = ?
+LIMIT ?
+FOR UPDATE SKIP LOCKED;
+
+DELETE FROM reservation_units
+WHERE shop_id = ? AND inventory_item_id = ?
+  AND inventory_group_id = ? AND id IN (...);
+
+INSERT INTO reserved_quantities (...)
+VALUES (...);
+
+COMMIT;</code></pre>
+<p>Lock ordering giữa các table cũng quan trọng. Team thấy một cycle khi reserve insert vào <code>reserved_quantities</code> trước khi delete unit row, còn claim chạm reservation table theo order xung đột. Chuẩn hóa reserve thành delete unit trước rồi insert hold đã bỏ circular wait đó. Deadlock retry vẫn nên có, nhưng deterministic ordering giảm số lần cần retry.</p>
+
+<h2 id="6-batching-the-cart-without-changing-correctness">6. Batch cart mà không đổi correctness</h2>
+<p>Một checkout thường có nhiều line item. Gửi một database round trip cho từng item làm tăng latency và giữ application resource lâu hơn. Shopify batch locking select bằng <code>UNION ALL</code>, giữ predicate item/location cùng limit của mỗi branch trong một statement.</p>
+<pre><code>(SELECT id, inventory_item_id
+ FROM reservation_units
+ WHERE shop_id = ? AND inventory_item_id = ? AND inventory_group_id = ?
+ LIMIT ? FOR UPDATE SKIP LOCKED)
+UNION ALL
+(SELECT id, inventory_item_id
+ FROM reservation_units
+ WHERE shop_id = ? AND inventory_item_id = ? AND inventory_group_id = ?
+ LIMIT ? FOR UPDATE SKIP LOCKED);</code></pre>
+<p>Batching giảm protocol và connection overhead; nó không bỏ yêu cầu xác minh mọi cart line đã lấy đủ quantity trước khi commit. Partial result phải dẫn đến business outcome rõ ràng—retry sau refill, chọn fulfillment location khác hoặc từ chối toàn reservation theo policy—chứ không âm thầm tạo order chỉ được bảo vệ một phần.</p>
+
+<h2 id="7-the-bottleneck-was-connection-occupancy">7. Bottleneck nằm ở connection occupancy</h2>
+<p>Sau khi tối ưu query và lock, production test vẫn chạm throughput ceiling dưới target. Reservation P90 latency chấp nhận được và database CPU chưa saturated. Triệu chứng thấy được là MySQL thread xếp hàng, CPU burst khi queued work chạy và backend connection cạn tại ProxySQL.</p>
+<p>Aggregate connection count cho biết capacity đã hết nhưng không nói ai giữ nó. Shopify annotate SQL bằng business-process tag như <code>/* conn_tag:checkout_completion */</code>. Tracking phía ProxySQL attribute tổng connection hold time cho từng caller. Nó làm lộ checkout work khác đang giữ connection qua transaction dài; reservation là load mới khiến pool vốn gần cạn vượt ngưỡng.</p>
+<p>Dọn toàn checkout path loại 50% read và 33% transaction trên primary database. Team cũng xem lại InnoDB thread-concurrency setting bảo thủ từ nhiều năm trước. Kết hợp lại, các thay đổi gỡ ceiling. Trong flash sale volume cao, Shopify báo cáo writer CPU dưới 50% và reader CPU dưới 16%.</p>
+<p>Bài học metric quan trọng: query duration không phải connection occupancy. Một process có thể chạy từng statement nhanh nhưng giữ connection qua application work hoặc nhiều lần wait. Với shared database, cần review transaction duration, connection-seconds theo caller, queue time, lock wait, rollback/deadlock rate và CPU cùng nhau.</p>
+
+<h2 id="8-shadow-mode-and-the-decision-boundary">8. Shadow mode và decision boundary</h2>
+<p>Shopify không biến MySQL thành authoritative trong một bước. Ở shadow mode, reservation được write vào cả hai system trong khi Redis vẫn là source of truth. Engineer so business outcome và performance trên real traffic; Redis tiếp tục honor reservation hiện có trong lúc MySQL tích lũy state riêng, tránh một đợt migrate in-flight data.</p>
+<p>Sau validation, traffic được chuyển dần theo pod, từ pod volume thấp tới merchant lớn nhất. Dual-write path và kill switch giữ rollback route tới khi confidence đủ cao. Shadowing tạm chấp nhận đúng dual-write complexity mà final design muốn bỏ, nhưng dùng nó như migration mechanism có giới hạn thay vì permanent correctness dependency.</p>
+<p>Kết luận tái sử dụng được là kết luận có điều kiện. Colocate coordination state với authoritative state có thể đáng giá hơn raw cache speed khi cả hai phải đổi atomically. Relational database có <code>SKIP LOCKED</code> có thể hỗ trợ high-throughput claiming khi contention được trải qua nhiều row và toàn shared-resource path được đo. Redis vẫn phù hợp cho nhiều cache, rate limit, ephemeral coordination và queue; case này yêu cầu định giá consistency boundary cùng operational surface, không phải xóa Redis theo khẩu hiệu.</p>
+
+<h2 id="9-design-review-questions">9. Câu hỏi design review</h2>
+<ol>
+  <li>Invariant nào đang bị chia giữa Redis và ledger, và crash sau mỗi write có thể phá nó không?</li>
+  <li>Row model có tạo independent lock target không, hay mọi buyer vẫn xếp hàng ở một item row?</li>
+  <li>Bounded-pool cap được suy ra thế nào, và measured event nào trigger replenishment hoặc resize?</li>
+  <li>Empty locking read sẽ lock gì trên MySQL version và isolation level đã chọn?</li>
+  <li>Connection hold time có attribute được tới business caller, không chỉ SQL digest, hay chưa?</li>
+  <li>Shadow output được so thế nào, cutover chia giai đoạn ra sao và rollback giữ an toàn bằng gì?</li>
+</ol>
