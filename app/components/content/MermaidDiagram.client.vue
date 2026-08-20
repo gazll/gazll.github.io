@@ -9,7 +9,10 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div ref="root" class="diagram-frame" data-diagram-frame>
-    <pre class="mermaid">{{ props.source }}</pre>
-  </div>
+  <figure ref="root" class="sd-diagram" data-diagram-frame>
+    <div class="sd-diagram-viewport">
+      <pre class="mermaid" data-mermaid-diagram>{{ props.source }}</pre>
+    </div>
+    <p class="sd-mermaid-status" data-mermaid-status hidden>Diagram renderer unavailable. The editable Mermaid source remains below.</p>
+  </figure>
 </template>

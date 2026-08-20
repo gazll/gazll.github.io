@@ -96,13 +96,15 @@
   .tm-search input::-webkit-search-cancel-button{-webkit-appearance:none;appearance:none}
 
   .tm-list{max-height:min(58vh,430px);overflow-y:auto;scrollbar-width:thin;padding:6px}
-  .tm-row{width:100%;display:flex;align-items:center;gap:11px;cursor:pointer;font:inherit;color:inherit;
+  .tm-row{position:relative;width:100%;display:flex;align-items:center;gap:11px;cursor:pointer;font:inherit;color:inherit;
     text-align:left;border:1px solid transparent;background:none;border-radius:10px;padding:8px 10px;
     transition:background .13s ease,border-color .13s ease}
   .tm-row[hidden]{display:none}
   .tm-row:hover{background:var(--g-soft,var(--emerald-soft))}
   .tm-row:focus-visible{outline:2px solid var(--emerald);outline-offset:-2px}
   .tm-row[aria-selected="true"]{background:var(--g-soft,var(--emerald-soft));border-color:var(--g,var(--emerald))}
+  .tm-row+.tm-row{margin-top:3px}
+  .tm-row+.tm-row::before{content:"";position:absolute;left:10px;right:10px;top:-3px;border-top:1px solid var(--line)}
   .tm-n{flex:none;width:26px;font-family:"IBM Plex Mono",monospace;font-size:12px;font-weight:600;color:var(--g,var(--muted))}
   .tm-main{flex:1 1 auto;min-width:0;display:flex;flex-direction:column}
   .tm-label{font-size:14px;font-weight:500;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -191,6 +193,7 @@
 
   .np-body{flex:1 1 auto;overflow-y:auto;padding:6px 10px 12px;scrollbar-width:thin}
   .nv-sec{margin-top:12px}
+  .nv-sec+.nv-sec{margin-top:15px;padding-top:14px;border-top:1px solid var(--line)}
   .nv-sec:first-child{margin-top:6px}
   /* The lead control sits above the first section title. Same row shape as a
      navlink so the panel stays one list, boxed so it reads as the control it
@@ -215,6 +218,8 @@
 
   .navlink{display:flex;align-items:center;gap:11px;padding:9px 10px;border-radius:11px;
     border:1px solid transparent;text-decoration:none;color:inherit;transition:.15s ease;position:relative}
+  button.navlink{width:100%;font:inherit;text-align:left;cursor:pointer}
+  .navlink+.navlink{margin-top:3px}
   .navlink:hover{background:var(--paper);border-color:var(--line)}
   .navlink:focus-visible{outline:2px solid var(--emerald);outline-offset:1px}
   .nv-icon{width:19px;height:19px;flex:none;color:var(--muted);transition:color .15s ease}
@@ -225,6 +230,7 @@
   .nv-desc{font-size:11.5px;color:var(--muted);line-height:1.3;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .nv-ext{margin-left:auto;flex:none;font-size:12px;color:var(--muted);transition:.15s ease}
+  .nv-shortcut{margin-left:auto;flex:none;font-family:"IBM Plex Mono",monospace;font-size:9px;color:var(--muted);border:1px solid var(--line);border-radius:5px;padding:1px 5px;background:var(--surface)}
   .navlink.is-external:hover .nv-ext{color:var(--brass);transform:translate(1px,-1px)}
 
   .navlink[aria-current="true"]{background:var(--emerald-soft);border-color:#cfe6da}
@@ -513,6 +519,7 @@
   .cs-link-card a{display:block;padding:13px 15px;border:1px solid var(--line);border-radius:9px;background:#f8fafc;font-family:"IBM Plex Mono",monospace;font-size:12px;text-decoration:none}
 
   .cs-figure{margin:25px 0 28px;border:1px solid var(--line);border-radius:12px;background:#F8FAFC;padding:11px;overflow:hidden}
+  .cs-article-body img{display:block;max-width:100%;height:auto}
   .cs-figure-wide{margin-left:clamp(-26px,-2.6vw,-10px);margin-right:clamp(-26px,-2.6vw,-10px)}
   .cs-figure button{display:block;width:100%;padding:0;border:0;background:#fff;cursor:zoom-in;border-radius:8px;overflow:hidden}
   .cs-figure button:focus-visible{outline:3px solid var(--emerald);outline-offset:-3px}

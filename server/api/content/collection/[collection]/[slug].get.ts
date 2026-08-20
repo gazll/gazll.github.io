@@ -8,6 +8,9 @@ const COLLECTIONS: Record<string, string> = {
 };
 const read = (file: string) => readFile(path.join(process.cwd(), 'public', file), 'utf8');
 const json = async (file: string) => JSON.parse(await read(file));
+const normalizeBodyHtml = (html: string) => html
+  .replace(/\b(src|href)=(['"])assets\//g, '$1=$2/assets/')
+  .replace(/<figure(?![^>]*\bclass=)([^>]*)>/gi, '<figure class="cs-figure"$1>');
 
 export default defineEventHandler(async event => {
   const collection = getRouterParam(event, 'collection') || '';
@@ -30,10 +33,10 @@ export default defineEventHandler(async event => {
   const en = await json(sourcePath);
   let vi = null;
   try { vi = await json(viPath); } catch (error) {}
-  const enBody = await read(en.body_file);
+  const enBody = normalizeBodyHtml(await read(en.body_file));
   let viBody = enBody;
   if (vi?.body_file) {
-    try { viBody = await read(vi.body_file); } catch (error) {}
+    try { viBody = normalizeBodyHtml(await read(vi.body_file)); } catch (error) {}
   }
   return { collection, library: meta.library, categories: meta.categories, row, en, vi, enBody, viBody };
 });

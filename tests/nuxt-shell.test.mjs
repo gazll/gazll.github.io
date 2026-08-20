@@ -44,3 +44,48 @@ test('topic pages feed the native header all picker labels and navigation rows',
   assert.match(page, /:topics="headerTopics"/);
   assert.match(endpoint, /topicMeta: meta\.topics/);
 });
+
+test('collection indexes keep the card layout contract after the Nuxt migration', async () => {
+  const [collection, systemDesign] = await Promise.all([
+    read('app/components/content/CollectionIndex.vue'),
+    read('app/pages/system-design/index.vue')
+  ]);
+
+  for (const cssClass of ['cs-library', 'cs-category-head', 'cs-card-grid', 'cs-card-art', 'cs-card-content', 'cs-card-excerpt', 'cs-card-meta', 'cs-card-arrow']) {
+    assert.ok(collection.includes(cssClass), `collection index is missing ${cssClass}`);
+  }
+  assert.match(collection, /article\.category !== 'systems-architecture'/);
+  for (const cssClass of ['sd-library', 'sd-hero', 'sd-group', 'sd-list', 'sd-card-num', 'sd-card-main', 'sd-case-card']) {
+    assert.ok(systemDesign.includes(cssClass), `system design index is missing ${cssClass}`);
+  }
+});
+
+test('native article shells preserve responsive images, TOC, lightbox and Mermaid hooks', async () => {
+  const [article, endpoint, mermaid, design, styles] = await Promise.all([
+    read('app/components/content/CollectionArticle.vue'),
+    read('server/api/content/collection/[collection]/[slug].get.ts'),
+    read('app/components/content/MermaidDiagram.client.vue'),
+    read('app/pages/system-design/[slug].vue'),
+    read('public/styles.css')
+  ]);
+
+  for (const cssClass of ['cs-backbar', 'cs-guide', 'cs-toc-mobile', 'cs-article-grid', 'cs-toc', 'cs-article-body', 'cs-lightbox']) {
+    assert.ok(article.includes(cssClass), `collection article is missing ${cssClass}`);
+  }
+  assert.match(endpoint, /normalizeBodyHtml/);
+  assert.match(endpoint, /assets\\\//);
+  assert.match(endpoint, /class=\"cs-figure\"/);
+  assert.match(styles, /\.cs-article-body img\{display:block;max-width:100%;height:auto\}/);
+  assert.match(mermaid, /data-mermaid-diagram/);
+  assert.match(mermaid, /data-diagram-frame/);
+  assert.match(design, /class="sd-article-grid"/);
+  assert.match(design, /class="sd-article-body"/);
+});
+
+test('topic and navigation rows retain visible spacing and separators', async () => {
+  const styles = await read('public/styles.css');
+
+  assert.match(styles, /\.tm-row\+\.tm-row/);
+  assert.match(styles, /\.navlink\+\.navlink/);
+  assert.match(styles, /\.nv-sec\+\.nv-sec/);
+});
