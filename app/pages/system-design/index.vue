@@ -23,12 +23,17 @@ useHead(() => ({
   meta: [{ name: 'description', content: copy.value.intro }],
   link: [{ rel: 'stylesheet', href: '/styles.css' }, { rel: 'canonical', href: 'https://gazll.github.io/system-design' }]
 }));
+
+/* The group header is pinned by CSS; `is-stuck` is what makes a pinned header
+   shed its description instead of becoming a second hero. */
+const libraryRoot = useTemplateRef<HTMLElement>('libraryRoot');
+useStickyGroupHeads(libraryRoot, '.sd-group>header');
 </script>
 
 <template>
   <div>
     <ContentHeader :lang="lang" />
-    <main id="view-host" class="view">
+    <main id="view-host" ref="libraryRoot" class="view">
       <div class="sd-library">
         <header class="sd-hero">
           <p class="cs-eyebrow">{{ copy.eyebrow }}</p>

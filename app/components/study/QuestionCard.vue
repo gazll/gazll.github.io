@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { copyText } from '../../../public/lib/clipboard.js';
 import { renderMarkdown } from '~/utils/markdown.js';
 import { safeDecodeURIComponent } from '~/utils/uri.js';
 
@@ -67,6 +68,17 @@ onBeforeUnmount(() => {
   window.removeEventListener('hashchange', revealHash);
 });
 watch(() => props.lang, value => { localLang.value = value; });
+/* Switching one card's language replaces its answer markup, so the running
+   player must be stopped before the old nodes go and remounted against the
+   new ones — skip the stop and the setInterval keeps stepping a detached
+   figure. mountDsaPlayers takes the language explicitly because this switch
+   deliberately does not touch the global content language. */
+watch(localLang, async language => {
+  if (!open.value || !card.value || !dsaPlayer) return;
+  dsaPlayer.stopDsaPlayers(card.value);
+  await nextTick();
+  if (card.value) dsaPlayer.mountDsaPlayers(card.value, language);
+});
 watch(() => props.forceToken, () => setOpen(Boolean(props.forceOpen)));
 
 async function toggle() {
@@ -81,7 +93,7 @@ function queueNote() {
 async function copyLink() {
   const url = new URL(window.location.href);
   url.hash = `question-${props.item.id}`;
-  try { await navigator.clipboard.writeText(url.href); }
+  try { await copyText(url.href); }
   catch { window.prompt('Copy this link', url.href); }
   copied.value = true;
   window.setTimeout(() => { copied.value = false; }, 1600);

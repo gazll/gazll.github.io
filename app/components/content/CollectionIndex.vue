@@ -58,12 +58,17 @@ useHead(() => ({
     { rel: 'canonical', href: `https://gazll.github.io/${props.collection}` }
   ]
 }));
+
+const libraryRoot = useTemplateRef<HTMLElement>('libraryRoot');
+const sticky = useStickyGroupHeads(libraryRoot, '.cs-category-head');
+// Re-sorting replaces the rows the observer was watching.
+watch(sortMode, () => sticky.rebind());
 </script>
 
 <template>
   <div>
     <ContentHeader :lang="lang" />
-    <main id="view-host" class="view">
+    <main id="view-host" ref="libraryRoot" class="view">
       <div class="cs-library">
         <header class="cs-library-hero">
           <p class="cs-eyebrow">{{ copy.eyebrow }}</p>

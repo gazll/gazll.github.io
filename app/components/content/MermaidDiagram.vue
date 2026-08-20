@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { copyText } from '../../../public/lib/clipboard.js';
 const props = withDefaults(defineProps<{ source: string; title?: string; lang?: 'en' | 'vi' }>(), {
   title: 'Architecture', lang: 'en'
 });
@@ -13,20 +14,17 @@ function applyZoom(next: number) {
 }
 
 async function copySource() {
-  try {
-    await navigator.clipboard.writeText(props.source);
-  } catch {
-    const area = document.createElement('textarea');
-    area.value = props.source;
-    document.body.append(area);
-    area.select();
-    document.execCommand('copy');
-    area.remove();
-  }
+  // copyText keeps the execCommand fallback that local HTTP previews need.
+  try { await copyText(props.source); }
+  catch { window.prompt('Copy this diagram source', props.source); }
   copied.value = true;
   window.setTimeout(() => { copied.value = false; }, 1600);
 }
 
+/* Rendered on the server too, so the escaped source ships in the <pre> and the
+   diagram degrades to readable, copyable Mermaid when the renderer never
+   arrives. As a .client component this emitted a bare placeholder instead and
+   leaked the source as an HTML attribute. */
 onMounted(async () => {
   const module = await import(/* @vite-ignore */ '/lib/mermaid.js');
   await module.mountMermaidDiagrams(root.value);
@@ -49,7 +47,7 @@ onMounted(async () => {
       </span>
     </figcaption>
     <div class="sd-diagram-viewport">
-      <pre class="mermaid" data-mermaid-diagram>{{ props.source }}</pre>
+      <pre class="mermaid" data-mermaid-diagram>{{ source }}</pre>
     </div>
     <p class="sd-mermaid-status" data-mermaid-status hidden>Diagram renderer unavailable. The editable Mermaid source remains below.</p>
   </figure>

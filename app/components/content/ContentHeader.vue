@@ -102,6 +102,9 @@ function openSearch() {
 }
 
 watch(() => route.fullPath, () => { setDrawer(false); setTopic(false); });
+/* Hides the header on scroll-down and publishes --hdr-h, which every sticky
+   offset in styles.css is measured against. */
+useHeadroom();
 onMounted(() => {
   document.addEventListener('keydown', onKeydown);
   const updateAdmin = () => { isAdmin.value = Boolean(nuxtApp.$auth?.isAdmin); };
@@ -150,6 +153,7 @@ onBeforeUnmount(() => {
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5" /><path d="M16 16l4 4" /></svg>
           <span class="st-label">{{ localize('Search') }}</span><kbd class="st-key">{{ localize('Ctrl K') }}</kbd>
         </button>
+        <ClientOnly><StudyProgressRing :lang="lang" /></ClientOnly>
         <NuxtLink class="langswitch hdr-lang" role="switch" :aria-checked="lang === 'vi'" :aria-label="localize('Content language')" :to="{ path: route.path, query: { ...route.query, lang: lang === 'vi' ? 'en' : 'vi' }, hash: route.hash || undefined }">
           <span class="lang-label" data-lang="en">EN</span>
           <span class="lang-track" aria-hidden="true"><span class="lang-knob" /></span>
