@@ -40,9 +40,9 @@ test('a deploy stamps HTML, the complete local module graph and version metadata
   }
 });
 
-test('the Nuxt client bridge resolves release metadata without cache before loading compatibility controllers', async () => {
+test('the static-tool surface resolves release metadata before loading its controller', async () => {
   const root = path.resolve(import.meta.dirname, '..');
-  const bridge = await readFile(path.join(root, 'app/components/LegacySurface.client.vue'), 'utf8');
+  const bridge = await readFile(path.join(root, 'app/components/StaticToolSurface.client.vue'), 'utf8');
   const config = await readFile(path.join(root, 'nuxt.config.ts'), 'utf8');
   const workflow = await readFile(path.join(root, '.github/workflows/deploy.yml'), 'utf8');
 

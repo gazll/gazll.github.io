@@ -35,16 +35,15 @@ test('published CalebZone samples do not contain the source JWT secret', async (
   assert.doesNotMatch(all, /tE0FaSVdbAa2FfFet9q9\+4Ct\+SSM6231/i);
 });
 
-test('Project menu and renderer are wired as a hash-routable view', async () => {
-  const app = await readFile(path.join(publicRoot, 'app.js'), 'utf8');
-  const view = await readFile(path.join(publicRoot, 'views/project.js'), 'utf8');
-  const loader = await readFile(path.join(publicRoot, 'lib/project.js'), 'utf8');
-  assert.match(app, /id: 'project', sec: 'knowledge'/);
-  assert.match(app, /renderProject, mountProject/);
-  assert.match(view, /ProjectDocs\.load\(\)/);
-  assert.match(view, /renderSamples\(/);
-  assert.match(view, /renderDocuments\(/);
-  assert.match(loader, /data\/projects\/calebzone\/manifest\.json/);
+test('Project is wired through the native Nuxt page and endpoint', async () => {
+  const page = await readFile(path.join(root, 'app/pages/project.vue'), 'utf8');
+  const endpoint = await readFile(path.join(root, 'server/api/content/project.get.ts'), 'utf8');
+  assert.match(page, /useAsyncData\('project:calebzone'/);
+  assert.match(page, /project-documents/);
+  assert.match(page, /project-evidence/);
+  assert.match(page, /datePublished:/);
+  assert.match(page, /dateModified:/);
+  assert.match(endpoint, /projects\/calebzone\/manifest\.json/);
 });
 
 test('Markdown project documents render headings, tables and escaped fenced code', async () => {

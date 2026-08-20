@@ -2,9 +2,10 @@
 
 ## Project
 
-Study site for backend engineering interview prep. No framework, no build
-step, no package.json — vanilla ES modules served straight to the browser.
-`public/` is published to GitHub Pages by GitHub Actions.
+Study site for backend engineering interview prep. Nuxt 4 prerenders the
+Vue application to `.output/public/`, which GitHub Actions publishes to GitHub
+Pages. `public/` contains static styles, data, browser adapters and standalone
+tools that Nuxt copies into the generated artifact.
 
 **Two language layers, and they are not the same thing.**
 
@@ -36,19 +37,18 @@ says what it does. Keep them short.
 ## Layout
 
 ```
+app/                  Nuxt application: filesystem routes, native components and browser plugins
 public/
-  index.html         shell; loads the version-aware boot.js module
-  boot.js            fetches version.json no-store, then loads matching CSS + app graph
-  version.json       local "dev" release; deploy overwrites it with commit SHA + timestamp
-  app.js             entry: hash router, topic track view (24 of the 27 topics; 10–11 and 27 render in System Design)
+  version.json       local "dev" release metadata copied into the generated artifact
+  styles.css         shared visual tokens and compatibility-tool styles
   config.js          GITIGNORED. Generated at deploy time from repo variables
   config.example.js  template to copy for local dev
   lib/
     constants.js     TOPIC_TYPES, DIFFICULTIES — the closed-set identifiers, label source
     markdown.js      renderMarkdown + renderUser (escaping variant)
-    anchors.js       hash-router-safe heading permalinks and scroll restoration
+    anchors.js       compatibility permalink helpers used by retained data modules
     cross-ref.js     resolves a written (item-id) to the route that owns it
-    ui.js            chevSVG, BADGE, debounce, localDay
+    [removed]        native Vue components own their templates and interaction state
     i18n.js          shared language storage + paired base/.vi JSON loader
     content.js       topic data model; owns the global content language and change events
     collection.js    the bilingual article-collection factory: manifest + meta + paired
@@ -72,18 +72,10 @@ public/
     auth.js          Google Identity Services + header avatar/state machine
     store.js         offline-first progress, notes, study log
     interviews.js    interview journal data layer
-  views/
-    search.js        header search overlay (Ctrl/⌘+K) + the #/search/<query> panel
-    interviews.js    interview journal CRUD (<dialog>)
-    stats.js         streak + heatmap + per-topic progress
-    admin.js         all-user overview (admin role only)
-    system-design.js blueprint library + design/production-case reader, TOC, Mermaid tools
-    case-studies.js  long-form case-study library + article reader/lightbox
-    knowledge.js     Other Knowledge libraries + reader, one view per collection
-    project.js       Project SRS reader with architecture, requirements, source docs and code samples
-    release-notes.js bilingual changelog of the material; chrome stays English
-    dsa-player.js    play/pause/step control for the DSA animations
-  vendor/mermaid-11.16.1/  pinned upstream build; version lives in the directory name
+  dsa-player.js       play/pause/step control for DSA animations, loaded by QuestionCard
+  fshare-tool/        standalone FShare browser tool
+  course-registration/ standalone course-registration browser tool
+vendor/mermaid-11.16.1/  pinned upstream build; version lives in the directory name
   data/
     manifest.json       ordered list of every topic (n, topic_type, file, optional surface) — 27 rows
     meta.json            label/title/intro/tags/key/topic_type per topic, VI + EN in one file
@@ -176,7 +168,7 @@ secret/              GITIGNORED. Personal setup notes and credentials
 - **Every topic needs a `topic_type`.** One of `core` · `data` · `design` ·
   `platform` · `algorithm` · `microservice`, defined once in
   `lib/constants.js` (`TOPIC_TYPES`) and read from there everywhere —
-  `app.js`'s filter bar/stepper chip, `views/stats.js`, and
+  `app/components/study/TopicPage.vue`, `app/components/stats/StatsDashboard.client.vue`, and
   `validate-content.mjs`'s validation set all import it rather than
   re-typing the list. The colours are the `[data-topic-type="…"]`
   custom-property blocks in `styles.css`. A topic with an unknown
@@ -194,12 +186,11 @@ secret/              GITIGNORED. Personal setup notes and credentials
   instead.
 
 - **Markdown headings are permalinks.** `renderMarkdown` gives each Markdown
-  heading a local id and renders its text as an anchor. When a caller knows
-  its route, pass `headingRoute` (and `headingPrefix` when multiple documents
-  share a page) so the address becomes `#/view/item#heading`; the hash router
-  restores the view and scroll position on reload. Do not add a clipboard
-  action for this — clicking the heading updates the address bar and the
-  reader can copy it with the browser's normal controls.
+  heading a local id and renders its text as an anchor. Native pages use their
+  filesystem route plus the heading fragment, so the browser restores the
+  exact section on reload. Do not add a clipboard action for this — clicking
+  the heading updates the address bar and the reader can copy it with the
+  browser's normal controls.
 
 - **`renderMarkdown` never escapes, so `<` must be written `&lt;` everywhere
   in `data/topics/*.json`** — including inside inline code spans. `` `jcmd <pid>` ``
@@ -223,7 +214,7 @@ secret/              GITIGNORED. Personal setup notes and credentials
 
 - **Release notes are one entry per release, grouped by day at render time.**
   `data/release-notes.json` stays append-friendly — a new release is a new row,
-  newest first — and `groupByDate` in `views/release-notes.js` collects rows
+  newest first — and the `days` computed value in `app/pages/release-notes.vue` collects rows
   sharing a `date` under one heading, so the date is printed once however many
   releases it holds. Do not merge same-day releases by hand: several releases
   in one day is the normal case and each keeps its own title, with a
@@ -236,7 +227,7 @@ secret/              GITIGNORED. Personal setup notes and credentials
 - **A DSA animation is mounted, never rendered inline.** `renderMarkdown`
   returns a string, so topic 19's pattern items carry only
   `<figure class='dgm dsa-anim' data-dsa='two-pointers'></figure>` and
-  `views/dsa-player.js` fills it. `<figure>` and not `<div>`: `div` is not in
+  `lib/dsa-player.js` fills it. `<figure>` and not `<div>`: `div` is not in
   `validate-content.mjs`'s `KNOWN` tag list, so a `<div>` placeholder fails
   validation. Every path that replaces card markup must call `stopDsaPlayers`
   first and `mountDsaPlayers` after — `renderDay`, "Expand all", collapsing a
@@ -281,8 +272,8 @@ secret/              GITIGNORED. Personal setup notes and credentials
 - **The search index is a copy, so a language switch must drop it.**
   `SearchIndex.entries` holds flattened strings taken out of `Content.topics`,
   the blueprint catalog and the case-study guides — none of which are re-read
-  after the build. `views/search.js` registers its `Content.onChange` in
-  `mountSearchOverlay()`, which `app.js` calls **before** its own listener, so
+  after the build. `app/components/search/SearchOverlay.client.vue` fetches the
+  server search index on demand, so native route hydration does not block first paint.
   the index is invalidated before any view repaints from it. The archived
   case-study articles (~200KB per language) load in a second pass,
   `SearchIndex.enrich()`, and whatever is on screen repaints when it lands:
@@ -306,44 +297,7 @@ secret/              GITIGNORED. Personal setup notes and credentials
   the merge changed. Every remote call is best-effort: an Apps Script
   deployment without the `search.*` actions answers "Action không hợp lệ." and
   the reader must not notice.
-
-- **Legacy menu entries live in `VIEWS`.** `sec` picks the nav-panel section
-  (`technical` · `knowledge` · `tool`). A section marked `collapsible` defaults
-  to collapsed. An entry with `href` is an external destination: it renders as a
-  new-tab link and `currentViewId()` refuses to route to it, so a hash matching
-  its id falls back to the track. Nuxt owns the public routes now; browser-only
-  tools such as Fshare keep their static modules under `public/` and mount from
-  a client-only page in `app/pages/`.
-
-- **`place` moves a control out of the list without making it less routable.**
-  Two entries are controls rather than places to study, and each is drawn
-  somewhere the list is not: `place: 'lead'` (Search) renders as a boxed
-  `.navlink` **above the first section title**, and `place: 'head'`
-  (Release Notes) renders as a `.np-action` beside Close. Both keep their route,
-  their `aria-current` and their `data-view`. Three things this replaced, all of
-  which had actually gone wrong:
-
-  1. The boolean was `head: true` and both entries used it, which put Search
-     three levels away from where a reader looks for it.
-  2. A `place: 'head'` control **carries its label as visible text**, not as a
-     `title`/`aria-label` on a bare icon. Nobody recognises a changelog glyph, so
-     it read as decoration and went unclicked. Visible text also means no
-     `aria-label` — duplicating it gives a screen reader two names for one link.
-     The wordmark, not the label, is what shrinks when the panel is narrow.
-  3. The close-on-click handler binds to **`panelEl`**, matching
-     `.navlink, .np-action`. On `#mainnav` it never saw a `place: 'head'`
-     control, because that one lives in `.np-head` — so clicking it routed
-     correctly and left the drawer open over the view it had just opened.
-
-- **Project is an implementation snapshot, not another Study Track.** The
-  `Project` menu currently opens `#/project` and renders the CalebZone SRS from
-  `data/projects/calebzone/manifest.json`. The manifest points at copied source
-  documents and code/config samples so the page works after GitHub Pages deploy;
-  it cannot read the sibling `/home/.../calebzone` directory at runtime. Update
-  the snapshot deliberately, redact secrets before adding a sample, and keep
-  `locales.vi` aligned with the structured module/requirement/decision arrays
-  when the SRS is shown in Vietnamese. Source-document headings are scoped by
-  document id so their permalinks stay unique on the one Project page.
+- **Nuxt owns navigation and public routes.** `app/components/content/ContentHeader.vue` is the shared header/menu, and `app/pages/` owns route rendering. The old hash-router menu, view registry and hash migration are gone. Standalone browser tools keep their own isolated controllers under `public/fshare-tool/` and `public/course-registration/`, mounted through `StaticToolSurface`.
 
 - **Case studies are numbered and bilingual, but are not Study Track topics.**
   They do not have item ids, difficulty, reviewed state or notes, and never
@@ -426,27 +380,14 @@ secret/              GITIGNORED. Personal setup notes and credentials
   were only caught by the third check: a colour that clears white can still
   fail on its own tinted chip.
 
-- **Per-route metadata is `document.title` and `description`, and nothing
-  else.** `lib/page-metadata.js` deliberately does not write `og:*`,
-  `twitter:*` or `<link rel="canonical">`: the crawlers that read a social card
-  — Slack, Discord, Facebook, LinkedIn, X — fetch raw HTML and never execute
-  JavaScript, so a tag written after load reaches none of them. The site-level
-  card lives statically in `index.html`, and that is what an unfurled link
-  actually shows; per-route cards would need pre-rendered HTML per route, not
-  more DOM writing. Canonical is static for a second reason: every route here
-  differs only by the `#` fragment, which search engines drop when normalising,
-  so all of them canonicalise to the same document anyway. What remains is
-  real — the tab, history entries and bookmarks read `document.title`, and
-  Google does render JavaScript, so a per-route description is read there.
-  `tests/content-dates.test.mjs` asserts the helper stays out of the other tags.
+- **Route metadata belongs to Nuxt pages.** Keep titles and descriptions in
+  `useHead`/`useSeoMeta` where a page needs them. The removed hash-router
+  metadata helpers must not return to `public/lib`; generated HTML is the
+  deployable source of route metadata.
 
-- **One live region for the whole app, in the shell.** `#liveStatus` sits in
-  `index.html`, outside every view, and `announce()` in `lib/ui.js` is the only
-  writer. A live region rendered *inside* the markup it describes — as the
-  library sort's status node first was — is destroyed and re-registered on
-  every repaint, and a screen reader does not reliably read text that arrives
-  with the region itself. `announce()` clears then sets on the next frame,
-  because re-announcing an unchanged string is otherwise a no-op.
+- **Async state belongs to its owner.** Native Nuxt pages and components own
+  their loading, empty and error announcements. Keep fallback text beside the
+  pending operation so it cannot outlive or drift from that operation.
 
 - **An archived body's own links are governed too, just by different rules.**
   The `lib/constants.js` allowlists cover links *views* render. A preserved
@@ -493,7 +434,7 @@ secret/              GITIGNORED. Personal setup notes and credentials
   `case_overviews` entry, and the pairing is checked in both directions.
   A design whose notes came from somewhere other than topics 10–11/16 states
   where in its own `migrated_note` (one per language, beside `tags`).
-  `views/system-design.js` falls back to the COPY sentence, which names those
+  `app/pages/system-design/[slug].vue` renders the catalog-provided copy, which names those
   original topics and is wrong for anything else — so the sentence lives in the
   catalog with the rest of the prose. Never branch on a slug in the view.
 
@@ -526,7 +467,7 @@ secret/              GITIGNORED. Personal setup notes and credentials
      which is the "dính chữ" this replaced. The same split drives the trade-off
      cards (`<strong>` + `<p>`), so they match.
   3. **Three tones, and they must stay rare.** `emphasize()` in
-     `views/system-design.js` is the only thing that colours body text:
+     `app/pages/system-design/[slug].vue` is the only thing that colours body text:
      `.sd-crit` clay = the cost or what breaks, `.sd-note` emerald = the rule
      that settles a choice, `.sd-num` ink-bold = quantities. The patterns are
      **narrow multi-word phrases, deliberately not keyword lists** — an earlier
@@ -579,33 +520,11 @@ secret/              GITIGNORED. Personal setup notes and credentials
   already holds the escaped source, so the diagram degrades to readable,
   copyable Mermaid rather than a blank frame.
 
-- **Every Pages deploy is one immutable asset version.** `tools/stamp-assets.mjs`
-  writes the first 12 characters of `github.sha` plus `deployed_at` to
-  `public/version.json`, versions local JS/CSS references in HTML, and versions
-  every relative ESM import. Stamping only `app.js` is insufficient because its
-  dependencies would still be cacheable under old URLs. `boot.js` always fetches
-  `version.json` with `no-store`, swaps in that release's stylesheet, then imports
-  the matching app entry. Keep the bootstrap small, stable and free of app logic.
-
-- **One fragment navigation fires two events, so the router coalesces them.**
-  Clicking a `#/…` link raises **both** `popstate` and `hashchange` in Chrome.
-  Both were wired straight to `route()`, so every in-app navigation rendered
-  the view twice — invisible while both passes ended at `scrollTo(0)`, fatal
-  once anything wanted to keep a position: the second pass drops the shell back
-  to its loading state, the document collapses, and the browser clamps the
-  scroll to the top. `routeFromNavigation()` renders once per `location.href`;
-  direct `route()` calls (a language change, `refreshCurrentView()`) still
-  repaint unconditionally, which is what makes the guard safe.
-
-- **Leaving an article and coming back is a position, not a route.**
-  `lib/reading-position.js` writes the opened card's key to `sessionStorage`
-  when an article renders and consumes it when its library renders, so it
-  survives exactly one trip back and a borrowed browser never inherits it.
-  Two details are load-bearing: the restore scrolls the **window** rather than
-  calling `scrollIntoView` (the router's own smooth scroll to the top runs on
-  the same box and only a scroll on that box cancels it), and an explicit
-  `?…#anchor` outranks the remembered card. Cards opt in with `data-card-key`;
-  the key is matched in JS, never concatenated into a selector.
+- **Every Pages deploy carries one immutable asset version.**
+  `tools/stamp-assets.mjs` writes the first 12 characters of `github.sha` plus
+  `deployed_at` to `version.json` in the generated artifact and versions the
+  standalone compatibility modules' relative ESM imports. Nuxt owns the
+  application chunk hashing; do not reintroduce a hand-written bootstrap.
 
 - **The nav panel is `inert` while closed.** Without it the off-screen links
   stay in the tab order — the drawer is moved by `transform`, not `display`.
@@ -618,21 +537,11 @@ secret/              GITIGNORED. Personal setup notes and credentials
   full-bleed, so anchoring there parks the panel on the window edge while the
   rest of the page stays centred.
 
-- **The header is one row, and the topic picker is its title.** There is no
-  brand block and no second `.topicbar` line: `#topicPick` sits between the
-  nav toggle and `.headright`, carrying `track-only` so it disappears on every
-  other view. Nothing in the header names the current *view* — `showView()`
-  writes that into `document.title`, and the nav panel marks it with
-  `aria-current`.
-
 - **The header stays one row at every width, so it sheds instead of wrapping.**
-  The picker is the only flexible item in `.top-inner`; everything else is a
-  fixed-size control, so each thing dropped goes straight into the topic label.
-  In order: `.progress-meta` + `.tb-steps` at 760, the header switch's EN/VI
-  labels + `.tp-sub` at 600, `.progress-wrap` + `.syncstate` at 420. Below
-  ~375px the label ellipsises, which is fine — the hero right underneath names
-  the topic in full. Do not answer a cramped header with `flex-wrap`: that is
-  the two-row layout this replaced.
+  `ContentHeader.vue` owns the route links, topic picker and language switch;
+  the picker is the only flexible item in `.top-inner` and lower-priority
+  controls disappear at breakpoints. Do not answer a cramped header with
+  `flex-wrap`: the compact layout is intentional.
 
 - **`header.top` is a stacking context** (`position:sticky` + `z-index:50`),
   so anything inside it is trapped below 50 no matter its own `z-index`. That

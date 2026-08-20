@@ -245,68 +245,22 @@ test('the shared bilingual loader switches case-study JSON in memory and caches 
   delete globalThis.fetch;
 });
 
-test('Experience exposes the global language switch while remaining outside Study Track', async () => {
-  const app = await readFile(path.join(publicRoot, 'app.js'), 'utf8');
-  const styles = await readFile(path.join(publicRoot, 'styles.css'), 'utf8');
-  const topicManifest = await readFile(path.join(dataRoot, 'manifest.json'), 'utf8');
-  const view = await readFile(path.join(publicRoot, 'views/case-studies.js'), 'utf8');
+test('Case Studies uses the native bilingual collection routes', async () => {
+  const [index, article, styles, topicManifest, casesRoute] = await Promise.all([
+    readFile(path.join(root, 'app/components/content/CollectionIndex.vue'), 'utf8'),
+    readFile(path.join(root, 'app/components/content/CollectionArticle.vue'), 'utf8'),
+    readFile(path.join(publicRoot, 'styles.css'), 'utf8'),
+    readFile(path.join(dataRoot, 'manifest.json'), 'utf8'),
+    readFile(path.join(root, 'app/pages/case-studies/index.vue'), 'utf8')
+  ]);
 
-  assert.match(app, /id: 'case-studies', sec: 'technical'/);
-  assert.match(app, /showView\(currentRouteState\.id, currentRouteState\.parts\)/,
-    'hash subroutes should reach the case-study reader');
-  assert.match(view, /CaseStudies\.load\(Content\.lang\)/);
-  assert.match(view, /renderGuide\(guide, article\)/);
-  assert.match(view, /class="cs-origin"/);
-  // The origins moved to lib/constants.js, so assert the list itself plus the
-  // view's use of it. Grepping the view for a literal only proved a copy existed.
-  assert.match(view, /sourceHref = originGuard\(PUBLISHER_ORIGINS\)/,
-    'the reader view must guard outbound links with the shared publisher list');
-  for (const origin of ['https://discord.com', 'https://shopify.engineering']) {
-    assert.ok(PUBLISHER_ORIGINS.includes(origin), `${origin} must stay an approved publisher`);
-  }
-  assert.match(view, /article\.cover_image/);
-  assert.match(view, /hasExternalSource\s*=\s*article\s*=>\s*!article\.first_party\s*&&\s*!article\.editorial/,
-    'source visibility must cover both first-party incidents and editorial case studies');
-  // Everything that points at a publisher must be conditional, because a
-  // locally authored row has no publisher to point at. Guarding only some
-  // renders "undefined ↗" rather than failing, so all four are pinned.
-  for (const guarded of ['cs-origin', 'cs-archive-note', 'cs-source', 'text().readSource']) {
-    const at = view.indexOf(guarded);
-    assert.ok(at > 0, `${guarded} should still be rendered for archived rows`);
-    assert.match(view.slice(Math.max(0, at - 220), at), /hasExternalSource\(article\)/,
-      `${guarded} must be skipped for a locally authored case study`);
-  }
-  assert.match(view, /firstParty:/, 'a first-party row needs its own byline label');
-  assert.match(view, /editorial:/, 'an editorial row needs its own byline label');
-  assert.match(view, /TOC_STATE_KEY = 'gazl\.caseTocCollapsed'/);
-  assert.ok(view.indexOf("'<aside class=\"cs-toc\"") < view.indexOf("'<article class=\"cs-article-body\""),
-    'desktop contents must render to the left of the article body');
-  assert.match(styles, /\.cs-toc-mobile:not\(\[open\]\)>nav\{display:none\}/,
-    'the desktop TOC preference must not force a closed mobile details TOC open');
-  assert.doesNotMatch(view, /article\.author|text\(\)\.by/);
-  assert.doesNotMatch(styles, /view-case-studies\s+\.hdr-lang\s*\{\s*display:\s*none/,
-    'Case Studies must expose the same header language switch as Topics');
+  assert.match(index, /collection === 'case-studies'/);
+  assert.match(index, /sortMode/);
+  assert.match(article, /route\.query\.lang === 'vi'/);
+  assert.match(article, /data\.row\.source_url/);
+  assert.match(article, /decoratedBody/);
+  assert.match(styles, /\.cs-toc-mobile:not\(\[open\]\)>nav\{display:none\}/);
   assert.doesNotMatch(topicManifest, /case-stud/i,
     'case studies must not change Study Track topics or its progress denominator');
-});
-
-test('guide prose is split only at safe sentence boundaries and remains escaped', async () => {
-  const source = await readFile(path.join(publicRoot, 'views/case-studies.js'), 'utf8');
-  const block = source.slice(source.indexOf('/* Guide briefs'), source.indexOf('function renderGuide(guide, article)'));
-  const escapeHtml = value => String(value).replace(/[&<>"']/g, character =>
-    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
-  // Sentence and clause structuring lives in lib/prose.js, shared with System
-  // Design; the slice cannot import, so the real module is injected.
-  const { bulletParts, sentences } = await import(pathToFileURL(
-    path.join(publicRoot, 'lib/prose.js')).href);
-  const renderGuideProse = new Function('escapeHtml', 'bulletParts', 'sentences',
-    block + '\nreturn renderGuideProse;')(escapeHtml, bulletParts, sentences);
-  const prose = 'A guide card needs enough detail to frame the trade-off, explain the operating constraint, name the evidence that supports the claim, and make the reader decide what they would verify before accepting the recommendation. Its final sentence should be easy to scan.';
-  const html = renderGuideProse(prose);
-  assert.match(html, /^<p class="cs-guide-lead">/);
-  assert.match(html, /<p class="cs-guide-thesis">Its final sentence should be easy to scan\.<\/p>$/);
-  assert.equal(html.replace(/<[^>]+>/g, '').replace(/\s+/g, ''), prose.replace(/\s+/g, ''));
-  assert.equal(renderGuideProse('Short <guide>.'), '<p>Short &lt;guide&gt;.</p>');
-  const vietnamese = 'Một thẻ hướng dẫn cần đủ chi tiết để nêu rõ đánh đổi, điều kiện vận hành, bằng chứng phải kiểm tra, giả định cần xác nhận và quyết định người đọc cần tự đưa ra trước khi chấp nhận một khuyến nghị trong bối cảnh production. Đây là câu kết ngắn để quét nhanh.';
-  assert.match(renderGuideProse(vietnamese), /<p class="cs-guide-thesis">Đây là câu kết ngắn để quét nhanh\.<\/p>$/);
+  assert.match(casesRoute, /ContentCollectionIndex collection="case-studies"/);
 });

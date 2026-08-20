@@ -1,7 +1,7 @@
 /* Closed-set identifiers shared across data/ and the UI. A typo in a raw
    string like "algorith" or "hrad" fails silently — nothing reads these
-   values against a fixed set except tools/validate-content.mjs, so app.js
-   and views/* should read the `key` off these arrays/maps rather than
+   values against a fixed set except tools/validate-content.mjs, so the native
+   and native components should read the `key` off these arrays/maps rather than
    re-typing the literal.
 
    `label` is what the UI shows — English only, per CLAUDE.md's "interface
@@ -24,7 +24,7 @@ export const TOPIC_TYPES = [
 export const TOPIC_TYPE_LABEL = Object.fromEntries(TOPIC_TYPES.map(t => [t.key, t.label]));
 
 /** An item's difficulty. Drives the CORE/ADVANCED/EXTRA badge
-    (`BADGE` in lib/ui.js) and the `.difficulty-*` card accent in
+    in native question cards and the `.difficulty-*` card accent in
     styles.css. Renamed from the old `lvl` field to avoid reading like a
     second "type" next to topic_type. Keys match their label in lowercase
     (`core`/`advanced`/`extra`) — the old `hard`/`ext` keys read as a

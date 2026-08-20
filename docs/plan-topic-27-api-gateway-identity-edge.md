@@ -400,7 +400,7 @@ cross-ref mỗi ngôn ngữ** (718 cả EN+VI) ở dạng chữ chết.
 |---|---|
 | `public/lib/cross-ref.js` | **Mới.** `crossRefResolver({content, systemDesign})` → `(id) => {href, label}` hoặc `null`. On-track → `#/track/<id>`; off-track → `#/system-design/<slug>/<id>` qua `designForSourceItem`; không tra được → `null` |
 | `public/lib/markdown.js` | `renderMarkdown(md, options)` — tham số **tuỳ chọn** `resolveRef`. Không truyền = hành vi cũ y nguyên. Linkify chạy *sau* khi tách code span, và forward qua đệ quy `:::deep` |
-| `public/app.js` · `views/system-design.js` | Truyền resolver ở 3 call site: card câu hỏi, nút EN/VI từng card, và notes trong bài blueprint |
+| `app/components/study/QuestionCard.vue` · `app/pages/system-design/[slug].vue` | Truyền resolver ở card câu hỏi, nút EN/VI từng card và notes trong bài blueprint |
 | `public/styles.css` | `.xref` gạch chân **chấm** — con trỏ nội bộ nhìn khác link ra ngoài |
 | `tests/cross-ref.test.mjs` | **Mới**, 9 test |
 | `tools/validate-content.mjs` | Nay kiểm cross-ref **cả trong `.vi.json`** |

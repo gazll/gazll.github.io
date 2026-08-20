@@ -8,10 +8,10 @@ const root = path.resolve(import.meta.dirname, '..');
 const read = name => readFile(path.join(root, name), 'utf8');
 
 test('native readers keep their template and CSS contracts', async () => {
-  const [release, styles, gazl, question, design, middleware, header, overlay, search] = await Promise.all([
+  const [release, styles, gazl, question, design, header, overlay, search] = await Promise.all([
     read('app/pages/release-notes.vue'), read('public/styles.css'), read('app/components/gazl/GazlJournal.client.vue'),
     read('app/components/study/QuestionCard.vue'), read('app/pages/system-design/[slug].vue'),
-    read('app/middleware/legacy-hash.global.client.ts'), read('app/components/content/ContentHeader.vue'),
+    read('app/components/content/ContentHeader.vue'),
     read('app/components/search/SearchOverlay.client.vue'), read('app/pages/search.vue')
   ]);
 
@@ -20,11 +20,10 @@ test('native readers keep their template and CSS contracts', async () => {
   }
   assert.match(styles, /\.company-head h2/);
   assert.match(gazl, /empty-q/);
-  assert.match(question, /new URL\('\/views\/dsa-player\.js', window\.location\.origin\)/);
-  assert.doesNotMatch(question, /import\(\/\* @vite-ignore \*\/ '\/views\/dsa-player\.js'\)/);
+  assert.match(question, /new URL\('\/lib\/dsa-player\.js', window\.location\.origin\)/);
+  assert.doesNotMatch(question, /\/views\/dsa-player\.js/);
   assert.match(question, /safeDecodeURIComponent/);
   assert.match(design, /safeDecodeURIComponent/);
-  assert.match(middleware, /safeDecodeURIComponent/);
   assert.match(header, /hash: route\.hash \|\| undefined/);
   assert.match(overlay, /function rememberQuery/);
   assert.match(search, /@submit\.prevent="submitSearch"/);

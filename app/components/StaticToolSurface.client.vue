@@ -2,7 +2,6 @@
 const props = defineProps<{
   shell: string
   controller: string
-  legacyHash?: string
 }>();
 
 const mountPoint = useTemplateRef<HTMLElement>('mountPoint');
@@ -23,8 +22,6 @@ async function deployedVersion() {
 
 onMounted(async () => {
   try {
-    if (props.legacyHash && !window.location.hash) history.replaceState(null, '', props.legacyHash);
-
     const response = await fetch(props.shell, { cache: 'no-cache' });
     if (!response.ok) throw new Error(`Could not load ${props.shell}`);
     const source = await response.text();
@@ -42,8 +39,8 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div ref="mountPoint" class="nuxt-surface">
-    <p v-if="failure" class="nuxt-boot-error" role="alert">
+  <div ref="mountPoint" class="static-tool-surface">
+    <p v-if="failure" class="static-tool-error" role="alert">
       {{ failure }}
     </p>
   </div>

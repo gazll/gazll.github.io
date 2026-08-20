@@ -134,13 +134,8 @@ test('Gazl is a native Vue journal with CRUD, import, sync and Mermaid review', 
   }
 });
 
-test('legacy bookmarks and the CalebZone route survive the route migration', async () => {
-  const [middleware, config] = await Promise.all([
-    read('app/middleware/legacy-hash.global.client.ts'),
-    read('nuxt.config.ts')
-  ]);
-
-  for (const route of ['track', 'system-design', 'case-studies', 'project']) assert.ok(middleware.includes(route));
+test('the native project route keeps the old CalebZone alias redirect', async () => {
+  const config = await read('nuxt.config.ts');
   assert.match(config, /'\/project\/calebzone'/);
   assert.match(config, /statusCode: 301/);
 });

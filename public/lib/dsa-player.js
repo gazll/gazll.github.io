@@ -7,9 +7,9 @@
 
    Interface text is English like the rest of the chrome (CLAUDE.md); the step
    captions come from the animation data and follow the content language. */
-import { renderFrame, frameExtent, DEFAULT_STEP_MS, MIN_STEP_MS, MAX_STEP_MS } from '../lib/dsa-anim.js';
-import { fetchJson, localizedRecord } from '../lib/i18n.js';
-import { Content } from '../lib/content.js';
+import { renderFrame, frameExtent, DEFAULT_STEP_MS, MIN_STEP_MS, MAX_STEP_MS } from './dsa-anim.js';
+import { fetchJson, localizedRecord } from './i18n.js';
+import { Content } from './content.js';
 
 const DATA_URL = '/data/dsa-animations.json';
 let cache = null;

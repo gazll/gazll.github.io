@@ -45,7 +45,7 @@ async function setOpen(next: boolean) {
   if (open.value) {
     progress?.markReviewed(props.item.id);
     await nextTick();
-    const dsaPlayerUrl = new URL('/views/dsa-player.js', window.location.origin).href;
+    const dsaPlayerUrl = new URL('/lib/dsa-player.js', window.location.origin).href;
     dsaPlayer ||= await import(/* @vite-ignore */ dsaPlayerUrl);
     if (card.value) dsaPlayer.mountDsaPlayers(card.value, localLang.value);
   } else if (card.value && dsaPlayer) dsaPlayer.stopDsaPlayers(card.value);

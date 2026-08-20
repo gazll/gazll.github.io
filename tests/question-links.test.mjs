@@ -51,21 +51,16 @@ test('the immutable full id distinguishes repeated Q6 labels across sections', a
   assert.equal(found.item.id, secondQ6.id);
 });
 
-test('the track renders and wires one copy-link control per question', async () => {
-  const app = await readFile(path.join(root, 'public/app.js'), 'utf8');
+test('the native question card keeps one copy-link control per question', async () => {
+  const question = await readFile(path.join(root, 'app/components/study/QuestionCard.vue'), 'utf8');
   const styles = await readFile(path.join(root, 'public/styles.css'), 'utf8');
 
-  assert.match(app, /data-copy-qid=/);
-  assert.match(app, /<button class="qcopy" type="button"/);
-  assert.match(app, /<button class="langswitch qlangbtn" type="button" role="switch"/);
-  assert.doesNotMatch(app, /<span class="qcopy" role="button"/);
-  assert.match(app, /<div class="qtop"><button class="qhead"/);
-  assert.match(app, /showLinkedQuestion\(routeParts\)/);
-  assert.match(app, /scrollIntoView\(\{ block: 'start'/);
-  assert.match(app, /scrollToAnchor\(host, anchor, \{ behavior: 'auto' \}\)/,
-    'a copied heading URL must scroll the rendered view, not only Study Track cards');
-  assert.match(app, /mountResult\.then\(\(\) => requestAnimationFrame\(settleAnchor\)/,
-    'async views must retry the anchor after their body finishes loading');
+  assert.match(question, /<button class="qcopy" type="button"/);
+  assert.match(question, /class="langswitch qlangbtn" type="button" role="switch"/);
+  assert.doesNotMatch(question, /<span class="qcopy" role="button"/);
+  assert.match(question, /<button class="qhead" type="button"/);
+  assert.match(question, /scrollIntoView\(\{ block: 'start'/);
+  assert.match(question, /new URL\('\/lib\/dsa-player\.js'/);
   assert.match(styles, /\.qcard\.link-target/);
   assert.match(styles, /scroll-margin-top/);
 });

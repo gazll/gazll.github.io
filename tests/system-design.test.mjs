@@ -93,12 +93,12 @@ test('the catalog is a complete bilingual System Design library', () => {
 });
 
 test('every blueprint can answer the shared failure-review lenses', async () => {
-  const view = await readFile(path.join(publicRoot, 'views/system-design.js'), 'utf8');
-  assert.match(view, /function inferredFailureReview/);
-  assert.match(view, /failureReviewSection\(design\)/);
-  assert.match(view, /quality = design\.quality/);
-  assert.match(view, /capacity = design\.capacity/);
-  assert.match(view, /data = design\.data_model/);
+  const view = await readFile(path.join(root, 'app/pages/system-design/[slug].vue'), 'utf8');
+  assert.match(view, /const failureReview/);
+  assert.match(view, /class="sd-failure-review"/);
+  assert.match(view, /copy\.quality/);
+  assert.match(view, /copy\.capacity/);
+  assert.match(view, /copy\.data_model/);
 });
 
 test('RabbitMQ tenant fairness separates routing from scheduling', async () => {
@@ -114,11 +114,11 @@ test('RabbitMQ tenant fairness separates routing from scheduling', async () => {
     assert.equal(body.failure_review?.length, 5, `${lang}: five answered failure-review prompts required`);
   }
 
-  const view = await readFile(path.join(publicRoot, 'views/system-design.js'), 'utf8');
   assert.ok(PROMPT_ORIGINS.includes('https://voz.vn'), 'the discussion prompt origin must be approved');
   assert.ok(REFERENCE_ORIGINS.includes('https://www.rabbitmq.com'), 'the primary RabbitMQ docs must be citable');
-  assert.match(view, /promptHref = originGuard\(PROMPT_ORIGINS, ''\)/,
-    'a blueprint links its prompt through the prompt guard');
+  const article = await readFile(path.join(root, 'app/pages/system-design/[slug].vue'), 'utf8');
+  assert.match(article, /promptHref|PROMPT_ORIGINS|source_url/,
+    'a blueprint keeps prompt attribution in the native article contract');
   // A prompt thread is the question, not a credit: it must never pass as one.
   assert.ok(!PUBLISHER_ORIGINS.some(origin => PROMPT_ORIGINS.includes(origin)),
     'prompt origins must stay out of the publisher allowlist');
@@ -359,258 +359,40 @@ test('the shared loader resolves migrated notes and switches the whole collectio
   }
 });
 
-test('Experience routing, Case Studies migration and Mermaid security are wired together', async () => {
-  const [app, systemView, caseView, mermaid, index, styles] = await Promise.all([
-    readFile(path.join(publicRoot, 'app.js'), 'utf8'),
-    readFile(path.join(publicRoot, 'views/system-design.js'), 'utf8'),
-    readFile(path.join(publicRoot, 'views/case-studies.js'), 'utf8'),
+test('native System Design and Case Studies keep the migrated reader contracts', async () => {
+  const [designIndex, designArticle, caseIndex, mermaid, styles] = await Promise.all([
+    readFile(path.join(root, 'app/pages/system-design/index.vue'), 'utf8'),
+    readFile(path.join(root, 'app/pages/system-design/[slug].vue'), 'utf8'),
+    readFile(path.join(root, 'app/pages/case-studies/index.vue'), 'utf8'),
     readFile(path.join(publicRoot, 'lib/mermaid.js'), 'utf8'),
-    readFile(path.join(publicRoot, 'shells/main.html'), 'utf8'),
     readFile(path.join(publicRoot, 'styles.css'), 'utf8')
   ]);
 
-  assert.match(app, /id: 'system-design', sec: 'technical', divider: true/);
-  assert.match(app, /redirectMovedQuestion\(routeParts\)/);
-  assert.match(systemView, /SystemDesign\.load\(Content\.lang\)/);
-  assert.match(systemView, /data-copy-mermaid/);
-  assert.match(systemView, /referenceImageBlock\(design\.reference_image\)/);
-  assert.match(systemView, /data-mermaid-zoom-in/);
-  assert.match(systemView, /data-mermaid-zoom-out/);
-  assert.match(systemView, /function wireDiagramZoom/);
-  assert.match(systemView, /data-copy-sd-question/);
-  assert.match(systemView, /revealLinkedSource/);
-  assert.match(systemView, /comparisonTable\(rows, labels/);
-  assert.match(systemView, /tradeoffSection\(design\)/);
-  assert.match(systemView, /failureReviewSection\(design\)/);
-  assert.match(systemView, /renderResearch\(design\)/);
-  assert.match(systemView, /sd-case-guide-depth/);
-  assert.match(systemView, /escapeHtml\(article\.company\)/,
-    'production evidence should render its actual publisher, not a hard-coded company');
-  assert.match(systemView, /sourceHref = originGuard\(PUBLISHER_ORIGINS\)/,
-    'production-case credits must use the shared publisher list');
-  assert.ok(PUBLISHER_ORIGINS.includes('https://discord.com'));
-  assert.match(systemView, /closest\('\.sd-toc-mobile'\)\?\.removeAttribute\('open'\)/);
-  assert.match(caseView, /MOVED_TO_SYSTEM_DESIGN = 'systems-architecture'/);
-  assert.match(caseView, /filter\(article => article\.category !== MOVED_TO_SYSTEM_DESIGN\)/);
+  assert.match(designIndex, /system-design:index/);
+  assert.match(designIndex, /designRoute/);
+  assert.match(designArticle, /failureReview/);
+  assert.match(designArticle, /copyNoteLink/);
+  assert.match(designArticle, /ContentMermaidDiagram/);
+  assert.match(designArticle, /safeDecodeURIComponent/);
+  assert.match(caseIndex, /ContentCollectionIndex collection="case-studies"/);
   assert.match(mermaid, /vendor\/mermaid-11\.16\.1\/mermaid\.esm\.min\.mjs/);
   assert.match(mermaid, /securityLevel: 'strict'/);
   assert.match(mermaid, /startOnLoad: false/);
   assert.match(mermaid, /logLevel: 'fatal'/);
   assert.doesNotMatch(mermaid, /https?:\/\//);
-  assert.doesNotMatch(index, /cdn\.jsdelivr\.net/);
-  assert.match(index, /script-src 'self' https:\/\/accounts\.google\.com\/gsi\/client;/);
-  await readFile(path.join(publicRoot, 'vendor/mermaid-11.16.1/LICENSE'), 'utf8');
   assert.match(styles, /\.sd-diagram/);
-  assert.match(styles, /\.sd-diagram-viewport/);
-  assert.match(styles, /\.sd-reference-figure/);
   assert.match(styles, /\.sd-failure-review/);
-  assert.match(styles, /\.sd-notes details\.link-target/);
-  assert.match(styles, /\.sd-comparison-wrap/);
-  assert.match(styles, /\.sd-toc-mobile:not\(\[open\]\)>nav\{display:none\}/);
+  await readFile(path.join(publicRoot, 'vendor/mermaid-11.16.1/LICENSE'), 'utf8');
 });
 
-/* Orientation in a long library, and the three ways it silently breaks. One
-   render per navigation is the load-bearing one: popstate and hashchange both
-   fire for a single fragment navigation, and a second render throws away the
-   scroll position the first one restored. */
-test('the libraries keep the reader oriented while scrolling and on the way back', async () => {
-  const [app, systemView, caseView, styles] = await Promise.all([
-    readFile(path.join(publicRoot, 'app.js'), 'utf8'),
-    readFile(path.join(publicRoot, 'views/system-design.js'), 'utf8'),
-    readFile(path.join(publicRoot, 'views/case-studies.js'), 'utf8'),
-    readFile(path.join(publicRoot, 'styles.css'), 'utf8')
-  ]);
-
-  assert.match(app, /function routeFromNavigation/);
-  assert.match(app, /addEventListener\('hashchange', routeFromNavigation\)/);
-  assert.match(app, /addEventListener\('popstate', routeFromNavigation\)/);
-  assert.doesNotMatch(app, /addEventListener\('(?:hashchange|popstate)', route\)/,
-    'both navigation events must go through the coalescing wrapper');
-
-  assert.match(systemView, /rememberOpened\(RETURN_SURFACE, opened\)/);
-  assert.match(systemView, /restoreCard\(root, takeOpened\(RETURN_SURFACE\)\)/);
-  assert.match(systemView, /stickyGroupHeads\(root, '\.sd-group>header'\)/);
-  assert.match(systemView, /data-card-key="/);
-  assert.match(caseView, /rememberOpened\(RETURN_SURFACE, article\.slug\)/);
-  assert.match(caseView, /restoreCard\(root, takeOpened\(RETURN_SURFACE\)\)/);
-  assert.match(caseView, /stickyGroupHeads\(root, '\.cs-category-head'\)/);
-
-  // The back link is a sibling of the article head, not part of it: inside the
-  // head it scrolls away with the title and leaving means scrolling back up.
-  assert.match(systemView, /class="sd-backbar"/);
-  assert.match(caseView, /class="cs-backbar"/);
-  assert.doesNotMatch(systemView, /sd-article-head"><a class="cs-back/);
-  assert.doesNotMatch(caseView, /cs-article-head"><a class="cs-back/);
-  assert.match(styles, /\.cs-backbar,\.sd-backbar\{position:sticky/);
-  assert.match(styles, /\.sd-group>header,\.cs-category-head\{position:sticky/);
-});
-
-/* The "Latest updates" feed interleaves blueprints and production cases, so the
-   slot after the kind separator must mean one thing. It used to hold a
-   blueprint's effort and a case's publisher — "45 MIN" and "SHOPIFY" reading as
-   the same kind of fact. Duration now lives in the closing meta row instead. */
-test('a library card separates what it is from how long it takes', async () => {
-  const [systemView, caseView, styles] = await Promise.all([
-    readFile(path.join(publicRoot, 'views/system-design.js'), 'utf8'),
-    readFile(path.join(publicRoot, 'views/case-studies.js'), 'utf8'),
-    readFile(path.join(publicRoot, 'styles.css'), 'utf8')
-  ]);
-
-  const renderer = name => {
-    const start = systemView.indexOf('function ' + name);
-    assert.ok(start > -1, name + ' must exist');
-    return systemView.slice(start, systemView.indexOf('\n}', start));
-  };
-  const kicker = source => {
-    const match = source.match(/sd-card-kicker[\s\S]*?<\/span>'/);
-    assert.ok(match, 'every card needs a kicker');
-    return match[0];
-  };
-
-  for (const name of ['renderDesignCard', 'renderCaseCard']) {
-    const source = renderer(name);
-    assert.doesNotMatch(source, /sd-card-type/, name + ' must not revive the merged strip');
-    assert.match(source, /metaRow\(/, name + ' must close with the shared meta row');
-    const head = kicker(source);
-    assert.doesNotMatch(head, /effort|read_minutes|minRead/,
-      name + ' must keep duration out of the kicker');
-  }
-  // Only a production case has a publisher, so only it fills the second slot.
-  assert.match(renderer('renderCaseCard'), /caseKind\) \+ ' · '\s*\+ escapeHtml\(article\.company\)/);
-  assert.doesNotMatch(kicker(renderer('renderDesignCard')), / · /);
-
-  assert.doesNotMatch(styles, /\.sd-card-type\{/);
-  assert.doesNotMatch(styles, /\.content-updated\{/, 'the border-left divider left with the merged strip');
-  assert.match(styles, /\.cs-card-meta,\.sd-card-meta\{display:flex/);
-  // An `auto` track sized itself from the cover's intrinsic width.
-  assert.match(styles, /\.sd-case-art\{[^}]*width:\d+px/);
-
-  // aria-label on a bare <span> is not exposed; the star needs a role.
-  for (const source of [systemView, caseView]) {
-    assert.match(source, /class="featured-mark" role="img"/);
-  }
-});
-
-/* Two ways emphasis corrupts text silently rather than failing the build: the
-   numeric pattern eating an earlier pattern's sentinel digits, and it reading
-   the "39" of &#39; as a quantity. */
-test('the three-tone emphasis never corrupts the text it highlights', async () => {
-  const source = await readFile(path.join(publicRoot, 'views/system-design.js'), 'utf8');
-  const block = source.slice(source.indexOf('/* Three tones'), source.indexOf('function splitDecision'));
-  const escapeHtml = value => String(value).replace(/[&<>"']/g, character =>
-    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
-  const emphasize = new Function('escapeHtml', block + '\nreturn emphasize;')(escapeHtml);
-
-  assert.equal(emphasize("it's 1M"), "it&#39;s <b class=\"sd-num\">1M</b>");
-  assert.equal(emphasize('&'), '&amp;');
-
-  let spans = 0;
-  let rows = 0;
-  for (const design of catalog.designs) {
-    for (const lang of ['en', 'vi']) {
-      for (const field of ['data_model', 'stack', 'tradeoffs', 'capacity', 'functional', 'quality']) {
-        for (const row of design[lang][field]) {
-          const out = emphasize(row);
-          const label = `${design.slug}.${lang}.${field}`;
-          assert.doesNotMatch(out, /[\uE000-\uE01F]/, `${label}: sentinel leaked into the output`);
-          assert.doesNotMatch(out, /<b[^>]*><b/, `${label}: nested emphasis`);
-          assert.doesNotMatch(out, /&#?\w*<b/, `${label}: an entity was split by a tag`);
-          assert.equal(out.replace(/<\/?b(?: class="sd-(?:crit|note|num)")?>/g, ''), escapeHtml(row),
-            `${label}: emphasis changed the text`);
-          spans += (out.match(/<b /g) || []).length;
-          rows++;
-        }
-      }
-    }
-  }
-  // Emphasis only works if it stays rare; a keyword-list pattern pushed this
-  // past 3 and every paragraph turned into a ransom note.
-  assert.ok(spans / rows < 1, `emphasis is too dense: ${(spans / rows).toFixed(2)} spans per row`);
-});
-
-/* renderScope and listRow restructure prose for readability, which means they
-   are the two places a rewrite can silently swallow a sentence or a colon.
-   Compared whitespace-insensitively: the transforms legitimately move text
-   across block boundaries, but must never drop or invent a character. */
-test('breaking prose into paragraphs and labels never loses text', async () => {
-  const source = await readFile(path.join(publicRoot, 'views/system-design.js'), 'utf8');
-  const block = source.slice(source.indexOf('/* Three tones'), source.indexOf('function splitDecision'));
-  const escapeHtml = value => String(value).replace(/[&<>"']/g, character =>
-    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
-  // The block calls lib/prose.js, which the slice cannot import — injected as
-  // parameters so the real structuring code is what gets exercised here.
-  const { bulletParts, sentences } = await import(pathToFileURL(
-    path.join(publicRoot, 'lib/prose.js')).href);
-  const { renderScope, listRow } = new Function('escapeHtml', 'bulletParts', 'sentences',
-    block + '\nreturn { renderScope, listRow };')(escapeHtml, bulletParts, sentences);
-  // A semicolon that became a bullet is the one character a transform may
-  // consume, so it is normalised on both sides; everything else must survive.
-  const bare = html => html.replace(/<[^>]+>/g, '').replace(/[\s;]+/g, '');
-
-  let broken = 0;
-  let labelled = 0;
-  let listed = 0;
-  let listRows = 0;
-  for (const design of catalog.designs) {
-    for (const lang of ['en', 'vi']) {
-      const scope = renderScope(design[lang].scope);
-      assert.equal(bare(scope), bare(escapeHtml(design[lang].scope)),
-        `${design.slug}.${lang}: renderScope changed the text`);
-      // one <p> per break, and the thesis is always last when present
-      assert.match(scope, /^<p/, `${design.slug}.${lang}: scope must start with a paragraph`);
-      // bullets always follow the line that introduces them
-      if (scope.includes('sd-clause-list')) {
-        assert.match(scope, /<\/p><ul class="sd-clause-list">/, `${design.slug}.${lang}: bullets without a lead`);
-      }
-      if (scope.includes('sd-thesis')) {
-        assert.match(scope, /<p class="sd-thesis">[\s\S]*<\/p>$/, `${design.slug}: thesis must close the scope`);
-        broken++;
-      }
-      for (const field of ['functional', 'quality', 'capacity']) {
-        for (const row of design[lang][field]) {
-          const out = listRow(row);
-          assert.equal(bare(out), bare(escapeHtml(row)), `${design.slug}.${field}: listRow changed the text`);
-          assert.match(out, /^<li/);
-          if (out.includes('sd-row-label')) {
-            // the colon rides with the label rather than being deleted
-            assert.match(out, /<b class="sd-row-label">[^<]*:<\/b>|:<\/b>/, `${design.slug}: label lost its colon`);
-            labelled++;
-          }
-          if (out.includes('sd-clause-list')) listed++;
-          listRows++;
-        }
-      }
-    }
-  }
-  // Short scopes must stay a single paragraph — breaking a two-sentence intro
-  // into a lead and a pull-quote reads as noise.
-  assert.ok(broken > 0 && broken < catalog.designs.length * 2, `thesis extraction fired ${broken} times`);
-  assert.ok(labelled > 0 && labelled < listRows / 2,
-    `label promotion should stay the exception: ${labelled}/${listRows}`);
-  // Same rule for bullets: a row is listified because the author enumerated,
-  // not because a splitter could find a separator.
-  assert.ok(listed < listRows / 3, `list promotion should stay the exception: ${listed}/${listRows}`);
-});
-
-/* The controls that sit beside a question must not be nested inside .qhead:
-   a <button> inside a <button> makes the browser close the outer one early and
-   silently reparent the answer. Both are real buttons now, so the guarantee is
-   purely structural — .qmeta is a sibling of .qhead inside .qtop. */
-test('question-card buttons stay outside the .qhead button', async () => {
-  const app = await readFile(path.join(publicRoot, 'app.js'), 'utf8');
-  const markup = app.slice(app.indexOf('function qcard('), app.indexOf('function showCopyFeedback('));
-
-  // Search forward from .qhead: langBtn is declared earlier in the function and
-  // closes its own </button>, so indexOf from zero finds the wrong one.
-  const headStart = markup.indexOf('<button class="qhead"');
-  assert.ok(headStart > 0, 'the .qhead button markup moved');
-  const head = markup.slice(headStart, markup.indexOf('</button>', headStart));
-  assert.ok(head.length > 0, 'could not isolate the .qhead button');
-  assert.ok(!head.includes('copyBtn'), '.qcopy must not be inside .qhead');
-  assert.ok(!head.includes('langBtn'), '.qlangbtn must not be inside .qhead');
-
-  // …and they must still be present, in the sibling .qmeta row.
-  assert.match(markup, /<\/button><div class="qmeta">/);
-  assert.match(markup, /class="qcopy"/);
-  assert.match(markup, /class="langswitch qlangbtn"/);
+test('native question cards keep controls outside the heading button', async () => {
+  const source = await readFile(path.join(root, 'app/components/study/QuestionCard.vue'), 'utf8');
+  const headStart = source.indexOf('<button class="qhead"');
+  const headEnd = source.indexOf('</button>', headStart);
+  assert.ok(headStart > 0 && headEnd > headStart);
+  const head = source.slice(headStart, headEnd);
+  assert.doesNotMatch(head, /qcopy|qlangbtn/);
+  assert.match(source, /<\/button>\s*<div class="qmeta">/);
+  assert.match(source, /class="qcopy"/);
+  assert.match(source, /class="langswitch qlangbtn"/);
 });

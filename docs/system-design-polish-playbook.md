@@ -18,7 +18,7 @@ comes next, not about redoing them.
 You do not need to edit any of this per topic. Understanding it tells you how to
 write content that renders well.
 
-| Helper in `public/views/system-design.js` | What it does | Fires when |
+| Native System Design page/component | What it does | Fires when |
 |---|---|---|
 | `renderScope()` | Splits `scope` into a lead paragraph, a body paragraph, and a closing pull-quote (`.sd-thesis`) | Only if scope ≥ 260 chars **and** ≥ 3 sentences |
 | `listRow()` | Promotes a `Label: rest` lead-in onto its own line | Row starts with 4–60 chars then `: ` |
@@ -102,7 +102,7 @@ VI makes the two read differently. Fix them in the same edit.
 
 ## 3. Case Studies — not yet touched
 
-`public/views/case-studies.js` and the `.cs-*` rules in `styles.css` did **not**
+The native collection reader and the `.cs-*` rules in `styles.css` did **not**
 get this pass. The article bodies are trusted local HTML
 (`data/case-studies/articles/NN-slug[.vi].html`), so the approach must differ
 from the blueprints, where prose comes from JSON.

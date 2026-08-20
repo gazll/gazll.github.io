@@ -7,5 +7,5 @@ useHead({
 </script>
 
 <template>
-  <LegacySurface shell="/shells/fshare-tool.html" controller="/fshare-tool/app.js" />
+  <StaticToolSurface shell="/shells/fshare-tool.html" controller="/fshare-tool/app.js" />
 </template>

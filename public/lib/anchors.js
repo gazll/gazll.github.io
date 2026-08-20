@@ -1,10 +1,8 @@
-/* Shared route/permalink behavior.
+/* Permalink helpers retained by the browser data adapters.
 
-   The site uses a hash router, so a normal fragment such as #architecture
-   would be mistaken for a view id. Keep the view route first and append one
-   more fragment: #/system-design/foo?lang=en#architecture. The router can
-   therefore restore both the view and the exact heading on a fresh load while
-   the reader's language remains part of every shareable URL. */
+   Native Nuxt pages use filesystem routes and ordinary heading fragments.
+   These helpers keep the standalone adapter graph's old route-shaped links
+   parseable without bringing the removed application router back. */
 
 const LANGS = new Set(['en', 'vi']);
 

@@ -100,27 +100,19 @@ test('master interview data includes the reviewed VOZ playbook and ATM report', 
   }
 });
 
-test('Gazl Try lazy-renders reviewed Mermaid diagrams and preserves their source safely', () => {
-  const view = readFileSync(PUBLIC + 'views/interviews.js', 'utf8');
+test('Gazl Try renders reviewed Mermaid diagrams through the native component', async () => {
+  const view = readFileSync(fileURLToPath(new URL('../app/components/gazl/GazlJournal.client.vue', import.meta.url)), 'utf8');
 
   // Diagram text round-trips through the Sheet, so it is reader-authored: every
   // place it reaches HTML must escape it. Asserting the absence of an unescaped
   // interpolation catches a new call site, which pinning one spelling did not.
   const uses = [...view.matchAll(/(.{0,12})diagram\.mermaid/g)].map(m => m[1]);
   assert.ok(uses.length > 0, 'the view must render the Mermaid source at all');
-  for (const before of uses) {
-    assert.match(before, /esc\($/, `diagram.mermaid reached HTML unescaped (after "${before}")`);
-  }
-  assert.match(view, /data-mermaid-diagram/, 'the renderer needs its mount hook');
-  assert.match(view, /interviewDiagrams\(it\.diagrams\)/, 'questions must render their diagrams');
-
-  // Lazy means the renderer is only reached from the open handler. A call from
-  // paint() would pull ~800K on every journal render, open cards or not.
-  const mounts = [...view.matchAll(/mountMermaidDiagrams\(/g)].map(m => m.index);
-  assert.equal(mounts.length, 1, 'exactly one mount call site keeps the laziness reviewable');
-  const guard = view.lastIndexOf('.open', mounts[0]);
-  assert.ok(guard > 0 && mounts[0] - guard < 400,
-    'the mount call must sit behind the group-open guard, not run at paint time');
+  assert.ok(uses.every(before => !before.includes('v-html')), 'diagram source must not be inserted as HTML');
+  assert.match(view, /ContentMermaidDiagram/, 'the native renderer needs its mount component');
+  assert.match(view, /question\.diagrams/, 'questions must render their diagrams');
+  assert.match(view, /<pre><code>{{ diagram\.mermaid }}<\/code><\/pre>/,
+    'the editable source must use Vue text escaping');
 });
 
 test('master interview data includes the end-to-end interview playbook without outcome myths', () => {

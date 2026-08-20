@@ -8,7 +8,7 @@ export const KNOWLEDGE = Object.freeze({
   homelab: createCollection('data/homelab/')
 });
 
-/** Route id → collection. The route id is also the VIEWS entry id. */
+/** Route id → collection. */
 export function knowledgeCollection(id) {
   return KNOWLEDGE[id] || null;
 }

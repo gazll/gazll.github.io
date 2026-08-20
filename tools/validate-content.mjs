@@ -213,7 +213,7 @@ const catalog = readOptionalJson(DATA + 'system-design/catalog.json');
 // denominator is `items.length` minus this set, so it is reported below.
 const offTrack = new Set();
 // Must match PRODUCTION_CATEGORY in public/lib/system-design.js and
-// MOVED_TO_SYSTEM_DESIGN in public/views/case-studies.js.
+// MOVED_TO_SYSTEM_DESIGN in the native collection reader.
 const PRODUCTION_CATEGORY = 'systems-architecture';
 const DESIGN_LANG_KEYS = ['title', 'excerpt', 'scope', 'diagram_title'];
 const DESIGN_LANG_LISTS = ['functional', 'quality', 'capacity', 'data_model', 'stack', 'tradeoffs', 'tags'];

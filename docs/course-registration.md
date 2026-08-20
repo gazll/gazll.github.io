@@ -354,7 +354,7 @@ Mỗi phần tử `classes` chứa dữ liệu tóm tắt lớp, danh sách gi�
 - `public/shells/course-registration.html`: cấu trúc giao diện, form và kết quả phía client.
 - `public/course-registration/style.css`: giao diện responsive cho desktop/mobile.
 - `public/course-registration/app.js`: bridge, API transport, retry, parser, render và export.
-- `public/app.js`: thêm liên kết **Course Registration** vào menu Tool.
+- `app/components/content/ContentHeader.vue`: liên kết **Course Registration** nằm trong menu Nuxt hiện tại.
 
 ### Công cụ thử nghiệm ban đầu
 
