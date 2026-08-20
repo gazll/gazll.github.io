@@ -36,6 +36,23 @@ const headerTopics = computed(() => data.value!.rows.map((row: any) => ({
     || row.file.split('/').pop().replace(/\.json$/, '')
 })));
 const headerTopic = computed(() => headerTopics.value.find((row: any) => row.n === data.value!.row.n));
+const itemPairs = computed(() => {
+  const pairs: Record<string, any> = {};
+  for (const language of ['en', 'vi']) {
+    for (const section of data.value?.[language]?.sections || []) {
+      for (const item of section.items || []) (pairs[item.id] ||= {})[language] = {
+        ...item, reviewed_at: data.value?.reviews[item.id]?.reviewed_at || ''
+      };
+    }
+  }
+  return pairs;
+});
+const expandAll = ref(false);
+const expandToken = ref(0);
+function setAll(open: boolean) {
+  expandAll.value = open;
+  expandToken.value += 1;
+}
 
 useHead(() => ({
   htmlAttrs: { lang: lang.value },
@@ -70,12 +87,13 @@ useHead(() => ({
 
           <div class="toolbar">
             <span class="sectioncount">{{ itemCount }} items · {{ sections.length }} sections</span>
+            <div class="tb-actions"><button class="btn-ghost" type="button" @click="setAll(!expandAll)">{{ expandAll ? 'Collapse all' : 'Expand all' }}</button></div>
           </div>
           <template v-for="(section, sectionIndex) in sections" :key="section.title">
             <div :id="`${data!.stem}-section-${sectionIndex + 1}`" class="section-h">
               <span>{{ section.title }}</span><span class="sline" />
             </div>
-            <StudyQuestionCard v-for="item in section.items" :key="item.id" :item="item" :lang="lang" />
+            <StudyQuestionCard v-for="item in section.items" :key="item.id" :item="item" :pair="itemPairs[item.id]" :lang="lang" :source-owners="data!.sourceOwners" :force-open="expandAll" :force-token="expandToken" />
           </template>
         </div>
 

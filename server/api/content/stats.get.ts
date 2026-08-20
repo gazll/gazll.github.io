@@ -7,6 +7,7 @@ export default defineEventHandler(async () => {
     .filter((topic: any) => topic.track_item_ids?.length)
     .map((topic: any) => ({
       n: topic.n,
+      key: topic.key,
       ids: topic.track_item_ids,
       en: meta.topics[String(topic.n)]?.en?.label || '',
       vi: meta.topics[String(topic.n)]?.vi?.label || meta.topics[String(topic.n)]?.en?.label || ''

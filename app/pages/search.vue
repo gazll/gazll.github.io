@@ -5,6 +5,20 @@ const lang = computed<'en' | 'vi'>(() => route.query.lang === 'vi' ? 'vi' : 'en'
 const query = ref(String(route.query.q || ''));
 const surface = ref(String(route.query.surface || 'all'));
 const { data: entries } = await useAsyncData('search:index', () => $fetch<any[]>('/api/content/search-index'));
+const nuxtApp = useNuxtApp() as any;
+const recent = ref<any[]>([]);
+let stopHistory: (() => void) | null = null;
+const labels = computed(() => lang.value === 'vi' ? {
+  eyebrow: 'Tìm kiếm', title: 'Mọi thứ, ở một nơi', intro: 'Một truy vấn cho Lộ trình học, blueprint System Design, case study, nhiếp ảnh và ghi chú home server. Mỗi kết quả đều cho biết thư viện của nó.',
+  placeholder: 'Tìm câu hỏi, blueprint và case study…', searchAria: 'Tìm kiếm toàn bộ nội dung', surface: 'Khu vực tìm kiếm', recent: 'Tìm kiếm gần đây', clear: 'Xóa hết',
+  start: 'Bắt đầu nhập để tìm trên mọi thư viện GAZLL.', noResult: 'Không có kết quả cho “{query}”. Hãy thử từ khóa ngắn hoặc rộng hơn.', result: 'kết quả', results: 'kết quả', in: 'trong', for: 'cho', all: 'Tất cả',
+  track: 'Lộ trình học', system: 'System Design', cases: 'Case Studies', photography: 'Nhiếp ảnh', homelab: 'NAS / Home Server'
+} : {
+  eyebrow: 'Search', title: 'Everything, in one place', intro: 'One query across the Study Track, System Design blueprints, case studies, photography and home-server notes. Every result names the library it belongs to.',
+  placeholder: 'Search questions, blueprints and case studies…', searchAria: 'Search all material', surface: 'Search surface', recent: 'Recent searches', clear: 'Clear all',
+  start: 'Start typing to search every GAZLL library.', noResult: 'No result matches “{query}”. Try fewer or broader terms.', result: 'result', results: 'results', in: 'in', for: 'for', all: 'All',
+  track: 'Study Track', system: 'System Design', cases: 'Case Studies', photography: 'Photography', homelab: 'NAS / Home Server'
+});
 const fold = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 const matchingEntries = computed(() => {
   const terms = fold(query.value).split(/\s+/).filter(Boolean);
@@ -15,15 +29,15 @@ const matchingEntries = computed(() => {
   });
 });
 const results = computed(() => matchingEntries.value.filter(entry => surface.value === 'all' || entry.surface === surface.value).slice(0, 200));
-const surfaces = [
-  { id: 'all', label: 'All' },
-  { id: 'track', label: 'Study Track' },
-  { id: 'system-design', label: 'System Design' },
-  { id: 'case-studies', label: 'Case Studies' },
-  { id: 'photography', label: 'Photography' },
-  { id: 'homelab', label: 'NAS / Home Server' }
-];
-const surfaceLabels = Object.fromEntries(surfaces.map(item => [item.id, item.label]));
+const surfaces = computed(() => [
+  { id: 'all', label: labels.value.all },
+  { id: 'track', label: labels.value.track },
+  { id: 'system-design', label: labels.value.system },
+  { id: 'case-studies', label: labels.value.cases },
+  { id: 'photography', label: labels.value.photography },
+  { id: 'homelab', label: labels.value.homelab }
+]);
+const surfaceLabels = computed(() => Object.fromEntries(surfaces.value.map(item => [item.id, item.label])));
 const surfaceBadges: Record<string, string> = { track: 'TOPIC', 'system-design': 'DESIGN', 'case-studies': 'CASE', photography: 'PHOTO', homelab: 'LAB' };
 const countFor = (id: string) => id === 'all' ? matchingEntries.value.length : matchingEntries.value.filter(entry => entry.surface === id).length;
 const groupedResults = computed(() => Object.entries(results.value.reduce<Record<string, any[]>>((groups, entry) => {
@@ -52,7 +66,14 @@ watch(() => route.query.surface, value => {
 onMounted(() => {
   query.value = String(route.query.q || '');
   surface.value = String(route.query.surface || 'all');
+  const syncHistory = () => { recent.value = [...(nuxtApp.$searchHistory?.entries || [])]; };
+  syncHistory();
+  stopHistory = nuxtApp.$searchHistory?.onChange(syncHistory) || null;
 });
+onBeforeUnmount(() => stopHistory?.());
+function rememberQuery() { if (query.value.trim()) nuxtApp.$searchHistory?.record(query.value.trim()); }
+function followResult() { rememberQuery(); }
+function submitSearch() { rememberQuery(); }
 
 useHead({
   title: 'Search — GAZLL',
@@ -67,26 +88,27 @@ useHead({
     <main id="view-host" class="view">
       <div class="page gs-page">
         <header class="gs-page-head">
-          <p class="cs-eyebrow">Search</p>
-          <h1>Everything, in one place</h1>
-          <p class="gs-page-intro">One query across the Study Track, System Design blueprints, case studies, photography and home-server notes. Every result names the library it belongs to.</p>
-          <form class="gs-page-box" role="search" @submit.prevent>
+          <p class="cs-eyebrow">{{ labels.eyebrow }}</p>
+          <h1>{{ labels.title }}</h1>
+          <p class="gs-page-intro">{{ labels.intro }}</p>
+          <form class="gs-page-box" role="search" @submit.prevent="submitSearch">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5" /><path d="M16 16l4 4" /></svg>
-            <input v-model="query" class="gs-input" type="search" autofocus autocomplete="off" spellcheck="false" placeholder="Search questions, blueprints and case studies…" aria-label="Search all material">
+            <input v-model="query" class="gs-input" type="search" autofocus autocomplete="off" spellcheck="false" :placeholder="labels.placeholder" :aria-label="labels.searchAria">
           </form>
         </header>
-        <div v-if="query" class="gs-filters" role="group" aria-label="Search surface">
+        <div v-if="query" class="gs-filters" role="group" :aria-label="labels.surface">
           <button v-for="item in surfaces" :key="item.id" type="button" class="gchip gs-chip" :aria-pressed="surface === item.id" @click="surface = item.id">
             {{ item.label }} <span class="gcount">{{ countFor(item.id) }}</span>
           </button>
         </div>
         <div class="gs-page-body">
-          <p v-if="!query" class="gs-empty">Start typing to search every GAZLL library.</p>
-          <p v-else-if="!results.length" class="gs-empty">No result matches “{{ query }}”. Try fewer or broader terms.</p>
-          <p v-else class="gs-count">{{ results.length }} result{{ results.length === 1 ? '' : 's' }}{{ surface === 'all' ? '' : ` in ${surfaceLabels[surface]}` }} for <b>{{ query }}</b></p>
+          <section v-if="!query && recent.length" class="gs-group gs-history"><h3>{{ labels.recent }} <button type="button" class="gs-clear" @click="nuxtApp.$searchHistory?.clear()">{{ labels.clear }}</button></h3><div v-for="entry in recent" :key="entry.q" class="gs-recent-row"><button type="button" class="gs-recent" @click="query = entry.q">{{ entry.q }}</button><button type="button" class="gs-forget" @click="nuxtApp.$searchHistory?.remove(entry.q)">×</button></div></section>
+          <p v-else-if="!query" class="gs-empty">{{ labels.start }}</p>
+          <p v-else-if="!results.length" class="gs-empty">{{ labels.noResult.replace('{query}', query) }}</p>
+          <p v-else class="gs-count">{{ results.length }} {{ results.length === 1 ? labels.result : labels.results }}{{ surface === 'all' ? '' : ` ${labels.in} ${surfaceLabels[surface]}` }} {{ labels.for }} <b>{{ query }}</b></p>
           <section v-for="([resultSurface, rows]) in groupedResults" :key="resultSurface" class="gs-group">
             <h3>{{ surfaceLabels[resultSurface] }} <span>{{ rows.length }}</span></h3>
-            <NuxtLink v-for="result in rows" :key="result.id" class="gs-hit" :to="resultRoute(result.href)">
+            <NuxtLink v-for="result in rows" :key="result.id" class="gs-hit" :to="resultRoute(result.href)" @click="followResult">
               <span class="gs-hit-badge">{{ surfaceBadges[result.surface] }}</span>
               <span class="gs-hit-main">
                 <span class="gs-hit-title">{{ lang === 'vi' ? result.vi : result.en }}</span>

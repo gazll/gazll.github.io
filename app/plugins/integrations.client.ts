@@ -22,7 +22,9 @@ export default defineNuxtPlugin(async () => {
 
   Store.attachAuth();
   SearchHistory.attachAuth();
-  await Auth.init();
+  // Google Identity Services is an optional network integration. Hydration and
+  // all offline features must not wait for that script to load.
+  void Auth.init();
 
   return { provide: { auth: Auth, studyStore: Store, searchHistory: SearchHistory, apiCall: call } };
 });

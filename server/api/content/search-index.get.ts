@@ -12,13 +12,17 @@ export default defineEventHandler(async () => {
   ]);
 
   const topicByKey = new Map(Object.values(meta.topics).map((row: any) => [row.key, row]));
+  const sourceOwners = new Map(systemDesign.designs.flatMap((design: any) =>
+    (design.source_items || []).map((id: string) => [id, design.slug])));
   const entries = Object.entries(index.items).map(([id, text]: [string, any]) => {
     const topicKey = id.split('.')[0];
     const topic: any = topicByKey.get(topicKey);
     return {
       id, surface: 'track', en: text.en, vi: text.vi || text.en,
       contextEn: topic?.en?.title || '', contextVi: topic?.vi?.title || topic?.en?.title || '',
-      href: `/topics/${topicKey}#question-${encodeURIComponent(id)}`
+      href: sourceOwners.has(id)
+        ? `/system-design/${sourceOwners.get(id)}#question-${encodeURIComponent(id)}`
+        : `/topics/${topicKey}#question-${encodeURIComponent(id)}`
     };
   });
   for (const design of systemDesign.designs) entries.push({

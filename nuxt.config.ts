@@ -21,7 +21,7 @@ function contentRoutes() {
 
   return [
     '/', '/search', '/api/content/search-index', '/gazl', '/stats', '/admin', '/system-design', '/case-studies',
-    '/project', '/photography', '/homelab', '/release-notes', '/fshare-tool',
+    '/project', '/project/calebzone', '/photography', '/homelab', '/release-notes', '/fshare-tool',
     '/course-registration', ...topicRoutes, ...designRoutes, ...caseRoutes, ...photoRoutes, ...homelabRoutes
   ];
 }
@@ -36,7 +36,17 @@ export default defineNuxtConfig({
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-        { name: 'referrer', content: 'no-referrer' }
+        { name: 'referrer', content: 'no-referrer' },
+        { property: 'og:type', content: 'website' },
+        { property: 'og:site_name', content: 'GAZLL' },
+        { name: 'twitter:card', content: 'summary' }
+      ],
+      link: [
+        { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
+        { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+        { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
+        { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap' },
+        { rel: 'stylesheet', href: '/styles.css' }
       ]
     }
   },
@@ -47,6 +57,7 @@ export default defineNuxtConfig({
     }
   },
   routeRules: {
+    '/project/calebzone': { redirect: { to: '/project', statusCode: 301 } },
     '/**': { prerender: true }
   }
 });

@@ -7,6 +7,27 @@ const drawerOpen = ref(false);
 const topicOpen = ref(false);
 const topicQuery = ref('');
 const searchOverlay = ref<{ open: (query?: string) => void }>();
+const nuxtApp = useNuxtApp() as any;
+const isAdmin = ref(false);
+let stopAuth: (() => void) | null = null;
+
+const viLabels: Record<string, string> = {
+  Technical: 'Kỹ thuật', Experience: 'Trải nghiệm', Tools: 'Công cụ', 'Study Track': 'Lộ trình học',
+  'Interview preparation topics': 'Chủ đề chuẩn bị phỏng vấn', 'Interview journal and notes': 'Nhật ký và ghi chú phỏng vấn',
+  Stats: 'Thống kê', 'Progress and study activity': 'Tiến độ và hoạt động học', 'All-user overview': 'Tổng quan toàn bộ người dùng',
+  'Architecture blueprints': 'Blueprint kiến trúc', 'Engineering deep dives': 'Phân tích kỹ thuật chuyên sâu', Project: 'Dự án',
+  'Selected work and experience': 'Công việc và trải nghiệm đã chọn', Photography: 'Nhiếp ảnh', 'Field notes and visual stories': 'Ghi chép thực địa và câu chuyện hình ảnh',
+  'NAS / Home Server': 'NAS / Home Server', 'Self-hosting and infrastructure': 'Tự host và hạ tầng', 'Fshare Bulk Copy': 'Fshare Bulk Copy',
+  'Copy many Fshare links at once': 'Sao chép nhiều link Fshare cùng lúc', 'Course Registration': 'Đăng ký môn học',
+  'Plan and register course sets': 'Lập kế hoạch và đăng ký nhóm môn', 'Release Notes': 'Ghi chú phát hành', Search: 'Tìm kiếm',
+  'Knowledge Base': 'Kho kiến thức', topic: 'chủ đề', 'Open navigation menu': 'Mở menu điều hướng', 'Previous topic': 'Chủ đề trước',
+  'Next topic': 'Chủ đề tiếp theo', 'Search all material': 'Tìm kiếm toàn bộ nội dung', 'Search (Ctrl+K)': 'Tìm kiếm (Ctrl+K)',
+  'Content language': 'Ngôn ngữ nội dung', 'Close menu': 'Đóng menu', 'Filter topics…': 'Lọc chủ đề…', 'Filter topics': 'Lọc chủ đề',
+  Topics: 'Chủ đề', 'Nothing matches that filter.': 'Không có kết quả phù hợp.', 'Main navigation': 'Điều hướng chính',
+  'Header controls': 'Điều khiển header', 'One query across every surface': 'Một truy vấn cho mọi khu vực', 'Ctrl K': 'Ctrl K',
+  'Skip to content': 'Tới nội dung chính', 'Toggle contents': 'Bật/tắt mục lục', 'Everything works signed out — progress is saved on this device.': 'Mọi thứ đều dùng được khi đăng xuất — tiến độ được lưu trên thiết bị này.'
+};
+const localize = (value: string) => props.lang === 'vi' ? viLabels[value] || value : value;
 
 const navGroups = [
   { label: 'Technical', links: [
@@ -35,10 +56,13 @@ const routeLabels: Record<string, string> = {
   '/course-registration': 'Course Registration', '/release-notes': 'Release Notes', '/search': 'Search'
 };
 const currentLabel = computed(() => {
-  if (routeLabels[route.path]) return routeLabels[route.path];
+  if (routeLabels[route.path]) return localize(routeLabels[route.path]);
   const prefix = Object.keys(routeLabels).filter(key => key !== '/' && route.path.startsWith(`${key}/`)).sort((a, b) => b.length - a.length)[0];
-  return routeLabels[prefix] || 'Knowledge Base';
+  return localize(routeLabels[prefix] || 'Knowledge Base');
 });
+const visibleNavGroups = computed(() => navGroups.map(group => ({
+  ...group, links: group.links.filter(link => link.to !== '/admin' || isAdmin.value)
+})));
 const currentTopicIndex = computed(() => props.topics?.findIndex(row => row.n === props.topic?.n) ?? -1);
 const previousTopic = computed(() => props.topics?.[currentTopicIndex.value - 1]);
 const nextTopic = computed(() => props.topics?.[currentTopicIndex.value + 1]);
@@ -78,24 +102,30 @@ function openSearch() {
 }
 
 watch(() => route.fullPath, () => { setDrawer(false); setTopic(false); });
-onMounted(() => document.addEventListener('keydown', onKeydown));
+onMounted(() => {
+  document.addEventListener('keydown', onKeydown);
+  const updateAdmin = () => { isAdmin.value = Boolean(nuxtApp.$auth?.isAdmin); };
+  updateAdmin();
+  stopAuth = nuxtApp.$auth?.onChange(updateAdmin) || null;
+});
 onBeforeUnmount(() => {
   document.removeEventListener('keydown', onKeydown);
+  stopAuth?.();
   document.body.classList.remove('nav-open', 'topic-open');
 });
 </script>
 
 <template>
-  <a class="skiplink" :href="topic ? '#view-track' : '#view-host'">Skip to content</a>
+  <a class="skiplink" :href="topic ? '#view-track' : '#view-host'">{{ localize('Skip to content') }}</a>
   <header class="top">
     <div class="top-inner">
-      <button class="navtoggle" type="button" aria-label="Open navigation menu" :aria-expanded="drawerOpen" aria-controls="navPanel" @click="setDrawer(true)">
+      <button class="navtoggle" type="button" :aria-label="localize('Open navigation menu')" :aria-expanded="drawerOpen" aria-controls="navPanel" @click="setDrawer(true)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
       </button>
 
       <button v-if="topic" class="topicpick" type="button" aria-haspopup="listbox" :aria-expanded="topicOpen" aria-controls="topicMenu" @click="setTopic(!topicOpen)">
         <span class="tp-n" :data-topic-type="topic.topic_type">{{ String(topic.n).padStart(2, '0') }}</span>
-        <span class="tp-text"><span class="tp-label">{{ topic.label }}</span><span class="tp-sub">{{ topic.topic_type }} topic</span></span>
+        <span class="tp-text"><span class="tp-label">{{ topic.label }}</span><span class="tp-sub">{{ topic.topic_type }} {{ localize('topic') }}</span></span>
         <svg class="tp-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9" /></svg>
       </button>
       <NuxtLink v-else class="topicpick" :to="withLang('/')">
@@ -104,23 +134,23 @@ onBeforeUnmount(() => {
       </NuxtLink>
 
       <div v-if="topic && topics?.length" class="tb-steps">
-        <NuxtLink v-if="previousTopic" class="tstep" :to="withLang(topicPath(previousTopic))" aria-label="Previous topic">
+        <NuxtLink v-if="previousTopic" class="tstep" :to="withLang(topicPath(previousTopic))" :aria-label="localize('Previous topic')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><polyline points="15 6 9 12 15 18" /></svg>
         </NuxtLink>
-        <button v-else class="tstep" type="button" disabled aria-label="Previous topic" />
+        <button v-else class="tstep" type="button" disabled :aria-label="localize('Previous topic')" />
         <span class="tb-count"><b>{{ currentTopicIndex + 1 }}</b>/{{ topics.length }}</span>
-        <NuxtLink v-if="nextTopic" class="tstep" :to="withLang(topicPath(nextTopic))" aria-label="Next topic">
+        <NuxtLink v-if="nextTopic" class="tstep" :to="withLang(topicPath(nextTopic))" :aria-label="localize('Next topic')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><polyline points="9 6 15 12 9 18" /></svg>
         </NuxtLink>
-        <button v-else class="tstep" type="button" disabled aria-label="Next topic" />
+        <button v-else class="tstep" type="button" disabled :aria-label="localize('Next topic')" />
       </div>
 
-      <nav class="headright" aria-label="Header controls">
-        <button id="searchTrigger" class="searchtrigger" type="button" aria-label="Search all material" title="Search (Ctrl+K)" @click="openSearch">
+      <nav class="headright" :aria-label="localize('Header controls')">
+        <button id="searchTrigger" class="searchtrigger" type="button" :aria-label="localize('Search all material')" :title="localize('Search (Ctrl+K)')" @click="openSearch">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5" /><path d="M16 16l4 4" /></svg>
-          <span class="st-label">Search</span><kbd class="st-key">Ctrl K</kbd>
+          <span class="st-label">{{ localize('Search') }}</span><kbd class="st-key">{{ localize('Ctrl K') }}</kbd>
         </button>
-        <NuxtLink class="langswitch hdr-lang" role="switch" :aria-checked="lang === 'vi'" aria-label="Content language" :to="{ path: route.path, query: { ...route.query, lang: lang === 'vi' ? 'en' : 'vi' } }">
+        <NuxtLink class="langswitch hdr-lang" role="switch" :aria-checked="lang === 'vi'" :aria-label="localize('Content language')" :to="{ path: route.path, query: { ...route.query, lang: lang === 'vi' ? 'en' : 'vi' }, hash: route.hash || undefined }">
           <span class="lang-label" data-lang="en">EN</span>
           <span class="lang-track" aria-hidden="true"><span class="lang-knob" /></span>
           <span class="lang-label" data-lang="vi">VI</span>
@@ -131,14 +161,14 @@ onBeforeUnmount(() => {
       <div v-if="topic" id="topicMenu" class="topicmenu" :hidden="!topicOpen">
         <div class="tm-search">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5" /><path d="M16 16l4 4" /></svg>
-          <input v-model="topicQuery" type="search" placeholder="Filter topics…" autocomplete="off" aria-label="Filter topics">
+          <input v-model="topicQuery" type="search" :placeholder="localize('Filter topics…')" autocomplete="off" :aria-label="localize('Filter topics')">
         </div>
-        <div class="tm-list" role="listbox" aria-label="Topics">
+        <div class="tm-list" role="listbox" :aria-label="localize('Topics')">
           <NuxtLink v-for="row in filteredTopics" :key="row.n" class="tm-row" :data-topic-type="row.topic_type" :aria-selected="row.n === topic.n" :to="withLang(topicPath(row))">
             <span class="tm-n">{{ String(row.n).padStart(2, '0') }}</span>
             <span class="tm-main"><span class="tm-label">{{ row.label }}</span><span class="tm-meta">{{ row.topic_type }}</span></span>
           </NuxtLink>
-          <p v-if="!filteredTopics.length" class="tm-empty">Nothing matches that filter.</p>
+          <p v-if="!filteredTopics.length" class="tm-empty">{{ localize('Nothing matches that filter.') }}</p>
         </div>
       </div>
     </div>
@@ -146,14 +176,14 @@ onBeforeUnmount(() => {
 
   <div v-if="topic" class="topic-scrim" aria-hidden="true" @click="setTopic(false)" />
   <div class="nav-scrim" aria-hidden="true" @click="setDrawer(false)" />
-  <aside id="navPanel" class="navpanel" aria-label="Main navigation" :aria-hidden="!drawerOpen" :inert="!drawerOpen">
+  <aside id="navPanel" class="navpanel" :aria-label="localize('Main navigation')" :aria-hidden="!drawerOpen" :inert="!drawerOpen">
     <div class="np-head">
       <div class="np-brand"><span class="seal">&lt;/&gt;</span><b>GAZLL</b></div>
       <div class="np-actions">
         <NuxtLink class="np-action" :aria-current="route.path === '/release-notes'" :to="withLang('/release-notes')">
-          <svg class="nv-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h9l3 3v15H6zM9 11h6M9 15h6" /></svg><span>Release Notes</span>
+          <svg class="nv-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h9l3 3v15H6zM9 11h6M9 15h6" /></svg><span>{{ localize('Release Notes') }}</span>
         </NuxtLink>
-        <button class="np-close" type="button" aria-label="Close menu" @click="setDrawer(false)">
+        <button class="np-close" type="button" :aria-label="localize('Close menu')" @click="setDrawer(false)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
         </button>
       </div>
@@ -161,18 +191,18 @@ onBeforeUnmount(() => {
     <nav class="np-body">
       <button class="navlink nv-lead" type="button" @click="openSearch">
         <svg class="nv-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="6.5" /><path d="M16 16l4 4" /></svg>
-        <span class="nv-text"><span class="nv-label">Search</span><span class="nv-desc">One query across every surface</span></span>
-        <span class="nv-shortcut">Ctrl K</span>
+        <span class="nv-text"><span class="nv-label">{{ localize('Search') }}</span><span class="nv-desc">{{ localize('One query across every surface') }}</span></span>
+        <span class="nv-shortcut">{{ localize('Ctrl K') }}</span>
       </button>
-      <section v-for="group in navGroups" :key="group.label" class="nv-sec">
-        <h2 class="nv-sectitle">{{ group.label }}</h2>
+      <section v-for="group in visibleNavGroups" :key="group.label" class="nv-sec">
+        <h2 class="nv-sectitle">{{ localize(group.label) }}</h2>
         <NuxtLink v-for="link in group.links" :key="link.to" class="navlink" :aria-current="isCurrent(link.to) ? 'page' : undefined" :to="withLang(link.to)">
           <svg class="nv-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path v-for="path in link.icon" :key="path" :d="path" /></svg>
-          <span class="nv-text"><span class="nv-label">{{ link.label }}</span><span class="nv-desc">{{ link.desc }}</span></span>
+          <span class="nv-text"><span class="nv-label">{{ localize(link.label) }}</span><span class="nv-desc">{{ localize(link.desc) }}</span></span>
         </NuxtLink>
       </section>
     </nav>
-    <p class="np-foot">Everything works signed out — progress is saved on this device.</p>
+    <p class="np-foot">{{ localize('Everything works signed out — progress is saved on this device.') }}</p>
   </aside>
   <ClientOnly><SearchOverlay ref="searchOverlay" :lang="lang" /></ClientOnly>
 </template>

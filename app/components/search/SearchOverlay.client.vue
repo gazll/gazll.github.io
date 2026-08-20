@@ -18,14 +18,27 @@ const loading = ref(false);
 const loadError = ref(false);
 const input = ref<HTMLInputElement>();
 const activeIndex = ref(-1);
+const { $searchHistory } = useNuxtApp() as any;
+const historyRevision = ref(0);
+let stopHistory: (() => void) | null = null;
+const recent = computed(() => { historyRevision.value; return $searchHistory?.entries || []; });
+const labels = computed(() => props.lang === 'vi' ? {
+  search: 'Tìm kiếm câu hỏi, blueprint và case study…', searchAria: 'Tìm kiếm toàn bộ nội dung', dialog: 'Tìm kiếm', esc: 'Esc',
+  loading: 'Đang tải thư viện…', error: 'Không thể tải tìm kiếm. Hãy đóng panel và thử lại.', recent: 'Tìm kiếm gần đây', clear: 'Xóa hết',
+  empty: 'Nhập vài từ để tìm trên mọi khu vực kiến thức.', noResult: 'Không có kết quả cho “{query}”. Hãy thử từ khóa ngắn hoặc rộng hơn.',
+  seeAll: 'Xem toàn bộ kết quả cho “{query}”', footer: 'Tìm kiếm trên mọi thư viện GAZLL', navigate: 'di chuyển', open: 'mở'
+} : {
+  search: 'Search questions, blueprints and case studies…', searchAria: 'Search all material', dialog: 'Search', esc: 'Esc',
+  loading: 'Loading the libraries…', error: 'Search could not load. Close this panel and try again.', recent: 'Recent searches', clear: 'Clear all',
+  empty: 'Type a few words to search every study and knowledge surface.', noResult: 'No result matches “{query}”. Try fewer or broader terms.',
+  seeAll: 'See all results for “{query}”', footer: 'Search across every GAZLL library', navigate: 'navigate', open: 'open'
+});
 
-const surfaceLabels: Record<string, string> = {
-  track: 'Study Track',
-  'system-design': 'System Design',
-  'case-studies': 'Case Studies',
-  photography: 'Photography',
-  homelab: 'NAS / Home Server'
-};
+const surfaceLabels = computed<Record<string, string>>(() => props.lang === 'vi' ? {
+  track: 'Lộ trình học', 'system-design': 'System Design', 'case-studies': 'Case Studies', photography: 'Nhiếp ảnh', homelab: 'NAS / Home Server'
+} : {
+  track: 'Study Track', 'system-design': 'System Design', 'case-studies': 'Case Studies', photography: 'Photography', homelab: 'NAS / Home Server'
+});
 const surfaceBadges: Record<string, string> = {
   track: 'TOPIC', 'system-design': 'DESIGN', 'case-studies': 'CASE', photography: 'PHOTO', homelab: 'LAB'
 };
@@ -73,11 +86,17 @@ function routeFor(entry: SearchEntry) {
   return { path, hash: hash ? `#${hash}` : '', query: props.lang === 'vi' ? { lang: 'vi' } : {} };
 }
 async function follow(entry: SearchEntry) {
+  if (query.value.trim()) $searchHistory?.record(query.value.trim());
   close(false);
   await router.push(routeFor(entry));
 }
-async function showAll() {
+function rememberQuery() {
   const value = query.value.trim();
+  if (value) $searchHistory?.record(value);
+  return value;
+}
+async function showAll() {
+  const value = rememberQuery();
   close(false);
   await router.push({ path: '/search', query: { ...(value ? { q: value } : {}), ...(props.lang === 'vi' ? { lang: 'vi' } : {}) } });
 }
@@ -108,23 +127,27 @@ function onKeydown(event: KeyboardEvent) {
 
 defineExpose({ open });
 watch(results, () => { activeIndex.value = -1; });
-onMounted(() => document.addEventListener('keydown', onKeydown));
-onBeforeUnmount(() => { document.removeEventListener('keydown', onKeydown); document.body.classList.remove('search-open'); });
+onMounted(() => {
+  document.addEventListener('keydown', onKeydown);
+  stopHistory = $searchHistory?.onChange(() => { historyRevision.value += 1; }) || null;
+});
+onBeforeUnmount(() => { stopHistory?.(); document.removeEventListener('keydown', onKeydown); document.body.classList.remove('search-open'); });
 </script>
 
 <template>
   <div class="gs-scrim" :hidden="!isOpen" aria-hidden="true" @click="close()" />
-  <section class="gs-overlay" :hidden="!isOpen" role="dialog" aria-modal="true" aria-label="Search">
+  <section class="gs-overlay" :hidden="!isOpen" role="dialog" aria-modal="true" :aria-label="labels.dialog">
     <div class="gs-box">
       <span class="gs-box-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5" /><path d="M16 16l4 4" /></svg></span>
-      <input ref="input" v-model="query" class="gs-input" type="search" autocomplete="off" spellcheck="false" placeholder="Search questions, blueprints and case studies…" aria-label="Search all material">
-      <button class="gs-esc" type="button" @click="close()">Esc</button>
+      <input ref="input" v-model="query" class="gs-input" type="search" autocomplete="off" spellcheck="false" :placeholder="labels.search" :aria-label="labels.searchAria">
+      <button class="gs-esc" type="button" @click="close()">{{ labels.esc }}</button>
     </div>
     <div class="gs-body">
-      <p v-if="loading" class="gs-empty">Loading the libraries…</p>
-      <p v-else-if="loadError" class="gs-empty">Search could not load. Close this panel and try again.</p>
-      <p v-else-if="!query.trim()" class="gs-empty">Type a few words to search every study and knowledge surface.</p>
-      <p v-else-if="!results.length" class="gs-empty">No result matches “{{ query }}”. Try fewer or broader terms.</p>
+      <p v-if="loading" class="gs-empty">{{ labels.loading }}</p>
+      <p v-else-if="loadError" class="gs-empty">{{ labels.error }}</p>
+      <section v-else-if="!query.trim() && recent.length" class="gs-group gs-history"><h3>{{ labels.recent }} <button type="button" class="gs-clear" @click="$searchHistory.clear()">{{ labels.clear }}</button></h3><div v-for="entry in recent" :key="entry.q" class="gs-recent-row"><button type="button" class="gs-recent" @click="query = entry.q">{{ entry.q }}</button><button type="button" class="gs-forget" :aria-label="`Remove ${entry.q}`" @click="$searchHistory.remove(entry.q)">×</button></div></section>
+      <p v-else-if="!query.trim()" class="gs-empty">{{ labels.empty }}</p>
+      <p v-else-if="!results.length" class="gs-empty">{{ labels.noResult.replace('{query}', query) }}</p>
       <template v-for="([surface, rows]) in groupedResults" :key="surface">
         <section class="gs-group">
           <h3>{{ surfaceLabels[surface] }} <span>{{ rows?.length }}</span></h3>
@@ -138,8 +161,8 @@ onBeforeUnmount(() => { document.removeEventListener('keydown', onKeydown); docu
           </button>
         </section>
       </template>
-      <button v-if="query.trim()" class="gs-more" type="button" @click="showAll()"><span>See all results for “{{ query }}”</span><span>→</span></button>
+      <button v-if="query.trim()" class="gs-more" type="button" @click="showAll()"><span>{{ labels.seeAll.replace('{query}', query) }}</span><span>→</span></button>
     </div>
-    <footer class="gs-foot"><span>Search across every GAZLL library</span><span class="gs-keys"><kbd>↑</kbd><kbd>↓</kbd> navigate · <kbd>Enter</kbd> open</span></footer>
+    <footer class="gs-foot"><span>{{ labels.footer }}</span><span class="gs-keys"><kbd>↑</kbd><kbd>↓</kbd> {{ labels.navigate }} · <kbd>Enter</kbd> {{ labels.open }}</span></footer>
   </section>
 </template>

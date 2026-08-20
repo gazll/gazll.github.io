@@ -881,7 +881,7 @@
   .company{border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);box-shadow:var(--shadow);
     padding:18px 20px 8px;margin-bottom:18px;animation:fade .35s ease}
   .company-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-  .company-head h3{font-family:"Space Grotesk",sans-serif;font-weight:600;font-size:18px;margin:0;color:var(--ink)}
+  .company-head h2,.company-head h3{font-family:"Space Grotesk",sans-serif;font-weight:600;font-size:18px;margin:0;color:var(--ink)}
   .company-meta{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--muted);margin:3px 0 8px}
   .result{font-family:"IBM Plex Mono",monospace;font-size:10.5px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;
     padding:3px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
@@ -922,6 +922,7 @@
   .daynum small{display:block;font-size:11px;font-weight:500;color:var(--brass);font-family:"IBM Plex Mono",monospace;letter-spacing:2px;margin-bottom:4px}
   .daynum[data-topic-type] small{color:var(--g)}
   .hero h2{font-family:"Space Grotesk",sans-serif;font-weight:600;font-size:24px;margin:2px 0 8px;line-height:1.15;letter-spacing:-.3px}
+  .view-track .hero h1{font-family:"Space Grotesk",sans-serif;font-weight:600;font-size:30px;margin:2px 0 10px;line-height:1.15;letter-spacing:-.4px}
   .hero .intro{color:var(--ink-soft);font-size:15px;max-width:66ch;margin:0}
   .tags{display:flex;flex-wrap:wrap;gap:7px;margin-top:14px;position:relative}
   .tag{font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:500;letter-spacing:.3px;padding:4px 10px;border-radius:999px;
@@ -1187,6 +1188,7 @@
     .hero-head{gap:12px}
     .daynum{font-size:40px}
     .hero h2{font-size:20px}
+    .view-track .hero h1{font-size:24px;line-height:1.2}
     .hero .intro{font-size:14px}
     /* question cards */
     .qhead{padding:13px 14px;gap:10px}
@@ -1278,7 +1280,7 @@
     table.cmp{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;width:100%}
     pre{-webkit-overflow-scrolling:touch}
     /* pager */
-    .pager{padding:10px 12px;gap:8px}
+    .pager{position:static;padding:10px 12px;gap:8px}
     .pbtn{padding:9px 12px;font-size:13px}
     .pcenter{font-size:12px}
     .pdots{max-width:160px}
@@ -1293,6 +1295,8 @@
     .topicpick{gap:8px;padding:6px 10px}
     .tp-n{font-size:12px;padding:3px 6px}
     .tp-sub{display:none}                 /* the dropdown rows carry the same counts */
+    .view-track .hero-head{display:block}
+    .view-track .daynum{margin-bottom:18px}
 
     /* Question heads: everything besides the question is squeezed into one
        narrow left column or the right edge, so .qtext keeps a readable measure
@@ -1325,6 +1329,7 @@
     .progress-wrap{display:none}
     .daynum{font-size:34px}
     .hero h2{font-size:18px}
+    .view-track .hero h1{font-size:21px}
     .cs-category-head{align-items:flex-start}
     .cs-category-head h2{font-size:20px}
     .cs-card{grid-template-columns:minmax(0,1fr) auto}

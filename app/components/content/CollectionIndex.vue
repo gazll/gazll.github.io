@@ -9,20 +9,45 @@ const { data } = await useAsyncData(`collection:${props.collection}`, () =>
 const copy = computed(() => data.value.library[lang.value] || data.value.library.en);
 const text = (row: any) => row?.[lang.value] || row?.en || row?.vi || {};
 const articleCopy = (article: any) => text(article.metadata);
+const labels = computed(() => lang.value === 'vi' ? {
+  article: 'bài viết', articles: 'bài viết', collection: 'bộ sưu tập', collections: 'bộ sưu tập', languages: 'Tiếng Anh · Tiếng Việt',
+  order: 'Thứ tự', curriculum: 'Giáo trình', recent: 'Mới cập nhật', collectionLabel: 'Bộ sưu tập', number: 'Số',
+  featured: 'Nổi bật', minRead: 'phút đọc', level: { core: 'Cốt lõi', advanced: 'Nâng cao', extra: 'Mở rộng' }
+} : {
+  article: 'article', articles: 'articles', collection: 'collection', collections: 'collections', languages: 'English · Vietnamese',
+  order: 'Order', curriculum: 'Curriculum', recent: 'Recently updated', collectionLabel: 'Collection', number: 'No.',
+  featured: 'Featured', minRead: 'min read', level: { core: 'Core', advanced: 'Advanced', extra: 'Extra' }
+});
 const articleRows = computed(() => (data.value.articles || [])
   .filter((article: any) => props.collection !== 'case-studies' || article.category !== 'systems-architecture'));
+const sortMode = ref<'curriculum' | 'recent'>('curriculum');
+const activityDate = (article: any) => article.reviewed_at || article.updated_at || article.created_at || '';
 const groups = computed(() => Object.entries(data.value.categories || {}).map(([id, category]) => ({
   id,
   copy: text(category),
-  articles: articleRows.value.filter((article: any) => article.category === id)
+  articles: articleRows.value.filter((article: any) => article.category === id).sort((left: any, right: any) => sortMode.value === 'recent'
+    ? activityDate(right).localeCompare(activityDate(left)) || left.n - right.n
+    : left.n - right.n)
 })).filter(group => group.articles.length));
 const articleRoute = (article: any) => ({
   path: `/${props.collection}/${article.slug}`,
   query: lang.value === 'vi' ? { lang: 'vi' } : {}
 });
 const lastDate = (article: any) => contentDateFacts(article, lang.value).at(-1);
-const levelLabel = (level: string) => ({ core: 'Core', advanced: 'Advanced', extra: 'Extra' }[level] || 'Core');
+const levelLabel = (level: string) => labels.value.level[level as 'core' | 'advanced' | 'extra'] || labels.value.level.core;
 const byline = (article: any, category: any) => article.company || category.label || article.category;
+const positionKey = computed(() => `gazll:return:${props.collection}`);
+function remember(slug: string) { sessionStorage.setItem(positionKey.value, slug); }
+onMounted(() => {
+  const storedSort = localStorage.getItem(`gazll:sort:${props.collection}`);
+  if (storedSort === 'recent') sortMode.value = 'recent';
+  const slug = sessionStorage.getItem(positionKey.value);
+  if (slug) {
+    sessionStorage.removeItem(positionKey.value);
+    nextTick(() => document.getElementById(`article-${slug}`)?.scrollIntoView({ block: 'center' }));
+  }
+});
+watch(sortMode, value => { if (import.meta.client) localStorage.setItem(`gazll:sort:${props.collection}`, value); });
 
 useHead(() => ({
   htmlAttrs: { lang: lang.value },
@@ -45,37 +70,39 @@ useHead(() => ({
           <h1>{{ copy.title }}</h1>
           <p>{{ copy.intro }}</p>
           <div class="cs-library-stats">
-            <span><b>{{ articleRows.length }}</b> {{ articleRows.length === 1 ? 'article' : 'articles' }}</span>
-            <span><b>{{ groups.length }}</b> collections</span>
-            <span>English · Vietnamese</span>
+            <span><b>{{ articleRows.length }}</b> {{ articleRows.length === 1 ? labels.article : labels.articles }}</span>
+            <span><b>{{ groups.length }}</b> {{ groups.length === 1 ? labels.collection : labels.collections }}</span>
+            <span>{{ labels.languages }}</span>
           </div>
         </header>
+
+        <div v-if="collection === 'case-studies'" class="content-sort" role="group" :aria-label="labels.order"><span>{{ labels.order }}</span><button type="button" :aria-pressed="sortMode === 'curriculum'" @click="sortMode = 'curriculum'">{{ labels.curriculum }}</button><button type="button" :aria-pressed="sortMode === 'recent'" @click="sortMode = 'recent'">{{ labels.recent }}</button></div>
 
         <section v-for="group in groups" :key="group.id" class="cs-category" :aria-labelledby="`collection-${group.id}`">
           <header class="cs-category-head">
             <div>
-              <p>Collection</p>
+              <p>{{ labels.collectionLabel }}</p>
               <h2 :id="`collection-${group.id}`">{{ group.copy.label }}</h2>
               <span>{{ group.copy.description }}</span>
             </div>
             <b>{{ group.articles.length }}</b>
           </header>
           <div class="cs-card-grid">
-            <NuxtLink v-for="article in group.articles" :key="article.slug" class="cs-card" :to="articleRoute(article)">
+            <NuxtLink v-for="article in group.articles" :id="`article-${article.slug}`" :key="article.slug" class="cs-card" :to="articleRoute(article)" @click="remember(article.slug)">
               <span v-if="article.cover_image" class="cs-card-art" :class="{ contain: article.cover_fit === 'contain' }" aria-hidden="true">
                 <img :src="`/${article.cover_image}`" alt="" loading="lazy" decoding="async">
               </span>
               <span v-else class="cs-card-art" aria-hidden="true" />
               <span class="cs-card-content">
                 <span class="cs-card-kicker">
-                  No. {{ String(article.n).padStart(2, '0') }} · {{ byline(article, group.copy) }}
+                  {{ labels.number }} {{ String(article.n).padStart(2, '0') }} · {{ byline(article, group.copy) }}
                   <span class="content-level" :class="`level-${article.level || 'core'}`">{{ levelLabel(article.level) }}</span>
-                  <span v-if="article.featured" class="featured-mark" role="img" aria-label="Featured" title="Featured">★</span>
+                  <span v-if="article.featured" class="featured-mark" role="img" :aria-label="labels.featured" :title="labels.featured">★</span>
                 </span>
                 <strong>{{ articleCopy(article).title }}</strong>
                 <span class="cs-card-excerpt">{{ articleCopy(article).excerpt }}</span>
                 <span class="cs-card-meta">
-                  <span v-if="article.read_minutes">{{ article.read_minutes }} min read</span>
+                  <span v-if="article.read_minutes">{{ article.read_minutes }} {{ labels.minRead }}</span>
                   <span v-if="lastDate(article)">{{ lastDate(article).label }} {{ lastDate(article).formatted }}</span>
                 </span>
               </span>

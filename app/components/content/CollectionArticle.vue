@@ -14,6 +14,8 @@ if (error.value) throw error.value;
 const copy = computed(() => data.value.row.metadata[lang.value] || data.value.row.metadata.en);
 const guide = computed(() => (lang.value === 'vi' && data.value.vi ? data.value.vi : data.value.en).guide || {});
 const body = computed(() => lang.value === 'vi' ? data.value.viBody : data.value.enBody);
+const decoratedBody = computed(() => body.value.replace(/<h([23])\b([^>]*\bid=["']([^"']+)["'][^>]*)>([\s\S]*?)<\/h\1>/gi,
+  (_match: string, level: string, attrs: string, id: string, label: string) => `<h${level}${attrs}><a class="md-heading-anchor" href="#${encodeURIComponent(id)}" aria-label="${lang.value === 'vi' ? 'Liên kết đến mục này' : 'Link to this section'}">${label}</a></h${level}>`));
 const dates = computed(() => contentDateFacts(data.value.row, lang.value, { includePublished: true }));
 const categoryLabel = computed(() => {
   const category = data.value.categories[data.value.row.category];
@@ -36,11 +38,14 @@ const decodeHeading = (value: string) => value
   .replace(/&gt;/g, '>')
   .replace(/&quot;/g, '"')
   .replace(/&#39;/g, "'");
-const headings = computed(() => [...body.value.matchAll(/<h([23])\b[^>]*\bid=["']([^"']+)["'][^>]*>([\s\S]*?)<\/h\1>/gi)]
+const headings = computed(() => [...decoratedBody.value.matchAll(/<h([23])\b[^>]*\bid=["']([^"']+)["'][^>]*>([\s\S]*?)<\/h\1>/gi)]
   .map(match => ({ level: Number(match[1]), id: match[2], text: decodeHeading(match[3]).trim() })));
 
 const lightbox = useTemplateRef<HTMLDialogElement>('lightbox');
 const lightboxImage = ref({ src: '', alt: '', caption: '' });
+const tocCollapsed = ref(false);
+onMounted(() => { tocCollapsed.value = localStorage.getItem('gazll:article-toc') === 'collapsed'; });
+watch(tocCollapsed, value => { if (import.meta.client) localStorage.setItem('gazll:article-toc', value ? 'collapsed' : 'open'); });
 function onArticleClick(event: MouseEvent) {
   const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-zoom-image]');
   const image = button?.querySelector<HTMLImageElement>('img');
@@ -116,12 +121,12 @@ useHead(() => ({
           <summary>{{ labels.contents }}</summary>
           <nav><a v-for="heading in headings" :key="heading.id" :href="`#${heading.id}`" :class="{ sub: heading.level === 3 }">{{ heading.text }}</a></nav>
         </details>
-        <div class="cs-article-grid">
-          <aside class="cs-toc" :aria-label="labels.contents">
-            <div class="cs-toc-head"><p>{{ labels.contents }}</p></div>
-            <div class="cs-toc-content"><nav><a v-for="heading in headings" :key="heading.id" :href="`#${heading.id}`" :class="{ sub: heading.level === 3 }">{{ heading.text }}</a></nav></div>
+        <div class="cs-article-grid" :class="{ 'is-toc-collapsed': tocCollapsed }">
+          <aside class="cs-toc" :class="{ 'is-collapsed': tocCollapsed }" :aria-label="labels.contents">
+            <div class="cs-toc-head"><p>{{ labels.contents }}</p><button type="button" class="cs-toc-toggle" :aria-expanded="!tocCollapsed" @click="tocCollapsed = !tocCollapsed"><span aria-hidden="true">{{ tocCollapsed ? '›' : '‹' }}</span><span class="sr-only">Toggle contents</span></button></div>
+            <div class="cs-toc-content" :hidden="tocCollapsed"><nav><a v-for="heading in headings" :key="heading.id" :href="`#${heading.id}`" :class="{ sub: heading.level === 3 }">{{ heading.text }}</a></nav></div>
           </aside>
-          <article class="cs-article-body" @click="onArticleClick" v-html="body" />
+          <article class="cs-article-body" @click="onArticleClick" v-html="decoratedBody" />
         </div>
 
         <footer v-if="data.row.source_url" class="cs-source">

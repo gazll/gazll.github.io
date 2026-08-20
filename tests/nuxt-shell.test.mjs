@@ -89,3 +89,74 @@ test('topic and navigation rows retain visible spacing and separators', async ()
   assert.match(styles, /\.navlink\+\.navlink/);
   assert.match(styles, /\.nv-sec\+\.nv-sec/);
 });
+
+test('migrated System Design questions remain readable and searchable at their new owner', async () => {
+  const [endpoint, search, page, topic] = await Promise.all([
+    read('server/api/content/system-design/[slug].get.ts'),
+    read('server/api/content/search-index.get.ts'),
+    read('app/pages/system-design/[slug].vue'),
+    read('app/components/study/TopicPage.vue')
+  ]);
+
+  assert.match(endpoint, /sourceNotes/);
+  assert.match(endpoint, /researchCatalog/);
+  assert.match(search, /sourceOwners\.has\(id\)/);
+  for (const contract of ['code_samples', 'failureReview', 'engineering-deep-dives', 'migrated-notes', 'copyNoteLink']) {
+    assert.ok(page.includes(contract), `System Design reader is missing ${contract}`);
+  }
+  assert.match(topic, /:source-owners="data!\.sourceOwners"/);
+});
+
+test('study cards preserve bilingual controls, bulk expansion, review dates and deep links', async () => {
+  const [topic, card] = await Promise.all([
+    read('app/components/study/TopicPage.vue'),
+    read('app/components/study/QuestionCard.vue')
+  ]);
+
+  assert.match(topic, /Expand all/);
+  assert.match(topic, /Collapse all/);
+  assert.match(card, /qlangbtn/);
+  assert.match(card, /reviewedLabel/);
+  assert.match(card, /revealHash/);
+  assert.match(card, /resolveRef/);
+  assert.match(card, /Copied/);
+});
+
+test('Gazl is a native Vue journal with CRUD, import, sync and Mermaid review', async () => {
+  const [page, journal] = await Promise.all([
+    read('app/pages/gazl.vue'),
+    read('app/components/gazl/GazlJournal.client.vue')
+  ]);
+
+  assert.match(page, /GazlJournal/);
+  for (const contract of ['interviews.list', 'interviews.save', 'interviews.delete', 'Save to my journal', 'ContentMermaidDiagram', 'Add company']) {
+    assert.ok(journal.includes(contract), `Gazl journal is missing ${contract}`);
+  }
+});
+
+test('legacy bookmarks and the CalebZone route survive the route migration', async () => {
+  const [middleware, config] = await Promise.all([
+    read('app/middleware/legacy-hash.global.client.ts'),
+    read('nuxt.config.ts')
+  ]);
+
+  for (const route of ['track', 'system-design', 'case-studies', 'project']) assert.ok(middleware.includes(route));
+  assert.match(config, /'\/project\/calebzone'/);
+  assert.match(config, /statusCode: 301/);
+});
+
+test('project, release notes, search and collection readers retain their richer controls', async () => {
+  const [project, releases, search, overlay, collection, article] = await Promise.all([
+    read('app/pages/project.vue'), read('app/pages/release-notes.vue'), read('app/pages/search.vue'),
+    read('app/components/search/SearchOverlay.client.vue'), read('app/components/content/CollectionIndex.vue'),
+    read('app/components/content/CollectionArticle.vue')
+  ]);
+
+  for (const contract of ['pj-toc', 'ContentMermaidDiagram', 'pj-requirement-list', 'pj-sample-list', 'pj-doc-group']) assert.ok(project.includes(contract));
+  assert.match(releases, /group.*Map|const groups = new Map/);
+  assert.match(search, /searchHistory/);
+  assert.match(overlay, /Recent searches/);
+  assert.match(collection, /Recently updated/);
+  assert.match(article, /is-toc-collapsed/);
+  assert.match(article, /md-heading-anchor/);
+});
