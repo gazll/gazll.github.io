@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { fold } from '../../../public/lib/search-text.js';
 type SearchEntry = {
   id: string;
   surface: string;
@@ -6,6 +7,8 @@ type SearchEntry = {
   vi: string;
   contextEn: string;
   contextVi: string;
+  bodyEn?: string;
+  bodyVi?: string;
   href: string;
 };
 
@@ -42,12 +45,12 @@ const surfaceLabels = computed<Record<string, string>>(() => props.lang === 'vi'
 const surfaceBadges: Record<string, string> = {
   track: 'TOPIC', 'system-design': 'DESIGN', 'case-studies': 'CASE', photography: 'PHOTO', homelab: 'LAB'
 };
-const fold = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+
 const results = computed(() => {
   const terms = fold(query.value).split(/\s+/).filter(Boolean);
   if (!terms.length) return [];
   return entries.value.filter(entry => {
-    const text = fold(`${entry.en} ${entry.vi} ${entry.contextEn} ${entry.contextVi}`);
+    const text = fold(`${entry.en} ${entry.vi} ${entry.contextEn} ${entry.contextVi} ${entry.bodyEn || ''} ${entry.bodyVi || ''}`);
     return terms.every(term => text.includes(term));
   }).slice(0, 12);
 });

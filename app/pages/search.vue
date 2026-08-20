@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { fold } from '../../public/lib/search-text.js';
 const route = useRoute();
 const router = useRouter();
 const lang = computed<'en' | 'vi'>(() => route.query.lang === 'vi' ? 'vi' : 'en');
@@ -19,12 +20,12 @@ const labels = computed(() => lang.value === 'vi' ? {
   start: 'Start typing to search every GAZLL library.', noResult: 'No result matches “{query}”. Try fewer or broader terms.', result: 'result', results: 'results', in: 'in', for: 'for', all: 'All',
   track: 'Study Track', system: 'System Design', cases: 'Case Studies', photography: 'Photography', homelab: 'NAS / Home Server'
 });
-const fold = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+
 const matchingEntries = computed(() => {
   const terms = fold(query.value).split(/\s+/).filter(Boolean);
   if (!terms.length) return [];
   return (entries.value || []).filter(entry => {
-    const text = fold(`${entry.en} ${entry.vi} ${entry.contextEn} ${entry.contextVi}`);
+    const text = fold(`${entry.en} ${entry.vi} ${entry.contextEn} ${entry.contextVi} ${entry.bodyEn || ''} ${entry.bodyVi || ''}`);
     return terms.every(term => text.includes(term));
   });
 });
