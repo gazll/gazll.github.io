@@ -308,12 +308,31 @@ secret/              GITIGNORED. Personal setup notes and credentials
   the reader must not notice.
 
 - **Adding a menu is one entry in `VIEWS`.** `sec` picks the nav-panel section
-  (`technical` · `knowledge` · `tool`). A `head: true` entry is drawn as an
-  icon in the panel header instead of as a row, and stays routable; a section
-  marked `collapsible` defaults to collapsed. An entry with `href` is an external
-  destination: it renders as a new-tab link and `currentViewId()` refuses to
-  route to it, so a hash matching its id falls back to the track. That is how
-  sibling apps under `public/` (e.g. `fshare-tool/`) join the menu.
+  (`technical` · `knowledge` · `tool`). A section marked `collapsible` defaults
+  to collapsed. An entry with `href` is an external destination: it renders as a
+  new-tab link and `currentViewId()` refuses to route to it, so a hash matching
+  its id falls back to the track. That is how sibling apps under `public/`
+  (e.g. `fshare-tool/`) join the menu.
+
+- **`place` moves a control out of the list without making it less routable.**
+  Two entries are controls rather than places to study, and each is drawn
+  somewhere the list is not: `place: 'lead'` (Search) renders as a boxed
+  `.navlink` **above the first section title**, and `place: 'head'`
+  (Release Notes) renders as a `.np-action` beside Close. Both keep their route,
+  their `aria-current` and their `data-view`. Three things this replaced, all of
+  which had actually gone wrong:
+
+  1. The boolean was `head: true` and both entries used it, which put Search
+     three levels away from where a reader looks for it.
+  2. A `place: 'head'` control **carries its label as visible text**, not as a
+     `title`/`aria-label` on a bare icon. Nobody recognises a changelog glyph, so
+     it read as decoration and went unclicked. Visible text also means no
+     `aria-label` — duplicating it gives a screen reader two names for one link.
+     The wordmark, not the label, is what shrinks when the panel is narrow.
+  3. The close-on-click handler binds to **`panelEl`**, matching
+     `.navlink, .np-action`. On `#mainnav` it never saw a `place: 'head'`
+     control, because that one lives in `.np-head` — so clicking it routed
+     correctly and left the drawer open over the view it had just opened.
 
 - **Project is an implementation snapshot, not another Study Track.** The
   `Project` menu currently opens `#/project` and renders the CalebZone SRS from

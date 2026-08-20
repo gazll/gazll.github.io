@@ -165,13 +165,21 @@
   .np-brand{display:flex;align-items:center;gap:10px;font-family:"Space Grotesk",sans-serif;
     font-weight:600;font-size:14px;letter-spacing:1.4px;color:var(--ink)}
   .np-brand .seal{width:30px;height:30px;font-size:12px;border-radius:9px}
-  /* Search and the changelog are controls, so they sit beside Close rather than
-     in the list of places to read. .np-brand keeps the leftover space. */
-  .np-brand{flex:1 1 auto;min-width:0}
-  .np-actions{display:flex;align-items:center;gap:6px;flex:none}
-  .np-action{width:32px;height:32px;border-radius:9px;border:1px solid var(--line);background:var(--surface);
-    color:var(--ink-soft);display:grid;place-items:center;transition:.15s ease}
-  .np-action .nv-icon{width:16px;height:16px;color:inherit}
+  /* The changelog is a control, so it sits beside Close rather than in the list
+     of places to read — but it carries its label, because the glyph alone was
+     not a thing anyone recognised. .np-brand gives up the leftover space to it. */
+  /* The wordmark gives way before the control does: a clipped "Release No…" is
+     the very problem the label was added to fix, while a clipped wordmark costs
+     nothing — the seal still carries the brand. */
+  .np-brand{flex:0 1 auto;min-width:0;overflow:hidden}
+  .np-brand b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .np-actions{display:flex;align-items:center;gap:6px;flex:none;margin-left:auto}
+  .np-action{height:30px;padding:0 9px;border-radius:9px;border:1px solid var(--line);background:var(--surface);
+    color:var(--ink-soft);display:inline-flex;align-items:center;gap:6px;min-width:0;
+    text-decoration:none;transition:.15s ease}
+  .np-action .nv-icon{width:15px;height:15px;flex:none;color:inherit}
+  .np-action span{font-family:"IBM Plex Mono",monospace;font-size:10.5px;font-weight:600;letter-spacing:.2px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .np-action:hover{border-color:var(--emerald);color:var(--emerald)}
   .np-action:focus-visible{outline:2px solid var(--emerald);outline-offset:2px}
   .np-action[aria-current="true"]{background:var(--emerald-soft);border-color:#cfe6da;color:var(--emerald-deep)}
@@ -184,6 +192,13 @@
   .np-body{flex:1 1 auto;overflow-y:auto;padding:6px 10px 12px;scrollbar-width:thin}
   .nv-sec{margin-top:12px}
   .nv-sec:first-child{margin-top:6px}
+  /* The lead control sits above the first section title. Same row shape as a
+     navlink so the panel stays one list, boxed so it reads as the control it
+     is rather than as a fourth place to study. */
+  .nv-lead{margin:2px 0 12px;border-color:var(--line-strong);background:var(--paper)}
+  .nv-lead .nv-icon{color:var(--emerald)}
+  .nv-lead:hover{background:var(--surface);border-color:var(--emerald)}
+  .nv-lead + .nv-sec{margin-top:0}
   /* Groups rows inside a section; inset so it reads as a break in the list
      rather than a second section boundary. */
   .nv-div{margin:9px 10px;border:0;border-top:1px solid var(--line)}

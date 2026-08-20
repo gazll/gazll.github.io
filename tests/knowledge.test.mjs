@@ -134,11 +134,19 @@ test('Other Knowledge is wired into the panel and reuses the shared collection',
   assert.match(app, /id: 'system-design', sec: 'technical', divider: true/);
   assert.match(app, /v\.divider \? '<hr class="nv-div">' : ''/);
 
-  // Search and the changelog are controls in the panel header, still routable.
-  assert.match(app, /id: 'search', sec: 'technical', head: true/);
-  assert.match(app, /id: 'release-notes', sec: 'technical', head: true/);
-  assert.match(app, /shown\.filter\(v => v\.head\)/);
-  assert.match(app, /v\.sec === sec\.key && !v\.head/);
+  // Search and the changelog are controls rather than rows, still routable.
+  // Search leads the list; the changelog sits beside Close and, unlike the bare
+  // icon it replaced, says what it is.
+  assert.match(app, /id: 'search', sec: 'technical', place: 'lead'/);
+  assert.match(app, /id: 'release-notes', sec: 'technical', place: 'head'/);
+  assert.match(app, /shown\.filter\(v => v\.place === 'lead'\)\.map\(v => row\(v, 'nv-lead'\)\)/);
+  assert.match(app, /shown\.filter\(v => v\.place === 'head'\)/);
+  assert.match(app, /v\.sec === sec\.key && !v\.place/);
+  assert.match(app, /iconSVG\(v\.icon\) \+ '<span>' \+ escapeHtml\(v\.label\) \+ '<\/span><\/a>'/,
+    'a header control must carry its label as visible text');
+  assert.doesNotMatch(app, /head: true/, 'the boolean was replaced by `place`');
+  // A .np-action lives outside #mainnav, so the close handler binds to the panel.
+  assert.match(app, /panelEl\.addEventListener\('click'[\s\S]{0,120}\.navlink, \.np-action/);
   // Tools opens on purpose, so the section defaults to collapsed.
   assert.match(app, /\{ key: 'tool', label: 'Tools', collapsible: true \}/);
   assert.match(app, /getItem\(NAV_SECTION_KEY \+ key\) !== '0'/);

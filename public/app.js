@@ -103,9 +103,10 @@ const VIEWS = [
   { id: 'track', sec: 'technical', label: 'Study Track', desc: 'Topic-based learning path', icon: 'track' },
   // Routable so a search can be shared; the header trigger and Ctrl+K open the
   // same query in the overlay first.
-  // `head`: routable as ever, but drawn as an icon in the panel header
-  // rather than as a row — the list reads as places to study, not controls.
-  { id: 'search', sec: 'technical', head: true, label: 'Search', desc: 'One query across every surface',
+  // `place: 'lead'`: routable as ever, but drawn above the first section
+  // instead of inside it — search is the control a reader opens the panel
+  // looking for, and it is not one of the places to study.
+  { id: 'search', sec: 'technical', place: 'lead', label: 'Search', desc: 'One query across every surface',
     icon: 'search', render: renderSearch, mount: mountSearch },
   { id: 'gazl', sec: 'technical', label: 'Gazl Try', desc: 'Companies interviewed', icon: 'journal',
     render: renderInterviews, mount: mountInterviews },
@@ -133,7 +134,9 @@ const VIEWS = [
   { id: 'course-registration', sec: 'tool', label: 'Course Registration', desc: 'Explore NTT classes and schedules',
     icon: 'tool', href: 'course-registration/' },
 
-  { id: 'release-notes', sec: 'technical', head: true, label: 'Release Notes',
+  // `place: 'head'`: a control beside Close. It carries its label as text —
+  // a bare icon here was guessed at rather than read.
+  { id: 'release-notes', sec: 'technical', place: 'head', label: 'Release Notes',
     desc: 'What content was added, and when',
     icon: 'release', render: renderReleaseNotes, mount: mountReleaseNotes }
 ];
@@ -337,12 +340,13 @@ function buildNav() {
   const nav = document.getElementById('mainnav');
   if (!nav) return;
 
-  const row = v => {
+  const row = (v, extra = '') => {
     const external = Boolean(v.href);
     const attrs = external
       ? 'href="' + v.href + '" target="_blank" rel="noopener noreferrer"'
       : 'href="' + withRouteLanguage('#/' + v.id, Content.lang) + '" aria-current="' + (v.id === active) + '"';
-    return '<a class="navlink' + (external ? ' is-external' : '') + '" data-view="' + v.id + '" ' + attrs + '>'
+    return '<a class="navlink' + (extra ? ' ' + extra : '') + (external ? ' is-external' : '')
+      + '" data-view="' + v.id + '" ' + attrs + '>'
       + iconSVG(v.icon)
       + '<span class="nv-text"><span class="nv-label">' + v.label + '</span>'
       + (v.desc ? '<span class="nv-desc">' + v.desc + '</span>' : '') + '</span>'
@@ -356,18 +360,26 @@ function buildNav() {
 
   const shown = visibleViews();
 
-  /* `head` entries are controls, not destinations in the list. They stay fully
-     routable — only where they are drawn changes. */
+  /* A `place` entry is a control, not a destination in the list. It stays
+     fully routable — only where it is drawn changes.
+
+     The label is visible text rather than a title/aria-label on a bare icon:
+     the changelog glyph is not a thing anyone recognises, so the control was
+     read as decoration and never clicked. A visible label also means no
+     aria-label — duplicating it would only give a screen reader two names. */
   const actions = document.getElementById('navActions');
   if (actions) {
-    actions.innerHTML = shown.filter(v => v.head).map(v => '<a class="np-action" data-view="' + v.id
-      + '" href="' + withRouteLanguage('#/' + v.id, Content.lang) + '" aria-current="' + (v.id === active)
-      + '" title="' + escapeHtml(v.label) + '" aria-label="' + escapeHtml(v.label) + '">'
-      + iconSVG(v.icon) + '</a>').join('');
+    actions.innerHTML = shown.filter(v => v.place === 'head').map(v => '<a class="np-action" data-view="' + v.id
+      + '" href="' + withRouteLanguage('#/' + v.id, Content.lang) + '" aria-current="' + (v.id === active) + '">'
+      + iconSVG(v.icon) + '<span>' + escapeHtml(v.label) + '</span></a>').join('');
   }
 
-  nav.innerHTML = NAV_SECTIONS.map(sec => {
-    const items = shown.filter(v => v.sec === sec.key && !v.head);
+  /* Above the first section title, inside the scrolling body so it closes the
+     drawer through the same handler every other row does. */
+  const lead = shown.filter(v => v.place === 'lead').map(v => row(v, 'nv-lead')).join('');
+
+  nav.innerHTML = lead + NAV_SECTIONS.map(sec => {
+    const items = shown.filter(v => v.sec === sec.key && !v.place);
     if (!items.length) return '';
     const rows = items.map(v => rule(v) + row(v)).join('');
     if (!sec.collapsible) {
@@ -428,8 +440,11 @@ function wireNavPanel() {
 
   // Follow the link first, then close — closing on an external link would
   // otherwise blur the anchor before the browser opens the new tab.
-  nav.addEventListener('click', e => {
-    if (e.target.closest('.navlink')) close({ refocus: false });
+  // Bound to the panel, not to the list: a `place: 'head'` control lives in
+  // .np-head, so a listener on #mainnav left the drawer open over the view it
+  // had just routed to.
+  panelEl.addEventListener('click', e => {
+    if (e.target.closest('.navlink, .np-action')) close({ refocus: false });
   });
 
   document.addEventListener('keydown', e => {
