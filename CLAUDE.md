@@ -55,14 +55,12 @@ public/
                      NN-slug[.vi].json rows. Case Studies and Other Knowledge share it
     case-studies.js  the case-study collection (one line over collection.js)
     knowledge.js     the Photography and NAS/Home Server collections
-    article-reader.js  heading TOC, its collapse state and the figure lightbox,
-                     shared by every long-form reader
     system-design.js blueprint data model; resolves source_items to live topic items
-    project.js       CalebZone SRS manifest and cached source-document/sample loader
     search.js        one index over all three surfaces: folding, ranking, snippets
+    search-text.js   fold() + plainText(): the two pure primitives, importable server-side
     search-history.js recent searches: session while signed out, account once signed in
     mermaid.js       lazy loader for the vendored renderer; diagrams degrade to source
-    question-links.js  #/track/<id> and #/system-design/<slug>/<id> route helpers
+    question-links.js  /topics/<key> and /system-design/<slug> question anchors
     prose.js         where authored prose is really a list: sentences, labelled
                      segments, enumerated clauses. Structure only, never markup
     reading-position.js  sticky group heads + the card a library reader came back from
@@ -310,7 +308,7 @@ secret/              GITIGNORED. Personal setup notes and credentials
   heading ids, code blocks and figure order must stay aligned. Figures live in
   the matching `assets/case-studies/NN-slug/` directory because the CSP permits
   local images, not publisher hotlinks. The visible URL deliberately keeps the
-  unnumbered slug (for example `#/case-studies/arcturus-inventory-processing-system`),
+  unnumbered slug (for example `/case-studies/arcturus-inventory-processing-system`),
   so reorganizing source files never breaks bookmarks. Do not store author names
   or retain contributor sections/images. Desktop TOC is the collapsible
   left column; its persisted state must not affect the mobile `<details>` TOC.
@@ -337,11 +335,11 @@ secret/              GITIGNORED. Personal setup notes and credentials
   owner.** `lib/collection.js` builds the loader (numbered manifest, localized
   `meta.json`, paired `NN-slug[.vi].json` guides pointing at
   `NN-slug[.vi].html` bodies); `lib/case-studies.js` and `lib/knowledge.js`
-  are each a call to it. `lib/article-reader.js` owns the reading chrome the
-  libraries share — heading TOC, its persisted collapse state and the figure
-  lightbox — so its `data-case-*` hooks mean *article*, not *case study*.
-  Adding a subject is a directory plus one `createCollection` line, never a
-  second copy of either file. **Other Knowledge is not Study Track**: its
+  are each a call to it. `app/components/content/CollectionArticle.vue` owns the
+  reading chrome the libraries share — heading TOC, its persisted collapse state
+  (`gazll:article-toc`) and the figure lightbox — so its hooks mean *article*,
+  not *case study*. Adding a subject is a directory plus one `createCollection`
+  line, never a second copy of either file. **Other Knowledge is not Study Track**: its
   articles have no `item_id`, no difficulty progress and no notes, and they
   never move the progress ring. They are all first-party, so a row must carry
   `first_party: true` and **neither** `company` nor `source_url` — the test
@@ -379,6 +377,15 @@ secret/              GITIGNORED. Personal setup notes and credentials
   pressed chip). Darken a token rather than lowering the floor. Two of these
   were only caught by the third check: a colour that clears white can still
   fail on its own tinted chip.
+
+- **The retired hash URLs still resolve.** The hash router is gone, but its
+  links were shared and bookmarked, and the case-study slugs were kept
+  unnumbered precisely so links would survive. `app/middleware/legacy-hash.global.client.ts`
+  maps `#/track/<id>`, `#/system-design/<slug>`, `#/system-design/case/<slug>`
+  and `#/project` onto the filesystem routes once, on entry, with `replace:true`
+  so it adds no history entry. Deleting it turns every existing bookmark into a
+  404 — that is a separate promise from "the view registry is gone", and
+  `tests/legacy-removal.test.mjs` pins both halves.
 
 - **Route metadata belongs to Nuxt pages.** Keep titles and descriptions in
   `useHead`/`useSeoMeta` where a page needs them. The removed hash-router
@@ -448,7 +455,15 @@ secret/              GITIGNORED. Personal setup notes and credentials
   slug; the validator checks the path, file, dimensions and both translations.
 
 - **IMPORTANT — the blueprint reading format is reviewed and settled. Do not
-  re-flatten it.** These five decisions were made together against a real
+  re-flatten it.** It owns one module: `app/utils/design-prose.js`
+  (`renderScope`, `listRow`, `comparisonTable`, `detailProse`, `emphasize`,
+  `tradeoffCards`, `failureCards`), built on `lib/prose.js`.
+  `app/pages/system-design/[slug].vue` renders the strings it returns and must
+  never print a `data_model` / `stack` / `tradeoffs` row with `{{ row }}` — the
+  Nuxt migration did exactly that and 350 of 588 rows lost their name/detail
+  split, the longest running 914 characters as one unbroken block.
+  `tests/system-design.test.mjs` pins the span cap, the text-preservation
+  round-trip and `.sd-comparison-wrap`. These five decisions were made together against a real
   blueprint (`scaling-1m-to-10m-requests`) and each one replaced something that
   had already been tried and read badly. Changing one in isolation reintroduces
   the problem it fixed.
@@ -485,7 +500,9 @@ secret/              GITIGNORED. Personal setup notes and credentials
      left edge past the TOC rail. The desktop TOC collapses to a 44px icon rail
      rather than unmounting — the grid column keeps its place, so collapsing
      never reflows the body mid-read, and `--sd-rail` drives the head padding
-     and the grid together. State persists in `gazl.sd.toc`. Per the Case
+     and the grid together. State persists in `gazll:system-design-toc` (the native surfaces use the
+  `gazll:` prefix; the retained browser modules keep their older `gazl.` keys,
+  and the two namespaces are deliberately distinct rather than colliding). Per the Case
      Studies rule, this **must not touch the mobile `<details>` TOC**: below the
      breakpoint the rail is gone and the head padding resets.
   5. **Prose the author wrote as a list is printed as one, and `lib/prose.js`
@@ -640,7 +657,7 @@ item ids, both languages of each **question**, and the ring's denominator. Item
   one written twice. So a topic that merely *uses* a concept states the
   decision in its own context in a few lines and cross-refs the owner with
   `(item-id)`. Those render as links — `renderMarkdown` takes an optional
-  `resolveRef`, and `lib/cross-ref.js` routes an id to `#/track/…` or to the
+  `resolveRef`, and `lib/cross-ref.js` routes an id to `/topics/…` or to the
   blueprint holding it — which is what makes a pointer an acceptable substitute
   for a second copy. A reference is never re-explained prose. And an item is never
   deleted to remove a duplicate — `item_id` is a stored Sheet key. The only
