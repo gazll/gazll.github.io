@@ -46,30 +46,22 @@ public/
   lib/
     constants.js     TOPIC_TYPES, DIFFICULTIES — the closed-set identifiers, label source
     markdown.js      renderMarkdown + renderUser (escaping variant)
-    anchors.js       compatibility permalink helpers used by retained data modules
-    cross-ref.js     resolves a written (item-id) to the route that owns it
-    [removed]        native Vue components own their templates and interaction state
+    cross-ref.js     resolves a written (item-id) to the route AND the label that owns it
     i18n.js          shared language storage + paired base/.vi JSON loader
-    content.js       topic data model; owns the global content language and change events
-    collection.js    the bilingual article-collection factory: manifest + meta + paired
-                     NN-slug[.vi].json rows. Case Studies and Other Knowledge share it
-    case-studies.js  the case-study collection (one line over collection.js)
-    knowledge.js     the Photography and NAS/Home Server collections
-    system-design.js blueprint data model; resolves source_items to live topic items
-    search.js        one index over all three surfaces: folding, ranking, snippets
+    search.js        ranking, highlighting and snippets over the shipped index.
+                     It does NOT build the index — server/api/content/search-index does
     search-text.js   fold() + plainText(): the two pure primitives, importable server-side
     search-history.js recent searches: session while signed out, account once signed in
     mermaid.js       lazy loader for the vendored renderer; diagrams degrade to source
-    question-links.js  /topics/<key> and /system-design/<slug> question anchors
     prose.js         where authored prose is really a list: sentences, labelled
                      segments, enumerated clauses. Structure only, never markup
-    reading-position.js  sticky group heads + the card a library reader came back from
+    reading-position.js  sticky group heads (returning to a card is router.options.ts)
     clipboard.js     copyText with an execCommand fallback for local HTTP previews
     dsa-anim.js      DSA step-frame model + pure SVG frame renderer (no DOM)
     api.js           transport to Apps Script
-    auth.js          Google Identity Services + header avatar/state machine
+    auth.js          Google Identity Services + the header avatar state machine
     store.js         offline-first progress, notes, study log
-    interviews.js    interview journal data layer
+    interview-merge.js  the journal's seed/own merge rules, shared by view and tests
   dsa-player.js       play/pause/step control for DSA animations, loaded by QuestionCard
   fshare-tool/        standalone FShare browser tool
   course-registration/ standalone course-registration browser tool
@@ -145,10 +137,10 @@ secret/              GITIGNORED. Personal setup notes and credentials
   title, orphans every row already in the Sheet for that topic.
 
 - **The progress ring counts what the Study Track browses, not what `data/`
-  holds.** `Content.topicItemIds` / `Content.totalTopicItems` read
-  `data/content-index.json`, **not** `Content.topics` — topic files now load
-  lazily, so deriving the denominator from what happens to be in memory would
-  make the ring shrink to the one open topic. The index is generated from the
+  holds.** `ProgressRing` and the picker's per-topic bars read
+  `/api/content/item-index`, **not** the topic that happens to be open — one
+  route serves one topic, so deriving the denominator from what is in memory
+  would shrink the ring to that topic. The index is generated from the
   same rules `_apply()` applies, dropping everything routed to another surface
   — so the denominator is smaller than what `data/topics/` holds.
   `validate-content.mjs` prints both numbers so the split stays visible; read
@@ -250,8 +242,8 @@ secret/              GITIGNORED. Personal setup notes and credentials
   first and `mountDsaPlayers` after — `renderDay`, "Expand all", collapsing a
   card, and the per-card language switch all do. Skip the stop and the
   `setInterval` keeps stepping a detached node. The per-card switch flips one
-  card without touching `Content.lang`, which is why `mountDsaPlayers` takes an
-  explicit language.
+  card without touching the page language, which is why `mountDsaPlayers` takes
+  the language explicitly and falls back to English rather than to a global.
 
 - **Animation frames are snapshots, and captions are per language.** A frame
   carries the whole visual state, so scrubbing to any step is O(1) and cannot
@@ -286,15 +278,20 @@ secret/              GITIGNORED. Personal setup notes and credentials
   `&lt;pid&gt;` is text the author wrote, and decoding first would let the tag
   stripper eat it.
 
-- **The search index is a copy, so a language switch must drop it.**
-  `SearchIndex.entries` holds flattened strings taken out of `Content.topics`,
-  the blueprint catalog and the case-study guides — none of which are re-read
-  after the build. `app/components/search/SearchOverlay.client.vue` fetches the
-  server search index on demand, so native route hydration does not block first paint.
-  the index is invalidated before any view repaints from it. The archived
-  case-study articles (~200KB per language) load in a second pass,
-  `SearchIndex.enrich()`, and whatever is on screen repaints when it lands:
-  blocking the first result on eleven HTML files reads as a broken search.
+- **The search index is built once, at prerender, and `lib/search.js` only
+  ranks it.** `server/api/content/search-index.get.ts` walks every surface —
+  item questions AND answer bodies, a weighted row per topic, every blueprint,
+  every collection article with its archived body — and ships one JSON array
+  carrying both languages on every row. `lib/search.js` folds that array per
+  language (`prepareEntries`) and scores it (`searchEntries`); it owns no fetch
+  and no data model. Both search surfaces must go through it: a plain "contains
+  every term" filter is what the migration left behind, and it returned rows in
+  index order with no snippet, so the reason a row matched was invisible and
+  the first result — the one Enter opens — was as often as not the weakest.
+  Two things stay load-bearing: `fold()` must not change a string's length
+  (every `<mark>` offset is found in the folded copy and applied to the
+  original), and an entry's `href` is a real route the builder knew, never one
+  a view reconstructs.
 
 - **The overlay's keys are handled on `document`, not on the dialog.**
   Removing a recent search repaints the list under the button that was
@@ -314,6 +311,33 @@ secret/              GITIGNORED. Personal setup notes and credentials
   the merge changed. Every remote call is best-effort: an Apps Script
   deployment without the `search.*` actions answers "Action không hợp lệ." and
   the reader must not notice.
+- **A component is referenced by the name Nuxt REGISTERS, and it dedups.**
+  `components/auth/AuthControl.vue` registers as `AuthControl`, not
+  `AuthAuthControl`: Nuxt drops a directory segment the filename already
+  repeats. Three components were written the long way and therefore never
+  rendered at all — the account control, the Admin body and the Stats body —
+  because an unresolved component is a console warning, not a build error, and
+  the page simply comes back short. `StudyProgressRing` keeps both halves
+  because `ProgressRing` does not start with `Study`; that is the whole rule.
+  `tests/native-surfaces.test.mjs` derives the registered names from disk and
+  fails on any tag in any template that does not match one.
+
+- **Anything the server must read goes through `/api/content/…`, never through
+  a path under `public/`.** `$fetch('/data/content-index.json')` resolves in the
+  browser and returns null during SSR, silently. Three surfaces were built on
+  it and all three rendered nothing: the progress ring had no denominator, the
+  topic picker no per-topic bars, and every written `(item-id)` stayed dead
+  text because the resolver had no questions to look up.
+  `server/api/content/item-index.get.ts` serves that file, and a test asserts
+  no view goes back to the raw path.
+
+- **The Study Track chrome is gated on `body.view-track`.** `styles.css` hides
+  `.track-only` — the progress ring — everywhere else, and the class used to be
+  set by the retired hash router. `ContentHeader` owns it now, toggled from
+  whether it was handed a `topic`. Without it the ring is in the DOM and
+  `display:none` on every page, which reads as "the ring is gone" rather than
+  as a broken selector.
+
 - **Nuxt owns navigation and public routes.** `app/components/content/ContentHeader.vue` is the shared header/menu, and `app/pages/` owns route rendering. The old hash-router menu, view registry and hash migration are gone. Standalone browser tools keep their own isolated controllers under `public/fshare-tool/` and `public/course-registration/`, mounted through `StaticToolSurface`.
 
 - **Case studies are numbered and bilingual, but are not Study Track topics.**
@@ -321,8 +345,8 @@ secret/              GITIGNORED. Personal setup notes and credentials
   change the progress denominator. Their manifest follows the Topic convention:
   an immutable numbered row points at `NN-slug.json`, with a complete
   `NN-slug.vi.json` companion; localized metadata stays in the collection's own
-  `meta.json`. `lib/i18n.js` provides the paired loader used by both data models,
-  while `Content.lang` remains the one global EN/VI state. Full article bodies
+  `meta.json`, and the collection route pairs them. The chosen language is the
+  `?lang=vi` query every page reads, and `lib/i18n.js` persists it. Full article bodies
   are paired as `articles/NN-slug.html` and `articles/NN-slug.vi.html`; their
   heading ids, code blocks and figure order must stay aligned. Figures live in
   the matching `assets/case-studies/NN-slug/` directory because the CSP permits
@@ -351,10 +375,13 @@ secret/              GITIGNORED. Personal setup notes and credentials
   as the original article.
 
 - **A bilingual article collection is one line, and the mechanism has one
-  owner.** `lib/collection.js` builds the loader (numbered manifest, localized
+  owner.** `server/api/content/collection/[collection]/[slug].get.ts` is that
+  owner: one route serves every collection (numbered manifest, localized
   `meta.json`, paired `NN-slug[.vi].json` guides pointing at
-  `NN-slug[.vi].html` bodies); `lib/case-studies.js` and `lib/knowledge.js`
-  are each a call to it. `app/components/content/CollectionArticle.vue` owns the
+  `NN-slug[.vi].html` bodies), and a collection is one entry in its
+  `COLLECTIONS` map. (It replaced `lib/collection.js` + `case-studies.js` +
+  `knowledge.js`, which the Nuxt migration left behind unreferenced.)
+  `app/components/content/CollectionArticle.vue` owns the
   reading chrome the libraries share — heading TOC, its persisted collapse state
   (`gazll:article-toc`) and the figure lightbox — so its hooks mean *article*,
   not *case study*. Adding a subject is a directory plus one `createCollection`
@@ -478,9 +505,10 @@ secret/              GITIGNORED. Personal setup notes and credentials
 
 - **System Design is a presentation surface over existing content, not a copy
   of it.** `data/system-design/catalog.json` holds the blueprint prose, but a
-  design's `source_items` are **ids, not text** — `lib/system-design.js` looks
-  each one up through `Content.itemPair()` at render time, so the migrated
-  deep-dive notes stay the single copy that lives in `data/topics/`. Editing a
+  design's `source_items` are **ids, not text** —
+  `server/api/content/system-design/[slug].get.ts` looks each one up in the
+  topic files at request time, so the migrated deep-dive notes stay the single
+  copy that lives in `data/topics/`. Editing a
   topic file therefore updates the blueprint too. Two invariants the validator
   now enforces: every `source_items` id must exist, and it must **also** be
   off the track (via `surface` or `system_design_items`) — otherwise the reader
@@ -498,7 +526,7 @@ secret/              GITIGNORED. Personal setup notes and credentials
   file under `assets/system-design/` and add one root `reference_image` object
   to that catalog row: repository-relative `src`, intrinsic integer `width` /
   `height`, then `en` and `vi` blocks with non-empty `alt` and `caption`.
-  `lib/system-design.js` localizes that nested record and the view renders it
+  the blueprint route ships that nested record whole and the view localizes it
   below the editable Mermaid diagram as a full-resolution link. Do not put the
   source image inside one language block, hotlink it, or branch on a blueprint
   slug; the validator checks the path, file, dimensions and both translations.
@@ -636,25 +664,23 @@ secret/              GITIGNORED. Personal setup notes and credentials
 
 English is the **default and base** language. Every base topic file is
 complete English, and every `.vi.json` companion is complete Vietnamese.
-**Both languages of a topic always arrive together, but topics load lazily.**
-`Content.load(reference)` fetches the small always-needed files
-(`manifest.json`, `meta.json`, `content-reviews.json`, `content-index.json`)
-plus the requested topic's base file **and** its `.vi.json` companion. Every
-later topic arrives through `Content.ensureTopic()` — the router awaits it
-before rendering, and `prefetchNearbyTopics()` warms the neighbours on idle.
-Because a topic never loads in one language alone, the header switch still
-selects already-loaded text and never needs a refetch. If a `.vi.json`
-companion cannot be loaded, VI mode gracefully displays that topic's English
-base instead of failing.
+**Both languages of a topic always arrive together, and one route serves one
+topic.** `/api/content/topic/<stem>` returns the picker rows, that topic's
+metadata, the review map, and the topic's base file **and** its `.vi.json`
+companion. Because a topic never arrives in one language alone, the header
+switch selects already-loaded text and never refetches. If a `.vi.json`
+companion cannot be read, the route returns `vi: null` and VI mode displays
+that topic's English base instead of failing.
 
-Two things depend on the whole corpus and must say so: `SearchIndex.build()`
-and `SystemDesign.load()` both `await Content.loadAll()`, because a search hit
-or a migrated source note may live in a topic the reader never opened. Anything
-else that reaches across topics has to do the same — reading `Content.topics`
-and finding only one topic is not a bug in the caller, it is the missing
-`loadAll()`. What works without it is exactly what `content-index.json` carries:
-item ids, both languages of each **question**, and the ring's denominator. Item
-*answers* need the topic file.
+Anything that reaches across topics reads them on the server, where the whole
+corpus is on disk: the search index walks every topic file at prerender, and a
+blueprint route resolves its `source_items` the same way. A page never loads a
+second topic to answer a question about it.
+
+What the browser gets for free is exactly what `data/content-index.json`
+carries — item ids, both languages of each **question**, and the ring's
+denominator — served through `/api/content/item-index` so SSR can read it too.
+Item *answers* live in the topic file and arrive with that topic's route.
 
 - **Topic files** — the base and companion use the same section order, item
   order, and four-key item schema. Their stable item IDs must match exactly;

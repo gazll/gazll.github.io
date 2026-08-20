@@ -1,6 +1,5 @@
 import assert from 'node:assert/strict';
 import path from 'node:path';
-import vm from 'node:vm';
 import { test, before, after, beforeEach } from 'node:test';
 import { mkdtempSync, cpSync, writeFileSync, rmSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -11,7 +10,7 @@ import { readFile } from 'node:fs/promises';
 /* Site-wide search: the index model, the text primitives it folds
    with, and the recent-search history that follows an account.
 
-   Merged from: search, question-links.
+   Merged from: search, search-history.
    Each block keeps its own scope so fixtures and helpers cannot collide. */
 
 // ---- from search.test.mjs ----
@@ -41,111 +40,102 @@ import { readFile } from 'node:fs/promises';
   const dataRoot = path.join(publicRoot, 'data');
 
   const {
-    fold, plainText, parseQuery, markText, buildSnippet, buildEntries,
-    searchEntries, searchHash, queryFromRoute, SURFACES
+    fold, plainText, parseQuery, markText, buildSnippet,
+    prepareEntries, searchEntries, SURFACES
   } = await import(pathToFileURL(path.join(publicRoot, 'lib/search.js')).href);
 
   /* ---------------------------------------------------------------------
      Fixtures
+
+     Rows are written in the shape `server/api/content/search-index.get.ts`
+     ships — both languages on every row, one real `href` — because that is the
+     only shape the running site ever ranks. The fixture used to be built by a
+     browser-side index builder that no longer exists; testing that shape again
+     would be testing code nobody runs.
   --------------------------------------------------------------------- */
 
   const ITEM = '05-db-core-index-lock.indexes.q1';
+  const TOPIC_TITLE = 'Database core, indexes and locking';
+  const q = id => `#question-${encodeURIComponent(id)}`;
 
-  const content = {
-    lang: 'en',
-    topics: [{
-      n: 5,
-      key: '05-db-core-index-lock',
-      topic_type: 'data',
-      label: 'Database Core',
-      title: 'Database core, indexes and locking',
-      intro: 'How B-trees, index selectivity and row locks decide a query plan.',
-      tags: ['Index', 'Locking'],
-      sections: [{
-        title: 'Indexes &amp; plans',
-        items: [
-          {
-            id: ITEM,
-            difficulty: 'core',
-            q: 'What is a **covering index**?',
-            a: 'An index that answers the query from the index alone.\n\n<svg><text>btree</text></svg>\n\n'
-              + 'Run `EXPLAIN` and look for `Using index`. Watch out for a wide `SELECT *`, which drops the covering property.'
-          },
-          {
-            id: '05-db-core-index-lock.indexes.q2',
-            difficulty: 'advanced',
-            q: 'Khi nào cần đồng bộ dữ liệu sang read replica?',
-            a: 'Khi độ trễ replication vượt quá ngưỡng nghiệp vụ cho phép.'
-          }
-        ]
-      }]
-    }]
-  };
+  const INDEX = [
+    {
+      id: ITEM, surface: 'track',
+      en: 'What is a covering index?', vi: 'Covering index là gì?',
+      bodyEn: 'An index that answers the query from the index alone. Run EXPLAIN and look for Using index. '
+        + 'Watch out for a wide SELECT *, which drops the covering property.',
+      bodyVi: 'Index trả lời truy vấn chỉ bằng chính nó.',
+      contextEn: TOPIC_TITLE, contextVi: TOPIC_TITLE,
+      href: `/topics/05-db-core-index-lock${q(ITEM)}`
+    },
+    {
+      id: '05-db-core-index-lock.indexes.q2', surface: 'track',
+      en: 'When do you sync data to a read replica?', vi: 'Khi nào cần đồng bộ dữ liệu sang read replica?',
+      bodyEn: 'When replication lag passes what the business tolerates.',
+      bodyVi: 'Khi độ trễ replication vượt quá ngưỡng nghiệp vụ cho phép.',
+      contextEn: TOPIC_TITLE, contextVi: TOPIC_TITLE,
+      href: `/topics/05-db-core-index-lock${q('05-db-core-index-lock.indexes.q2')}`
+    },
+    {
+      id: 'topic:05-db-core-index-lock', surface: 'track', weight: 40,
+      en: TOPIC_TITLE, vi: TOPIC_TITLE,
+      bodyEn: 'How B-trees, index selectivity and row locks decide a query plan. Index Locking',
+      bodyVi: 'B-tree, độ chọn lọc index và row lock quyết định query plan.',
+      contextEn: 'Topic 5 · Database Core', contextVi: 'Chủ đề 5 · Database Core',
+      href: '/topics/05-db-core-index-lock'
+    },
+    {
+      // A migrated deep dive is off the track, so it must never route back to it.
+      id: '10-deep.dive.q1', surface: 'track',
+      en: 'How do you size a cache tier?', vi: 'How do you size a cache tier?',
+      bodyEn: 'Start from the working set.', bodyVi: 'Start from the working set.',
+      contextEn: 'Scaling 1M to 10M requests', contextVi: 'Scaling 1M to 10M requests',
+      href: `/system-design/scaling-1m-to-10m-requests${q('10-deep.dive.q1')}`
+    },
+    {
+      id: 'system-design:scaling-1m-to-10m-requests', surface: 'system-design',
+      en: 'Scaling 1M to 10M requests', vi: 'Scaling 1M to 10M requests',
+      bodyEn: '', bodyVi: '',
+      contextEn: 'Framing the growth from one box to cells.', contextVi: 'Framing the growth from one box to cells.',
+      href: '/system-design/scaling-1m-to-10m-requests'
+    },
+    {
+      id: 'case-studies:a-b-testing-in-tiki-search', surface: 'case-studies',
+      en: 'A/B testing in search', vi: 'A/B testing trong search',
+      bodyEn: 'Deterministic hashing keeps a user in one bucket.',
+      bodyVi: 'Hashing tất định giữ user trong một bucket.',
+      contextEn: 'Bucketing users for search ranking.', contextVi: 'Bucketing users for search ranking.',
+      href: '/case-studies/a-b-testing-in-tiki-search'
+    }
+  ];
 
-  const systemDesign = {
-    categories: [{ id: 'scaling', label: 'Scaling' }],
-    designs: [{
-      n: 1,
-      slug: 'scaling-1m-to-10m-requests',
-      category: 'scaling',
-      title: 'Scaling 1M to 10M requests',
-      excerpt: 'From one box to cells.',
-      scope: 'Framing the growth from 250 rps peak to 2,500 rps peak.',
-      functional: ['Serve reads from a cache tier.'],
-      quality: [], capacity: [], data_model: [], stack: [], tradeoffs: [],
-      tags: ['Capacity'],
-      sourceNotes: [{ id: '10-deep.dive.q1', q: 'How do you size a cache tier?', a: 'Start from the working set.' }]
-    }],
-    cases: [{
-      n: 1, slug: 'arcturus-inventory-processing-system', title: 'Arcturus', company: 'Tiki Engineering',
-      excerpt: 'Ordered command queue for inventory.', tags: ['Inventory'],
-      category: 'systems-architecture', guide: { problem: 'Overselling under peak load.' }
-    }],
-    caseOverview: () => ({ title: 'Arcturus lens', lens: 'Single-writer state machine.' })
-  };
-
-  const caseStudies = {
-    articles: [
-      systemDesign.cases[0],
-      {
-        n: 2, slug: 'a-b-testing-in-tiki-search', title: 'A/B testing in search', company: 'Tiki Engineering',
-        category: 'data-ml-experimentation', category_label: 'Data & ML', excerpt: 'Bucketing users for search ranking.',
-        tags: ['Experimentation'], guide: { core_idea: 'Deterministic hashing keeps a user in one bucket.' }
-      }
-    ]
-  };
-
-  const index = buildEntries({ content, systemDesign, caseStudies });
-  const find = (entries, key) => entries.find(entry => entry.key === key);
+  const index = prepareEntries(INDEX, 'en');
 
   /* ---------------------------------------------------------------------
      Text preparation
   --------------------------------------------------------------------- */
 
   test('folding is diacritic-insensitive and never changes length', () => {
-    assert.equal(fold('Đồng bộ dữ liệu'), 'dong bo du lieu');
-    assert.equal(fold('CIRCUIT Breaker'), 'circuit breaker');
-    for (const sample of ['Đồng bộ dữ liệu', 'Kiểm tra ràng buộc', 'plain ascii', 'ĐẶNG', 'á']) {
-      assert.equal(fold(sample).length, sample.length, `length drifted for "${sample}"`);
+    for (const value of ['Đồng bộ dữ liệu', 'Straße', 'ẤY', 'plain ascii', '']) {
+      assert.equal(fold(value).length, value.length, `fold() changed the length of "${value}"`);
     }
+    assert.equal(fold('Đồng Bộ'), 'dong bo');
   });
 
   test('plain text drops diagrams and markup but keeps the words a reader searches', () => {
-    const flat = plainText(index.find(entry => entry.key === ITEM).body);
-    assert.ok(!/btree/.test(flat), 'SVG labels are noise, not prose');
-    assert.ok(!/[<>]/.test(flat.replace(/SELECT \*/, '')), 'no tags survive');
-    assert.match(flat, /EXPLAIN/);
-    assert.match(flat, /covering property/);
+    const plain = plainText('Use a **covering index**.\n\n<svg><text>btree</text></svg>\n\n- `EXPLAIN` first');
+    assert.match(plain, /covering index/);
+    assert.match(plain, /EXPLAIN/);
+    assert.ok(!/btree/.test(plain), 'diagram labels read as noise in a snippet');
+    assert.ok(!/[*`]/.test(plain));
   });
 
   test('escaped angle brackets come back as the text the author wrote', () => {
-    // Answers write `&lt;pid&gt;` because renderMarkdown never escapes; a reader
-    // searching "jcmd" must still see the literal placeholder in the snippet.
-    assert.equal(plainText('Run `jcmd &lt;pid&gt; Thread.print`.'), 'Run jcmd <pid> Thread.print.');
+    assert.match(plainText('run `jcmd &lt;pid&gt; Thread.print`'), /jcmd <pid> Thread\.print/);
   });
 
   test('callout markers and colour spans do not leak into the index', () => {
-    assert.equal(plainText(':::tip Rule\nUse [[g:idempotency]] keys.\n:::'), 'Rule Use idempotency keys.');
+    assert.equal(plainText(':::tip\n[[b:bounded queue]] holds\n:::'), 'bounded queue holds');
   });
 
   /* ---------------------------------------------------------------------
@@ -155,9 +145,6 @@ import { readFile } from 'node:fs/promises';
   test('a query is folded, split and de-duplicated; one-letter terms survive alone', () => {
     const parsed = parseQuery('  Circuit   BREAKER circuit ');
     assert.deepEqual(parsed.terms, ['circuit', 'breaker']);
-    // The phrase stays as typed (minus spacing): it scores word order, so it is
-    // not de-duplicated the way the term set is.
-    assert.equal(parsed.phrase, 'circuit breaker circuit');
     assert.equal(parseQuery(' Circuit Breaker ').phrase, 'circuit breaker');
     assert.deepEqual(parseQuery('a').terms, ['a']);
     assert.deepEqual(parseQuery('đồng bộ').terms, ['dong', 'bo']);
@@ -170,37 +157,29 @@ import { readFile } from 'node:fs/promises';
   });
 
   test('a title match outranks a body match', () => {
-    const pair = buildEntries({
-      content: {
-        topics: [{
-          n: 1, key: 't', topic_type: 'core', label: 'T', title: 'T', intro: '', tags: [],
-          sections: [{
-            title: 'S',
-            items: [
-              { id: 't.s.q1', q: 'How do you warm a cache?', a: 'Replay the busiest sharding keys first.' },
-              { id: 't.s.q2', q: 'What are sharding strategies?', a: 'Hash, range and directory.' }
-            ]
-          }]
-        }]
-      },
-      systemDesign: {}, caseStudies: {}
-    });
-    assert.deepEqual(searchEntries(pair, 'sharding').results.map(hit => hit.entry.key), ['t.s.q2', 't.s.q1']);
+    const pair = prepareEntries([
+      { id: 't.s.q1', surface: 'track', en: 'How do you warm a cache?', vi: '',
+        bodyEn: 'Replay the busiest sharding keys first.', contextEn: 'T', href: '/topics/t' },
+      { id: 't.s.q2', surface: 'track', en: 'What are sharding strategies?', vi: '',
+        bodyEn: 'Hash, range and directory.', contextEn: 'T', href: '/topics/t' }
+    ], 'en');
+    assert.deepEqual(searchEntries(pair, 'sharding').results.map(hit => hit.id), ['t.s.q2', 't.s.q1']);
   });
 
   test('a broad term surfaces the topic that owns it, above the questions inside', () => {
     // Deliberate: the first thing a reader wants from a one-word query is which
-    // topic to open. The per-kind weight in buildEntries is what does this.
+    // topic to open. The `weight` the index builder puts on a topic row does it.
     const results = searchEntries(index, 'index').results;
-    assert.equal(results[0].entry.key, 'topic:05-db-core-index-lock');
+    assert.equal(results[0].id, 'topic:05-db-core-index-lock');
     assert.ok(results.length > 1, 'the questions inside it still match');
     // Naming the question itself puts the question back on top.
-    assert.equal(searchEntries(index, 'covering index').results[0].entry.key, ITEM);
+    assert.equal(searchEntries(index, 'covering index').results[0].id, ITEM);
   });
 
   test('Vietnamese content is reachable without typing the accents', () => {
-    const results = searchEntries(index, 'dong bo du lieu').results;
-    assert.equal(results[0].entry.key, '05-db-core-index-lock.indexes.q2');
+    const vi = prepareEntries(INDEX, 'vi');
+    const results = searchEntries(vi, 'dong bo du lieu').results;
+    assert.equal(results[0].id, '05-db-core-index-lock.indexes.q2');
     assert.match(results[0].titleHtml, /<mark>/);
   });
 
@@ -209,27 +188,28 @@ import { readFile } from 'node:fs/promises';
      under a whole group of weaker ones — and since the first row is the one
      Enter opens, it opens the wrong thing. */
   test('results come back strictly ranked, which is what the grouped views rely on', () => {
-    for (const query of ['index', 'circuit breaker', 'inventory', 'sharding']) {
+    for (const query of ['index', 'cache', 'bucket', 'sharding']) {
       const scores = searchEntries(index, query).results.map(hit => hit.score);
       assert.deepEqual(scores, [...scores].sort((a, b) => b - a), `"${query}" came back out of order`);
     }
     // The top hit for a blueprint-only term must be the blueprint, not whichever
     // surface happens to sort first.
-    assert.equal(searchEntries(index, 'cells framing growth').results[0].entry.surface, 'system-design');
+    assert.equal(searchEntries(index, 'scaling 1m').results[0].surface, 'system-design');
   });
 
   test('results carry the counts per surface, so the panel can offer filters', () => {
     const found = searchEntries(index, 'index');
-    const surfaces = new Set(found.results.map(hit => hit.entry.surface));
+    const surfaces = new Set(found.results.map(hit => hit.surface));
     for (const surface of surfaces) assert.ok(found.counts[surface] > 0);
-    assert.deepEqual(SURFACES.map(row => row.id), ['track', 'system-design', 'case-studies', 'knowledge']);
+    assert.deepEqual(SURFACES.map(row => row.id),
+      ['track', 'system-design', 'case-studies', 'photography', 'homelab']);
   });
 
   test('a surface filter narrows the list but not the counts', () => {
-    const all = searchEntries(index, 'inventory');
-    const filtered = searchEntries(index, 'inventory', { surface: 'case-studies' });
+    const all = searchEntries(index, 'index');
+    const filtered = searchEntries(index, 'index', { surface: 'case-studies' });
     assert.ok(all.total >= 1);
-    assert.equal(filtered.results.length, 0, 'the Arcturus case is production evidence, not a case-study row');
+    assert.equal(filtered.results.length, 0, 'no case-study row matches this term');
     assert.deepEqual(filtered.counts, all.counts, 'counts describe the whole result set');
   });
 
@@ -257,91 +237,46 @@ import { readFile } from 'node:fs/promises';
     assert.ok(snippet.length < 400);
   });
 
+  test('a result carries the marked title and the snippet the views render', () => {
+    const hit = searchEntries(index, 'covering index').results[0];
+    assert.match(hit.titleHtml, /<mark>covering<\/mark>/);
+    assert.match(hit.snippet, /<mark>index<\/mark>/, 'the snippet is what says why a row matched');
+    assert.equal(hit.href, `/topics/05-db-core-index-lock${q(ITEM)}`);
+  });
+
   /* ---------------------------------------------------------------------
      The index
   --------------------------------------------------------------------- */
 
-  test('every entry routes to the surface that actually owns it', () => {
-    assert.equal(find(index, ITEM).href, '#/track/' + encodeURIComponent(ITEM) + '?lang=en');
-    assert.equal(find(index, 'design:scaling-1m-to-10m-requests').href, '#/system-design/scaling-1m-to-10m-requests?lang=en');
-    assert.equal(find(index, 'case:a-b-testing-in-tiki-search').href, '#/case-studies/a-b-testing-in-tiki-search?lang=en');
-    assert.equal(find(index, 'production:arcturus-inventory-processing-system').href,
-      '#/system-design/case/arcturus-inventory-processing-system?lang=en');
-    // A migrated deep dive is off the track, so it must never route back to it.
-    assert.equal(find(index, '10-deep.dive.q1').href, '#/system-design/scaling-1m-to-10m-requests/10-deep.dive.q1?lang=en');
+  test('preparing folds per language and keeps every offset aligned', () => {
+    for (const lang of ['en', 'vi']) {
+      for (const entry of prepareEntries(INDEX, lang)) {
+        assert.ok(entry.title, `${entry.id} has no title`);
+        assert.equal(entry.titleFold.length, entry.title.length);
+        assert.equal(fold(entry.title), entry.titleFold);
+      }
+    }
   });
 
-  test('a topic opens at its first card, which is what selects the topic', () => {
-    const topic = find(index, 'topic:05-db-core-index-lock');
-    assert.equal(topic.href, '#/track/' + encodeURIComponent(ITEM) + '?lang=en');
-    assert.match(topic.context, /Topic 05/);
-  });
-
-  test('an item names the topic it belongs to', () => {
-    const entry = find(index, ITEM);
-    assert.match(entry.context, /Database Core/);
-    assert.match(entry.context, /Indexes & plans/, 'the section title is decoded, not raw HTML');
-    assert.equal(entry.badge, 'Q1');
-    assert.equal(entry.topicType, 'data');
-  });
-
-  test('the architecture cases are indexed once, as production evidence', () => {
-    const arcturus = index.filter(entry => /arcturus/.test(entry.key));
-    assert.equal(arcturus.length, 1);
-    assert.equal(arcturus[0].surface, 'system-design');
+  test('entries are ordered by surface, which is the tie-break inside a score', () => {
+    const rank = SURFACES.map(row => row.id);
+    const seen = index.map(entry => rank.indexOf(entry.surface));
+    assert.deepEqual(seen, [...seen].sort((a, b) => a - b), 'surfaces must not interleave');
   });
 
   test('an item id finds its own card', () => {
-    const found = searchEntries(index, ITEM);
-    assert.equal(found.results[0].entry.key, ITEM);
+    assert.equal(searchEntries(index, ITEM).results[0].id, ITEM);
   });
 
-  test('the real content builds an index whose every row is reachable', async () => {
-    const manifest = JSON.parse(readFileSync(path.join(dataRoot, 'manifest.json'), 'utf8'));
-    const meta = JSON.parse(readFileSync(path.join(dataRoot, 'meta.json'), 'utf8'));
-    const rows = manifest.topics.filter(row => !row.surface || row.surface === 'track');
-    const topics = rows.map(row => {
-      const source = JSON.parse(readFileSync(path.join(dataRoot, row.file), 'utf8'));
-      const moved = new Set(row.system_design_items || []);
-      const entry = meta.topics[String(row.n)];
-      return {
-        n: row.n, key: entry.key, topic_type: row.topic_type,
-        label: entry.en.label, title: entry.en.title, intro: entry.en.intro, tags: entry.en.tags,
-        sections: source.sections.map(section => ({
-          title: section.title,
-          items: section.items.filter(item => !moved.has(item.id))
-        })).filter(section => section.items.length)
-      };
-    });
-
-    const real = buildEntries({ content: { topics }, systemDesign: {}, caseStudies: {} });
-    assert.ok(real.length > 300, 'the whole track is indexed');
-    for (const entry of real) {
-      assert.ok(entry.title, `${entry.key} has no title`);
-      assert.match(entry.href, /^#\/track\//);
-      assert.equal(entry.titleFold.length, entry.title.length);
-    }
-
-    // A question every reader meets, found by a phrase from its own answer.
-    const items = real.filter(entry => entry.kind === 'item');
-    const sample = items[0];
-    const words = sample.body.split(' ').slice(4, 8).join(' ');
-    const hit = searchEntries(real, words).results[0];
-    assert.ok(hit, `nothing matched "${words}"`);
-  });
-
-  /* ---------------------------------------------------------------------
-     Routes
-  --------------------------------------------------------------------- */
-
-  test('a search is a shareable route, slashes and accents included', () => {
-    assert.equal(searchHash('circuit breaker'), '#/search/circuit%20breaker?lang=en');
-    assert.equal(searchHash('  '), '#/search?lang=en');
-    assert.equal(queryFromRoute(['circuit%20breaker']), 'circuit breaker');
-    assert.equal(queryFromRoute([encodeURIComponent('a/b')]), 'a/b');
-    assert.equal(queryFromRoute(['%E1%BB%9F']), 'ở');
-    assert.equal(queryFromRoute([]), '');
-    assert.equal(queryFromRoute(['%ZZ']), '', 'a malformed hash is not an exception');
+  /* The hrefs themselves are the index builder's job, and getting one wrong
+     sends a reader to a page that does not hold the answer. */
+  test('the shipped index routes each surface to the page that owns it', async () => {
+    const builder = await readFile(path.join(root, 'server/api/content/search-index.get.ts'), 'utf8');
+    assert.match(builder, /system-design\/\$\{sourceOwners\.get\(id\)\}#question-/,
+      'a migrated deep dive must route into its blueprint');
+    assert.match(builder, /topics\/\$\{topicKey\}#question-/);
+    assert.match(builder, /id: `topic:\$\{topic\.key\}`/, 'a topic needs a row of its own');
+    assert.match(builder, /weight: 40/, 'and a weight, or it never outranks its own questions');
   });
 
   /* ---------------------------------------------------------------------
@@ -541,70 +476,6 @@ import { readFile } from 'node:fs/promises';
     assert.deepEqual(SearchHistory.entries.map(row => row.q), ['circuit breaker']);
     // Still queued: the next successful call sends it.
     assert.equal(SearchHistory._pending.size, 1);
-  });
-}
-
-// ---- from question-links.test.mjs ----
-{
-  const root = path.resolve(import.meta.dirname, '..');
-
-  async function loadHelpers() {
-    const source = await readFile(path.join(root, 'public/lib/question-links.js'), 'utf8');
-    const context = vm.createContext({ URL, encodeURIComponent, decodeURIComponent });
-    const mod = new vm.SourceTextModule(source, { context, identifier: 'question-links.js' });
-    await mod.link(() => { throw new Error('question-links.js must stay dependency-free'); });
-    await mod.evaluate();
-    return mod.namespace;
-  }
-
-  test('a question id becomes a shareable absolute track URL and decodes again', async () => {
-    const links = await loadHelpers();
-    const id = '03-spring-boot-deep-build.ioc-container-transactions.q6';
-    const url = links.questionUrl('https://gazll.github.io/#/stats', id);
-
-    assert.equal(url, 'https://gazll.github.io/#/track/' + id + '?lang=en');
-    const routeParts = new URL(url).hash.replace(/^#\/?/, '').split('?')[0].split('/').filter(Boolean).slice(1);
-    assert.equal(links.questionIdFromRoute(routeParts), id);
-    assert.equal(links.questionIdFromRoute([]), null);
-    assert.equal(links.questionIdFromRoute(['broken%ZZ']), null);
-  });
-
-  test('a moved question gets a canonical System Design URL', async () => {
-    const links = await loadHelpers();
-    const id = '11-system-design-cases.the-big-prompts.q1';
-    const url = links.systemDesignQuestionUrl('https://gazll.github.io/#/track', 'payment-ledger', id);
-
-    assert.equal(url, 'https://gazll.github.io/#/system-design/payment-ledger/' + id + '?lang=en');
-    assert.equal(links.systemDesignQuestionHash('payment-ledger', id), '#/system-design/payment-ledger/' + id + '?lang=en');
-  });
-
-  test('the immutable full id distinguishes repeated Q6 labels across sections', async () => {
-    const links = await loadHelpers();
-    const topic = JSON.parse(await readFile(
-      path.join(root, 'public/data/topics/03-spring-boot-deep-build.json'), 'utf8'));
-    const firstQ6 = topic.sections[0].items.find(item => item.id.endsWith('.q6'));
-    const secondQ6 = topic.sections[1].items.find(item => item.id.endsWith('.q6'));
-
-    assert.ok(firstQ6 && secondQ6, 'topic 3 intentionally has Q6 in more than one section');
-    assert.notEqual(firstQ6.id, secondQ6.id);
-    const found = links.findQuestion([topic], secondQ6.id);
-    assert.equal(found.topicIndex, 0);
-    assert.equal(found.section.title, topic.sections[1].title);
-    assert.equal(found.item.id, secondQ6.id);
-  });
-
-  test('the native question card keeps one copy-link control per question', async () => {
-    const question = await readFile(path.join(root, 'app/components/study/QuestionCard.vue'), 'utf8');
-    const styles = await readFile(path.join(root, 'public/styles.css'), 'utf8');
-
-    assert.match(question, /<button class="qcopy" type="button"/);
-    assert.match(question, /class="langswitch qlangbtn" type="button" role="switch"/);
-    assert.doesNotMatch(question, /<span class="qcopy" role="button"/);
-    assert.match(question, /<button class="qhead" type="button"/);
-    assert.match(question, /scrollIntoView\(\{ block: 'start'/);
-    assert.match(question, /new URL\('\/lib\/dsa-player\.js'/);
-    assert.match(styles, /\.qcard\.link-target/);
-    assert.match(styles, /scroll-margin-top/);
   });
 }
 

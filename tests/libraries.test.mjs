@@ -4,6 +4,8 @@ import test from 'node:test';
 import { access, readFile, readdir } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 import { PROMPT_ORIGINS, PUBLISHER_ORIGINS, REFERENCE_ORIGINS } from '../public/lib/constants.js';
+import { route } from './nitro-route.mjs';
+import { crossRefResolver, trackItemIds } from '../public/lib/cross-ref.js';
 
 /* The three bilingual article collections and the blueprint library
    built over them: manifest contracts, source-kind rules, the settled reading
@@ -305,69 +307,52 @@ import { PROMPT_ORIGINS, PUBLISHER_ORIGINS, REFERENCE_ORIGINS } from '../public/
     assert.equal(FLOWCHART_RUNTIME.length, 27);
   });
 
-  test('the shared loader resolves migrated notes and switches the whole collection in memory', async () => {
-    const store = new Map();
-    globalThis.localStorage = {
-      getItem: key => store.get(key) || null,
-      setItem: (key, value) => store.set(key, String(value)),
-      removeItem: key => store.delete(key)
-    };
-    const fetched = [];
-    globalThis.fetch = async url => {
-      const clean = String(url).replace(/^\.?\//, '').split('?')[0];
-      fetched.push(clean);
-      try {
-        const body = await readFile(path.join(publicRoot, clean), 'utf8');
-        return {
-          ok: true,
-          json: async () => JSON.parse(body),
-          text: async () => body
-        };
-      } catch (error) {
-        return { ok: false, status: 404 };
+  test('the blueprint route resolves migrated notes and carries both languages', async () => {
+    const payload = await route('content/system-design/[slug]', { slug: 'payment-ledger' });
+    const source = catalog.designs.find(row => row.slug === 'payment-ledger');
+
+    // effort must survive the route: the view falls back to a hardcoded "45 min",
+    // so a dropped field shows a plausible wrong number rather than nothing.
+    assert.equal(payload.design.effort, source.effort);
+    assert.equal(payload.design.en.title, source.en.title);
+    assert.notEqual(payload.design.vi.title, payload.design.en.title,
+      'both languages travel on the row, which is why the switch never refetches');
+
+    // source_items are ids, resolved to live topic items at read time.
+    assert.equal(payload.sourceNotes.length, source.source_items.length);
+    assert.ok(payload.sourceNotes.every(note => note.en?.q && note.en?.a));
+    assert.ok(payload.sourceNotes.every(note => note.vi?.q), 'a migrated note keeps its companion');
+    assert.equal(payload.sourceOwners[source.source_items[0]], 'payment-ledger');
+  });
+
+  test('every blueprint round-trips through its route with its reference figure intact', async () => {
+    let migrated = 0;
+    for (const source of catalog.designs) {
+      const payload = await route('content/system-design/[slug]', { slug: source.slug });
+      assert.equal(payload.design.effort, source.effort, `${source.slug}: effort lost`);
+      migrated += payload.sourceNotes.length;
+      if (source.reference_image) {
+        assert.equal(payload.design.reference_image?.src, source.reference_image.src,
+          `${source.slug}: reference image lost`);
+        // Localization is the view's job, so BOTH language blocks must survive.
+        assert.ok(payload.design.reference_image.en?.alt && payload.design.reference_image.vi?.alt,
+          `${source.slug}: localized image metadata lost`);
       }
-    };
-
-    try {
-      const { Content } = await import(pathToFileURL(path.join(publicRoot, 'lib/content.js')).href);
-      const { SystemDesign } = await import(pathToFileURL(path.join(publicRoot, 'lib/system-design.js')).href);
-      await Content.load();
-      await SystemDesign.load('en');
-
-      assert.equal(Content.topics.length, manifest.topics.length - movedRows.length);
-      assert.equal(SystemDesign.designs.length, catalog.designs.length);
-      // effort must survive apply(): the view falls back to a hardcoded "45 min",
-      // so a dropped field shows a plausible wrong number rather than nothing.
-      for (const design of SystemDesign.designs) {
-        const source = catalog.designs.find(row => row.slug === design.slug);
-        assert.equal(design.effort, source.effort, `${design.slug}: effort lost in apply()`);
-        if (source.reference_image) {
-          assert.equal(design.reference_image?.src, source.reference_image.src,
-            `${design.slug}: reference image lost in apply()`);
-          assert.equal(design.reference_image?.alt, source.reference_image.en.alt,
-            `${design.slug}: localized image metadata lost in apply()`);
-        }
-      }
-      assert.equal(SystemDesign.cases.length, 6);
-      assert.equal(SystemDesign.designs.flatMap(design => design.sourceNotes).length, 59);
-      const itemId = catalog.designs[4].source_items[0];
-      assert.equal(SystemDesign.designForSourceItem(itemId).slug, 'payment-ledger');
-      assert.equal(SystemDesign.designForSourceItem('missing.q1'), null);
-      const englishTitle = SystemDesign.design('payment-ledger').title;
-      const eagerFetches = fetched.length;
-
-      await SystemDesign.load('vi');
-      assert.equal(fetched.length, eagerFetches, 'bilingual sources should already be cached');
-      assert.equal(SystemDesign.design('payment-ledger').title, catalog.designs[4].vi.title);
-      assert.notEqual(SystemDesign.design('payment-ledger').title, englishTitle);
-      const illustrated = catalog.designs.find(row => row.reference_image);
-      assert.equal(SystemDesign.design(illustrated.slug).reference_image.alt, illustrated.reference_image.vi.alt,
-        'VI image metadata did not switch with the article');
-      assert.ok(SystemDesign.design('payment-ledger').sourceNotes.every(note => note.q && note.a));
-    } finally {
-      delete globalThis.fetch;
-      delete globalThis.localStorage;
     }
+    assert.equal(migrated, 59, 'the migrated deep dives are all still reachable');
+  });
+
+  test('the production cases handed to System Design are paired in both directions', async () => {
+    const payload = await route('content/system-design/[slug]', { slug: 'index' });
+    assert.equal(payload.cases.length, 6);
+    for (const row of payload.cases) {
+      assert.ok(row.overview, `${row.slug} has no case_overviews entry`);
+      assert.ok(row.metadata?.en?.title, `${row.slug} lost its localized metadata`);
+    }
+  });
+
+  test('an unknown blueprint is a 404 rather than a half-rendered page', async () => {
+    await assert.rejects(() => route('content/system-design/[slug]', { slug: 'no-such-design' }), /not found/i);
   });
 
   test('native System Design and Case Studies keep the migrated reader contracts', async () => {
@@ -753,41 +738,31 @@ import { PROMPT_ORIGINS, PUBLISHER_ORIGINS, REFERENCE_ORIGINS } from '../public/
     assert.match(en, /CISA bastion-host guidance/);
   });
 
-  test('the shared bilingual loader switches case-study JSON in memory and caches article bodies', async () => {
-    const fetched = [];
-    globalThis.fetch = async url => {
-      fetched.push(url);
-      if (url === 'data/case-studies/manifest.json') return { ok: true, json: async () => structuredClone(manifest) };
-      if (url === 'data/case-studies/meta.json') return { ok: true, json: async () => structuredClone(meta) };
-      if (contentFiles.has(url)) return { ok: true, json: async () => structuredClone(contentFiles.get(url)) };
-      if (/^data\/case-studies\/articles\//.test(url)) {
-        return { ok: true, text: async () => readFile(path.join(publicRoot, url), 'utf8') };
-      }
-      return { ok: false, status: 404 };
-    };
+  test('the collection route pairs a numbered row with its localized metadata and both bodies', async () => {
+    const manifest = JSON.parse(await readFile(path.join(dataRoot, 'case-studies/manifest.json'), 'utf8'));
+    const meta = JSON.parse(await readFile(path.join(dataRoot, 'case-studies/meta.json'), 'utf8'));
 
-    const moduleUrl = pathToFileURL(path.join(publicRoot, 'lib/case-studies.js')).href + '?t=' + Math.random();
-    const { CaseStudies } = await import(moduleUrl);
-    await CaseStudies.load('en');
-    assert.equal(CaseStudies.articles.length, manifest.articles.length);
-    assert.equal(CaseStudies.articles[0].title, meta.articles['1'].en.title);
-    assert.equal(CaseStudies.articles[0].body_file, pairFor(manifest.articles[0]).en.body_file);
-    assert.equal(CaseStudies.articles[2].is_translation, true);
+    const index = await route('content/collection/[collection]/[slug]', { collection: 'case-studies', slug: 'index' });
+    assert.equal(index.articles.length, manifest.articles.length);
+    assert.equal(index.articles[0].metadata.en.title, meta.articles['1'].en.title);
+    assert.ok(index.articles[0].metadata.vi.title, 'both languages travel on every row');
 
-    const eagerFetches = fetched.length;
-    await CaseStudies.load('vi');
-    assert.equal(fetched.length, eagerFetches, 'both localized JSON sources should already be in memory');
-    assert.equal(CaseStudies.articles[0].title, meta.articles['1'].vi.title);
-    assert.equal(CaseStudies.articles[0].body_file, pairFor(manifest.articles[0]).vi.body_file);
-    assert.equal(CaseStudies.articles[0].is_translation, true);
-    assert.equal(CaseStudies.articles[2].is_translation, false);
+    const row = manifest.articles[0];
+    const article = await route('content/collection/[collection]/[slug]',
+      { collection: 'case-studies', slug: row.slug });
+    assert.equal(article.row.slug, row.slug);
+    assert.ok(article.en.body_file, 'the English guide names its body');
+    assert.ok(article.enBody.length > 200, 'and the body itself travels with it');
+    assert.ok(article.viBody.length > 200, 'so does the Vietnamese companion');
+    assert.notEqual(article.viBody, article.enBody);
+    // Figures are repository-local, never hotlinked, and the route rewrites the
+    // relative paths the archived body was authored with.
+    assert.ok(!/src="assets\//.test(article.enBody), 'asset paths must be rooted');
 
-    const article = CaseStudies.articles[0];
-    await CaseStudies.body(article);
-    const afterBody = fetched.length;
-    await CaseStudies.body(article);
-    assert.equal(fetched.length, afterBody, 'an opened localized body should be cached');
-    delete globalThis.fetch;
+    await assert.rejects(() => route('content/collection/[collection]/[slug]',
+      { collection: 'case-studies', slug: 'no-such-article' }), /not found/i);
+    await assert.rejects(() => route('content/collection/[collection]/[slug]',
+      { collection: 'no-such-collection', slug: 'index' }), /not found/i);
   });
 
   test('Case Studies uses the native bilingual collection routes', async () => {
@@ -948,34 +923,21 @@ import { PROMPT_ORIGINS, PUBLISHER_ORIGINS, REFERENCE_ORIGINS } from '../public/
     assert.match(labRoute, /ContentCollectionIndex collection="homelab"/);
   });
 
-  test('knowledge articles reach the native search index model', async () => {
-    const { buildEntries, searchEntries, SURFACES } = await import('../public/lib/search.js');
-    assert.ok(SURFACES.some(row => row.id === 'knowledge'), 'knowledge must be a search surface');
+  test('Other Knowledge reaches the shipped search index, as its own surfaces', async () => {
+    const { SURFACES } = await import(pathToFileURL(path.join(publicRoot, 'lib/search.js')).href);
+    // photography and homelab are separate surfaces, which is what the index
+    // builder emits and what both search views group by. A collection that is
+    // never fed into the builder is invisible to search, and silently so.
+    for (const surface of ['photography', 'homelab']) {
+      assert.ok(SURFACES.some(row => row.id === surface), `${surface} must be a search surface`);
+    }
+    const builder = await readFile(path.join(root, 'server/api/content/search-index.get.ts'), 'utf8');
+    assert.match(builder, /addCollection\('photography'/);
+    assert.match(builder, /addCollection\('homelab'/);
+    assert.match(builder, /addCollection\('case-studies'/);
 
-    const manifest = await read('photography/manifest.json');
-    const meta = await read('photography/meta.json');
-    const row = manifest.articles[0];
-    const article = {
-      ...row,
-      ...meta.articles[String(row.n)].en,
-      category_label: 'Fundamentals',
-      guide: { title: 'Guide title', summary: 'aperture and diffraction', points: ['stop is the shared unit'] }
-    };
-
-    const entries = buildEntries({
-      content: { topics: [] },
-      systemDesign: { designs: [], cases: [], caseOverviews: new Map() },
-      caseStudies: { articles: [] },
-      knowledge: { photography: { library: { title: 'Photography' }, articles: [article] } }
-    });
-
-    assert.equal(entries.length, 1);
-    assert.equal(entries[0].surface, 'knowledge');
-    assert.match(entries[0].href, /photography\/exposure-three-controls/);
-
-    const found = searchEntries(entries, 'diffraction');
-    assert.equal(found.results.length, 1, 'guide text must be searchable');
-    assert.equal(found.counts.knowledge, 1);
+    const manifest = JSON.parse(await readFile(path.join(dataRoot, 'photography/manifest.json'), 'utf8'));
+    assert.ok(manifest.articles.length, 'an empty collection would make the wiring untestable');
   });
 }
 
@@ -996,7 +958,6 @@ import { PROMPT_ORIGINS, PUBLISHER_ORIGINS, REFERENCE_ORIGINS } from '../public/
   const dataRoot = path.join(publicRoot, 'data');
 
   const { renderMarkdown } = await import(pathToFileURL(path.join(publicRoot, 'lib/markdown.js')).href);
-  const { crossRefResolver } = await import(pathToFileURL(path.join(publicRoot, 'lib/cross-ref.js')).href);
 
   const REF = '25-microservice.01-cascading-failure-retry-storm.q3';
   const resolver = () => ({ href: '#/track/' + REF + '?lang=en', label: 'Circuit breakers' });
@@ -1054,12 +1015,10 @@ import { PROMPT_ORIGINS, PUBLISHER_ORIGINS, REFERENCE_ORIGINS } from '../public/
      looks like markup in the target's question would become markup here. */
   test('a label never turns into markup or runs off the line', () => {
     const long = 'Why can one slow downstream service take down every upstream service even when CPU stays flat?';
-    const content = {
-      lang: 'en',
-      itemPair: () => ({ en: { q: '`Circuit` **breakers**: ' + long }, vi: null }),
-      topicItemIds: new Set([REF])
-    };
-    const resolve = crossRefResolver({ content, systemDesign: {} });
+    const resolve = crossRefResolver({
+      questions: { [REF]: { en: '`Circuit` **breakers**: ' + long } },
+      onTrack: new Set([REF])
+    });
     const { label } = resolve(REF);
     assert.doesNotMatch(label, /[`*]/);
     assert.ok(label.length <= 61, `label is ${label.length} characters`);
@@ -1069,57 +1028,47 @@ import { PROMPT_ORIGINS, PUBLISHER_ORIGINS, REFERENCE_ORIGINS } from '../public/
   });
 
   test('the resolver routes by surface, and declines what it cannot place', () => {
-    const pairs = new Map([
-      [REF, { en: { q: 'Circuit breakers' }, vi: { q: 'Circuit breaker: ba trạng thái' } }],
-      ['11-system-design-cases.the-big-prompts.q1', { en: { q: 'Design a wallet' }, vi: null }]
-    ]);
-    const content = {
-      lang: 'en',
-      itemPair: id => pairs.get(id) || null,
-      topicItemIds: new Set([REF])
+    const MOVED = '11-system-design-cases.the-big-prompts.q1';
+    const questions = {
+      [REF]: { en: 'Circuit breakers', vi: 'Circuit breaker: ba trạng thái' },
+      [MOVED]: { en: 'Design a wallet' }
     };
-    const loaded = { designForSourceItem: () => ({ slug: 'payment-ledger' }) };
+    const onTrack = new Set([REF]);
 
-    const withDesigns = crossRefResolver({ content, systemDesign: loaded });
-    assert.equal(withDesigns(REF).href, '#/track/' + REF + '?lang=en');
-    assert.equal(withDesigns('11-system-design-cases.the-big-prompts.q1').href,
-      '#/system-design/payment-ledger/11-system-design-cases.the-big-prompts.q1?lang=en');
-    assert.equal(withDesigns('nope.nope.q9'), null);
+    const withDesigns = crossRefResolver({ questions, onTrack, owners: { [MOVED]: 'payment-ledger' } });
+    assert.equal(withDesigns(REF).href, `/topics/25-microservice#question-${encodeURIComponent(REF)}`);
+    assert.equal(withDesigns(MOVED).href, `/system-design/payment-ledger#question-${encodeURIComponent(MOVED)}`);
+    assert.equal(withDesigns('nope.nope.q9'), null, 'an unknown id is left as plain text');
 
-    // System Design loads lazily: before it does, an off-track target has no
-    // route yet, and no link is better than a broken one.
-    const notLoaded = crossRefResolver({ content, systemDesign: { designForSourceItem: () => null } });
-    assert.equal(notLoaded('11-system-design-cases.the-big-prompts.q1'), null);
-    assert.equal(notLoaded(REF).href, '#/track/' + REF + '?lang=en');
+    // An off-track target whose owner is unknown has no route, and no link is
+    // better than one that lands on a page without the answer.
+    const noOwner = crossRefResolver({ questions, onTrack });
+    assert.equal(noOwner(MOVED), null);
+    assert.equal(noOwner(REF).href, `/topics/25-microservice#question-${encodeURIComponent(REF)}`);
 
-    content.lang = 'vi';
-    assert.equal(crossRefResolver({ content, systemDesign: loaded })(REF).label, 'Circuit breaker: ba trạng thái');
+    // The label is the target's question in the language being read.
+    assert.equal(crossRefResolver({ questions, onTrack, lang: 'vi' })(REF).label, 'Circuit breaker: ba trạng thái');
+    // …falling back to English rather than dropping the link when untranslated.
+    assert.equal(crossRefResolver({ questions, onTrack, owners: { [MOVED]: 'x' }, lang: 'vi' })(MOVED).label,
+      'Design a wallet');
   });
 
   /* Every reference in the material must be resolvable on one of the two
      surfaces — that is what makes the pointer trustworthy enough to replace a
-     second copy of the explanation. */
+     second copy of the explanation. Both inputs are the ones the pages really
+     use: content-index.json for the questions and the on-track set, and the
+     catalog's source_items for the owners. */
   test('every written cross-reference in data/ can be routed', async () => {
     const manifest = JSON.parse(await readFile(path.join(dataRoot, 'manifest.json'), 'utf8'));
     const catalog = JSON.parse(await readFile(path.join(dataRoot, 'system-design/catalog.json'), 'utf8'));
-    const claimed = new Set(catalog.designs.flatMap(design => design.source_items));
+    const index = JSON.parse(await readFile(path.join(dataRoot, 'content-index.json'), 'utf8'));
 
-    const pairs = new Map();
-    const onTrack = new Set();
-    for (const row of manifest.topics) {
-      const content = JSON.parse(await readFile(path.join(dataRoot, row.file), 'utf8'));
-      const named = new Set(row.system_design_items || []);
-      for (const section of content.sections) {
-        for (const item of section.items) {
-          pairs.set(item.id, { en: { q: item.q }, vi: null });
-          if (row.surface !== 'system-design' && !named.has(item.id)) onTrack.add(item.id);
-        }
-      }
-    }
-
+    const owners = Object.fromEntries(catalog.designs.flatMap(design =>
+      (design.source_items || []).map(id => [id, design.slug])));
     const resolve = crossRefResolver({
-      content: { lang: 'en', itemPair: id => pairs.get(id) || null, topicItemIds: onTrack },
-      systemDesign: { designForSourceItem: id => (claimed.has(id) ? { slug: 'x' } : null) }
+      questions: index.items,
+      onTrack: trackItemIds(index),
+      owners
     });
 
     const pattern = /\(([a-z0-9-]+\.[a-z0-9-]+\.q\d+)\)/g;
@@ -1130,8 +1079,8 @@ import { PROMPT_ORIGINS, PUBLISHER_ORIGINS, REFERENCE_ORIGINS } from '../public/
         for (const section of content.sections) {
           for (const item of section.items) {
             for (const [, id] of String(item.a).matchAll(pattern)) {
-              assert.ok(resolve(id), `${item.id} cites ${id}, which resolves to no surface`);
               total++;
+              assert.ok(resolve(id), `${item.id} cites (${id}), which routes nowhere`);
             }
           }
         }

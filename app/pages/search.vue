@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { fold } from '../../public/lib/search-text.js';
+import { prepareEntries, searchEntries } from '../../public/lib/search.js';
 const route = useRoute();
 const router = useRouter();
 const lang = computed<'en' | 'vi'>(() => route.query.lang === 'vi' ? 'vi' : 'en');
@@ -39,15 +39,11 @@ const labels = computed(() => lang.value === 'vi' ? {
   track: 'Study Track', system: 'System Design', cases: 'Case Studies', photography: 'Photography', homelab: 'NAS / Home Server'
 });
 
-const matchingEntries = computed(() => {
-  const terms = fold(query.value).split(/\s+/).filter(Boolean);
-  if (!terms.length) return [];
-  return (entries.value || []).filter(entry => {
-    const text = fold(`${entry.en} ${entry.vi} ${entry.contextEn} ${entry.contextVi} ${entry.bodyEn || ''} ${entry.bodyVi || ''}`);
-    return terms.every(term => text.includes(term));
-  });
-});
-const results = computed(() => matchingEntries.value.filter(entry => surface.value === 'all' || entry.surface === surface.value).slice(0, 200));
+/* Folded once per language, not per keystroke: prepareEntries walks ~3k rows
+   and every highlight offset is measured against the folded copies it builds. */
+const prepared = computed(() => prepareEntries(entries.value, lang.value));
+const found = computed(() => searchEntries(prepared.value, query.value, { surface: surface.value }));
+const results = computed(() => found.value.results);
 const surfaces = computed(() => [
   { id: 'all', label: labels.value.all },
   { id: 'track', label: labels.value.track },
@@ -58,7 +54,9 @@ const surfaces = computed(() => [
 ]);
 const surfaceLabels = computed(() => Object.fromEntries(surfaces.value.map(item => [item.id, item.label])));
 const surfaceBadges: Record<string, string> = { track: 'TOPIC', 'system-design': 'DESIGN', 'case-studies': 'CASE', photography: 'PHOTO', homelab: 'LAB' };
-const countFor = (id: string) => id === 'all' ? matchingEntries.value.length : matchingEntries.value.filter(entry => entry.surface === id).length;
+const countFor = (id: string) => id === 'all'
+  ? Object.values(found.value.counts).reduce((total: number, n: any) => total + n, 0)
+  : found.value.counts[id] || 0;
 const groupedResults = computed(() => Object.entries(results.value.reduce<Record<string, any[]>>((groups, entry) => {
   (groups[entry.surface] ||= []).push(entry);
   return groups;
@@ -132,8 +130,9 @@ useHead({
             <NuxtLink v-for="result in rows" :key="result.id" class="gs-hit" :to="resultRoute(result.href)" @click="followResult">
               <span class="gs-hit-badge">{{ surfaceBadges[result.surface] }}</span>
               <span class="gs-hit-main">
-                <span class="gs-hit-title">{{ lang === 'vi' ? result.vi : result.en }}</span>
-                <span class="gs-hit-context">{{ lang === 'vi' ? result.contextVi : result.contextEn }}</span>
+                <span class="gs-hit-title" v-html="result.titleHtml" />
+                <span v-if="result.snippet" class="gs-hit-snippet" v-html="result.snippet" />
+                <span class="gs-hit-context">{{ result.context }}</span>
               </span>
             </NuxtLink>
           </section>

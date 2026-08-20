@@ -10,6 +10,9 @@ const props = defineProps<{
   pair?: Record<'en' | 'vi', any>
   lang: 'en' | 'vi'
   sourceOwners?: Record<string, string>
+  /* Built once per page from data/content-index.json — see lib/cross-ref.js.
+     Passed in rather than built here so 26 cards share one resolver. */
+  resolveRef?: (id: string) => { href: string, label: string } | null
   forceOpen?: boolean
   forceToken?: number
 }>();
@@ -31,11 +34,7 @@ const sequence = computed(() => /\.q(\d+)$/.exec(currentItem.value.id)?.[1] || '
    border and colours the migration dropped. */
 const difficultyLabel = computed(() => DIFFICULTY_LABEL[currentItem.value.difficulty as 'core'] || currentItem.value.difficulty);
 const answer = computed(() => renderMarkdown(currentItem.value.a, {
-  resolveRef: (id: string) => {
-    const owner = props.sourceOwners?.[id];
-    const href = owner ? `/system-design/${owner}#question-${encodeURIComponent(id)}` : `/topics/${id.split('.')[0]}#question-${encodeURIComponent(id)}`;
-    return { href, label: `Q${/\.q(\d+)$/.exec(id)?.[1] || ''}` };
-  },
+  resolveRef: props.resolveRef,
   headingPrefix: `question-${currentItem.value.id}`,
   stableHeadingIds: true,
   headingLinkLabel: localLang.value === 'vi' ? 'Liên kết đến mục này' : 'Link to this section'

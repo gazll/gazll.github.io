@@ -4,6 +4,7 @@ import { comparisonTable, emphasize, failureCards, list, proseParagraph, renderS
 import { PROMPT_ORIGINS, REFERENCE_ORIGINS, originGuard } from '../../../public/lib/constants.js';
 import { contentDateFacts } from '~/utils/content-dates.js';
 import { safeDecodeURIComponent } from '~/utils/uri.js';
+import { crossRefResolver, trackItemIds } from '../../../public/lib/cross-ref.js';
 import { copyText } from '../../../public/lib/clipboard.js';
 
 const route = useRoute();
@@ -117,12 +118,18 @@ const referenceImage = computed(() => {
   };
 });
 
-const refRoute = (id: string) => {
-  const owner = data.value.sourceOwners?.[id];
-  return owner ? `/system-design/${owner}#question-${encodeURIComponent(id)}` : `/topics/${id.split('.')[0]}#question-${encodeURIComponent(id)}`;
-};
+/* A migrated note cites the same written (item-id) references a topic answer
+   does, so it resolves through the same owner — see lib/cross-ref.js. A bare
+   "Q3" label names nothing; the target's own question does. */
+const { data: index } = await useAsyncData('content-index', () => $fetch<any>('/api/content/item-index'));
+const resolveRef = computed(() => crossRefResolver({
+  questions: index.value?.items || {},
+  onTrack: trackItemIds(index.value),
+  owners: data.value?.sourceOwners || {},
+  lang: lang.value
+}));
 const noteHtml = (markdown: string) => renderMarkdown(markdown, {
-  resolveRef: (id: string) => ({ href: refRoute(id), label: `Q${/\.q(\d+)$/.exec(id)?.[1] || ''}` }),
+  resolveRef: resolveRef.value,
   headingPrefix: `design-${slug}`
 });
 const copiedNote = ref('');

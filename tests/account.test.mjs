@@ -774,118 +774,87 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
     assert.match(backend, /Schema changes are append-only/);
   });
 
-  before(async () => {
-    dir = mkdtempSync(join(tmpdir(), 'iv-'));
-    cpSync(PUBLIC + 'lib', join(dir, 'lib'), { recursive: true });
-    writeFileSync(join(dir, 'config.js'),
-      `export const GOOGLE_CLIENT_ID = 'cid';\nexport const SCRIPT_URL = '${SCRIPT_URL}';\n`);
-    // pathToFileURL: a bare Windows path is not a URL the ESM loader accepts.
-    ({ Interviews } = await import(pathToFileURL(join(dir, 'lib/interviews.js')).href));
-    ({ Auth } = await import(pathToFileURL(join(dir, 'lib/auth.js')).href));
+  /* The merge rules, driven exactly as GazlJournal.client.vue drives them.
+
+     They used to live in a lib/interviews.js data layer that also owned the
+     fetching; the Nuxt component took over the I/O (through the auth and api
+     plugins) and reimplemented the rules, which left the module unreferenced
+     and these tests green against code nobody ran. lib/interview-merge.js is
+     the one owner now, and the view calls the same three functions. */
+  const { mergeJournal, seedImport, seedRows } = await import(
+    pathToFileURL(join(PUBLIC, 'lib/interview-merge.js')).href);
+
+  const seed = () => seedRows(SEED.companies);
+
+  test('signed out shows the seed, read-only', () => {
+    const rows = seed();
+    assert.deepEqual(rows.map(c => c.name), ['Rakuten', 'Công ty mẫu']);
+    assert.ok(rows.every(c => c.own === false), 'a seed row has no Sheet row behind it');
   });
 
-  after(() => rmSync(dir, { recursive: true, force: true }));
-  beforeEach(() => { signOut(); Interviews.companies = []; Interviews.error = null; });
-
-  test('signed out shows the seed, read-only', async () => {
-    stubFetch();
-    await Interviews.load();
-    assert.equal(Interviews.source, 'seed');
-    assert.equal(Interviews.editable, false);
-    assert.deepEqual(Interviews.companies.map(c => c.name), ['Rakuten', 'Công ty mẫu']);
-    assert.ok(Interviews.companies.every(c => c.own === false));
+  test('signed in shows own rows first, then the seed', () => {
+    const merged = mergeJournal([{ id: 'uuid-1', name: 'Grab', questions: [] }], seed());
+    assert.deepEqual(merged.map(c => c.name), ['Grab', 'Rakuten', 'Công ty mẫu']);
+    assert.deepEqual(merged.map(c => c.own), [true, false, false]);
   });
 
-  test('signed in shows own rows first, then the seed', async () => {
-    stubFetch({ remote: [{ id: 'uuid-1', name: 'Grab', questions: [] }] });
-    signIn();
-    await Interviews.load();
-
-    assert.equal(Interviews.source, 'remote');
-    assert.equal(Interviews.editable, true);
-    assert.deepEqual(Interviews.companies.map(c => c.name), ['Grab', 'Rakuten', 'Công ty mẫu']);
-    assert.deepEqual(Interviews.companies.map(c => c.own), [true, false, false]);
-    assert.equal(Interviews.ownCompanies.length, 1);
-    assert.equal(Interviews.seedCompanies.length, 2);
+  test('a seed entry already imported is not shown twice', () => {
+    const merged = mergeJournal([{ id: 'uuid-1', name: '  rakuten  ', questions: [] }], seed());
+    const names = merged.map(c => c.name.trim().toLowerCase());
+    assert.equal(names.filter(n => n === 'rakuten').length, 1, 'matched on the name, whitespace and case aside');
+    assert.equal(merged.find(c => c.name.trim().toLowerCase() === 'rakuten').own, true,
+      'the surviving row is the writable one');
   });
 
-  test('a seed entry already imported is not shown twice', async () => {
-    stubFetch({ remote: [{ id: 'uuid-1', name: '  rakuten ', questions: [] }] });   // case + spacing differ
-    signIn();
-    await Interviews.load();
-
-    const names = Interviews.companies.map(c => c.name.trim().toLowerCase());
-    assert.equal(names.filter(n => n === 'rakuten').length, 1, 'Rakuten must appear once');
-    assert.equal(Interviews.companies.find(c => c.name.trim().toLowerCase() === 'rakuten').own, true);
+  test('importSeed does not send any id, so the backend creates rather than edits', () => {
+    const copy = seedImport(seed()[0]);
+    assert.ok(!('id' in copy), 'a seed id would make this an edit of a row that does not exist');
+    for (const question of copy.questions) {
+      assert.ok(!('id' in question), 'question ids belong to the Sheet, not to the seed');
+    }
   });
 
-  test('importSeed copies the seed row into the Sheet and the seed card drops out', async () => {
-    stubFetch({ remote: [] });
-    signIn();
-    await Interviews.load();
-
-    const seedRakuten = Interviews.companies.find(c => c.name === 'Rakuten');
-    assert.equal(seedRakuten.own, false);
-    assert.equal(seedRakuten.id, 'seed-0');
-
-    await Interviews.importSeed(seedRakuten.id);
-
-    const after = Interviews.companies.filter(c => c.name === 'Rakuten');
-    assert.equal(after.length, 1, 'no duplicate after import');
-    assert.equal(after[0].own, true, 'the surviving Rakuten is the own row');
-    assert.equal(after[0].questions.length, 1, 'questions came across');
-    assert.equal(after[0].questions[0].diagrams.length, 1, 'diagram attachments came across');
-    assert.equal(after[0].references[0].label, 'PostgreSQL', 'primary references came across');
+  test('importSeed carries the whole entry, new fields included', () => {
+    const source = {
+      ...SEED.companies[0],
+      jd: 'Senior Backend Engineer, on-site.',
+      brief: 'Three rounds.',
+      rounds: [{ name: 'Coding', note: 'One hour.' }]
+    };
+    const copy = seedImport(source);
+    assert.equal(copy.jd, source.jd);
+    assert.equal(copy.brief, source.brief);
+    assert.deepEqual(copy.rounds, source.rounds);
+    assert.notEqual(copy.rounds, source.rounds, 'the copy must not alias the seed');
+    assert.equal(copy.questions[0].diagrams[0].title, 'Window');
+    assert.notEqual(copy.questions[0].diagrams[0].flaws, source.questions[0].diagrams[0].flaws);
+    assert.deepEqual(copy.references, source.references);
   });
 
-  test('importSeed does not send the seed id, so the backend creates a new row', async () => {
-    const calls = stubFetch({ remote: [] });
-    signIn();
-    await Interviews.load();
-    await Interviews.importSeed('seed-0');
-
-    const save = calls.find(c => c.action === 'interviews.save');
-    assert.equal(save.payload.company.id, undefined, 'seed-0 must not travel to the backend');
-    assert.ok(save.payload.company.questions.every(q => q.id === undefined));
+  test('importSeed preserves external attribution inside the editable copy', () => {
+    const copy = seedImport({
+      name: 'G***', source: { label: 'Community report', url: 'https://example.test/thread' },
+      questions: [{ round: 'r1', q: 'a?', a: 'b', note: 'my note' }, { round: 'r2', q: 'c?', a: 'd', note: '' }]
+    }, 'Source');
+    assert.match(copy.questions[0].note, /my note/);
+    assert.match(copy.questions[0].note, /https:\/\/example\.test\/thread/);
+    assert.equal(copy.questions[1].note, '',
+      'attribution rides on the first question only, or it buries every takeaway');
   });
 
-  test('importSeed preserves external attribution inside the editable copy', async () => {
-    SEED.companies[0].source = { label: 'Source label', url: 'https://voz.vn/thread' };
-    const calls = stubFetch({ remote: [] });
-    signIn();
-    await Interviews.load();
-    await Interviews.importSeed('seed-0');
-
-    const save = calls.find(c => c.action === 'interviews.save');
-    assert.match(save.payload.company.questions[0].note, /Source label/);
-    assert.match(save.payload.company.questions[0].note, /https:\/\/voz\.vn\/thread/);
-    delete SEED.companies[0].source;
+  test('seed ids cannot collide with Sheet uuids', () => {
+    for (const row of seed()) assert.match(row.id, /^seed-\d+$/);
+    // Sheet ids are uuids, so the prefix is what lets both lists share one id
+    // space in the view without a second key.
+    assert.equal(mergeJournal([{ id: 'uuid-1', name: 'Grab' }], seed())
+      .filter(row => row.id === 'seed-0').length, 1);
   });
 
-  test('importSeed refuses a row that is already the reader\'s own', async () => {
-    stubFetch({ remote: [{ id: 'uuid-1', name: 'Grab', questions: [] }] });
-    signIn();
-    await Interviews.load();
-    await assert.rejects(() => Interviews.importSeed('uuid-1'), /already in your journal/);
-  });
-
-  test('a backend failure still leaves the seed visible', async () => {
-    stubFetch({ fail: true });
-    signIn();
-    await Interviews.load();
-
-    assert.equal(Interviews.source, 'seed');
-    assert.equal(Interviews.editable, false);
-    assert.deepEqual(Interviews.companies.map(c => c.name), ['Rakuten', 'Công ty mẫu']);
-    assert.ok(Interviews.error, 'the error is surfaced to the view');
-  });
-
-  test('seed ids cannot collide with Sheet uuids', async () => {
-    stubFetch({ remote: [{ id: 'uuid-1', name: 'Grab', questions: [] }] });
-    signIn();
-    await Interviews.load();
-    const ids = Interviews.companies.map(c => c.id);
-    assert.equal(new Set(ids).size, ids.length, 'ids stay unique across both sources');
-    assert.ok(Interviews.seedCompanies.every(c => c.id.startsWith('seed-')));
+  test('the journal view uses the shared rules rather than its own copy', async () => {
+    const view = await readFile(join(PUBLIC, '..', 'app/components/gazl/GazlJournal.client.vue'), 'utf8');
+    assert.match(view, /from '\.\.\/\.\.\/\.\.\/public\/lib\/interview-merge\.js'/);
+    assert.match(view, /mergeJournal\(data\.companies, seed\.value\)/);
+    assert.match(view, /seedImport\(company/);
+    assert.ok(!/trim\(\)\.toLocaleLowerCase\(\)/.test(view), 'the name-matching rule has one owner');
   });
 }

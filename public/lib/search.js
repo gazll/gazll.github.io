@@ -1,10 +1,12 @@
-/* Site-wide search over the three reading surfaces.
+/* Ranking, highlighting and snippets for site-wide search.
 
-   There is no server-side search, so the full index is built in the browser
-   only when Search first opens. The Study Track starts with one active topic;
-   Search then asks for the remaining topics and Experience libraries, which
-   their data models fetch once and cache. This file therefore owns no content
-   fetches of its own except the optional case-study article bodies.
+   The index itself is built at prerender time by
+   `server/api/content/search-index.get.ts` and shipped as JSON, so this file
+   owns no fetches and no data model — it turns a query plus that flat entry
+   list into scored, highlighted results. (It used to build the index in the
+   browser out of the client-side Content/SystemDesign/collection models; those
+   models went with the Nuxt migration, and the half of this file that drove
+   them went with them.)
 
    Two rules the rest of the file follows:
 
@@ -12,56 +14,28 @@
       the folded text and applied to the original, so an NFD expansion (one
       character becoming three) would slice a highlight through the middle of
       a word. Folding is therefore per character, base letter only.
-   2. An entry's `href` is a real route, never a reconstruction. Study Track
-      items route by their stored item id and migrated deep dives route into
-      the blueprint that owns them — the same two routes lib/cross-ref.js
-      resolves, for the same reason: an item lives on exactly one surface. */
+   2. An entry's `href` is a real route, never a reconstruction. It arrives on
+      the entry from the index builder, which knows whether a Study Track item
+      still lives on the track or has moved into the blueprint that owns it. */
 import { escapeHtml } from './markdown.js';
 /* fold() and plainText() live in their own leaf module so the server can reuse
-   them without importing this file's browser data layer. One implementation,
-   re-exported here for every existing caller. */
+   them without importing this one. One implementation, re-exported here for
+   every existing caller. */
 import { fold, plainText } from './search-text.js';
 export { fold, plainText };
-import { Content } from './content.js';
-import { SystemDesign } from './system-design.js';
-import { CaseStudies } from './case-studies.js';
-import { KNOWLEDGE } from './knowledge.js';
-import { fetchArticleBody } from './collection.js';
-import { questionHash, systemDesignQuestionHash } from './question-links.js';
-import { TOPIC_TYPE_LABEL } from './constants.js';
-import { withRouteLanguage } from './anchors.js';
 
 /** Surface ids, in the order results are grouped. Labels are chrome — English. */
 export const SURFACES = Object.freeze([
   { id: 'track', label: 'Study Track' },
   { id: 'system-design', label: 'System Design' },
   { id: 'case-studies', label: 'Case Studies' },
-  { id: 'knowledge', label: 'Other knowledge' }
+  { id: 'photography', label: 'Photography' },
+  { id: 'homelab', label: 'NAS / Home Server' }
 ]);
 
-const PRODUCTION_CATEGORY = 'systems-architecture';
 const WORD = /[\p{L}\p{N}]/u;
 const SPLIT = /[^\p{L}\p{N}]+/u;
 const MAX_HITS_PER_TERM = 200;   // a pathological query must not walk 5k offsets
-
-const pad2 = n => String(n).padStart(2, '0');
-
-/* ---------------------------------------------------------------------
-   Text preparation
---------------------------------------------------------------------- */
-
-
-
-/** Every string inside a nested guide/overview object, in declaration order. */
-function flattenText(value, depth = 0) {
-  if (value == null || depth > 4) return [];
-  if (typeof value === 'string') return [value];
-  if (Array.isArray(value)) return value.flatMap(item => flattenText(item, depth + 1));
-  if (typeof value === 'object') return Object.values(value).flatMap(item => flattenText(item, depth + 1));
-  return [];
-}
-
-const joinText = (...parts) => parts.flat().filter(Boolean).map(String).join(' · ');
 
 /* ---------------------------------------------------------------------
    Query
@@ -209,183 +183,50 @@ export function buildSnippet(entry, terms, { radius = 100, width = 240 } = {}) {
    The index
 --------------------------------------------------------------------- */
 
-function finalize(entry, order) {
+/**
+ * Fold one shipped index row for the language being read.
+ *
+ * The index carries both languages on every row so the header switch never
+ * refetches; only the folded copies are per language, and they are what every
+ * offset in a highlight is measured against.
+ */
+function finalize(entry, order, lang) {
+  const title = (lang === 'vi' ? entry.vi : entry.en) || entry.en || '';
+  const context = (lang === 'vi' ? entry.contextVi : entry.contextEn) || entry.contextEn || '';
+  const body = (lang === 'vi' ? entry.bodyVi : entry.bodyEn) || entry.bodyEn || '';
   const tags = (entry.tags || []).filter(Boolean).map(String);
-  const body = entry.body || '';
   return {
     ...entry,
     order,
+    title,
+    context,
     tags,
     body,
-    titleFold: fold(entry.title || ''),
-    contextFold: fold(entry.context || ''),
+    titleFold: fold(title),
+    contextFold: fold(context),
     tagFold: fold(tags.join(' ')),
     // The id joins the body so a pasted item id finds its own card.
     bodyFold: fold(entry.id ? body + ' ' + entry.id : body)
   };
 }
 
-/** Appends article text to an entry already in the index (see `enrich`). */
-function extendBody(entry, extra) {
-  if (!extra) return entry;
-  entry.body = entry.body ? entry.body + ' ' + extra : extra;
-  entry.bodyFold = fold(entry.id ? entry.body + ' ' + entry.id : entry.body);
-  return entry;
-}
-
 /**
- * One flat list of everything a reader can open, in surface order.
+ * The shipped index, folded for one language and ordered by surface.
  *
- * The models are parameters rather than imports-in-place so a test can build
- * an index from fixtures without a browser.
+ * Order is the tie-break inside a score, and it follows SURFACES so equally
+ * strong hits list the way the groups read. Callers memoise this per language:
+ * folding ~3k rows is cheap once and wasteful per keystroke.
  */
-export function buildEntries({
-  content = Content,
-  systemDesign = SystemDesign,
-  caseStudies = CaseStudies,
-  knowledge = KNOWLEDGE
-} = {}) {
-  const entries = [];
-  const push = entry => { entries.push(finalize(entry, entries.length)); };
-
-  for (const topic of content.topics || []) {
-    const num = pad2(topic.n);
-    const ids = (topic.sections || []).flatMap(section => (section.items || []).map(item => item.id));
-    push({
-      key: 'topic:' + (topic.key || num),
-      surface: 'track',
-      kind: 'topic',
-      title: topic.title || topic.label || '',
-      // A topic has no route of its own, so it opens at its first card — which
-      // is what selects the topic in the track view.
-      href: ids.length ? questionHash(ids[0]) : withRouteLanguage('#/track', Content.lang),
-      context: joinText('Topic ' + num, topic.label, TOPIC_TYPE_LABEL[topic.topic_type] || topic.topic_type),
-      badge: 'Topic ' + num,
-      topicType: topic.topic_type,
-      tags: topic.tags,
-      body: joinText(topic.intro, topic.label),
-      weight: 14
-    });
-
-    for (const section of topic.sections || []) {
-      for (const item of section.items || []) {
-        push({
-          key: item.id,
-          id: item.id,
-          surface: 'track',
-          kind: 'item',
-          title: plainText(item.q),
-          href: questionHash(item.id),
-          context: joinText(num + ' ' + (topic.label || ''), plainText(section.title)),
-          badge: 'Q' + (/\.q(\d+)$/.exec(item.id) || [, '?'])[1],
-          topicType: topic.topic_type,
-          difficulty: item.difficulty,
-          body: plainText(item.a)
-        });
-      }
-    }
-  }
-
-  const categoryLabel = (list, id) => (list || []).find(row => row.id === id)?.label || id;
-
-  for (const design of systemDesign.designs || []) {
-    push({
-      key: 'design:' + design.slug,
-      surface: 'system-design',
-      kind: 'design',
-      title: design.title || '',
-      href: withRouteLanguage('#/system-design/' + encodeURIComponent(design.slug), Content.lang),
-      context: joinText('Blueprint', categoryLabel(systemDesign.categories, design.category)),
-      badge: 'Blueprint',
-      difficulty: design.level,
-      featured: Boolean(design.featured),
-      tags: design.tags,
-      body: joinText(design.excerpt, design.scope, design.functional, design.quality,
-        design.capacity, design.data_model, design.stack, design.tradeoffs),
-      weight: 12
-    });
-
-    // Migrated deep dives keep their item id, so they stay reachable by id and
-    // land on the blueprint that owns them rather than on the track.
-    for (const note of design.sourceNotes || []) {
-      push({
-        key: note.id,
-        id: note.id,
-        surface: 'system-design',
-        kind: 'item',
-        title: plainText(note.q),
-        href: systemDesignQuestionHash(design.slug, note.id),
-        context: joinText('Deep dive', design.title),
-        badge: 'Q' + (/\.q(\d+)$/.exec(note.id) || [, '?'])[1],
-        body: plainText(note.a)
-      });
-    }
-  }
-
-  for (const article of systemDesign.cases || []) {
-    const overview = systemDesign.caseOverview ? systemDesign.caseOverview(article.slug) : null;
-    push({
-      key: 'production:' + article.slug,
-      surface: 'system-design',
-      kind: 'case',
-      title: article.title || '',
-      href: withRouteLanguage('#/system-design/case/' + encodeURIComponent(article.slug), Content.lang),
-      context: joinText('Production case', article.company),
-      badge: 'Case',
-      difficulty: article.level,
-      featured: Boolean(article.featured),
-      tags: article.tags,
-      body: joinText(article.excerpt, flattenText(overview), flattenText(article.guide)),
-      article,
-      weight: 10
-    });
-  }
-
-  for (const article of caseStudies.articles || []) {
-    // The architecture category is presented as production evidence in System
-    // Design; indexing it twice would offer the reader two doors to one room.
-    if (article.category === PRODUCTION_CATEGORY) continue;
-    push({
-      key: 'case:' + article.slug,
-      surface: 'case-studies',
-      kind: 'case',
-      title: article.title || '',
-      href: withRouteLanguage('#/case-studies/' + encodeURIComponent(article.slug), Content.lang),
-      context: joinText(article.category_label, article.company),
-      badge: 'Case ' + pad2(article.n),
-      difficulty: article.level,
-      featured: Boolean(article.featured),
-      tags: article.tags,
-      body: joinText(article.excerpt, flattenText(article.guide)),
-      article,
-      weight: 10
-    });
-  }
-
-  for (const [id, collection] of Object.entries(knowledge)) {
-    for (const article of collection.articles || []) {
-      push({
-        key: id + ':' + article.slug,
-        surface: 'knowledge',
-        kind: 'knowledge',
-        title: article.title || '',
-        href: withRouteLanguage('#/' + id + '/' + encodeURIComponent(article.slug), Content.lang),
-        context: joinText(collection.library?.title, article.category_label),
-        badge: pad2(article.n),
-        difficulty: article.level,
-        featured: Boolean(article.featured),
-        tags: article.tags,
-        body: joinText(article.excerpt, flattenText(article.guide)),
-        article,
-        weight: 10
-      });
-    }
-  }
-
-  return entries;
+export function prepareEntries(entries, lang = 'en') {
+  const rank = new Map(SURFACES.map((surface, index) => [surface.id, index]));
+  const ordered = [...(entries || [])].map((entry, index) => ({ entry, index }));
+  ordered.sort((a, b) =>
+    (rank.get(a.entry.surface) ?? SURFACES.length) - (rank.get(b.entry.surface) ?? SURFACES.length)
+    || a.index - b.index);
+  return ordered.map((row, order) => finalize(row.entry, order, lang));
 }
 
-/** Ranked matches, best first. `limit` caps the list, not the count. */
+/** Scored, grouped-ready results plus per-surface counts for the filter bar. */
 export function searchEntries(entries, query, { limit = 200, surface = 'all' } = {}) {
   const parsed = parseQuery(query);
   if (!parsed.terms.length) return { query: parsed, total: 0, results: [], counts: {} };
@@ -406,118 +247,10 @@ export function searchEntries(entries, query, { limit = 200, surface = 'all' } =
     total: scored.length,
     counts,
     results: scored.slice(0, limit).map(hit => ({
-      ...hit,
+      ...hit.entry,
+      score: hit.score,
       titleHtml: markText(hit.entry.title, parsed.terms, { folded: hit.entry.titleFold }),
       snippet: buildSnippet(hit.entry, parsed.terms)
     }))
   };
-}
-
-/* ---------------------------------------------------------------------
-   Lifecycle
-
-   Built once per language and thrown away when the header switch flips —
-   `Content.topics` is rebuilt there, so every cached string would be stale.
---------------------------------------------------------------------- */
-
-export const SearchIndex = {
-  entries: [],
-  lang: null,
-  ready: false,
-  /** True once the archived case-study articles have been folded in. */
-  enriched: false,
-  _building: null,
-  _enriching: null,
-
-  /** Loads whatever is missing, then returns the entries for `lang`. */
-  async ensure(lang = null) {
-    const want = lang || Content.lang;
-    if (this.ready && this.lang === want) return this.entries;
-    if (this._building && this.lang === want) return this._building;
-
-    this.lang = want;
-    this.ready = false;
-    this.enriched = false;
-    this._enriching = null;
-    this._building = (async () => {
-      // A library that will not load must not take the whole search with it.
-      // Study Track is independent and remains searchable by itself.
-      try {
-        await Content.loadAll();
-      } catch (error) {}
-      try {
-        await SystemDesign.load(want);
-      } catch (error) {}
-      for (const collection of Object.values(KNOWLEDGE)) {
-        try {
-          await collection.load(want);
-        } catch (error) {}
-      }
-      try {
-        this.entries = buildEntries();
-        this.ready = true;
-      } finally {
-        // Cleared either way, so a failed build can be retried rather than
-        // handing every later caller the same rejected promise.
-        this._building = null;
-      }
-      return this.entries;
-    })();
-    return this._building;
-  },
-
-  /**
-   * Second pass: the archived case-study articles, ~200KB per language.
-   *
-   * Deliberately not part of `ensure()` — waiting on eleven HTML files before
-   * showing the first result would make every search feel broken. Callers
-   * re-run their query when this resolves.
-   */
-  async enrich() {
-    if (this.enriched) return this.entries;
-    if (this._enriching) return this._enriching;
-    this._enriching = (async () => {
-      await Promise.all(this.entries.filter(entry => entry.article).map(async entry => {
-        try {
-          extendBody(entry, plainText(await fetchArticleBody(entry.article.body_file)));
-        } catch (error) {}
-      }));
-      this.enriched = true;
-      this._enriching = null;
-      return this.entries;
-    })();
-    return this._enriching;
-  },
-
-  invalidate() {
-    this.ready = false;
-    this.enriched = false;
-    this._building = null;
-    this._enriching = null;
-    this.entries = [];
-  },
-
-  search(query, options) {
-    return searchEntries(this.entries, query, options);
-  }
-};
-
-/* ---------------------------------------------------------------------
-   Routes
---------------------------------------------------------------------- */
-
-/** `#/search/<query>` — the full-results panel for one query. */
-export function searchHash(query) {
-  const trimmed = String(query == null ? '' : query).trim();
-  return withRouteLanguage(trimmed ? '#/search/' + encodeURIComponent(trimmed) : '#/search', Content.lang);
-}
-
-/** The query carried by a `#/search/…` route; '' when there is none. */
-export function queryFromRoute(routeParts) {
-  if (!Array.isArray(routeParts) || !routeParts.length) return '';
-  try {
-    return decodeURIComponent(routeParts.join('/')).trim();
-  } catch (error) {
-    return '';
-  }
 }

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { escapeHtml, renderMarkdown } from '~/utils/markdown.js';
+import { mergeJournal, seedImport, seedRows } from '../../../public/lib/interview-merge.js';
 
 const props = defineProps<{ seed: any[]; lang: 'en' | 'vi' }>();
 const { $auth, $apiCall } = useNuxtApp() as any;
@@ -13,12 +14,11 @@ const openQuestions = ref(new Set<string>());
 const openCompanies = ref(new Set<string>());
 let stopAuth: (() => void) | null = null;
 
-const seedRows = computed(() => props.seed.map((company, index) => ({ ...company, id: `seed-${index}`, own: false })));
+const seed = computed(() => seedRows(props.seed));
 const editable = computed(() => source.value === 'remote');
 const ownCount = computed(() => companies.value.filter(company => company.own).length);
 const seedCount = computed(() => companies.value.filter(company => !company.own).length);
 const questionCount = computed(() => companies.value.reduce((total, company) => total + (company.questions || []).length, 0));
-const normalize = (value: string) => String(value || '').trim().toLocaleLowerCase();
 const safeMarkdown = (value: string) => renderMarkdown(escapeHtml(value));
 const labels = computed(() => props.lang === 'vi' ? {
   title: 'Gazl Try — nhật ký phỏng vấn', intro: 'Trải nghiệm phỏng vấn · playbook chuẩn bị · câu trả lời đã review kỹ thuật.',
@@ -109,24 +109,24 @@ const roundList = (company: any) => (company.rounds || []).filter((round: any) =
 const roundCount = (company: any) => roundList(company).length
   || new Set((company.questions || []).map((question: any) => String(question.round || '').trim()).filter(Boolean)).size;
 
+/* The merge rules live in lib/interview-merge.js, not here: they are the
+   invariant the journal is built on, this component owns only the I/O. */
 async function load() {
   loading.value = true;
   error.value = '';
   if (!$auth.token) {
-    companies.value = seedRows.value;
+    companies.value = seed.value;
     source.value = 'seed';
     loading.value = false;
     return;
   }
   try {
     const data = await $apiCall('interviews.list', {}, $auth.token);
-    const own = (data.companies || []).map((company: any) => ({ ...company, own: true }));
-    const names = new Set(own.map((company: any) => normalize(company.name)));
-    companies.value = own.concat(seedRows.value.filter(company => !names.has(normalize(company.name))));
+    companies.value = mergeJournal(data.companies, seed.value);
     source.value = 'remote';
   } catch (reason: any) {
     error.value = reason?.message || String(reason);
-    companies.value = seedRows.value;
+    companies.value = seed.value;
     source.value = 'seed';
   } finally { loading.value = false; }
 }
@@ -182,18 +182,9 @@ async function remove(company: any) {
 }
 
 async function importSeed(company: any) {
+  if (company.own) return;
   busy.value = company.id;
-  const sourceNote = company.source?.url ? `${labels.value.source}: ${company.source.label || company.source.url} — ${company.source.url}` : '';
-  const copy = {
-    name: company.name, role: company.role, date: company.date, result: company.result, stack: company.stack || [],
-    jd: company.jd || '', brief: company.brief || '', rounds: structuredClone(company.rounds || []),
-    references: structuredClone(company.references || []),
-    questions: (company.questions || []).map((question: any, index: number) => ({
-      round: question.round, q: question.q, a: question.a,
-      note: [question.note, index === 0 ? sourceNote : ''].filter(Boolean).join('\n\n'),
-      diagrams: structuredClone(question.diagrams || [])
-    }))
-  };
+  const copy = seedImport(company, labels.value.source);
   try { await $apiCall('interviews.save', { company: copy }, $auth.token); await load(); }
   catch (reason: any) { window.alert(`${labels.value.saveFailed} ${reason?.message || reason}`); }
   finally { busy.value = ''; }

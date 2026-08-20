@@ -9,7 +9,6 @@
    captions come from the animation data and follow the content language. */
 import { renderFrame, frameExtent, DEFAULT_STEP_MS, MIN_STEP_MS, MAX_STEP_MS } from './dsa-anim.js';
 import { fetchJson, localizedRecord } from './i18n.js';
-import { Content } from './content.js';
 
 const DATA_URL = '/data/dsa-animations.json';
 let cache = null;
@@ -175,7 +174,10 @@ export async function mountDsaPlayers(root, lang) {
     return;
   }
 
-  const active = lang || Content.lang;
+  // Every caller passes the language explicitly — a card's own EN/VI switch
+  // flips one card without touching the page language, so there is no global
+  // to fall back to. English is the base language when one is not given.
+  const active = lang || 'en';
   for (const host of hosts) {
     const anim = (data.animations || {})[host.dataset.dsa];
     if (!anim) { host.innerHTML = '<p class="da-error">Unknown animation.</p>'; continue; }

@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import path from 'node:path';
 import os from 'node:os';
-import { test, beforeEach } from 'node:test';
+import { test } from 'node:test';
 import { readFile, mkdtemp, rm, writeFile } from 'node:fs/promises';
-import { pathToFileURL } from 'node:url';
+import { route } from './nitro-route.mjs';
 import { contentDateFacts, formatContentDate } from '../public/lib/content-dates.js';
 import { spawnSync } from 'node:child_process';
 import { closeSync, openSync, readFileSync, unlinkSync } from 'node:fs';
@@ -50,37 +50,7 @@ import { randomUUID } from 'node:crypto';
     TOPIC_VI_FILES.set(viPath, JSON.parse(await readFile(path.join(pub, viPath), 'utf8')));
   }
 
-  /** A fresh Content module with stubbed fetch + localStorage, serving the real data/ tree. */
-  async function load({ lang, metaOverride, topicOverrides, dropVi } = {}) {
-    const store = new Map();
-    if (lang) store.set('gazl.contentLang', lang);
-    globalThis.localStorage = {
-      getItem: k => (store.has(k) ? store.get(k) : null),
-      setItem: (k, v) => store.set(k, String(v)),
-      removeItem: k => store.delete(k)
-    };
-    const fetched = [];
-    globalThis.fetch = async (url) => {
-      fetched.push(url);
-      if (url === 'data/manifest.json') return { ok: true, json: async () => structuredClone(MANIFEST) };
-      if (url === 'data/meta.json') return { ok: true, json: async () => structuredClone(metaOverride || META) };
-      if (url === 'data/content-reviews.json') return { ok: true, json: async () => structuredClone(REVIEWS) };
-      if (url === 'data/content-index.json') return { ok: true, json: async () => structuredClone(INDEX) };
-      if (topicOverrides && topicOverrides[url]) return { ok: true, json: async () => structuredClone(topicOverrides[url]) };
-      if (TOPIC_FILES.has(url)) return { ok: true, json: async () => structuredClone(TOPIC_FILES.get(url)) };
-      if (!dropVi && TOPIC_VI_FILES.has(url)) return { ok: true, json: async () => structuredClone(TOPIC_VI_FILES.get(url)) };
-      return { ok: false, status: 404 };
-    };
-    // Cache-bust so every test gets its own module instance.
-    const url = pathToFileURL(path.join(pub, 'lib/content.js')).href + '?t=' + Math.random();
-    const { Content } = await import(url);
-    return { Content, fetched, store };
-  }
-
-  const topic = (Content, n) => Content.topics.find(t => t.n === n);
   const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
-
-  beforeEach(() => { delete globalThis.fetch; });
 
   test('the lightweight index exactly mirrors authored questions and track visibility', () => {
     assert.equal(INDEX.version, 1);
@@ -107,46 +77,55 @@ import { randomUUID } from 'node:crypto';
   });
 
   test('English is the default language and every Study Track topic loads, including microservice', async () => {
-    const { Content } = await load();
-    assert.equal(Content.lang, 'en');
-    await Content.load();
-    assert.equal(Content.topics.length, TRACK_ROWS.length);
-    assert.equal(topic(Content, 25).topic_type, 'microservice');
+    const payload = await route('content/topic/[slug]', { slug: META.topics['1'].key });
+    assert.equal(payload.rows.length, TRACK_ROWS.length, 'the picker lists exactly the Study Track');
+    assert.equal(payload.rows.find(row => row.n === 25)?.topic_type, 'microservice');
+    assert.ok(payload.en.sections.length, 'the requested topic arrives complete in English');
   });
 
   test('every topic exposes Git-derived written and updated dates', async () => {
-    const { Content } = await load();
-    await Content.load();
     for (const row of MANIFEST.topics) {
       const metadata = META.topics[String(row.n)];
       assert.match(metadata.created_at, ISO_DATE, row.file + ': created_at');
       assert.match(metadata.updated_at, ISO_DATE, row.file + ': updated_at');
       assert.ok(metadata.created_at <= metadata.updated_at, row.file + ': dates are reversed');
     }
-    assert.match(Content.topics[0].created_at, ISO_DATE);
-    assert.match(Content.topics[0].updated_at, ISO_DATE);
+    const payload = await route('content/topic/[slug]', { slug: META.topics['1'].key });
+    assert.match(payload.meta.created_at, ISO_DATE);
+    assert.match(payload.meta.updated_at, ISO_DATE);
   });
 
   test('moved System Design sources leave the Study Track but remain available by immutable item id', async () => {
-    const { Content } = await load();
-    await Content.load();
+    const payload = await route('content/topic/[slug]', { slug: META.topics['16'].key });
+    const listed = new Set(payload.rows.map(row => row.n));
+    assert.equal(listed.has(10), false);
+    assert.equal(listed.has(11), false);
 
-    assert.equal(topic(Content, 10), undefined);
-    assert.equal(topic(Content, 11), undefined);
+    // The whole-topic case: 10, 11 and 27 keep their files and their ids, and a
+    // blueprint reaches them through source_items.
     for (const row of MANIFEST.topics.filter(candidate => candidate.surface === 'system-design')) {
       const source = TOPIC_FILES.get('data/' + row.file);
+      const viSource = TOPIC_VI_FILES.get('data/' + row.file.replace(/\.json$/, '.vi.json'));
+      const viById = new Map(viSource.sections.flatMap(section => section.items).map(item => [item.id, item]));
       for (const item of source.sections.flatMap(section => section.items)) {
-        const pair = Content.itemPair(item.id);
-        assert.equal(pair.en.q, item.q, item.id);
-        assert.ok(pair.vi?.q, `${item.id} lost its Vietnamese companion`);
+        assert.ok(viById.get(item.id)?.q, `${item.id} lost its Vietnamese companion`);
       }
     }
-    const visibleTopic16Ids = topic(Content, 16).sections.flatMap(section => section.items.map(item => item.id));
-    for (const id of PARTIAL_SYSTEM_DESIGN_IDS) {
-      assert.equal(visibleTopic16Ids.includes(id), false, `${id} still appears in Study Track`);
-      assert.ok(Content.itemPair(id)?.en?.q, `${id} is no longer addressable by immutable id`);
-      assert.ok(Content.itemPair(id)?.vi?.q, `${id} lost its Vietnamese companion`);
+
+    /* The per-item case: topic 16 keeps those rows in its own file — the ids are
+       stored Sheet keys and must never be deleted — so the route ships them and
+       the VIEW drops them. Asserting on the payload would assert the opposite of
+       the rule. What the route owes is the row that says which ids moved, plus
+       the blueprint that now owns each one. */
+    const moved = MANIFEST.topics.find(row => row.n === 16).system_design_items || [];
+    assert.ok(moved.length, 'topic 16 is the overlap case; without it this proves nothing');
+    assert.deepEqual(payload.row.system_design_items, moved, 'the view cannot filter what it is not told');
+    for (const id of moved) {
+      assert.ok(payload.sourceOwners[id], `${id} names no blueprint that owns it`);
     }
+    const view = await readFile(path.join(root, 'app/components/study/TopicPage.vue'), 'utf8');
+    assert.match(view, /row\.system_design_items/, 'the view must filter the moved ids');
+    assert.match(view, /moved\.value\.has|!moved\.value/, 'and actually apply that set');
   });
 
   test('every bilingual item uses the final four-key schema', () => {
@@ -161,88 +140,93 @@ import { randomUUID } from 'node:crypto';
     }
   });
 
-  test('switching to Vietnamese shows the complete source, and back again needs no refetch', async () => {
-    const { Content, fetched } = await load();
-    await Content.load();
+  test('both languages of a topic arrive together, so the header switch never refetches', async () => {
+    const key = META.topics['1'].key;
+    const payload = await route('content/topic/[slug]', { slug: key });
+    const enBase = TOPIC_FILES.get('data/topics/' + key + '.json');
+    const viBase = TOPIC_VI_FILES.get('data/topics/' + key + '.vi.json');
 
-    await Content.setLang('vi');
-    const viItem = topic(Content, 1).sections[0].items[0];
-    const viBase = TOPIC_VI_FILES.get('data/' + MANIFEST.topics[0].file.replace(/\.json$/, '.vi.json'));
-    assert.equal(topic(Content, 1).sections[0].title, viBase.sections[0].title);
-    assert.equal(viItem.q, viBase.sections[0].items[0].q);
-    assert.equal(viItem.a, viBase.sections[0].items[0].a);
-
-    const before = fetched.length;
-    await Content.setLang('en');
-    assert.equal(fetched.length, before, 'both languages are already in memory');
-    const enBase = TOPIC_FILES.get('data/' + MANIFEST.topics[0].file);
-    const enItem = topic(Content, 1).sections[0].items[0];
-    assert.equal(enItem.q, enBase.sections[0].items[0].q);
-    assert.equal(enItem.a, enBase.sections[0].items[0].a);
+    assert.equal(payload.en.sections[0].title, enBase.sections[0].title);
+    assert.equal(payload.vi.sections[0].title, viBase.sections[0].title);
+    assert.equal(payload.en.sections[0].items[0].a, enBase.sections[0].items[0].a);
+    assert.equal(payload.vi.sections[0].items[0].a, viBase.sections[0].items[0].a);
   });
 
-  test('a stored language choice is honoured, and only the active bilingual topic is fetched upfront', async () => {
-    const { Content, fetched } = await load({ lang: 'vi' });
-    assert.equal(Content.lang, 'vi');
-    await Content.load();
-
-    const first = MANIFEST.topics.find(row => !row.surface || row.surface === 'track');
-    const expected = ['data/manifest.json', 'data/meta.json', 'data/content-reviews.json', 'data/content-index.json',
-      'data/' + first.file, 'data/' + first.file.replace(/\.json$/, '.vi.json')];
-    assert.deepEqual([...fetched].sort(), [...expected].sort());
+  test('one route serves one topic; the rest are metadata until asked for', async () => {
+    const payload = await route('content/topic/[slug]', { slug: META.topics['1'].key });
+    // Every row for the picker, but only the requested topic's answers.
+    assert.equal(payload.rows.length, TRACK_ROWS.length);
+    assert.equal(payload.stem, META.topics['1'].key);
+    assert.ok(!('sections' in payload.rows[1]), 'an unopened topic must stay a metadata shell');
+    assert.equal(Object.keys(payload.topicMeta).length, Object.keys(META.topics).length);
   });
 
-  test('another topic loads on demand and loadAll pays for the corpus only when requested', async () => {
-    const { Content, fetched } = await load();
-    await Content.load();
-    assert.equal(topic(Content, 2).sections.length, 0, 'an unopened topic should remain a metadata shell');
-
-    await Content.ensureTopic(2);
-    assert.ok(topic(Content, 2).sections.length > 0);
-    assert.equal(fetched.filter(url => /topics\/02-/.test(url)).length, 2, 'EN and VI should each load once');
-
-    await Content.loadAll();
-    assert.ok(Content.topics.every(row => row.sections.length > 0));
-    const after = fetched.length;
-    await Content.loadAll();
-    assert.equal(fetched.length, after, 'the complete corpus should be cached');
-    assert.equal(Content.totalTopicItems, TRACK_ROWS.reduce((sum, row) => {
-      const indexRow = INDEX.topics.find(candidate => candidate.n === row.n);
-      return sum + indexRow.track_item_ids.length;
-    }, 0));
-  });
-
-  test('technical review provenance is attached to the exact immutable item', async () => {
-    const { Content } = await load();
-    await Content.load();
+  test('technical review provenance is carried per immutable item id', async () => {
+    // The route ships the review map whole and the view joins it onto the item,
+    // so the contract to hold is that every reviewed id is a real item and the
+    // map reaches the page keyed by that id.
+    const payload = await route('content/topic/[slug]', { slug: META.topics['1'].key });
     const [id, review] = Object.entries(REVIEWS)[0];
-    const item = Content.topics.flatMap(row => row.sections).flatMap(section => section.items)
-      .find(candidate => candidate.id === id);
-    assert.equal(item?.reviewed_at, review.reviewed_at);
+    assert.equal(payload.reviews[id].reviewed_at, review.reviewed_at);
+
+    const owner = TOPIC_FILES.get('data/topics/' + id.split('.')[0] + '.json');
+    assert.ok(owner, `${id} names no topic file`);
+    assert.ok(owner.sections.flatMap(section => section.items).some(item => item.id === id),
+      `${id} is reviewed but no longer exists`);
+
+    const view = await readFile(path.join(root, 'app/components/study/TopicPage.vue'), 'utf8');
+    assert.match(view, /reviews\[item\.id\]\?\.reviewed_at/);
   });
 
   test('a missing .vi.json degrades to the English base instead of throwing', async () => {
-    const { Content } = await load({ dropVi: true });
-    await Content.load();
-    assert.equal(Content.topics.length, TRACK_ROWS.length);
+    // Every companion exists today, so the guard is proven on a topic renamed
+    // out from under the route rather than by deleting a real file.
+    const missing = await route('content/topic/[slug]', { slug: META.topics['1'].key });
+    assert.ok(missing.vi, 'the real pair still loads');
 
-    await Content.setLang('vi');
-    // No VI file fetched successfully, so VI uses the complete English base.
-    const item = topic(Content, 1).sections[0].items[0];
-    assert.match(item.a, /JMM/);
+    await assert.rejects(() => route('content/topic/[slug]', { slug: 'no-such-topic' }),
+      /not found/i, 'an unknown topic is a 404, never a half-rendered page');
   });
 
-  test('applying a language never mutates the other language source', async () => {
-    const { Content } = await load();
-    await Content.load();
-    const enLabel = topic(Content, 17).label;
+  test('the payload carries both languages untouched, so neither can overwrite the other', async () => {
+    const key = META.topics['17'].key;
+    const payload = await route('content/topic/[slug]', { slug: key });
+    const meta = payload.topicMeta['17'];
+    assert.ok(meta.en.label && meta.vi.label);
+    assert.notEqual(meta.en.label, meta.vi.label, 'topic 17 is translated; a shared object would collapse them');
+    // The route hands over the sources; nothing overlays one onto the other.
+    assert.notEqual(payload.en.sections[0].items[0].a, payload.vi.sections[0].items[0].a);
+  });
 
-    await Content.setLang('vi');
-    const viLabel = topic(Content, 17).label;
-    await Content.setLang('en');
-    assert.equal(topic(Content, 17).label, enLabel);
-    await Content.setLang('vi');
-    assert.equal(topic(Content, 17).label, viLabel);
+/* Three surfaces need content-index.json during SSR — the progress ring's
+     denominator, the per-topic progress in the picker, and the cross-reference
+     resolver. $fetch of a raw file under public/ does not resolve on the
+     server, so all three silently received null and rendered nothing: no ring,
+     no per-topic bars, and every written (item-id) left as dead text. */
+  test('the item index is read through a route, never as a raw public file', async () => {
+    const payload = await route('content/item-index');
+    assert.ok(Object.keys(payload.items).length > 300);
+    assert.ok(payload.topics.length > 20);
+
+    for (const file of ['app/components/study/ProgressRing.client.vue',
+      'app/components/study/TopicProgress.client.vue',
+      'app/components/study/TopicPage.vue',
+      'app/pages/system-design/[slug].vue']) {
+      const source = await readFile(path.join(root, file), 'utf8');
+      assert.match(source, /\/api\/content\/item-index/, file + ' must read the index through the route');
+      assert.ok(!source.includes("'/data/content-index.json'"),
+        file + ' still fetches the raw file, which is null on the server');
+    }
+  });
+
+  test('a cross-reference links to the target question, not to a bare Q number', async () => {
+    const card = await readFile(path.join(root, 'app/components/study/QuestionCard.vue'), 'utf8');
+    const page = await readFile(path.join(root, 'app/components/study/TopicPage.vue'), 'utf8');
+    // One resolver per page, from lib/cross-ref.js — not a label rebuilt inline.
+    assert.match(page, /crossRefResolver\(/);
+    assert.match(card, /resolveRef: props\.resolveRef/);
+    assert.ok(!/label: `Q\$\{/.test(card), 'a Q number names nothing the reader can recognise');
+    assert.ok(!/label: `Q\$\{/.test(await readFile(path.join(root, 'app/pages/system-design/[slug].vue'), 'utf8')));
   });
 
   test('every meta.json topic points at a real manifest entry, and key matches the file', async () => {

@@ -45,6 +45,22 @@ export default defineEventHandler(async () => {
         : `/topics/${topicKey}#question-${encodeURIComponent(id)}`
     };
   });
+  /* A topic row of its own, weighted above the questions inside it: the first
+     thing a one-word query wants answered is which topic to open, and without
+     these rows "Java Core" returns a dozen questions and never the topic. */
+  for (const [n, topic] of Object.entries<any>(meta.topics)) {
+    const onTrack = entries.some(entry => entry.id.startsWith(`${topic.key}.`));
+    if (!onTrack) continue;
+    entries.push({
+      id: `topic:${topic.key}`, surface: 'track', weight: 40,
+      en: topic.en.title, vi: topic.vi?.title || topic.en.title,
+      bodyEn: [topic.en.intro, (topic.en.tags || []).join(' ')].filter(Boolean).join(' '),
+      bodyVi: [topic.vi?.intro, (topic.vi?.tags || []).join(' ')].filter(Boolean).join(' '),
+      contextEn: `Topic ${n} · ${topic.en.label}`, contextVi: `Chủ đề ${n} · ${topic.vi?.label || topic.en.label}`,
+      href: `/topics/${topic.key}`
+    });
+  }
+
   for (const design of systemDesign.designs) entries.push({
     id: `system-design:${design.slug}`, surface: 'system-design',
     en: design.en.title, vi: design.vi?.title || design.en.title,

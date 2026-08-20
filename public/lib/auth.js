@@ -297,38 +297,6 @@ function loadGis() {
   return gisReady;
 }
 
-/* ---------- header avatar + account menu ----------
-
-   States needing a click carry a text label: an avatar alone is too quiet to
-   read as "signed out". The popover hosts Google's own rendered button,
-   because FedCM can suppress One Tap without telling the user anything. */
-
-export function mountAuthUI(el) {
-  if (!el) return;
-  let open = false;
-
-  const render = () => {
-    el.innerHTML = avatarHtml() + (open ? menuHtml() : '');
-    el.classList.toggle('open', open);
-
-    const holder = el.querySelector('#gisBtn');
-    if (holder) renderSignInButton(holder);
-    el.querySelector('#btnSignOut')?.addEventListener('click', () => { open = false; Auth.signOut(); });
-    el.querySelector('#btnRetry')?.addEventListener('click', () => Auth.signIn());
-  };
-
-  const setOpen = v => { if (open !== v) { open = v; render(); } };
-
-  el.addEventListener('click', e => {
-    if (e.target.closest('#authBtn')) { e.stopPropagation(); setOpen(!open); }
-  });
-  document.addEventListener('click', e => { if (open && !el.contains(e.target)) setOpen(false); });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') setOpen(false); });
-
-  render();
-  Auth.onChange(render);
-}
-
 function avatarFace() {
   if (Auth.avatar) {
     return '<img class="avatar" src="' + esc(Auth.avatar) + '" alt="" referrerpolicy="no-referrer">';

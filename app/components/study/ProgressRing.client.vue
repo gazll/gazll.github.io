@@ -7,7 +7,7 @@
 const props = withDefaults(defineProps<{ lang?: 'en' | 'vi' }>(), { lang: 'en' });
 
 const { reviewed } = useStudyProgress();
-const { data: index } = await useAsyncData('content-index', () => $fetch<any>('/data/content-index.json'));
+const { data: index } = await useAsyncData('content-index', () => $fetch<any>('/api/content/item-index'));
 
 const trackIds = computed<Set<string>>(() => new Set(Object.keys(index.value?.items || {})));
 const total = computed(() => trackIds.value.size);

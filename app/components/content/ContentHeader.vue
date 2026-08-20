@@ -102,11 +102,20 @@ function openSearch() {
 }
 
 watch(() => route.fullPath, () => { setDrawer(false); setTopic(false); });
+/* The progress ring is Study Track chrome — styles.css gates it behind
+   `body.view-track`, a class the retired hash router used to set and nothing
+   replaced, so the ring was in the DOM and display:none on every page. The
+   header already knows whether it is showing a topic, so it owns the flag. */
+const markTrack = () => {
+  if (import.meta.client) document.body.classList.toggle('view-track', Boolean(props.topic));
+};
+watch(() => props.topic, markTrack);
 /* Hides the header on scroll-down and publishes --hdr-h, which every sticky
    offset in styles.css is measured against. */
 useHeadroom();
 onMounted(() => {
   document.addEventListener('keydown', onKeydown);
+  markTrack();
   const updateAdmin = () => { isAdmin.value = Boolean(nuxtApp.$auth?.isAdmin); };
   updateAdmin();
   stopAuth = nuxtApp.$auth?.onChange(updateAdmin) || null;
@@ -114,7 +123,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   document.removeEventListener('keydown', onKeydown);
   stopAuth?.();
-  document.body.classList.remove('nav-open', 'topic-open');
+  document.body.classList.remove('nav-open', 'topic-open', 'view-track');
 });
 </script>
 
@@ -163,7 +172,7 @@ onBeforeUnmount(() => {
           <span class="lang-track" aria-hidden="true"><span class="lang-knob"><ContentFlagIcon :lang="lang" /></span></span>
           <span class="lang-label" data-lang="vi">VI</span>
         </NuxtLink>
-        <ClientOnly><AuthAuthControl /></ClientOnly>
+        <ClientOnly><AuthControl /></ClientOnly>
       </nav>
 
       <div v-if="topic" id="topicMenu" class="topicmenu" :hidden="!topicOpen">
@@ -175,6 +184,7 @@ onBeforeUnmount(() => {
           <NuxtLink v-for="row in filteredTopics" :key="row.n" class="tm-row" :data-topic-type="row.topic_type" :aria-selected="row.n === topic.n" :to="withLang(topicPath(row))">
             <span class="tm-n">{{ String(row.n).padStart(2, '0') }}</span>
             <span class="tm-main"><span class="tm-label">{{ row.label }}</span><span class="tm-meta">{{ row.topic_type }}</span></span>
+            <ClientOnly><StudyTopicProgress :n="row.n" /></ClientOnly>
           </NuxtLink>
           <p v-if="!filteredTopics.length" class="tm-empty">{{ localize('Nothing matches that filter.') }}</p>
         </div>

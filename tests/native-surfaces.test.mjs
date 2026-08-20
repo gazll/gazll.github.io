@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import path from 'node:path';
-import { readFile, access } from 'node:fs/promises';
+import { readFile, readdir, access } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 
@@ -323,6 +323,66 @@ import { pathToFileURL } from 'node:url';
   const root = path.resolve(import.meta.dirname, '..');
   const read = file => readFile(path.join(root, file), 'utf8');
 
+
+  /* Nuxt drops a directory segment the filename already repeats, so
+     `components/auth/AuthControl.vue` registers as `AuthControl`, not
+     `AuthAuthControl`. Three components were written the long way and silently
+     never rendered — the account control, the Admin body and the Stats body —
+     because an unresolved component is a console warning, not a build error.
+
+     The rule is derived here rather than hard-coded so it also covers whatever
+     is added next. */
+  test('every component is referenced by the name Nuxt actually registers', async () => {
+    const componentsRoot = path.join(root, 'app/components');
+
+    const walk = async dir => {
+      const out = [];
+      for (const entry of await readdir(dir, { withFileTypes: true })) {
+        const full = path.join(dir, entry.name);
+        if (entry.isDirectory()) out.push(...await walk(full));
+        else if (entry.name.endsWith('.vue')) out.push(full);
+      }
+      return out;
+    };
+    const files = await walk(componentsRoot);
+    assert.ok(files.length > 5, 'no components found; the path is wrong');
+
+    const registered = file => {
+      const parts = path.relative(componentsRoot, file)
+        .split(path.sep)
+        .join('/')
+        .replace(/\.(client|server)\.vue$|\.vue$/, '')
+        .split('/')
+        .map(part => part[0].toUpperCase() + part.slice(1));
+      const name = [];
+      for (const part of parts) {
+        if (name.length && part.startsWith(name[name.length - 1])) name.pop();
+        name.push(part);
+      }
+      return name.join('');
+    };
+    const names = new Set(files.map(registered));
+
+    const templates = await Promise.all(
+      [...files, ...(await walk(path.join(root, 'app/pages'))), path.join(root, 'app/app.vue')]
+        .map(async file => [file, await readFile(file, 'utf8')]));
+
+    for (const [file, source] of templates) {
+      // Only tags that look like one of ours: PascalCase, and not a known
+      // Nuxt built-in.
+      const BUILTIN = new Set(['ClientOnly', 'NuxtLink', 'NuxtPage', 'NuxtLayout', 'Suspense',
+        'Transition', 'KeepAlive', 'Teleport', 'Component', 'NuxtLoadingIndicator', 'NuxtRouteAnnouncer']);
+      // Only the <template> block: a TS generic like useTemplateRef<HTMLDialogElement>
+      // looks exactly like a tag to a regex.
+      const template = source.slice(source.indexOf('<template>'));
+      for (const [, tag] of template.matchAll(/<([A-Z][A-Za-z0-9]*)[\s/>]/g)) {
+        if (BUILTIN.has(tag) || names.has(tag)) continue;
+        assert.fail(`${path.relative(root, file)} renders <${tag}>, which no component registers as. `
+          + `Did you mean one of: ${[...names].filter(n => n.includes(tag.slice(0, 6))).join(', ') || '(none)'}?`);
+      }
+    }
+  });
+
   test('native Nuxt surfaces expose visible loading fallbacks', async () => {
     const [gazlPage, gazl, searchOverlay, topic] = await Promise.all([
       read('app/pages/gazl-try.vue'),
@@ -401,6 +461,11 @@ import { pathToFileURL } from 'node:url';
     assert.doesNotMatch(question, /\/views\//);
     assert.ok(player.includes("from './dsa-anim.js'"));
     assert.ok(player.includes("from './i18n.js'"));
-    assert.ok(player.includes("from './content.js'"));
+    // The player is loaded through a bare URL, so a broken import in it fails
+    // at RUNTIME as "failed to fetch dynamically imported module" and every
+    // card open throws. It must depend only on modules that still exist.
+    assert.ok(!player.includes("from './content.js'"),
+      'the browser content model is gone; the caller passes the language');
+    assert.match(player, /const active = lang \|\| 'en'/);
   });
 }

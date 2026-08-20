@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { contentDateFacts } from '~/utils/content-dates.js';
+import { crossRefResolver, trackItemIds } from '../../../public/lib/cross-ref.js';
 
 const props = defineProps<{ slug?: string }>();
 const route = useRoute();
@@ -25,6 +26,17 @@ const sections = computed(() => (source.value?.sections || []).map((section: any
 })).filter((section: any) => section.items.length));
 const itemCount = computed(() => sections.value.reduce((sum: number, section: any) => sum + section.items.length, 0));
 const dates = computed(() => contentDateFacts(data.value!.meta, lang.value));
+/* One resolver for the whole page: a written (item-id) becomes a link labelled
+   with the target QUESTION, not a bare Q3 that names nothing. content-index.json
+   is the only file that carries every id with both languages of its question,
+   and it is already fetched (and cached) for the progress ring. */
+const { data: index } = await useAsyncData('content-index', () => $fetch<any>('/api/content/item-index'));
+const resolveRef = computed(() => crossRefResolver({
+  questions: index.value?.items || {},
+  onTrack: trackItemIds(index.value),
+  owners: data.value?.sourceOwners || {},
+  lang: lang.value
+}));
 const currentIndex = computed(() => data.value!.rows.findIndex((row: any) => row.n === data.value!.row.n));
 const rowSlug = (row: any) => row.file.split('/').pop().replace(/\.json$/, '');
 const previous = computed(() => data.value!.rows[currentIndex.value - 1]);
@@ -91,9 +103,9 @@ useHead(() => ({
           </div>
           <template v-for="(section, sectionIndex) in sections" :key="section.title">
             <div :id="`${data!.stem}-section-${sectionIndex + 1}`" class="section-h">
-              <span>{{ section.title }}</span><span class="sline" />
+              <a class="topic-heading-anchor" :href="`#${data!.stem}-section-${sectionIndex + 1}`">{{ section.title }}</a><span class="sline" />
             </div>
-            <StudyQuestionCard v-for="item in section.items" :key="item.id" :item="item" :pair="itemPairs[item.id]" :lang="lang" :source-owners="data!.sourceOwners" :force-open="expandAll" :force-token="expandToken" />
+            <StudyQuestionCard v-for="item in section.items" :key="item.id" :item="item" :pair="itemPairs[item.id]" :lang="lang" :source-owners="data!.sourceOwners" :resolve-ref="resolveRef" :force-open="expandAll" :force-token="expandToken" />
           </template>
         </div>
 

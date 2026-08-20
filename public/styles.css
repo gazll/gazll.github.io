@@ -44,8 +44,6 @@
      page title, so nothing else in the header has to say where you are.
      max-width is the dropdown's own width, so the two line up as one control. */
 
-  
-  
   .topicpick{position:relative;flex:0 1 auto;min-width:0;max-width:560px;display:flex;align-items:center;gap:11px;
     cursor:pointer;font:inherit;color:inherit;text-align:left;border:1px solid var(--line);background:var(--surface);
     border-radius:12px;padding:6px 12px 6px 17px;overflow:hidden;transition:.16s ease}
@@ -82,7 +80,6 @@
   .tb-count b{color:var(--emerald-deep)}/* Under header.top (z-index 50): the header is a stacking context, so a
      scrim above it would cover the dropdown living inside it. */
 
-  
   .topic-scrim{position:fixed;inset:0;z-index:40;background:rgba(20,35,58,.18);
     opacity:0;pointer-events:none;transition:opacity .18s ease}
   body.topic-open .topic-scrim{opacity:1;pointer-events:auto}
@@ -127,7 +124,6 @@
   .tm-empty{margin:0;padding:16px 14px 20px;text-align:center;font-size:13px;color:var(--muted)}
   .tm-empty[hidden]{display:none}/* one accent per topic_type, reused by the picker, filter bar and hero number */
 
-  
   [data-topic-type="core"]        {--g:var(--indigo);      --g-soft:var(--indigo-soft);  --g-line:#cdd5ef}
   [data-topic-type="data"]        {--g:var(--emerald-deep);--g-soft:var(--emerald-soft); --g-line:#cfe6da}
   [data-topic-type="design"]      {--g:var(--brass);       --g-soft:#faf5e9;             --g-line:#e3d6b8}
@@ -152,7 +148,6 @@
     padding:10px 16px;border-radius:0 0 10px 0;font-size:14px}
   .skiplink:focus{left:0}/* ---------- navigation panel (slide-out drawer) ---------- */
 
-  
   .navtoggle{flex:none;width:40px;height:40px;border-radius:11px;border:1px solid var(--line);
     background:var(--surface);color:var(--ink);cursor:pointer;
     display:inline-flex;align-items:center;justify-content:center;padding:0;transition:.16s ease}
@@ -179,8 +174,7 @@
      not a thing anyone recognised. .np-brand gives up the leftover space to it. *//* The wordmark gives way before the control does: a clipped "Release No…" is
      the very problem the label was added to fix, while a clipped wordmark costs
      nothing — the seal still carries the brand. */
-  
-  
+
   .np-brand{flex:0 1 auto;min-width:0;overflow:hidden}
   .np-brand b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .np-actions{display:flex;align-items:center;gap:6px;flex:none;margin-left:auto}
@@ -228,7 +222,6 @@
   .nv-desc{font-size:11.5px;color:var(--muted);line-height:1.3;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .nv-shortcut{margin-left:auto;flex:none;font-family:"IBM Plex Mono",monospace;font-size:9px;color:var(--muted);border:1px solid var(--line);border-radius:5px;padding:1px 5px;background:var(--surface)}
-  .navlink.is-external:hover .nv-ext{color:var(--brass);transform:translate(1px,-1px)}
 
   .navlink[aria-current="true"]{background:var(--emerald-soft);border-color:#cfe6da}
   .navlink[aria-current="true"] .nv-label{color:var(--emerald-deep);font-weight:600}
@@ -239,8 +232,6 @@
   .np-foot{margin:0;padding:12px 18px 16px;border-top:1px solid var(--line);
     font-size:11.5px;line-height:1.5;color:var(--muted)}/* ---------- content language switch ---------- *//* One control (role="switch"), used identically by the header and every per-card toggle. */
 
-  
-  
   :root{--switch-w:46px; --switch-h:24px; --switch-knob:20px}
 
   .langswitch{display:inline-flex;align-items:center;gap:8px;cursor:pointer}
@@ -268,7 +259,6 @@
 
   main{max-width:var(--shell);margin:0 auto;padding:30px var(--gutter) 90px}/* markdown page view (menus other than the track) */
 
-  
   .page{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);
     padding:26px 30px;margin-bottom:22px;animation:fade .35s ease}
   .page h2{font-family:"Space Grotesk",sans-serif;font-weight:600;font-size:22px;margin:0 0 12px;color:var(--ink)}
@@ -280,14 +270,12 @@
   .page em{color:var(--clay);font-style:normal;font-weight:500}/* ---------- DSA step player (lib/dsa-player.js) ----------
      The placeholder keeps .dgm's frame; .da fills it once mounted. */
 
-  
   .dsa-anim{min-height:150px}
   .da{margin:0;display:grid;gap:10px}
   .da-stage{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 4px}
   .da-svg{width:100%;height:auto;display:block;font-family:"IBM Plex Mono",monospace}
   .da-error{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--clay);margin:0;padding:12px}/* Frame primitives. Fills are flat so the state, not the styling, reads. */
 
-  
   .da-svg .da-cell rect{fill:#fff;stroke:var(--line-strong);stroke-width:1.4}
   .da-svg .da-val{fill:var(--ink);font-size:13px;text-anchor:middle;font-weight:500}
   .da-svg .da-cap{fill:var(--muted);font-size:9.5px;text-anchor:middle}
@@ -308,7 +296,6 @@
   .da-svg .da-base{stroke:var(--line-strong);stroke-width:1.5}
   .da-svg .da-node circle{fill:#fff;stroke:var(--line-strong);stroke-width:1.5}/* Controls */
 
-  
   .da-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
   .da-btn{width:32px;height:32px;flex:none;display:grid;place-items:center;padding:0;cursor:pointer;
     border:1px solid var(--line-strong);border-radius:9px;background:var(--surface);color:var(--ink-soft);
@@ -328,13 +315,11 @@
   .da-speed.on{background:var(--emerald-soft);border-color:var(--emerald);color:var(--emerald-deep);font-weight:600}
   .da-speed:focus-visible{outline:2px solid var(--emerald);outline-offset:2px}/* The caption is the point of the step, so it gets real weight. */
 
-  
   .da-note-box{margin:0;min-height:38px;background:var(--indigo-soft);border-left:3px solid var(--indigo);
     border-radius:0 8px 8px 0;padding:9px 12px;font-size:13.5px;line-height:1.5;color:var(--ink)}/* ---------- Release notes: grouped by day, newest day first ----------
      Two levels: .rn-day carries the date once, .rn-rel is one release inside
      it. Several releases on a date therefore share a single heading. */
 
-  
   .rn-intro{max-width:70ch}
   .rn-day{margin:24px 0 0}
   .rn-day + .rn-day{border-top:1px solid var(--line);padding-top:20px}
@@ -532,7 +517,6 @@
   .cs-toc nav{display:flex;flex-direction:column;gap:1px}
   .cs-toc nav a,.cs-toc-mobile nav a{font-size:12px;line-height:1.35;color:var(--ink-soft);text-decoration:none;padding:5px 7px;border-radius:6px}
   .cs-toc nav a:hover,.cs-toc-mobile nav a:hover{color:var(--emerald-deep);background:var(--emerald-soft)}
-  .cs-toc nav a.is-sub,.cs-toc-mobile nav a.is-sub{padding-left:17px;color:var(--muted)}
   .cs-toc-content>a{display:inline-block;margin-top:18px;color:var(--emerald-deep);font-family:"IBM Plex Mono",monospace;font-size:10px;text-decoration:none}
   .cs-toc-content>a:hover{text-decoration:underline;text-underline-offset:3px}
   .cs-toc-mobile{display:none}
@@ -554,9 +538,6 @@
   .iv-diagram>figcaption{display:flex;align-items:baseline;gap:10px;padding:11px 14px;border-bottom:1px solid #dce2f2;background:var(--indigo-soft)}
   .iv-diagram>figcaption span{font-family:"IBM Plex Mono",monospace;font-size:9px;text-transform:uppercase;letter-spacing:.6px;color:var(--indigo)}
   .iv-diagram>figcaption strong{font-family:"Space Grotesk",sans-serif;color:var(--ink)}
-  .iv-diagram-viewport>.mermaid{margin:0;padding:22px 14px;min-height:180px;display:grid;place-items:center;white-space:pre}
-  .iv-diagram-viewport>.mermaid[data-processed]{display:block;min-height:0}
-  .iv-diagram-viewport>.mermaid svg{display:block;width:100%;max-width:none;height:auto}
   .iv-diagram-review{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:14px;border-top:1px solid var(--line)}
   .iv-diagram-review section{padding:11px 12px;border-radius:9px;background:var(--surface)}
   .iv-diagram-review section:first-child{border-left:3px solid var(--red)}
@@ -576,8 +557,7 @@
   .cs-lightbox>button:hover{border-color:var(--clay);color:var(--clay)}
   .cs-lightbox figure{margin:0;display:grid;justify-items:center;gap:11px}
   .cs-lightbox img{display:block;max-width:100%;height:auto;max-height:calc(94vh - 100px);object-fit:contain}
-  .cs-lightbox figcaption{font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--muted);text-align:center}
-  .cs-empty p:not(.cs-eyebrow){color:var(--ink-soft)}/* ---------- Experience: system-design blueprints ---------- */
+  .cs-lightbox figcaption{font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--muted);text-align:center}/* ---------- Experience: system-design blueprints ---------- */
   .sd-library{max-width:1180px;margin:0 auto}
   .sd-hero{position:relative;overflow:hidden;padding:44px;border:1px solid #cdd5ef;border-radius:18px;
     background:linear-gradient(135deg,#fff 0%,#F8F9FD 55%,var(--indigo-soft) 100%);box-shadow:var(--shadow);margin-bottom:34px}
@@ -670,7 +650,6 @@
   .sd-toc nav,.sd-toc-mobile nav{display:flex;flex-direction:column;gap:1px}
   .sd-toc a,.sd-toc-mobile a{font-size:12px;line-height:1.35;color:var(--ink-soft);text-decoration:none;padding:5px 7px;border-radius:6px}
   .sd-toc a:hover,.sd-toc-mobile a:hover{color:var(--indigo);background:var(--indigo-soft)}
-  .sd-toc a.is-sub,.sd-toc-mobile a.is-sub{padding-left:17px;color:var(--muted)}
   .sd-toc-mobile{display:none}
   .sd-article-body{min-width:0;padding:44px var(--sd-gutter) 58px;border:1px solid var(--line);border-radius:16px;background:var(--surface);box-shadow:var(--shadow)}
   .sd-section{scroll-margin-top:90px;margin:0 0 48px}
@@ -709,10 +688,10 @@
      that introduces them; inside a card the lead has no bottom margin to
      absorb, so the list spaces itself normally. */
   
-  li>.sd-clause-list,.sd-part .sd-clause-list,.sd-case-guide .sd-clause-list,
+  li>.sd-clause-list,.sd-part .sd-clause-list,
   .sd-failure-review .sd-clause-list{margin:7px 0 0}
   .sd-section>ul:not(.sd-clause-list)>li>.sd-clause-list>li{font-size:15px}
-  .sd-case-guide .sd-clause-list>li,.sd-failure-review .sd-clause-list>li{font-size:13.5px;line-height:1.6}
+  .sd-failure-review .sd-clause-list>li{font-size:13.5px;line-height:1.6}
   .sd-requirements>div{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
   .sd-requirements article{padding:18px;border:1px solid var(--line);border-radius:11px;background:#FAFBFD}
   .sd-requirements h3{font-family:"Space Grotesk",sans-serif;font-size:17px;color:var(--ink);margin:0 0 9px}
@@ -744,7 +723,6 @@
     text-transform:uppercase;font-weight:600;color:var(--indigo);margin-bottom:2px}/* Three tones. Nothing else in the article body may set these colours, or the
      emphasis stops meaning anything. */
 
-  
   .sd-article-body .sd-crit{color:var(--clay);font-weight:600}
   .sd-article-body .sd-note{color:var(--emerald-deep);font-weight:600}
   .sd-article-body .sd-num{color:var(--ink);font-weight:700;font-variant-numeric:tabular-nums}
@@ -801,7 +779,6 @@
   
   .sd-diagram-viewport{max-height:min(72vh,760px);overflow:auto;overscroll-behavior:contain;background:#fff;touch-action:pan-x pan-y;cursor:grab}
   .sd-diagram-viewport:focus-visible{outline:2px solid var(--indigo);outline-offset:-3px}
-  .sd-diagram-viewport.is-dragging{cursor:grabbing;user-select:none}
   .sd-diagram-viewport>.mermaid{margin:0;padding:24px 18px;min-height:180px;display:grid;place-items:center;overflow:visible;background:#fff;white-space:pre;box-sizing:border-box}
   .sd-diagram-viewport>.mermaid[data-processed]{display:block;min-height:0}/* useMaxWidth keeps the SVG responsive, but its intrinsic width is the text
      extent — without a floor a short flowchart renders as a thin strip. */
@@ -853,8 +830,6 @@
   .sd-code-run{display:flex;gap:7px;align-items:baseline;flex-wrap:wrap;margin:0;padding:10px 13px;border-top:1px solid var(--line);font-size:11px;color:var(--muted)}
   .sd-code-run b{font-family:"IBM Plex Mono",monospace;font-size:9px;letter-spacing:.5px;text-transform:uppercase;color:var(--indigo)}
   .sd-code-run code{overflow-wrap:anywhere;color:var(--ink-soft)}
-  .sd-archive>.cs-article-body{padding:0;border:0;border-radius:0;box-shadow:none}
-  .sd-archive>.cs-article-body h2:first-child{border-top:1px solid var(--line);padding-top:8px}
   .sd-toc-mobile{margin-bottom:14px;border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:10px 13px}
   .sd-toc-mobile summary{cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:10px;font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:600;color:var(--indigo)}
   .sd-toc-mobile summary::after{content:"⌄";font-size:16px;line-height:1;transition:transform .18s ease}
@@ -862,7 +837,6 @@
   
   .sd-toc-mobile:not([open])>nav{display:none}/* "Gazl Try" - interview journal */
 
-  
 /* Two groups, Common first: a synthesised playbook answers "what do these
    interviews have in common", a company entry answers "what did THIS one ask".
    The group head reuses the library heads' shape so the site has one way of
@@ -914,7 +888,6 @@
   .iv-jd>div{padding:4px 15px 14px;border-top:1px solid var(--line);color:var(--ink-soft);font-size:14px;line-height:1.7}
   .company-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
   .company-head h2,.company-head h3{font-family:"Space Grotesk",sans-serif;font-weight:600;font-size:18px;margin:0;color:var(--ink)}
-  .company-meta{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--muted);margin:3px 0 8px}
   .result{font-family:"IBM Plex Mono",monospace;font-size:10.5px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;
     padding:3px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
   .result-pending{color:var(--brass);border-color:#e3d6b8;background:#faf5e9}
@@ -972,20 +945,13 @@
   .section-h .topic-heading-anchor{color:inherit;text-decoration:none;cursor:pointer}
   .md-heading-anchor{color:inherit;text-decoration:none;cursor:pointer}
   .md-heading-anchor:hover{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:4px}
-  .heading-anchor-button{display:inline-grid;place-items:center;width:24px;height:24px;margin-left:8px;padding:3px;border:1px solid transparent;
-    border-radius:6px;background:transparent;color:var(--muted);opacity:.28;vertical-align:middle;cursor:pointer;transition:opacity .14s ease,border-color .14s ease,background .14s ease,color .14s ease}
-  .heading-anchor-button svg{width:15px;height:15px}
   h1:hover>.heading-anchor-button,h2:hover>.heading-anchor-button,h3:hover>.heading-anchor-button,h4:hover>.heading-anchor-button,
-  h5:hover>.heading-anchor-button,h6:hover>.heading-anchor-button,.heading-anchor-button:focus-visible{opacity:1}
-  .heading-anchor-button:hover{color:var(--emerald-deep);border-color:#cfe6da;background:var(--emerald-soft)}
-  .heading-anchor-button:focus-visible{outline:2px solid var(--emerald);outline-offset:2px}
   h1[id],h2[id],h3[id],h4[id],h5[id],h6[id]{scroll-margin-top:90px;cursor:pointer}
   .pj-heading-anchor{color:inherit;text-decoration:none;cursor:pointer}
   .pj-heading-anchor:hover{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:4px}
   .section-h::before{content:"";width:14px;height:14px;border-radius:3px;background:linear-gradient(145deg,var(--emerald),var(--emerald-deep));flex:none}
   .section-h .sline{flex:1;height:1px;background:var(--line)}/* No overflow:hidden here — an overflow-clipping ancestor breaks position:sticky below. */
 
-  
   .qcard{border:1px solid var(--line);border-left:3px solid var(--line-strong);background:var(--surface);
     border-radius:10px;margin-bottom:10px;scroll-margin-top:calc(var(--hdr-h, 64px) + 12px);
     transition:border-color .18s, box-shadow .18s;}
@@ -1041,20 +1007,8 @@
   .qbody{display:grid;grid-template-rows:0fr;transition:grid-template-rows .3s ease}
   .qcard.open .qbody{grid-template-rows:1fr}/* Clips open content to rounded bottom corners, since .qcard itself can't. */
   
-  .qbody-inner{overflow:hidden;min-height:0;border-radius:0 0 9px 9px}/* Collapsible chapter (view Microservices) */
-
+  .qbody-inner{overflow:hidden;min-height:0;border-radius:0 0 9px 9px}
   
-  .chapter{border:1px solid var(--line);border-radius:12px;margin:14px 0;background:var(--surface);overflow:hidden;transition:box-shadow .18s}
-  .chapter.open{box-shadow:var(--shadow)}/* expand indicator: a bordered round chevron so it clearly reads as a toggle */
-  
-  .chapter-head .chev{width:26px;height:26px;padding:3px;border:1px solid var(--line-strong);border-radius:50%;
-    background:var(--surface);color:var(--ink-soft);transition:transform .25s, background .15s, color .15s}
-  .chapter-head:hover .chev{border-color:var(--emerald);color:var(--emerald)}
-  .chapter.open .chapter-head{border-bottom:1px solid var(--line);background:var(--emerald-soft)}
-  .chapter.open .chapter-head .chev{transform:rotate(90deg);color:#fff;background:var(--emerald);border-color:var(--emerald)}
-  .chapter.open .chapter-body{grid-template-rows:1fr}
-  .chapter-body-inner .qcard{margin:10px 14px}
-  .chapter-body-inner .qcard:first-child{margin-top:14px}
   .answer{padding:2px 18px 18px 70px;border-top:1px solid var(--line);margin-top:-1px}
   .answer-body{padding-top:14px}
   .answer p{margin:0 0 11px}
@@ -1102,7 +1056,6 @@
   .warn{background:var(--clay-soft);border:1px solid #e6c6c0;color:#7d2f24;border-radius:9px;padding:11px 14px;font-size:14px;margin:6px 0 12px}
   .warn b{color:#7d2f24}/* diagrams */
 
-  
   .dgm{margin:14px 0 16px;border:1px solid var(--line);background:#FBFCFE;border-radius:10px;padding:12px 12px 8px;}
   .dgm svg{width:100%;height:auto;display:block}/* senior deep-dive */
   
@@ -1126,11 +1079,9 @@
   .pbtn.next:hover:not(:disabled){color:#fff;filter:brightness(1.06)}
   .pcenter{font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--ink-soft);text-align:center}
   .pcenter b{color:var(--emerald)}
-  .pdot.on{background:var(--emerald);transform:scale(1.25)}
 
   .foot-note{text-align:center;color:var(--muted);font-size:12px;font-family:"IBM Plex Mono",monospace;margin-top:26px;letter-spacing:.3px}/* ---------- Project SRS ---------- */
 
-  
   .pj-shell{max-width:1200px;margin:0 auto;animation:fade .35s ease}
   .pj-head{padding:40px 44px;border:1px solid #cdd5ef;border-radius:18px;background:linear-gradient(135deg,#fff 0%,#F8FAFC 58%,var(--indigo-soft) 100%);box-shadow:var(--shadow);margin-bottom:28px}
   .pj-back{display:inline-block;color:var(--indigo);font-family:"IBM Plex Mono",monospace;font-size:11px;text-decoration:none;margin-bottom:28px}
@@ -1188,8 +1139,6 @@
   .pj-doc-body table{width:100%;border-collapse:collapse;margin:10px 0 16px;font-size:12.5px}.pj-doc-body th,.pj-doc-body td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}.pj-doc-body th{background:var(--indigo-soft);color:var(--indigo);font-family:"IBM Plex Mono",monospace;font-size:10.5px}.pj-doc-body td{color:var(--ink-soft)}/* ============ RESPONSIVE / MOBILE ============ *//* The drawer holds the nav at every width, so the header only has to shed
      its own ornaments as space runs out. */
 
-  
-  
   @media (max-width:760px){
     :root{--gutter:14px}
     .top-inner{padding:10px var(--gutter);gap:10px}
@@ -1197,8 +1146,6 @@
     .authbtn{width:34px;height:34px}
     .avatar{width:26px;height:26px}
     /* the filter bar scrolls sideways rather than stacking into rows */
-    .groupbar{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding:9px 12px}
-    .groupbar::-webkit-scrollbar{display:none}
     .gchip{flex:0 0 auto}
     /* prev/next drops away: the pager at the foot already does that job */
     .tb-steps{display:none}
@@ -1223,7 +1170,6 @@
     .answer{padding:2px 14px 16px 14px}
     .iv-diagram>figcaption{align-items:flex-start;flex-direction:column;gap:4px}
     .iv-diagram-review{grid-template-columns:1fr;padding:10px}
-    .iv-diagram-viewport>.mermaid{padding:18px 8px}
     /* page (markdown views) */
     .page{padding:20px 18px}
     /* Player: the scrub takes its own row so the buttons keep a tappable size. */
@@ -1279,7 +1225,7 @@
     .sd-research-grid{grid-template-columns:1fr}
     .sd-research-grid article{border-right:0;border-bottom:1px solid var(--line)}
     .sd-research-grid article:last-child{border-bottom:0}
-    .sd-requirements>div,.sd-case-guide-brief,.sd-case-guide-depth{grid-template-columns:1fr}
+    .sd-requirements>div{grid-template-columns:1fr}
     .sd-diagram>figcaption{align-items:flex-start;flex-direction:column}
     .sd-notes summary{flex-direction:column;gap:6px}
     .sd-notes summary code{max-width:100%}
@@ -1295,7 +1241,6 @@
     .pj-body{padding:30px 20px 38px}
     .pj-section{margin-bottom:38px}
     .pj-section>h2{font-size:25px}
-    .pj-two-col{grid-template-columns:1fr}
     .pj-sample summary,.pj-doc summary{padding:12px}
     .pj-sample summary small,.pj-doc summary small{font-size:11px}
     .pj-doc-body{padding:14px}
@@ -1307,7 +1252,6 @@
     .pager{position:static;padding:10px 12px;gap:8px}
     .pbtn{padding:9px 12px;font-size:13px}
     .pcenter{font-size:12px}
-    .pdots{max-width:160px}
   }
   @media (max-width:600px){
     /* The header stays one row here, so every ornament on the right gives up
@@ -1381,24 +1325,15 @@
      Appended last; all new classes, so nothing above is overridden.
      ===================================================================== *//* ---------- header: right-hand cluster ---------- */
 
-  
-
-  
   .headright{display:flex;align-items:center;gap:10px;flex:none}
 
   .syncstate{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.2px;color:var(--muted);
     display:inline-flex;align-items:center;gap:6px;white-space:nowrap;cursor:pointer}
   .syncstate::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--line-strong);flex:none}
-  .syncstate.s-synced{color:var(--emerald-deep)}
-  .syncstate.s-synced::before{background:var(--emerald)}
-  .syncstate.s-syncing{color:var(--brass)}
-  .syncstate.s-syncing::before{background:var(--brass);animation:pulse 1.1s ease-in-out infinite}
-  .syncstate.s-stale::before{background:var(--brass)}
   .syncstate.s-error{color:var(--clay)}
   .syncstate.s-error::before{background:var(--clay)}
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}/* ---------- account: the avatar IS the sign-in control ---------- */
 
-  
   .authbar{position:relative;display:flex;align-items:center;flex:none}
   .authbtn{position:relative;width:36px;height:36px;padding:0;border-radius:50%;cursor:pointer;
     border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;transition:.16s ease}
@@ -1412,7 +1347,6 @@
   .avatar-anon{display:grid;place-items:center;border:none;color:var(--muted);background:transparent}
   .avatar-anon svg{width:20px;height:20px}/* A ring around the avatar carries the state — no extra chip in the header. */
 
-  
   .authbtn::after{content:"";position:absolute;inset:-3px;border-radius:50%;border:1.5px solid transparent;transition:.2s ease}
   .authbtn[data-state="signed"]::after{border-color:var(--emerald)}
   .authbtn[data-state="connecting"]::after{border-color:var(--brass);
@@ -1458,7 +1392,6 @@
 
   .gis-holder{display:flex;align-items:center;justify-content:center;min-width:0;min-height:40px}/* ---------- buttons ---------- */
 
-  
   .btn-primary{font:inherit;font-size:13px;font-family:"IBM Plex Mono",monospace;cursor:pointer;
     border:1px solid var(--emerald-deep);border-radius:9px;padding:7px 14px;
     background:linear-gradient(180deg,var(--emerald),var(--emerald-deep));color:#fff;transition:.16s ease}
@@ -1472,7 +1405,6 @@
   .tb-actions .hint{font-family:"IBM Plex Sans",sans-serif;font-size:12px;color:var(--muted)}
   .sectioncount .ro{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--muted)}/* ---------- personal notes inside each question card ---------- */
 
-  
   .notebox{margin-top:14px;border-top:1px dashed var(--line-strong);padding-top:12px}
   .note-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
   .note-label{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.5px;text-transform:uppercase;
@@ -1484,7 +1416,6 @@
     box-shadow:0 0 0 3px var(--emerald-soft)}
   .notebox.has-note .note-label::after{content:" \25CF";color:var(--emerald)}/* ---------- interview journal: actions + form ---------- */
 
-  
   .co-actions{display:flex;gap:6px;margin-left:auto}
   .empty-q{font-size:13.5px;color:var(--muted);margin:8px 0 0}
 
@@ -1519,7 +1450,6 @@
   .modal-actions{display:flex;justify-content:flex-end;gap:10px;padding-top:18px;
     border-top:1px solid var(--line);margin-top:4px}/* ---------- stats: number tiles ---------- */
 
-  
   .stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:0 2px 18px}
   .stat-tile{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
     box-shadow:var(--shadow);padding:16px 18px}
@@ -1527,7 +1457,6 @@
   .stat-value{font-family:"Space Grotesk",sans-serif;font-weight:600;font-size:26px;line-height:1.2;color:var(--emerald-deep);margin-top:4px}
   .stat-sub{font-size:12px;color:var(--ink-soft);min-height:18px}/* ---------- stats: heatmap ---------- */
 
-  
   .hm-legend{display:flex;align-items:center;gap:4px}
   .hm-legend>span:not(.hm-cell){font-family:"IBM Plex Mono",monospace;font-size:10px;color:var(--muted);margin:0 4px}
   .heatmap-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;background:var(--surface);border:1px solid var(--line);
@@ -1545,24 +1474,18 @@
   .hm-cell.lvl-4{background:var(--emerald-deep)}
   .hm-cell.lvl-f{background:transparent;box-shadow:inset 0 0 0 1px var(--line)}/* ---------- stats: per-day progress ---------- */
 
-  
   .perday{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
     box-shadow:var(--shadow);overflow:hidden}
   .pd-row{display:flex;align-items:center;gap:12px;padding:10px 18px;border-bottom:1px solid var(--line);
     text-decoration:none;color:inherit;transition:background .14s ease}
   .pd-row:last-child{border-bottom:none}
   .pd-row:hover{background:var(--emerald-soft)}
-  .pd-n{font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:600;color:var(--brass);flex:none;min-width:30px}
   .pd-row[data-topic-type] .pd-n{color:var(--g);border-left:3px solid var(--g);padding-left:7px;margin-left:-7px}
-  .pd-label{font-size:13.5px;color:var(--ink-soft);flex:1 1 auto;min-width:0;overflow:hidden;
-    text-overflow:ellipsis;white-space:nowrap}
   .pd-bar{flex:0 0 140px;height:7px;border-radius:999px;background:var(--line);overflow:hidden}
   .pd-bar.sm{flex:0 0 90px;display:inline-block;vertical-align:middle}
   .pd-fill{display:block;height:100%;border-radius:999px;
-    background:linear-gradient(90deg,var(--emerald),var(--emerald-deep))}
-  .pd-num{font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:var(--muted);flex:none;min-width:52px;text-align:right}/* ---------- admin ---------- */
+    background:linear-gradient(90deg,var(--emerald),var(--emerald-deep))}/* ---------- admin ---------- */
 
-  
   .tablewrap{overflow-x:auto;-webkit-overflow-scrolling:touch;background:var(--surface);border:1px solid var(--line);
     border-radius:var(--radius);box-shadow:var(--shadow)}
   .adtable{width:100%;border-collapse:collapse;font-size:13.5px;min-width:720px}
@@ -1577,7 +1500,6 @@
   .ad-email{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--muted);display:block}
   .ad-when{font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:var(--muted);white-space:nowrap}/* ---------- responsive for the sections above ---------- */
 
-  
   @media (max-width:999px){
     /* dot only, no label: the header is already tight under 1000px */
     .syncstate{font-size:0;gap:0}
@@ -1593,7 +1515,6 @@
     .perday{padding:0}
     .pd-row{padding:10px 12px;gap:8px}
     .pd-bar{flex:0 0 70px}
-    .pd-num{min-width:46px;font-size:11px}
     .co-actions{margin-left:0;width:100%}
     .notebox{margin-top:12px}
   }
@@ -1603,7 +1524,6 @@
     .stat-row{grid-template-columns:1fr 1fr;gap:8px}
     .stat-tile{padding:12px 14px}
     .stat-value{font-size:22px}
-    .pd-label{font-size:12.5px}
   }/* =====================================================================
      SEARCH — header trigger, overlay palette, full-results panel
      Appended last; every class is new, so nothing above is overridden.
@@ -1611,9 +1531,6 @@
      header is one row at every width and sheds ornaments instead of wrapping,
      so the label and the shortcut hint go first and the icon stays. */
 
-  
-
-  
   .searchtrigger{flex:none;display:inline-flex;align-items:center;gap:10px;cursor:pointer;font:inherit;
     height:40px;padding:0 12px;border-radius:11px;border:1px solid var(--line);background:var(--surface);
     color:var(--ink-soft);transition:.16s ease}
@@ -1666,6 +1583,14 @@
     border-radius:6px;padding:3px 5px;margin-top:2px}
   .gs-hit-main{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:2px}
   .gs-hit-title{font-family:"Space Grotesk",sans-serif;font-weight:600;font-size:14.5px;color:var(--ink);line-height:1.35}
+/* The matching excerpt, which is the reason a result is worth scanning: the
+   title says which card, the snippet says why it matched. Clamped rather than
+   truncated at build time so the marked terms stay inside the visible lines —
+   the two surfaces clamp it differently, and both overrides already existed
+   while this base rule did not. */
+  
+  .gs-hit-snippet{font-size:12.5px;line-height:1.5;color:var(--ink-soft);
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   .gs-hit-context{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.3px;color:var(--muted);
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .gs-hit-go{flex:none;align-self:center;color:var(--muted);font-size:13px;opacity:0}
@@ -1698,7 +1623,6 @@
   .gs-keys{display:flex;align-items:center;gap:4px;white-space:nowrap}
   .gs-keys kbd{font-family:inherit;border:1px solid var(--line-strong);border-radius:4px;padding:0 4px;background:var(--surface)}/* ---------- full-results panel ---------- */
 
-  
   .gs-page-head{margin-bottom:18px}
   .gs-page-head h1{font-family:"Space Grotesk",sans-serif;font-size:32px;line-height:1.15;margin:6px 0 8px}
   .gs-page-intro{margin:0 0 16px;color:var(--ink-soft);font-size:15px;max-width:70ch}
@@ -1728,6 +1652,5 @@
     .gs-page-head h1{font-size:26px}
   }/* Native async fallbacks stay readable before client hydration completes. */
 
-  
   .loading-block{min-height:120px;display:grid;place-items:center;margin:0;color:var(--muted);
     font-family:"IBM Plex Mono",monospace;font-size:12px;text-align:center}

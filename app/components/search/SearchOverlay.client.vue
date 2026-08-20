@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { fold } from '../../../public/lib/search-text.js';
+import { prepareEntries, searchEntries } from '../../../public/lib/search.js';
 type SearchEntry = {
   id: string;
   surface: string;
@@ -46,15 +46,13 @@ const surfaceBadges: Record<string, string> = {
   track: 'TOPIC', 'system-design': 'DESIGN', 'case-studies': 'CASE', photography: 'PHOTO', homelab: 'LAB'
 };
 
-const results = computed(() => {
-  const terms = fold(query.value).split(/\s+/).filter(Boolean);
-  if (!terms.length) return [];
-  return entries.value.filter(entry => {
-    const text = fold(`${entry.en} ${entry.vi} ${entry.contextEn} ${entry.contextVi} ${entry.bodyEn || ''} ${entry.bodyVi || ''}`);
-    return terms.every(term => text.includes(term));
-  }).slice(0, 12);
-});
-const groupedResults = computed(() => Object.entries(results.value.reduce<Record<string, SearchEntry[]>>((groups, entry) => {
+/* Folded once per language, not per keystroke — prepareEntries walks the whole
+   index and builds the folded copies every highlight offset is measured
+   against. Ranking then decides which 12 rows the overlay shows: a plain
+   "contains every term" filter put the weakest match first as often as not. */
+const prepared = computed(() => prepareEntries(entries.value, props.lang));
+const results = computed(() => searchEntries(prepared.value, query.value, { limit: 12 }).results);
+const groupedResults = computed(() => Object.entries(results.value.reduce<Record<string, any[]>>((groups, entry) => {
   (groups[entry.surface] ||= []).push(entry);
   return groups;
 }, {})));
@@ -157,8 +155,9 @@ onBeforeUnmount(() => { stopHistory?.(); document.removeEventListener('keydown',
           <button v-for="entry in rows" :key="entry.id" type="button" class="gs-hit" :class="{ 'is-active': results.indexOf(entry) === activeIndex }" @click="follow(entry)">
             <span class="gs-hit-badge">{{ surfaceBadges[entry.surface] }}</span>
             <span class="gs-hit-main">
-              <span class="gs-hit-title">{{ lang === 'vi' ? entry.vi : entry.en }}</span>
-              <span class="gs-hit-context">{{ lang === 'vi' ? entry.contextVi : entry.contextEn }}</span>
+              <span class="gs-hit-title" v-html="entry.titleHtml" />
+              <span v-if="entry.snippet" class="gs-hit-snippet" v-html="entry.snippet" />
+              <span class="gs-hit-context">{{ entry.context }}</span>
             </span>
             <span class="gs-hit-go">↵</span>
           </button>
