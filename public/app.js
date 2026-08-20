@@ -10,6 +10,7 @@
    state when they have localized material — see CLAUDE.md. */
 import { renderMarkdown, escapeHtml } from './lib/markdown.js';
 import { chevSVG, BADGE, debounce } from './lib/ui.js';
+import { trackLoading } from './lib/loading.js';
 import { Content } from './lib/content.js';
 import { contentDateFacts, formatContentDate } from './lib/content-dates.js';
 import { clearArticleStructuredData, setArticleStructuredData } from './lib/structured-data.js';
@@ -555,7 +556,9 @@ async function route() {
   updateRouteLanguage(lang);
   const currentRouteState = currentRoute();
   if (currentRouteState.id === 'track' && currentRouteState.parts[0]) {
-    await Content.ensureTopic(currentRouteState.parts[0]);
+    // Nothing on screen changes while the pair is in flight, so the bar is the
+    // only thing telling the reader their click landed.
+    await trackLoading(Content.ensureTopic(currentRouteState.parts[0]));
     if (run !== routeRun) return;
     TOPICS = Content.topics;
   }
@@ -606,7 +609,7 @@ function showView(id, routeParts = [], anchor = '') {
     else if (v && v.render) host.innerHTML = v.render(routeParts, anchor);
     else host.innerHTML = '';
     decorateHeadingPermalinks(host);
-    if (v && v.mount) mountResult = v.mount(host, routeParts, anchor);
+    if (v && v.mount) mountResult = trackLoading(v.mount(host, routeParts, anchor));
   }
   paintLangSwitch();
   window.scrollTo({ top: 0 });
@@ -1030,7 +1033,7 @@ function mountSyncState(el) {
 async function init() {
   try {
     const initial = currentRoute();
-    await Content.load(initial.id === 'track' ? initial.parts[0] : '');
+    await trackLoading(Content.load(initial.id === 'track' ? initial.parts[0] : ''));
     TOPICS = Content.topics;
     if (initial.id === 'track' && initial.parts[0]) {
       let requested = '';

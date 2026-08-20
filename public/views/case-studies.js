@@ -8,6 +8,7 @@ import { setArticleStructuredData } from '../lib/structured-data.js';
 import { setPageMetadata } from '../lib/page-metadata.js';
 import { bulletParts, sentences } from '../lib/prose.js';
 import { announce } from '../lib/ui.js';
+import { loadingBlock } from '../lib/loading.js';
 import { rememberOpened, restoreCard, stickyGroupHeads, takeOpened } from '../lib/reading-position.js';
 import { anchorHref, decorateHeadingPermalinks, scrollToAnchor, withRouteLanguage } from '../lib/anchors.js';
 
@@ -296,7 +297,7 @@ async function showArticle(root, collection, slug, token, anchor = '') {
 
 export function renderCaseStudies() {
   return '<section class="cs-shell" data-case-root aria-live="polite">'
-    + '<div class="cs-loading"><span></span><p>' + text().loading + '</p></div></section>';
+    + loadingBlock(text().loading) + '</section>';
 }
 
 export async function mountCaseStudies(host, routeParts = [], anchor = '') {

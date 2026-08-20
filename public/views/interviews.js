@@ -6,6 +6,7 @@ import { Auth } from '../lib/auth.js';
 import { Content } from '../lib/content.js';
 import { escapeHtml as esc, renderUser, inlineUser } from '../lib/markdown.js';
 import { chevSVG } from '../lib/ui.js';
+import { loadingBlock } from '../lib/loading.js';
 import { mountMermaidDiagrams } from '../lib/mermaid.js';
 import { PROMPT_ORIGINS, REFERENCE_ORIGINS, originGuard } from '../lib/constants.js';
 import { contentDateFacts } from '../lib/content-dates.js';
@@ -82,7 +83,7 @@ function interviewDiagrams(diagrams = []) {
 }
 
 export function renderInterviews() {
-  return '<div id="ivRoot" class="iv-root"><div class="page"><p class="intro">Loading…</p></div></div>';
+  return '<div id="ivRoot" class="iv-root">' + loadingBlock('Loading the interview journal…') + '</div>';
 }
 
 export function mountInterviews(host) {

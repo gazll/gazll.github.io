@@ -6,13 +6,14 @@ import { Auth } from '../lib/auth.js';
 import { Content } from '../lib/content.js';
 import { escapeHtml as esc } from '../lib/markdown.js';
 import { localDay } from '../lib/ui.js';
+import { loadingBlock } from '../lib/loading.js';
 import { withRouteLanguage } from '../lib/anchors.js';
 
 const WEEKS = 26;                  // half a year: wide enough, still fits mobile
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 export function renderStats() {
-  return '<div id="stRoot"><div class="page"><p class="intro">Loading…</p></div></div>';
+  return '<div id="stRoot">' + loadingBlock('Loading your study log…') + '</div>';
 }
 
 export function mountStats(host) {

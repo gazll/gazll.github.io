@@ -13,6 +13,7 @@ import { debounce } from '../lib/ui.js';
 import { Content } from '../lib/content.js';
 import { SearchIndex, SURFACES, searchHash, queryFromRoute } from '../lib/search.js';
 import { SearchHistory } from '../lib/search-history.js';
+import { loadingBlock } from '../lib/loading.js';
 
 const OVERLAY_PER_SURFACE = 5;
 const OVERLAY_MAX = 12;
@@ -137,8 +138,7 @@ function paintOverlay() {
           + '<span aria-hidden="true">→</span></a>'
         : '')
       + groupRows(shown, found.counts, more ? 1 : 0)
-    : '<p class="gs-empty">No match for <b>' + escapeHtml(query) + '</b>.'
-      + (SearchIndex.enriched ? '' : ' Archived case studies are still being indexed.') + '</p>';
+    : emptyResult(query);
 
   if (more) overlay.hits = [...shown, { more: true, href: searchHash(query) }];
   overlay.foot.textContent = found.total
@@ -146,6 +146,15 @@ function paintOverlay() {
       + SURFACES.map(surface => found.counts[surface.id] ? ' · ' + found.counts[surface.id] + ' in ' + surface.label : '').join('')
     : (SearchIndex.ready ? 'Nothing found.' : 'Loading the libraries…');
   paintActive();
+}
+
+/* An index that has not finished building has no hits yet, which is not the
+   same fact as "nothing matches" — printing the second while the first is true
+   is the one thing that makes search look broken. */
+function emptyResult(query) {
+  if (!SearchIndex.ready) return loadingBlock('Loading the libraries…', { compact: true });
+  return '<p class="gs-empty">No match for <b>' + escapeHtml(query) + '</b>.'
+    + (SearchIndex.enriched ? '' : ' Archived case studies are still being indexed.') + '</p>';
 }
 
 function paintActive() {
@@ -348,7 +357,8 @@ export function renderSearch(routeParts = []) {
     + ' placeholder="Search questions, blueprints and case studies…" aria-label="Search all material"'
     + ' value="' + escapeHtml(query) + '"></div>'
     + '<div class="gs-filters" id="gsFilters"></div></header>'
-    + '<div class="gs-page-body" id="gsResults"><p class="gs-empty">Loading the libraries…</p></div></div>';
+    + '<div class="gs-page-body" id="gsResults">' + loadingBlock('Loading the libraries…', { compact: true })
+    + '</div></div>';
 }
 
 export async function mountSearch(host, routeParts = []) {
@@ -385,8 +395,7 @@ export async function mountSearch(host, routeParts = []) {
         + ' for <b>' + escapeHtml(query) + '</b>'
         + (found.total > PANEL_MAX ? ' · showing the first ' + PANEL_MAX : '') + '</p>'
         + groupRows(found.results)
-      : '<p class="gs-empty">No match for <b>' + escapeHtml(query) + '</b>.'
-        + (SearchIndex.enriched ? '' : ' Archived case studies are still being indexed.') + '</p>';
+      : emptyResult(query);
   };
 
   repaintPanel = paint;

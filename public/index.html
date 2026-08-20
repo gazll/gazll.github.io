@@ -33,6 +33,10 @@
 <link rel="stylesheet" href="styles.css" data-app-styles>
 </head>
 <body>
+<!-- One indeterminate bar for every wait the shell survives: a route change, a
+     topic pair still arriving, a view whose mount() is fetching its body. Only
+     lib/loading.js writes to it. -->
+<div class="route-progress" id="routeProgress" aria-hidden="true"><span></span></div>
 <a class="skiplink" href="#view-track">Skip to content</a>
 
 <header class="top">
@@ -115,7 +119,27 @@
 <main>
   <!-- VIEW: topic track -->
   <section id="view-track" class="view">
-    <div id="panel" class="day-panel"></div>
+    <div id="panel" class="day-panel">
+      <!-- First paint, before boot.js has even resolved the release. The panel
+           used to sit empty here through the version fetch, the module graph and
+           the first topic pair — several seconds of a page that looks broken.
+           renderDay() replaces the whole panel, so this needs no cleanup. -->
+      <div class="boot-skel" aria-hidden="true">
+        <div class="boot-skel-hero">
+          <div class="skel boot-skel-num"></div>
+          <div class="boot-skel-lines">
+            <div class="skel skel-title skel-w-60"></div>
+            <div class="skel skel-line skel-w-90"></div>
+            <div class="skel skel-line skel-w-75"></div>
+          </div>
+        </div>
+        <div class="skel skel-line skel-w-30"></div>
+        <div class="skel boot-skel-card"></div>
+        <div class="skel boot-skel-card"></div>
+        <div class="skel boot-skel-card"></div>
+        <div class="skel boot-skel-card"></div>
+      </div>
+    </div>
     <nav class="pager">
       <button class="pbtn prev" id="prevBtn">← Previous topic</button>
       <div>

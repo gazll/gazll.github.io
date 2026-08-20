@@ -11,6 +11,7 @@ import { systemDesignQuestionUrl } from '../lib/question-links.js';
 import { crossRefResolver } from '../lib/cross-ref.js';
 import { bulletParts, labelledParts, sentences } from '../lib/prose.js';
 import { announce } from '../lib/ui.js';
+import { loadingBlock } from '../lib/loading.js';
 import { rememberOpened, restoreCard, stickyGroupHeads, takeOpened } from '../lib/reading-position.js';
 import { SYSTEM_DESIGN_RESEARCH } from '../data/system-design/research.js';
 import { anchorHref, decorateHeadingPermalinks, scrollToAnchor, withRouteLanguage } from '../lib/anchors.js';
@@ -879,7 +880,7 @@ async function showRoute(root, collection, routeParts, token, anchor = '') {
 
 export function renderSystemDesign() {
   return '<section class="sd-shell" data-system-design-root aria-live="polite">'
-    + '<div class="cs-loading"><span></span><p>' + text().loading + '</p></div></section>';
+    + loadingBlock(text().loading) + '</section>';
 }
 
 export async function mountSystemDesign(host, routeParts = [], anchor = '') {

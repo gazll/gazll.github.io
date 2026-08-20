@@ -2,6 +2,7 @@ import { escapeHtml } from '../lib/markdown.js';
 import { Content } from '../lib/content.js';
 import { knowledgeCollection } from '../lib/knowledge.js';
 import { buildToc, wireLightbox, wireTocToggle } from '../lib/article-reader.js';
+import { loadingBlock } from '../lib/loading.js';
 import { contentDateFacts } from '../lib/content-dates.js';
 import { setArticleStructuredData } from '../lib/structured-data.js';
 import { setPageMetadata } from '../lib/page-metadata.js';
@@ -134,7 +135,7 @@ export function createKnowledgeView(id) {
   let libraryObserver = null;
 
   const render = () => '<section class="cs-wrap" data-knowledge-root="' + id + '">'
-    + '<div class="cs-loading"><span></span><p>' + text().loading + '</p></div></section>';
+    + loadingBlock(text().loading) + '</section>';
 
   const showArticle = async (root, collection, slug, token, anchor) => {
     const article = collection.articles.find(row => row.slug === slug);

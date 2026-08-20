@@ -9,9 +9,10 @@ import { Auth } from '../lib/auth.js';
 import { call } from '../lib/api.js';
 import { Content } from '../lib/content.js';
 import { escapeHtml as esc } from '../lib/markdown.js';
+import { loadingBlock } from '../lib/loading.js';
 
 export function renderAdmin() {
-  return '<div id="adRoot"><div class="page"><p class="intro">Loading…</p></div></div>';
+  return '<div id="adRoot">' + loadingBlock('Loading the all-user overview…') + '</div>';
 }
 
 export function mountAdmin(host) {

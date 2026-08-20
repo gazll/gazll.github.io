@@ -11,6 +11,7 @@
 import { fetchJson, localizedRecord } from '../lib/i18n.js';
 import { renderMarkdown, escapeHtml } from '../lib/markdown.js';
 import { Content } from '../lib/content.js';
+import { loadingBlock } from '../lib/loading.js';
 
 const DATA_URL = 'data/release-notes.json';
 const pad2 = n => String(n).padStart(2, '0');
@@ -135,7 +136,7 @@ export function renderReleaseNotes() {
     + 'questions, rewritten answers, and changes to how the site works. '
     + 'These notes follow the <b>EN/VI</b> switch in the header.</p>'
     + '<div class="rn-body" data-rn-body>'
-    + '<p class="rn-loading">Loading…</p>'
+    + loadingBlock('Loading release notes…')
     + '</div></div>';
 }
 

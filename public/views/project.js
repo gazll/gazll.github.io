@@ -2,6 +2,7 @@ import { escapeHtml, renderMarkdown } from '../lib/markdown.js';
 import { ProjectDocs } from '../lib/project.js';
 import { Content } from '../lib/content.js';
 import { contentDateFacts } from '../lib/content-dates.js';
+import { loadingBlock } from '../lib/loading.js';
 import { setArticleStructuredData } from '../lib/structured-data.js';
 import { anchorHref, decorateHeadingPermalinks, scrollToAnchor, withRouteLanguage } from '../lib/anchors.js';
 
@@ -175,8 +176,8 @@ function wireToc(root) {
 }
 
 export function renderProject() {
-  return '<section class="pj-shell" data-project-root aria-live="polite"><div class="pj-loading"><span></span><p>'
-    + text('loading') + '</p></div></section>';
+  return '<section class="pj-shell" data-project-root aria-live="polite">'
+    + loadingBlock(text('loading'), { accent: 'indigo' }) + '</section>';
 }
 
 export async function mountProject(host, routeParts = [], anchor = '') {

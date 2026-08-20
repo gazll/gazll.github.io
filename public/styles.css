@@ -318,7 +318,7 @@
      Two levels: .rn-day carries the date once, .rn-rel is one release inside
      it. Several releases on a date therefore share a single heading. */
   .rn-intro{max-width:70ch}
-  .rn-loading,.rn-empty,.rn-error{font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--muted)}
+  .rn-empty,.rn-error{font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--muted)}
   .rn-error{color:var(--clay)}
   .rn-day{margin:24px 0 0}
   .rn-day + .rn-day{border-top:1px solid var(--line);padding-top:20px}
@@ -358,11 +358,6 @@
 
   /* ---------- Experience: long-form engineering case studies ---------- */
   .cs-shell{animation:fade .35s ease}
-  .cs-loading{min-height:48vh;display:grid;place-items:center;align-content:center;gap:12px;color:var(--muted)}
-  .cs-loading span{width:28px;height:28px;border:3px solid var(--line-strong);border-top-color:var(--emerald);
-    border-radius:50%;animation:csSpin .8s linear infinite}
-  .cs-loading p{margin:0;font-family:"IBM Plex Mono",monospace;font-size:12px}
-  @keyframes csSpin{to{transform:rotate(360deg)}}
 
   .cs-library{max-width:1180px;margin:0 auto}
   .cs-library-hero{position:relative;overflow:hidden;padding:42px 44px;border:1px solid var(--line);
@@ -1078,9 +1073,6 @@
 
   /* ---------- Project SRS ---------- */
   .pj-shell{max-width:1200px;margin:0 auto;animation:fade .35s ease}
-  .pj-loading{min-height:48vh;display:grid;place-items:center;align-content:center;gap:12px;color:var(--muted)}
-  .pj-loading span{width:28px;height:28px;border:3px solid var(--line-strong);border-top-color:var(--indigo);border-radius:50%;animation:csSpin .8s linear infinite}
-  .pj-loading p{margin:0;font-family:"IBM Plex Mono",monospace;font-size:12px}
   .pj-head{padding:40px 44px;border:1px solid #cdd5ef;border-radius:18px;background:linear-gradient(135deg,#fff 0%,#F8FAFC 58%,var(--indigo-soft) 100%);box-shadow:var(--shadow);margin-bottom:28px}
   .pj-back{display:inline-block;color:var(--indigo);font-family:"IBM Plex Mono",monospace;font-size:11px;text-decoration:none;margin-bottom:28px}
   .pj-back:hover{text-decoration:underline;text-underline-offset:3px}
@@ -1691,4 +1683,63 @@
     .gs-hit-snippet{-webkit-line-clamp:2}
     .gs-keys{display:none}
     .gs-page-head h1{font-size:26px}
+  }
+
+  /* =====================================================================
+     LOADING CHROME
+     One bar for waits the shell survives, one block for a view with no body
+     yet, one skeleton for the very first paint. lib/loading.js owns the
+     first two; index.html carries the third, because it has to be on screen
+     before any module has parsed.
+     ===================================================================== */
+
+  /* Above header.top's z-index:50 — it reports on the page underneath it. */
+  .route-progress{position:fixed;top:0;left:0;right:0;height:2px;z-index:70;
+    pointer-events:none;overflow:hidden;opacity:0;transition:opacity .2s ease}
+  .route-progress.is-active{opacity:1}
+  .route-progress span{display:block;height:100%;width:38%;border-radius:0 2px 2px 0;
+    background:linear-gradient(90deg,transparent,var(--emerald) 45%,var(--teal));
+    transform:translateX(-100%);animation:routeSlide 1.15s cubic-bezier(.45,0,.25,1) infinite}
+  @keyframes routeSlide{to{transform:translateX(360%)}}
+  /* The global reduce rule kills the sweep, which would park the bar off-screen
+     and report nothing at all. Hold it across the top instead. */
+  @media (prefers-reduced-motion:reduce){
+    .route-progress span{width:100%;transform:none;opacity:.75}
+  }
+
+  .app-loading{min-height:42vh;display:grid;place-items:center;align-content:center;gap:12px;color:var(--muted)}
+  .app-loading p{margin:0;font-family:"IBM Plex Mono",monospace;font-size:12px;text-align:center}
+  .app-loading.is-compact{min-height:120px;gap:10px}
+  .app-loading.is-compact .app-spinner{width:22px;height:22px;border-width:2.5px}
+  .app-spinner{width:28px;height:28px;border:3px solid var(--line-strong);border-top-color:var(--emerald);
+    border-radius:50%;animation:spin .8s linear infinite}
+  .app-loading.on-indigo .app-spinner{border-top-color:var(--indigo)}
+  /* Without the sweep the ring is a plain circle; the gap is the only cue left. */
+  @media (prefers-reduced-motion:reduce){
+    .app-spinner{border-top-color:transparent;border-right-color:transparent}
+  }
+
+  /* Skeletons: a grey block plus a sweep. The sweep is decoration — the block
+     is the part that says "content belongs here", so it survives reduce. */
+  .skel{position:relative;overflow:hidden;background:var(--line);border-radius:8px}
+  .skel::after{content:"";position:absolute;inset:0;transform:translateX(-100%);
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.62),transparent);
+    animation:skelSweep 1.5s ease-in-out infinite}
+  @keyframes skelSweep{to{transform:translateX(100%)}}
+  .skel-line{height:12px;border-radius:6px}
+  .skel-title{height:26px;border-radius:9px}
+  .skel-w-30{width:30%}
+  .skel-w-60{width:60%}
+  .skel-w-75{width:75%}
+  .skel-w-90{width:90%}
+
+  .boot-skel{display:grid;gap:14px}
+  .boot-skel-hero{display:flex;gap:20px;padding:26px;border:1px solid var(--line);
+    border-radius:18px;background:var(--surface);box-shadow:var(--shadow);margin-bottom:8px}
+  .boot-skel-num{width:76px;height:76px;border-radius:14px;flex:none}
+  .boot-skel-lines{flex:1;min-width:0;display:grid;gap:11px;align-content:center}
+  .boot-skel-card{height:54px;border-radius:var(--radius)}
+  @media (max-width:640px){
+    .boot-skel-hero{padding:18px;gap:14px}
+    .boot-skel-num{width:56px;height:56px}
   }
