@@ -19,6 +19,21 @@ function contentRoutes() {
   const photoRoutes = photography.articles.map((row: { slug: string }) => `/photography/${row.slug}`);
   const homelabRoutes = homelab.articles.map((row: { slug: string }) => `/homelab/${row.slug}`);
 
+  /* EN only, and deliberately so — this is a decision, not a gap.
+
+     The language is a query parameter (?lang=vi), and a query string cannot
+     become a static file: Nitro renders such a route and then discards it, so
+     listing a VI pass here re-renders every page and writes nothing.
+
+     Static VI would mean a real /vi/ path prefix — a routing change across
+     every internal link, the legacy-hash redirect and the header switch. It
+     buys exactly three things: Vietnamese SEO, Vietnamese social previews, and
+     ~50-100ms off first paint. This site is a private study reference for a
+     handful of readers who all have the link, so none of the three is worth a
+     routing rewrite. VI itself is complete and correct on the client, and the
+     chosen language persists via lib/i18n.js.
+
+     Revisit only if the site goes public and search indexing starts to matter. */
   return [
     '/', '/search', '/api/content/search-index', '/gazl', '/stats', '/admin', '/system-design', '/case-studies',
     '/project', '/project/calebzone', '/photography', '/homelab', '/release-notes', '/fshare-tool',
@@ -37,6 +52,24 @@ export default defineNuxtConfig({
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
         { name: 'referrer', content: 'no-referrer' },
+        /* The site talks to Google Identity and Apps Script and nothing else;
+           the ID token is a credential, so the allowed origins stay explicit.
+           'unsafe-inline' covers the hydration payload Nuxt inlines — the
+           previous hand-written bootstrap did not need it. */
+        { 'http-equiv': 'Content-Security-Policy', content: [
+          "default-src 'self'",
+          "base-uri 'self'",
+          "object-src 'none'",
+          "script-src 'self' 'unsafe-inline' https://accounts.google.com/gsi/client",
+          "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com/gsi/style",
+          "font-src 'self' https://fonts.gstatic.com",
+          "img-src 'self' data: https://*.googleusercontent.com",
+          "connect-src 'self' https://accounts.google.com/gsi/ https://script.google.com https://script.googleusercontent.com",
+          "frame-src https://accounts.google.com/gsi/",
+          "form-action 'none'",
+          "worker-src 'none'",
+          'upgrade-insecure-requests'
+        ].join('; ') },
         { property: 'og:type', content: 'website' },
         { property: 'og:site_name', content: 'GAZLL' },
         { name: 'twitter:card', content: 'summary' }
