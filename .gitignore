@@ -1,4 +1,7 @@
-.claude/settings.json
+.agents/
+.claude/
+.codegraph/
+.codex/
 .idea
 node_modules/
 dist/
@@ -12,11 +15,7 @@ dist
 public/config.js
 secret/
 
-# Fshare tool: the page itself ships from public/fshare-tool/. What stays out
-# is the local dev server and the exported link lists, which are personal data
-# and would otherwise be published by Pages along with everything in public/.
-fshare-tool/*.txt
-fshare-tool/Doraemon-split/
+# Fshare exports are personal data and must never be published with the app.
 public/fshare-tool/*.txt
 
 # Raw incident-investigation exports behind the first-party case studies. These

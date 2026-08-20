@@ -307,12 +307,13 @@ secret/              GITIGNORED. Personal setup notes and credentials
   deployment without the `search.*` actions answers "Action không hợp lệ." and
   the reader must not notice.
 
-- **Adding a menu is one entry in `VIEWS`.** `sec` picks the nav-panel section
+- **Legacy menu entries live in `VIEWS`.** `sec` picks the nav-panel section
   (`technical` · `knowledge` · `tool`). A section marked `collapsible` defaults
   to collapsed. An entry with `href` is an external destination: it renders as a
   new-tab link and `currentViewId()` refuses to route to it, so a hash matching
-  its id falls back to the track. That is how sibling apps under `public/`
-  (e.g. `fshare-tool/`) join the menu.
+  its id falls back to the track. Nuxt owns the public routes now; browser-only
+  tools such as Fshare keep their static modules under `public/` and mount from
+  a client-only page in `app/pages/`.
 
 - **`place` moves a control out of the list without making it less routable.**
   Two entries are controls rather than places to study, and each is drawn
