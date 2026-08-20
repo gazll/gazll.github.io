@@ -140,12 +140,16 @@ onBeforeUnmount(() => {
         <NuxtLink v-if="previousTopic" class="tstep" :to="withLang(topicPath(previousTopic))" :aria-label="localize('Previous topic')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><polyline points="15 6 9 12 15 18" /></svg>
         </NuxtLink>
-        <button v-else class="tstep" type="button" disabled :aria-label="localize('Previous topic')" />
+        <button v-else class="tstep" type="button" disabled :aria-label="localize('Previous topic')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><polyline points="15 6 9 12 15 18" /></svg>
+        </button>
         <span class="tb-count"><b>{{ currentTopicIndex + 1 }}</b>/{{ topics.length }}</span>
         <NuxtLink v-if="nextTopic" class="tstep" :to="withLang(topicPath(nextTopic))" :aria-label="localize('Next topic')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><polyline points="9 6 15 12 9 18" /></svg>
         </NuxtLink>
-        <button v-else class="tstep" type="button" disabled :aria-label="localize('Next topic')" />
+        <button v-else class="tstep" type="button" disabled :aria-label="localize('Next topic')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><polyline points="9 6 15 12 9 18" /></svg>
+        </button>
       </div>
 
       <nav class="headright" :aria-label="localize('Header controls')">

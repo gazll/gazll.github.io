@@ -32,6 +32,7 @@ const labels = computed(() => props.lang === 'vi' ? {
   companiesTitle: 'Theo công ty', companiesKicker: 'Nhật ký · từng công ty',
   companiesIntro: 'Mỗi mục là một quy trình phỏng vấn: JD, tóm tắt các vòng, rồi tới câu hỏi.',
   jd: 'Mô tả công việc (JD)', brief: 'Tóm tắt quy trình', rounds: 'Các vòng', round_: 'vòng', rounds_: 'vòng',
+  jdOnly: 'mới có JD',
   expand: 'Mở', collapse: 'Đóng', expandAll: 'Mở tất cả', collapseAll: 'Đóng tất cả',
   jdPlaceholder: 'Dán JD của vị trí — yêu cầu, trách nhiệm, stack.',
   briefPlaceholder: 'Quy trình diễn ra thế nào: mấy vòng, mỗi vòng bao lâu, ai phỏng vấn, không khí ra sao.',
@@ -57,6 +58,7 @@ const labels = computed(() => props.lang === 'vi' ? {
   companiesTitle: 'By company', companiesKicker: 'Journal · one company each',
   companiesIntro: 'Each entry is one interview process: the JD, how the rounds ran, then the questions.',
   jd: 'Job description', brief: 'How the process ran', rounds: 'Rounds', round_: 'round', rounds_: 'rounds',
+  jdOnly: 'JD only',
   expand: 'Open', collapse: 'Close', expandAll: 'Expand all', collapseAll: 'Collapse all',
   jdPlaceholder: 'Paste the posting — requirements, responsibilities, stack.',
   briefPlaceholder: 'How it ran: how many rounds, how long each took, who interviewed, what the tone was.',
@@ -241,9 +243,10 @@ onBeforeUnmount(() => stopAuth?.());
               <span v-if="company.result" class="result" :class="`result-${company.result}`">{{ resultLabels[company.result] || company.result }}</span>
             </span>
             <span class="iv-co-sub">
-              <template v-for="part in [company.role, company.date].filter(Boolean)" :key="part">{{ part }}</template>
+              <span v-for="part in [company.role, company.date].filter(Boolean)" :key="part">{{ part }}</span>
               <span v-if="roundCount(company)">{{ roundCount(company) }} {{ roundCount(company) === 1 ? labels.round_ : labels.rounds_ }}</span>
-              <span>{{ (company.questions || []).length }} {{ (company.questions || []).length === 1 ? labels.question : labels.questions }}</span>
+              <span v-if="(company.questions || []).length">{{ company.questions.length }} {{ company.questions.length === 1 ? labels.question : labels.questions }}</span>
+              <span v-else>{{ labels.jdOnly }}</span>
             </span>
           </span>
           <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="9 6 15 12 9 18" /></svg>

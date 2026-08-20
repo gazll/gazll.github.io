@@ -124,7 +124,11 @@ async function copyLink() {
       </button>
       <div class="qmeta">
         <time v-if="reviewedLabel" class="qreview" :datetime="currentItem.reviewed_at">Reviewed {{ reviewedLabel }}</time>
-        <button class="qcopy" type="button" aria-label="Copy link to this question" @click="copyLink">
+        <button class="qcopy" type="button" :class="{ 'is-copied': copied }" :aria-label="copied ? 'Link copied' : 'Copy link to this question'" @click="copyLink">
+          <svg class="qcopy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path v-if="copied" d="M5 13l4 4L19 7" />
+            <path v-else d="M10 13a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7L11.6 5.7M14 11a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1.4-1.4" />
+          </svg>
           <span class="qcopy-label">{{ copied ? 'Copied' : 'Copy link' }}</span>
         </button>
         <button v-if="pair?.vi" class="langswitch qlangbtn" type="button" role="switch" :aria-checked="localLang === 'vi'" aria-label="Show this question in the other language" @click="localLang = localLang === 'vi' ? 'en' : 'vi'">
