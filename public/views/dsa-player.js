@@ -11,7 +11,7 @@ import { renderFrame, frameExtent, DEFAULT_STEP_MS, MIN_STEP_MS, MAX_STEP_MS } f
 import { fetchJson, localizedRecord } from '../lib/i18n.js';
 import { Content } from '../lib/content.js';
 
-const DATA_URL = 'data/dsa-animations.json';
+const DATA_URL = '/data/dsa-animations.json';
 let cache = null;
 let loadPromise = null;
 

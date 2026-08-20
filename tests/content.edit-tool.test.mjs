@@ -1,12 +1,26 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { closeSync, openSync, readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import os from 'node:os';
 import path from 'node:path';
 
 const root = path.resolve(import.meta.dirname, '..');
 const tool = path.join(root, 'tools', 'add-content.mjs');
+const { NODE_TEST_CONTEXT: _nodeTestContext, ...childEnv } = process.env;
+
+function runTool(patchPath, directory) {
+  const outputPath = path.join(directory, 'output.log');
+  const output = openSync(outputPath, 'w');
+  const result = spawnSync(process.execPath, [tool, patchPath, '--dry-run'], {
+    cwd: root,
+    env: childEnv,
+    stdio: ['ignore', output, output]
+  });
+  closeSync(output);
+  return { ...result, output: readFileSync(outputPath, 'utf8') };
+}
 
 test('content patch tool can replace a whole answer and question in dry-run mode', async () => {
   const dir = await mkdtemp(path.join(os.tmpdir(), 'content-patch-'));
@@ -21,13 +35,10 @@ test('content patch tool can replace a whole answer and question in dry-run mode
   ].join('\n'), 'utf8');
 
   try {
-    const result = spawnSync(process.execPath, [tool, patchPath, '--dry-run'], {
-      cwd: root,
-      encoding: 'utf8'
-    });
-    assert.equal(result.status, 0, result.stderr || result.stdout);
-    assert.match(result.stdout, /mode=answer/);
-    assert.match(result.stdout, /mode=question/);
+    const result = runTool(patchPath, dir);
+    assert.equal(result.status, 0, result.output);
+    assert.match(result.output, /mode=answer/);
+    assert.match(result.output, /mode=question/);
   } finally {
     await rm(dir, { recursive: true, force: true });
   }
@@ -49,13 +60,10 @@ test('content patch tool can append a bilingual item in dry-run mode', async () 
   ].join('\n'), 'utf8');
 
   try {
-    const result = spawnSync(process.execPath, [tool, patchPath, '--dry-run'], {
-      cwd: root,
-      encoding: 'utf8'
-    });
-    assert.equal(result.status, 0, result.stderr || result.stdout);
-    assert.match(result.stdout, /mode=item/);
-    assert.match(result.stdout, /2 would apply/);
+    const result = runTool(patchPath, dir);
+    assert.equal(result.status, 0, result.output);
+    assert.match(result.output, /mode=item/);
+    assert.match(result.output, /2 would apply/);
   } finally {
     await rm(dir, { recursive: true, force: true });
   }
@@ -81,13 +89,10 @@ test('content patch tool can replace one exact answer fragment in dry-run mode',
   ].join('\n'), 'utf8');
 
   try {
-    const result = spawnSync(process.execPath, [tool, patchPath, '--dry-run'], {
-      cwd: root,
-      encoding: 'utf8'
-    });
-    assert.equal(result.status, 0, result.stderr || result.stdout);
-    assert.match(result.stdout, /mode=replace/);
-    assert.match(result.stdout, /1 would apply/);
+    const result = runTool(patchPath, dir);
+    assert.equal(result.status, 0, result.output);
+    assert.match(result.output, /mode=replace/);
+    assert.match(result.output, /1 would apply/);
   } finally {
     await rm(dir, { recursive: true, force: true });
   }

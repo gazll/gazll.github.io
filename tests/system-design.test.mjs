@@ -365,7 +365,7 @@ test('Experience routing, Case Studies migration and Mermaid security are wired 
     readFile(path.join(publicRoot, 'views/system-design.js'), 'utf8'),
     readFile(path.join(publicRoot, 'views/case-studies.js'), 'utf8'),
     readFile(path.join(publicRoot, 'lib/mermaid.js'), 'utf8'),
-    readFile(path.join(publicRoot, 'index.html'), 'utf8'),
+    readFile(path.join(publicRoot, 'shells/main.html'), 'utf8'),
     readFile(path.join(publicRoot, 'styles.css'), 'utf8')
   ]);
 

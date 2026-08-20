@@ -2,11 +2,14 @@
 
 ## Project Structure & Module Organization
 
-This is a framework-free study site built with browser-native ES modules; there is no package manifest or build step. GitHub Pages publishes `public/` directly. The main shell is in `public/index.html`, `boot.js`, `app.js`, and `styles.css`. Shared logic belongs in `public/lib/`, while larger routed screens belong in `public/views/`. Bilingual study content lives under `public/data/`; English base files pair with `.vi.json` or `.vi.html` companions. Keep images in the matching `public/assets/` subtree. Backend code is isolated in `apps-script/Code.gs`, validation utilities in `tools/`, tests in `tests/`, and contributor documentation in `docs/`.
+This is a Nuxt 4 static site. Vue pages and components live in `app/`, filesystem content APIs in `server/api/content/`, and GitHub Pages publishes the generated `.output/public/` directory. Static bilingual content remains under `public/data/`; English base files pair with `.vi.json` or `.vi.html` companions. Browser-only integration adapters remain in `public/lib/`, and images belong in the matching `public/assets/` subtree. Backend code is isolated in `apps-script/Code.gs`, validation utilities in `tools/`, tests in `tests/`, and contributor documentation in `docs/`.
 
 ## Build, Test, and Development Commands
 
-- `cd public && python3 -m http.server 8080` serves the site locally; `npx serve public` is an alternative.
+- `npm install --legacy-peer-deps` installs the pinned Nuxt toolchain with Node 22.
+- `npm run dev` starts the Nuxt development server.
+- `npm run generate` prerenders the complete static site into `.output/public/`.
+- `npm run preview` serves the generated output locally.
 - `node tools/check.mjs` runs the complete CI gate: content validation, ESM syntax checks, logging checks, and all tests.
 - `node tools/check.mjs --only tests` runs only the test stage; `--list` shows available stages.
 - `node tools/check.mjs --audit` adds a non-failing editorial report.

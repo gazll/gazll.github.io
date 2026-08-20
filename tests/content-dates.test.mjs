@@ -39,7 +39,7 @@ test('all authored-content surfaces render dates and article structured data', a
     readFile(new URL('../public/views/system-design.js', import.meta.url), 'utf8'),
     readFile(new URL('../public/views/project.js', import.meta.url), 'utf8'),
     readFile(new URL('../public/views/interviews.js', import.meta.url), 'utf8'),
-    readFile(new URL('../public/index.html', import.meta.url), 'utf8'),
+    readFile(new URL('../public/shells/main.html', import.meta.url), 'utf8'),
     readFile(new URL('../public/lib/page-metadata.js', import.meta.url), 'utf8')
   ]);
   assert.match(app, /topicDates\(t\)/);

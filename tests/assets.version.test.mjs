@@ -40,23 +40,25 @@ test('a deploy stamps HTML, the complete local module graph and version metadata
   }
 });
 
-test('the browser bootstrap resolves the release without cache before loading CSS and app.js', async () => {
+test('the Nuxt client bridge resolves release metadata without cache before loading compatibility controllers', async () => {
   const root = path.resolve(import.meta.dirname, '..');
-  const boot = await readFile(path.join(root, 'public/boot.js'), 'utf8');
-  const index = await readFile(path.join(root, 'public/index.html'), 'utf8');
+  const bridge = await readFile(path.join(root, 'app/components/LegacySurface.client.vue'), 'utf8');
+  const config = await readFile(path.join(root, 'nuxt.config.ts'), 'utf8');
   const workflow = await readFile(path.join(root, '.github/workflows/deploy.yml'), 'utf8');
 
-  assert.match(boot, /version\.json/);
-  assert.match(boot, /cache:\s*'no-store'/);
-  assert.match(boot, /styles\.css/);
-  assert.match(boot, /app\.js/);
-  assert.match(index, /data-app-styles/);
-  assert.match(index, /src="boot\.js(?:\?v=[^"]+)?"/);
-  assert.match(workflow, /node tools\/stamp-assets\.mjs "\$GAZL_DEPLOY_SHA"/);
+  assert.match(bridge, /version\.json/);
+  assert.match(bridge, /cache:\s*'no-store'/);
+  assert.match(bridge, /controller\.searchParams\.set\('v'/);
+  assert.match(config, /prerender/);
+  assert.match(workflow, /npm run generate/);
+  assert.match(workflow, /node tools\/stamp-assets\.mjs "\$GAZL_DEPLOY_SHA" \.output\/public/);
+  assert.match(workflow, /path: \.output\/public/);
 
-  const testsAt = workflow.indexOf('- name: Run regression tests');
+  const testsAt = workflow.indexOf('- name: Run checks');
+  const generateAt = workflow.indexOf('- name: Generate Nuxt static site');
   const stampAt = workflow.indexOf('- name: Stamp deploy version');
   const uploadAt = workflow.indexOf('- uses: actions/upload-pages-artifact@v5');
-  assert.ok(testsAt < stampAt, 'deploy assets must be stamped after source regression tests');
+  assert.ok(testsAt < generateAt, 'Nuxt generation must follow source regression tests');
+  assert.ok(generateAt < stampAt, 'only the generated artifact should be stamped');
   assert.ok(stampAt < uploadAt, 'deploy assets must be stamped before the Pages upload');
 });

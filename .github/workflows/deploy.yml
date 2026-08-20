@@ -28,6 +28,10 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: '22'
+          cache: npm
+
+      - name: Install Nuxt dependencies
+        run: npm ci --legacy-peer-deps
 
       - name: Enforce security guardrails
         shell: bash
@@ -73,33 +77,31 @@ jobs:
             echo "export const SCRIPT_URL = $(jq -rn --arg v "$SCRIPT_URL" '$v | @json');"
           } > public/config.js
 
-      # One entrypoint, shared with local development: content validation,
-      # ESM syntax of every shipped module, the console-logging ban and every
-      # tests/*.test.mjs. Test files are discovered from disk, so adding one
-      # does not also require editing this workflow.
+      # Validate source contracts before Nuxt performs the production build.
       - name: Run checks
         run: |
           node tools/build-content-index.mjs --check
           node tools/stamp-content-dates.mjs --check
           node tools/check.mjs
 
-      # Stamp only the artifact that will be uploaded. Tests intentionally run
-      # against the source module paths before their deploy-only ?v= query.
+      - name: Generate Nuxt static site
+        run: npm run generate
+
+      # Nuxt hashes its own chunks. This stamp versions the copied compatibility
+      # modules and writes release metadata into the generated artifact.
       - name: Stamp deploy version
         env:
           GAZL_DEPLOY_SHA: ${{ github.sha }}
-        run: node tools/stamp-assets.mjs "$GAZL_DEPLOY_SHA"
+        run: node tools/stamp-assets.mjs "$GAZL_DEPLOY_SHA" .output/public
 
-      # Re-parse after stamping: the rewrite touches every import specifier,
-      # so a bad substitution would otherwise ship as a blank page.
-      - name: Check stamped JavaScript syntax
-        run: node tools/check.mjs --only syntax
+      - name: Verify deploy artifact
+        run: node tools/verify-static-artifact.mjs .output/public
 
       - uses: actions/configure-pages@v6
 
       - uses: actions/upload-pages-artifact@v5
         with:
-          path: public
+          path: .output/public
 
       - id: deployment
         uses: actions/deploy-pages@v5

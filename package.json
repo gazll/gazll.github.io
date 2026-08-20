@@ -1,0 +1,21 @@
+{
+  "name": "gazll-study-site",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "nuxt dev",
+    "build": "nuxt build",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "test": "node tools/check.mjs",
+    "check": "node tools/check.mjs && nuxt generate"
+  },
+  "dependencies": {
+    "nuxt": "4.5.2"
+  }
+}

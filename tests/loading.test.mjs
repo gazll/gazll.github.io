@@ -34,9 +34,9 @@ function fakeBar() {
 }
 
 test('the shell carries the one progress bar, and the first paint is not blank', async () => {
-  const html = await read('index.html');
+  const html = await read('shells/main.html');
 
-  assert.match(html, /id="routeProgress"/, 'index.html must carry the bar lib/loading.js writes to');
+  assert.match(html, /id="routeProgress"/, 'the Nuxt compatibility shell must carry the bar lib/loading.js writes to');
   assert.match(html, /class="route-progress"/);
   // Decorative: the reader hears the view's own role="status", not the bar.
   assert.match(html, /<div class="route-progress" id="routeProgress" aria-hidden="true">/);
@@ -96,7 +96,7 @@ test('the progress bar is delayed, ref-counted, and held once it is up', async (
 });
 
 test('lib/loading.js is the only writer of the progress bar', async () => {
-  const files = ['app.js', 'boot.js', 'views/search.js', 'views/system-design.js',
+  const files = ['app.js', 'views/search.js', 'views/system-design.js',
     'views/case-studies.js', 'views/knowledge.js', 'views/project.js',
     'views/stats.js', 'views/admin.js', 'views/interviews.js', 'views/release-notes.js'];
   for (const file of files) {

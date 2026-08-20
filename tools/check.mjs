@@ -18,6 +18,7 @@ import path from 'node:path';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const PUBLIC = path.join(ROOT, 'public');
+const NUXT_SOURCE = [path.join(ROOT, 'app'), path.join(ROOT, 'server')];
 
 const flag = (name) => process.argv.includes(name);
 
@@ -39,8 +40,8 @@ function run(command, args, options = {}) {
   });
 }
 
-/* Syntax-only parse of every module we ship. There is no build step, so this
-   is the only thing standing between a typo and a blank page. stdin plus
+/* Syntax-only parse of browser-native support modules. Vue and TypeScript are
+   compiled by `npm run generate`; stdin plus
    --input-type=module states ESM rather than trusting extension detection. */
 async function checkModuleSyntax() {
   // Vendored third-party code is immutable upstream output — it ships as-is
@@ -77,7 +78,7 @@ async function runTests() {
    away from being an ID token. Vendored code is exempt — we cannot edit it,
    and lib/mermaid.js pins its log level to fatal instead. */
 async function checkNoConsole() {
-  const roots = [PUBLIC, path.join(ROOT, 'apps-script')];
+  const roots = [PUBLIC, ...NUXT_SOURCE, path.join(ROOT, 'apps-script')];
   const pattern = /console\.(log|info|warn|error|debug)|Logger\.log/;
   let ok = true;
 
@@ -103,7 +104,7 @@ async function checkNoConsole() {
 const STAGES = [
   { name: 'content', describe: 'structure of the data/ tree', run: () => run(process.execPath, ['tools/validate-content.mjs']) },
   { name: 'syntax', describe: 'every shipped module parses as ESM', run: checkModuleSyntax },
-  { name: 'console', describe: 'no runtime logging under public/ or apps-script/', run: checkNoConsole },
+  { name: 'console', describe: 'no runtime logging in Nuxt, public/ or Apps Script', run: checkNoConsole },
   { name: 'tests', describe: 'every tests/*.test.mjs', run: runTests }
 ];
 

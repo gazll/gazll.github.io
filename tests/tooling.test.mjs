@@ -23,15 +23,30 @@ test('CI delegates to tools/check.mjs instead of enumerating test files', async 
   }
 });
 
-test('every check stage is reachable through --only', async () => {
+test('every check stage remains reachable and CI generates Nuxt after checks', async () => {
   const source = await readFile(path.join(root, 'tools/check.mjs'), 'utf8');
   const workflow = await readFile(path.join(root, '.github/workflows/deploy.yml'), 'utf8');
   const names = [...source.matchAll(/\{ name: '([a-z]+)'/g)].map(match => match[1]);
 
   assert.deepEqual(names, ['content', 'syntax', 'console', 'tests']);
-  // The post-stamp re-parse depends on this exact stage name.
-  const only = workflow.match(/check\.mjs --only ([a-z]+)/);
-  assert.ok(only && names.includes(only[1]), 'deploy.yml runs an unknown --only stage');
+  assert.match(source, /flag\('--only'\)/);
+  assert.match(workflow, /node tools\/check\.mjs[\s\S]+npm run generate/);
+});
+
+test('CI validates the generated Pages artifact after stamping and before upload', async () => {
+  const workflow = await readFile(path.join(root, '.github/workflows/deploy.yml'), 'utf8');
+  const verifier = await readFile(path.join(root, 'tools/verify-static-artifact.mjs'), 'utf8');
+  const stampAt = workflow.indexOf('- name: Stamp deploy version');
+  const verifyAt = workflow.indexOf('- name: Verify deploy artifact');
+  const uploadAt = workflow.indexOf('- uses: actions/upload-pages-artifact@v5');
+
+  assert.ok(stampAt < verifyAt && verifyAt < uploadAt);
+  assert.match(workflow, /node tools\/verify-static-artifact\.mjs \.output\/public/);
+  for (const required of ['index.html', '404.html', '_nuxt', 'version.json']) {
+    assert.match(verifier, new RegExp(required.replace('.', '\\.')));
+  }
+  assert.match(verifier, /isSymbolicLink/);
+  assert.match(verifier, /--check/);
 });
 
 /* Vendored code is upstream output pinned by directory name: linting it proves

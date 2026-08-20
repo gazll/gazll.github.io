@@ -1,18 +1,32 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
+import { closeSync, openSync, readFileSync, unlinkSync } from 'node:fs';
+import { randomUUID } from 'node:crypto';
+import os from 'node:os';
 import path from 'node:path';
 
 const root = path.resolve(import.meta.dirname, '..');
 const audit = path.join(root, 'tools', 'audit-content.mjs');
+const { NODE_TEST_CONTEXT: _nodeTestContext, ...childEnv } = process.env;
 
 function runAudit(flag) {
-  const result = spawnSync(process.execPath, [audit, flag], {
-    cwd: root,
-    encoding: 'utf8'
-  });
-  assert.equal(result.status, 0, result.stderr || `audit exited ${result.status}`);
-  return result.stdout;
+  const outputPath = path.join(os.tmpdir(), `content-audit-${randomUUID()}.log`);
+  const output = openSync(outputPath, 'w');
+  try {
+    const result = spawnSync(process.execPath, [audit, flag], {
+      cwd: root,
+      env: childEnv,
+      stdio: ['ignore', output, output]
+    });
+    closeSync(output);
+    const text = readFileSync(outputPath, 'utf8');
+    assert.equal(result.status, 0, text || `audit exited ${result.status}`);
+    return text;
+  } finally {
+    try { closeSync(output); } catch {}
+    unlinkSync(outputPath);
+  }
 }
 
 test('--gaps treats tables and figures as explanatory evidence', () => {

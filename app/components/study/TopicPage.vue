@@ -1,0 +1,95 @@
+<script setup lang="ts">
+import { contentDateFacts } from '~/utils/content-dates.js';
+
+const props = defineProps<{ slug?: string }>();
+const route = useRoute();
+const lang = computed<'en' | 'vi'>(() => route.query.lang === 'vi' ? 'vi' : 'en');
+
+const { data, error } = await useAsyncData(`topic:${props.slug || 'first'}`, async () => {
+  return $fetch<any>(`/api/content/topic/${props.slug || 'first'}`);
+});
+
+if (error.value) throw error.value;
+
+const source = computed(() => lang.value === 'vi' && data.value?.vi ? data.value.vi : data.value?.en);
+const metadata = computed(() => {
+  const entry = data.value!.meta;
+  return entry[lang.value] || entry.en || entry.vi || {};
+});
+const moved = computed(() => new Set<string>(data.value?.row.system_design_items || []));
+const sections = computed(() => (source.value?.sections || []).map((section: any) => ({
+  ...section,
+  items: section.items
+    .filter((item: any) => !moved.value.has(item.id))
+    .map((item: any) => ({ ...item, reviewed_at: data.value?.reviews[item.id]?.reviewed_at || '' }))
+})).filter((section: any) => section.items.length));
+const itemCount = computed(() => sections.value.reduce((sum: number, section: any) => sum + section.items.length, 0));
+const dates = computed(() => contentDateFacts(data.value!.meta, lang.value));
+const currentIndex = computed(() => data.value!.rows.findIndex((row: any) => row.n === data.value!.row.n));
+const rowSlug = (row: any) => row.file.split('/').pop().replace(/\.json$/, '');
+const previous = computed(() => data.value!.rows[currentIndex.value - 1]);
+const next = computed(() => data.value!.rows[currentIndex.value + 1]);
+
+useHead(() => ({
+  htmlAttrs: { lang: lang.value },
+  title: `${metadata.value.title} — GAZLL`,
+  meta: [{ name: 'description', content: metadata.value.intro }],
+  link: [{ rel: 'canonical', href: `https://gazll.github.io/topics/${data.value!.stem}` }]
+}));
+</script>
+
+<template>
+  <div class="view-track">
+    <header class="top">
+      <div class="top-inner">
+        <NuxtLink class="topicpick" to="/">GAZLL</NuxtLink>
+        <nav class="headright" aria-label="Main navigation">
+          <NuxtLink class="searchtrigger" to="/search">Search</NuxtLink>
+          <NuxtLink :to="{ path: route.path, query: { lang: lang === 'vi' ? 'en' : 'vi' } }" class="langswitch hdr-lang">
+            {{ lang === 'vi' ? 'VI → EN' : 'EN → VI' }}
+          </NuxtLink>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section id="view-track" class="view">
+        <div class="day-panel">
+          <section class="hero">
+            <div class="hero-head">
+              <div class="daynum" :data-topic-type="data!.row.topic_type">
+                <small>{{ data!.row.topic_type.toUpperCase() }}</small>{{ data!.row.n }}
+              </div>
+              <div>
+                <h1>{{ metadata.title }}</h1>
+                <p class="intro">{{ metadata.intro }}</p>
+                <div class="content-dates">
+                  <time v-for="fact in dates" :key="fact.kind" :datetime="fact.value">{{ fact.label }} {{ fact.formatted }}</time>
+                </div>
+                <div class="tags"><span v-for="tag in metadata.tags || []" :key="tag" class="tag">{{ tag }}</span></div>
+              </div>
+            </div>
+          </section>
+
+          <div class="toolbar">
+            <span class="sectioncount">{{ itemCount }} items · {{ sections.length }} sections</span>
+          </div>
+          <template v-for="(section, sectionIndex) in sections" :key="section.title">
+            <div :id="`${data!.stem}-section-${sectionIndex + 1}`" class="section-h">
+              <span>{{ section.title }}</span><span class="sline" />
+            </div>
+            <StudyQuestionCard v-for="item in section.items" :key="item.id" :item="item" :lang="lang" />
+          </template>
+        </div>
+
+        <nav class="pager" aria-label="Topic navigation">
+          <NuxtLink v-if="previous" class="pbtn prev" :to="`/topics/${rowSlug(previous)}?lang=${lang}`">← Previous topic</NuxtLink>
+          <span v-else class="pbtn prev" aria-disabled="true">← Previous topic</span>
+          <div class="pcenter">Topic <b>{{ currentIndex + 1 }}</b> / {{ data!.rows.length }}</div>
+          <NuxtLink v-if="next" class="pbtn next" :to="`/topics/${rowSlug(next)}?lang=${lang}`">Next topic →</NuxtLink>
+          <span v-else class="pbtn next" aria-disabled="true">Finished ✓</span>
+        </nav>
+      </section>
+    </main>
+  </div>
+</template>

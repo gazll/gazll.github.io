@@ -43,6 +43,7 @@ export async function stampAssets({ publicRoot, revision, deployedAt = new Date(
   const files = await filesBelow(publicRoot);
 
   for (const file of files) {
+    if (file.includes(`${path.sep}_nuxt${path.sep}`)) continue;
     const extension = path.extname(file);
     if (extension !== '.html' && extension !== '.js') continue;
     const source = await readFile(file, 'utf8');
