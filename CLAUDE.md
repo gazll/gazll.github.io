@@ -749,13 +749,29 @@ Three tests in `tests/security.test.mjs` pin this.
 
 Editing study content? `docs/content-playbook.md` is the full procedure —
 investigating what to change, the format rules, the VI/EN contract, and the
-patch tool. The commands below are the subset CI cares about.
+patch tool. The commands below are what CI enforces.
+
+**`check.mjs` is the third of three commands CI runs, not all of it.** The two
+that come first regenerate derived data from git history and fail if the
+committed copy has drifted — and because they run *before* `check.mjs`, a green
+`check.mjs` locally proves nothing about the deploy. This already cost a day:
+a content edit landed without a re-stamp, `stamp-content-dates --check` threw,
+the workflow stopped before generating the site, and Pages kept serving an
+older build while every later commit looked fine locally. Run all three, in
+this order:
 
 ```bash
-# everything CI enforces, in CI's order, from the same file CI calls:
-# content validation · ESM syntax of every shipped module · the console-logging
-# ban · every tests/*.test.mjs
-node tools/check.mjs
+# what CI actually runs, in CI's order (see .github/workflows/deploy.yml):
+node tools/build-content-index.mjs --check   # content-index.json matches the topics
+node tools/stamp-content-dates.mjs --check   # created_at/updated_at match git history
+node tools/check.mjs                         # content validation · ESM syntax of every
+                                             # shipped module · the console-logging ban
+                                             # · every tests/*.test.mjs
+
+# Either --check failing means the derived file is stale, never that the content
+# is wrong: drop the flag to rewrite it, then commit the result.
+node tools/build-content-index.mjs
+node tools/stamp-content-dates.mjs
 
 node tools/check.mjs --audit        # + the editorial report (never fails)
 node tools/check.mjs --only tests   # one stage; --list names them
@@ -764,6 +780,10 @@ node tools/check.mjs --list
 # run it (python may not be on PATH — `npx serve public` works too)
 cd public && python -m http.server 8080
 ```
+
+A push that lands but leaves the site unchanged is the signature of this
+failure, so confirm the deploy rather than assuming it: the run's conclusion,
+and `https://gazll.github.io/version.json` carrying the commit you pushed.
 
 `check.mjs` discovers modules and test files from disk, so a new
 `tests/*.test.mjs` is picked up locally **and** in CI without editing
