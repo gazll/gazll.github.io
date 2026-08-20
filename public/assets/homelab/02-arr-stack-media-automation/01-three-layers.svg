@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 660 430" width="660" height="430" role="img" aria-label="The *arr stack in three layers: control, processing and data">
+  <rect width="660" height="430" fill="#F8FAFC"/>
+  <text x="330" y="32" text-anchor="middle" font-family="'Space Grotesk',sans-serif" font-size="19" font-weight="600" fill="#14233A">Request → fetch → library, in three layers</text>
+
+  <g font-family="'IBM Plex Mono',monospace" font-size="9.5" letter-spacing="1" fill="#7E8DA3">
+    <text x="22" y="72">CONTROL</text>
+    <text x="22" y="182">PROCESSING</text>
+    <text x="22" y="292">DATA</text>
+  </g>
+
+  <g font-family="'IBM Plex Sans',system-ui,sans-serif" font-size="12.5" font-weight="600" text-anchor="middle">
+    <!-- control layer -->
+    <rect x="120" y="52" width="130" height="42" rx="10" fill="#E7EAF6" stroke="#3D4E8F"/>
+    <text x="185" y="72" fill="#3D4E8F">Jellyseerr</text>
+    <text x="185" y="87" font-size="9.5" font-weight="400" fill="#42536C">request portal</text>
+
+    <rect x="300" y="52" width="120" height="42" rx="10" fill="#E7EAF6" stroke="#3D4E8F"/>
+    <text x="360" y="72" fill="#3D4E8F">Radarr</text>
+    <text x="360" y="87" font-size="9.5" font-weight="400" fill="#42536C">films</text>
+
+    <rect x="440" y="52" width="120" height="42" rx="10" fill="#E7EAF6" stroke="#3D4E8F"/>
+    <text x="500" y="72" fill="#3D4E8F">Sonarr</text>
+    <text x="500" y="87" font-size="9.5" font-weight="400" fill="#42536C">series</text>
+
+    <!-- processing layer -->
+    <rect x="120" y="162" width="130" height="42" rx="10" fill="#E4F1EB" stroke="#085239"/>
+    <text x="185" y="182" fill="#085239">Prowlarr</text>
+    <text x="185" y="197" font-size="9.5" font-weight="400" fill="#42536C">indexers</text>
+
+    <rect x="300" y="162" width="120" height="42" rx="10" fill="#E4F1EB" stroke="#085239"/>
+    <text x="360" y="182" fill="#085239">qBittorrent</text>
+    <text x="360" y="197" font-size="9.5" font-weight="400" fill="#42536C">download</text>
+
+    <rect x="440" y="162" width="120" height="42" rx="10" fill="#E4F1EB" stroke="#085239"/>
+    <text x="500" y="182" fill="#085239">Bazarr</text>
+    <text x="500" y="197" font-size="9.5" font-weight="400" fill="#42536C">subtitles</text>
+
+    <!-- data layer -->
+    <rect x="120" y="272" width="300" height="76" rx="10" fill="#FFFFFF" stroke="#846938"/>
+    <text x="270" y="291" fill="#846938">Storage — one filesystem, one mount</text>
+    <g font-family="'IBM Plex Mono',monospace" font-size="10" font-weight="400" text-anchor="start">
+      <text x="136" y="311" fill="#AE4536">/data/downloads</text>
+      <text x="136" y="328" fill="#085239">/data/media/movies · /tv · /anime</text>
+      <text x="136" y="343" font-size="9" fill="#7E8DA3">import = hardlink, so the file is stored once</text>
+    </g>
+
+    <rect x="440" y="272" width="120" height="76" rx="10" fill="#faf5e9" stroke="#846938"/>
+    <text x="500" y="303" fill="#846938">Jellyfin</text>
+    <text x="500" y="320" fill="#846938">/ Plex</text>
+    <text x="500" y="336" font-size="9.5" font-weight="400" fill="#42536C">playback</text>
+  </g>
+
+  <g stroke="#C6CFDC" stroke-width="1.5" fill="none">
+    <path d="M250 73 H292"/>
+    <path d="M360 94 V154"/>
+    <path d="M500 94 V154"/>
+    <path d="M250 183 H292"/>
+    <path d="M360 204 V264"/>
+    <path d="M500 204 V264"/>
+  </g>
+  <g fill="#C6CFDC">
+    <polygon points="300,73 290,68 290,78"/>
+    <polygon points="360,162 355,152 365,152"/>
+    <polygon points="500,162 495,152 505,152"/>
+    <polygon points="300,183 290,178 290,188"/>
+    <polygon points="360,272 355,262 365,262"/>
+    <polygon points="500,272 495,262 505,262"/>
+  </g>
+
+  <g font-family="'IBM Plex Mono',monospace" font-size="9" fill="#7E8DA3">
+    <text x="256" y="68">request</text>
+    <text x="256" y="178">search</text>
+    <text x="366" y="232">write</text>
+    <text x="506" y="232">match</text>
+  </g>
+
+  <rect x="120" y="368" width="440" height="42" rx="10" fill="#FFFFFF" stroke="#C6CFDC" stroke-dasharray="5 4"/>
+  <text x="340" y="386" text-anchor="middle" font-family="'IBM Plex Mono',monospace" font-size="9" letter-spacing="0.8" fill="#AE4536">EXPOSE ONLY THE TOP-LEFT AND BOTTOM-RIGHT BOXES</text>
+  <text x="340" y="401" text-anchor="middle" font-family="'IBM Plex Sans',system-ui,sans-serif" font-size="11.5" fill="#42536C">The processing layer is admin access to your filesystem. Keep it on the LAN or behind a VPN.</text>
+</svg>

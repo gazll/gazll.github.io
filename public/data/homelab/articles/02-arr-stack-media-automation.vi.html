@@ -1,0 +1,78 @@
+<p>*arr stack là cách phổ biến để một home media server tự động hoá những phần buồn tẻ: tìm bản phát hành, tải về, tìm phụ đề khớp, đặt tên và xếp vào đúng thư mục, rồi báo cho media server biết có phim mới. Mọi thành phần đều là mã nguồn mở và chạy dưới dạng container, nên nó chạy trên NAS, trên một cái desktop cũ hay trên laptop đều được — không cần server chuyên dụng.</p>
+<p>Phần dưới mô tả các mảnh ghép lắp vào nhau ra sao và, hữu ích hơn, một nhúm chi tiết quyết định hệ thống chạy đúng hay chỉ trông như đang chạy đúng. Bản thân stack là phần đường ống trung lập với nội dung; bạn trỏ nó vào đâu và bạn có quyền tải thứ đó hay không là câu hỏi riêng mà bài này không trả lời thay bạn.</p>
+
+<h2 id="1-three-layers">1. Ba tầng, không phải chín dịch vụ</h2>
+<p>Danh sách dịch vụ trông dài cho tới khi bạn gom theo trách nhiệm của từng tầng. Không có gì đi xuyên tầng ngoài các mũi tên bên dưới.</p>
+<!-- separator: a blank line here would truncate the block -->
+<table>
+<thead><tr><th>Tầng</th><th>Dịch vụ</th><th>Trách nhiệm</th></tr></thead>
+<tbody>
+<tr><td>Control</td><td>Jellyseerr, Radarr, Sonarr</td><td>Thư viện nên có gì, và thứ đó đã về chưa</td></tr>
+<tr><td>Processing</td><td>Prowlarr, qBittorrent, Bazarr</td><td>Tìm ở đâu, tải bằng gì, phụ đề nào đi kèm</td></tr>
+<tr><td>Data</td><td>Storage, Jellyfin hoặc Plex</td><td>File nằm ở đâu, và phát lại thế nào</td></tr>
+</tbody>
+</table>
+<p>Radarr lo phim lẻ còn Sonarr lo phim bộ. Chúng là cùng một ứng dụng với mô hình metadata khác nhau, nên gần như mọi lời khuyên cho cái này đều áp dụng được cho cái kia.</p>
+
+<h2 id="2-the-request-flow">2. Luồng yêu cầu</h2>
+<p>Người xem mở <b>Jellyseerr</b> — các bản sau đổi tên thành <b>Seerr</b> — duyệt phim mới hoặc đang trending, rồi bấm Request. Seerr là bề mặt duy nhất mà người dùng thường xuyên nhìn thấy; nó tồn tại để không ai cần tài khoản trên những công cụ làm việc thật.</p>
+<p>Seerr định tuyến yêu cầu theo loại: phim lẻ sang Radarr, phim bộ sang Sonarr. Từ khoảnh khắc đó, yêu cầu trở thành một mục <i>wanted</i> kèm quality profile, và việc của tầng control là canh một bản phát hành thoả mãn profile đó. Nếu chưa có gì đạt yêu cầu, mục đó cứ nằm ở trạng thái wanted và được thử lại theo lịch — chính hành vi này hay bị hiểu nhầm là hỏng ngay trong buổi tối đầu tiên.</p>
+
+<h2 id="3-the-processing-flow">3. Luồng xử lý</h2>
+<p><b>Prowlarr</b> là trình quản lý indexer, và nó là lý do stack này thôi lích kích. Thay vì cấu hình từng nguồn riêng trong Radarr rồi làm lại lần nữa trong Sonarr, bạn khai báo mỗi nguồn đúng một lần trong Prowlarr và nó đồng bộ ra. Indexer có ba nhóm lớn, và lựa chọn này ảnh hưởng tới độ tin cậy nhiều hơn bất cứ thứ gì khác trong stack: tracker công khai, không cần tài khoản và kém ổn định nhất; tracker private hoặc semi-private, cần tài khoản và có luật chia sẻ bắt buộc; và indexer Usenet, trả phí theo thuê bao và nói chung là dễ đoán nhất. Prowlarr nói chuyện với cả ba qua cùng một giao diện.</p>
+<p>Khi Radarr hoặc Sonarr thấy một kết quả đủ tốt, nó chuyển bản phát hành đó cho download client. <b>qBittorrent</b> là lựa chọn thường gặp cho torrent; vai trò tương đương bên Usenet do SABnzbd hoặc NZBGet đảm nhiệm. File rơi vào thư mục downloads, và tầng control canh chừng thư mục đó.</p>
+<p><b>Bazarr</b> làm với phụ đề đúng việc Prowlarr làm với bản phát hành: một chỗ duy nhất để cấu hình provider và lưu tài khoản cho những nguồn có yêu cầu. Sau đó nó tìm phụ đề khớp với thứ thực sự đã tải về — và chính chữ <i>khớp</i> đó là nguồn gốc của phần lớn bực bội trong stack này, nên nó có riêng một mục bên dưới.</p>
+
+<h2 id="4-the-result-flow">4. Luồng kết quả, và vì sao bước "di chuyển" quan trọng</h2>
+<p>Khi tải xong, Radarr hoặc Sonarr import: file được chuyển khỏi thư mục downloads vào thư viện, đổi tên theo một quy ước nhất quán để media server nhận diện được. Trạng thái trên Seerr cập nhật, thông báo bắn qua Telegram hoặc Discord nếu có cấu hình, và <b>Jellyfin</b> hoặc <b>Plex</b> nhặt phim lên ở lần quét kế tiếp.</p>
+<p>Một bố cục hợp lý giữ mọi thứ dưới một gốc duy nhất:</p>
+<!-- separator -->
+<pre><code>/data
+  /downloads      qBittorrent ghi vào đây
+  /media
+    /movies
+    /tv
+    /anime</code></pre>
+<p>Cái gốc duy nhất đó không phải chuyện thẩm mỹ. Nó là quyết định cấu hình quan trọng nhất trong cả stack, và mục 6 giải thích vì sao.</p>
+
+<h2 id="5-subtitles-match-the-release-not-the-film">5. Phụ đề khớp với bản phát hành, không phải với bộ phim</h2>
+<p>Lời phàn nàn thì ở đâu cũng giống nhau: phụ đề cho phim này rõ ràng đã có, mà Bazarr báo không tìm thấy. Nguyên nhân là timing của phụ đề thuộc về <i>một bản phát hành cụ thể</i>, không thuộc về tựa phim. Hai bản encode của cùng một phim khác nhau về thời lượng và bản dựng — khác frame rate, có logo hãng, bản chỉnh theo thị trường, bản extended — nên file phụ đề khớp với bản này sẽ lệch hoặc sai hẳn với bản kia.</p>
+<p>Vì thế Bazarr khớp theo thuộc tính bản phát hành: release group, nguồn, độ phân giải, đôi khi là chính xác tên file. Một phụ đề không khớp những thứ đó không phải "gần đúng nên cứ đưa ra"; nó là file sẽ chạy lệch tiếng, nên bị loại là đúng.</p>
+<p>Ba việc giúp giảm số lần trượt. Cấu hình đủ nhiều provider để một bản phát hành phổ biến nhiều khả năng được ít nhất một nguồn phủ. Ưu tiên bản phát hành được phổ biến rộng thay vì bản hiếm, vì người làm phụ đề canh theo bản mà đa số đang có. Và khi bạn tự tải phụ đề về, hãy đặt nó cạnh file video với cùng phần tên gốc kèm mã ngôn ngữ — <code>Film.2024.1080p.WEB-DL.vi.srt</code> nằm cạnh <code>Film.2024.1080p.WEB-DL.mkv</code> — đây là quy ước mà mọi media server đều đọc được.</p>
+<p>Cũng nên bật cả nguồn phụ đề nhúng sẵn. Nhiều bản phát hành đã mang sẵn track phụ đề trong container, và những track đó chắc chắn khớp tiếng vì chúng đi kèm chính file đó.</p>
+
+<h2 id="6-hardlinks-and-the-one-mount-rule">6. Hardlink, và điều kiện khiến nó hoạt động</h2>
+<p>Torrent cần seed tiếp sau khi tải xong, nghĩa là file phải nằm nguyên chỗ client trông đợi — trong khi thư viện cũng cần chính file đó, dưới một cái tên khác, ở một thư mục khác. Copy thì thoả cả hai và tốn gấp đôi dung lượng.</p>
+<p><b>Hardlink</b> tránh được điều đó. Trên phần lớn filesystem, tên file chỉ là một mục trong thư mục trỏ tới một inode, và inode mới là nơi dữ liệu thực sự nằm. Hardlink là một mục thư mục thứ hai trỏ tới <i>cùng</i> inode đó. Cả hai đường dẫn đều thật như nhau — không cái nào là shortcut của cái nào — dữ liệu chiếm đĩa đúng một lần, và chỉ được giải phóng khi link cuối cùng bị xoá. Nhờ vậy download client cứ seed đường dẫn của nó còn thư viện phục vụ đường dẫn riêng, và xoá torrent về sau không đụng gì tới file trong thư viện.</p>
+<p>Có hai điều kiện phải thoả, và đây là chỗ các thiết lập âm thầm hỏng:</p>
+<ul>
+<li><b>Cùng filesystem.</b> Số inode chỉ có ý nghĩa trong phạm vi một filesystem, nên hardlink không thể bắc qua hai filesystem. Downloads và thư viện phải nằm cùng một volume.</li>
+<li><b>Cùng mount, theo cách container nhìn thấy.</b> Đây mới là cái bẫy. Nếu bạn mount <code>/downloads</code> và <code>/movies</code> vào container thành hai volume riêng, thì từ bên trong container chúng <i>là</i> hai filesystem, kể cả khi trên host chúng nằm trên một ổ. Hardlink thất bại, ứng dụng lặng lẽ quay về chế độ copy, và bạn nhận dung lượng gấp đôi cộng một khoảng nghẽn I/O dài mỗi lần import. Hãy mount đúng thư mục cha — <code>/data</code> — vào mọi container có đụng tới file, và dùng các đường dẫn nằm bên dưới nó.</li>
+</ul>
+<p>Bạn kiểm chứng được chứ không cần đoán: sau một lần import, so số link và inode của hai đường dẫn (<code>ls -li</code>, hoặc <code>stat</code>). Link count bằng 2 và cùng một số inode nghĩa là hardlink đã ăn. Cả hai đều bằng 1 nghĩa là bạn đang lưu bộ phim đó hai lần.</p>
+<p>Về chuyện seed: tracker công khai có thể không tính ratio, nhưng private và semi-private thì có, và tải xong không seed lại chính là thứ khiến tài khoản bị xoá. Seed tới ratio quanh mức 1.0 rồi mới xoá torrent là mức kỳ vọng thông thường — và khi đã có hardlink thì việc đó không tốn thêm chút dung lượng nào.</p>
+
+<h2 id="7-machine-translated-subtitles">7. Phụ đề dịch máy, đánh giá cho thật</h2>
+<p>Khi một phim có phụ đề tiếng Anh nhưng chưa có tiếng Việt, các công cụ như <b>Lingarr</b> có thể dịch lại file sẵn có — qua dịch vụ cloud, hoặc qua model bạn chạy local bằng thứ như Ollama để không tốn token.</p>
+<p>Kết quả dùng tạm được và kém rõ rệt so với người dịch, vì một lý do thuộc về cấu trúc chứ không phải vì model yếu: trình dịch chỉ thấy một danh sách các dòng kèm timing, ngoài ra không có gì. Nó không thấy cảnh phim, không biết ai đang nói, không biết hai nhân vật xưng hô với nhau thế nào, và không thấy được tình tiết mà một câu thoại đang gài. Những ngôn ngữ có sắc thái lễ độ hoặc từ xưng hô theo vai vế — tiếng Việt nằm gọn trong nhóm này — cần đúng những thông tin đó để chọn đại từ, nên đây chính là chỗ bản dịch sai nhiều nhất.</p>
+<p>Hai lưu ý thực dụng. Dịch theo batch nhỏ, khoảng hai mươi dòng một lần, để có chút ngữ cảnh xung quanh mà không tạo request quá lớn. Và giữ prompt thật ngắn: một chỉ dẫn dài làm model suy luận nhiều, mà suy luận nhiều trên hàng trăm request liên tiếp chính là thứ sinh ra timeout.</p>
+
+<h2 id="8-quality-profiles">8. Chọn một mức chất lượng rồi dừng ở đó</h2>
+<p>Bản năng đầu tiên là đòi bản tốt nhất có thể. Thường đó là lựa chọn sai, vì dung lượng file tăng nhanh hơn nhiều so với mức chất lượng cảm nhận được trên thiết bị thông thường.</p>
+<p>1080p WEB-DL hoặc WEBRip cỡ 8–15 GB là mức hợp lý cho phần lớn thiết lập. 4K nặng gấp khoảng bốn lần và chỉ thấy rõ hơn trên màn hình lớn ở khoảng cách ngồi gần. Blu-ray REMUX là luồng đĩa nguyên bản chưa đụng vào — 40–80 GB cho một phim — và nó tồn tại cho những người có dàn thiết bị phân giải được khác biệt đó. Nếu dàn của bạn không phân giải được, đó là dung lượng và băng thông tiêu cho hư không.</p>
+<p>Còn một lý do thứ hai để chuộng file vừa phải: <b>transcode</b>. Nếu client không phát trực tiếp được codec, container hoặc bitrate, media server phải encode lại theo thời gian thực — rất nặng CPU và thường mới là nút thắt thật sự trên một con NAS. File mà đa số client direct-play được có giá trị thực tế cao hơn file đẹp hơn trên giấy.</p>
+
+<h2 id="9-jellyfin-or-plex">9. Jellyfin hay Plex</h2>
+<p>Nếu chỉ mình bạn xem thì câu hỏi này gần như không quan trọng — bạn mount storage rồi mở file bằng trình phát nào cũng được. Nó chỉ quan trọng khi có người khác cùng xem.</p>
+<p><b>Jellyfin</b> mã nguồn mở hoàn toàn, miễn phí, và tự host từ đầu đến cuối. Chia sẻ nghĩa là tạo tài khoản rồi đưa thông tin đăng nhập, và cho người ngoài truy cập nghĩa là bạn tự công bố một endpoint. <b>Plex</b> định tuyến truy cập qua hệ thống tài khoản của chính nó, nên bạn mời người khác bằng tài khoản Plex của họ thay vì phát mật khẩu, và relay của nó tránh phơi địa chỉ của bạn ra trực tiếp. Đổi lại là phụ thuộc vào một dịch vụ bên thứ ba và một số tính năng nằm ở gói trả phí.</p>
+<p>Người nhà và bạn thân thì Jellyfin thoải mái. Vòng người rộng hơn là lúc mô hình tài khoản và lời mời của Plex bắt đầu đáng giá.</p>
+
+<h2 id="10-exposure-and-security">10. Mở cái gì ra ngoài, và tuyệt đối không mở cái gì</h2>
+<p>Chỉ có đúng hai thứ cần truy cập được từ bên ngoài: cổng yêu cầu phim và media server. Radarr, Sonarr, Prowlarr, Bazarr và download client thì không bao giờ — chúng là giao diện quản trị có toàn quyền trên filesystem của bạn, và không có kịch bản nào mà internet cần tới chúng. Hãy vào chúng qua VPN hoặc từ mạng nội bộ.</p>
+<p>Với hai thứ buộc phải mở, reverse proxy kèm TLS là mức tối thiểu. <b>Cloudflare Tunnel</b> là một cải thiện thật so với port-forwarding, vì nó tạo kết nối đi ra thay vì mở cổng đi vào, nên địa chỉ của bạn không bao giờ bị công bố và ở nhà không còn gì để quét.</p>
+<p>Một lưu ý mà các hướng dẫn về tunnel thường bỏ qua: điều khoản của Cloudflare hạn chế việc phục vụ khối lượng lớn nội dung không phải HTML — video nằm rõ trong đó — qua proxy của họ ở các gói tiêu chuẩn. Tunnel rất hợp cho cổng yêu cầu phim, còn stream cả thư viện phim qua đó mới là trường hợp người ta bị nhắc nhở. Với video, một đường VPN về mạng nhà bạn, hoặc một proxy do chính bạn vận hành, đứng trên nền chắc chắn hơn.</p>
+<p>Dù mở cái gì: bật xác thực trong mọi ứng dụng (các bản *arr gần đây bắt buộc, bản cũ thì không), cập nhật container thường xuyên, và cho download client một thư mục riêng thay vì quyền ghi lên cả thư viện.</p>
+
+<h2 id="11-what-this-is-worth">11. Mô hình này đáng giá tới đâu</h2>
+<p>Dựng mất một buổi, phần lớn thời gian nằm ở indexer và ở việc mount volume cho đúng. Sau đó hệ thống chạy không cần trông: ai đó request một phim, và một lúc sau nó xuất hiện, tên đặt chuẩn, có phụ đề, trên mọi màn hình trong nhà.</p>
+<p>Hai điều quyết định nó có dễ chịu lâu dài không. Làm đúng chuyện mount một gốc duy nhất ngay từ đầu, vì phát hiện sau vài tháng rằng mọi lần import đều là copy đồng nghĩa với việc phải sắp xếp lại cả một ổ đầy. Và đặt một quality profile bạn thật sự xem được thay vì mức cao nhất có thể — một thư viện gồm file vừa phải và direct-play được là thư viện tốt hơn một thư viện nhỏ hơn toàn file khổng lồ mà cái tivi phải ngồi transcode.</p>

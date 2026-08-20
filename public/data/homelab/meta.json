@@ -70,6 +70,35 @@
           "3-2-1"
         ]
       }
+    },
+    "2": {
+      "key": "02-arr-stack-media-automation",
+      "en": {
+        "title": "The *arr stack: automating a home media library",
+        "excerpt": "Jellyseerr, Radarr, Sonarr, Prowlarr, qBittorrent and Bazarr in three layers — plus the two details that decide whether it works: hardlinks across a single mount, and why subtitles match a release rather than a film.",
+        "tags": [
+          "Docker",
+          "Radarr / Sonarr",
+          "Prowlarr",
+          "Bazarr",
+          "Hardlinks",
+          "Jellyfin",
+          "Cloudflare Tunnel"
+        ]
+      },
+      "vi": {
+        "title": "*arr stack: tự động hoá thư viện phim tại nhà",
+        "excerpt": "Jellyseerr, Radarr, Sonarr, Prowlarr, qBittorrent và Bazarr trong ba tầng — cộng hai chi tiết quyết định hệ thống chạy đúng hay không: hardlink trên một mount duy nhất, và vì sao phụ đề khớp với bản phát hành chứ không phải với bộ phim.",
+        "tags": [
+          "Docker",
+          "Radarr / Sonarr",
+          "Prowlarr",
+          "Bazarr",
+          "Hardlink",
+          "Jellyfin",
+          "Cloudflare Tunnel"
+        ]
+      }
     }
   }
 }

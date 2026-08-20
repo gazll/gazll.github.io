@@ -83,53 +83,13 @@ const COPY_LINK_SVG = '<svg class="qcopy-icon" viewBox="0 0 24 24" fill="none" s
   + '<path d="M13.5 10.5a4.5 4.5 0 0 0-6.4-.1l-2.2 2.2A4.5 4.5 0 0 0 11.3 19l1.3-1.3"/></svg>';
 
 /* ---------- Views / navigation ---------- */
-const GUIDE_MD = [
-  'This is an **all-in-one** site. The ☰ button opens the **navigation panel**, grouped into `Technical` (the study path plus the System Design and Case Studies reference libraries), `Other knowledge` (personal projects and material outside interview prep), `Tools` (standalone utilities) and `About`. Every view has its own URL (e.g. `#/guide`), so any of them can be shared or bookmarked.',
-  '',
-  'The **search** control in the header (`Ctrl`/`⌘` + `K`, or just `/`) queries the Study Track, the System Design blueprints and the case studies in one pass. Each result names the topic or blueprint it belongs to and opens that card directly; accents are optional, so `dong bo` finds `đồng bộ`. `See all results` opens the full panel at `#/search/<query>`, which can be filtered by surface and shared like any other view. Recent searches stay in the browser session while signed out and move into your account when you sign in.',
-  '',
-  ':::tip Adding a menu entry',
-  'Open `app.js` and push one object into the `VIEWS` array — nothing else needs touching. The `sec` field decides which section of the panel it lands in.',
-  ':::',
-  '',
-  'Four kinds of entry:',
-  '',
-  '- Markdown view: `{ id: "snippets", sec: "about", label: "Snippets", md: "..." }`',
-  '- Free-form HTML view: `{ id: "x", sec: "technical", render: () => "&lt;div&gt;...&lt;/div&gt;" }`',
-  '- **Link to another tool**: `{ id: "abc", sec: "tool", label: "ABC", href: "abc-tool/" }` — an entry with `href` opens in a new tab and the router skips it, so adding a sibling app costs one line',
-  '- View limited to some users: add `when: () => Auth.isAdmin`',
-  '',
-  ':::deep Storage and languages',
-  'Progress, notes and the interview journal are written to `localStorage` immediately, then synced to a **Google Sheet** through Apps Script once you are signed in with Google. Losing the network or closing the tab mid-save costs nothing — the queue lives in `localStorage` and is resent on the next visit.',
-  '',
-  'The study material lives under `data/` (JSON + Markdown): `data/manifest.json` lists every numbered source and points at its `data/topics/NN-slug.json` file; `data/meta.json` holds each topic\'s label/title/intro/tags. A manifest row with `surface: "system-design"` remains available for stable references but is presented in the dedicated System Design library instead of Study Track. Supported syntax: **bold**, *italic*, `code`, `-` lists, and three callout blocks — `:::tip Label`, `:::warn Label`, `:::deep`.',
-  '',
-  'The interface is always English. The **material** has an `EN`/`VI` switch in the header. Every topic\'s base file (`data/topics/NN-slug.json`) is complete English and every `NN-slug.vi.json` companion is complete Vietnamese. Both are loaded up front, and the header switch selects which complete version to read. If a Vietnamese companion cannot be loaded, VI mode gracefully displays the English base instead of failing.',
-  '',
-  'Every topic carries a `topic_type` field (`core` · `data` · `design` · `platform` · `algorithm` · `microservice`, from `lib/constants.js`) — that is what drives the filter chips in the topic picker. Every item carries a `difficulty` (`core` · `hard` · `ext`) — the ESSENTIAL/ADVANCED/EXTRA badge.',
-  '',
-  'Raw HTML (SVG diagrams, tables) can be embedded straight into the Markdown. To update content: edit the topic\'s file under `data/topics/`, then `git push` — GitHub Actions deploys it.',
-  '',
-  '**System Design** is a long-form Experience library driven by `data/system-design/catalog.json`. Each blueprint follows the same review shape — framing, functional and quality requirements, capacity, architecture, data model, technology choices and trade-offs — and keeps its diagram as editable Mermaid source. Topic 10–11 deep dives plus the OTA/whiteboard overlap from Topic 16 are mapped into these articles by immutable item id; the architecture category moved from Case Studies is preserved there as production evidence.',
-  '',
-  '**Project** is the implementation-facing SRS surface. It keeps a project manifest, runtime/module decisions, requirements, copied source documents and sanitized code/config samples together, so a design decision can be checked against the current working tree.',
-  '',
-  'The 15 patterns in **DSA & LeetCode** are *animated*: press play and each step runs in turn, or scrub and arrow-key through them. Frames live in `data/dsa-animations.json` and were produced by running the real algorithm, so the animation cannot disagree with the code beside it. The drawing is shared between languages and only the step captions are translated.',
-  '',
-  '**Release Notes** (last entry in `Other`) records what material arrived and when. Entries live in `data/release-notes.json`, newest release first, so adding one never touches `app.js`. Each release and change carries `en` and `vi` blocks in that one file and follows the header switch like any other material; a note written in only one language falls back rather than rendering blank. A change may name a topic by its `key` — the view resolves that to the topic\'s current label, so renaming a topic never leaves a stale note behind.',
-  '',
-  'Write **one entry per release** and keep them newest-first; releases that share a date are grouped under a single date heading when the page renders, with a `2 releases · 3 changes` roll-up. So several releases in one day cost nothing extra — do not merge them by hand.',
-  ':::'
-].join('\n');
 
 /* Nav panel sections, in display order. `key` matches the `sec` of a view. */
 const NAV_SECTIONS = [
   { key: 'technical', label: 'Technical' },
-  { key: 'knowledge', label: 'Other knowledge' },
-  { key: 'tool', label: 'Tools' },
-  // Renamed from "Other" when the knowledge section arrived: two sections
-  // called Other would say nothing about which one holds what.
-  { key: 'about', label: 'About' }
+  { key: 'knowledge', label: 'Experience' },
+  // Sibling apps, not study material: collapsed until someone wants one.
+  { key: 'tool', label: 'Tools', collapsible: true }
 ];
 
 /* One entry per menu row.
@@ -142,8 +102,10 @@ const VIEWS = [
   { id: 'track', sec: 'technical', label: 'Study Track', desc: 'Topic-based learning path', icon: 'track' },
   // Routable so a search can be shared; the header trigger and Ctrl+K open the
   // same query in the overlay first.
-  { id: 'search', sec: 'technical', label: 'Search', desc: 'One query across every surface', icon: 'search',
-    render: renderSearch, mount: mountSearch },
+  // `head`: routable as ever, but drawn as an icon in the panel header
+  // rather than as a row — the list reads as places to study, not controls.
+  { id: 'search', sec: 'technical', head: true, label: 'Search', desc: 'One query across every surface',
+    icon: 'search', render: renderSearch, mount: mountSearch },
   { id: 'gazl', sec: 'technical', label: 'Gazl Try', desc: 'Companies interviewed', icon: 'journal',
     render: renderInterviews, mount: mountInterviews },
   { id: 'stats', sec: 'technical', label: 'Stats', desc: 'Streak, heatmap, progress', icon: 'stats',
@@ -170,10 +132,8 @@ const VIEWS = [
   { id: 'course-registration', sec: 'tool', label: 'Course Registration', desc: 'Explore NTT classes and schedules',
     icon: 'tool', href: 'course-registration/' },
 
-  { id: 'guide', sec: 'about', label: 'Guide', desc: 'Site structure & syntax', icon: 'guide',
-    md: GUIDE_MD },
-  // Last entry, last section: the changelog belongs at the foot of the panel.
-  { id: 'release-notes', sec: 'about', label: 'Release Notes', desc: 'What content was added, and when',
+  { id: 'release-notes', sec: 'technical', head: true, label: 'Release Notes',
+    desc: 'What content was added, and when',
     icon: 'release', render: renderReleaseNotes, mount: mountReleaseNotes }
 ];
 
@@ -365,6 +325,12 @@ function visibleViews() { return VIEWS.filter(v => !v.when || v.when()); }
 /** Views the hash router can actually show — external links are not routable. */
 function routableViews() { return visibleViews().filter(v => !v.href); }
 
+const NAV_SECTION_KEY = 'gazl.nav.';
+function sectionCollapsed(key) {
+  // Default collapsed: a section marked collapsible is one you open on purpose.
+  try { return localStorage.getItem(NAV_SECTION_KEY + key) !== '0'; } catch (error) { return true; }
+}
+
 function buildNav() {
   const active = currentViewId();
   const nav = document.getElementById('mainnav');
@@ -388,12 +354,42 @@ function buildNav() {
   const rule = v => v.divider ? '<hr class="nv-div">' : '';
 
   const shown = visibleViews();
+
+  /* `head` entries are controls, not destinations in the list. They stay fully
+     routable — only where they are drawn changes. */
+  const actions = document.getElementById('navActions');
+  if (actions) {
+    actions.innerHTML = shown.filter(v => v.head).map(v => '<a class="np-action" data-view="' + v.id
+      + '" href="' + withRouteLanguage('#/' + v.id, Content.lang) + '" aria-current="' + (v.id === active)
+      + '" title="' + escapeHtml(v.label) + '" aria-label="' + escapeHtml(v.label) + '">'
+      + iconSVG(v.icon) + '</a>').join('');
+  }
+
   nav.innerHTML = NAV_SECTIONS.map(sec => {
-    const items = shown.filter(v => v.sec === sec.key);
+    const items = shown.filter(v => v.sec === sec.key && !v.head);
     if (!items.length) return '';
-    return '<div class="nv-sec"><h3 class="nv-sectitle">' + sec.label + '</h3>'
-      + items.map(v => rule(v) + row(v)).join('') + '</div>';
+    const rows = items.map(v => rule(v) + row(v)).join('');
+    if (!sec.collapsible) {
+      return '<div class="nv-sec"><h3 class="nv-sectitle">' + sec.label + '</h3>' + rows + '</div>';
+    }
+    const collapsed = sectionCollapsed(sec.key);
+    const listId = 'nv-sec-' + sec.key;
+    return '<div class="nv-sec is-collapsible"><h3 class="nv-sectitle">'
+      + '<button type="button" class="nv-sectoggle" data-nav-section="' + sec.key + '"'
+      + ' aria-expanded="' + !collapsed + '" aria-controls="' + listId + '">'
+      + sec.label + '<span class="nv-secchev" aria-hidden="true">' + (collapsed ? '▸' : '▾') + '</span>'
+      + '</button></h3><div id="' + listId + '"' + (collapsed ? ' hidden' : '') + '>' + rows + '</div></div>';
   }).join('');
+
+  nav.querySelectorAll('[data-nav-section]').forEach(button => {
+    button.addEventListener('click', () => {
+      const key = button.dataset.navSection;
+      try { localStorage.setItem(NAV_SECTION_KEY + key, sectionCollapsed(key) ? '0' : '1'); } catch (error) {}
+      buildNav();
+      // Rebuilt markup means a new node, so focus has to be handed back.
+      document.querySelector('[data-nav-section="' + key + '"]')?.focus();
+    });
+  });
 }
 
 /* The panel is a focus-trapped drawer: it takes over the tab order while open

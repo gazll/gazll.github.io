@@ -308,7 +308,9 @@ secret/              GITIGNORED. Personal setup notes and credentials
   the reader must not notice.
 
 - **Adding a menu is one entry in `VIEWS`.** `sec` picks the nav-panel section
-  (`technical` · `knowledge` · `tool` · `about`). An entry with `href` is an external
+  (`technical` · `knowledge` · `tool`). A `head: true` entry is drawn as an
+  icon in the panel header instead of as a row, and stays routable; a section
+  marked `collapsible` defaults to collapsed. An entry with `href` is an external
   destination: it renders as a new-tab link and `currentViewId()` refuses to
   route to it, so a hash matching its id falls back to the track. That is how
   sibling apps under `public/` (e.g. `fshare-tool/`) join the menu.

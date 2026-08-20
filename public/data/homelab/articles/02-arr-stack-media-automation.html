@@ -1,0 +1,78 @@
+<p>The *arr stack is the standard way a home media server automates the boring parts: find a release, fetch it, find matching subtitles, file it under the right name, and tell the media server it has something new. Every component is open-source and ships as a container, so it runs on a NAS, an old desktop or a laptop equally well — no dedicated server required.</p>
+<p>What follows describes how the pieces fit together and, more usefully, the handful of details that decide whether the setup works properly or merely appears to. The stack is content-neutral plumbing; what you point it at, and whether you have the right to fetch it, is a separate question this article does not answer for you.</p>
+
+<h2 id="1-three-layers">1. Three layers, not nine services</h2>
+<p>The service list looks long until you group it by what each layer is responsible for. Nothing crosses a layer except through the arrows below.</p>
+<!-- separator: a blank line here would truncate the block -->
+<table>
+<thead><tr><th>Layer</th><th>Services</th><th>Responsibility</th></tr></thead>
+<tbody>
+<tr><td>Control</td><td>Jellyseerr, Radarr, Sonarr</td><td>What should exist in the library, and has it arrived yet</td></tr>
+<tr><td>Processing</td><td>Prowlarr, qBittorrent, Bazarr</td><td>Where to find it, how to fetch it, what subtitles go with it</td></tr>
+<tr><td>Data</td><td>Storage, Jellyfin or Plex</td><td>Where files live, and how they are played back</td></tr>
+</tbody>
+</table>
+<p>Radarr handles films and Sonarr handles series. They are the same application with different metadata models, which is why almost every piece of advice about one applies to the other.</p>
+
+<h2 id="2-the-request-flow">2. The request flow</h2>
+<p>A viewer opens <b>Jellyseerr</b> — renamed <b>Seerr</b> in later releases — browses what is new or trending, and presses Request. Seerr is the only surface an ordinary user ever sees; it exists so nobody needs an account on the tools that do the work.</p>
+<p>Seerr routes the request by type: films to Radarr, series to Sonarr. From that moment the request is a <i>wanted</i> entry with a quality profile attached, and the control layer's job becomes watching for a release that satisfies it. If nothing acceptable exists yet, the entry simply stays wanted and is retried on a schedule — which is the behaviour people mistake for a failure on the first evening.</p>
+
+<h2 id="3-the-processing-flow">3. The processing flow</h2>
+<p><b>Prowlarr</b> is an indexer manager, and it is the reason this stack stops being tedious. Instead of configuring every source separately inside Radarr and again inside Sonarr, you define each one once in Prowlarr and it syncs them out. Indexers come in three broad kinds, and the choice affects reliability more than anything else in the stack: public trackers, which need no account and are the least consistent; private or semi-private trackers, which need an account and enforce sharing rules; and Usenet indexers, which are subscription-based and generally the most predictable. Prowlarr speaks to all three through the same interface.</p>
+<p>When Radarr or Sonarr decides a search result is good enough, it hands the release to the download client. <b>qBittorrent</b> is the usual choice for torrents; the equivalent role for Usenet is filled by SABnzbd or NZBGet. The file lands in a downloads directory, and the control layer watches it.</p>
+<p><b>Bazarr</b> does the same job for subtitles that Prowlarr does for releases: one place to configure providers and store the accounts some of them require. It then searches for subtitles matching what was actually downloaded — and that word <i>matching</i> is where most of the frustration in this stack comes from, so it gets its own section below.</p>
+
+<h2 id="4-the-result-flow">4. The result flow, and why the move matters</h2>
+<p>When the download completes, Radarr or Sonarr imports it: the file moves out of the downloads directory into the library, renamed to a consistent scheme so the media server can identify it. Seerr's status updates, a notification goes out over Telegram or Discord if configured, and <b>Jellyfin</b> or <b>Plex</b> picks the title up on its next scan.</p>
+<p>A sensible layout keeps everything under one root:</p>
+<!-- separator -->
+<pre><code>/data
+  /downloads      qBittorrent writes here
+  /media
+    /movies
+    /tv
+    /anime</code></pre>
+<p>That single root is not cosmetic. It is the most important configuration decision in the whole stack, and section 6 explains why.</p>
+
+<h2 id="5-subtitles-match-the-release-not-the-film">5. Subtitles match the release, not the film</h2>
+<p>The complaint is universal: subtitles for this film obviously exist, yet Bazarr reports none. The cause is that subtitle timing belongs to a <i>specific release</i>, not to the title. Two encodes of the same film differ in runtime and cut — different frame rates, studio logos, regional edits, extended versions — so a subtitle file synced to one is drifting or plain wrong against another.</p>
+<p>Bazarr therefore matches on release attributes: the release group, the source, the resolution, sometimes the exact filename. A subtitle that does not match those is not a near-miss it should offer anyway; it is a file that would desynchronise, so it is correctly rejected.</p>
+<p>Three things reduce the misses. Configure enough providers that a common release is likely covered by at least one. Prefer widely-distributed releases over obscure ones, because subtitle authors sync to what most people have. And when you do fetch one by hand, place it beside the video file with the same base name plus a language code — <code>Film.2024.1080p.WEB-DL.vi.srt</code> next to <code>Film.2024.1080p.WEB-DL.mkv</code> — which is the convention every media server reads.</p>
+<p>Embedded subtitles are worth enabling as a provider too. Many releases already carry subtitle tracks inside the container, and those are guaranteed to be in sync because they shipped with the file.</p>
+
+<h2 id="6-hardlinks-and-the-one-mount-rule">6. Hardlinks, and the rule that makes them work</h2>
+<p>Torrents need seeding after the download finishes, which means the file has to stay where the client expects it — while the library also needs it, under a different name, in a different directory. Copying satisfies both and costs twice the disk.</p>
+<p>A <b>hardlink</b> avoids that. On most filesystems a filename is only a directory entry pointing at an inode, which is where the data actually lives. A hardlink is a second directory entry pointing at the <i>same</i> inode. Both paths are equally real — neither is a shortcut to the other — the data occupies disk once, and it is freed only when the last link to it is removed. So the download client keeps seeding its path while the library serves its own, and deleting the torrent later leaves the library file untouched.</p>
+<p>Two conditions must hold, and this is where setups quietly fail:</p>
+<ul>
+<li><b>Same filesystem.</b> An inode number is only meaningful within one filesystem, so a hardlink cannot cross one. Downloads and library must live on the same volume.</li>
+<li><b>Same mount, as the container sees it.</b> This is the trap. If you mount <code>/downloads</code> and <code>/movies</code> into the container as two separate volumes, then from inside the container they <i>are</i> two filesystems, even when they sit on one disk on the host. The hardlink fails, the application silently falls back to copying, and you get double usage plus a long I/O stall on every import. Mount the single parent — <code>/data</code> — into every container that touches files, and use paths beneath it.</li>
+</ul>
+<p>You can verify it worked rather than assume: after an import, compare the link count and inode of both paths (<code>ls -li</code>, or <code>stat</code>). A link count of 2 and one shared inode number means the hardlink took. A count of 1 on each means you are storing the film twice.</p>
+<p>On seeding itself: public trackers may not track ratio, but private and semi-private ones do, and downloading without seeding back is what gets accounts removed. Seeding to a ratio somewhere around 1.0 before removing the torrent is the ordinary expectation — and with hardlinks in place it costs no extra space at all.</p>
+
+<h2 id="7-machine-translated-subtitles">7. Machine-translated subtitles, honestly assessed</h2>
+<p>When a film has English subtitles but none in your language, tools such as <b>Lingarr</b> can translate the existing file — through a cloud service, or through a model you run locally with something like Ollama so no per-token cost applies.</p>
+<p>The result is usable and clearly worse than a human translation, for a structural reason rather than a quality-of-model one: the translator sees a list of lines with timings and nothing else. It cannot see the scene, does not know who is speaking, cannot tell how two characters address each other, and has no view of the plot a line is setting up. Languages with grammatical politeness or kinship terms — Vietnamese very much included — need exactly that information to choose a pronoun, so this is where the output most often reads wrong.</p>
+<p>Two practical notes. Translate in small batches, around twenty lines at a time, so there is some surrounding context without an enormous request. And keep the prompt short: a long instruction makes the model deliberate, and deliberation on hundreds of consecutive requests is what produces timeouts.</p>
+
+<h2 id="8-quality-profiles">8. Pick a quality target and stop there</h2>
+<p>The default instinct is to request the best available. It is usually the wrong call, because file size grows far faster than perceived quality on ordinary equipment.</p>
+<p>A 1080p WEB-DL or WEBRip at roughly 8–15 GB is the sensible target for most setups. 4K is perhaps four times the size and only visibly better on a large screen at a close viewing distance. A Blu-ray REMUX is an untouched disc stream — 40–80 GB for one film — and it exists for people with equipment that can resolve the difference. Unless yours can, it is disk space and bandwidth spent on nothing.</p>
+<p>There is a second reason to prefer moderate files: <b>transcoding</b>. If a client cannot play the codec, container or bitrate directly, the media server must re-encode in real time, which is expensive on CPU and often the actual bottleneck on a NAS. Files that most clients can direct-play are worth more in practice than files that look better on paper.</p>
+
+<h2 id="9-jellyfin-or-plex">9. Jellyfin or Plex</h2>
+<p>For yourself alone the question barely matters — you can mount the storage and open files in any player. It matters when other people watch.</p>
+<p><b>Jellyfin</b> is fully open-source, free, and self-hosted end to end. Sharing means creating an account and handing over credentials, and reaching it from outside means you publish an endpoint yourself. <b>Plex</b> routes access through its own account system, so you invite people by their Plex account rather than distributing passwords, and its relay avoids exposing your address directly. That convenience comes with a dependency on a third-party service and a paid tier for some features.</p>
+<p>Family and close friends fit Jellyfin comfortably. A wider circle is where Plex's account and invitation model starts to earn its keep.</p>
+
+<h2 id="10-exposure-and-security">10. What to expose, and what never to</h2>
+<p>Only two things ever need to be reachable from outside: the request portal and the media server. Radarr, Sonarr, Prowlarr, Bazarr and the download client should never be — they are administrative interfaces with full control over your filesystem, and there is no scenario where the internet needs them. Reach them over a VPN or from the local network.</p>
+<p>For the two that do need exposure, a reverse proxy with TLS is the baseline. A <b>Cloudflare Tunnel</b> adds a genuine improvement over port-forwarding, because it makes an outbound connection instead of opening an inbound port, so your address is never published and there is nothing at home to scan.</p>
+<p>One caveat the tunnel guides usually skip: Cloudflare's terms restrict serving large volumes of non-HTML content — video very much included — through its proxy on standard plans. A tunnel is well suited to the request portal, and streaming a film library through it is the case people get contacted about. For video, a VPN back to your own network, or a proxy you run yourself, sits on firmer ground.</p>
+<p>Whatever you expose: turn on authentication in every application (recent *arr releases require it, older ones did not), keep the containers updated, and give the download client its own directory rather than write access to the whole library.</p>
+
+<h2 id="11-what-this-is-worth">11. What the whole thing is worth</h2>
+<p>Setup is an afternoon, most of it spent on indexers and on getting the volume mounts right. After that the system runs unattended: someone requests a title, and some time later it appears, named correctly, with subtitles, on every screen in the house.</p>
+<p>Two things decide whether it stays pleasant. Get the single-root mount correct at the start, because discovering months later that every import was a copy means reorganising a full disk. And set a quality profile you can actually watch rather than the highest one available — a library of moderate, direct-playing files is a better library than a smaller one of enormous files your television has to transcode.</p>

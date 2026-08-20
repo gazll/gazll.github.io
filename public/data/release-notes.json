@@ -4,6 +4,37 @@
     {
       "date": "2026-08-20",
       "en": {
+        "title": "The panel sheds rows, and the *arr stack joins NAS"
+      },
+      "vi": {
+        "title": "Panel bớt dòng, và *arr stack vào mục NAS"
+      },
+      "changes": [
+        {
+          "kind": "change",
+          "target": "all-topics",
+          "en": {
+            "text": "The navigation panel is quieter. **Search** and **Release Notes** moved out of the list and into the panel header as icons — both stay fully routable, only where they are drawn changed. **Guide** was removed. **Tools** is now collapsed by default and opens on click, since a sibling app is something you go to on purpose rather than something you browse. The section holding Project, Photography and NAS is called **Experience** again, and the now-empty About section went with Guide."
+          },
+          "vi": {
+            "text": "Panel điều hướng bớt rối. **Search** và **Release Notes** rời khỏi danh sách, lên header của panel dưới dạng icon — cả hai vẫn route được đầy đủ, chỉ đổi chỗ hiển thị. **Guide** đã bỏ. **Tools** giờ mặc định thu gọn và bấm mới mở ra, vì một app anh em là thứ bạn chủ động vào chứ không phải thứ để lướt. Section chứa Project, Photography và NAS trở lại tên **Experience**, còn section About rỗng thì đi cùng Guide."
+          }
+        },
+        {
+          "kind": "content",
+          "target": "all-topics",
+          "en": {
+            "text": "A second NAS article: **\"The *arr stack: automating a home media library\"**. It lays the nine services out as three layers — control, processing, data — then spends its length on the parts that decide whether the setup works. **Hardlinks** get the fullest treatment: what an inode actually is, why the seeding copy and the library copy cost disk once, and the trap that catches most people — two separate volume mounts are one filesystem on the host and two inside the container, so the hardlink fails and every import silently becomes a copy. Also: why Bazarr rejects a subtitle that exists (timing belongs to a release, not a title), what machine translation structurally cannot do for Vietnamese pronouns, why transcoding makes a moderate file worth more than a bigger one, and which services must never be exposed. Written from a shared Vietnamese account of a working setup, with indexers described by category rather than listed."
+          },
+          "vi": {
+            "text": "Bài NAS thứ hai: **\"*arr stack: tự động hoá thư viện phim tại nhà\"**. Bài bày chín dịch vụ thành ba tầng — control, processing, data — rồi dành phần lớn dung lượng cho những chỗ quyết định thiết lập có chạy đúng hay không. **Hardlink** được nói kỹ nhất: inode thực chất là gì, vì sao bản đang seed và bản trong thư viện chỉ tốn đĩa một lần, và cái bẫy hầu hết mọi người dính — hai volume mount riêng là một filesystem trên host nhưng là hai filesystem bên trong container, nên hardlink thất bại và mọi lần import lặng lẽ thành copy. Ngoài ra: vì sao Bazarr từ chối một phụ đề vốn đã tồn tại (timing thuộc về bản phát hành, không thuộc về tựa phim), điều mà dịch máy về mặt cấu trúc không làm được với đại từ tiếng Việt, vì sao transcode khiến file vừa phải có giá hơn file to, và những dịch vụ tuyệt đối không được mở ra ngoài. Viết lại từ một bài chia sẻ tiếng Việt về thiết lập thực tế, phần indexer mô tả theo nhóm thay vì liệt kê tên."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-20",
+      "en": {
         "title": "Other Knowledge joins the site, and the panel is regrouped"
       },
       "vi": {

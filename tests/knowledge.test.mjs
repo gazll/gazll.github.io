@@ -126,13 +126,25 @@ test('Other Knowledge is wired into the panel and reuses the shared collection',
     readFile(path.join(publicRoot, 'lib/case-studies.js'), 'utf8')
   ]);
 
-  assert.match(app, /\{ key: 'knowledge', label: 'Other knowledge' \}/);
+  assert.match(app, /\{ key: 'knowledge', label: 'Experience' \}/);
   assert.match(app, /id: 'photography', sec: 'knowledge'/);
   assert.match(app, /id: 'homelab', sec: 'knowledge'/);
   assert.match(app, /id: 'project', sec: 'knowledge'/);
   // The libraries moved into Technical and are grouped behind a rule.
   assert.match(app, /id: 'system-design', sec: 'technical', divider: true/);
   assert.match(app, /v\.divider \? '<hr class="nv-div">' : ''/);
+
+  // Search and the changelog are controls in the panel header, still routable.
+  assert.match(app, /id: 'search', sec: 'technical', head: true/);
+  assert.match(app, /id: 'release-notes', sec: 'technical', head: true/);
+  assert.match(app, /shown\.filter\(v => v\.head\)/);
+  assert.match(app, /v\.sec === sec\.key && !v\.head/);
+  // Tools opens on purpose, so the section defaults to collapsed.
+  assert.match(app, /\{ key: 'tool', label: 'Tools', collapsible: true \}/);
+  assert.match(app, /getItem\(NAV_SECTION_KEY \+ key\) !== '0'/);
+  // Guide is gone, and its markdown left with it.
+  assert.doesNotMatch(app, /GUIDE_MD/);
+  assert.doesNotMatch(app, /id: 'guide'/);
 
   // One loader, two directories: a second copy would drift out of step.
   assert.match(caseLoader, /createCollection\('data\/case-studies\/'\)/);
