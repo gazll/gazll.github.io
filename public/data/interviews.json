@@ -47,6 +47,31 @@
       "updated_at": "2026-08-19"
     },
     {
+      "slug": "evizi-full-stack-java",
+      "name": "eVizi",
+      "role": "Full-stack Java Developer · Da Nang / Ho Chi Minh",
+      "date": "2026-08",
+      "result": "pending",
+      "stack": [
+        "Java",
+        "Spring Boot",
+        "REST",
+        "Angular",
+        "TypeScript",
+        "Agile"
+      ],
+      "source": {
+        "label": "eVizi careers — Full-stack Java Developers",
+        "url": "https://evizi.com/careers/#full-stack-java-developers-career-2"
+      },
+      "jd": "**Full-stack Java Developer** · Da Nang / Ho Chi Minh · on-site only — the posting states remote and hybrid are not available.\n\n**Responsibilities**\n\n- Participate in requirements analysis and system design.\n- Develop backend services using Java (Spring Framework).\n- Develop frontend features using Angular.\n- Integrate RESTful APIs between frontend and backend systems.\n- Perform unit and integration testing, and ensure code quality.\n- Handle deployment, monitoring and application maintenance.\n- Collaborate with cross-functional teams using Agile methodologies.\n\n**Required qualifications**\n\n- 5+ years of software development experience.\n- Good command of English, written and verbal.\n- Experience working in a Scrum or Kanban team.\n- Backend: Spring, Spring Boot, REST APIs, backend best practices.\n- Frontend: TypeScript, Angular, JavaScript, web UI and components.\n\n**Benefits listed**\n\n- Competitive salary, 13th-month bonus and performance bonuses.\n- Premium healthcare with an annual check-up.\n- 12 paid annual leave days, plus 30 work-from-home days per year.\n- Onsite opportunities, including Silicon Valley.\n- Laptop and monitor support, team events, referral bonuses.",
+      "brief": "Applications go to `recruit@evizi.com` with a resume and cover letter — the posting publishes no loop structure, so the rounds below stay empty until an actual interview is recorded.\n\nWhat the posting does commit to: the role is on-site in Da Nang or Ho Chi Minh, it is a genuine full-stack brief (Spring on the back, Angular on the front, and the REST boundary between them is called out as its own responsibility), and English is a stated requirement rather than a nice-to-have — eVizi positions itself as an offshore partner for onshore clients, so expect the working language to matter.",
+      "rounds": [],
+      "questions": [],
+      "created_at": "2026-08-20",
+      "updated_at": "2026-08-20"
+    },
+    {
       "slug": "system-design-one-week-playbook",
       "kind": "playbook",
       "name": "System Design Interview — 1-week playbook",
