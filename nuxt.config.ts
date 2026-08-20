@@ -20,7 +20,7 @@ function contentRoutes() {
   const homelabRoutes = homelab.articles.map((row: { slug: string }) => `/homelab/${row.slug}`);
 
   return [
-    '/', '/search', '/gazl', '/stats', '/admin', '/system-design', '/case-studies',
+    '/', '/search', '/api/content/search-index', '/gazl', '/stats', '/admin', '/system-design', '/case-studies',
     '/project', '/photography', '/homelab', '/release-notes', '/fshare-tool',
     '/course-registration', ...topicRoutes, ...designRoutes, ...caseRoutes, ...photoRoutes, ...homelabRoutes
   ];

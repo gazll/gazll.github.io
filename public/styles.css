@@ -1626,6 +1626,7 @@
 
   .gs-hit{display:flex;gap:11px;align-items:flex-start;padding:9px 10px;border-radius:11px;
     border:1px solid transparent;text-decoration:none;color:inherit;transition:background .12s ease,border-color .12s ease}
+  button.gs-hit{width:100%;font:inherit;text-align:left;cursor:pointer;background:transparent}
   .gs-hit:hover,.gs-hit.is-active{background:var(--g-soft,var(--emerald-soft));border-color:var(--g-line,var(--emerald-soft))}
   .gs-hit.is-active{border-color:var(--g,var(--emerald))}
   .gs-hit-badge{flex:none;min-width:44px;text-align:center;font-family:"IBM Plex Mono",monospace;font-size:10px;

@@ -29,6 +29,13 @@ const currentIndex = computed(() => data.value!.rows.findIndex((row: any) => row
 const rowSlug = (row: any) => row.file.split('/').pop().replace(/\.json$/, '');
 const previous = computed(() => data.value!.rows[currentIndex.value - 1]);
 const next = computed(() => data.value!.rows[currentIndex.value + 1]);
+const headerTopics = computed(() => data.value!.rows.map((row: any) => ({
+  ...row,
+  label: data.value!.topicMeta?.[String(row.n)]?.[lang.value]?.label
+    || data.value!.topicMeta?.[String(row.n)]?.en?.label
+    || row.file.split('/').pop().replace(/\.json$/, '')
+})));
+const headerTopic = computed(() => headerTopics.value.find((row: any) => row.n === data.value!.row.n));
 
 useHead(() => ({
   htmlAttrs: { lang: lang.value },
@@ -40,17 +47,7 @@ useHead(() => ({
 
 <template>
   <div class="view-track">
-    <header class="top">
-      <div class="top-inner">
-        <NuxtLink class="topicpick" to="/">GAZLL</NuxtLink>
-        <nav class="headright" aria-label="Main navigation">
-          <NuxtLink class="searchtrigger" to="/search">Search</NuxtLink>
-          <NuxtLink :to="{ path: route.path, query: { lang: lang === 'vi' ? 'en' : 'vi' } }" class="langswitch hdr-lang">
-            {{ lang === 'vi' ? 'VI → EN' : 'EN → VI' }}
-          </NuxtLink>
-        </nav>
-      </div>
-    </header>
+    <ContentHeader :lang="lang" :topic="headerTopic" :topics="headerTopics" />
 
     <main>
       <section id="view-track" class="view">

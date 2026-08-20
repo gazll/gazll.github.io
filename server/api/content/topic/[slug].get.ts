@@ -22,5 +22,5 @@ export default defineEventHandler(async event => {
   let vi = null;
   try { vi = await json(`data/topics/${stem}.vi.json`); } catch (error) {}
 
-  return { rows, row, meta: meta.topics[String(row.n)], reviews, en, vi, stem };
+  return { rows, row, meta: meta.topics[String(row.n)], topicMeta: meta.topics, reviews, en, vi, stem };
 });
