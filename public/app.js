@@ -33,6 +33,7 @@ import { renderAdmin, mountAdmin } from './views/admin.js';
 import { renderSystemDesign, mountSystemDesign } from './views/system-design.js';
 import { renderCaseStudies, mountCaseStudies } from './views/case-studies.js';
 import { renderProject, mountProject } from './views/project.js';
+import { renderPhotography, mountPhotography, renderHomelab, mountHomelab } from './views/knowledge.js';
 import { renderReleaseNotes, mountReleaseNotes } from './views/release-notes.js';
 import { renderSearch, mountSearch, mountSearchOverlay } from './views/search.js';
 import { SearchHistory } from './lib/search-history.js';
@@ -83,7 +84,7 @@ const COPY_LINK_SVG = '<svg class="qcopy-icon" viewBox="0 0 24 24" fill="none" s
 
 /* ---------- Views / navigation ---------- */
 const GUIDE_MD = [
-  'This is an **all-in-one** site. The ☰ button opens the **navigation panel**, grouped into `Technical` (study & practice), `Experience` (real-world case studies), `Tools` (standalone utilities) and `Other`. Every view has its own URL (e.g. `#/guide`), so any of them can be shared or bookmarked.',
+  'This is an **all-in-one** site. The ☰ button opens the **navigation panel**, grouped into `Technical` (the study path plus the System Design and Case Studies reference libraries), `Other knowledge` (personal projects and material outside interview prep), `Tools` (standalone utilities) and `About`. Every view has its own URL (e.g. `#/guide`), so any of them can be shared or bookmarked.',
   '',
   'The **search** control in the header (`Ctrl`/`⌘` + `K`, or just `/`) queries the Study Track, the System Design blueprints and the case studies in one pass. Each result names the topic or blueprint it belongs to and opens that card directly; accents are optional, so `dong bo` finds `đồng bộ`. `See all results` opens the full panel at `#/search/<query>`, which can be filtered by surface and shared like any other view. Recent searches stay in the browser session while signed out and move into your account when you sign in.',
   '',
@@ -101,7 +102,7 @@ const GUIDE_MD = [
   ':::deep Storage and languages',
   'Progress, notes and the interview journal are written to `localStorage` immediately, then synced to a **Google Sheet** through Apps Script once you are signed in with Google. Losing the network or closing the tab mid-save costs nothing — the queue lives in `localStorage` and is resent on the next visit.',
   '',
-  'The study material lives under `data/` (JSON + Markdown): `data/manifest.json` lists every numbered source and points at its `data/topics/NN-slug.json` file; `data/meta.json` holds each topic\'s label/title/intro/tags. A manifest row with `surface: "system-design"` remains available for stable references but is presented in the dedicated Experience library instead of Study Track. Supported syntax: **bold**, *italic*, `code`, `-` lists, and three callout blocks — `:::tip Label`, `:::warn Label`, `:::deep`.',
+  'The study material lives under `data/` (JSON + Markdown): `data/manifest.json` lists every numbered source and points at its `data/topics/NN-slug.json` file; `data/meta.json` holds each topic\'s label/title/intro/tags. A manifest row with `surface: "system-design"` remains available for stable references but is presented in the dedicated System Design library instead of Study Track. Supported syntax: **bold**, *italic*, `code`, `-` lists, and three callout blocks — `:::tip Label`, `:::warn Label`, `:::deep`.',
   '',
   'The interface is always English. The **material** has an `EN`/`VI` switch in the header. Every topic\'s base file (`data/topics/NN-slug.json`) is complete English and every `NN-slug.vi.json` companion is complete Vietnamese. Both are loaded up front, and the header switch selects which complete version to read. If a Vietnamese companion cannot be loaded, VI mode gracefully displays the English base instead of failing.',
   '',
@@ -124,9 +125,11 @@ const GUIDE_MD = [
 /* Nav panel sections, in display order. `key` matches the `sec` of a view. */
 const NAV_SECTIONS = [
   { key: 'technical', label: 'Technical' },
-  { key: 'experience', label: 'Experience' },
+  { key: 'knowledge', label: 'Other knowledge' },
   { key: 'tool', label: 'Tools' },
-  { key: 'about', label: 'Other' }
+  // Renamed from "Other" when the knowledge section arrived: two sections
+  // called Other would say nothing about which one holds what.
+  { key: 'about', label: 'About' }
 ];
 
 /* One entry per menu row.
@@ -148,12 +151,19 @@ const VIEWS = [
   { id: 'admin', sec: 'technical', label: 'Admin', desc: 'All-user overview', icon: 'admin',
     render: renderAdmin, mount: mountAdmin, when: () => Auth.isAdmin },
 
-  { id: 'system-design', sec: 'experience', label: 'System Design', desc: 'Blueprints, diagrams & trade-offs', icon: 'design',
+  // Reference libraries rather than the daily path: same section, own group.
+  { id: 'system-design', sec: 'technical', divider: true, label: 'System Design',
+    desc: 'Blueprints, diagrams & trade-offs', icon: 'design',
     render: renderSystemDesign, mount: mountSystemDesign },
-  { id: 'project', sec: 'experience', label: 'Project', desc: 'CalebZone SRS & implementation evidence', icon: 'project',
-    render: renderProject, mount: mountProject },
-  { id: 'case-studies', sec: 'experience', label: 'Case Studies', desc: 'Data, mobile & engineering stories', icon: 'case',
+  { id: 'case-studies', sec: 'technical', label: 'Case Studies', desc: 'Data, mobile & engineering stories', icon: 'case',
     render: renderCaseStudies, mount: mountCaseStudies },
+
+  { id: 'project', sec: 'knowledge', label: 'Project', desc: 'CalebZone SRS & implementation evidence', icon: 'project',
+    render: renderProject, mount: mountProject },
+  { id: 'photography', sec: 'knowledge', label: 'Photography', desc: 'Exposure, glass & the edit', icon: 'photo',
+    render: renderPhotography, mount: mountPhotography },
+  { id: 'homelab', sec: 'knowledge', label: 'NAS / Home Server', desc: 'Storage, hardware & services at home', icon: 'server',
+    render: renderHomelab, mount: mountHomelab },
 
   { id: 'fshare', sec: 'tool', label: 'Fshare Bulk Copy', desc: 'Collect download links in bulk',
     icon: 'tool', href: 'fshare-tool/' },
@@ -179,7 +189,9 @@ const ICONS = {
   case: '<path d="M5 5h14v14H5z"/><path d="M8 9h8M8 13h5M9 5V3h6v2"/>',
   tool: '<path d="M14.5 3.5a5 5 0 0 0-6.1 6.7L3.5 15v5.5H9l4.8-4.9a5 5 0 0 0 6.7-6.1L17 12l-2.5-.5L14 9z"/>',
   guide: '<circle cx="12" cy="12" r="8.5"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.2 3.1c-.6.3-.8.7-.8 1.4"/><path d="M12 17h.01"/>',
-  release: '<path d="M4 8.5V5h3.5L18 15.5 14.5 19z"/><path d="M7.5 8.5h.01"/><path d="M13 4h7v7"/>'
+  release: '<path d="M4 8.5V5h3.5L18 15.5 14.5 19z"/><path d="M7.5 8.5h.01"/><path d="M13 4h7v7"/>',
+  photo: '<path d="M3 8.5h4L8.5 6h7L17 8.5h4V19H3z"/><circle cx="12" cy="13" r="3.5"/>',
+  server: '<path d="M4 5h16v5H4zM4 14h16v5H4z"/><path d="M7.5 7.5h.01M7.5 16.5h.01"/>'
 };
 const iconSVG = name => '<svg class="nv-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"'
   + ' stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
@@ -371,12 +383,16 @@ function buildNav() {
       + '</a>';
   };
 
+  /* `divider` groups rows inside one section without inventing a second
+     heading: the library surfaces are Technical, just not the daily path. */
+  const rule = v => v.divider ? '<hr class="nv-div">' : '';
+
   const shown = visibleViews();
   nav.innerHTML = NAV_SECTIONS.map(sec => {
     const items = shown.filter(v => v.sec === sec.key);
     if (!items.length) return '';
     return '<div class="nv-sec"><h3 class="nv-sectitle">' + sec.label + '</h3>'
-      + items.map(row).join('') + '</div>';
+      + items.map(v => rule(v) + row(v)).join('') + '</div>';
   }).join('');
 }
 

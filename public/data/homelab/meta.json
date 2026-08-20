@@ -1,0 +1,75 @@
+{
+  "library": {
+    "en": {
+      "eyebrow": "Other knowledge · NAS & home server",
+      "title": "NAS / Home Server",
+      "intro": "Building and running storage at home: what each layer actually protects against, what it costs to operate, and where the comfortable assumptions break."
+    },
+    "vi": {
+      "eyebrow": "Other knowledge · NAS & home server",
+      "title": "NAS / Home Server",
+      "intro": "Dựng và vận hành storage tại nhà: mỗi tầng thực sự chống được cái gì, vận hành tốn gì, và những giả định dễ chịu vỡ ở đâu."
+    }
+  },
+  "categories": {
+    "storage": {
+      "en": {
+        "label": "Storage",
+        "description": "Pools, redundancy, integrity and the difference between surviving a disk and surviving a mistake."
+      },
+      "vi": {
+        "label": "Storage",
+        "description": "Pool, redundancy, tính toàn vẹn, và khác biệt giữa sống sót qua một ổ hỏng với sống sót qua một sai lầm."
+      }
+    },
+    "hardware": {
+      "en": {
+        "label": "Hardware",
+        "description": "Chassis, HBA, ECC, power and thermals — the parts that decide how the box ages."
+      },
+      "vi": {
+        "label": "Hardware",
+        "description": "Chassis, HBA, ECC, nguồn và nhiệt — những thứ quyết định cái máy già đi thế nào."
+      }
+    },
+    "network-services": {
+      "en": {
+        "label": "Network & services",
+        "description": "Shares, containers, remote access and keeping the whole thing off the open internet."
+      },
+      "vi": {
+        "label": "Network & services",
+        "description": "Share, container, truy cập từ xa và giữ cho cả hệ thống không phơi ra internet."
+      }
+    }
+  },
+  "articles": {
+    "1": {
+      "key": "01-raid-is-not-a-backup",
+      "en": {
+        "title": "RAID is not a backup: what redundancy actually buys you",
+        "excerpt": "Redundancy keeps a pool online through a disk failure. It does nothing about deletion, ransomware, fire or a corrupted pool — and the resilver window is exactly when a second failure is most likely.",
+        "tags": [
+          "ZFS",
+          "RAIDZ",
+          "Resilver",
+          "Scrub",
+          "Snapshots",
+          "3-2-1"
+        ]
+      },
+      "vi": {
+        "title": "RAID không phải backup: redundancy thực sự mua được gì",
+        "excerpt": "Redundancy giữ pool online khi một ổ chết. Nó không làm được gì với xoá nhầm, ransomware, hoả hoạn hay một pool hỏng — và cửa sổ resilver lại đúng là lúc ổ thứ hai dễ chết nhất.",
+        "tags": [
+          "ZFS",
+          "RAIDZ",
+          "Resilver",
+          "Scrub",
+          "Snapshot",
+          "3-2-1"
+        ]
+      }
+    }
+  }
+}

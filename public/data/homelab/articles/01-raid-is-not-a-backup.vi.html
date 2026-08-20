@@ -1,0 +1,63 @@
+<p>Câu "RAID không phải backup" bị lặp lại đủ nhiều để trở thành tiếng ồn nền, và đó là điều đáng tiếc, vì lập luận phía sau nó thật sự hữu ích còn bản thân câu khẩu hiệu thì không. Vấn đề không phải RAID vô dụng. Vấn đề là redundancy và backup giải hai bài toán khác nhau, hỏng theo hai hướng khác nhau, và một con NAS tại nhà chỉ dựng trên một trong hai có biên an toàn hẹp hơn nhiều so với vẻ ngoài của nó.</p>
+<p>Bài này nói về việc mỗi tầng thực sự che được cái gì. Những con số phụ thuộc vào ổ cứng cụ thể hay cách bố trí pool đều được nói rõ là như vậy.</p>
+
+<h2 id="1-two-different-questions">1. Hai câu hỏi khác nhau</h2>
+<p>Redundancy trả lời: <i>array có tiếp tục phục vụ dữ liệu được không khi phần cứng đang hỏng?</i> Backup trả lời: <i>tôi có lấy lại được dữ liệu sau khi nó biến mất hoặc bị sai không?</i></p>
+<p>Hai câu nghe gần nhau nhưng không phải. Redundancy hoạt động bên trong một pool, theo thời gian thực, chống đúng một kiểu hỏng: một thiết bị ngừng chạy hoặc bắt đầu trả về dữ liệu sai. Backup hoạt động bên ngoài pool, xuyên thời gian, chống lại tất cả những thứ còn lại — và "tất cả những thứ còn lại" mới là nơi phần lớn vụ mất dữ liệu thật sự xảy ra.</p>
+<!-- separator: a blank line here would truncate the block -->
+<table>
+<thead><tr><th>Mối đe doạ</th><th>Redundancy (RAIDZ)</th><th>Snapshot</th><th>Backup ngoài nhà</th></tr></thead>
+<tbody>
+<tr><td>Một ổ chết</td><td>che được</td><td>vô ích</td><td>che được, nhưng chậm</td></tr>
+<tr><td>Bit rot âm thầm</td><td>che được nhờ checksum của ZFS</td><td>vô ích</td><td>che được nếu backup có kiểm chứng</td></tr>
+<tr><td>Xoá nhầm hoặc ghi đè</td><td><b>vô ích</b></td><td>che được</td><td>che được</td></tr>
+<tr><td>Ransomware mã hoá share</td><td><b>vô ích</b></td><td>che được nếu snapshot bất biến</td><td>che được nếu bản sao offline</td></tr>
+<tr><td>Pool hỏng, HBA lỗi, RAM lỗi</td><td><b>vô ích</b></td><td><b>vô ích</b></td><td>che được</td></tr>
+<tr><td>Cháy, ngập, trộm</td><td><b>vô ích</b></td><td><b>vô ích</b></td><td>che được</td></tr>
+</tbody>
+</table>
+<p>Đọc dọc cột redundancy. Nó che được hai trên sáu dòng, và hai dòng đó lại là hai dòng có bảo hành đi kèm.</p>
+
+<h2 id="2-what-the-parity-number-means">2. Con số parity nghĩa là gì</h2>
+<p>RAIDZ1, RAIDZ2 và RAIDZ3 chịu được lần lượt một, hai và ba thiết bị chết đồng thời. Mirror chịu được việc mất tất cả trừ một thành viên trong mỗi cặp. Con số đó là <b>parity</b>, và đáng nói thẳng nó không phải cái gì: nó không phải thước đo dữ liệu của bạn an toàn tới đâu, vì nó chỉ đếm đúng một loại hỏng hóc.</p>
+<p>Việc chọn giữa các mức chủ yếu là một canh bạc về cửa sổ được mô tả ở phần sau. Vdev càng rộng thì tiền cược càng lớn: nhiều ổ trong một nhóm thì xác suất ổ thứ hai chết trong lúc rebuild tăng lên, mà bản thân quá trình rebuild cũng lâu hơn.</p>
+<p>Một tính chất dễ bỏ sót lúc lên kế hoạch: trong ZFS bạn không đổi được mức parity của một vdev về sau, và trong thời gian dài bạn còn không mở rộng được vdev RAIDZ. Tính năng RAIDZ expansion có xuất hiện ở OpenZFS 2.3, nhưng đó là tính năng mới với những điều kiện riêng của nó — hãy đọc release note của đúng phiên bản bạn đang chạy trước khi lên kế hoạch dựa vào nó. Mirror xưa nay vẫn là lựa chọn linh hoạt ở điểm này, đổi lại bằng dung lượng dùng được.</p>
+
+<h2 id="3-the-resilver-window">3. Cửa sổ resilver</h2>
+<p>Đây là phần làm người ta đổi cách nghĩ về parity, và là lập luận mạnh nhất chống lại RAIDZ1 trên các ổ dung lượng lớn hiện nay.</p>
+<p>Khi một ổ chết và bạn thay nó, ZFS phải dựng lại nội dung của nó bằng cách đọc các ổ còn sống. Cuộc resilver đó là tải đọc nặng nhất và kéo dài nhất mà array từng chịu, nó chạy hàng giờ hoặc hàng ngày tuỳ kích thước pool và mức độ bận của hệ thống, và — đây mới là điểm chính — nó chạy <i>trong lúc redundancy đã bị giảm</i>. Một pool RAIDZ1 đang resilver thì không còn chút parity nào cả. Bất kỳ ổ thứ hai nào chết trong cửa sổ đó là mất pool.</p>
+<p>Hai điều khiến cửa sổ này rủi ro hơn một phép tính ngây thơ gợi ý. Thứ nhất, các ổ mua cùng lúc thường cùng lô và đã mòn gần như y hệt nhau, nên xác suất hỏng của chúng tương quan với nhau chứ không độc lập. Thứ hai, bản thân tải đọc nặng của resilver là một bài stress test, và chuyện một ổ thứ hai vốn đã yếu chết đúng lúc đó không hề hiếm.</p>
+<p>ZFS có một lợi thế thật so với RAID truyền thống ở đây: nó chỉ resilver những block thực sự đang được cấp phát, chứ không phải toàn bộ dung lượng thô, nên một pool đầy một nửa rebuild nhanh hơn đáng kể. Điều đó rút ngắn cửa sổ; nó không xoá bỏ cửa sổ.</p>
+<p>Kết luận thực tế thì không hào nhoáng. Ưu tiên RAIDZ2 hơn RAIDZ1 một khi ổ đã lớn. Giữ sẵn một ổ dự phòng để việc thay bắt đầu sau vài giờ thay vì vài ngày. Và đừng chạy pool sát dung lượng — pool đầy resilver chậm hơn và phân mảnh tệ hơn.</p>
+
+<h2 id="4-integrity-is-a-separate-property">4. Tính toàn vẹn là thuộc tính tách rời khỏi redundancy</h2>
+<p>RAID truyền thống biết một ổ có phản hồi hay không. Nó nói chung không biết ổ đó có trả về <i>đúng</i> byte hay không. Nếu một đĩa âm thầm đưa lại dữ liệu hỏng, RAID cổ điển không có cách nào nhận ra, và ở một số cấu hình nó sẽ trung thành nhân bản luôn phần hỏng đó.</p>
+<p>ZFS bịt khoảng trống này bằng cách checksum cả data lẫn metadata, và kiểm checksum ở mỗi lần đọc. Khi còn redundancy, một checksum sai không chỉ được phát hiện mà còn được sửa từ bản sao tốt, và sự kiện đó được ghi vào bộ đếm lỗi của pool.</p>
+<p><b>Scrub</b> là thứ biến tính chất bị động đó thành chủ động. Nó đi hết pool, kiểm mọi checksum và sửa những gì sửa được. Không scrub thì phần hỏng nằm trong dữ liệu ít khi đọc sẽ ngồi im không ai biết cho tới ngày bạn cần đúng file đó — hoặc tệ hơn, cho tới khi một cuộc resilver cần đúng block đó để dựng lại ổ đã chết. Scrub hàng tháng là nhịp phổ biến với ổ tiêu dùng; đáp án đúng phụ thuộc vào ổ của bạn và mức độ sử dụng, còn điều quan trọng là nó phải chạy theo lịch và phải có người đọc kết quả.</p>
+<p><b>RAM ECC</b> thuộc về cuộc thảo luận này, kèm một lưu ý về cách nó thường bị đem ra tranh cãi. ZFS không bắt buộc ECC, và tuyên bố được lan truyền rộng rằng RAM không ECC sẽ khiến một cuộc scrub phá huỷ pool của bạn là không chính xác. Điều chính xác thì hẹp hơn và vẫn đáng làm theo: ZFS kiểm chứng dữ liệu trên đĩa, và nó không kiểm chứng được dữ liệu vốn đã hỏng trong RAM trước khi được ghi xuống. ECC bịt đúng khoảng trống đó. Nó là ý hay cho một cái máy lưu những thứ bạn quan tâm, theo đúng lập luận áp dụng cho mọi server — không phải vì thiếu nó thì ZFS mong manh bất thường.</p>
+
+<h2 id="5-snapshots-are-not-backups-either">5. Snapshot cũng không phải backup</h2>
+<p>Snapshot của ZFS gần như miễn phí, gần như tức thì, và cực kỳ giỏi ở đúng việc của nó: quay ngược một sai lầm. Xoá nhầm thư mục, ghi đè một file, để bản cập nhật làm hỏng một config — một snapshot từ trước lúc thay đổi biến chuyện đó thành việc sửa trong ba mươi giây.</p>
+<p>Nhưng snapshot là tham chiếu tới các block trong cùng pool, trên cùng những cái ổ, trong cùng toà nhà. Nếu mất pool thì mọi snapshot trong đó mất cùng một khoảnh khắc. Chúng bảo vệ bạn khỏi <i>chính bạn</i>; chúng không bảo vệ bạn khỏi phần cứng hay khỏi ngôi nhà.</p>
+<p>Chúng cũng không tự động miễn nhiễm ransomware. Mã độc chạm tới NAS qua network share thường không đụng được vào snapshot, và đó là lợi thế thật — nhưng mã độc chiếm được quyền quản trị trên chính con NAS thì xoá được chúng. Đã có những dòng ransomware nhắm thẳng vào giao diện quản trị của NAS tiêu dùng đúng vì lý do này. Giữ giao diện quản trị không phơi ra internet, và giữ ít nhất một bản sao mà hệ thống đang chạy không xoá được, mới là thứ thật sự khoá cánh cửa đó.</p>
+
+<h2 id="6-3-2-1-is-what-the-rest-implies">6. 3-2-1 chính là điều mọi phần trên dẫn tới</h2>
+<p>Công thức kinh điển: <b>ba</b> bản sao dữ liệu, trên <b>hai</b> loại phương tiện hoặc hệ thống khác nhau, với <b>một</b> bản đặt ngoài nhà. Nó sống sót như một lời khuyên vì mỗi con số ứng với một kiểu hỏng mà những con số kia không che.</p>
+<ul>
+<li><b>Ba bản</b> — pool đang chạy cộng hai bản khác, để mất một bản trong lúc đang khôi phục không phải là dấu chấm hết.</li>
+<li><b>Hai phương tiện</b> — một NAS thứ hai, ổ cứng gắn ngoài, hoặc một đích trên cloud. Hai pool trên cùng một bo mạch chủ chỉ cách việc trở thành một bản sao đúng một lần hỏng nguồn.</li>
+<li><b>Một bản ngoài nhà</b> — dòng duy nhất che được cháy, ngập và trộm. Một ổ để nhà người thân cũng tính; cloud có mã hoá cũng vậy.</li>
+</ul>
+<p>Phần người ta hay bỏ qua là kiểm chứng. Một bản backup bạn chưa từng khôi phục từ đó là một giả thuyết, không phải backup. Hãy khôi phục thứ gì đó thật theo lịch — cả một dataset, không phải một file nhỏ — và xác nhận bạn đọc được nó trên phần cứng khác với cái máy đã tạo ra nó. Kiểm tra xem job có báo thành công không là một bài test khác hẳn.</p>
+<p><code>zfs send</code> sang một pool thứ hai là lựa chọn tự nhiên ở đây, vì nó chuyển chính những block đã được checksum và chạy tăng dần từ một snapshot. Vẫn đáng ghép thêm một bản sao ở định dạng khác, để một con bug hay một sai sót vận hành trong một công cụ không kéo theo mọi bản sao.</p>
+
+<h2 id="7-a-minimum-that-is-defensible">7. Một mức tối thiểu bảo vệ được</h2>
+<p>Cho một con NAS tại nhà chứa những thứ bạn sẽ tiếc nếu mất:</p>
+<ol>
+<li><b>RAIDZ2</b>, hoặc mirror nếu bạn muốn mở rộng dễ hơn và chấp nhận trả bằng dung lượng.</li>
+<li><b>Scrub theo lịch</b>, kèm cảnh báo gửi tới được bạn — lỗi pool không ai đọc thì cũng như không có checksum.</li>
+<li><b>Snapshot tự động</b> kèm chính sách lưu giữ, dành cho những sai lầm chắc chắn bạn sẽ mắc.</li>
+<li><b>Một bản sao ngoài nhà</b>, có mã hoá, mà con NAS không tự xoá được.</li>
+<li><b>Một bài test khôi phục</b> nằm trên lịch, ở nhịp nào mà bạn thật sự sẽ tôn trọng.</li>
+</ol>
+<p>Ba ý đầu giữ cho array chạy. Ý 4 và 5 mới là thứ lấy được dữ liệu về. RAID thật sự đáng có — nó biến một ổ chết thành việc vặt thay vì một tình huống khẩn cấp. Nó chỉ đơn giản trả lời một câu hỏi khác với câu mà backup trả lời, và dựng mỗi nửa đầu chính là sai lầm mà câu khẩu hiệu kia đang cố cảnh báo.</p>

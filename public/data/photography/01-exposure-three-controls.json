@@ -1,0 +1,14 @@
+{
+  "body_file": "data/photography/articles/01-exposure-three-controls.html",
+  "guide": {
+    "title": "Equal exposure is not equal image. Decide which cost you are willing to pay before you touch a dial.",
+    "summary": "Shutter speed, aperture and ISO each admit or amplify light, and each one changes something else while doing it: motion rendering, depth of field, or noise. Because a stop of one can be traded for a stop of another, it is easy to treat them as interchangeable. They are not — two frames with identical brightness can differ completely in what is sharp, what is blurred and how clean the shadows are.",
+    "points": [
+      "A stop is a doubling or halving of light, and every control moves in the same unit — that is what makes them tradeable at all.",
+      "Shutter speed decides how motion is rendered: frozen, smeared, or somewhere in between. This is a subject decision before it is an exposure decision.",
+      "Aperture decides how much of the scene is acceptably sharp, and at the extremes it also costs resolution — wide open to aberrations, stopped far down to diffraction.",
+      "ISO does not collect light. It amplifies what the sensor already captured, so it raises the visibility of noise rather than creating it.",
+      "The meter assumes an average scene reflects mid-grey. Snow and black cats both break that assumption, in opposite directions."
+    ]
+  }
+}

@@ -369,7 +369,7 @@ test('Experience routing, Case Studies migration and Mermaid security are wired 
     readFile(path.join(publicRoot, 'styles.css'), 'utf8')
   ]);
 
-  assert.match(app, /id: 'system-design', sec: 'experience'/);
+  assert.match(app, /id: 'system-design', sec: 'technical', divider: true/);
   assert.match(app, /redirectMovedQuestion\(routeParts\)/);
   assert.match(systemView, /SystemDesign\.load\(Content\.lang\)/);
   assert.match(systemView, /data-copy-mermaid/);

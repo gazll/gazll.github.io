@@ -20,6 +20,8 @@ import { escapeHtml } from './markdown.js';
 import { Content } from './content.js';
 import { SystemDesign } from './system-design.js';
 import { CaseStudies } from './case-studies.js';
+import { KNOWLEDGE } from './knowledge.js';
+import { fetchArticleBody } from './collection.js';
 import { questionHash, systemDesignQuestionHash } from './question-links.js';
 import { TOPIC_TYPE_LABEL } from './constants.js';
 import { withRouteLanguage } from './anchors.js';
@@ -28,7 +30,8 @@ import { withRouteLanguage } from './anchors.js';
 export const SURFACES = Object.freeze([
   { id: 'track', label: 'Study Track' },
   { id: 'system-design', label: 'System Design' },
-  { id: 'case-studies', label: 'Case Studies' }
+  { id: 'case-studies', label: 'Case Studies' },
+  { id: 'knowledge', label: 'Other knowledge' }
 ]);
 
 const PRODUCTION_CATEGORY = 'systems-architecture';
@@ -285,7 +288,8 @@ function extendBody(entry, extra) {
 export function buildEntries({
   content = Content,
   systemDesign = SystemDesign,
-  caseStudies = CaseStudies
+  caseStudies = CaseStudies,
+  knowledge = KNOWLEDGE
 } = {}) {
   const entries = [];
   const push = entry => { entries.push(finalize(entry, entries.length)); };
@@ -404,6 +408,26 @@ export function buildEntries({
     });
   }
 
+  for (const [id, collection] of Object.entries(knowledge)) {
+    for (const article of collection.articles || []) {
+      push({
+        key: id + ':' + article.slug,
+        surface: 'knowledge',
+        kind: 'knowledge',
+        title: article.title || '',
+        href: withRouteLanguage('#/' + id + '/' + encodeURIComponent(article.slug), Content.lang),
+        context: joinText(collection.library?.title, article.category_label),
+        badge: pad2(article.n),
+        difficulty: article.level,
+        featured: Boolean(article.featured),
+        tags: article.tags,
+        body: joinText(article.excerpt, flattenText(article.guide)),
+        article,
+        weight: 10
+      });
+    }
+  }
+
   return entries;
 }
 
@@ -470,6 +494,11 @@ export const SearchIndex = {
       try {
         await SystemDesign.load(want);
       } catch (error) {}
+      for (const collection of Object.values(KNOWLEDGE)) {
+        try {
+          await collection.load(want);
+        } catch (error) {}
+      }
       try {
         this.entries = buildEntries();
         this.ready = true;
@@ -496,7 +525,7 @@ export const SearchIndex = {
     this._enriching = (async () => {
       await Promise.all(this.entries.filter(entry => entry.article).map(async entry => {
         try {
-          extendBody(entry, plainText(await CaseStudies.body(entry.article)));
+          extendBody(entry, plainText(await fetchArticleBody(entry.article.body_file)));
         } catch (error) {}
       }));
       this.enriched = true;

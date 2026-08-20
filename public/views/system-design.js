@@ -22,7 +22,7 @@ let libraryObserver = null;
 
 const COPY = {
   en: {
-    eyebrow: 'Experience · Design library', blueprints: n => n === 1 ? 'blueprint' : 'blueprints',
+    eyebrow: 'Technical · Design library', blueprints: n => n === 1 ? 'blueprint' : 'blueprints',
     cases: n => n === 1 ? 'production case' : 'production cases', open: 'Open design', read: 'Read production case',
     back: 'System Design library', scope: 'Problem framing', requirements: 'Requirements',
     functional: 'Functional requirements',
@@ -67,7 +67,7 @@ const COPY = {
     curriculumStatus: 'System designs restored to curriculum order.', recentStatus: 'System designs sorted by latest activity.'
   },
   vi: {
-    eyebrow: 'Experience · Design library', blueprints: n => n === 1 ? 'blueprint' : 'blueprints', cases: n => n === 1 ? 'production case' : 'production cases',
+    eyebrow: 'Technical · Design library', blueprints: n => n === 1 ? 'blueprint' : 'blueprints', cases: n => n === 1 ? 'production case' : 'production cases',
     open: 'Mở blueprint', read: 'Đọc production case', back: 'System Design library', scope: 'Problem framing',
     requirements: 'Requirements',
     functional: 'Functional requirements', quality: 'Quality attributes', capacity: 'Capacity & constraints',

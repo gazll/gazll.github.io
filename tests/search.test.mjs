@@ -204,7 +204,7 @@ test('results carry the counts per surface, so the panel can offer filters', () 
   const found = searchEntries(index, 'index');
   const surfaces = new Set(found.results.map(hit => hit.entry.surface));
   for (const surface of surfaces) assert.ok(found.counts[surface] > 0);
-  assert.deepEqual(SURFACES.map(row => row.id), ['track', 'system-design', 'case-studies']);
+  assert.deepEqual(SURFACES.map(row => row.id), ['track', 'system-design', 'case-studies', 'knowledge']);
 });
 
 test('a surface filter narrows the list but not the counts', () => {

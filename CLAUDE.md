@@ -51,7 +51,12 @@ public/
     ui.js            chevSVG, BADGE, debounce, localDay
     i18n.js          shared language storage + paired base/.vi JSON loader
     content.js       topic data model; owns the global content language and change events
-    case-studies.js  numbered bilingual case-study data model + article-body cache
+    collection.js    the bilingual article-collection factory: manifest + meta + paired
+                     NN-slug[.vi].json rows. Case Studies and Other Knowledge share it
+    case-studies.js  the case-study collection (one line over collection.js)
+    knowledge.js     the Photography and NAS/Home Server collections
+    article-reader.js  heading TOC, its collapse state and the figure lightbox,
+                     shared by every long-form reader
     system-design.js blueprint data model; resolves source_items to live topic items
     project.js       CalebZone SRS manifest and cached source-document/sample loader
     search.js        one index over all three surfaces: folding, ranking, snippets
@@ -74,6 +79,7 @@ public/
     admin.js         all-user overview (admin role only)
     system-design.js blueprint library + design/production-case reader, TOC, Mermaid tools
     case-studies.js  long-form case-study library + article reader/lightbox
+    knowledge.js     Other Knowledge libraries + reader, one view per collection
     project.js       Project SRS reader with architecture, requirements, source docs and code samples
     release-notes.js bilingual changelog of the material; chrome stays English
     dsa-player.js    play/pause/step control for the DSA animations
@@ -105,8 +111,11 @@ public/
     projects/calebzone/manifest.json  Project SRS metadata, module map, requirements, docs and sample manifest
     projects/calebzone/docs/        source-document snapshots imported from the CalebZone working tree
     projects/calebzone/samples/     sanitized Java/XML/YAML implementation samples
+    photography/     Other Knowledge collection: manifest, meta, NN-slug[.vi].json, articles/
+    homelab/         the same shape for NAS / Home Server
     interviews.json     seed entries, merged under everyone's own Sheet rows
   assets/case-studies/  local article figures; never hotlinked from a publisher
+  assets/photography/ · assets/homelab/  local Other Knowledge figures and covers
   assets/system-design/ local blueprint reference figures; catalog metadata owns EN/VI alt/caption
 apps-script/Code.gs  the entire backend (Google Sheet as database)
 tests/               every tests/*.test.mjs; discovered from disk, never enumerated
@@ -299,7 +308,7 @@ secret/              GITIGNORED. Personal setup notes and credentials
   the reader must not notice.
 
 - **Adding a menu is one entry in `VIEWS`.** `sec` picks the nav-panel section
-  (`technical` · `experience` · `tool` · `about`). An entry with `href` is an external
+  (`technical` · `knowledge` · `tool` · `about`). An entry with `href` is an external
   destination: it renders as a new-tab link and `currentViewId()` refuses to
   route to it, so a hash matching its id falls back to the track. That is how
   sibling apps under `public/` (e.g. `fshare-tool/`) join the menu.
@@ -347,6 +356,22 @@ secret/              GITIGNORED. Personal setup notes and credentials
   fit. An external body that is rewritten rather than preserved sets
   `content_kind: "synthesis"`; views must label it as editorial synthesis, never
   as the original article.
+
+- **A bilingual article collection is one line, and the mechanism has one
+  owner.** `lib/collection.js` builds the loader (numbered manifest, localized
+  `meta.json`, paired `NN-slug[.vi].json` guides pointing at
+  `NN-slug[.vi].html` bodies); `lib/case-studies.js` and `lib/knowledge.js`
+  are each a call to it. `lib/article-reader.js` owns the reading chrome the
+  libraries share — heading TOC, its persisted collapse state and the figure
+  lightbox — so its `data-case-*` hooks mean *article*, not *case study*.
+  Adding a subject is a directory plus one `createCollection` line, never a
+  second copy of either file. **Other Knowledge is not Study Track**: its
+  articles have no `item_id`, no difficulty progress and no notes, and they
+  never move the progress ring. They are all first-party, so a row must carry
+  `first_party: true` and **neither** `company` nor `source_url` — the test
+  asserts the absence, exactly as the case-study rule does. A new surface is
+  also invisible to search until it is fed into `buildEntries`, and an empty
+  collection makes that silent; `tests/knowledge.test.mjs` pins it.
 
 - **A library card's kicker names the thing; the meta row times it.** Both
   libraries use the same two-part card: `.sd-card-kicker` / `.cs-card-kicker`

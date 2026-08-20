@@ -1,0 +1,14 @@
+{
+  "body_file": "data/photography/articles/01-exposure-three-controls.vi.html",
+  "guide": {
+    "title": "Cùng độ sáng không có nghĩa là cùng bức ảnh. Hãy quyết định mình chịu trả giá nào trước khi xoay bất kỳ vòng nào.",
+    "summary": "Tốc độ màn trập, khẩu độ và ISO đều cho ánh sáng vào hoặc khuếch đại ánh sáng, và mỗi cái đồng thời đổi thêm một thứ khác: cách chuyển động được ghi lại, độ sâu trường ảnh, hoặc mức nhiễu. Vì một stop của cái này đổi được lấy một stop của cái kia nên rất dễ xem chúng là thay thế được cho nhau. Không phải vậy — hai khung hình sáng y hệt nhau có thể khác hoàn toàn ở chỗ cái gì nét, cái gì nhoè và vùng tối sạch tới đâu.",
+    "points": [
+      "Một stop là gấp đôi hoặc giảm một nửa lượng sáng, và cả ba control đều đi theo cùng đơn vị đó — đấy chính là lý do chúng đổi được cho nhau.",
+      "Tốc độ màn trập quyết định chuyển động được ghi ra sao: đóng băng, kéo vệt, hay ở khoảng giữa. Đây là quyết định về chủ thể trước khi là quyết định về phơi sáng.",
+      "Khẩu độ quyết định bao nhiêu phần cảnh còn nét chấp nhận được, và ở hai cực nó còn lấy đi độ phân giải — mở hết thì quang sai, khép sâu quá thì nhiễu xạ.",
+      "ISO không thu thêm ánh sáng. Nó khuếch đại phần cảm biến đã ghi được, nên nó làm nhiễu dễ thấy hơn chứ không tạo ra nhiễu.",
+      "Máy đo sáng giả định cảnh trung bình phản xạ mức xám giữa. Tuyết và mèo đen đều phá giả định đó, theo hai hướng ngược nhau."
+    ]
+  }
+}

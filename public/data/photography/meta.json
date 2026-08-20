@@ -1,0 +1,75 @@
+{
+  "library": {
+    "en": {
+      "eyebrow": "Other knowledge · Photography",
+      "title": "Photography",
+      "intro": "Notes on how a camera actually behaves — the controls, the glass and the edit — written as decisions with costs rather than settings to copy."
+    },
+    "vi": {
+      "eyebrow": "Other knowledge · Photography",
+      "title": "Photography",
+      "intro": "Ghi chép về cách một chiếc máy ảnh thực sự hoạt động — control, ống kính và khâu hậu kỳ — viết dưới dạng quyết định kèm cái giá phải trả, không phải bộ thông số để chép lại."
+    }
+  },
+  "categories": {
+    "fundamentals": {
+      "en": {
+        "label": "Fundamentals",
+        "description": "What each control changes in the image, and what it costs to change it."
+      },
+      "vi": {
+        "label": "Fundamentals",
+        "description": "Mỗi control đổi điều gì trong ảnh, và đổi nó phải trả giá bằng gì."
+      }
+    },
+    "gear": {
+      "en": {
+        "label": "Gear",
+        "description": "Bodies, lenses and the specifications that actually change a photograph."
+      },
+      "vi": {
+        "label": "Gear",
+        "description": "Body, ống kính và những thông số thật sự làm ảnh khác đi."
+      }
+    },
+    "post-processing": {
+      "en": {
+        "label": "Post-processing",
+        "description": "Raw handling, colour and the edits that survive a second look."
+      },
+      "vi": {
+        "label": "Post-processing",
+        "description": "Xử lý raw, màu sắc và những chỉnh sửa còn đứng vững khi xem lại."
+      }
+    }
+  },
+  "articles": {
+    "1": {
+      "key": "01-exposure-three-controls",
+      "en": {
+        "title": "Exposure: three controls, three different costs",
+        "excerpt": "Shutter, aperture and ISO can reach the same brightness by different routes, and the routes are not interchangeable — each one pays for light with motion, depth of field or noise.",
+        "tags": [
+          "Exposure",
+          "Shutter speed",
+          "Aperture",
+          "ISO",
+          "Metering",
+          "Histogram"
+        ]
+      },
+      "vi": {
+        "title": "Phơi sáng: ba control, ba cái giá khác nhau",
+        "excerpt": "Shutter, aperture và ISO đều đưa ảnh tới cùng một độ sáng nhưng bằng ba đường khác nhau, và ba đường đó không thay thế được cho nhau — mỗi cái trả tiền cho ánh sáng bằng chuyển động, độ sâu trường ảnh hoặc nhiễu.",
+        "tags": [
+          "Phơi sáng",
+          "Tốc độ màn trập",
+          "Khẩu độ",
+          "ISO",
+          "Đo sáng",
+          "Histogram"
+        ]
+      }
+    }
+  }
+}

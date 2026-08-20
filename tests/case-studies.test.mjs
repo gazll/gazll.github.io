@@ -251,8 +251,7 @@ test('Experience exposes the global language switch while remaining outside Stud
   const topicManifest = await readFile(path.join(dataRoot, 'manifest.json'), 'utf8');
   const view = await readFile(path.join(publicRoot, 'views/case-studies.js'), 'utf8');
 
-  assert.match(app, /\{ key: 'experience', label: 'Experience' \}/);
-  assert.match(app, /id: 'case-studies', sec: 'experience'/);
+  assert.match(app, /id: 'case-studies', sec: 'technical'/);
   assert.match(app, /showView\(currentRouteState\.id, currentRouteState\.parts\)/,
     'hash subroutes should reach the case-study reader');
   assert.match(view, /CaseStudies\.load\(Content\.lang\)/);

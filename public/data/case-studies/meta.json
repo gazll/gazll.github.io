@@ -2,12 +2,12 @@
   "version": 1,
   "library": {
     "en": {
-      "eyebrow": "Experience · Production stories",
+      "eyebrow": "Technical · Production stories",
       "title": "Engineering Case Studies",
       "intro": "Long-form accounts of real systems, the constraints behind them, and the trade-offs teams made in production."
     },
     "vi": {
-      "eyebrow": "Experience · Production stories",
+      "eyebrow": "Technical · Production stories",
       "title": "Engineering Case Studies",
       "intro": "Các bài viết chuyên sâu về real system, constraint phía sau và trade-off team kỹ thuật đã chọn trong production."
     }
@@ -382,12 +382,26 @@
       "en": {
         "title": "How Discord stores trillions of messages",
         "excerpt": "How Discord moved message storage from MongoDB to Cassandra and then ScyllaDB, while using Rust data services, request coalescing and a verified online migration to control hot partitions and operational toil.",
-        "tags": ["ScyllaDB", "Cassandra", "Hot partitions", "Request coalescing", "Online migration", "Rust"]
+        "tags": [
+          "ScyllaDB",
+          "Cassandra",
+          "Hot partitions",
+          "Request coalescing",
+          "Online migration",
+          "Rust"
+        ]
       },
       "vi": {
         "title": "Discord lưu trữ hàng nghìn tỷ tin nhắn như thế nào?",
         "excerpt": "Cách Discord chuyển message storage từ MongoDB sang Cassandra rồi ScyllaDB, đồng thời dùng Rust data service, request coalescing và migration online có kiểm chứng để kiểm soát hot partition cùng operational toil.",
-        "tags": ["ScyllaDB", "Cassandra", "Hot partition", "Request coalescing", "Online migration", "Rust"]
+        "tags": [
+          "ScyllaDB",
+          "Cassandra",
+          "Hot partition",
+          "Request coalescing",
+          "Online migration",
+          "Rust"
+        ]
       }
     },
     "14": {
@@ -395,12 +409,26 @@
       "en": {
         "title": "Complex infrastructure for a small business: the cloud-cost shock",
         "excerpt": "A pre-revenue exam platform reached a reported $312 monthly AWS bill after applying enterprise patterns too early. The useful question is not cloud versus one server, but which risks the business can afford at each stage.",
-        "tags": ["FinOps", "AWS", "Right-sizing", "Architecture fitness", "Fixed-cost floor", "Bare metal"]
+        "tags": [
+          "FinOps",
+          "AWS",
+          "Right-sizing",
+          "Architecture fitness",
+          "Fixed-cost floor",
+          "Bare metal"
+        ]
       },
       "vi": {
         "title": "Hạ tầng phức tạp cho business bé: cú sốc chi phí cloud",
         "excerpt": "Một nền tảng thi chưa có doanh thu nhận bill AWS 312 USD/tháng sau khi áp dụng enterprise pattern quá sớm. Câu hỏi đúng không phải cloud hay một server, mà là business đủ sức trả cho rủi ro nào ở từng giai đoạn.",
-        "tags": ["FinOps", "AWS", "Right-sizing", "Architecture fitness", "Fixed-cost floor", "Bare metal"]
+        "tags": [
+          "FinOps",
+          "AWS",
+          "Right-sizing",
+          "Architecture fitness",
+          "Fixed-cost floor",
+          "Bare metal"
+        ]
       }
     },
     "15": {
@@ -408,12 +436,26 @@
       "en": {
         "title": "From dual write to a reliable order workflow",
         "excerpt": "Service A must update its database and notify Service B without losing either change. Transactional Outbox closes the atomicity gap; idempotency and a Saga finish the production design.",
-        "tags": ["Transactional Outbox", "Idempotency", "At-least-once", "Saga", "Message queue", "Order workflow"]
+        "tags": [
+          "Transactional Outbox",
+          "Idempotency",
+          "At-least-once",
+          "Saga",
+          "Message queue",
+          "Order workflow"
+        ]
       },
       "vi": {
         "title": "Từ dual write đến một order workflow đáng tin cậy",
         "excerpt": "Service A phải cập nhật database và báo Service B mà không làm mất bên nào. Transactional Outbox đóng atomicity gap; idempotency và Saga hoàn thiện thiết kế production.",
-        "tags": ["Transactional Outbox", "Idempotency", "At-least-once", "Saga", "Message queue", "Order workflow"]
+        "tags": [
+          "Transactional Outbox",
+          "Idempotency",
+          "At-least-once",
+          "Saga",
+          "Message queue",
+          "Order workflow"
+        ]
       }
     },
     "16": {
@@ -421,12 +463,26 @@
       "en": {
         "title": "How Shopify replaced Redis with MySQL for inventory reservations",
         "excerpt": "How Shopify colocated temporary reservations with its inventory ledger, then used bounded per-unit rows, SKIP LOCKED and connection attribution to preserve correctness at flash-sale scale.",
-        "tags": ["MySQL", "Redis", "SKIP LOCKED", "Inventory reservation", "Flash sale", "Database concurrency"]
+        "tags": [
+          "MySQL",
+          "Redis",
+          "SKIP LOCKED",
+          "Inventory reservation",
+          "Flash sale",
+          "Database concurrency"
+        ]
       },
       "vi": {
         "title": "Shopify thay Redis bằng MySQL cho inventory reservation như thế nào?",
         "excerpt": "Cách Shopify đưa temporary reservation về cùng inventory ledger, rồi dùng bounded per-unit rows, SKIP LOCKED và connection attribution để giữ correctness ở quy mô flash sale.",
-        "tags": ["MySQL", "Redis", "SKIP LOCKED", "Inventory reservation", "Flash sale", "Database concurrency"]
+        "tags": [
+          "MySQL",
+          "Redis",
+          "SKIP LOCKED",
+          "Inventory reservation",
+          "Flash sale",
+          "Database concurrency"
+        ]
       }
     },
     "17": {
@@ -434,12 +490,26 @@
       "en": {
         "title": "Four SSH compromises and the security boundary they missed",
         "excerpt": "An operator moved from passwords to a custom port, a firewall, an IP allowlist and finally a private bastion. The useful lesson is not that each control was useless, but that every incident crossed a different security boundary.",
-        "tags": ["OpenSSH", "Linux hardening", "Bastion host", "Incident response", "Supply chain", "Defense in depth"]
+        "tags": [
+          "OpenSSH",
+          "Linux hardening",
+          "Bastion host",
+          "Incident response",
+          "Supply chain",
+          "Defense in depth"
+        ]
       },
       "vi": {
         "title": "Bốn lần SSH bị xâm nhập và security boundary còn thiếu",
         "excerpt": "Một operator đi từ password sang đổi port, firewall, IP allowlist rồi private bastion. Bài học đúng không phải từng control đều vô dụng, mà là mỗi incident đã đi qua một security boundary khác nhau.",
-        "tags": ["OpenSSH", "Linux hardening", "Bastion host", "Incident response", "Supply chain", "Defense in depth"]
+        "tags": [
+          "OpenSSH",
+          "Linux hardening",
+          "Bastion host",
+          "Incident response",
+          "Supply chain",
+          "Defense in depth"
+        ]
       }
     }
   }

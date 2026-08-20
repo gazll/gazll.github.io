@@ -1,0 +1,63 @@
+<p>The sentence "RAID is not a backup" gets repeated often enough to have become background noise, which is a shame, because the reasoning behind it is genuinely useful and the slogan on its own is not. It is not that RAID is worthless. It is that redundancy and backup solve different problems, fail in different directions, and a home NAS built on only one of them has a much narrower safety margin than it appears to.</p>
+<p>This is about what each layer actually covers. Numbers that depend on specific drives or pool geometry are called out as such.</p>
+
+<h2 id="1-two-different-questions">1. Two different questions</h2>
+<p>Redundancy answers: <i>can the array keep serving data while hardware is broken?</i> Backup answers: <i>can I get the data back after it is gone or wrong?</i></p>
+<p>Those sound close and are not. Redundancy operates inside one pool, in real time, against one failure mode: a device that stops working or starts returning bad data. Backup operates outside the pool, across time, against everything else — and "everything else" is where most real data loss lives.</p>
+<!-- separator: a blank line here would truncate the block -->
+<table>
+<thead><tr><th>Threat</th><th>Redundancy (RAIDZ)</th><th>Snapshots</th><th>Off-site backup</th></tr></thead>
+<tbody>
+<tr><td>One drive dies</td><td>covered</td><td>no help</td><td>covered, slowly</td></tr>
+<tr><td>Silent bit rot</td><td>covered by ZFS checksums</td><td>no help</td><td>covered if the backup is verified</td></tr>
+<tr><td>Accidental delete or overwrite</td><td><b>no help</b></td><td>covered</td><td>covered</td></tr>
+<tr><td>Ransomware encrypting the share</td><td><b>no help</b></td><td>covered if snapshots are immutable</td><td>covered if the copy is offline</td></tr>
+<tr><td>Pool corruption, bad HBA, bad RAM</td><td><b>no help</b></td><td><b>no help</b></td><td>covered</td></tr>
+<tr><td>Fire, flood, theft</td><td><b>no help</b></td><td><b>no help</b></td><td>covered</td></tr>
+</tbody>
+</table>
+<p>Read down the redundancy column. It covers two rows out of six, and those two are the ones with a warranty attached.</p>
+
+<h2 id="2-what-the-parity-number-means">2. What the parity number means</h2>
+<p>RAIDZ1, RAIDZ2 and RAIDZ3 tolerate one, two and three simultaneous device failures respectively. Mirrors tolerate the loss of all but one member of each mirror pair. That number is <b>parity</b>, and it is worth being blunt about what it is not: it is not a measure of how safe your data is, because it only counts one category of failure.</p>
+<p>The choice between levels is mostly a bet about the window described in the next section. Wider vdevs raise the stakes: with more drives in a group, the chance that a second one fails during a rebuild goes up, and the rebuild itself takes longer.</p>
+<p>One property that is easy to miss when planning: in ZFS you cannot change a vdev's parity level later, and for a long time you could not widen a RAIDZ vdev at all. RAIDZ expansion did land in OpenZFS 2.3, but it is a newer feature with its own caveats — check the release notes for the version you actually run before you plan around it. Mirrors have always been the flexible option here, at the cost of usable capacity.</p>
+
+<h2 id="3-the-resilver-window">3. The resilver window</h2>
+<p>This is the part that changes how people think about parity, and it is the strongest argument against RAIDZ1 on large modern drives.</p>
+<p>When a drive fails and you replace it, ZFS must reconstruct its contents by reading the surviving drives. That resilver is the heaviest sustained read load the array will ever experience, it runs for hours or days depending on pool size and how busy the system is, and — this is the point — it runs <i>while redundancy is already reduced</i>. A RAIDZ1 pool mid-resilver has no parity left at all. Any second failure during that window loses the pool.</p>
+<p>Two things make the window riskier than a naive calculation suggests. First, drives bought together tend to be from the same batch and have accumulated near-identical wear, so their failure probabilities are correlated rather than independent. Second, the heavy read load of a resilver is itself a stress test, and it is not unusual for a marginal second drive to fail precisely then.</p>
+<p>ZFS does have a real advantage here over traditional RAID: it resilvers only the blocks that are actually allocated, rather than the whole raw capacity, so a half-full pool rebuilds substantially faster. That shortens the window; it does not remove it.</p>
+<p>The practical conclusions are unglamorous. Prefer RAIDZ2 over RAIDZ1 once drives get large. Keep a spare on hand so replacement starts in hours rather than days. And do not run the pool at capacity — a full pool resilvers slower and fragments worse.</p>
+
+<h2 id="4-integrity-is-a-separate-property">4. Integrity is a separate property from redundancy</h2>
+<p>Traditional RAID knows whether a drive responded. It does not generally know whether the drive returned the <i>right</i> bytes. If a disk silently hands back corrupted data, classic RAID has no way to tell, and in some configurations it will faithfully propagate that corruption.</p>
+<p>ZFS closes this gap by checksumming both data and metadata, and verifying the checksum on every read. When there is redundancy available, a failed checksum is not merely detected but repaired from a good copy, and the event is recorded in the pool's error counters.</p>
+<p>A <b>scrub</b> is what turns that from a passive property into an active one. It walks the entire pool, verifies every checksum, and repairs what it can. Without scrubbing, corruption in rarely-read data sits undiscovered until the day you need that file — or worse, until a resilver needs that block to reconstruct a failed drive. A monthly scrub is a common cadence for consumer drives; the right answer depends on your drives and how much the array is used, and the thing that matters is that it happens on a schedule and that someone reads the result.</p>
+<p><b>ECC memory</b> belongs in this discussion, with a caveat about how it is usually argued. ZFS does not require ECC, and the widely-repeated claim that non-ECC RAM will cause a scrub to destroy your pool is not accurate. What is accurate is narrower and still worth acting on: ZFS verifies data on disk, and it cannot verify data that was already corrupted in RAM before it was written. ECC closes that specific gap. It is a good idea for a machine that stores things you care about, on the same reasoning that applies to any server — not because ZFS is unusually fragile without it.</p>
+
+<h2 id="5-snapshots-are-not-backups-either">5. Snapshots are not backups either</h2>
+<p>ZFS snapshots are close to free, near-instant, and extremely good at the thing they do: rolling back a mistake. Deleted the wrong directory, overwrote a file, let an update mangle a config — a snapshot from before the change makes that a thirty-second fix.</p>
+<p>But a snapshot is a reference to blocks in the same pool, on the same disks, in the same building. If the pool is lost, every snapshot in it is lost at the same instant. They protect against <i>you</i>; they do not protect against the hardware or the house.</p>
+<p>They are also not automatically ransomware-proof. Malware that reaches the NAS over a network share cannot normally touch snapshots, which is a genuine advantage — but malware that obtains administrative access to the NAS itself can delete them. Ransomware families have targeted consumer NAS management interfaces specifically for this reason. Keeping the admin interface off the internet, and keeping at least one copy the running system cannot delete, is what actually closes that door.</p>
+
+<h2 id="6-3-2-1-is-what-the-rest-implies">6. 3-2-1 is what the rest of this implies</h2>
+<p>The classic formulation: <b>three</b> copies of the data, on <b>two</b> different media or systems, with <b>one</b> off-site. It survives as advice because each number maps to a failure mode the others do not cover.</p>
+<ul>
+<li><b>Three copies</b> — the live pool plus two others, so losing one during a restore is not fatal.</li>
+<li><b>Two media</b> — a second NAS, external drives, or a cloud target. Two pools on the same motherboard are one PSU failure away from being one copy.</li>
+<li><b>One off-site</b> — the only line that covers fire, flood and theft. A drive at a relative's house counts; so does encrypted cloud storage.</li>
+</ul>
+<p>The part people skip is verification. A backup you have never restored from is a hypothesis, not a backup. Restore something real on a schedule — a whole dataset, not one small file — and confirm you can actually read it on hardware other than the machine that made it. Checking that the job reported success is not the same test.</p>
+<p><code>zfs send</code> to a second pool is the natural fit here, because it moves the checksummed blocks themselves and can run incrementally from a snapshot. It is still worth pairing with a copy in a different format, so that a bug or an operator error in one tool cannot take every copy with it.</p>
+
+<h2 id="7-a-minimum-that-is-defensible">7. A minimum that is defensible</h2>
+<p>For a home NAS holding things you would be upset to lose:</p>
+<ol>
+<li><b>RAIDZ2</b>, or mirrors if you want easier expansion and can afford the capacity.</li>
+<li><b>Scheduled scrubs</b>, plus alerts that reach you — pool errors nobody reads are the same as no checksums.</li>
+<li><b>Automatic snapshots</b> with a retention policy, for the mistakes you will certainly make.</li>
+<li><b>One off-site copy</b>, encrypted, that the NAS cannot delete on its own.</li>
+<li><b>A restore test</b> on a calendar, at whatever interval you will actually honour.</li>
+</ol>
+<p>Points 1 to 3 keep the array running. Points 4 and 5 are the ones that get the data back. RAID is genuinely worth having — it turns a dead drive into an errand instead of an emergency. It simply answers a different question from the one a backup answers, and building only the first half is the mistake the slogan was trying to warn about.</p>

@@ -4,6 +4,47 @@
     {
       "date": "2026-08-20",
       "en": {
+        "title": "Other Knowledge joins the site, and the panel is regrouped"
+      },
+      "vi": {
+        "title": "Other Knowledge lên site, và panel được sắp lại"
+      },
+      "changes": [
+        {
+          "kind": "feature",
+          "target": "all-topics",
+          "en": {
+            "text": "The navigation panel now has four sections instead of five. **Technical** holds the study path — Study Track, Search, Gazl Try, Stats — and, below a divider, the two reference libraries that are read rather than drilled: System Design and Case Studies. **Other knowledge** is new and holds material outside interview preparation: the CalebZone Project snapshot moved here, joined by **Photography** and **NAS / Home Server**. The old Experience section is gone, and \"Other\" was renamed **About** so two sections would not share a name."
+          },
+          "vi": {
+            "text": "Panel điều hướng giờ có bốn section thay vì năm. **Technical** giữ lộ trình học — Study Track, Search, Gazl Try, Stats — và bên dưới một đường kẻ là hai thư viện tra cứu vốn để đọc chứ không để cày: System Design và Case Studies. **Other knowledge** là section mới, chứa nội dung nằm ngoài phần ôn phỏng vấn: bản snapshot Project CalebZone chuyển sang đây, cùng với **Photography** và **NAS / Home Server**. Section Experience cũ không còn, và \"Other\" được đổi tên thành **About** để hai section không trùng tên."
+          }
+        },
+        {
+          "kind": "content",
+          "target": "all-topics",
+          "en": {
+            "text": "Two Other Knowledge collections open with one article each, both bilingual. **Photography — \"Exposure: three controls, three different costs\"** treats shutter, aperture and ISO as three different currencies rather than three corners of a triangle: what a stop actually is, why stabilisation does nothing for a moving subject, why both ends of the aperture range cost resolution, and why ISO amplifies a signal rather than collecting light. **NAS / Home Server — \"RAID is not a backup\"** works through what each layer covers: parity levels, the resilver window and why drives from one batch fail together, ZFS checksums versus what classic RAID can detect, why snapshots live on the same disks, and the ECC argument stated accurately rather than as folklore."
+          },
+          "vi": {
+            "text": "Hai collection Other Knowledge mở màn với mỗi bên một bài, cả hai đều song ngữ. **Photography — \"Phơi sáng: ba control, ba cái giá khác nhau\"** xem shutter, khẩu độ và ISO là ba loại tiền khác nhau chứ không phải ba đỉnh một tam giác: một stop thật ra là gì, vì sao chống rung không cứu được chủ thể đang chuyển động, vì sao cả hai đầu dải khẩu đều lấy đi độ phân giải, và vì sao ISO khuếch đại tín hiệu chứ không thu thêm ánh sáng. **NAS / Home Server — \"RAID không phải backup\"** đi qua từng tầng che được cái gì: các mức parity, cửa sổ resilver và vì sao ổ cùng lô chết cùng nhau, checksum của ZFS so với thứ RAID cổ điển phát hiện được, vì sao snapshot nằm trên đúng những cái ổ đó, và lập luận về ECC được nêu cho chính xác thay vì theo lời đồn."
+          }
+        },
+        {
+          "kind": "change",
+          "target": "search",
+          "en": {
+            "text": "Search gained a fourth surface. Other Knowledge articles are indexed alongside the Study Track, System Design and Case Studies, so one query still covers everything the site holds, and the surface filter offers **Other knowledge** as its own chip. Under the surface, the bilingual collection loader and the long-form reading chrome — heading TOC, its collapse state, the figure lightbox — were each extracted into one owner rather than copied for the new library."
+          },
+          "vi": {
+            "text": "Search có thêm surface thứ tư. Bài trong Other Knowledge được index cùng với Study Track, System Design và Case Studies, nên một câu truy vấn vẫn phủ hết những gì site có, và bộ lọc surface có riêng chip **Other knowledge**. Ở bên dưới, loader collection song ngữ cùng phần chrome đọc bài dài — TOC theo heading, trạng thái thu gọn của nó, lightbox cho hình — mỗi thứ được tách ra một chủ sở hữu duy nhất thay vì copy thêm một bản cho thư viện mới."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-20",
+      "en": {
         "title": "Library cards say one thing per slot, and the small print is readable"
       },
       "vi": {

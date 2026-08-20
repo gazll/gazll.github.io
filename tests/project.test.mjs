@@ -39,7 +39,7 @@ test('Project menu and renderer are wired as a hash-routable view', async () => 
   const app = await readFile(path.join(publicRoot, 'app.js'), 'utf8');
   const view = await readFile(path.join(publicRoot, 'views/project.js'), 'utf8');
   const loader = await readFile(path.join(publicRoot, 'lib/project.js'), 'utf8');
-  assert.match(app, /id: 'project', sec: 'experience'/);
+  assert.match(app, /id: 'project', sec: 'knowledge'/);
   assert.match(app, /renderProject, mountProject/);
   assert.match(view, /ProjectDocs\.load\(\)/);
   assert.match(view, /renderSamples\(/);

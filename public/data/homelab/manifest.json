@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "categories": [
+    {
+      "id": "storage"
+    },
+    {
+      "id": "hardware"
+    },
+    {
+      "id": "network-services"
+    }
+  ],
+  "articles": [
+    {
+      "n": 1,
+      "file": "homelab/01-raid-is-not-a-backup.json",
+      "slug": "raid-is-not-a-backup",
+      "category": "storage",
+      "level": "core",
+      "featured": true,
+      "first_party": true,
+      "read_minutes": 9,
+      "original_language": "en",
+      "cover_image": "assets/homelab/01-raid-is-not-a-backup/01-failure-domains.svg",
+      "cover_fit": "contain",
+      "created_at": "2026-08-20",
+      "updated_at": "2026-08-20"
+    }
+  ]
+}
