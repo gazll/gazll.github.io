@@ -488,8 +488,12 @@ import { randomUUID } from 'node:crypto';
     ]);
 
     assert.match(question, /reviewed_at/);
-    assert.match(question, /class="qreview"/);
-    assert.match(question, /class="qreview-mobile"/);
+    // One reviewed stamp, in the answer, worded by the shared component — the
+    // collapsed row carries no date of its own and no second date format.
+    assert.match(question, /class="content-dates qreview"/);
+    assert.ok(!/qreview-mobile/.test(question), 'the duplicate mobile stamp is gone');
+    assert.ok(!/Intl\.DateTimeFormat/.test(question), 'the card must not keep its own date format');
+    assert.match(question, /<ContentDateStamp/);
     assert.match(collectionIndex, /contentDateFacts/);
     assert.match(collectionIndex, /class="content-sort"/);
     assert.match(collectionArticle, /contentDateFacts/);

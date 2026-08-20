@@ -136,7 +136,7 @@ import { pathToFileURL } from 'node:url';
     assert.match(topic, /Expand all/);
     assert.match(topic, /Collapse all/);
     assert.match(card, /qlangbtn/);
-    assert.match(card, /reviewedLabel/);
+    assert.match(card, /reviewedFact/);
     assert.match(card, /revealHash/);
     assert.match(card, /resolveRef/);
     assert.match(card, /Copied/);

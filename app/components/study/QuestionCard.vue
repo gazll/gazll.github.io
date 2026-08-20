@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { copyText } from '../../../public/lib/clipboard.js';
 import { DIFFICULTY_LABEL } from '../../../public/lib/constants.js';
+import { contentDateFacts } from '~/utils/content-dates.js';
 import { renderMarkdown } from '~/utils/markdown.js';
 import { safeDecodeURIComponent } from '~/utils/uri.js';
 
@@ -39,11 +40,13 @@ const answer = computed(() => renderMarkdown(currentItem.value.a, {
   stableHeadingIds: true,
   headingLinkLabel: localLang.value === 'vi' ? 'Liên kết đến mục này' : 'Link to this section'
 }));
-const reviewedLabel = computed(() => {
-  if (!currentItem.value.reviewed_at) return '';
-  try { return new Intl.DateTimeFormat(localLang.value === 'vi' ? 'vi-VN' : 'en-GB', { dateStyle: 'medium' }).format(new Date(currentItem.value.reviewed_at)); }
-  catch { return currentItem.value.reviewed_at; }
-});
+/* One reviewed stamp, and it lives in the answer rather than on the collapsed
+   row. Repeated down 26 collapsed cards it was chrome competing with the
+   questions; inside the answer it sits next to the claim it vouches for. The
+   shared stamp also means this date is worded like every other date on the
+   site instead of keeping a second format of its own. */
+const reviewedFact = computed(() =>
+  contentDateFacts({ reviewed_at: currentItem.value.reviewed_at }, localLang.value)[0] || null);
 
 async function setOpen(next: boolean) {
   if (open.value === next) return;
@@ -123,7 +126,6 @@ async function copyLink() {
         </svg>
       </button>
       <div class="qmeta">
-        <time v-if="reviewedLabel" class="qreview" :datetime="currentItem.reviewed_at">Reviewed {{ reviewedLabel }}</time>
         <button class="qcopy" type="button" :class="{ 'is-copied': copied }" :aria-label="copied ? 'Link copied' : 'Copy link to this question'" @click="copyLink">
           <svg class="qcopy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path v-if="copied" d="M5 13l4 4L19 7" />
@@ -139,7 +141,9 @@ async function copyLink() {
     <div class="qbody">
       <div class="qbody-inner">
         <div class="answer">
-          <p v-if="reviewedLabel" class="qreview-mobile">Technically reviewed <time :datetime="currentItem.reviewed_at">{{ reviewedLabel }}</time></p>
+          <div v-if="reviewedFact" class="content-dates qreview">
+            <ContentDateStamp :fact="reviewedFact" :lang="localLang" />
+          </div>
           <div class="answer-body" v-html="answer" />
           <div class="notebox" :class="{ 'has-note': noteBody.trim() }">
             <div class="note-head"><span class="note-label">My notes</span></div>

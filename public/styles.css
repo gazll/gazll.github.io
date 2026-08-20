@@ -373,7 +373,7 @@
   .cs-library-hero{position:relative;overflow:hidden;padding:42px 44px;border:1px solid var(--line);
     border-radius:18px;background:linear-gradient(135deg,#fff 0%,#F8FAFC 58%,var(--emerald-soft) 100%);
     box-shadow:var(--shadow);margin-bottom:34px}
-  .cs-library-hero::after{content:"";position:absolute;width:260px;height:260px;right:-58px;top:-82px;
+  .cs-library-hero::after{content:"";position:absolute;width:min(34%,380px);aspect-ratio:1;right:-58px;top:-82px;
     border:1px solid rgba(11,110,79,.16);border-radius:50%;box-shadow:0 0 0 34px rgba(11,110,79,.04),0 0 0 68px rgba(11,110,79,.025)}
   .cs-eyebrow{font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:600;letter-spacing:1.2px;
     text-transform:uppercase;color:var(--emerald);margin:0 0 10px}
@@ -581,7 +581,7 @@
   .sd-library{max-width:1180px;margin:0 auto}
   .sd-hero{position:relative;overflow:hidden;padding:44px;border:1px solid #cdd5ef;border-radius:18px;
     background:linear-gradient(135deg,#fff 0%,#F8F9FD 55%,var(--indigo-soft) 100%);box-shadow:var(--shadow);margin-bottom:34px}
-  .sd-hero::after{content:"";position:absolute;width:300px;height:300px;right:-80px;top:-110px;border-radius:24%;
+  .sd-hero::after{content:"";position:absolute;width:min(38%,420px);aspect-ratio:1;right:-80px;top:-110px;border-radius:24%;
     border:1px solid rgba(61,78,143,.16);transform:rotate(25deg);box-shadow:0 0 0 40px rgba(61,78,143,.035),0 0 0 80px rgba(61,78,143,.02)}
   .sd-hero h1,.sd-article-head h1{position:relative;font-family:"Space Grotesk",sans-serif;color:var(--ink);
     font-size:clamp(36px,5vw,60px);letter-spacing:-1.4px;line-height:1.05;margin:0 0 16px;max-width:850px}
@@ -946,7 +946,7 @@
 
   .hero{position:relative;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);
     box-shadow:var(--shadow);padding:26px 28px;margin-bottom:22px;overflow:hidden;}
-  .hero::before{content:"";position:absolute;inset:0 0 0 auto;width:240px;
+  .hero::before{content:"";position:absolute;inset:0 0 0 auto;width:clamp(240px,42%,620px);
     background:repeating-linear-gradient(90deg, transparent 0 38px, rgba(20,35,58,.035) 38px 39px),
     linear-gradient(90deg, transparent, var(--emerald-soft));opacity:.7;pointer-events:none;}
   .hero-head{display:flex;align-items:flex-start;gap:18px;position:relative}
@@ -1005,8 +1005,27 @@
   .qcard.done .qid::after{content:"✓";display:block;font-size:11px;color:var(--emerald);font-weight:700;margin-top:1px;line-height:1}
   .qtext{flex:1;font-weight:500;font-size:15.5px;line-height:1.45}
   .qmeta{display:flex;align-items:center;gap:10px;flex:none;padding-right:18px}
-  .qreview{font-family:"IBM Plex Mono",monospace;font-size:9px;white-space:nowrap;color:var(--emerald-deep)}
-  .qreview-mobile{display:none;margin:0 0 12px;font-family:"IBM Plex Mono",monospace;font-size:10px;color:var(--emerald-deep)}
+/* Copy-link and the language toggle are per-card CONTROLS, not information, and
+   a track prints 26 cards down one screen — at rest all three rows of chrome
+   competed with the questions themselves. They rest invisible and arrive on
+   hover, on keyboard focus anywhere in the card, or once the card is open.
+
+   pointer-events is what makes that safe: an opacity:0 button is still
+   clickable, so hiding it without this leaves an invisible click target over
+   the card. Tab still reaches it — focus-within then makes it visible and
+   interactive in the same frame — and a touch device has no hover to reveal
+   anything with, so coarse pointers keep them on permanently. */
+  
+  .qmeta>.qcopy,.qmeta>.qlangbtn{opacity:0;pointer-events:none;transition:opacity .14s ease}
+  .qcard:hover .qmeta>.qcopy,.qcard:hover .qmeta>.qlangbtn,
+  .qcard:focus-within .qmeta>.qcopy,.qcard:focus-within .qmeta>.qlangbtn,
+  .qcard.open .qmeta>.qcopy,.qcard.open .qmeta>.qlangbtn{opacity:1;pointer-events:auto}
+  @media (hover:none){
+    .qmeta>.qcopy,.qmeta>.qlangbtn{opacity:1;pointer-events:auto}
+  }
+  .qreview{margin:0 0 14px}
+  .qreview .datestamp{color:var(--emerald-deep)}
+  .qreview .datestamp>b{color:var(--emerald-deep)}
   .qcopy{display:inline-flex;align-items:center;justify-content:center;gap:5px;flex:none;min-width:26px;min-height:26px;padding:4px 8px;border:1px solid var(--line);
     border-radius:7px;color:var(--muted);background:var(--surface);font-family:"IBM Plex Mono",monospace;
     font-size:10px;font-weight:600;line-height:1;white-space:nowrap;transition:.15s;cursor:pointer}
@@ -1318,8 +1337,6 @@
     .qcard[data-qid] .qtext{grid-column:2;grid-row:1/span 2}
     .qcard[data-qid] .qhead>.chev{grid-column:3;grid-row:1/span 2;align-self:center}
     .qcard[data-qid] .qmeta{align-self:center;gap:8px;padding-right:12px}
-    .qcard[data-qid] .qreview{display:none}
-    .qcard[data-qid] .qreview-mobile{display:block}
     /* the flag on the knob already says which language is showing */
     .qlangbtn .lang-label{display:none}
   }

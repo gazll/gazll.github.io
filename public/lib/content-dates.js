@@ -22,11 +22,17 @@ export function formatContentDate(value, lang = 'en') {
    is this still current? — which an absolute date only answers after the
    reader does the arithmetic.
 
-   Past a year it stops helping ("6 years ago" for a 2020 publisher article is
-   worse than the date itself), so it falls back to the absolute date. The
-   caller must render this AFTER mount and keep `formatted` for the server
+   It only helps while the answer is still "recently" — past a month the reader
+   wants the date itself, because "6 years ago" for a 2020 publisher article
+   says less than "Nov 12, 2020", and a whole library stamped in one batch
+   reads as a vague claim rather than as data. So RECENT_DAYS is the whole
+   rule: inside it, relative; outside it, the absolute date.
+
+   The caller must render this AFTER mount and keep `formatted` for the server
    pass: a prerendered "2 days ago" is stale the moment the artifact is a week
    old, and it would hydrate against a different string. */
+const RECENT_DAYS = 30;
+
 export function relativeContentDate(value, lang = 'en', now = Date.now()) {
   if (!ISO_DATE.test(String(value || ''))) return '';
   const then = Date.parse(value + 'T00:00:00Z');
@@ -34,13 +40,12 @@ export function relativeContentDate(value, lang = 'en', now = Date.now()) {
   // Both sides floored to a UTC day, so "yesterday" does not depend on the
   // hour the reader opened the page.
   const days = Math.round((then - Math.floor(now / DAY_MS) * DAY_MS) / DAY_MS);
-  if (Math.abs(days) > 365) return formatContentDate(value, lang);
+  if (Math.abs(days) > RECENT_DAYS) return formatContentDate(value, lang);
 
   const locale = lang === 'vi' ? 'vi-VN' : 'en';
   const relative = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
   if (Math.abs(days) < 7) return relative.format(days, 'day');
-  if (Math.abs(days) < 30) return relative.format(Math.round(days / 7), 'week');
-  return relative.format(Math.round(days / 30), 'month');
+  return relative.format(Math.round(days / 7), 'week');
 }
 
 export function contentDateFacts(row, lang = 'en', { includePublished = false } = {}) {
