@@ -607,3 +607,32 @@ import { readFile } from 'node:fs/promises';
     assert.match(styles, /scroll-margin-top/);
   });
 }
+
+// ---- search index delivery ----
+{
+  const root = path.resolve(import.meta.dirname, '..');
+
+  /* The index carries every answer body, so it is measured in megabytes. Awaiting
+     it through useAsyncData would inline it into the prerendered payload and make
+     every visit to /search download the whole corpus before first paint — and the
+     overlay would then fetch it again. Both surfaces load it in the browser. */
+  test('the search index is fetched in the browser, never inlined into the payload', async () => {
+    const [page, overlay] = await Promise.all([
+      readFile(path.join(root, 'app/pages/search.vue'), 'utf8'),
+      readFile(path.join(root, 'app/components/search/SearchOverlay.client.vue'), 'utf8')
+    ]);
+
+    for (const [name, source] of [['search page', page], ['overlay', overlay]]) {
+      assert.doesNotMatch(source, /useAsyncData\([^)]*search-index/,
+        `${name} must not resolve the index during prerender`);
+      assert.match(source, /fetch\('\/api\/content\/search-index'\)/,
+        `${name} must fetch the index at runtime`);
+    }
+
+    // A query typed before the index lands must not read as "no result".
+    assert.match(page, /indexLoading/);
+    assert.match(page, /indexFailed/);
+    assert.ok(page.indexOf('indexLoading') < page.indexOf('!results.length'),
+      'the loading state must be checked before the empty state');
+  });
+}

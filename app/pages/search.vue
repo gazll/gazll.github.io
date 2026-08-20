@@ -5,19 +5,37 @@ const router = useRouter();
 const lang = computed<'en' | 'vi'>(() => route.query.lang === 'vi' ? 'vi' : 'en');
 const query = ref(String(route.query.q || ''));
 const surface = ref(String(route.query.surface || 'all'));
-const { data: entries } = await useAsyncData('search:index', () => $fetch<any[]>('/api/content/search-index'));
+/* Fetched in the browser, never through useAsyncData: awaiting it here makes
+   the index part of the prerendered payload, and this one is ~2.4MB — every
+   visit to /search would download the whole corpus before first paint, and
+   the overlay would then fetch it a second time. Loading it on mount keeps
+   the page itself small and lets the results appear as soon as it lands. */
+const entries = ref<any[]>([]);
+const indexLoading = ref(true);
+const indexFailed = ref(false);
+onMounted(async () => {
+  try {
+    const response = await fetch('/api/content/search-index');
+    if (!response.ok) throw new Error(`Search index returned ${response.status}`);
+    entries.value = await response.json();
+  } catch {
+    indexFailed.value = true;
+  } finally {
+    indexLoading.value = false;
+  }
+});
 const nuxtApp = useNuxtApp() as any;
 const recent = ref<any[]>([]);
 let stopHistory: (() => void) | null = null;
 const labels = computed(() => lang.value === 'vi' ? {
   eyebrow: 'Tìm kiếm', title: 'Mọi thứ, ở một nơi', intro: 'Một truy vấn cho Lộ trình học, blueprint System Design, case study, nhiếp ảnh và ghi chú home server. Mỗi kết quả đều cho biết thư viện của nó.',
   placeholder: 'Tìm câu hỏi, blueprint và case study…', searchAria: 'Tìm kiếm toàn bộ nội dung', surface: 'Khu vực tìm kiếm', recent: 'Tìm kiếm gần đây', clear: 'Xóa hết',
-  start: 'Bắt đầu nhập để tìm trên mọi thư viện GAZLL.', noResult: 'Không có kết quả cho “{query}”. Hãy thử từ khóa ngắn hoặc rộng hơn.', result: 'kết quả', results: 'kết quả', in: 'trong', for: 'cho', all: 'Tất cả',
+  start: 'Bắt đầu nhập để tìm trên mọi thư viện GAZLL.', loadingIndex: 'Đang tải chỉ mục tìm kiếm…', indexFailed: 'Không tải được chỉ mục tìm kiếm. Hãy tải lại trang.', noResult: 'Không có kết quả cho “{query}”. Hãy thử từ khóa ngắn hoặc rộng hơn.', result: 'kết quả', results: 'kết quả', in: 'trong', for: 'cho', all: 'Tất cả',
   track: 'Lộ trình học', system: 'System Design', cases: 'Case Studies', photography: 'Nhiếp ảnh', homelab: 'NAS / Home Server'
 } : {
   eyebrow: 'Search', title: 'Everything, in one place', intro: 'One query across the Study Track, System Design blueprints, case studies, photography and home-server notes. Every result names the library it belongs to.',
   placeholder: 'Search questions, blueprints and case studies…', searchAria: 'Search all material', surface: 'Search surface', recent: 'Recent searches', clear: 'Clear all',
-  start: 'Start typing to search every GAZLL library.', noResult: 'No result matches “{query}”. Try fewer or broader terms.', result: 'result', results: 'results', in: 'in', for: 'for', all: 'All',
+  start: 'Start typing to search every GAZLL library.', loadingIndex: 'Loading the search index…', indexFailed: 'The search index could not be loaded. Reload the page to try again.', noResult: 'No result matches “{query}”. Try fewer or broader terms.', result: 'result', results: 'results', in: 'in', for: 'for', all: 'All',
   track: 'Study Track', system: 'System Design', cases: 'Case Studies', photography: 'Photography', homelab: 'NAS / Home Server'
 });
 
@@ -105,6 +123,8 @@ useHead({
         <div class="gs-page-body">
           <section v-if="!query && recent.length" class="gs-group gs-history"><h3>{{ labels.recent }} <button type="button" class="gs-clear" @click="nuxtApp.$searchHistory?.clear()">{{ labels.clear }}</button></h3><div v-for="entry in recent" :key="entry.q" class="gs-recent-row"><button type="button" class="gs-recent" @click="query = entry.q">{{ entry.q }}</button><button type="button" class="gs-forget" @click="nuxtApp.$searchHistory?.remove(entry.q)">×</button></div></section>
           <p v-else-if="!query" class="gs-empty">{{ labels.start }}</p>
+          <p v-else-if="indexFailed" class="gs-empty" role="alert">{{ labels.indexFailed }}</p>
+          <p v-else-if="indexLoading" class="gs-empty" role="status">{{ labels.loadingIndex }}</p>
           <p v-else-if="!results.length" class="gs-empty">{{ labels.noResult.replace('{query}', query) }}</p>
           <p v-else class="gs-count">{{ results.length }} {{ results.length === 1 ? labels.result : labels.results }}{{ surface === 'all' ? '' : ` ${labels.in} ${surfaceLabels[surface]}` }} {{ labels.for }} <b>{{ query }}</b></p>
           <section v-for="([resultSurface, rows]) in groupedResults" :key="resultSurface" class="gs-group">
