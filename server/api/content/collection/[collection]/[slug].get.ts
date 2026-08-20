@@ -38,5 +38,14 @@ export default defineEventHandler(async event => {
   if (vi?.body_file) {
     try { viBody = normalizeBodyHtml(await read(vi.body_file)); } catch (error) {}
   }
-  return { collection, library: meta.library, categories: meta.categories, row, en, vi, enBody, viBody };
+  /* A case handed over to System Design also carries an architecture lens and a
+     Mermaid diagram in the blueprint catalog. The old production-case article
+     rendered them; after the migration the row's only remaining route is here,
+     so the overview travels with the article rather than going unread. */
+  let overview = null;
+  if (collection === 'case-studies') {
+    const catalog = await json('data/system-design/catalog.json');
+    overview = catalog.case_overviews?.[slug] || null;
+  }
+  return { collection, library: meta.library, categories: meta.categories, row, en, vi, enBody, viBody, overview };
 });

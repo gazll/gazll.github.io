@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { contentDateFacts } from '~/utils/content-dates.js';
+import { PUBLISHER_ORIGINS, originGuard } from '../../../public/lib/constants.js';
 
 const props = defineProps<{
   collection: 'case-studies' | 'photography' | 'homelab'
@@ -24,11 +25,44 @@ const categoryLabel = computed(() => {
 const labels = computed(() => lang.value === 'vi' ? {
   back: 'Tất cả bài viết', contents: 'Trong bài này', guide: 'Hướng dẫn đọc', problem: 'Vấn đề',
   idea: 'Ý tưởng cốt lõi', outcome: 'Kết quả', takeaways: 'Điểm chính', review: 'Góc nhìn đánh giá',
-  source: 'Nguồn', original: 'Bài viết gốc', close: 'Đóng ảnh'
+  source: 'Nguồn', original: 'Bài viết gốc', close: 'Đóng ảnh',
+  historical: 'Historical case study', synthesis: 'Editorial synthesis',
+  architecture: 'Góc nhìn kiến trúc',
+  historicalNote: 'Architecture, technology choices và benchmark figures phản ánh system cùng workload tại thời điểm bài được publish.',
+  synthesisNote: 'Bài này được biên soạn lại từ nguồn đã ghi công, không phải bản sao được lưu nguyên văn từ bài gốc.'
 } : {
   back: 'All articles', contents: 'On this page', guide: 'Reading guide', problem: 'Problem',
   idea: 'Core idea', outcome: 'Outcome', takeaways: 'Takeaways', review: 'Review lenses',
-  source: 'Source', original: 'Original article', close: 'Close image'
+  source: 'Source', original: 'Original article', close: 'Close image',
+  historical: 'Historical case study', synthesis: 'Editorial synthesis',
+  architecture: 'Architecture lens',
+  historicalNote: 'Architecture, technology choices and benchmark figures reflect the system and workload described at publication time.',
+  synthesisNote: 'This article is a rewritten case study based on the credited source, not a preserved copy of the original.'
+});
+
+/* Outbound credit links are pinned to the approved publisher origins by
+   lib/constants.js — the one allowlist owner. A first-party row carries no
+   source_url at all, so it gets neither the link nor the archive note. */
+const sourceHref = originGuard(PUBLISHER_ORIGINS);
+const creditHref = computed(() => data.value.row.source_url ? sourceHref(data.value.row.source_url) : '');
+/* An external body that was rewritten rather than preserved must be labelled
+   as editorial synthesis, never as the original article. */
+const archive = computed(() => {
+  if (props.collection !== 'case-studies' || data.value.row.first_party || !data.value.row.source_url) return null;
+  const synthesis = data.value.row.content_kind === 'synthesis';
+  return {
+    label: synthesis ? labels.value.synthesis : labels.value.historical,
+    note: synthesis ? labels.value.synthesisNote : labels.value.historicalNote
+  };
+});
+
+/* Present only on the cases handed over to System Design; the lens and its
+   diagram are authored in the blueprint catalog. */
+const overview = computed(() => {
+  const row = data.value.overview;
+  if (!row) return null;
+  const copyRow = row[lang.value] || row.en;
+  return copyRow?.lens ? { title: copyRow.title || '', lens: copyRow.lens, diagram: row.diagram || '' } : null;
 });
 
 const decodeHeading = (value: string) => value
@@ -96,7 +130,14 @@ useHead(() => ({
             <span v-if="data.row.original_language" class="cs-language">{{ data.row.original_language.toUpperCase() }}</span>
           </div>
           <div class="cs-tags"><span v-for="tag in copy.tags || []" :key="tag">{{ tag }}</span></div>
+          <div v-if="archive" class="cs-archive-note"><b>{{ archive.label }}</b><span>{{ archive.note }}</span></div>
         </header>
+
+        <section v-if="overview" id="architecture-lens" class="cs-guide cs-architecture" aria-labelledby="cs-architecture-title">
+          <header><p>{{ labels.architecture }}</p><h2 id="cs-architecture-title">{{ overview.title || labels.architecture }}</h2></header>
+          <div class="cs-guide-brief"><article><p>{{ overview.lens }}</p></article></div>
+          <ContentMermaidDiagram v-if="overview.diagram" :source="overview.diagram" :title="overview.title || labels.architecture" :lang="lang" />
+        </section>
 
         <section v-if="guide.title" class="cs-guide" aria-labelledby="cs-guide-title">
           <header><p>{{ labels.guide }}</p><h2 id="cs-guide-title">{{ guide.title }}</h2></header>
@@ -129,8 +170,8 @@ useHead(() => ({
           <article class="cs-article-body" @click="onArticleClick" v-html="decoratedBody" />
         </div>
 
-        <footer v-if="data.row.source_url" class="cs-source">
-          <span>{{ labels.source }}</span><a :href="data.row.source_url" target="_blank" rel="noopener noreferrer">{{ data.row.company }} — {{ labels.original }} ↗</a>
+        <footer v-if="creditHref" class="cs-source">
+          <span>{{ labels.source }}</span><a :href="creditHref" target="_blank" rel="noopener noreferrer">{{ data.row.company }} — {{ labels.original }} ↗</a>
         </footer>
         <dialog ref="lightbox" class="cs-lightbox" @click.self="lightbox?.close()">
           <button type="button" :aria-label="labels.close" @click="lightbox?.close()">×</button>
