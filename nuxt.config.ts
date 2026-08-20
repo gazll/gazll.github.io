@@ -35,7 +35,7 @@ function contentRoutes() {
 
      Revisit only if the site goes public and search indexing starts to matter. */
   return [
-    '/', '/search', '/api/content/search-index', '/gazl', '/stats', '/admin', '/system-design', '/case-studies',
+    '/', '/search', '/api/content/search-index', '/gazl-try', '/stats', '/admin', '/system-design', '/case-studies',
     '/project', '/project/calebzone', '/photography', '/homelab', '/release-notes', '/fshare-tool',
     '/course-registration', ...topicRoutes, ...designRoutes, ...caseRoutes, ...photoRoutes, ...homelabRoutes
   ];
@@ -91,6 +91,9 @@ export default defineNuxtConfig({
   },
   routeRules: {
     '/project/calebzone': { redirect: { to: '/project', statusCode: 301 } },
+    /* The journal was /gazl before it was named. Shared links must keep
+       resolving, exactly as the retired hash URLs do. */
+    '/gazl': { redirect: { to: '/gazl-try', statusCode: 301 } },
     '/**': { prerender: true }
   }
 });

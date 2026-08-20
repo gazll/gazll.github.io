@@ -443,9 +443,25 @@ import { randomUUID } from 'node:crypto';
     assert.notEqual(en[2].formatted, vi[2].formatted);
   });
 
-  test('an unchanged article shows one Gazl date instead of duplicate dates', () => {
+  test('an unchanged article shows one date, and it is the Updated one', () => {
+    // Still one stamp, never two identical ones — but "Updated" is the fact a
+    // reader is checking for, and a head that only ever says "Added to Gazl"
+    // reads as if the freshness stamp went missing.
     const facts = contentDateFacts({ created_at: '2026-08-19', updated_at: '2026-08-19' }, 'vi');
-    assert.deepEqual(facts.map(fact => fact.kind), ['created']);
+    assert.deepEqual(facts.map(fact => fact.kind), ['updated']);
+    assert.equal(facts[0].label, 'Cập nhật');
+  });
+
+  test('relative wording answers "is this current", and gives up past a year', async () => {
+    const { relativeContentDate } = await import('../public/lib/content-dates.js');
+    const now = Date.parse('2026-08-20T09:00:00Z');
+
+    assert.equal(relativeContentDate('2026-08-20', 'en', now), 'today');
+    assert.equal(relativeContentDate('2026-08-19', 'en', now), 'yesterday');
+    assert.equal(relativeContentDate('2026-08-06', 'en', now), '2 weeks ago');
+    // Past a year the date itself is more useful than "6 years ago".
+    assert.equal(relativeContentDate('2020-11-12', 'en', now), formatContentDate('2020-11-12', 'en'));
+    assert.equal(relativeContentDate('not-a-date', 'en', now), '');
   });
 
   test('technical review stays distinct from a file update and drives recent activity', async () => {

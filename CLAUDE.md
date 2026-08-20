@@ -197,6 +197,25 @@ secret/              GITIGNORED. Personal setup notes and credentials
   interview journal is the opposite: `renderUser` escapes first, so write a
   plain `<` there and never an entity.)
 
+- **Gazl Try is two groups, and `kind` is the only thing that decides which.**
+  An entry that carries a `kind` (`playbook`, `community-report`) was
+  synthesised across many interviews and answers *what do these have in
+  common*; an entry without one is a single company's process. The Common
+  group is built first in `groups` and rendered first, because it is what a
+  reader should study before any one company's questions — never re-order them
+  by date. Each entry is **collapsed by default**: one 13-question entry
+  otherwise buries every row under it, and the journal is meant to grow. The
+  head `.iv-co-head` is itself the toggle, so — exactly like `.qhead` — nothing
+  inside it may be a `<button>`; Edit/Delete/Save-to-journal live in
+  `.iv-co-body`. A company row carries `jd`, `brief` and `rounds`
+  (`[{name, note}]`); `roundCount()` falls back to the distinct round labels
+  the questions already carry, so an entry written before those fields existed
+  still reports its loop. `tests/native-surfaces.test.mjs` pins the order, the
+  collapse and the no-nested-button rule.
+
+  The route is `/gazl-try`. It was `/gazl`, and that URL was shared, so
+  `nuxt.config.ts` keeps a 301 — the same promise the retired hash URLs carry.
+
 - **The interview journal merges two sources; `own` separates them.** Sheet
   rows carry `own: true`, `interviews.json` entries `own: false` and an id of
   `seed-N` (Sheet ids are UUIDs, so they cannot collide). Only own rows may be
@@ -365,6 +384,36 @@ secret/              GITIGNORED. Personal setup notes and credentials
   width — a wide diagram can take the column and leave `minmax(0,1fr)` at
   zero. `.cs-card-art` always declared its 112px; this is the same fix.
 
+- **A container is only as wide as the text inside it.** A block sized for a
+  wide column whose contents are then capped short of it reads as a layout
+  slip, not as a measure — the eye sees the box, not the `max-width`. This had
+  already happened in five places at once: `.sd-article-head` reserved 942px
+  and capped its prose at 800px, `.sd-section>p` capped at `74ch` inside an
+  826px column, `.cs-article-head` capped h1 at 900px inside 1120px, and the
+  head's padding reached the grid column while the body's text started a
+  further gutter in. So, in order:
+
+  1. **Prefer no cap at all.** `.cs-article-body` settled this first — "the
+     article gutters already provide a comfortable reading measure", and its
+     prose is `max-width:none`. A column that is already bounded by its own
+     padding does not need a second bound inside it.
+  2. **If a measure is genuinely wanted, the padding is what provides it** —
+     widen the gutter, do not narrow the text. Padding keeps the box and the
+     text the same width; a `max-width` makes them disagree.
+  3. **A head outside the body card pads to the body's TEXT column**, gutter
+     included, not to the grid column. `--sd-gutter` exists for exactly this:
+     one declaration both the head and the body read.
+  4. **A fixed grid track must fit its shortest case too.** `.sd-code-grid` was
+     `repeat(2, minmax(0,1fr))` while seven of the twenty blueprints ship a
+     single code sample, so half the section was empty beside it; it is
+     `auto-fit` now. Same failure as a two-column table whose second column is
+     often absent.
+
+  The tell is always the same — a border, background or accent that extends
+  visibly past where the text stops. When adding a `max-width` to anything
+  inside an already-bounded column, assume it is wrong until the box and the
+  text end together.
+
 - **Colour tokens have a contrast floor, and it is tested.** The site's meta
   rows, tags, eyebrows and date stamps render at 9–10px, which is normal text
   under WCAG — it owes 4.5:1, not the 3:1 large-text allowance. `--muted` sat
@@ -495,9 +544,14 @@ secret/              GITIGNORED. Personal setup notes and credentials
      not read the `39` of `&#39;` as a number (hence the `(?<!&#)` guard).
      Ranges match whole, so `1-10 triệu` is one span.
   4. **The article head is padded to the body column, and the TOC collapses in
-     place.** `.sd-article-head` carries `padding-left: var(--sd-rail) + 28px`
-     so the title starts level with the article body instead of hanging off the
-     left edge past the TOC rail. The desktop TOC collapses to a 44px icon rail
+     place.** `.sd-article-head` carries
+     `padding-left: var(--sd-rail) + 28px + var(--sd-gutter)` so the title
+     starts level with the article body instead of hanging off the left edge
+     past the TOC rail. All three terms are needed: the first two reach the
+     grid column, and `--sd-gutter` — the body card's own horizontal padding,
+     declared once on `.sd-article` so the two cannot drift — reaches the text
+     inside it. Padding only to the grid column is the bug this replaced: the
+     title started 58px left of the first paragraph under it. The desktop TOC collapses to a 44px icon rail
      rather than unmounting — the grid column keeps its place, so collapsing
      never reflows the body mid-read, and `--sd-rail` drives the head padding
      and the grid together. State persists in `gazll:system-design-toc` (the native surfaces use the
@@ -799,9 +853,10 @@ version, otherwise the Web App keeps serving the old code. The `search.pull` /
 added there — until that redeploy, signed-in search history stays on the
 device and the site behaves exactly as it did before.
 
-The interview journal since gained three trailing columns —
-`interview_questions.diagrams_json`, `interviews.active_question_set` and
-`interviews.references_json`. `table()` fills newly declared **trailing**
+The interview journal since gained six trailing columns —
+`interview_questions.diagrams_json`, `interviews.active_question_set`,
+`interviews.references_json`, and then `interviews.jd`, `interviews.brief` and
+`interviews.rounds_json` for the Gazl Try restructure. `table()` fills newly declared **trailing**
 headers on an existing sheet, so no manual migration is needed, but until the
 redeploy a saved diagram or reference is silently dropped: the old code never
 reads those keys. Schema changes here are append-only for that reason — a

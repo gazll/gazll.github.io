@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { copyText } from '../../../public/lib/clipboard.js';
+import { DIFFICULTY_LABEL } from '../../../public/lib/constants.js';
 import { renderMarkdown } from '~/utils/markdown.js';
 import { safeDecodeURIComponent } from '~/utils/uri.js';
 
@@ -24,6 +25,10 @@ const progress = import.meta.client ? useStudyProgress() : null;
 const isReviewed = computed(() => progress?.reviewed.value.includes(props.item.id) || false);
 const currentItem = computed(() => props.pair?.[localLang.value] || props.pair?.en || props.item);
 const sequence = computed(() => /\.q(\d+)$/.exec(currentItem.value.id)?.[1] || '?');
+/* Difficulty and the collection level are the same closed set drawn the same
+   way, so they share .content-level rather than keeping a second badge whose
+   border and colours the migration dropped. */
+const difficultyLabel = computed(() => DIFFICULTY_LABEL[currentItem.value.difficulty as 'core'] || currentItem.value.difficulty);
 const answer = computed(() => renderMarkdown(currentItem.value.a, {
   resolveRef: (id: string) => {
     const owner = props.sourceOwners?.[id];
@@ -111,7 +116,7 @@ async function copyLink() {
     <div class="qtop">
       <button class="qhead" type="button" :aria-expanded="open" @click="toggle">
         <span class="qid" :title="item.id">Q{{ sequence }}</span>
-        <span v-if="currentItem.difficulty" class="badge" :class="`badge-${currentItem.difficulty}`">{{ currentItem.difficulty }}</span>
+        <span v-if="currentItem.difficulty" class="content-level" :class="`level-${currentItem.difficulty}`">{{ difficultyLabel }}</span>
         <span class="qtext">{{ currentItem.q }}</span>
         <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
           <polyline points="9 6 15 12 9 18" />
@@ -123,7 +128,7 @@ async function copyLink() {
           <span class="qcopy-label">{{ copied ? 'Copied' : 'Copy link' }}</span>
         </button>
         <button v-if="pair?.vi" class="langswitch qlangbtn" type="button" role="switch" :aria-checked="localLang === 'vi'" aria-label="Show this question in the other language" @click="localLang = localLang === 'vi' ? 'en' : 'vi'">
-          <span class="lang-label">EN</span><span class="lang-track" aria-hidden="true"><span class="lang-knob">{{ localLang === 'vi' ? '🇻🇳' : '🇬🇧' }}</span></span><span class="lang-label">VI</span>
+          <span class="lang-label" data-lang="en">EN</span><span class="lang-track" aria-hidden="true"><span class="lang-knob"><ContentFlagIcon :lang="localLang" /></span></span><span class="lang-label" data-lang="vi">VI</span>
         </button>
       </div>
     </div>

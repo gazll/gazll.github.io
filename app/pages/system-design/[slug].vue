@@ -184,7 +184,7 @@ useHead(() => ({
           <p class="cs-eyebrow">{{ labels.blueprint }} · {{ design.level }} · {{ design.effort }}</p>
           <h1>{{ copy.title }}</h1>
           <p class="intro">{{ copy.scope || copy.excerpt }}</p>
-          <div class="content-dates"><time v-for="fact in dates" :key="fact.kind" :datetime="fact.value">{{ fact.label }} {{ fact.formatted }}</time></div>
+          <div class="content-dates"><ContentDateStamp v-for="fact in dates" :key="fact.kind" :fact="fact" :lang="lang" /></div>
           <div class="cs-tags"><span v-for="tag in copy.tags || []" :key="tag">{{ tag }}</span></div>
           <p v-if="blueprintSource" class="sd-blueprint-source"><span>{{ labels.source }}</span><a :href="blueprintSource" target="_blank" rel="noopener noreferrer">{{ copy.source_label || design.source_label || labels.source }} ↗</a></p>
         </header>

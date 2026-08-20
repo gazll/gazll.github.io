@@ -58,6 +58,13 @@ export function labelledParts(value) {
 const MIN_CLAUSES = 3;
 const MIN_SENTENCES = 3;
 const CLAUSE = /;\s+/;
+/* …with one exception, and it is a length, not a count. Two clauses stop being
+   a compound sentence once the reader has to hold both halves across a whole
+   line of text: at that point the `;` is the author enumerating, exactly as
+   three clauses would be. 180 characters is where that starts — a two-clause
+   row under it is a claim plus its qualifier and stays one line, which is what
+   MIN_CLAUSES was protecting. */
+const LONG_PAIR = 180;
 /* The lead hands off into the list, so it is capped at 90 characters: past
    that it is a paragraph in its own right and the colon was punctuation. */
 const LEAD = /^([^:]{4,90}):\s(?=\S)/u;
@@ -72,7 +79,8 @@ export function bulletParts(value) {
   // the last sentence — anything before it introduces the list.
   const last = lines[lines.length - 1] || '';
   const clauses = last.split(CLAUSE).map(clause => clause.trim()).filter(Boolean);
-  if (clauses.length < MIN_CLAUSES) return { lead: source, items: [] };
+  const minClauses = last.length > LONG_PAIR ? 2 : MIN_CLAUSES;
+  if (clauses.length < minClauses) return { lead: source, items: [] };
 
   const head = clauses[0].match(LEAD);
   const lead = [lines.slice(0, -1).join(' '), head ? head[1] + ':' : ''].filter(Boolean).join(' ');

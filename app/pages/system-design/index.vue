@@ -59,7 +59,7 @@ useStickyGroupHeads(libraryRoot, '.sd-group>header');
                 <strong>{{ text(design).title }}</strong>
                 <span>{{ text(design).excerpt }}</span>
                 <span class="sd-card-tags"><i v-for="tag in (text(design).tags || []).slice(0, 4)" :key="tag">{{ tag }}</i></span>
-                <span class="sd-card-meta"><span>{{ design.effort || '45 min' }}</span><span v-if="lastDate(design)">{{ lastDate(design).label }} {{ lastDate(design).formatted }}</span></span>
+                <span class="sd-card-meta"><span>{{ design.effort || '45 min' }}</span><ContentDateStamp v-if="lastDate(design)" :fact="lastDate(design)" :lang="lang" inline /></span>
               </span>
               <span class="sd-card-arrow" aria-hidden="true">→</span>
             </NuxtLink>
@@ -79,7 +79,7 @@ useStickyGroupHeads(libraryRoot, '.sd-group>header');
                 <strong>{{ text(article.metadata).title }}</strong>
                 <span>{{ text(article.overview).lens || text(article.metadata).excerpt }}</span>
                 <span class="sd-card-tags"><i v-for="tag in (text(article.metadata).tags || []).slice(0, 4)" :key="tag">{{ tag }}</i></span>
-                <span class="sd-card-meta"><span>{{ article.read_minutes }} min read</span><span v-if="lastDate(article)">{{ lastDate(article).label }} {{ lastDate(article).formatted }}</span></span>
+                <span class="sd-card-meta"><span>{{ article.read_minutes }} min read</span><ContentDateStamp v-if="lastDate(article)" :fact="lastDate(article)" :lang="lang" inline /></span>
               </span>
               <span class="sd-card-arrow" aria-hidden="true">→</span>
             </NuxtLink>

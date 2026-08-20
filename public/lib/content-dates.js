@@ -1,4 +1,5 @@
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+const DAY_MS = 86400000;
 
 const LABELS = {
   en: { published: 'Source published', created: 'Added to Gazl', updated: 'Updated', reviewed: 'Technically reviewed' },
@@ -17,12 +18,42 @@ export function formatContentDate(value, lang = 'en') {
   }).format(date);
 }
 
+/* "Updated 3 days ago" answers the question a date stamp is actually asked —
+   is this still current? — which an absolute date only answers after the
+   reader does the arithmetic.
+
+   Past a year it stops helping ("6 years ago" for a 2020 publisher article is
+   worse than the date itself), so it falls back to the absolute date. The
+   caller must render this AFTER mount and keep `formatted` for the server
+   pass: a prerendered "2 days ago" is stale the moment the artifact is a week
+   old, and it would hydrate against a different string. */
+export function relativeContentDate(value, lang = 'en', now = Date.now()) {
+  if (!ISO_DATE.test(String(value || ''))) return '';
+  const then = Date.parse(value + 'T00:00:00Z');
+  if (Number.isNaN(then)) return '';
+  // Both sides floored to a UTC day, so "yesterday" does not depend on the
+  // hour the reader opened the page.
+  const days = Math.round((then - Math.floor(now / DAY_MS) * DAY_MS) / DAY_MS);
+  if (Math.abs(days) > 365) return formatContentDate(value, lang);
+
+  const locale = lang === 'vi' ? 'vi-VN' : 'en';
+  const relative = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
+  if (Math.abs(days) < 7) return relative.format(days, 'day');
+  if (Math.abs(days) < 30) return relative.format(Math.round(days / 7), 'week');
+  return relative.format(Math.round(days / 30), 'month');
+}
+
 export function contentDateFacts(row, lang = 'en', { includePublished = false } = {}) {
   const labels = LABELS[lang] || LABELS.en;
+  /* When the two Gazl dates are equal nothing was actually updated, so only one
+     stamp is printed — but it is labelled `updated`, not `created`. "Updated"
+     is the fact a reader is checking for, and a page that only ever says "Added
+     to Gazl" reads as if the freshness stamp went missing. */
+  const unchanged = Boolean(row?.created_at) && row?.updated_at === row?.created_at;
   const candidates = [
     includePublished && ['published', row?.published_at],
-    ['created', row?.created_at],
-    row?.updated_at !== row?.created_at && ['updated', row?.updated_at],
+    !unchanged && ['created', row?.created_at],
+    ['updated', row?.updated_at],
     ['reviewed', row?.reviewed_at]
   ].filter(Boolean);
 

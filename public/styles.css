@@ -46,18 +46,28 @@
 
   
   
-  .topicpick{flex:1 1 auto;min-width:0;max-width:560px;display:flex;align-items:center;gap:11px;cursor:pointer;font:inherit;
-    color:inherit;text-align:left;border:1px solid var(--line);background:var(--surface);
-    border-radius:11px;padding:7px 12px;transition:.16s ease}
+  .topicpick{position:relative;flex:1 1 auto;min-width:0;max-width:560px;display:flex;align-items:center;gap:11px;
+    cursor:pointer;font:inherit;color:inherit;text-align:left;border:1px solid var(--line);background:var(--surface);
+    border-radius:12px;padding:6px 12px 6px 17px;overflow:hidden;transition:.16s ease}
+/* The accent bar, not the number chip, is what carries the topic colour: a
+   filled chip put a saturated block in the middle of a pale header, and the
+   chip's own white-on-accent text was the one place an accent had to clear
+   white as well as its own soft fill. The bar is decoration, the chip is text
+   on --g-soft, and tests/a11y.contrast.test.mjs already pins that pairing. */
+  
+  .topicpick::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;
+    background:var(--g,var(--emerald));transition:width .16s ease}
   .topicpick:hover{border-color:var(--line-strong);box-shadow:var(--shadow)}
+  .topicpick:hover::before,.topicpick[aria-expanded="true"]::before{width:7px}
   .topicpick:focus-visible{outline:2px solid var(--emerald);outline-offset:2px}
-  .tp-n{flex:none;font-family:"IBM Plex Mono",monospace;font-size:14px;font-weight:600;
-    color:#fff;background:var(--g,var(--emerald));border-radius:8px;padding:4px 8px;line-height:1.15}
-  .tp-text{min-width:0;display:flex;flex-direction:column}
-  .tp-label{font-family:"Space Grotesk",sans-serif;font-weight:600;font-size:14px;color:var(--ink);
-    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.25}
-  .tp-sub{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.5px;color:var(--muted);
-    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tp-n{flex:none;display:grid;place-items:center;min-width:30px;font-family:"IBM Plex Mono",monospace;
+    font-size:13px;font-weight:600;color:var(--g,var(--emerald));background:var(--g-soft,var(--emerald-soft));
+    border-radius:8px;padding:5px 7px;line-height:1.15}
+  .tp-text{min-width:0;display:flex;flex-direction:column;gap:1px}
+  .tp-label{font-family:"Space Grotesk",sans-serif;font-weight:600;font-size:15px;color:var(--ink);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2}
+  .tp-sub{font-family:"IBM Plex Mono",monospace;font-size:9.5px;letter-spacing:.7px;text-transform:uppercase;
+    color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .tp-chev{flex:none;margin-left:auto;width:17px;height:17px;color:var(--muted);transition:transform .2s ease}
   .topicpick[aria-expanded="true"] .tp-chev{transform:rotate(180deg)}
 
@@ -401,9 +411,20 @@
   .cs-card-content strong{font-family:"Space Grotesk",sans-serif;font-size:20px;line-height:1.25;color:var(--ink)}
   .cs-card-excerpt{font-size:13.5px;line-height:1.55;color:var(--ink-soft);margin-top:7px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}/* Both libraries close a card with the same logistics row, so they share it. */
   
-  .cs-card-meta,.sd-card-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:11px;font-family:"IBM Plex Mono",monospace;font-size:9.5px;color:var(--muted);text-transform:uppercase}
+  .cs-card-meta,.sd-card-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:auto;padding-top:11px;
+    font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--ink-soft);text-transform:uppercase}
   .cs-card-meta>*+*::before,.sd-card-meta>*+*::before{content:"·";margin-right:8px;color:var(--line-strong)}
   .cs-card-meta time,.sd-card-meta time{font-variant-numeric:tabular-nums}
+/* One date stamp for every authored surface: label, then the date. Inline is
+   the library card ("Updated 3 days ago" on one line); stacked is an article
+   head, where the label is a caption above the date. */
+  
+  .datestamp{display:inline-flex;align-items:baseline;gap:6px;font-variant-numeric:tabular-nums}
+  .datestamp>b{font-weight:600;letter-spacing:.45px;text-transform:uppercase}
+  .content-dates .datestamp{gap:6px}
+  .content-dates .datestamp>b{color:var(--ink-soft);font-size:9px}
+  .cs-card-meta .datestamp,.sd-card-meta .datestamp{gap:5px;color:var(--ink);font-weight:600}
+  .cs-card-meta .datestamp>b,.sd-card-meta .datestamp>b{color:var(--muted);font-weight:500}
   .cs-card-arrow{font-size:24px;color:var(--emerald);transition:transform .18s ease}
   .cs-card:hover .cs-card-arrow{transform:translateX(3px)}
 
@@ -420,13 +441,13 @@
   
   .cs-backbar,.sd-backbar{position:sticky;top:var(--hdr-h,64px);z-index:25;margin:0 0 16px;padding:9px 0 10px;
     background:rgba(238,241,246,.9);backdrop-filter:saturate(140%) blur(10px);border-bottom:1px solid var(--line)}
-  .sd-backbar{padding-left:calc(var(--sd-rail,210px) + 28px);transition:padding-left .22s ease}
+  .sd-backbar{padding-left:calc(var(--sd-rail,210px) + 28px + var(--sd-gutter,0px));transition:padding-left .22s ease}
   .sd-article.toc-collapsed .sd-backbar{--sd-rail:44px}
   .cs-backbar .cs-back,.sd-backbar .cs-back{margin:0;padding:5px 13px 6px;border:1px solid var(--line);
     border-radius:999px;background:var(--surface);box-shadow:var(--shadow)}
   .cs-backbar .cs-back:hover,.sd-backbar .cs-back:hover{border-color:var(--emerald);background:var(--emerald-soft)}
-  .cs-article-head h1{font-size:clamp(34px,5vw,58px);margin:0 0 16px;max-width:900px}
-  .cs-deck{font-size:18px;line-height:1.65;color:var(--ink-soft);margin:0;max-width:800px}
+  .cs-article-head h1{font-size:clamp(34px,5vw,58px);margin:0 0 16px;max-width:none}
+  .cs-deck{font-size:18px;line-height:1.65;color:var(--ink-soft);margin:0;max-width:none}
   .cs-byline{display:flex;align-items:center;gap:9px 18px;flex-wrap:wrap;margin-top:22px;color:var(--muted);
     font-family:"IBM Plex Mono",monospace;font-size:11px}
   .cs-byline>*+*::before{content:"";display:inline-block;width:3px;height:3px;border-radius:50%;background:var(--line-strong);margin:0 18px 2px 0}
@@ -613,10 +634,17 @@
   .sd-case-art img{display:block;width:100%;height:100%;object-fit:cover;transition:transform .25s ease}
   .sd-case-card:hover .sd-case-art img{transform:scale(1.04)}
 
-  .sd-article{max-width:1180px;margin:0 auto}/* The head is aligned to the body column, not the grid edge: the TOC rail is
+  .sd-article{--sd-gutter:clamp(24px,4.5vw,58px);max-width:1180px;margin:0 auto}/* The head is aligned to the body column, not the grid edge: the TOC rail is
      chrome, so a title starting left of it reads as a layout slip. */
   
-  .sd-article-head{margin:0 0 30px;padding:8px 0 0 calc(var(--sd-rail,210px) + 28px);transition:padding-left .22s ease}
+  .sd-article-head{margin:0 0 30px;padding:8px var(--sd-gutter) 0 calc(var(--sd-rail,210px) + 28px + var(--sd-gutter));
+    transition:padding-left .22s ease}
+/* The head is padded to the body's TEXT column, gutter included — padding only
+   to the grid column left the title starting 58px left of the first paragraph
+   under it. Its prose then fills what that padding reserved: see CLAUDE.md,
+   "a container is only as wide as the text inside it". */
+  
+  .sd-article-head h1,.sd-article-head>p:not(.cs-eyebrow){max-width:none}
   .sd-article.toc-collapsed .sd-article-head{--sd-rail:44px}
   .sd-article-head .cs-tags{margin-top:18px}
   .sd-article-grid{display:grid;grid-template-columns:var(--sd-rail,210px) minmax(0,1fr);gap:28px;align-items:start;
@@ -644,14 +672,14 @@
   .sd-toc a:hover,.sd-toc-mobile a:hover{color:var(--indigo);background:var(--indigo-soft)}
   .sd-toc a.is-sub,.sd-toc-mobile a.is-sub{padding-left:17px;color:var(--muted)}
   .sd-toc-mobile{display:none}
-  .sd-article-body{min-width:0;padding:44px clamp(24px,4.5vw,58px) 58px;border:1px solid var(--line);border-radius:16px;background:var(--surface);box-shadow:var(--shadow)}
+  .sd-article-body{min-width:0;padding:44px var(--sd-gutter) 58px;border:1px solid var(--line);border-radius:16px;background:var(--surface);box-shadow:var(--shadow)}
   .sd-section{scroll-margin-top:90px;margin:0 0 48px}
   .sd-section:last-child{margin-bottom:0}
   .sd-section>h2{font-family:"Space Grotesk",sans-serif;font-size:29px;line-height:1.2;letter-spacing:-.35px;color:var(--ink);
     margin:0 0 17px;padding-top:7px;border-top:1px solid var(--line);scroll-margin-top:90px}
   .sd-section:first-child>h2{border-top:0;padding-top:0}
-  .sd-section>p{font-size:16.5px;line-height:1.78;color:var(--ink-soft);margin:0 0 17px;max-width:74ch}
-  .sd-section>.sd-section-intro{font-size:15px;line-height:1.7;max-width:820px}/* Opening sentence carries the frame, so it is set larger than the body it
+  .sd-section>p{font-size:16.5px;line-height:1.78;color:var(--ink-soft);margin:0 0 17px;max-width:none}
+  .sd-section>.sd-section-intro{font-size:15px;line-height:1.7;max-width:none}/* Opening sentence carries the frame, so it is set larger than the body it
      introduces; the closing claim becomes the takeaway. Both only appear when
      renderScope judged the prose long enough to break up. */
   
@@ -807,7 +835,10 @@
   .level-advanced{color:var(--indigo);background:var(--indigo-soft);border-color:#cdd5ef}
   .level-extra{color:var(--brass);background:#faf5e9;border-color:#e3d6b8}
   .featured-mark{display:inline-block;margin-left:5px;color:var(--brass);font-size:12px;line-height:1;vertical-align:middle}
-  .sd-code-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+/* auto-fit, not a fixed 2: seven of the twenty blueprints ship a single code
+   sample, and a hard two-column track left half the section empty beside it. */
+  
+  .sd-code-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:13px}
   .sd-code-sample{min-width:0;border:1px solid #cdd5ef;border-radius:11px;background:#FBFCFE;overflow:hidden}
   .sd-code-sample>header{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:13px 14px;border-bottom:1px solid #dce2f2;background:var(--indigo-soft)}
   .sd-code-sample>header h3{margin:0;font-family:"Space Grotesk",sans-serif;font-size:16px;line-height:1.35;color:var(--ink)}
@@ -832,8 +863,55 @@
   .sd-toc-mobile:not([open])>nav{display:none}/* "Gazl Try" - interview journal */
 
   
+/* Two groups, Common first: a synthesised playbook answers "what do these
+   interviews have in common", a company entry answers "what did THIS one ask".
+   The group head reuses the library heads' shape so the site has one way of
+   introducing a group. */
+  
+  .iv-group{margin:0 0 30px}
+  .iv-group-head{display:flex;align-items:flex-end;justify-content:space-between;gap:22px;margin:0 0 14px;padding:2px 3px 10px;
+    border-bottom:1px solid var(--line)}
+  .iv-group-head p{margin:0 0 3px;font-family:"IBM Plex Mono",monospace;font-size:9.5px;letter-spacing:.9px;
+    text-transform:uppercase;color:var(--emerald)}
+  .iv-group-head h2{font-family:"Space Grotesk",sans-serif;font-size:23px;line-height:1.2;margin:0;color:var(--ink)}
+  .iv-group-head span{display:block;margin-top:4px;color:var(--muted);font-size:13px;max-width:70ch}
+  .iv-group-head b{flex:none;font-family:"IBM Plex Mono",monospace;font-size:20px;color:var(--ink-soft)}
+
   .company{border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);box-shadow:var(--shadow);
-    padding:18px 20px 8px;margin-bottom:18px;animation:fade .35s ease}
+    margin-bottom:12px;animation:fade .35s ease;overflow:hidden}
+  .company.is-open{box-shadow:0 16px 34px -22px rgba(20,35,58,.45)}
+/* The whole head is the toggle, so nothing inside it may be a <button> — the
+   same rule .qhead lives under, and for the same reason: a nested button makes
+   the browser close this one early and reparent the body as a sibling. The
+   edit/delete controls therefore live inside .iv-co-body, not on the head. */
+  
+  .iv-co-head{display:flex;align-items:center;gap:14px;width:100%;padding:15px 18px;cursor:pointer;
+    border:0;background:none;font:inherit;color:inherit;text-align:left}
+  .iv-co-head:hover{background:var(--paper)}
+  .iv-co-head:focus-visible{outline:2px solid var(--emerald);outline-offset:-2px}
+  .iv-co-text{min-width:0;flex:1 1 auto;display:flex;flex-direction:column;gap:5px}
+  .iv-co-name{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+  .iv-co-name>b{font-family:"Space Grotesk",sans-serif;font-weight:600;font-size:18px;color:var(--ink)}
+  .iv-co-sub{display:flex;flex-wrap:wrap;gap:7px;font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--muted)}
+  .iv-co-sub>*+*::before{content:"·";margin-right:7px;color:var(--line-strong)}
+  .company .iv-co-head>.chev{flex:none;width:20px;height:20px;color:var(--muted);transition:transform .25s}
+  .company.is-open .iv-co-head>.chev{transform:rotate(90deg);color:var(--emerald)}
+  .iv-co-body{padding:2px 20px 12px;border-top:1px solid var(--line)}
+  .co-actions{display:flex;justify-content:flex-end;gap:8px;margin:12px 0 4px}
+
+  .iv-brief{margin:12px 0 14px;padding:13px 15px;border:1px solid var(--line);border-radius:11px;background:var(--paper)}
+  .iv-brief h3{margin:0 0 7px;font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.5px;
+    text-transform:uppercase;color:var(--emerald-deep)}
+  .iv-brief p{margin:0 0 9px;color:var(--ink-soft);font-size:14px;line-height:1.65}
+  .iv-rounds{margin:9px 0 0;padding:0 0 0 20px;display:flex;flex-direction:column;gap:7px}
+  .iv-rounds li{color:var(--ink-soft);font-size:13.5px;line-height:1.6}
+  .iv-rounds li::marker{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--emerald)}
+  .iv-rounds b{display:block;color:var(--ink);font-weight:600}
+  .iv-jd{margin:0 0 14px;border:1px solid var(--line);border-radius:11px;background:var(--surface);overflow:hidden}
+  .iv-jd>summary{cursor:pointer;padding:11px 14px;font-family:"IBM Plex Mono",monospace;font-size:11px;
+    font-weight:600;letter-spacing:.4px;text-transform:uppercase;color:var(--indigo)}
+  .iv-jd>summary:hover{background:var(--indigo-soft)}
+  .iv-jd>div{padding:4px 15px 14px;border-top:1px solid var(--line);color:var(--ink-soft);font-size:14px;line-height:1.7}
   .company-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
   .company-head h2,.company-head h3{font-family:"Space Grotesk",sans-serif;font-weight:600;font-size:18px;margin:0;color:var(--ink)}
   .company-meta{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--muted);margin:3px 0 8px}
@@ -936,9 +1014,7 @@
   .qcopy:focus-visible{outline:2px solid var(--emerald);outline-offset:2px}
   .qcopy.is-copied{border-color:var(--emerald);color:var(--emerald-deep);background:var(--emerald-soft)}
   .qcopy-icon{width:15px;height:15px;flex:none}
-  .qbadge.core{color:var(--emerald-deep);border-color:#cfe6da;background:var(--emerald-soft)}
-  .qbadge.advanced{color:var(--clay);border-color:#e6c6c0;background:var(--clay-soft)}
-  .qbadge.extra{color:var(--indigo);border-color:#cdd5ef;background:var(--indigo-soft)}
+  .qhead>.content-level{flex:none;align-self:flex-start;margin-top:1px}
   .qlangbtn{flex:none;border:0;background:none;padding:0;font:inherit;color:inherit}
   .chev{flex:none;width:20px;height:20px;color:var(--muted);transition:transform .25s}
   .qcard.open .chev{transform:rotate(90deg);color:var(--emerald)}
@@ -1164,7 +1240,7 @@
     .sd-hero>p:not(.cs-eyebrow),.sd-article-head>p:not(.cs-eyebrow){font-size:15px}
     .sd-list{grid-template-columns:1fr}
     /* the rail is gone here, so the head returns to the full width */
-    .sd-article-head{padding:2px 2px 0}
+    .sd-article-head{padding:2px 2px 0}   /* no rail below the breakpoint, so no rail padding */
     .sd-backbar{padding-left:2px}
     .cs-backbar,.sd-backbar{margin-bottom:12px;padding-top:8px;padding-bottom:8px}
     .sd-group>header,.cs-category-head{gap:12px;padding:9px 2px 8px}
@@ -1175,7 +1251,7 @@
     .sd-toc-mobile{display:block}
     .sd-toc-mobile nav{display:flex;flex-direction:column;margin-top:8px}
     .sd-toc-mobile:not([open])>nav{display:none}
-    .sd-article-body{padding:30px 20px 38px}
+    .sd-article-body{--sd-gutter:20px;padding:30px 20px 38px}
     .sd-section{margin-bottom:38px}
     .sd-section>h2{font-size:25px}
     .sd-decision-row{padding:12px 13px}
@@ -1221,8 +1297,8 @@
     .hdr-lang .lang-label{display:none}   /* the flag knob already says which */
     .ring{width:30px;height:30px}
     .ring::after{width:24px;height:24px}
-    .topicpick{gap:8px;padding:6px 10px}
-    .tp-n{font-size:12px;padding:3px 6px}
+    .topicpick{gap:8px;padding:6px 10px 6px 14px}
+    .tp-n{font-size:12px;min-width:26px;padding:3px 5px}
     .tp-sub{display:none}                 /* the dropdown rows carry the same counts */
     .view-track .hero-head{display:block}
     .view-track .daynum{margin-bottom:18px}
@@ -1237,8 +1313,8 @@
     .qcard[data-qid] .qhead{display:grid;grid-template-columns:58px minmax(0,1fr) auto;
       grid-template-rows:auto 1fr;column-gap:10px;row-gap:5px;align-items:start;padding:12px}
     .qcard[data-qid] .qid{grid-column:1;grid-row:1;text-align:center;padding-top:1px}
-    .qcard[data-qid] .qbadge{grid-column:1;grid-row:2;width:100%;text-align:center;
-      font-size:9px;letter-spacing:.2px;padding:2px 3px}
+    .qcard[data-qid] .qhead>.content-level{grid-column:1;grid-row:2;width:100%;margin:0;
+      justify-content:center;font-size:9px;letter-spacing:.2px;padding:2px 3px}
     .qcard[data-qid] .qtext{grid-column:2;grid-row:1/span 2}
     .qcard[data-qid] .qhead>.chev{grid-column:3;grid-row:1/span 2;align-self:center}
     .qcard[data-qid] .qmeta{align-self:center;gap:8px;padding-right:12px}
@@ -1521,15 +1597,15 @@
   
 
   
-  .searchtrigger{flex:none;display:inline-flex;align-items:center;gap:8px;cursor:pointer;font:inherit;
-    height:34px;padding:0 10px;border-radius:10px;border:1px solid var(--line);background:var(--surface);
-    color:var(--muted);transition:.16s ease}
-  .searchtrigger:hover{border-color:var(--emerald);color:var(--emerald-deep)}
+  .searchtrigger{flex:none;display:inline-flex;align-items:center;gap:10px;cursor:pointer;font:inherit;
+    height:40px;padding:0 12px;border-radius:11px;border:1px solid var(--line);background:var(--surface);
+    color:var(--ink-soft);transition:.16s ease}
+  .searchtrigger:hover{border-color:var(--emerald);color:var(--emerald-deep);box-shadow:var(--shadow)}
   .searchtrigger:focus-visible{outline:2px solid var(--emerald);outline-offset:2px}
-  .searchtrigger svg{width:16px;height:16px;flex:none}
-  .st-label{font-size:13px;white-space:nowrap}
-  .st-key{font-family:"IBM Plex Mono",monospace;font-size:9.5px;letter-spacing:.4px;color:var(--muted);
-    border:1px solid var(--line);border-radius:5px;padding:1px 5px;background:var(--paper)}
+  .searchtrigger svg{width:18px;height:18px;flex:none}
+  .st-label{font-size:14px;white-space:nowrap}
+  .st-key{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.4px;color:var(--muted);
+    border:1px solid var(--line);border-radius:6px;padding:2px 6px;background:var(--paper)}
 
   body.search-open{overflow:hidden}/* Above header.top (z-index 50): the overlay is a sibling of the header, so
      it is not trapped inside the header's stacking context. */
@@ -1626,7 +1702,7 @@
   @media (max-width:999px){
     /* icon only: the header is already tight under 1000px */
     .st-label,.st-key{display:none}
-    .searchtrigger{width:34px;padding:0;justify-content:center}
+    .searchtrigger{width:38px;padding:0;justify-content:center}
   }
   @media (max-width:760px){
     .gs-overlay{top:0;left:0;transform:none;width:100vw;max-height:100vh;height:100%;border-radius:0;border:0}

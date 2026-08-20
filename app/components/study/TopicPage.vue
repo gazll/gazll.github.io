@@ -78,7 +78,7 @@ useHead(() => ({
                 <h1>{{ metadata.title }}</h1>
                 <p class="intro">{{ metadata.intro }}</p>
                 <div class="content-dates">
-                  <time v-for="fact in dates" :key="fact.kind" :datetime="fact.value">{{ fact.label }} {{ fact.formatted }}</time>
+                  <ContentDateStamp v-for="fact in dates" :key="fact.kind" :fact="fact" :lang="lang" />
                 </div>
                 <div class="tags"><span v-for="tag in metadata.tags || []" :key="tag" class="tag">{{ tag }}</span></div>
               </div>

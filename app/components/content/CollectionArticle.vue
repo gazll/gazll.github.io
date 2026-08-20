@@ -126,7 +126,7 @@ useHead(() => ({
           <h1>{{ copy.title }}</h1>
           <p class="cs-deck">{{ copy.excerpt }}</p>
           <div class="cs-byline content-dates">
-            <span v-for="fact in dates" :key="fact.kind"><b>{{ fact.label }}</b><time :datetime="fact.value">{{ fact.formatted }}</time></span>
+            <ContentDateStamp v-for="fact in dates" :key="fact.kind" :fact="fact" :lang="lang" />
             <span v-if="data.row.original_language" class="cs-language">{{ data.row.original_language.toUpperCase() }}</span>
           </div>
           <div class="cs-tags"><span v-for="tag in copy.tags || []" :key="tag">{{ tag }}</span></div>

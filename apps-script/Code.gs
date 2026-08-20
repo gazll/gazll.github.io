@@ -37,7 +37,7 @@ var SHEETS = {
   progress:            ['user_id', 'item_id', 'reviewed_at'],
   notes:               ['user_id', 'item_id', 'body', 'updated_at'],
   study_log:           ['user_id', 'item_id', 'opened_at'],
-  interviews:          ['id', 'user_id', 'name', 'role', 'happened_on', 'result', 'stack', 'sort_order', 'created_at', 'updated_at', 'active_question_set', 'references_json'],
+  interviews:          ['id', 'user_id', 'name', 'role', 'happened_on', 'result', 'stack', 'sort_order', 'created_at', 'updated_at', 'active_question_set', 'references_json', 'jd', 'brief', 'rounds_json'],
   interview_questions: ['id', 'interview_id', 'user_id', 'round', 'q', 'a', 'note', 'sort_order', 'diagrams_json', 'question_set_id'],
 
   /** Fshare tool: folders the user has opened. One row per (user, linkcode). */
@@ -417,6 +417,8 @@ var ACTIONS = {
           created_at: iso(r.created_at).slice(0, 10),
           updated_at: iso(r.updated_at).slice(0, 10),
           references: parseStoredReferences(r.references_json),
+          jd: String(r.jd || ''), brief: String(r.brief || ''),
+          rounds: parseStoredRounds(r.rounds_json),
           questions: bySet[key] || []
         };
       })
@@ -429,6 +431,10 @@ var ACTIONS = {
     if (!String(c.name || '').trim()) throw publicError('Tên công ty không được để trống.');
     var referencesJson = JSON.stringify(normalizeReferences(c.references));
     if (referencesJson.length > 24000) throw publicError('Danh sách tài liệu vượt giới hạn 24.000 ký tự.');
+    var roundsJson = JSON.stringify(normalizeRounds(c.rounds));
+    if (roundsJson.length > 24000) throw publicError('Danh sách vòng phỏng vấn vượt giới hạn 24.000 ký tự.');
+    var jd = limitedString(c.jd, 20000, 'JD');
+    var brief = limitedString(c.brief, 10000, 'Tóm tắt quy trình');
     var questions = asArray(c.questions);
     if (questions.length > 200) throw publicError('Tối đa 200 câu hỏi cho một công ty.');
     // Validate and serialize everything before touching the Sheet. A rejected
@@ -463,7 +469,8 @@ var ACTIONS = {
         sort_order: Number(c.sort_order) || 0,
         updated_at: nowIso(),
         active_question_set: questionSetId,
-        references_json: referencesJson
+        references_json: referencesJson,
+        jd: jd, brief: brief, rounds_json: roundsJson
       };
 
       // Append the complete replacement first. The company row is the commit
@@ -722,6 +729,24 @@ function normalizeReferences(v) {
       url: url
     };
   });
+}
+/** The interview loop: an ordered list of {name, note}. Structured rather than
+ *  prose because the view counts them ("3 rounds") next to the question count. */
+function normalizeRounds(v) {
+  var rows = asArray(v);
+  if (rows.length > 20) throw publicError('Tối đa 20 vòng phỏng vấn.');
+  return rows.map(function (raw) {
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw publicError('Vòng phỏng vấn không đúng cấu trúc.');
+    return {
+      name: limitedString(raw.name, 200, 'Tên vòng').trim(),
+      note: limitedString(raw.note, 4000, 'Mô tả vòng').trim()
+    };
+  }).filter(function (row) { return row.name || row.note; });
+}
+function parseStoredRounds(v) {
+  if (!v) return [];
+  try { return normalizeRounds(JSON.parse(String(v))); }
+  catch (err) { return []; }
 }
 function parseStoredReferences(v) {
   if (!v) return [];

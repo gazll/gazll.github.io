@@ -144,7 +144,7 @@ import { pathToFileURL } from 'node:url';
 
   test('Gazl is a native Vue journal with CRUD, import, sync and Mermaid review', async () => {
     const [page, journal] = await Promise.all([
-      read('app/pages/gazl.vue'),
+      read('app/pages/gazl-try.vue'),
       read('app/components/gazl/GazlJournal.client.vue')
     ]);
 
@@ -152,6 +152,39 @@ import { pathToFileURL } from 'node:url';
     for (const contract of ['interviews.list', 'interviews.save', 'interviews.delete', 'Save to my journal', 'ContentMermaidDiagram', 'Add company']) {
       assert.ok(journal.includes(contract), `Gazl journal is missing ${contract}`);
     }
+  });
+
+  test('the journal splits collected common ground from single-company entries', async () => {
+    const journal = await read('app/components/gazl/GazlJournal.client.vue');
+
+    // Common leads: a synthesised playbook is what a reader should study before
+    // any one company's questions, so its group is built first.
+    const groups = /const groups = computed\(\(\) => \[([\s\S]*?)\]\.filter/.exec(journal);
+    assert.ok(groups, 'the journal no longer groups its entries');
+    assert.ok(groups[1].indexOf("id: 'common'") < groups[1].indexOf("id: 'companies'"),
+      'common ground must be built before the per-company group');
+    assert.match(groups[1], /filter\(company => company\.kind\)/);
+    assert.match(groups[1], /filter\(company => !company\.kind\)/);
+
+    // Collapsed by default, or one 13-question entry buries every row under it.
+    assert.match(journal, /openCompanies = ref\(new Set<string>\(\)\)/);
+    assert.match(journal, /v-show="isOpen\(company\)"/);
+    // The head is the toggle, so its controls may not be nested buttons — the
+    // .qhead rule, same failure mode.
+    const head = /<button class="iv-co-head"[\s\S]*?<\/button>/.exec(journal);
+    assert.ok(head, 'the collapsible head is missing');
+    assert.ok(!/<button/.test(head[0].slice(1)), 'nothing inside .iv-co-head may be a button');
+
+    for (const field of ['company.jd', 'company.brief', 'roundList(company)']) {
+      assert.ok(journal.includes(field), `the journal no longer renders ${field}`);
+    }
+  });
+
+  test('the renamed journal route keeps the old /gazl link working', async () => {
+    const config = await read('nuxt.config.ts');
+    assert.match(config, /'\/gazl-try'/);
+    assert.match(config, /'\/gazl': \{ redirect: \{ to: '\/gazl-try', statusCode: 301 \} \}/);
+    assert.ok(!/'\/gazl',/.test(config), '/gazl must not still be prerendered as its own page');
   });
 
   test('the native project route keeps the old CalebZone alias redirect', async () => {
@@ -292,7 +325,7 @@ import { pathToFileURL } from 'node:url';
 
   test('native Nuxt surfaces expose visible loading fallbacks', async () => {
     const [gazlPage, gazl, searchOverlay, topic] = await Promise.all([
-      read('app/pages/gazl.vue'),
+      read('app/pages/gazl-try.vue'),
       read('app/components/gazl/GazlJournal.client.vue'),
       read('app/components/search/SearchOverlay.client.vue'),
       read('app/components/study/TopicPage.vue')

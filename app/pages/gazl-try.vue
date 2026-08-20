@@ -2,7 +2,7 @@
 const route = useRoute();
 const lang = computed<'en' | 'vi'>(() => route.query.lang === 'vi' ? 'vi' : 'en');
 const { data } = await useAsyncData('interviews', () => $fetch<any>('/api/content/interviews'));
-useHead(() => ({ htmlAttrs: { lang: lang.value }, title: 'Gazl Try — GAZLL', meta: [{ name: 'description', content: 'Interview journal, preparation playbooks and technically reviewed answers.' }], link: [{ rel: 'canonical', href: 'https://gazll.github.io/gazl' }] }));
+useHead(() => ({ htmlAttrs: { lang: lang.value }, title: 'Gazl Try — GAZLL', meta: [{ name: 'description', content: 'Interview journal, preparation playbooks and technically reviewed answers.' }], link: [{ rel: 'canonical', href: 'https://gazll.github.io/gazl-try' }] }));
 </script>
 
 <template>

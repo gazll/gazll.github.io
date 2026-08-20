@@ -36,16 +36,13 @@ const articleRoute = (article: any) => ({
 const lastDate = (article: any) => contentDateFacts(article, lang.value).at(-1);
 const levelLabel = (level: string) => labels.value.level[level as 'core' | 'advanced' | 'extra'] || labels.value.level.core;
 const byline = (article: any, category: any) => article.company || category.label || article.category;
-const positionKey = computed(() => `gazll:return:${props.collection}`);
-function remember(slug: string) { sessionStorage.setItem(positionKey.value, slug); }
+/* Returning to the card the reader left from is app/router.options.ts's job
+   now: it restores the real scroll offset once the grid has laid out, which is
+   both more precise than centring a remembered slug and works on every surface
+   rather than this one. */
 onMounted(() => {
   const storedSort = localStorage.getItem(`gazll:sort:${props.collection}`);
   if (storedSort === 'recent') sortMode.value = 'recent';
-  const slug = sessionStorage.getItem(positionKey.value);
-  if (slug) {
-    sessionStorage.removeItem(positionKey.value);
-    nextTick(() => document.getElementById(`article-${slug}`)?.scrollIntoView({ block: 'center' }));
-  }
 });
 watch(sortMode, value => { if (import.meta.client) localStorage.setItem(`gazll:sort:${props.collection}`, value); });
 
@@ -93,7 +90,7 @@ watch(sortMode, () => sticky.rebind());
             <b>{{ group.articles.length }}</b>
           </header>
           <div class="cs-card-grid">
-            <NuxtLink v-for="article in group.articles" :id="`article-${article.slug}`" :key="article.slug" class="cs-card" :to="articleRoute(article)" @click="remember(article.slug)">
+            <NuxtLink v-for="article in group.articles" :id="`article-${article.slug}`" :key="article.slug" class="cs-card" :to="articleRoute(article)">
               <span v-if="article.cover_image" class="cs-card-art" :class="{ contain: article.cover_fit === 'contain' }" aria-hidden="true">
                 <img :src="`/${article.cover_image}`" alt="" loading="lazy" decoding="async">
               </span>
@@ -108,7 +105,7 @@ watch(sortMode, () => sticky.rebind());
                 <span class="cs-card-excerpt">{{ articleCopy(article).excerpt }}</span>
                 <span class="cs-card-meta">
                   <span v-if="article.read_minutes">{{ article.read_minutes }} {{ labels.minRead }}</span>
-                  <span v-if="lastDate(article)">{{ lastDate(article).label }} {{ lastDate(article).formatted }}</span>
+                  <ContentDateStamp v-if="lastDate(article)" :fact="lastDate(article)" :lang="lang" inline />
                 </span>
               </span>
               <span class="cs-card-arrow" aria-hidden="true">→</span>

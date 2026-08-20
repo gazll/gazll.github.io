@@ -32,7 +32,7 @@ const localize = (value: string) => props.lang === 'vi' ? viLabels[value] || val
 const navGroups = [
   { label: 'Technical', links: [
     { to: '/', label: 'Study Track', desc: 'Interview preparation topics', icon: ['M4 6h16M4 12h16M4 18h10'] },
-    { to: '/gazl', label: 'Gazl Try', desc: 'Interview journal and notes', icon: ['M5 4h11l3 3v13H5z', 'M8 10h8M8 14h5'] },
+    { to: '/gazl-try', label: 'Gazl Try', desc: 'Interview journal and notes', icon: ['M5 4h11l3 3v13H5z', 'M8 10h8M8 14h5'] },
     { to: '/stats', label: 'Stats', desc: 'Progress and study activity', icon: ['M5 19V10M12 19V5M19 19v-6'] },
     { to: '/admin', label: 'Admin', desc: 'All-user overview', icon: ['M12 3l7 3v5c0 4.2-2.8 7.6-7 10-4.2-2.4-7-5.8-7-10V6z'] },
     { to: '/system-design', label: 'System Design', desc: 'Architecture blueprints', icon: ['M4 5h6v5H4zM14 5h6v5h-6zM9 15h6v5H9z', 'M7 10v2.5h10V10M12 12.5V15'] },
@@ -50,7 +50,7 @@ const navGroups = [
 ];
 
 const routeLabels: Record<string, string> = {
-  '/': 'Study Track', '/gazl': 'Gazl Try', '/stats': 'Stats', '/admin': 'Admin',
+  '/': 'Study Track', '/gazl-try': 'Gazl Try', '/stats': 'Stats', '/admin': 'Admin',
   '/system-design': 'System Design', '/case-studies': 'Case Studies', '/project': 'Project',
   '/photography': 'Photography', '/homelab': 'NAS / Home Server', '/fshare-tool': 'Fshare Bulk Copy',
   '/course-registration': 'Course Registration', '/release-notes': 'Release Notes', '/search': 'Search'
@@ -126,8 +126,8 @@ onBeforeUnmount(() => {
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
       </button>
 
-      <button v-if="topic" class="topicpick" type="button" aria-haspopup="listbox" :aria-expanded="topicOpen" aria-controls="topicMenu" @click="setTopic(!topicOpen)">
-        <span class="tp-n" :data-topic-type="topic.topic_type">{{ String(topic.n).padStart(2, '0') }}</span>
+      <button v-if="topic" class="topicpick" type="button" :data-topic-type="topic.topic_type" aria-haspopup="listbox" :aria-expanded="topicOpen" aria-controls="topicMenu" @click="setTopic(!topicOpen)">
+        <span class="tp-n">{{ String(topic.n).padStart(2, '0') }}</span>
         <span class="tp-text"><span class="tp-label">{{ topic.label }}</span><span class="tp-sub">{{ topic.topic_type }} {{ localize('topic') }}</span></span>
         <svg class="tp-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9" /></svg>
       </button>
@@ -156,7 +156,7 @@ onBeforeUnmount(() => {
         <ClientOnly><StudyProgressRing :lang="lang" /></ClientOnly>
         <NuxtLink class="langswitch hdr-lang" role="switch" :aria-checked="lang === 'vi'" :aria-label="localize('Content language')" :to="{ path: route.path, query: { ...route.query, lang: lang === 'vi' ? 'en' : 'vi' }, hash: route.hash || undefined }">
           <span class="lang-label" data-lang="en">EN</span>
-          <span class="lang-track" aria-hidden="true"><span class="lang-knob" /></span>
+          <span class="lang-track" aria-hidden="true"><span class="lang-knob"><ContentFlagIcon :lang="lang" /></span></span>
           <span class="lang-label" data-lang="vi">VI</span>
         </NuxtLink>
         <ClientOnly><AuthAuthControl /></ClientOnly>
