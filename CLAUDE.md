@@ -49,7 +49,7 @@ public/
     cross-ref.js     resolves a written (item-id) to the route AND the label that owns it
     i18n.js          shared language storage + paired base/.vi JSON loader
     search.js        ranking, highlighting and snippets over the shipped index.
-                     It does NOT build the index — server/api/content/search-index does
+                     It does NOT build the index — server/api/content/search-index/[lang] does
     search-text.js   fold() + plainText(): the two pure primitives, importable server-side
     search-history.js recent searches: session while signed out, account once signed in
     mermaid.js       lazy loader for the vendored renderer; diagrams degrade to source
@@ -97,12 +97,16 @@ vendor/mermaid-11.16.1/  pinned upstream build; version lives in the directory n
     homelab/         the same shape for NAS / Home Server
     interviews.json     seed entries, merged under everyone's own Sheet rows
   assets/case-studies/  local article figures; never hotlinked from a publisher
+  assets/covers/     GENERATED card thumbnails (tools/optimize-images.mjs). A separate
+                     tree because assets/case-studies is asserted to hold exactly the
+                     figures the article bodies reference — a thumbnail is not one
   assets/photography/ · assets/homelab/  local Other Knowledge figures and covers
   assets/system-design/ local blueprint reference figures; catalog metadata owns EN/VI alt/caption
 apps-script/Code.gs  the entire backend (Google Sheet as database)
 tests/               every tests/*.test.mjs; discovered from disk, never enumerated
 tools/               check.mjs (the one entrypoint) · validate-content.mjs · audit-content.mjs
-                     add-content.mjs · stamp-assets.mjs
+                     add-content.mjs · stamp-assets.mjs · optimize-images.mjs
+                     check-diagrams.mjs (run by check.mjs, needs jsdom)
 docs/content-playbook.md  how to add/update study content end to end
 secret/              GITIGNORED. Personal setup notes and credentials
 ```
@@ -279,19 +283,35 @@ secret/              GITIGNORED. Personal setup notes and credentials
   stripper eat it.
 
 - **The search index is built once, at prerender, and `lib/search.js` only
-  ranks it.** `server/api/content/search-index.get.ts` walks every surface —
-  item questions AND answer bodies, a weighted row per topic, every blueprint,
-  every collection article with its archived body — and ships one JSON array
-  carrying both languages on every row. `lib/search.js` folds that array per
-  language (`prepareEntries`) and scores it (`searchEntries`); it owns no fetch
+  ranks it.** `server/api/content/search-index/[lang].get.ts` walks every
+  surface — item questions AND answer bodies, a weighted row per topic, every
+  blueprint, every collection article with its archived body — building
+  bilingual rows and then **projecting each one down to the language that route
+  serves**. It is prerendered twice, as `/api/content/search-index/en` and
+  `/…/vi`. One bilingual file was 908KB gzipped and every reader folded half of
+  it; one language is ~483KB. `lib/search.js` needed no change for this —
+  `finalize` already reads `vi || en`, so the absent half never resolves — but
+  the corollary is load-bearing: **a view must fetch the file matching the
+  language it renders with.** A VI index read as EN is not an error, it is 511
+  rows with blank titles. Both fetch sites therefore key on the same `lang` the
+  page renders, and the overlay tracks which one it holds so a language switch
+  refetches instead of ranking the wrong file. `lib/search.js` folds the array
+  (`prepareEntries`) and scores it (`searchEntries`); it owns no fetch
   and no data model. Both search surfaces must go through it: a plain "contains
   every term" filter is what the migration left behind, and it returned rows in
   index order with no snippet, so the reason a row matched was invisible and
   the first result — the one Enter opens — was as often as not the weakest.
-  Two things stay load-bearing: `fold()` must not change a string's length
+  Three things stay load-bearing: `fold()` must not change a string's length
   (every `<mark>` offset is found in the folded copy and applied to the
-  original), and an entry's `href` is a real route the builder knew, never one
-  a view reconstructs.
+  original), an entry's `href` is a real route the builder knew, never one
+  a view reconstructs, and **every row carries a body, not just a title**.
+  Blueprints shipped with `title` + `excerpt` and no body, so the largest prose
+  corpus on the site was unreachable — "erasure coding" and "deficit round
+  robin" returned nothing while the blueprint explaining them sat there. That
+  failure is invisible from the outside: search still works, it just cannot see
+  that surface. `tests/search.test.mjs` asserts every `entries.push` sets
+  `bodyEn`. Raw `code` is the one field deliberately left out, because a term
+  match inside a code block is usually noise.
 
 - **The overlay's keys are handled on `document`, not on the dialog.**
   Removing a recent search repaints the list under the button that was
@@ -358,13 +378,17 @@ secret/              GITIGNORED. Personal setup notes and credentials
   Each manifest row also owns a local `cover_image` from that article and an
   explicit `cover_fit` (`cover` or `contain`); card art must reflect its content.
 
-- **A case-study row is one of two source kinds, and it must say which.** An
+- **A case-study row is one of three source kinds, and it must say which.** An
   *external* row keeps the original attribution — publication date plus an
   approved publisher URL, nothing else — and both `company` and `source_url` are
   required. A *first-party* row sets `first_party: true` and must carry
   **neither**, so an absent field is always deliberate rather than forgotten;
-  the test asserts the absence, not just the presence. The view branches on that
-  one flag: no outbound credit link, no "historical archive" note, no source
+  the test asserts the absence, not just the presence. An *editorial* row sets
+  `editorial: true` and is locally authored the same way, carrying neither field
+  either — it exists because a piece written here from many sources is not the
+  same claim as a first-hand account of our own incident, and
+  `tests/libraries.test.mjs` holds both to the identical absence rule. The view
+  branches on that flag: no outbound credit link, no "historical archive" note, no source
   footer, and the guide's closing line points at the write-up rather than at a
   preserved publisher article — every one of those exists to reference a source
   a first-party piece does not have. The library's source count is derived from
@@ -410,6 +434,25 @@ secret/              GITIGNORED. Personal setup notes and credentials
   none, so its `auto` grid track was sized from the cover's own intrinsic
   width — a wide diagram can take the column and leave `minmax(0,1fr)` at
   zero. `.cs-card-art` always declared its 112px; this is the same fix.
+
+- **Images are optimized at commit time, never at request time.** The site is
+  prerendered onto GitHub Pages, so there is no image service to resize on the
+  fly and nothing gzips a binary. Two costs followed from that and
+  `tools/optimize-images.mjs` fixes both, writing outputs that are committed —
+  CI needs no native image toolchain. First, **animated GIF**: five chart GIFs
+  were 8.7MB on one case-study page. Lossless animated WebP is pixel-identical
+  and 93% smaller, and it is smaller than *any* lossy setting because a palette
+  chart is what lossless WebP is best at — so re-encoding an archived figure
+  costs nothing editorially. The tool refuses to write an output whose canvas
+  drifted or which lost its animation. Second, **card art**: a library card
+  renders its cover at 112px (96px on System Design) while the file behind it
+  ran to 2784px wide. A raster `cover_image` therefore owes a `cover_thumb`,
+  and the card reads `cover_thumb || cover_image`. Thumbnails live under
+  `assets/covers/`, **not** beside the article: `assets/case-studies/` is
+  asserted to hold exactly the figures the bodies reference, and a thumbnail is
+  not one of them. An SVG cover is skipped — it already scales for a few
+  kilobytes. Run `--check` before pushing an image change; it is the only
+  derived-asset check `check.mjs` does not run for you.
 
 - **A container is only as wide as the text inside it.** A block sized for a
   wide column whose contents are then capped short of it reads as a layout
@@ -565,12 +608,18 @@ secret/              GITIGNORED. Personal setup notes and credentials
      **narrow multi-word phrases, deliberately not keyword lists** — an earlier
      pass matched bare verbs (`use`/`choose`/`dùng`/`chỉ`) and lit a dozen spans
      per paragraph, which reads as noise and buries the two lines that matter.
-     The test fails above 1 span/row (currently ~0.36). Two traps it guards, both
-     of which corrupt text silently rather than failing the build: `QUANTITY`
-     runs last and must not eat the digits of a sentinel an earlier pattern
-     wrote (hence the private-use digits U+E010–E019, never ASCII), and it must
-     not read the `39` of `&#39;` as a number (hence the `(?<!&#)` guard).
-     Ranges match whole, so `1-10 triệu` is one span.
+     The test fails above 1 span/row (currently ~0.58). Three traps it guards,
+     all of which corrupt text silently rather than failing the build:
+     `QUANTITY` runs last and must not eat the digits of a sentinel an earlier
+     pattern wrote (hence the private-use digits U+E010–E019, never ASCII); it
+     must not read the `39` of `&#39;` as a number (hence the `(?<!&#)` guard);
+     and **the `k`/`M` unit guard must be unicode-aware**. It was `[\w-]`, which
+     does not include `ỗ`, so `1.000 mỗi phút` matched `1.000 m` and ended the
+     bold mid-word — in Vietnamese only, which is why nobody saw it. It is
+     `[\p{L}\d-]` now. Ranges match whole, so `1-10 triệu` is one span. What is
+     still split by design is a digit glued to letters that are not a unit
+     (`3xx`, `41,000th`): widening the pattern would cost `10x`, so those are
+     reworded in the catalog rather than matched.
   4. **The article head is padded to the body column, and the TOC collapses in
      place.** `.sd-article-head` carries
      `padding-left: var(--sd-rail) + 28px + var(--sd-gutter)` so the title
@@ -604,6 +653,46 @@ secret/              GITIGNORED. Personal setup notes and credentials
      The **only** character a transform may consume is the `;` it replaced with
      a bullet; `tests/prose.test.mjs` and both view tests compare the rendered
      text back to the source with that one normalisation.
+  6. **A blueprint answers its own failure review; the view never invents one.**
+     `failure_review` is **required** in both languages and
+     `validate-content.mjs` fails the build without it. The view used to
+     synthesize five questions when the field was missing and answer them with
+     the first line of `quality` or `capacity` — plausible-looking text that
+     answered nothing, on a page that reads as authored. It has its own TOC
+     anchor (`#failure-review`) and therefore its own `scroll-margin-top`,
+     because a destination that lands under the sticky header reads as a broken
+     link. The five questions are a rubric, adapted per design: what invariant
+     breaks · which metric sees it first · how the blast radius is contained ·
+     whether retry duplicates or reorders · how recovery is proven.
+
+- **A blueprint diagram shows the mechanism, not the boxes.** The catalogue had
+  two generations here exactly as the prose did: seven diagrams grouped their
+  paths and labelled their edges, thirteen were a flat list of nodes with
+  generic names. All twenty now carry the same three things, because they are
+  what turns a picture into an explanation:
+
+  1. **Subgraphs name the paths**, not the components — `Redirect path: one
+     cache hit`, `Delivery: retried apart from the ack`. A reader should be able
+     to tell the synchronous path from the async one without reading a word of
+     prose.
+  2. **The edge carries the mechanism.** `-->|302 Found, no-store|`,
+     `-->|UPDATE ... WHERE available >= qty|`, `-. miss only .->`. Where the page
+     states a number, the edge states it too: the caching blueprint puts the
+     whole miss chain on its arrows, so 250 rps at the edge visibly becomes 1
+     rps at the database.
+  3. **Technology is named where the prose committed to one** — Redis, Kafka,
+     Caffeine, quorum queue, Lua token bucket. A diagram that says `Cache` when
+     the page says `Redis with allkeys-lfu` is a weaker copy of the text.
+
+  Two hard limits, both learned from what already renders: **a node label stays
+  at or under 41 characters** (`htmlLabels: false` means no wrapping, so a long
+  label stretches the whole diagram past its column), and an annotation belongs
+  in the prose, never in a floating node — a 75-character note box was the first
+  thing that had to come back out. `tools/check-diagrams.mjs` parses every
+  diagram with the **vendored** renderer, and `check.mjs` runs it as the
+  `diagrams` stage: a Mermaid syntax error is otherwise silent, because
+  `lib/mermaid.js` degrades to the escaped source and the page still looks
+  deliberate.
 
 - **Mermaid is vendored, pinned by directory name, and loaded lazily.** The CSP
   is `script-src 'self'`, so a CDN was never an option — `public/vendor/

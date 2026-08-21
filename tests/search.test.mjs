@@ -28,13 +28,6 @@ import { readFile } from 'node:fs/promises';
      3. History belongs to whoever made it: `sessionStorage` while signed out,
         the account bucket once signed in, carried across exactly once. */
 
-
-
-
-
-
-
-
   const root = path.resolve(import.meta.dirname, '..');
   const publicRoot = path.join(root, 'public');
   const dataRoot = path.join(publicRoot, 'data');
@@ -47,7 +40,7 @@ import { readFile } from 'node:fs/promises';
   /* ---------------------------------------------------------------------
      Fixtures
 
-     Rows are written in the shape `server/api/content/search-index.get.ts`
+     Rows are written in the shape `server/api/content/search-index/[lang].get.ts`
      ships — both languages on every row, one real `href` — because that is the
      only shape the running site ever ranks. The fixture used to be built by a
      browser-side index builder that no longer exists; testing that shape again
@@ -95,7 +88,8 @@ import { readFile } from 'node:fs/promises';
     {
       id: 'system-design:scaling-1m-to-10m-requests', surface: 'system-design',
       en: 'Scaling 1M to 10M requests', vi: 'Scaling 1M to 10M requests',
-      bodyEn: '', bodyVi: '',
+      bodyEn: 'Cells, shards and regional isolation once one box stops being enough.',
+      bodyVi: 'Cell, shard và cô lập theo vùng khi một máy không còn đủ.',
       contextEn: 'Framing the growth from one box to cells.', contextVi: 'Framing the growth from one box to cells.',
       href: '/system-design/scaling-1m-to-10m-requests'
     },
@@ -271,12 +265,33 @@ import { readFile } from 'node:fs/promises';
   /* The hrefs themselves are the index builder's job, and getting one wrong
      sends a reader to a page that does not hold the answer. */
   test('the shipped index routes each surface to the page that owns it', async () => {
-    const builder = await readFile(path.join(root, 'server/api/content/search-index.get.ts'), 'utf8');
+    const builder = await readFile(path.join(root, 'server/api/content/search-index/[lang].get.ts'), 'utf8');
     assert.match(builder, /system-design\/\$\{sourceOwners\.get\(id\)\}#question-/,
       'a migrated deep dive must route into its blueprint');
     assert.match(builder, /topics\/\$\{topicKey\}#question-/);
     assert.match(builder, /id: `topic:\$\{topic\.key\}`/, 'a topic needs a row of its own');
     assert.match(builder, /weight: 40/, 'and a weight, or it never outranks its own questions');
+  });
+
+  /* A row with no body is findable only by its own title, which is the failure
+     that is invisible from the outside: search still works, it just silently
+     cannot reach that surface's prose. Blueprints shipped that way — the
+     largest corpus on the site was searchable by title and excerpt alone. */
+  test('every content surface ships a body, not just a title', async () => {
+    const builder = await readFile(path.join(root, 'server/api/content/search-index/[lang].get.ts'), 'utf8');
+    /* Each entries.push writes one surface's rows. Reading them from the source
+       rather than from the built index keeps this runnable without a build —
+       the route imports through a Nuxt alias plain Node cannot resolve. */
+    const pushes = builder.split('entries.push(').slice(1)
+      .map(chunk => chunk.slice(0, chunk.indexOf('});') + 1));
+    assert.ok(pushes.length >= 3, 'the index must reach system design and the collections, not only the track');
+    for (const chunk of pushes) {
+      const surface = chunk.match(/surface: '([a-z-]+)'/)?.[1] || 'collection';
+      assert.match(chunk, /bodyEn/, `${surface}: rows without a body are findable by title alone`);
+    }
+    // the track's own rows are mapped rather than pushed, and owe the same body
+    assert.match(builder, /surface: 'track', en: text\.en[\s\S]{0,200}bodyEn/,
+      'track: an item row must carry its answer, not only its question');
   });
 
   /* ---------------------------------------------------------------------
@@ -496,7 +511,7 @@ import { readFile } from 'node:fs/promises';
     for (const [name, source] of [['search page', page], ['overlay', overlay]]) {
       assert.doesNotMatch(source, /useAsyncData\([^)]*search-index/,
         `${name} must not resolve the index during prerender`);
-      assert.match(source, /fetch\('\/api\/content\/search-index'\)/,
+      assert.match(source, /fetch\(`\/api\/content\/search-index\/\$\{/,
         `${name} must fetch the index at runtime`);
     }
 

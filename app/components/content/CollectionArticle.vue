@@ -94,7 +94,6 @@ useHead(() => ({
   title: `${copy.value.title} — GAZLL`,
   meta: [{ name: 'description', content: copy.value.excerpt }],
   link: [
-    { rel: 'stylesheet', href: '/styles.css' },
     { rel: 'canonical', href: `https://gazll.github.io/${props.collection}/${props.slug}` }
   ],
   script: [{
@@ -115,7 +114,7 @@ useHead(() => ({
 <template>
   <div>
     <ContentHeader :lang="lang" />
-    <main id="view-host" class="view">
+    <main id="view-host" tabindex="-1" class="view">
       <div class="cs-article">
         <div class="cs-backbar">
           <NuxtLink class="cs-back" :to="{ path: `/${collection}`, query: lang === 'vi' ? { lang } : {} }">← {{ labels.back }}</NuxtLink>

@@ -46,7 +46,7 @@ useHead(() => ({
 </script>
 
 <template>
-  <div><ContentHeader :lang="lang" /><main id="view-host" class="view"><div class="pj-shell pj-article">
+  <div><ContentHeader :lang="lang" /><main id="view-host" tabindex="-1" class="view"><div class="pj-shell pj-article">
     <div class="sd-backbar"><NuxtLink class="pj-back" :to="{ path: '/', query: lang === 'vi' ? { lang } : {} }">← {{ labels.back }}</NuxtLink></div>
     <header class="pj-head"><p class="pj-eyebrow">Project · {{ project.status }} · {{ data.snapshot }}</p><h1>{{ project.title }}</h1><p class="pj-deck">{{ project.intro }}</p><p>{{ project.owner_note }}</p><div class="pj-meta"><span>{{ data.updated_at }}</span><code>{{ data.project.source_root }}</code></div></header>
     <details class="pj-toc-mobile"><summary>{{ labels.contents }}</summary><nav><a v-for="entry in toc" :key="entry[0]" :href="`#${entry[0]}`">{{ entry[1] }}</a></nav></details>

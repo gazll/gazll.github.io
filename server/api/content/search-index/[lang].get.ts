@@ -4,7 +4,8 @@ import { plainText } from '~~/public/lib/search-text.js';
 
 const json = async (file: string) => JSON.parse(await readFile(path.join(process.cwd(), 'public', file), 'utf8'));
 
-export default defineEventHandler(async () => {
+export default defineEventHandler(async (event: any) => {
+  const lang = getRouterParam(event, 'lang') === 'vi' ? 'vi' : 'en';
   const [index, meta, systemDesign, caseManifest, caseMeta, photoManifest, photoMeta, homeManifest, homeMeta] = await Promise.all([
     json('data/content-index.json'), json('data/meta.json'), json('data/system-design/catalog.json'),
     json('data/case-studies/manifest.json'), json('data/case-studies/meta.json'),
@@ -61,12 +62,33 @@ export default defineEventHandler(async () => {
     });
   }
 
-  for (const design of systemDesign.designs) entries.push({
-    id: `system-design:${design.slug}`, surface: 'system-design',
-    en: design.en.title, vi: design.vi?.title || design.en.title,
-    contextEn: design.en.excerpt, contextVi: design.vi?.excerpt || design.en.excerpt,
-    href: `/system-design/${design.slug}`
-  });
+  /* A blueprint's substance is its decision rows, not its title: a reader looks
+     for "token bucket" or "301 versus 302", and until this carried a body the
+     largest prose corpus on the site was searchable by title and excerpt alone.
+     Raw `code` is deliberately excluded — it is the one field where a term match
+     is usually noise — while each sample's title and note are prose and stay. */
+  const DESIGN_PROSE = ['scope', 'functional', 'quality', 'capacity', 'data_model', 'stack', 'tradeoffs'];
+  const designBody = (copy: any) => {
+    if (!copy) return '';
+    const parts = DESIGN_PROSE.map(field => {
+      const value = copy[field];
+      return Array.isArray(value) ? value.join(' ') : String(value || '');
+    });
+    parts.push((copy.tags || []).join(' '));
+    parts.push((copy.failure_review || []).map((row: any) => `${row.question} ${row.answer}`).join(' '));
+    parts.push((copy.code_samples || []).map((row: any) => `${row.title || ''} ${row.note || ''}`).join(' '));
+    return plainText(parts.filter(Boolean).join(' '));
+  };
+  for (const design of systemDesign.designs) {
+    const bodyEn = designBody(design.en);
+    entries.push({
+      id: `system-design:${design.slug}`, surface: 'system-design',
+      en: design.en.title, vi: design.vi?.title || design.en.title,
+      bodyEn, bodyVi: designBody(design.vi) || bodyEn,
+      contextEn: design.en.excerpt, contextVi: design.vi?.excerpt || design.en.excerpt,
+      href: `/system-design/${design.slug}`
+    });
+  }
 
   /* The article bodies are the searchable substance of a library row; the old
      client index folded them in through a second `enrich()` pass. Prerendering
@@ -96,5 +118,25 @@ export default defineEventHandler(async () => {
   await addCollection('case-studies', caseManifest, caseMeta);
   await addCollection('photography', photoManifest, photoMeta);
   await addCollection('homelab', homeManifest, homeMeta);
-  return entries;
+
+  /* One language per file. Rows are built bilingual because that is how the
+     sources read, then projected down to the one this route serves: a reader
+     folds one language and the other half was 425KB of gzip they never touched.
+     lib/search.js needs no change — `finalize` already reads `vi || en`, so the
+     absent half simply never resolves. The corollary is that a view must fetch
+     the file matching the language it renders with, never the other one. */
+  const vi = lang === 'vi';
+  return entries.map((entry: any) => ({
+    id: entry.id,
+    surface: entry.surface,
+    ...(entry.weight ? { weight: entry.weight } : {}),
+    ...(vi
+      ? {
+        vi: entry.vi || entry.en,
+        bodyVi: entry.bodyVi || entry.bodyEn,
+        contextVi: entry.contextVi || entry.contextEn
+      }
+      : { en: entry.en, bodyEn: entry.bodyEn, contextEn: entry.contextEn }),
+    href: entry.href
+  }));
 });

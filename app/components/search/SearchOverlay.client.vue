@@ -57,18 +57,26 @@ const groupedResults = computed(() => Object.entries(results.value.reduce<Record
   return groups;
 }, {})));
 
+/* One index file per language, so `loaded` tracks which one is in hand: a
+   projected index has nothing under the other language's keys, and reusing
+   it after a switch would render every row blank rather than fail loudly. */
+const loaded = ref<'en' | 'vi' | ''>('');
 async function load() {
-  if (entries.value.length || loading.value) return;
+  if (loading.value || loaded.value === props.lang) return;
   loading.value = true;
   loadError.value = false;
   try {
-    const response = await fetch('/api/content/search-index');
+    const response = await fetch(`/api/content/search-index/${props.lang}`);
     if (!response.ok) throw new Error(`Search index returned ${response.status}`);
     entries.value = await response.json();
+    loaded.value = props.lang;
   } catch {
+    entries.value = [];
+    loaded.value = '';
     loadError.value = true;
   } finally { loading.value = false; }
 }
+watch(() => props.lang, () => { if (isOpen.value) load(); });
 function open(initial = '') {
   if (initial) query.value = initial;
   isOpen.value = true;

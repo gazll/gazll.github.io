@@ -17,6 +17,11 @@
   
   html{scroll-behavior:smooth;scrollbar-gutter:stable}
   body.nav-open{overflow:hidden}
+  /* Only 500/600/700 of Space Grotesk and 400/500/600 of the two IBM Plex
+     families are downloaded, so `font-weight:700` on anything but a heading is
+     a weight the browser synthesizes — faux bold, which reads as slightly
+     smeared and belongs to no font file. 600 is this site's bold: it is what
+     `strong`, `.sd-crit` and forty other rules already use. */
   body{margin:0;background:radial-gradient(120% 90% at 100% 0%, #F4F6FA 0%, var(--paper) 55%) fixed;
     color:var(--ink);font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:16px;line-height:1.62;-webkit-font-smoothing:antialiased;}
   ::selection{background:var(--emerald);color:#fff}
@@ -146,7 +151,11 @@
 
   .skiplink{position:absolute;left:-9999px;top:0;z-index:200;background:var(--emerald-deep);color:#fff;
     padding:10px 16px;border-radius:0 0 10px 0;font-size:14px}
-  .skiplink:focus{left:0}/* ---------- navigation panel (slide-out drawer) ---------- */
+  .skiplink:focus{left:0}
+  /* The skip target is tabindex="-1" so focus really lands in the content; the
+     scroll margin is what stops it landing underneath the sticky header. */
+  #view-host,#view-track{scroll-margin-top:90px}
+  #view-host:focus,#view-track:focus{outline:none}/* ---------- navigation panel (slide-out drawer) ---------- */
 
   .navtoggle{flex:none;width:40px;height:40px;border-radius:11px;border:1px solid var(--line);
     background:var(--surface);color:var(--ink);cursor:pointer;
@@ -237,7 +246,7 @@
   .langswitch{display:inline-flex;align-items:center;gap:8px;cursor:pointer}
   .langswitch.busy{opacity:.55;pointer-events:none}
   .langswitch:focus-visible{outline:2px solid var(--emerald);outline-offset:2px;border-radius:8px}
-  .langswitch .lang-label{font-family:"IBM Plex Mono",monospace;font-size:12px;font-weight:700;
+  .langswitch .lang-label{font-family:"IBM Plex Mono",monospace;font-size:12px;font-weight:600;
     letter-spacing:.5px;color:var(--muted);transition:color .15s ease}
   .langswitch[aria-checked="false"] .lang-label[data-lang="en"],
   .langswitch[aria-checked="true"] .lang-label[data-lang="vi"]{color:var(--ink)}
@@ -598,7 +607,7 @@
   .sd-card-kicker{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.65px;text-transform:uppercase;color:var(--indigo);margin-bottom:5px}
   .content-sort{display:flex;align-items:center;gap:6px;margin-top:16px;font-family:"IBM Plex Mono",monospace;font-size:9px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)}
   .content-sort button{appearance:none;border:1px solid var(--line);border-radius:999px;background:var(--surface);padding:6px 10px;color:var(--ink-soft);font:inherit;cursor:pointer}
-  .content-sort button[aria-pressed="true"]{border-color:var(--indigo);background:var(--indigo-soft);color:var(--indigo);font-weight:700}
+  .content-sort button[aria-pressed="true"]{border-color:var(--indigo);background:var(--indigo-soft);color:var(--indigo);font-weight:600}
   .sd-card-main strong{font-family:"Space Grotesk",sans-serif;font-size:19px;line-height:1.25;color:var(--ink)}
   .sd-card-main>span:not(.sd-card-kicker):not(.sd-card-tags):not(.sd-card-meta){font-size:13.5px;line-height:1.55;color:var(--ink-soft);margin-top:7px;
     display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
@@ -725,7 +734,7 @@
 
   .sd-article-body .sd-crit{color:var(--clay);font-weight:600}
   .sd-article-body .sd-note{color:var(--emerald-deep);font-weight:600}
-  .sd-article-body .sd-num{color:var(--ink);font-weight:700;font-variant-numeric:tabular-nums}
+  .sd-article-body .sd-num{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
   .sd-decision-checks{margin-top:12px;padding:14px 15px;border:1px solid #dce2f2;border-radius:10px;background:var(--indigo-soft)}
   .sd-decision-checks>strong{display:block;margin-bottom:9px;font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.45px;text-transform:uppercase;color:var(--indigo)}
   .sd-decision-checks ul{display:flex;flex-wrap:wrap;gap:7px;margin:0;padding:0;list-style:none}
@@ -738,7 +747,9 @@
   .sd-tradeoff-list p{margin:6px 0 0;color:var(--ink-soft);font-size:14px;line-height:1.7}
   .sd-tradeoff-detail{margin-top:6px;font-size:14px;line-height:1.7;color:var(--ink-soft)}
   .sd-tradeoff-detail .sd-part>p{margin:0}
-  .sd-failure-review{margin-top:12px;padding:15px;border:1px solid #c9ddcf;border-radius:11px;background:#F7FBF8}
+  .sd-failure-review{margin-top:22px;padding:15px;border:1px solid #c9ddcf;border-radius:11px;background:#F7FBF8;
+    scroll-margin-top:90px}/* a TOC destination, so it clears the sticky header like .sd-section does */
+
   .sd-failure-review>strong{display:block;margin-bottom:10px;font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.45px;text-transform:uppercase;color:var(--emerald-deep)}
   .sd-failure-review>div{display:grid;gap:8px}
   .sd-failure-review article{display:grid;grid-template-columns:31px minmax(0,1fr);gap:10px;padding:11px 12px;border:1px solid #d7e8dc;border-radius:8px;background:var(--surface)}
@@ -886,8 +897,6 @@
     font-weight:600;letter-spacing:.4px;text-transform:uppercase;color:var(--indigo)}
   .iv-jd>summary:hover{background:var(--indigo-soft)}
   .iv-jd>div{padding:4px 15px 14px;border-top:1px solid var(--line);color:var(--ink-soft);font-size:14px;line-height:1.7}
-  .company-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-  .company-head h2,.company-head h3{font-family:"Space Grotesk",sans-serif;font-weight:600;font-size:18px;margin:0;color:var(--ink)}
   .result{font-family:"IBM Plex Mono",monospace;font-size:10.5px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;
     padding:3px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
   .result-pending{color:var(--brass);border-color:#e3d6b8;background:#faf5e9}
@@ -968,7 +977,7 @@
   .qcard.open .qtop,.qcard.open>.qhead{position:sticky;top:var(--hdr-h,0px);z-index:30;
     background:var(--surface);border-bottom:1px solid var(--line);border-radius:9px 9px 0 0}
   .qid{font-family:"IBM Plex Mono",monospace;font-size:12px;font-weight:600;color:var(--brass);flex:none;padding-top:2px;min-width:38px}
-  .qcard.done .qid::after{content:"✓";display:block;font-size:11px;color:var(--emerald);font-weight:700;margin-top:1px;line-height:1}
+  .qcard.done .qid::after{content:"✓";display:block;font-size:11px;color:var(--emerald);font-weight:600;margin-top:1px;line-height:1}
   .qtext{flex:1;font-weight:500;font-size:15.5px;line-height:1.45}
   .qmeta{display:flex;align-items:center;gap:10px;flex:none;padding-right:18px}
 /* Copy-link and the language toggle are per-card CONTROLS, not information, and
@@ -1531,15 +1540,15 @@
      header is one row at every width and sheds ornaments instead of wrapping,
      so the label and the shortcut hint go first and the icon stays. */
 
-  .searchtrigger{flex:none;display:inline-flex;align-items:center;gap:10px;cursor:pointer;font:inherit;
-    height:40px;padding:0 12px;border-radius:11px;border:1px solid var(--line);background:var(--surface);
+  .searchtrigger{flex:none;display:inline-flex;align-items:center;gap:12px;cursor:pointer;font:inherit;
+    height:48px;padding:0 18px;border-radius:13px;border:1px solid var(--line);background:var(--surface);
     color:var(--ink-soft);transition:.16s ease}
   .searchtrigger:hover{border-color:var(--emerald);color:var(--emerald-deep);box-shadow:var(--shadow)}
   .searchtrigger:focus-visible{outline:2px solid var(--emerald);outline-offset:2px}
-  .searchtrigger svg{width:18px;height:18px;flex:none}
-  .st-label{font-size:14px;white-space:nowrap}
-  .st-key{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.4px;color:var(--muted);
-    border:1px solid var(--line);border-radius:6px;padding:2px 6px;background:var(--paper)}
+  .searchtrigger svg{width:24px;height:24px;flex:none}
+  .st-label{font-size:16.5px;white-space:nowrap}
+  .st-key{font-family:"IBM Plex Mono",monospace;font-size:13px;letter-spacing:.4px;color:var(--muted);
+    border:1px solid var(--line);border-radius:7px;padding:3px 8px;background:var(--paper)}
 
   body.search-open{overflow:hidden}/* Above header.top (z-index 50): the overlay is a sibling of the header, so
      it is not trapped inside the header's stacking context. */
@@ -1643,7 +1652,7 @@
   @media (max-width:999px){
     /* icon only: the header is already tight under 1000px */
     .st-label,.st-key{display:none}
-    .searchtrigger{width:38px;padding:0;justify-content:center}
+    .searchtrigger{width:48px;padding:0;justify-content:center}
   }
   @media (max-width:760px){
     .gs-overlay{top:0;left:0;transform:none;width:100vw;max-height:100vh;height:100%;border-radius:0;border:0}
@@ -1654,3 +1663,20 @@
 
   .loading-block{min-height:120px;display:grid;place-items:center;margin:0;color:var(--muted);
     font-family:"IBM Plex Mono",monospace;font-size:12px;text-align:center}
+
+  /* Error page — the chrome a stale bookmark lands on, so it offers routes out. */
+
+  .err-page{max-width:640px;margin:0 auto;padding:clamp(48px,10vw,96px) 0;text-align:center}
+  .err-code{margin:0 0 10px;font-family:"IBM Plex Mono",monospace;font-size:52px;font-weight:600;
+    line-height:1;color:var(--line-strong);letter-spacing:-.02em}
+  .err-page h1{margin:0 0 14px;font-size:clamp(24px,4vw,32px)}
+  .err-lead{margin:0 auto 8px;max-width:52ch;color:var(--ink-soft);line-height:1.65}
+  .err-detail{margin:0 auto 8px;max-width:60ch;font-family:"IBM Plex Mono",monospace;font-size:12px;
+    color:var(--muted);word-break:break-word}
+  .err-actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:26px 0 34px}
+  .err-elsewhere{margin:0 0 10px;font-family:"IBM Plex Mono",monospace;font-size:10.5px;
+    letter-spacing:.4px;text-transform:uppercase;color:var(--muted)}
+  .err-links{display:flex;flex-wrap:wrap;gap:8px 18px;justify-content:center}
+  .err-links a{font-size:13px;color:var(--emerald-deep);text-decoration:none;border-bottom:1px solid transparent}
+  .err-links a:hover{border-bottom-color:currentColor}
+  .err-links a:focus-visible{outline:2px solid var(--emerald);outline-offset:3px;border-radius:3px}

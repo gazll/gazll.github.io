@@ -24,6 +24,7 @@
         "01-java-core-jvm.language-fundamentals.q6",
         "01-java-core-jvm.language-fundamentals.q7",
         "01-java-core-jvm.language-fundamentals.q8",
+        "01-java-core-jvm.language-fundamentals.q9",
         "01-java-core-jvm.collections-data-structures.q1",
         "01-java-core-jvm.collections-data-structures.q2",
         "01-java-core-jvm.collections-data-structures.q3",
@@ -52,6 +53,7 @@
         "01-java-core-jvm.language-fundamentals.q6",
         "01-java-core-jvm.language-fundamentals.q7",
         "01-java-core-jvm.language-fundamentals.q8",
+        "01-java-core-jvm.language-fundamentals.q9",
         "01-java-core-jvm.collections-data-structures.q1",
         "01-java-core-jvm.collections-data-structures.q2",
         "01-java-core-jvm.collections-data-structures.q3",
@@ -192,6 +194,7 @@
         "05-db-core-index-lock.transactions-mvcc-locking.q5",
         "05-db-core-index-lock.transactions-mvcc-locking.q6",
         "05-db-core-index-lock.transactions-mvcc-locking.q7",
+        "05-db-core-index-lock.transactions-mvcc-locking.q8",
         "05-db-core-index-lock.modelling-the-schema.q1",
         "05-db-core-index-lock.modelling-the-schema.q2"
       ],
@@ -210,6 +213,7 @@
         "05-db-core-index-lock.transactions-mvcc-locking.q5",
         "05-db-core-index-lock.transactions-mvcc-locking.q6",
         "05-db-core-index-lock.transactions-mvcc-locking.q7",
+        "05-db-core-index-lock.transactions-mvcc-locking.q8",
         "05-db-core-index-lock.modelling-the-schema.q1",
         "05-db-core-index-lock.modelling-the-schema.q2"
       ]
@@ -1094,6 +1098,10 @@
       "en": "Why can `com.acme.Order cannot be cast to com.acme.Order` happen, and how do you prove which loader is at fault?",
       "vi": "Vì sao xảy ra `com.acme.Order cannot be cast to com.acme.Order`, và làm sao chứng minh loader nào gây ra?"
     },
+    "01-java-core-jvm.language-fundamentals.q9": {
+      "en": "The four OOP pillars — which Java mechanism actually implements each, and where does each one leak?",
+      "vi": "Bốn trụ OOP — cơ chế Java nào thực sự hiện thực từng cái, và mỗi cái rò rỉ ở đâu?"
+    },
     "01-java-core-jvm.collections-data-structures.q1": {
       "en": "How does HashMap work? Hashing, buckets, collisions, treeify, resize?",
       "vi": "HashMap hoạt động thế nào? Hashing, bucket, collision, treeify, resize?"
@@ -1361,6 +1369,10 @@
     "05-db-core-index-lock.transactions-mvcc-locking.q7": {
       "en": "LSM-tree vs B+Tree — why do write-heavy databases choose LSM?",
       "vi": "LSM-tree vs B+Tree — vì sao DB write-heavy chọn LSM?"
+    },
+    "05-db-core-index-lock.transactions-mvcc-locking.q8": {
+      "en": "ACID — what does each letter actually promise, and what inside the engine enforces it?",
+      "vi": "ACID — mỗi chữ thực sự hứa điều gì, và cái gì bên trong engine đảm bảo nó?"
     },
     "05-db-core-index-lock.modelling-the-schema.q1": {
       "en": "Why is a database constraint stronger than the same rule enforced in application code?",

@@ -1516,5 +1516,33 @@
       "https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html",
       "https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html"
     ]
+  },
+  "01-java-core-jvm.language-fundamentals.q9": {
+    "reviewed_at": "2026-08-21",
+    "target_versions": [
+      "Java SE 25 JLS",
+      "Java SE 25 JVMS"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.4.8",
+      "https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.4.9",
+      "https://docs.oracle.com/javase/specs/jvms/se25/html/jvms-6.html#jvms-6.5.invokevirtual"
+    ]
+  },
+  "05-db-core-index-lock.transactions-mvcc-locking.q8": {
+    "reviewed_at": "2026-08-21",
+    "target_versions": [
+      "MySQL 8.4 LTS",
+      "InnoDB",
+      "PostgreSQL 18"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://dev.mysql.com/doc/refman/8.4/en/mysql-acid.html",
+      "https://dev.mysql.com/doc/refman/8.4/en/innodb-redo-log.html",
+      "https://www.postgresql.org/docs/18/storage-file-layout.html",
+      "https://www.postgresql.org/docs/18/transaction-iso.html"
+    ]
   }
 }

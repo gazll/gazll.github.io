@@ -6,24 +6,33 @@ const lang = computed<'en' | 'vi'>(() => route.query.lang === 'vi' ? 'vi' : 'en'
 const query = ref(String(route.query.q || ''));
 const surface = ref(String(route.query.surface || 'all'));
 /* Fetched in the browser, never through useAsyncData: awaiting it here makes
-   the index part of the prerendered payload, and this one is ~2.4MB — every
-   visit to /search would download the whole corpus before first paint, and
-   the overlay would then fetch it a second time. Loading it on mount keeps
-   the page itself small and lets the results appear as soon as it lands. */
+   the index part of the prerendered payload, and even one language is ~480KB
+   gzipped — every visit to /search would download the corpus before first
+   paint, and the overlay would then fetch it a second time. Loading it on
+   mount keeps the page itself small and lets results appear as soon as it
+   lands. One file per language, so switching costs a fetch the browser cache
+   then serves for free; carrying both cost every reader 425KB they never
+   folded. It must match the language being rendered — an index projected to
+   one language has nothing under the other one's keys. */
 const entries = ref<any[]>([]);
 const indexLoading = ref(true);
 const indexFailed = ref(false);
-onMounted(async () => {
+async function loadIndex(which: 'en' | 'vi') {
+  indexLoading.value = true;
+  indexFailed.value = false;
   try {
-    const response = await fetch('/api/content/search-index');
+    const response = await fetch(`/api/content/search-index/${which}`);
     if (!response.ok) throw new Error(`Search index returned ${response.status}`);
     entries.value = await response.json();
   } catch {
+    entries.value = [];
     indexFailed.value = true;
   } finally {
     indexLoading.value = false;
   }
-});
+}
+onMounted(() => loadIndex(lang.value));
+watch(lang, next => loadIndex(next));
 const nuxtApp = useNuxtApp() as any;
 const recent = ref<any[]>([]);
 let stopHistory: (() => void) | null = null;
@@ -92,17 +101,18 @@ function rememberQuery() { if (query.value.trim()) nuxtApp.$searchHistory?.recor
 function followResult() { rememberQuery(); }
 function submitSearch() { rememberQuery(); }
 
-useHead({
+useHead(() => ({
+  htmlAttrs: { lang: lang.value },
   title: 'Search — GAZLL',
   meta: [{ name: 'description', content: 'Search every GAZLL study and knowledge surface.' }],
-  link: [{ rel: 'stylesheet', href: '/styles.css' }, { rel: 'canonical', href: 'https://gazll.github.io/search' }]
-});
+  link: [{ rel: 'canonical', href: 'https://gazll.github.io/search' }]
+}));
 </script>
 
 <template>
   <div>
     <ContentHeader :lang="lang" />
-    <main id="view-host" class="view">
+    <main id="view-host" tabindex="-1" class="view">
       <div class="page gs-page">
         <header class="gs-page-head">
           <p class="cs-eyebrow">{{ labels.eyebrow }}</p>

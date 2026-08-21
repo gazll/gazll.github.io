@@ -406,6 +406,10 @@ import { crossRefResolver, trackItemIds } from '../public/lib/cross-ref.js';
     // escapeHtml only emits &amp; &lt; &gt; &quot;, none of which carry digits,
     // so no catalog text can present a numeric entity to QUANTITY.
     assert.equal(emphasize('x > 1'), 'x &gt; <b class="sd-num">1</b>');
+    // the k/M unit guard has to be unicode-aware, or the bold ends mid-word in
+    // Vietnamese only: "1.000 mỗi" matched "1.000 m" and left "ỗi" outside.
+    assert.equal(emphasize('1.000 mỗi phút'), '<b class="sd-num">1.000</b> mỗi phút');
+    assert.equal(emphasize('10k users'), '<b class="sd-num">10k</b> users');
 
     let spans = 0;
     let rows = 0;
@@ -420,6 +424,20 @@ import { crossRefResolver, trackItemIds } from '../public/lib/cross-ref.js';
             assert.doesNotMatch(out, /&#?\w*<b/, `${label}: an entity was split by a tag`);
             assert.equal(out.replace(/<\/?b(?: class="sd-(?:crit|note|num)")?>/g, ''), escapeHtml(row),
               `${label}: emphasis changed the text`);
+            /* A span that opens or closes inside a word is the whole class of
+               failure the unit guard belonged to: the text survives the
+               round-trip above and still renders with the bold ending
+               mid-word. Checking the boundary catches every tone at once. */
+            for (const span of out.matchAll(/<b class="sd-(?:crit|note|num)">([\s\S]*?)<\/b>/g)) {
+              const plain = html => html.replace(/<[^>]*>/g, '');
+              const before = plain(out.slice(0, span.index)).slice(-1);
+              const after = plain(out.slice(span.index + span[0].length)).slice(0, 1);
+              const inner = plain(span[1]);
+              assert.ok(!(/\p{L}/u.test(before) && /\p{L}/u.test(inner.slice(0, 1))),
+                `${label}: emphasis opens mid-word at ${JSON.stringify(inner)}`);
+              assert.ok(!(/\p{L}/u.test(inner.slice(-1)) && /\p{L}/u.test(after)),
+                `${label}: emphasis closes mid-word at ${JSON.stringify(inner)}`);
+            }
             spans += (out.match(/<b /g) || []).length;
             rows++;
           }
@@ -608,6 +626,16 @@ import { crossRefResolver, trackItemIds } from '../public/lib/cross-ref.js';
         `${article.slug}: card cover must reuse an image from its own article`);
       assert.ok(['cover', 'contain'].includes(article.cover_fit), `${article.slug}: invalid cover fit`);
       await access(path.join(publicRoot, article.cover_image));
+      /* A card renders its cover at 112px. Shipping the article's own figure
+         there meant up to 2784px of image per thumbnail, so a raster cover owes
+         a `cover_thumb` from tools/optimize-images.mjs. It lives outside
+         assets/case-studies on purpose: that tree is asserted to hold exactly
+         the figures the bodies reference, and a thumbnail is not one. */
+      if (!article.cover_image.endsWith('.svg')) {
+        assert.equal(article.cover_thumb, `assets/covers/case-studies/${key}.webp`,
+          `${article.slug}: a raster cover needs a generated thumbnail`);
+        await access(path.join(publicRoot, article.cover_thumb));
+      }
       assert.ok(Number.isInteger(article.read_minutes) && article.read_minutes > 0);
       assert.match(article.created_at, ISO_DATE, `${article.slug}: created_at`);
       assert.match(article.updated_at, ISO_DATE, `${article.slug}: updated_at`);
@@ -925,7 +953,7 @@ import { crossRefResolver, trackItemIds } from '../public/lib/cross-ref.js';
     for (const surface of ['photography', 'homelab']) {
       assert.ok(SURFACES.some(row => row.id === surface), `${surface} must be a search surface`);
     }
-    const builder = await readFile(path.join(root, 'server/api/content/search-index.get.ts'), 'utf8');
+    const builder = await readFile(path.join(root, 'server/api/content/search-index/[lang].get.ts'), 'utf8');
     assert.match(builder, /addCollection\('photography'/);
     assert.match(builder, /addCollection\('homelab'/);
     assert.match(builder, /addCollection\('case-studies'/);

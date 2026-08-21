@@ -44,8 +44,10 @@ import { pathToFileURL } from 'node:url';
       assert.ok(page.includes(cssClass), `full search is missing ${cssClass}`);
     }
     assert.match(overlay, /ctrlKey \|\| event\.metaKey/);
-    assert.match(overlay, /fetch\('\/api\/content\/search-index'\)/);
-    assert.match(config, /'\/api\/content\/search-index'/);
+    // one index file per language: fetching the other one renders every row blank
+    assert.match(overlay, /search-index\/\$\{props\.lang\}/);
+    assert.match(config, /search-index\/en/);
+    assert.match(config, /search-index\/vi/);
   });
 
   test('topic pages feed the native header all picker labels and navigation rows', async () => {
@@ -113,7 +115,7 @@ import { pathToFileURL } from 'node:url';
   test('migrated System Design questions remain readable and searchable at their new owner', async () => {
     const [endpoint, search, page, topic] = await Promise.all([
       read('server/api/content/system-design/[slug].get.ts'),
-      read('server/api/content/search-index.get.ts'),
+      read('server/api/content/search-index/[lang].get.ts'),
       read('app/pages/system-design/[slug].vue'),
       read('app/components/study/TopicPage.vue')
     ]);
@@ -216,8 +218,8 @@ import { pathToFileURL } from 'node:url';
   const read = name => readFile(path.join(root, name), 'utf8');
 
   test('native readers keep their template and CSS contracts', async () => {
-    const [release, styles, gazl, question, design, header, overlay, search] = await Promise.all([
-      read('app/pages/release-notes.vue'), read('public/styles.css'), read('app/components/gazl/GazlJournal.client.vue'),
+    const [release, gazl, question, design, header, overlay, search] = await Promise.all([
+      read('app/pages/release-notes.vue'), read('app/components/gazl/GazlJournal.client.vue'),
       read('app/components/study/QuestionCard.vue'), read('app/pages/system-design/[slug].vue'),
       read('app/components/content/ContentHeader.vue'),
       read('app/components/search/SearchOverlay.client.vue'), read('app/pages/search.vue')
@@ -226,7 +228,6 @@ import { pathToFileURL } from 'node:url';
     for (const selector of ['class="rn-change"', 'class="rn-cmeta"', 'class="rn-text"']) {
       assert.ok(release.includes(selector), `release notes is missing ${selector}`);
     }
-    assert.match(styles, /\.company-head h2/);
     assert.match(gazl, /empty-q/);
     assert.match(question, /new URL\('\/lib\/dsa-player\.js', window\.location\.origin\)/);
     assert.doesNotMatch(question, /\/views\/dsa-player\.js/);
@@ -263,6 +264,29 @@ import { pathToFileURL } from 'node:url';
       'sticky rules still depend on --hdr-h');
     // The drawer and topic panel own the header while open.
     for (const state of ['nav-open', 'topic-open']) assert.ok(headroom.includes(state));
+
+    /* The skip link only works if focus really moves. Without tabindex the next
+       Tab continues from the link and walks back into the navigation it was
+       skipping, and without the scroll margin the content lands under the
+       sticky header — both of which read as "the skip link does nothing". */
+    assert.match(styles, /#view-host,#view-track\{scroll-margin-top/,
+      'the skip target must clear the sticky header');
+    const vueFiles = async dir => {
+      const out = [];
+      for (const entry of await readdir(path.join(root, dir), { withFileTypes: true })) {
+        const rel = `${dir}/${entry.name}`;
+        if (entry.isDirectory()) out.push(...await vueFiles(rel));
+        else if (entry.name.endsWith('.vue')) out.push(rel);
+      }
+      return out;
+    };
+    const templates = (await Promise.all((await vueFiles('app')).map(async file => [file, await read(file)])))
+      .filter(([, source]) => /id="view-(?:host|track)"/.test(source));
+    assert.ok(templates.length >= 8, 'every reader surface should carry a skip target');
+    for (const [file, source] of templates) {
+      assert.doesNotMatch(source, /id="view-(?:host|track)"(?! tabindex="-1")/,
+        `${file}: a skip target must be focusable`);
+    }
   });
 
   test('pinned library group headers shed their description', async () => {
@@ -384,15 +408,22 @@ import { pathToFileURL } from 'node:url';
   });
 
   test('native Nuxt surfaces expose visible loading fallbacks', async () => {
-    const [gazlPage, gazl, searchOverlay, topic] = await Promise.all([
+    const [gazlPage, gazl, searchOverlay, topic, statsPage, adminPage] = await Promise.all([
       read('app/pages/gazl-try.vue'),
       read('app/components/gazl/GazlJournal.client.vue'),
       read('app/components/search/SearchOverlay.client.vue'),
-      read('app/components/study/TopicPage.vue')
+      read('app/components/study/TopicPage.vue'),
+      read('app/pages/stats.vue'),
+      read('app/pages/admin.vue')
     ]);
 
-    assert.match(gazlPage, /#fallback/);
-    assert.match(gazlPage, /loading-block/);
+    /* A page-level <ClientOnly> renders nothing until hydration, so a hero
+       with a blank column under it is what the reader actually sees. Stats and
+       Admin both shipped that way after the migration. */
+    for (const [name, page] of [['gazl-try', gazlPage], ['stats', statsPage], ['admin', adminPage]]) {
+      assert.match(page, /#fallback/, `${name} has no ClientOnly fallback`);
+      assert.match(page, /loading-block/, `${name} fallback is not the shared loading block`);
+    }
     assert.match(gazl, /v-if="loading"/);
     assert.match(gazl, /class="loading-block"/);
     assert.match(searchOverlay, /v-if="loading"/);

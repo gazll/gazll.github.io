@@ -274,6 +274,11 @@ if (!catalog) {
     const enSamples = design.en?.code_samples;
     const viSamples = design.vi?.code_samples;
     if ((enSamples == null) !== (viSamples == null)) sd(id, 'code_samples must be present in both en and vi when used');
+    const enReview = design.en?.failure_review;
+    const viReview = design.vi?.failure_review;
+    if (Array.isArray(enReview) && Array.isArray(viReview) && enReview.length !== viReview.length) {
+      sd(id, 'en/vi failure_review must ask the same number of questions');
+    }
     if (Array.isArray(enSamples) && Array.isArray(viSamples) && enSamples.length !== viSamples.length) {
       sd(id, 'en/vi code_samples must have the same number of examples');
     }
@@ -304,10 +309,13 @@ if (!catalog) {
           }
         }
       }
+      /* Required, not optional. The view used to synthesize one from the first
+         line of `quality` when it was missing, which answered "which invariant
+         must always hold?" with whatever sentence happened to be first — a
+         plausible-looking non-answer on a page that reads as authored. */
       const review = design[lang]?.failure_review;
-      if (review == null) continue;
       if (!Array.isArray(review) || !review.length) {
-        sd(id, `${lang}.failure_review must be a non-empty array when provided`);
+        sd(id, `${lang}.failure_review is required and must be a non-empty array`);
       } else if (review.some(entry => !String(entry?.question || '').trim() || !String(entry?.answer || '').trim())) {
         sd(id, `${lang}.failure_review entries need question and answer`);
       }

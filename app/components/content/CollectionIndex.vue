@@ -51,7 +51,6 @@ useHead(() => ({
   title: `${copy.value.title} — GAZLL`,
   meta: [{ name: 'description', content: copy.value.intro }],
   link: [
-    { rel: 'stylesheet', href: '/styles.css' },
     { rel: 'canonical', href: `https://gazll.github.io/${props.collection}` }
   ]
 }));
@@ -65,7 +64,7 @@ watch(sortMode, () => sticky.rebind());
 <template>
   <div>
     <ContentHeader :lang="lang" />
-    <main id="view-host" ref="libraryRoot" class="view">
+    <main id="view-host" tabindex="-1" ref="libraryRoot" class="view">
       <div class="cs-library">
         <header class="cs-library-hero">
           <p class="cs-eyebrow">{{ copy.eyebrow }}</p>
@@ -92,7 +91,7 @@ watch(sortMode, () => sticky.rebind());
           <div class="cs-card-grid">
             <NuxtLink v-for="article in group.articles" :id="`article-${article.slug}`" :key="article.slug" class="cs-card" :to="articleRoute(article)">
               <span v-if="article.cover_image" class="cs-card-art" :class="{ contain: article.cover_fit === 'contain' }" aria-hidden="true">
-                <img :src="`/${article.cover_image}`" alt="" loading="lazy" decoding="async">
+                <img :src="`/${article.cover_thumb || article.cover_image}`" alt="" width="320" loading="lazy" decoding="async">
               </span>
               <span v-else class="cs-card-art" aria-hidden="true" />
               <span class="cs-card-content">

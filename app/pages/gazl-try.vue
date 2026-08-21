@@ -8,6 +8,6 @@ useHead(() => ({ htmlAttrs: { lang: lang.value }, title: 'Gazl Try — GAZLL', m
 <template>
   <div>
     <ContentHeader :lang="lang" />
-    <main id="view-host" class="view"><ClientOnly><GazlJournal :seed="data.companies" :lang="lang" /><template #fallback><p class="loading-block">Loading the interview journal…</p></template></ClientOnly></main>
+    <main id="view-host" tabindex="-1" class="view"><ClientOnly><GazlJournal :seed="data.companies" :lang="lang" /><template #fallback><p class="loading-block">Loading the interview journal…</p></template></ClientOnly></main>
   </div>
 </template>

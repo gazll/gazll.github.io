@@ -27,7 +27,7 @@ useHead(() => ({ htmlAttrs: { lang: lang.value }, title: `${labels.value.title} 
 <template>
   <div>
     <ContentHeader :lang="lang" />
-    <main id="view-host" class="view"><div class="page rn-page">
+    <main id="view-host" tabindex="-1" class="view"><div class="page rn-page">
       <header><p class="eyebrow">{{ labels.eyebrow }}</p><h1>{{ labels.title }}</h1><p class="rn-intro">{{ labels.intro }}</p></header>
       <div class="rn-body"><section v-for="day in days" :key="day.date" class="rn-day"><header class="rn-dayhead"><time class="rn-date" :datetime="day.date">{{ dateLabel(day.date) }}</time><span v-if="day.releases.length > 1" class="rn-daymeta">{{ day.releases.length }} {{ day.releases.length === 1 ? labels.release : labels.releases }} · {{ day.changeCount }} {{ day.changeCount === 1 ? labels.change : labels.changes }}</span><span v-if="day.itemsAdded" class="rn-added">{{ day.itemsAdded }} {{ labels.questions }}</span></header>
         <section v-for="release in day.releases" :key="release.en.title" class="rn-rel"><header class="rn-relhead"><h2 class="rn-title">{{ release[lang]?.title || release.en.title }}</h2><span v-if="release.items_added" class="rn-added">{{ release.items_added }} {{ labels.questions }}</span></header><ul class="rn-changes"><li v-for="change in release.changes" :key="change[lang]?.text || change.en.text" class="rn-change" :class="`rn-k-${change.kind}`"><div class="rn-cmeta"><span class="rn-kind" :data-kind="change.kind">{{ labels.kinds[change.kind] || change.kind }}</span><span v-if="change.target" class="rn-target">{{ change.target }}</span></div><div class="rn-text" v-html="renderMarkdown(change[lang]?.text || change.en.text)" /></li></ul></section>

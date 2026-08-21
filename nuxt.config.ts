@@ -35,7 +35,7 @@ function contentRoutes() {
 
      Revisit only if the site goes public and search indexing starts to matter. */
   return [
-    '/', '/search', '/api/content/search-index', '/api/content/item-index', '/gazl-try', '/stats', '/admin', '/system-design', '/case-studies',
+    '/', '/search', '/api/content/search-index/en', '/api/content/search-index/vi', '/api/content/item-index', '/gazl-try', '/stats', '/admin', '/system-design', '/case-studies',
     '/project', '/project/calebzone', '/photography', '/homelab', '/release-notes', '/fshare-tool',
     '/course-registration', ...topicRoutes, ...designRoutes, ...caseRoutes, ...photoRoutes, ...homelabRoutes
   ];

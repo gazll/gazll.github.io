@@ -79,7 +79,7 @@ useHead(() => ({
     <ContentHeader :lang="lang" :topic="headerTopic" :topics="headerTopics" />
 
     <main>
-      <section id="view-track" class="view">
+      <section id="view-track" tabindex="-1" class="view">
         <div class="day-panel">
           <section class="hero">
             <div class="hero-head">

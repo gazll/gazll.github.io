@@ -17,7 +17,7 @@ const copy = computed(() => design.value[lang.value] || design.value.en || desig
 const labels = computed(() => lang.value === 'vi' ? {
   back: 'Thư viện System Design', toc: 'Trong bài này', scope: 'Phạm vi và bài toán', requirements: 'Yêu cầu',
   functional: 'Yêu cầu chức năng', quality: 'Thuộc tính chất lượng', capacity: 'Capacity và constraint',
-  data: 'Data model', stack: 'Lựa chọn công nghệ', tradeoffs: 'Trade-off và failure review', code: 'Code samples',
+  data: 'Data model', stack: 'Lựa chọn công nghệ', tradeoffs: 'Trade-off', code: 'Code samples',
   research: 'Engineering deep dives', migrated: 'Ghi chú đã chuyển', copy: 'Copy link', copied: 'Đã copy', source: 'Nguồn',
   diagramSource: 'Mermaid source có thể chỉnh sửa', failure: 'Failure review', further: 'Đọc thêm', architecture: 'Kiến trúc', blueprint: 'Blueprint', copyCode: 'Copy code', run: 'Chạy',
   plainText: 'text', articleContents: 'Nội dung bài viết', toggleContents: 'Bật/tắt mục lục', copyLinkPrompt: 'Copy link này', copyCodePrompt: 'Copy đoạn code này',
@@ -34,7 +34,7 @@ const labels = computed(() => lang.value === 'vi' ? {
 } : {
   back: 'System Design Library', toc: 'On this page', scope: 'Scope and problem framing', requirements: 'Requirements',
   functional: 'Functional requirements', quality: 'Quality attributes', capacity: 'Capacity and constraints',
-  data: 'Data model', stack: 'Technology choices', tradeoffs: 'Trade-offs and failure review', code: 'Code samples',
+  data: 'Data model', stack: 'Technology choices', tradeoffs: 'Trade-offs', code: 'Code samples',
   research: 'Engineering deep dives', migrated: 'Migrated deep-dive notes', copy: 'Copy link', copied: 'Copied', source: 'Source',
   diagramSource: 'Editable Mermaid source', failure: 'Failure review', further: 'Further reading', architecture: 'Architecture', blueprint: 'Blueprint', copyCode: 'Copy code', run: 'Run',
   plainText: 'text', articleContents: 'Article contents', toggleContents: 'Toggle contents', copyLinkPrompt: 'Copy this link', copyCodePrompt: 'Copy this code',
@@ -49,6 +49,11 @@ const labels = computed(() => lang.value === 'vi' ? {
   tradeoffIntro: 'Each row is a tension the design accepts—not a universal best practice. Review both sides and record the condition that would reverse the decision.',
   failureReviewAnswered: 'Failure review — answers for this design'
 });
+/* Authored only. This used to fall back to synthesizing five questions and
+   answering them with the first line of `quality` or `capacity` — text that
+   read as a considered answer and was not one. `validate-content.mjs` now
+   requires the field in both languages, so the fallback has no honest job. */
+const failureReview = computed(() => copy.value.failure_review || []);
 const sections = computed(() => [
   { id: 'problem-framing', title: labels.value.scope, show: copy.value.scope },
   { id: 'requirements', title: labels.value.requirements, show: copy.value.functional?.length || copy.value.quality?.length },
@@ -58,6 +63,9 @@ const sections = computed(() => [
   { id: 'technology-choices', title: labels.value.stack, show: copy.value.stack?.length },
   { id: 'code-samples', title: labels.value.code, show: copy.value.code_samples?.length },
   { id: 'tradeoffs-failure-review', title: labels.value.tradeoffs, show: copy.value.tradeoffs?.length },
+  /* Its own anchor: every blueprint now ships an authored five-question review,
+     and on a page this long it is what a reader jumps to, not scrolls to. */
+  { id: 'failure-review', title: labels.value.failure, show: failureReview.value.length },
   { id: 'engineering-deep-dives', title: labels.value.research, show: data.value.research?.length },
   { id: 'migrated-notes', title: labels.value.migrated, show: data.value.sourceNotes?.length }
 ].filter(section => section.show));
@@ -68,14 +76,6 @@ const sourceNotes = computed(() => (data.value.sourceNotes || []).map((row: any)
 const research = computed(() => (data.value.research || []).map((pack: any) => ({
   ...pack, copy: pack[lang.value] || pack.en
 })));
-const failureReview = computed(() => {
-  if (copy.value.failure_review?.length) return copy.value.failure_review;
-  const pools = [copy.value.quality, copy.value.capacity, copy.value.stack, copy.value.data_model, copy.value.tradeoffs];
-  const questions = lang.value === 'vi'
-    ? ['Invariant nào phải luôn đúng?', 'Đo saturation bằng gì?', 'Failure domain được cô lập thế nào?', 'Retry/dedup giữ correctness ra sao?', 'Recovery và reconciliation hoạt động thế nào?']
-    : ['Which invariant must always hold?', 'How is saturation measured?', 'How are failure domains isolated?', 'How do retry and dedup preserve correctness?', 'How do recovery and reconciliation work?'];
-  return questions.map((question, index) => ({ question, answer: pools[index]?.[0] || copy.value.tradeoffs?.[index] || copy.value.scope }));
-});
 /* Decision rows stack name over structured detail and prose the author wrote
    as a list prints as one — see CLAUDE.md, the settled blueprint reading
    format. Rendering these strings raw is what reintroduces the wall of text. */
@@ -170,7 +170,6 @@ useHead(() => ({
   title: `${copy.value.title} — GAZLL`,
   meta: [{ name: 'description', content: copy.value.excerpt || copy.value.scope }],
   link: [
-    { rel: 'stylesheet', href: '/styles.css' },
     { rel: 'canonical', href: `https://gazll.github.io/system-design/${slug}` }
   ],
   script: [{ type: 'application/ld+json', innerHTML: JSON.stringify({
@@ -184,7 +183,7 @@ useHead(() => ({
 <template>
   <div>
     <ContentHeader :lang="lang" />
-    <main id="view-host" class="view">
+    <main id="view-host" tabindex="-1" class="view">
       <article class="sd-article" :class="{ 'toc-collapsed': tocCollapsed }">
         <div class="sd-backbar"><NuxtLink class="cs-back" :to="{ path: '/system-design', query: lang === 'vi' ? { lang: 'vi' } : {} }">← {{ labels.back }}</NuxtLink></div>
         <header class="sd-article-head">
@@ -223,7 +222,7 @@ useHead(() => ({
               <article v-for="sample in copy.code_samples" :key="sample.title" class="sd-code-sample"><header><div><h3>{{ sample.title }}</h3><p v-if="sample.note">{{ sample.note }}</p></div><span>{{ sample.language || labels.plainText }}</span></header><div class="sd-code-frame"><button type="button" @click="copyCodeSample(sample)">{{ copiedCode === sample.title ? labels.copied : labels.copyCode }}</button><pre><code>{{ sample.code }}</code></pre></div><p v-if="sample.run" class="sd-code-run"><b>{{ labels.run }}</b><code>{{ sample.run }}</code></p></article>
             </div></section>
             <section id="tradeoffs-failure-review" class="sd-section sd-tradeoff-review"><h2>{{ labels.tradeoffs }}</h2><div v-html="tradeoffIntroHtml" /><div class="sd-tradeoff-list" v-html="tradeoffHtml" />
-              <aside class="sd-failure-review"><strong>{{ labels.failureReviewAnswered }}</strong><div v-html="failureHtml" /></aside>
+              <aside id="failure-review" class="sd-failure-review"><strong>{{ labels.failureReviewAnswered }}</strong><div v-html="failureHtml" /></aside>
             </section>
             <section v-if="research.length" id="engineering-deep-dives" class="sd-section sd-research"><h2>{{ labels.research }}</h2><section v-for="pack in research" :key="pack.id" class="sd-research-pack"><header><h3>{{ pack.copy.title }}</h3><p>{{ pack.copy.intro }}</p></header><div class="sd-research-grid"><article v-for="part in pack.copy.sections" :key="part.title"><h3>{{ part.title }}</h3><ul><li v-for="item in part.items" :key="item">{{ item }}</li></ul></article></div><footer><strong>{{ labels.further }}</strong><template v-for="source in pack.sources" :key="source[1]"><a v-if="researchHref(source[1])" :href="researchHref(source[1])" target="_blank" rel="noopener noreferrer">{{ source[0] }} ↗</a></template></footer></section></section>
             <section v-if="sourceNotes.length" id="migrated-notes" class="sd-section sd-notes"><h2>{{ labels.migrated }}</h2><p>{{ copy.migrated_note || (lang === 'vi' ? 'Các deep dive này được chuyển từ Study Track và giữ nguyên ID để bookmark, progress và cross-reference tiếp tục hoạt động.' : 'These deep dives moved from Study Track and retain their IDs so bookmarks, progress and cross-references keep working.') }}</p><details v-for="note in sourceNotes" :id="`question-${note.id}`" :key="note.id"><summary><span>{{ note.item.q }}</span><code>{{ note.id }}</code></summary><div><div class="sd-note-actions"><button type="button" @click="copyNoteLink(note.id)">{{ copiedNote === note.id ? labels.copied : labels.copy }}</button></div><div v-html="noteHtml(note.item.a)" /></div></details></section>

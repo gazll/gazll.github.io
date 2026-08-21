@@ -4,6 +4,341 @@
     {
       "date": "2026-08-21",
       "en": {
+        "title": "The diagrams caught up with the pages"
+      },
+      "vi": {
+        "title": "Diagram đuổi kịp phần chữ"
+      },
+      "changes": [
+        {
+          "kind": "content",
+          "target": "system-design",
+          "en": {
+            "text": "Thirteen blueprints had a **flat list of nodes with generic names** while their prose had just been rewritten — a picture that said `Cache` above a page that said `Redis with allkeys-lfu`. All twenty diagrams now group their paths in subgraphs, carry the mechanism on the edge, and name the technology the text already committed to: the corpus went from 268 lines, 3 subgraphs and 21 edge labels to **507 lines, 42 subgraphs and 164 edge labels**. The caching blueprint puts the whole miss chain on its arrows, so 250 rps at the edge visibly becomes 1 rps at the database. The OTA saga finally draws the ambiguous outcome the page is actually about. The booking design marks the one statement that has to serialize while everything around it scales sideways."
+          },
+          "vi": {
+            "text": "Mười ba blueprint có **một danh sách node phẳng với tên chung chung** trong khi phần chữ vừa được viết lại — một bức hình ghi `Cache` nằm trên một trang ghi `Redis với allkeys-lfu`. Cả hai mươi diagram giờ nhóm các đường đi bằng subgraph, mang cơ chế lên trên cạnh, và gọi tên công nghệ mà phần chữ đã chốt: toàn bộ đi từ 268 dòng, 3 subgraph và 21 nhãn cạnh lên **507 dòng, 42 subgraph và 164 nhãn cạnh**. Blueprint caching đặt trọn chuỗi miss lên các mũi tên, nên 250 rps ở edge hiện rõ thành 1 rps tới database. Saga OTA rốt cuộc cũng vẽ ra cái kết cục mơ hồ mà cả trang nói về nó. Thiết kế booking đánh dấu đúng câu lệnh duy nhất buộc phải tuần tự trong khi mọi thứ quanh nó scale ngang."
+          }
+        },
+        {
+          "kind": "fix",
+          "target": "system-design",
+          "en": {
+            "text": "A Mermaid syntax error used to ship silently: `lib/mermaid.js` degrades to the escaped source, so a broken diagram renders as a tidy code block and nothing says it stopped being a picture. `tools/check-diagrams.mjs` now parses every diagram with the **vendored** renderer — the same build the browser loads — and `check.mjs` runs it as a stage, so a typo fails the build instead of quietly becoming a listing."
+          },
+          "vi": {
+            "text": "Một lỗi cú pháp Mermaid trước đây lọt qua trong im lặng: `lib/mermaid.js` degrade về phần source đã escape, nên diagram hỏng hiện ra thành một khối code gọn gàng và không có gì nói rằng nó đã thôi là một bức hình. `tools/check-diagrams.mjs` giờ parse mọi diagram bằng chính bản renderer **đã vendor** — đúng bản trình duyệt tải — và `check.mjs` chạy nó như một stage, nên một lỗi gõ sẽ làm gãy build thay vì lặng lẽ biến thành một đoạn liệt kê."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-21",
+      "en": {
+        "title": "Five cards that explained without ever showing"
+      },
+      "vi": {
+        "title": "Năm thẻ chỉ giải thích mà chưa bao giờ cho xem"
+      },
+      "changes": [
+        {
+          "kind": "content",
+          "target": "20-observability-sre",
+          "en": {
+            "section": "SLOs, alerting & incidents",
+            "text": "**SLI, SLO, SLA and the error budget** now carry the arithmetic instead of describing it. A table converts each objective into what it actually buys — `99.9%` is 43m 12s a month, `99.99%` is **4m 19s**, which is shorter than most human responses and therefore a statement about automation rather than about effort. Then the number that makes an SLO alertable at all: **burn rate**, defined, worked through at 1×, 14.4× and 100×, and turned into the multiwindow alert table (1h/5m at 14.4× pages, 3d/6h at 1× tickets) with the Prometheus rule written out. The short window is explained as what it really is — the reset switch that stops an alert paging for hours after the incident ended."
+          },
+          "vi": {
+            "section": "SLO, cảnh báo & sự cố",
+            "text": "**SLI, SLO, SLA và error budget** giờ mang theo phần số học thay vì chỉ mô tả nó. Một bảng quy đổi mỗi mục tiêu thành thứ nó thực sự mua được — `99,9%` là 43m 12s mỗi tháng, `99,99%` là **4m 19s**, ngắn hơn phần lớn phản ứng của con người nên thực chất là một tuyên bố về tự động hoá chứ không phải về sự cố gắng. Rồi tới con số biến một SLO thành thứ cảnh báo được: **burn rate**, có định nghĩa, tính thật ở mức 1×, 14,4× và 100×, và dựng thành bảng cảnh báo hai cửa sổ (1h/5m ở 14,4× thì page, 3d/6h ở 1× thì ticket) kèm rule Prometheus viết đủ. Cửa sổ ngắn được giải thích đúng bản chất — cái công tắc reset ngăn một cảnh báo gọi người hàng giờ sau khi sự cố đã xong."
+          }
+        },
+        {
+          "kind": "content",
+          "target": "25-microservice",
+          "en": {
+            "section": "05 · Caching Pitfalls",
+            "text": "**Cache sizing** gets the table it was arguing for: resident keys, bytes per entry from `MEMORY USAGE`, fragmentation from the measured ratio, replication buffer, headroom — 2M product keys landing on ~5.5GB of maxmemory. Read backwards it answers the more useful question: given the memory you have, how many keys may you admit. Plus the four commands that say whether a cache is healthy (and why `KEYS *` is never one of them), and why `keyspace_hits` cannot answer per-class hit rate."
+          },
+          "vi": {
+            "section": "05 · Caching Pitfalls",
+            "text": "**Sizing cache** có được cái bảng mà nó vẫn đang lập luận tới: số khoá thường trú, byte mỗi entry lấy từ `MEMORY USAGE`, phân mảnh theo tỷ lệ đo được, buffer replication, khoảng dư — 2 triệu khoá product ra ~5,5GB maxmemory. Đọc ngược lại thì nó trả lời câu hữu ích hơn: với lượng bộ nhớ đang có, được phép nạp bao nhiêu khoá. Kèm bốn lệnh cho biết một cache có khoẻ không (và vì sao `KEYS *` không bao giờ là một trong số đó), cùng lý do `keyspace_hits` không trả lời được tỷ lệ hit theo từng nhóm khoá."
+          }
+        },
+        {
+          "kind": "content",
+          "target": "10-system-design-rate-limit",
+          "en": {
+            "section": "Framework & building blocks",
+            "text": "The cache-aside race was **stated but never shown**, so it is drawn as a four-step timeline: the reader’s SELECT legitimately precedes the write, the writer’s DEL removes nothing, and the reader writes the old value back for a full TTL — with both sides doing exactly what they were told. Then the versioned key that removes the race rather than narrowing it, and a table separating what TTL jitter, single-flight, refresh-ahead and a rebuild budget each protect against, because they are routinely treated as interchangeable and only one of them survives a cold start."
+          },
+          "vi": {
+            "section": "Khung & building blocks",
+            "text": "Cuộc đua của cache-aside vốn **được nói ra mà chưa bao giờ được cho xem**, nên giờ nó được vẽ thành một dòng thời gian bốn bước: lệnh SELECT của reader hoàn toàn hợp lệ khi xảy ra trước lệnh ghi, lệnh DEL của writer xoá đúng cái không có, và reader ghi ngược giá trị cũ vào suốt trọn một TTL — trong khi cả hai phía đều làm đúng những gì được bảo. Rồi tới khoá có version gỡ bỏ hẳn cuộc đua thay vì thu hẹp nó, và một bảng tách bạch rắc nhiễu TTL, single-flight, refresh-ahead và ngân sách dựng lại mỗi thứ chống được gì — vì chúng thường bị coi là thay thế được cho nhau, trong khi chỉ một thứ sống sót qua một lần khởi động lạnh."
+          }
+        },
+        {
+          "kind": "content",
+          "target": "13-security-oauth2",
+          "en": {
+            "section": "JWT & tokens",
+            "text": "**Access token versus refresh token** side by side across six rows, because nearly every mistake here comes from treating them alike — where each is presented, what a theft actually buys, and why only one of them can be revoked at all. Then rotation with reuse detection written in the order the checks must happen, and the trap underneath it: a client that loses the response to a refresh retries with the spent token and looks exactly like a thief. That is absorbed at the client with one in-flight refresh, never by weakening the server check."
+          },
+          "vi": {
+            "section": "JWT & token",
+            "text": "**Access token đối lại refresh token** đặt cạnh nhau qua sáu dòng, vì gần như mọi sai lầm ở đây đều đến từ việc đối xử với chúng như nhau — mỗi loại xuất trình cho ai, việc bị đánh cắp thực sự mua cho kẻ tấn công cái gì, và vì sao chỉ một trong hai là thu hồi được. Rồi tới rotation kèm phát hiện tái sử dụng, viết theo đúng thứ tự các phép kiểm phải diễn ra, và cái bẫy nằm bên dưới: một client mất response của lần refresh sẽ retry bằng token đã tiêu và trông y hệt kẻ trộm. Chuyện đó được hấp thụ ở phía client bằng cách chỉ cho một lần refresh đang bay, không bao giờ bằng cách làm yếu phép kiểm phía server."
+          }
+        },
+        {
+          "kind": "content",
+          "target": "18-query-optimization",
+          "en": {
+            "section": "Rewriting the query & reshaping the model",
+            "text": "The **application layer** gets one configuration instead of a list of knobs: Hikari, JPA batching and all three timeout layers in a single `application.yml`, ordered shortest to longest because an inner timeout that outlives an outer one can never fire. Pool size is derived with Little’s Law rather than guessed — 250 rps at 8ms is two busy connections, so a pool of 200 adds nothing except 198 requests queueing *inside the database* where no application metric can see them. Plus the two things that silently switch batching back off and report success either way."
+          },
+          "vi": {
+            "section": "Viết lại query & chỉnh mô hình",
+            "text": "**Tầng ứng dụng** có được một file cấu hình thay vì một danh sách núm vặn: Hikari, batching JPA và cả ba tầng timeout trong một `application.yml` duy nhất, xếp từ ngắn tới dài vì một timeout bên trong mà sống lâu hơn tầng ngoài thì không bao giờ kích hoạt được. Kích thước pool được suy ra bằng định luật Little chứ không đoán — 250 rps ở 8ms là hai connection bận, nên pool 200 chẳng thêm được gì ngoài 198 request xếp hàng *bên trong database*, nơi không metric nào của ứng dụng nhìn thấy. Kèm hai thứ lặng lẽ tắt batch trở lại mà vẫn báo thành công."
+          }
+        },
+        {
+          "kind": "fix",
+          "target": "all-topics",
+          "en": {
+            "text": "Four rules asked the browser for **a font weight that was never downloaded**. Only Space Grotesk ships a 700; the two IBM Plex families stop at 600. So the pressed sort chip, the done tick, the EN/VI switch label and — most visibly — the numeric emphasis on every blueprint were all faux bold: a weight the browser smears out of 600 rather than a real face. They use 600 now, which is this site’s bold in forty other rules, and it costs nothing to download."
+          },
+          "vi": {
+            "text": "Bốn rule đang đòi trình duyệt **một font weight chưa bao giờ được tải về**. Chỉ Space Grotesk có bản 700; hai họ IBM Plex dừng ở 600. Nên chip sắp xếp đang chọn, dấu tick đã xong, nhãn công tắc EN/VI và — rõ nhất — phần tô đậm số liệu trên mọi blueprint đều là faux bold: một weight do trình duyệt bôi ra từ 600 chứ không phải một font face thật. Giờ chúng dùng 600, vốn đã là chữ đậm của site này ở bốn mươi rule khác, và không tốn thêm byte nào để tải."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-21",
+      "en": {
+        "title": "One case study weighed nine megabytes"
+      },
+      "vi": {
+        "title": "Một case study nặng chín megabyte"
+      },
+      "changes": [
+        {
+          "kind": "fix",
+          "target": "case-studies",
+          "en": {
+            "text": "**A/B testing in Tiki search** shipped five animated chart GIFs totalling 8.7MB. A GIF is already compressed, so gzip does nothing and the server does not even try — that was 8.7MB going down the wire for anyone who read to the end. They are lossless animated WebP now: **pixel-identical, 93% smaller**, canvas and frame count verified on write. Lossless turned out to be smaller than every lossy setting tried, because a flat-colour chart is exactly what it is best at — so nothing was traded away to get it. The page went from **9.16MB to 902KB**."
+          },
+          "vi": {
+            "text": "**A/B testing trong Tiki search** ship kèm năm biểu đồ GIF động tổng cộng 8,7MB. GIF vốn đã nén sẵn nên gzip không làm được gì và server cũng không buồn thử — tức là 8,7MB đi thẳng qua dây với bất kỳ ai đọc hết bài. Giờ chúng là WebP động lossless: **giống hệt từng pixel, nhỏ hơn 93%**, canvas và số frame đều được kiểm lúc ghi. Hoá ra lossless còn nhỏ hơn mọi mức lossy đã thử, vì biểu đồ màu phẳng đúng là thứ nó làm tốt nhất — nên không phải đánh đổi gì cả. Trang này từ **9,16MB xuống 902KB**."
+          }
+        },
+        {
+          "kind": "change",
+          "target": "case-studies",
+          "en": {
+            "text": "A library card renders its cover at **112px**, and the file behind it ran to **2784px** wide — up to 25 times the pixels needed, on every card. Raster covers now carry a generated 320px thumbnail and the card reads that instead. The case-studies index dropped from 645KB of cover art to **63KB**, and System Design from 127KB to 35KB. The originals are untouched: the thumbnails live in their own tree because `assets/case-studies/` is asserted to hold exactly the figures the article bodies reference, and a thumbnail is not one of them. SVG covers are skipped — they already scale for a few kilobytes."
+          },
+          "vi": {
+            "text": "Card trong thư viện hiển thị ảnh bìa ở **112px**, còn file đằng sau nó rộng tới **2784px** — gấp tới 25 lần số pixel cần thiết, trên mọi card. Ảnh bìa raster giờ có một thumbnail 320px được sinh ra và card đọc bản đó. Trang case-studies giảm từ 645KB ảnh bìa xuống **63KB**, System Design từ 127KB xuống 35KB. Bản gốc không hề bị đụng tới: thumbnail nằm trong một cây thư mục riêng, vì `assets/case-studies/` được ràng buộc phải chứa đúng những hình mà thân bài tham chiếu, và thumbnail không phải một trong số đó. Ảnh bìa SVG được bỏ qua — chúng vốn đã co giãn được với chỉ vài kilobyte."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-21",
+      "en": {
+        "title": "Half of every search download was the language you were not reading"
+      },
+      "vi": {
+        "title": "Một nửa lượng tải của search là ngôn ngữ bạn không đọc"
+      },
+      "changes": [
+        {
+          "kind": "change",
+          "target": "search",
+          "en": {
+            "text": "The index shipped as **one file carrying both languages on every row**, so a reader folded one half and paid for the other. It is now prerendered once per language and each row is projected down to the one it serves. Opening search costs **483KB gzipped instead of 908KB** — a 47% cut with nothing lost, because the discarded half was never read. Switching language now costs a fetch, which the browser cache then serves for free; that is the only case where the new shape is worse, and only on the first switch. Capping body length was measured as the alternative and rejected: a 4,000-character cap saved half as much and truncated 10% of bodies, which is search recall traded for bytes."
+          },
+          "vi": {
+            "text": "Index vốn được ship dưới dạng **một file mang cả hai ngôn ngữ trên mọi dòng**, nên người đọc chỉ dùng một nửa mà vẫn tải cả hai. Giờ nó được prerender riêng cho từng ngôn ngữ và mỗi dòng được chiếu xuống đúng ngôn ngữ mà route đó phục vụ. Mở search tốn **483KB gzip thay vì 908KB** — giảm 47% mà không mất gì, vì nửa bị bỏ vốn chưa bao giờ được đọc tới. Đổi ngôn ngữ giờ tốn một lần fetch, và cache trình duyệt sẽ phục vụ miễn phí từ lần sau; đó là trường hợp duy nhất hình dạng mới kém hơn, và chỉ ở lần đổi đầu tiên. Phương án cắt ngắn phần thân đã được đo và loại bỏ: cắt ở 4.000 ký tự chỉ tiết kiệm được một nửa chừng đó mà lại cắt cụt 10% số bài — tức đem độ bao phủ của search đi đổi lấy byte."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-21",
+      "en": {
+        "title": "The skip link did not skip anything"
+      },
+      "vi": {
+        "title": "Skip link không hề bỏ qua được gì"
+      },
+      "changes": [
+        {
+          "kind": "fix",
+          "target": "all-topics",
+          "en": {
+            "text": "Every reader surface has a **Skip to content** link as the first thing a keyboard reaches, and on all twelve of them the destination was not focusable. The browser scrolled, but focus stayed on the link — so the next Tab went straight back into the navigation the reader had just asked to skip. The target also had no scroll margin, so what it scrolled to sat underneath the sticky header. Both are fixed, and `tests/native-surfaces.test.mjs` now derives the surface list from disk so a new page cannot ship a skip link that skips nothing."
+          },
+          "vi": {
+            "text": "Mọi khu vực đọc đều có link **Tới nội dung chính** là thứ đầu tiên bàn phím chạm tới, và ở cả mười hai chỗ thì đích đến đều không focus được. Trình duyệt có cuộn, nhưng focus vẫn nằm ở chính cái link — nên phím Tab kế tiếp lại quay thẳng vào phần điều hướng mà người đọc vừa xin bỏ qua. Đích đến cũng không có scroll margin, nên chỗ nó cuộn tới lại nằm dưới header sticky. Cả hai đã sửa, và `tests/native-surfaces.test.mjs` giờ tự đọc danh sách khu vực từ đĩa để một trang mới không thể ship một skip link chẳng bỏ qua được gì."
+          }
+        },
+        {
+          "kind": "change",
+          "target": "system-design",
+          "en": {
+            "text": "Two audits ran over the rewritten blueprints and both came back clean, which is worth recording because they are the checks that would have caught the recent bugs. Every **rps-per-day pair** — 68 of them — agrees with the site’s own yardstick of peak ≈ 20 × average, and every **tier verdict** across all forty language blocks uses one of the four fixed phrases rather than a synonym. A third sweep, for emphasis spans that open or close inside a word, is now part of the test suite rather than a one-off script."
+          },
+          "vi": {
+            "text": "Hai đợt kiểm toán chạy trên các blueprint đã viết lại và cả hai đều sạch — đáng ghi lại vì đây chính là những phép kiểm sẽ bắt được các bug vừa rồi. Mọi cặp **rps trên ngày** — 68 cặp — đều khớp với thước đo của chính site là peak ≈ 20 × trung bình, và mọi **verdict theo tier** trên cả bốn mươi khối ngôn ngữ đều dùng một trong bốn cụm từ cố định chứ không phải từ đồng nghĩa. Đợt quét thứ ba, tìm các span tô đậm mở hoặc đóng vào giữa một từ, giờ nằm trong bộ test chứ không còn là một script chạy một lần."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-21",
+      "en": {
+        "title": "Search could not see System Design at all"
+      },
+      "vi": {
+        "title": "Search hoàn toàn không nhìn thấy System Design"
+      },
+      "changes": [
+        {
+          "kind": "fix",
+          "target": "search",
+          "en": {
+            "text": "A blueprint’s search row carried its **title and excerpt and nothing else**. Every other surface ships a body — a track item ships its answer, a case study ships its whole article — so this was invisible from the outside: search worked, it simply could not reach the largest prose corpus on the site. `erasure coding`, `deficit round robin` and `Little’s Law` all returned nothing while the blueprint explaining them sat one click away. Blueprints now index their scope, requirements, capacity, data model, stack, trade-offs, tags and failure review. Raw code stays out on purpose, because a term matched inside a code block is usually noise. The index grew from 2.4 MB to 2.8 MB, and it is still fetched on demand rather than inlined into any page."
+          },
+          "vi": {
+            "text": "Dòng search của một blueprint chỉ mang **tiêu đề và excerpt, không có gì khác**. Mọi khu vực còn lại đều có phần thân — một mục Study Track mang theo câu trả lời, một case study mang cả bài viết — nên lỗi này vô hình từ bên ngoài: search vẫn chạy, chỉ là nó không với tới được kho văn bản lớn nhất của site. `erasure coding`, `deficit round robin` và `định luật Little` đều không ra kết quả nào trong khi blueprint giải thích chúng nằm cách đúng một cú click. Blueprint giờ được index cả scope, yêu cầu, capacity, data model, stack, trade-off, tag và failure review. Phần code thô cố tình để ngoài, vì một từ khớp bên trong khối code thường chỉ là nhiễu. Index tăng từ 2,4 MB lên 2,8 MB, và vẫn được tải theo yêu cầu chứ không nhúng vào trang nào."
+          }
+        },
+        {
+          "kind": "fix",
+          "target": "system-design",
+          "en": {
+            "text": "Two rendering defects in the blueprint prose. The quantity highlighter’s unit guard was not unicode-aware, so **a Vietnamese word after a number lost its first letter to the bold**: `1.000 mỗi phút` rendered as `1.000 m` in bold with `ỗi` hanging outside it, and `429 kèm` and `4 ký tự` did the same. It only ever happened in Vietnamese, which is why it survived. Separately, a digit glued to letters that are not a unit was being split — `3xx` rendered as a bold `3` followed by `xx` — so those few phrases are reworded rather than widening a pattern that would then stop emphasizing `10x`."
+          },
+          "vi": {
+            "text": "Hai lỗi render trong phần văn bản blueprint. Bộ tô đậm số lượng có guard đơn vị không nhận biết unicode, nên **một từ tiếng Việt đứng sau con số bị mất chữ cái đầu vào phần in đậm**: `1.000 mỗi phút` hiện ra thành `1.000 m` in đậm còn `ỗi` rơi ra ngoài, và `429 kèm` cùng `4 ký tự` cũng vậy. Lỗi chỉ xảy ra ở tiếng Việt, đó là lý do nó sống sót lâu đến thế. Riêng biệt, một chữ số dính liền với các chữ cái không phải đơn vị thì bị tách — `3xx` hiện thành số `3` in đậm rồi tới `xx` — nên vài cụm đó được viết lại thay vì nới rộng một pattern mà nới ra thì `10x` sẽ thôi được tô đậm."
+          }
+        },
+        {
+          "kind": "change",
+          "target": "system-design",
+          "en": {
+            "text": "The **failure review is authored, never invented**. When a blueprint had no `failure_review`, the page used to synthesize five questions and answer them with the first line of whatever field came to hand — text that read like a considered answer and was not one. All twenty blueprints now carry a real one, the validator requires it in both languages, and that fallback is gone. It also has its own entry in the contents rail instead of being buried under trade-offs, which on a page this long is the difference between jumping to it and scrolling for it."
+          },
+          "vi": {
+            "text": "**Failure review là do người viết, không phải do máy chế ra.** Khi một blueprint không có `failure_review`, trang này từng tự sinh năm câu hỏi rồi trả lời chúng bằng dòng đầu tiên của bất kỳ trường nào có sẵn — một đoạn text đọc như câu trả lời đã cân nhắc mà thực ra không phải. Cả hai mươi blueprint giờ đều có một bản thật, validator bắt buộc phải có ở cả hai ngôn ngữ, và đường dự phòng kia đã bị bỏ. Nó cũng có mục riêng trên thanh mục lục thay vì bị chôn dưới phần trade-off — trên một trang dài như hiện nay, đó là khác biệt giữa nhảy thẳng tới và phải cuộn đi tìm."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-21",
+      "en": {
+        "title": "Thirteen blueprints stop asking questions and start answering them"
+      },
+      "vi": {
+        "title": "Mười ba blueprint thôi đặt câu hỏi và bắt đầu trả lời"
+      },
+      "changes": [
+        {
+          "kind": "content",
+          "target": "system-design",
+          "en": {
+            "text": "The library held **two kinds of blueprint under one label**. Seven were worked designs; thirteen were checklists written in the imperative — *Estimate posts, feed reads, follows per user* — with **no numbers at all in capacity**, no code and no failure review. All thirteen have been rewritten to the standard the other seven set. Each now sizes itself against the four traffic tiers with peak rps and daily volume together, judges its components in the four fixed verdicts (`not needed` · `worth it` · `mandatory` · `needs its own scaling story`), carries worked code and closes with the same five-question failure review. The rewritten set is **URL shortener, news feed, chat, autocomplete, leaderboard, distributed cache, notification service, payment ledger, object storage, rate limiter, traffic and caching blocks, surviving high load** and **the design review framework**."
+          },
+          "vi": {
+            "text": "Thư viện đang chứa **hai loại blueprint dưới cùng một nhãn**. Bảy cái là thiết kế đã giải xong; mười ba cái là danh sách kiểm tra viết ở thể mệnh lệnh — *Ước lượng số bài đăng, lượt đọc feed, số follow mỗi người* — với **không một con số nào trong phần capacity**, không code và không failure review. Cả mười ba đã được viết lại theo đúng chuẩn mà bảy cái kia đặt ra. Mỗi cái giờ tự size theo bốn tier traffic với peak rps kèm khối lượng mỗi ngày, đánh giá từng thành phần bằng bốn verdict cố định (`không cần` · `nên có` · `bắt buộc` · `cần scale riêng`), mang code thật và khép lại bằng đúng năm câu hỏi failure review. Nhóm được viết lại gồm **URL shortener, news feed, chat, autocomplete, leaderboard, distributed cache, notification service, sổ cái thanh toán, object storage, rate limiter, khối traffic và caching, sống sót qua tải cao** và **khung design review**."
+          }
+        },
+        {
+          "kind": "content",
+          "target": "system-design",
+          "en": {
+            "text": "Some of what the rewrite added is the part that was always missing from the classics. The URL shortener now settles **301 versus 302** — a permanent redirect is cached by the browser and the ISP, so you lose both the analytics and the ability to revoke. The news feed states the write amplification that forces a hybrid: at 200 followers, 1M posts/day is 200M timeline writes/day. Caching building blocks carries **the miss chain as arithmetic** — 250 rps peak through a 90% CDN and a 90% L2 leaves 1 rps at the database, and the same block shows what a cold deploy and an L2 outage do to that number. Surviving high load derives safe concurrency from Little’s Law instead of a round number: 250 rps at a 40 ms service time is 10 in flight, so a 200-thread pool is 190 requests queueing where no limiter can see them."
+          },
+          "vi": {
+            "text": "Một phần những gì đợt viết lại bổ sung chính là phần luôn thiếu ở các bài kinh điển. URL shortener giờ chốt hẳn **301 hay 302** — redirect vĩnh viễn bị trình duyệt và ISP cache lại, nên bạn mất cả analytics lẫn khả năng thu hồi. News feed nêu rõ độ khuếch đại ghi buộc phải dùng mô hình lai: với 200 follower, 1 triệu post/ngày là 200 triệu lượt ghi timeline/ngày. Khối traffic và caching mang theo **chuỗi miss dưới dạng phép tính** — 250 rps peak đi qua CDN hit 90% rồi L2 hit 90% chỉ còn 1 rps tới database, và cũng khối đó cho thấy một lần deploy lạnh và một lần L2 chết làm gì với con số ấy. Bài sống sót qua tải cao suy ra mức đồng thời an toàn từ định luật Little thay vì một con số tròn: 250 rps với thời gian phục vụ 40 ms là 10 request đang bay, nên một pool 200 thread là 190 request xếp hàng ở chỗ không bộ giới hạn nào nhìn thấy."
+          }
+        },
+        {
+          "kind": "change",
+          "target": "system-design",
+          "en": {
+            "text": "Every blueprint’s **duration was recalculated** rather than estimated. The old numbers contradicted each other: the API gateway article claimed 60 minutes for what is now the longest page on the site, while chat claimed 55 minutes for a fifth of the content. All twenty are now derived from the rendered length of the page at a single rate, so a longer blueprint always reads as a longer one. Seventeen of the twenty moved, the range widened from 35–90 to 30–120 minutes, and the one range value (`30–45 min`) is gone — the field is a single number everywhere now."
+          },
+          "vi": {
+            "text": "**Thời lượng của mọi blueprint đã được tính lại** thay vì ước chừng. Các con số cũ mâu thuẫn nhau: bài API gateway ghi 60 phút cho thứ giờ là trang dài nhất site, trong khi bài chat ghi 55 phút cho một phần năm lượng nội dung. Cả hai mươi giờ đều suy ra từ độ dài trang đã render với cùng một tốc độ, nên blueprint dài hơn luôn hiện ra là dài hơn. Mười bảy trong hai mươi cái đã đổi, khoảng giá trị nới từ 35–90 lên 30–120 phút, và giá trị dạng khoảng duy nhất (`30–45 min`) đã bị bỏ — trường này giờ là một con số ở mọi nơi."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-21",
+      "items_added": 2,
+      "en": {
+        "title": "Two base cards, and a 404 that knows where it is"
+      },
+      "vi": {
+        "title": "Hai thẻ kiến thức nền, và trang 404 biết nó đang ở đâu"
+      },
+      "changes": [
+        {
+          "kind": "topic",
+          "target": "01-java-core-jvm",
+          "en": {
+            "text": "**The four OOP pillars** now have a card of their own in Language fundamentals, written as language mechanism rather than definition: what encapsulation actually protects, when an `abstract class` earns its place over an `interface`, and the pair that gets asked — overload resolved from the **static** type against override resolved from the object. The worked example is the two bugs that follow from confusing them: a `save(User)` that never runs because the reference is typed `Repo`, and the `NPE` from a constructor calling an overridable method before the subclass fields exist. The deep dive covers what dispatch costs (monomorphic, bimorphic, megamorphic) and why `static` methods and fields never dispatch at all. SOLID is not repeated here — it is owned by (12-architecture-patterns.patterns-principles.q2) and (22-low-level-design-ood.patterns-in-interview-code.q1), and the card points at both.",
+            "section": "Language fundamentals"
+          },
+          "vi": {
+            "text": "**Bốn trụ OOP** giờ có thẻ riêng trong Language fundamentals, viết theo hướng cơ chế ngôn ngữ chứ không phải định nghĩa: encapsulation thật sự bảo vệ cái gì, khi nào `abstract class` xứng đáng hơn `interface`, và cặp hay bị hỏi — overload giải theo type **tĩnh** đối lại override giải theo chính object. Ví dụ đi kèm là hai bug sinh ra từ việc nhầm hai thứ đó: một `save(User)` không bao giờ chạy vì reference khai kiểu `Repo`, và `NPE` từ constructor gọi một method có thể override trước khi field của lớp con tồn tại. Phần deep dive nói về giá của dispatch (monomorphic, bimorphic, megamorphic) và vì sao `static` method cùng field không dispatch. SOLID không lặp lại ở đây — nó thuộc về (12-architecture-patterns.patterns-principles.q2) và (22-low-level-design-ood.patterns-in-interview-code.q1), thẻ này trỏ sang cả hai.",
+            "section": "Nền tảng ngôn ngữ"
+          },
+          "count": 1
+        },
+        {
+          "kind": "topic",
+          "target": "05-db-core-index-lock",
+          "en": {
+            "text": "**ACID, letter by letter**, joins Transactions/MVCC/locking. The four letters were only ever expanded in parentheses on the ACID-vs-BASE card; this one says what each actually promises and what enforces it — undo log, declared constraints, MVCC plus locks, redo log and WAL — with the InnoDB and PostgreSQL columns side by side. Three things it settles: durability is a **setting** (`innodb_flush_log_at_trx_commit`, `synchronous_commit`) rather than a law, the C in ACID is not the C in CAP, and A and D come free while I is the letter you pay for — which is why only isolation has levels.",
+            "section": "Transactions, MVCC, locking"
+          },
+          "vi": {
+            "text": "**ACID, từng chữ một**, vào mục Transactions/MVCC/locking. Bốn chữ trước nay chỉ được mở ngoặc trong thẻ ACID-vs-BASE; thẻ này nói mỗi chữ thật sự hứa gì và cái gì đảm bảo nó — undo log, constraint đã khai báo, MVCC cộng lock, redo log và WAL — kèm bảng InnoDB và PostgreSQL đặt cạnh nhau. Ba điều nó chốt lại: durability là một **tham số cấu hình** (`innodb_flush_log_at_trx_commit`, `synchronous_commit`) chứ không phải định luật, chữ C trong ACID không phải chữ C trong CAP, và A với D gần như được cho không còn I mới là chữ phải trả giá — vì thế chỉ isolation mới có nhiều mức.",
+            "section": "Transaction, MVCC, locking"
+          },
+          "count": 1
+        },
+        {
+          "kind": "fix",
+          "target": "all-topics",
+          "en": {
+            "text": "An unknown URL used to land on Nuxt’s built-in error page: no header, no search, no way back in. There is a real error page now, with the site chrome, the search box and routes into every library — which matters because a stale bookmark outside the retired hash URLs is exactly what reaches it. **Stats** and **Admin** also drew a hero over an empty column until hydration finished; both now show the same loading block the interview journal uses."
+          },
+          "vi": {
+            "text": "Một URL không tồn tại trước đây rơi vào trang lỗi mặc định của Nuxt: không header, không tìm kiếm, không lối quay lại. Giờ đã có trang lỗi thật, đủ chrome của site, ô tìm kiếm và lối đi vào mọi thư viện — điều này quan trọng vì bookmark cũ nằm ngoài danh sách hash URL đã nghỉ hưu chính là thứ rơi vào đó. **Stats** và **Admin** trước đây cũng vẽ hero trên một cột rỗng cho tới khi hydrate xong; cả hai giờ hiện cùng khối loading mà nhật ký phỏng vấn đang dùng."
+          }
+        },
+        {
+          "kind": "change",
+          "target": "all-topics",
+          "en": {
+            "text": "The header **search** control is about twice the size it was — a wider box, a 24px icon and a readable shortcut hint. It stays one row with the rest of the header rather than growing tall, so the bar itself only gains 8px."
+          },
+          "vi": {
+            "text": "Nút **tìm kiếm** trên header to gần gấp đôi — hộp rộng hơn, icon 24px và gợi ý phím tắt đọc được. Nó vẫn nằm cùng một hàng với phần còn lại của header thay vì cao lên, nên thanh header chỉ dày thêm 8px."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-21",
+      "en": {
         "title": "The OTA blueprint gets its saga and outbox internals"
       },
       "vi": {

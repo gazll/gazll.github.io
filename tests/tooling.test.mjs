@@ -38,7 +38,7 @@ import { stampAssets } from '../tools/stamp-assets.mjs';
     const workflow = await readFile(path.join(root, '.github/workflows/deploy.yml'), 'utf8');
     const names = [...source.matchAll(/\{ name: '([a-z]+)'/g)].map(match => match[1]);
 
-    assert.deepEqual(names, ['content', 'syntax', 'console', 'tests']);
+    assert.deepEqual(names, ['content', 'diagrams', 'syntax', 'console', 'tests']);
     assert.match(source, /flag\('--only'\)/);
     assert.match(workflow, /node tools\/check\.mjs[\s\S]+npm run generate/);
   });

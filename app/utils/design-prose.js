@@ -20,7 +20,10 @@ const CRITICAL = /(?:\b(?:never safe|not safe for|is not safe|unsafe|must not|do
 const NOTABLE = /(?:\b(?:the rule is|rule of thumb|as a rule|the correct first move|simplest viable|cheapest correctness|reversible|prefer\b|by default|only when|exactly once)\b|(?:nguyên tắc|quy tắc|nước đi đầu tiên|đơn giản nhất|rẻ nhất|đảo ngược được|mặc định|chỉ khi|đúng một lần))/giu;
 /* Entities are already in the escaped string, so &#39; must not be read as a
    number — hence the (?<!&#) guard. */
-const UNIT = '(?:\\s?(?:triệu|nghìn|tỷ|[kKmM](?![\\w-])|rps|qps|ms|GB|MB|TB|%))?';
+/* The k/M guard must be unicode-aware. `[\w-]` does not include `ỗ`, so
+   "1.000 mỗi phút" matched "1.000 m" and rendered the bold ending mid-word —
+   silently, and only in Vietnamese, which is why it survived. */
+const UNIT = '(?:\\s?(?:triệu|nghìn|tỷ|[kKmM](?![\\p{L}\\d-])|rps|qps|ms|GB|MB|TB|%))?';
 /* A range is one quantity, so "1-10 triệu" is matched whole rather than as two
    spans with a bare hyphen between them. */
 const QUANTITY = new RegExp('(?<!&#)\\b\\d[\\d.,]*' + UNIT + '(?:\\s?[-–—]\\s?\\d[\\d.,]*' + UNIT + ')?', 'gu');

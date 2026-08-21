@@ -21,7 +21,7 @@ useHead(() => ({
   htmlAttrs: { lang: lang.value },
   title: `${copy.value.title} — GAZLL`,
   meta: [{ name: 'description', content: copy.value.intro }],
-  link: [{ rel: 'stylesheet', href: '/styles.css' }, { rel: 'canonical', href: 'https://gazll.github.io/system-design' }]
+  link: [{ rel: 'canonical', href: 'https://gazll.github.io/system-design' }]
 }));
 
 /* The group header is pinned by CSS; `is-stuck` is what makes a pinned header
@@ -33,7 +33,7 @@ useStickyGroupHeads(libraryRoot, '.sd-group>header');
 <template>
   <div>
     <ContentHeader :lang="lang" />
-    <main id="view-host" ref="libraryRoot" class="view">
+    <main id="view-host" tabindex="-1" ref="libraryRoot" class="view">
       <div class="sd-library">
         <header class="sd-hero">
           <p class="cs-eyebrow">{{ copy.eyebrow }}</p>
@@ -73,7 +73,7 @@ useStickyGroupHeads(libraryRoot, '.sd-group>header');
           </header>
           <div class="sd-list">
             <NuxtLink v-for="article in data.cases" :key="article.slug" class="sd-card sd-case-card" :to="caseRoute(article.slug)">
-              <span class="sd-case-art" aria-hidden="true"><img :src="`/${article.cover_image}`" alt="" loading="lazy"></span>
+              <span class="sd-case-art" aria-hidden="true"><img :src="`/${article.cover_thumb || article.cover_image}`" alt="" width="320" loading="lazy"></span>
               <span class="sd-card-main">
                 <span class="sd-card-kicker">Production case · {{ article.company }} <span class="content-level" :class="`level-${article.level || 'advanced'}`">{{ levelLabel(article.level) }}</span></span>
                 <strong>{{ text(article.metadata).title }}</strong>

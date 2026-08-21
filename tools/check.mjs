@@ -103,6 +103,10 @@ async function checkNoConsole() {
 
 const STAGES = [
   { name: 'content', describe: 'structure of the data/ tree', run: () => run(process.execPath, ['tools/validate-content.mjs']) },
+  /* A Mermaid syntax error is not loud: lib/mermaid.js degrades to the escaped
+     source, so a broken diagram ships as a readable code block and nobody
+     notices it stopped being a picture. */
+  { name: 'diagrams', describe: 'every Mermaid diagram parses with the vendored renderer', run: () => run(process.execPath, ['tools/check-diagrams.mjs']) },
   { name: 'syntax', describe: 'every shipped module parses as ESM', run: checkModuleSyntax },
   { name: 'console', describe: 'no runtime logging in Nuxt, public/ or Apps Script', run: checkNoConsole },
   { name: 'tests', describe: 'every tests/*.test.mjs', run: runTests }
