@@ -253,13 +253,7 @@ import { crossRefResolver, trackItemIds } from '../public/lib/cross-ref.js';
   test('every blueprint has bilingual research lenses backed by primary sources', async () => {
     const { SYSTEM_DESIGN_RESEARCH: research } = await import(pathToFileURL(
       path.join(dataRoot, 'system-design/research.js')).href);
-    const allowedOrigins = new Set([
-      'https://sre.google', 'https://docs.aws.amazon.com', 'https://developers.cloudflare.com',
-      'https://redis.io', 'https://docs.stripe.com', 'https://www.postgresql.org',
-      'https://kafka.apache.org', 'https://www.rabbitmq.com', 'https://learn.microsoft.com', 'https://www.elastic.co',
-      'https://opentelemetry.io', 'https://www.rfc-editor.org', 'https://docs.spring.io',
-      'https://openid.net', 'https://resilience4j.readme.io', 'https://www.openpolicyagent.org'
-    ]);
+    const allowedOrigins = new Set(REFERENCE_ORIGINS);
 
     assert.deepEqual(Object.keys(research.assignments).sort(), catalog.designs.map(row => row.slug).sort());
     for (const design of catalog.designs) {

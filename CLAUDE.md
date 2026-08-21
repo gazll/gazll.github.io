@@ -791,6 +791,66 @@ Item *answers* live in the topic file and arrive with that topic's route.
   translation that reaches for a different phrase each time is no longer a
   yardstick.
 
+## Testing
+
+**Be sparing with new tests.** The suite is ten files grouped by subject, not
+one file per module, and it is already the slowest part of `check.mjs`. A test
+earns its place by pinning a decision that would otherwise be silently undone
+— the ones this file documents: the contrast floor, the `source_url` absence on
+a first-party row, the span cap, the two allowlists not overlapping. Those exist
+because the failure they catch is invisible at review time.
+
+So before writing one, ask what would break without it. Do not add a test that:
+
+- **re-checks what `validate-content.mjs` already validates.** Content shape,
+  bilingual pairing, item ids, markup safety and the catalog contract have one
+  owner; a second copy in `tests/` drifts from it.
+- **restates the implementation.** A test that asserts a function returns what
+  its next line computes fails only when the code changes on purpose, which is
+  the cost without the benefit.
+- **covers a change already covered.** Extend an existing case in the subject's
+  file instead — a new `describe` block with one assertion is how ten files
+  become thirty.
+
+Prefer strengthening an existing assertion over adding a new one, and adding to
+an existing file over creating one. A new `tests/*.test.mjs` is picked up from
+disk automatically, which makes growth frictionless and therefore worth
+resisting. When a change genuinely needs no new coverage, say so rather than
+adding a test to look thorough.
+
+## Running the checks cheaply
+
+**Verification output is context, and a green run says nothing worth reading.**
+A full `node tools/check.mjs` prints ~1,240 lines for a one-word verdict, and
+pulling all of it into the conversation crowds out the thing being worked on.
+So run the checks quietly and read only the verdict:
+
+```bash
+node tools/check.mjs 2>&1 | tail -3      # the verdict, not the 1,240 lines
+node tools/check.mjs --only tests        # one stage while iterating on one
+node --test tests/release-notes.test.mjs # one file, when the change is local to it
+```
+
+Narrow while iterating, then run all three CI commands in full **once** before
+pushing — `--only` is a working shortcut, never the final check. **On failure
+the rule inverts**: read the whole failure, every line of it, and never
+`tail`-away a stack trace. Output is expensive when it says "fine" and cheap
+when it says what broke.
+
+The same applies to builds: `npm run generate` is verbose and rarely needs
+reading, so keep it out of the transcript unless it fails. Do not re-run a
+check that has already passed to confirm it again, and do not read a file back
+after editing it to verify the edit landed.
+
+**This budget covers verification only.** Investigating content, prose, layout
+or interaction is the opposite case: reading the surrounding topic files,
+comparing EN against its `.vi.json`, opening the real page, or looking at
+several articles to catch a pattern is the work itself, and this file is full
+of decisions that were only got right by looking. Never trim that reading to
+save tokens — the cost of a shallow content or UI change is a wrong one, and
+the yardstick, the tone budget and the card layout each had to be corrected
+once already.
+
 ## Security model
 
 There is no RLS. `Code.gs` is the only thing enforcing access:

@@ -1446,7 +1446,7 @@
       "n": 14,
       "slug": "ota-flight-booking",
       "category": "product-systems",
-      "effort": "60 min",
+      "effort": "90 min",
       "level": "core",
       "featured": true,
       "source_items": [
@@ -1471,7 +1471,8 @@
           "No two confirmed bookings consume the same physical seat unless an explicit overbooking pool permits it.",
           "Search can degrade to cached availability, but confirmation never treats a cached result as authoritative.",
           "External outcomes: Every external call is timed out and idempotent where possible; unknown outcomes enter reconciliation rather than being guessed.",
-          "The workflow exposes pending states and survives service, queue or orchestrator restarts."
+          "The workflow exposes pending states and survives service, queue or orchestrator restarts.",
+          "A timeout is an unknown outcome, not a failure — the saga must resolve it by querying the provider with the same client reference before it retries or compensates."
         ],
         "capacity": [
           "Estimate search-to-book ratio, peak search QPS, concurrent holds, conversion rate and route/date skew.",
@@ -1485,21 +1486,33 @@
           "Seat hold — flight/seat or inventory bucket, customer, quantity, status, fencing version and expires_at.",
           "Booking saga — booking id, current step, provider references, idempotency keys, attempts and next action.",
           "Payment ledger — immutable debit/credit postings, PSP reference and reconciliation state.",
-          "Ticket/PNR — provider locator, passengers, segments, issue status and latest verified provider state."
+          "Ticket/PNR — provider locator, passengers, segments, issue status and latest verified provider state.",
+          "Saga instance — saga_id, booking_id, saga_version, state, current_step and deadline_at; the process truth, kept separate from the booking row that is the domain truth.",
+          "Saga step — (saga_id, step_name) with attempt, a stable idempotency_key that is unique across the table, the external_ref the provider returned, and compensation_status.",
+          "Outbox event — event_id, aggregate_type/id, a monotonic aggregate_version, event_type, schema_version and payload; unique on (aggregate, version, type) so a retried write cannot emit the same fact twice.",
+          "Inbox message — (consumer_name, event_id) as a primary key; the row exists only to make a redelivered event a no-op inside the consumer transaction.",
+          "API idempotency — (scope, idempotency_key) holding request_hash plus the stored response, so a client retry returns the first booking instead of creating a second."
         ],
         "stack": [
           "Stateless search/pricing services with Redis cache and provider-specific circuit breakers or quota controls.",
           "PostgreSQL/MySQL for atomic holds, booking saga and payment ledger; conditional updates or row locks at the inventory boundary.",
           "Kafka-compatible event bus with Outbox for notifications, analytics and availability projections.",
           "Durable workflow/orchestrator for hold → authorize/capture → issue, plus scheduled expiry and reconciliation workers.",
-          "WebSocket or SSE for bounded realtime updates; GDS/airline and PSP adapters behind anti-corruption layers."
+          "WebSocket or SSE for bounded realtime updates; GDS/airline and PSP adapters behind anti-corruption layers.",
+          "Transactional outbox with CDC — the service commits state and event in one local transaction and never calls the broker directly; Debezium reads committed rows from the WAL and routes them, which closes the dual-write window in both directions.",
+          "Durable workflow engine for the orchestrator — the booking waits on supplier callbacks, payment challenges and ticketing far longer than one process lifetime, so workflow state and timers must survive a crash rather than live in memory.",
+          "Schema registry with a CI compatibility gate — a booking event has many independent consumers, so a renamed or deleted field is an incident that spreads; additive changes pass, breaking ones fail the build."
         ],
         "tradeoffs": [
           "One atomic inventory authority prevents accidental double-booking but may need partitioning by flight or inventory bucket.",
           "A short hold TTL improves utilization but punishes slow payment and accessibility flows; extend it only through explicit policy.",
           "Orchestration makes the money-and-ticket path observable; choreography reduces coupling but hides one business transaction across events.",
           "Issue the hardest-to-reverse step last, yet treat every timeout as unknown and query provider status before compensating.",
-          "Overbooking is a commercial capacity model with limits and recovery cost, not a race condition disguised as eventual consistency."
+          "Overbooking is a commercial capacity model with limits and recovery cost, not a race condition disguised as eventual consistency.",
+          "Chase effectively-once business effect, not exactly-once delivery — a broker guarantee stops at its own boundary, while an airline or PSP sits outside it; idempotency keys, unique constraints, an inbox and reconciliation are what actually prevent a second charge.",
+          "Compensation is a new valid business state, not a byte-for-byte rollback — once a seat is held, funds are authorized or a ticket is issued, the outside world has moved, and forward recovery or manual review is sometimes the correct answer.",
+          "Orchestrate the money-and-ticket path, choreograph everything after it — a coordinator gives the core flow explicit timeouts, compensation and an auditable saga_id, while notification, loyalty and analytics stay loosely coupled behind BookingConfirmed.",
+          "Keep the local transaction short and free of remote calls — holding a database transaction open across an airline or PSP call pushes their tail latency straight into your lock contention."
         ],
         "code_samples": [
           {
@@ -1508,6 +1521,43 @@
             "note": "The hold is authoritative only after the conditional write succeeds; search availability is advisory.",
             "code": "BEGIN;\n\nUPDATE inventory_unit\nSET held = held + :quantity, version = version + 1\nWHERE flight_id = :flight_id\n  AND held + confirmed + :quantity <= capacity\n  AND version = :expected_version\nRETURNING flight_id, held, version;\n\nINSERT INTO seat_hold (hold_id, flight_id, customer_id, quantity, expires_at)\nVALUES (:hold_id, :flight_id, :customer_id, :quantity, now() + interval '8 minutes');\nCOMMIT;",
             "run": "psql booking.sql --set flight_id=VN123-2026-08-12"
+          },
+          {
+            "title": "Booking saga state machine",
+            "language": "mermaid",
+            "note": "Every timeout edge goes to OUTCOME_UNKNOWN rather than straight to failure, and MANUAL_REVIEW is a real terminal state.",
+            "code": "stateDiagram-v2\n    [*] --> CREATED\n    CREATED --> VALIDATED\n    VALIDATED --> INVENTORY_HELD\n    INVENTORY_HELD --> PAYMENT_AUTHORIZED\n    PAYMENT_AUTHORIZED --> SUPPLIER_CONFIRMED\n    SUPPLIER_CONFIRMED --> PAYMENT_CAPTURED\n    PAYMENT_CAPTURED --> CONFIRMED\n\n    VALIDATED --> FAILED\n    INVENTORY_HELD --> COMPENSATING: unrecoverable failure\n    PAYMENT_AUTHORIZED --> COMPENSATING: supplier failure\n    SUPPLIER_CONFIRMED --> COMPENSATING: capture failure\n\n    PAYMENT_AUTHORIZED --> OUTCOME_UNKNOWN: timeout\n    SUPPLIER_CONFIRMED --> OUTCOME_UNKNOWN: timeout\n    OUTCOME_UNKNOWN --> SUPPLIER_CONFIRMED: lookup finds it\n    OUTCOME_UNKNOWN --> COMPENSATING: lookup proves absence\n    OUTCOME_UNKNOWN --> MANUAL_REVIEW: still ambiguous\n\n    COMPENSATING --> COMPENSATED\n    COMPENSATING --> MANUAL_REVIEW: compensation fails\n\n    CREATED --> EXPIRED\n    INVENTORY_HELD --> EXPIRED: hold deadline exceeded\n\n    CONFIRMED --> [*]\n    COMPENSATED --> [*]\n    FAILED --> [*]\n    EXPIRED --> [*]\n    MANUAL_REVIEW --> [*]"
+          },
+          {
+            "title": "Saga, outbox and the three idempotency boundaries",
+            "language": "sql",
+            "note": "Client-to-API, saga-to-provider and broker-to-consumer each need their own key; one table cannot serve all three.",
+            "code": "-- Saga progress, outbox and the three idempotency boundaries.\n-- Domain state and the event intent commit in ONE local transaction.\n\nCREATE TABLE saga_instance (\n    saga_id       UUID PRIMARY KEY,\n    booking_id    UUID NOT NULL,\n    saga_version  INTEGER NOT NULL,     -- code version that started it\n    state         TEXT NOT NULL,\n    current_step  TEXT,\n    deadline_at   TIMESTAMPTZ,\n    version       BIGINT NOT NULL DEFAULT 0,\n\n    CHECK (state IN ('RUNNING', 'CONFIRMED', 'FAILED',\n                     'COMPENSATING', 'COMPENSATED',\n                     'MANUAL_REVIEW', 'EXPIRED'))\n);\n\nCREATE TABLE saga_step (\n    saga_id             UUID NOT NULL,\n    step_name           TEXT NOT NULL,\n    attempt             INTEGER NOT NULL DEFAULT 0,\n    status              TEXT NOT NULL,\n    idempotency_key     TEXT NOT NULL,   -- stable across every retry\n    external_ref        TEXT,            -- PNR, authorization_ref, hold_ref\n    compensation_status TEXT,\n\n    PRIMARY KEY (saga_id, step_name),\n    UNIQUE (idempotency_key)\n);\n\nCREATE TABLE outbox_event (\n    event_id          UUID PRIMARY KEY,\n    aggregate_type    TEXT NOT NULL,\n    aggregate_id      UUID NOT NULL,\n    aggregate_version BIGINT NOT NULL,   -- monotonic per aggregate\n    event_type        TEXT NOT NULL,\n    schema_version    INTEGER NOT NULL,\n    payload           JSONB NOT NULL,\n    occurred_at       TIMESTAMPTZ NOT NULL DEFAULT now(),\n\n    UNIQUE (aggregate_type, aggregate_id, aggregate_version, event_type)\n);\n\nCREATE TABLE inbox_message (\n    consumer_name TEXT NOT NULL,\n    event_id      UUID NOT NULL,\n    processed_at  TIMESTAMPTZ NOT NULL DEFAULT now(),\n\n    PRIMARY KEY (consumer_name, event_id)\n);\n\nCREATE TABLE api_idempotency (\n    scope           TEXT NOT NULL,\n    idempotency_key TEXT NOT NULL,\n    request_hash    TEXT NOT NULL,   -- same key + different body = conflict\n    resource_id     UUID,\n    response_code   INTEGER,\n    response_body   JSONB,\n\n    PRIMARY KEY (scope, idempotency_key)\n);",
+            "run": "psql booking < saga_outbox.sql"
+          },
+          {
+            "title": "Outbox producer — state and event in one commit",
+            "language": "python",
+            "note": "No publish call in the request path. CDC observes committed rows, so \"committed but never published\" cannot happen.",
+            "code": "# Booking creation: domain row + event intent in one transaction.\n# There is no producer.send() here - CDC reads committed rows only.\n\ndef create_booking(cmd, idempotency_key, db):\n    with db.transaction() as tx:\n        prior = tx.query_one(\n            \"\"\"SELECT request_hash, response_code, response_body\n                 FROM api_idempotency\n                WHERE scope = 'create-booking' AND idempotency_key = %s\n                  FOR UPDATE\"\"\",\n            [idempotency_key])\n\n        request_hash = canonical_hash(cmd)\n\n        if prior:\n            # Same key, different body is a client bug, not a retry.\n            if prior.request_hash != request_hash:\n                raise IdempotencyConflict()\n            return prior.response_code, prior.response_body\n\n        booking_id, saga_id = uuid4(), uuid4()\n\n        tx.execute(\n            \"\"\"INSERT INTO booking (booking_id, saga_id, customer_id,\n                                     status, currency, total_amount_minor)\n               VALUES (%s, %s, %s, 'PENDING', %s, %s)\"\"\",\n            [booking_id, saga_id, cmd.customer_id,\n             cmd.currency, cmd.amount_minor])\n\n        tx.execute(\n            \"\"\"INSERT INTO outbox_event (event_id, aggregate_type,\n                    aggregate_id, aggregate_version, event_type,\n                    schema_version, payload)\n               VALUES (%s, 'booking', %s, 1, 'booking.created', 1, %s)\"\"\",\n            [uuid4(), booking_id,\n             json.dumps({'booking_id': str(booking_id),\n                         'saga_id': str(saga_id), 'status': 'PENDING'})])\n\n        response = {'booking_id': str(booking_id), 'status': 'PENDING'}\n\n        tx.execute(\n            \"\"\"INSERT INTO api_idempotency (scope, idempotency_key,\n                    request_hash, resource_id, response_code, response_body)\n               VALUES ('create-booking', %s, %s, %s, 202, %s)\"\"\",\n            [idempotency_key, request_hash, booking_id,\n             json.dumps(response)])\n\n    # Commit happened. Debezium will observe the outbox row from the WAL.\n    return 202, response"
+          },
+          {
+            "title": "Inbox consumer — duplicates become no-ops",
+            "language": "python",
+            "note": "Insert the event id first, ACK only after the local commit, and guard the aggregate version so a replay cannot regress state.",
+            "code": "# The consumer side of at-least-once: duplicates must be no-ops.\n\ndef consume_booking_event(message, db):\n    event = decode_and_validate(message)\n\n    with db.transaction() as tx:\n        inserted = tx.execute(\n            \"\"\"INSERT INTO inbox_message (consumer_name, event_id)\n               VALUES (%s, %s) ON CONFLICT DO NOTHING\"\"\",\n            ['payment-service', event.event_id])\n\n        if inserted.rowcount == 0:\n            return ACK          # already applied in an earlier delivery\n\n        current = tx.query_one(\n            \"\"\"SELECT version FROM payment_booking_view\n                WHERE booking_id = %s FOR UPDATE\"\"\",\n            [event.aggregate_id])\n\n        if current:\n            # Version guard: ordering is per-partition, not global.\n            if event.aggregate_version <= current.version:\n                return ACK                        # stale replay\n            if event.aggregate_version > current.version + 1:\n                raise SequenceGap(event.aggregate_id)   # park, do not apply\n\n        apply_business_transition(tx, event)\n\n        # A downstream event goes into THIS transaction's outbox, not a\n        # separate publish - the same dual-write rule applies here.\n\n    return ACK   # ACK only after the local commit succeeded"
+          },
+          {
+            "title": "Orchestrated saga with compensation",
+            "language": "python",
+            "note": "Compensation runs in business order and stops at the first irreversible step rather than pretending it can be undone.",
+            "code": "# Orchestrated booking saga. The durable workflow runtime owns retries,\n# timers and resumption; every step below must still be idempotent.\n\nasync def run_booking_saga(ctx, booking):\n    completed = []\n    try:\n        quote = await execute_step(ctx, name='REPRICE',\n            action=lambda key: pricing.reprice(booking.quote_id,\n                                               idempotency_key=key))\n        completed.append(('REPRICE', quote))\n\n        hold = await execute_step(ctx, name='HOLD_INVENTORY',\n            action=lambda key: supplier.hold(booking.items,\n                                             idempotency_key=key))\n        completed.append(('HOLD_INVENTORY', hold))\n\n        auth = await execute_step(ctx, name='AUTHORIZE_PAYMENT',\n            action=lambda key: payment.authorize(booking.amount,\n                                                 idempotency_key=key))\n        completed.append(('AUTHORIZE_PAYMENT', auth))\n\n        # Past this point a timeout means UNKNOWN, never \"did not happen\":\n        # the resolver asks the supplier by client reference before any retry.\n        confirmed = await execute_step(ctx, name='CONFIRM_SUPPLIER',\n            action=lambda key: supplier.confirm(hold.ref,\n                                                idempotency_key=key),\n            ambiguous_outcome_resolver=supplier.lookup_by_client_ref)\n        completed.append(('CONFIRM_SUPPLIER', confirmed))\n\n        capture = await execute_step(ctx, name='CAPTURE_PAYMENT',\n            action=lambda key: payment.capture(auth.ref,\n                                               idempotency_key=key),\n            ambiguous_outcome_resolver=payment.lookup)\n        completed.append(('CAPTURE_PAYMENT', capture))\n\n        await booking_service.confirm(booking.id)\n        return 'CONFIRMED'\n\n    except RetriableError:\n        raise      # runtime backs off with jitter inside the deadline\n\n    except UnrecoverableError as failure:\n        return await compensate(ctx, booking, completed, failure)\n\n\nasync def compensate(ctx, booking, completed, failure):\n    # Business order, not a blind reverse loop: some steps cannot be undone.\n    for step, result in choose_compensation_order(completed):\n        if step == 'CAPTURE_PAYMENT':\n            await idempotent_retry(payment.refund, result.ref)\n\n        elif step == 'CONFIRM_SUPPLIER':\n            outcome = await idempotent_retry(supplier.cancel_if_allowed,\n                                             result.ref)\n            if outcome == 'NON_REFUNDABLE':\n                # Forward recovery beats a rollback that cannot happen.\n                return await manual_review(booking.id,\n                                           reason='supplier_irreversible')\n\n        elif step == 'AUTHORIZE_PAYMENT':\n            await idempotent_retry(payment.void, result.ref)\n\n        elif step == 'HOLD_INVENTORY':\n            await idempotent_retry(supplier.release, result.ref)\n\n    await booking_service.mark_compensated(booking.id, failure.code)\n    return 'COMPENSATED'"
+          },
+          {
+            "title": "Event envelope",
+            "language": "json",
+            "note": "saga_id, causation_id and traceparent are what let one booking be followed across every asynchronous hop.",
+            "code": "{\n  \"event_id\": \"33d7cc8e-2f41-4b0a-9c7e-1d55ab903f21\",\n  \"event_type\": \"booking.inventory_held\",\n  \"schema_version\": 3,\n\n  \"aggregate\": {\n    \"type\": \"booking\",\n    \"id\": \"7f47cda4-9b12-4d3e-8a55-6c0f2b71e904\",\n    \"version\": 12\n  },\n\n  \"saga_id\": \"a61c963a-55d0-4f8e-9b3a-2e7c11d4a8f6\",\n  \"correlation_id\": \"a61c963a-55d0-4f8e-9b3a-2e7c11d4a8f6\",\n  \"causation_id\": \"command-9d3f7c21\",\n  \"occurred_at\": \"2026-08-20T09:15:31.214Z\",\n  \"producer\": \"inventory-service\",\n\n  \"traceparent\": \"00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01\",\n\n  \"payload\": {\n    \"supplier\": \"AIRLINE_X\",\n    \"hold_ref\": \"HLD-123456\",\n    \"expires_at\": \"2026-08-20T09:25:31Z\"\n  }\n}"
           }
         ],
         "tags": [
@@ -1533,7 +1583,8 @@
           "Không có hai confirmed booking dùng cùng physical seat trừ khi overbooking pool cho phép rõ.",
           "Search có thể degrade sang cached availability nhưng confirmation không bao giờ coi cache là authoritative.",
           "Kết quả từ external call: Mọi external call có timeout và idempotent khi có thể; unknown outcome đi vào reconciliation thay vì đoán.",
-          "Workflow expose pending state và sống qua restart service, queue hoặc orchestrator."
+          "Workflow expose pending state và sống qua restart service, queue hoặc orchestrator.",
+          "Timeout là outcome chưa biết, không phải failure — saga phải resolve bằng cách query provider với đúng client reference trước khi retry hay compensate."
         ],
         "capacity": [
           "Estimate search-to-book ratio, peak search QPS, concurrent hold, conversion và skew theo route/date.",
@@ -1547,21 +1598,33 @@
           "Seat hold — flight/seat hoặc inventory bucket, customer, quantity, status, fencing version và expires_at.",
           "Booking saga — booking id, current step, provider reference, idempotency key, attempt và next action.",
           "Payment ledger — debit/credit posting immutable, PSP reference và reconciliation state.",
-          "Ticket/PNR — provider locator, passenger, segment, issue status và provider state đã verify gần nhất."
+          "Ticket/PNR — provider locator, passenger, segment, issue status và provider state đã verify gần nhất.",
+          "Saga instance — saga_id, booking_id, saga_version, state, current_step và deadline_at; đây là process truth, tách khỏi booking row vốn là domain truth.",
+          "Saga step — (saga_id, step_name) kèm attempt, idempotency_key ổn định và unique toàn bảng, external_ref provider trả về, cùng compensation_status.",
+          "Outbox event — event_id, aggregate_type/id, aggregate_version tăng đơn điệu, event_type, schema_version và payload; unique trên (aggregate, version, type) để một write bị retry không phát cùng một fact hai lần.",
+          "Inbox message — (consumer_name, event_id) làm primary key; row này tồn tại chỉ để biến một event bị redeliver thành no-op ngay trong transaction của consumer.",
+          "API idempotency — (scope, idempotency_key) giữ request_hash và response đã lưu, để client retry nhận lại booking đầu tiên thay vì tạo booking thứ hai."
         ],
         "stack": [
           "Search/pricing stateless với Redis cache và circuit breaker/quota control riêng từng provider.",
           "PostgreSQL/MySQL cho hold atomic, booking saga và payment ledger; conditional update hoặc row lock tại inventory boundary.",
           "Kafka-compatible event bus + Outbox cho notification, analytics và availability projection.",
           "Workflow/orchestrator durable cho hold → authorize/capture → issue, kèm worker expiry/reconciliation định kỳ.",
-          "WebSocket hoặc SSE cho realtime update hữu hạn; adapter GDS/airline và PSP sau anti-corruption layer."
+          "WebSocket hoặc SSE cho realtime update hữu hạn; adapter GDS/airline và PSP sau anti-corruption layer.",
+          "Transactional outbox kèm CDC — service commit state và event trong cùng một local transaction, không gọi thẳng broker; Debezium đọc committed row từ WAL rồi route, đóng cửa sổ dual-write ở cả hai chiều.",
+          "Durable workflow engine cho orchestrator — booking chờ supplier callback, payment challenge và ticketing lâu hơn vòng đời một process, nên workflow state và timer phải sống sót qua crash chứ không nằm trong memory.",
+          "Schema registry kèm CI compatibility gate — một booking event có nhiều consumer độc lập, nên rename hoặc xoá field là sự cố lan rộng; thay đổi additive thì pass, breaking thì fail build."
         ],
         "tradeoffs": [
           "Một inventory authority atomic chặn accidental double-booking nhưng có thể phải partition theo flight/inventory bucket.",
           "Hold TTL ngắn tăng utilization nhưng phạt payment chậm/accessibility flow; chỉ extend bằng policy rõ.",
           "Orchestration làm money-and-ticket path dễ quan sát; choreography giảm coupling nhưng giấu một business transaction trong nhiều event.",
           "Đặt bước khó reverse nhất cuối cùng, nhưng mọi timeout đều là unknown và phải query provider trước compensation.",
-          "Overbooking là commercial capacity model có limit/recovery cost, không phải race condition khoác áo eventual consistency."
+          "Overbooking là commercial capacity model có limit/recovery cost, không phải race condition khoác áo eventual consistency.",
+          "Nhắm effectively-once về hiệu ứng nghiệp vụ, không nhắm exactly-once delivery — guarantee của broker dừng ở biên của chính nó, còn airline hay PSP nằm ngoài; idempotency key, unique constraint, inbox và reconciliation mới là thứ thật sự chặn lần charge thứ hai.",
+          "Compensation là một business state hợp lệ mới, không phải rollback nguyên trạng — khi seat đã hold, tiền đã authorize hoặc vé đã issue thì thế giới bên ngoài đã đổi, và forward recovery hoặc manual review đôi khi mới là đáp án đúng.",
+          "Orchestrate đường tiền-và-vé, choreograph mọi thứ phía sau — coordinator cho core flow timeout, compensation và saga_id auditable rõ ràng, còn notification, loyalty và analytics giữ loose coupling sau BookingConfirmed.",
+          "Giữ local transaction ngắn và không chứa remote call — mở database transaction xuyên suốt một call tới airline hay PSP đẩy thẳng tail latency của họ vào lock contention của mình."
         ],
         "code_samples": [
           {
@@ -1570,6 +1633,43 @@
             "note": "Hold chỉ authoritative sau khi conditional write thành công; availability trong search chỉ là advisory.",
             "code": "BEGIN;\n\nUPDATE inventory_unit\nSET held = held + :quantity, version = version + 1\nWHERE flight_id = :flight_id\n  AND held + confirmed + :quantity <= capacity\n  AND version = :expected_version\nRETURNING flight_id, held, version;\n\nINSERT INTO seat_hold (hold_id, flight_id, customer_id, quantity, expires_at)\nVALUES (:hold_id, :flight_id, :customer_id, :quantity, now() + interval '8 minutes');\nCOMMIT;",
             "run": "psql booking.sql --set flight_id=VN123-2026-08-12"
+          },
+          {
+            "title": "State machine của booking saga",
+            "language": "mermaid",
+            "note": "Mọi cạnh timeout đi vào OUTCOME_UNKNOWN thay vì thẳng tới failure, và MANUAL_REVIEW là một terminal state thật.",
+            "code": "stateDiagram-v2\n    [*] --> CREATED\n    CREATED --> VALIDATED\n    VALIDATED --> INVENTORY_HELD\n    INVENTORY_HELD --> PAYMENT_AUTHORIZED\n    PAYMENT_AUTHORIZED --> SUPPLIER_CONFIRMED\n    SUPPLIER_CONFIRMED --> PAYMENT_CAPTURED\n    PAYMENT_CAPTURED --> CONFIRMED\n\n    VALIDATED --> FAILED\n    INVENTORY_HELD --> COMPENSATING: unrecoverable failure\n    PAYMENT_AUTHORIZED --> COMPENSATING: supplier failure\n    SUPPLIER_CONFIRMED --> COMPENSATING: capture failure\n\n    PAYMENT_AUTHORIZED --> OUTCOME_UNKNOWN: timeout\n    SUPPLIER_CONFIRMED --> OUTCOME_UNKNOWN: timeout\n    OUTCOME_UNKNOWN --> SUPPLIER_CONFIRMED: lookup finds it\n    OUTCOME_UNKNOWN --> COMPENSATING: lookup proves absence\n    OUTCOME_UNKNOWN --> MANUAL_REVIEW: still ambiguous\n\n    COMPENSATING --> COMPENSATED\n    COMPENSATING --> MANUAL_REVIEW: compensation fails\n\n    CREATED --> EXPIRED\n    INVENTORY_HELD --> EXPIRED: hold deadline exceeded\n\n    CONFIRMED --> [*]\n    COMPENSATED --> [*]\n    FAILED --> [*]\n    EXPIRED --> [*]\n    MANUAL_REVIEW --> [*]"
+          },
+          {
+            "title": "Saga, outbox và ba biên idempotency",
+            "language": "sql",
+            "note": "Client-to-API, saga-to-provider và broker-to-consumer mỗi biên cần key riêng; một bảng không phục vụ được cả ba.",
+            "code": "-- Saga progress, outbox and the three idempotency boundaries.\n-- Domain state and the event intent commit in ONE local transaction.\n\nCREATE TABLE saga_instance (\n    saga_id       UUID PRIMARY KEY,\n    booking_id    UUID NOT NULL,\n    saga_version  INTEGER NOT NULL,     -- code version that started it\n    state         TEXT NOT NULL,\n    current_step  TEXT,\n    deadline_at   TIMESTAMPTZ,\n    version       BIGINT NOT NULL DEFAULT 0,\n\n    CHECK (state IN ('RUNNING', 'CONFIRMED', 'FAILED',\n                     'COMPENSATING', 'COMPENSATED',\n                     'MANUAL_REVIEW', 'EXPIRED'))\n);\n\nCREATE TABLE saga_step (\n    saga_id             UUID NOT NULL,\n    step_name           TEXT NOT NULL,\n    attempt             INTEGER NOT NULL DEFAULT 0,\n    status              TEXT NOT NULL,\n    idempotency_key     TEXT NOT NULL,   -- stable across every retry\n    external_ref        TEXT,            -- PNR, authorization_ref, hold_ref\n    compensation_status TEXT,\n\n    PRIMARY KEY (saga_id, step_name),\n    UNIQUE (idempotency_key)\n);\n\nCREATE TABLE outbox_event (\n    event_id          UUID PRIMARY KEY,\n    aggregate_type    TEXT NOT NULL,\n    aggregate_id      UUID NOT NULL,\n    aggregate_version BIGINT NOT NULL,   -- monotonic per aggregate\n    event_type        TEXT NOT NULL,\n    schema_version    INTEGER NOT NULL,\n    payload           JSONB NOT NULL,\n    occurred_at       TIMESTAMPTZ NOT NULL DEFAULT now(),\n\n    UNIQUE (aggregate_type, aggregate_id, aggregate_version, event_type)\n);\n\nCREATE TABLE inbox_message (\n    consumer_name TEXT NOT NULL,\n    event_id      UUID NOT NULL,\n    processed_at  TIMESTAMPTZ NOT NULL DEFAULT now(),\n\n    PRIMARY KEY (consumer_name, event_id)\n);\n\nCREATE TABLE api_idempotency (\n    scope           TEXT NOT NULL,\n    idempotency_key TEXT NOT NULL,\n    request_hash    TEXT NOT NULL,   -- same key + different body = conflict\n    resource_id     UUID,\n    response_code   INTEGER,\n    response_body   JSONB,\n\n    PRIMARY KEY (scope, idempotency_key)\n);",
+            "run": "psql booking < saga_outbox.sql"
+          },
+          {
+            "title": "Outbox producer — state và event trong một commit",
+            "language": "python",
+            "note": "Không có publish trong request path. CDC chỉ đọc committed row, nên \"đã commit mà không bao giờ publish\" không thể xảy ra.",
+            "code": "# Booking creation: domain row + event intent in one transaction.\n# There is no producer.send() here - CDC reads committed rows only.\n\ndef create_booking(cmd, idempotency_key, db):\n    with db.transaction() as tx:\n        prior = tx.query_one(\n            \"\"\"SELECT request_hash, response_code, response_body\n                 FROM api_idempotency\n                WHERE scope = 'create-booking' AND idempotency_key = %s\n                  FOR UPDATE\"\"\",\n            [idempotency_key])\n\n        request_hash = canonical_hash(cmd)\n\n        if prior:\n            # Same key, different body is a client bug, not a retry.\n            if prior.request_hash != request_hash:\n                raise IdempotencyConflict()\n            return prior.response_code, prior.response_body\n\n        booking_id, saga_id = uuid4(), uuid4()\n\n        tx.execute(\n            \"\"\"INSERT INTO booking (booking_id, saga_id, customer_id,\n                                     status, currency, total_amount_minor)\n               VALUES (%s, %s, %s, 'PENDING', %s, %s)\"\"\",\n            [booking_id, saga_id, cmd.customer_id,\n             cmd.currency, cmd.amount_minor])\n\n        tx.execute(\n            \"\"\"INSERT INTO outbox_event (event_id, aggregate_type,\n                    aggregate_id, aggregate_version, event_type,\n                    schema_version, payload)\n               VALUES (%s, 'booking', %s, 1, 'booking.created', 1, %s)\"\"\",\n            [uuid4(), booking_id,\n             json.dumps({'booking_id': str(booking_id),\n                         'saga_id': str(saga_id), 'status': 'PENDING'})])\n\n        response = {'booking_id': str(booking_id), 'status': 'PENDING'}\n\n        tx.execute(\n            \"\"\"INSERT INTO api_idempotency (scope, idempotency_key,\n                    request_hash, resource_id, response_code, response_body)\n               VALUES ('create-booking', %s, %s, %s, 202, %s)\"\"\",\n            [idempotency_key, request_hash, booking_id,\n             json.dumps(response)])\n\n    # Commit happened. Debezium will observe the outbox row from the WAL.\n    return 202, response"
+          },
+          {
+            "title": "Inbox consumer — duplicate thành no-op",
+            "language": "python",
+            "note": "Insert event id trước, ACK chỉ sau khi local commit, và guard aggregate version để một replay không kéo lùi state.",
+            "code": "# The consumer side of at-least-once: duplicates must be no-ops.\n\ndef consume_booking_event(message, db):\n    event = decode_and_validate(message)\n\n    with db.transaction() as tx:\n        inserted = tx.execute(\n            \"\"\"INSERT INTO inbox_message (consumer_name, event_id)\n               VALUES (%s, %s) ON CONFLICT DO NOTHING\"\"\",\n            ['payment-service', event.event_id])\n\n        if inserted.rowcount == 0:\n            return ACK          # already applied in an earlier delivery\n\n        current = tx.query_one(\n            \"\"\"SELECT version FROM payment_booking_view\n                WHERE booking_id = %s FOR UPDATE\"\"\",\n            [event.aggregate_id])\n\n        if current:\n            # Version guard: ordering is per-partition, not global.\n            if event.aggregate_version <= current.version:\n                return ACK                        # stale replay\n            if event.aggregate_version > current.version + 1:\n                raise SequenceGap(event.aggregate_id)   # park, do not apply\n\n        apply_business_transition(tx, event)\n\n        # A downstream event goes into THIS transaction's outbox, not a\n        # separate publish - the same dual-write rule applies here.\n\n    return ACK   # ACK only after the local commit succeeded"
+          },
+          {
+            "title": "Saga orchestration kèm compensation",
+            "language": "python",
+            "note": "Compensation chạy theo thứ tự nghiệp vụ và dừng tại bước irreversible đầu tiên thay vì giả vờ có thể undo.",
+            "code": "# Orchestrated booking saga. The durable workflow runtime owns retries,\n# timers and resumption; every step below must still be idempotent.\n\nasync def run_booking_saga(ctx, booking):\n    completed = []\n    try:\n        quote = await execute_step(ctx, name='REPRICE',\n            action=lambda key: pricing.reprice(booking.quote_id,\n                                               idempotency_key=key))\n        completed.append(('REPRICE', quote))\n\n        hold = await execute_step(ctx, name='HOLD_INVENTORY',\n            action=lambda key: supplier.hold(booking.items,\n                                             idempotency_key=key))\n        completed.append(('HOLD_INVENTORY', hold))\n\n        auth = await execute_step(ctx, name='AUTHORIZE_PAYMENT',\n            action=lambda key: payment.authorize(booking.amount,\n                                                 idempotency_key=key))\n        completed.append(('AUTHORIZE_PAYMENT', auth))\n\n        # Past this point a timeout means UNKNOWN, never \"did not happen\":\n        # the resolver asks the supplier by client reference before any retry.\n        confirmed = await execute_step(ctx, name='CONFIRM_SUPPLIER',\n            action=lambda key: supplier.confirm(hold.ref,\n                                                idempotency_key=key),\n            ambiguous_outcome_resolver=supplier.lookup_by_client_ref)\n        completed.append(('CONFIRM_SUPPLIER', confirmed))\n\n        capture = await execute_step(ctx, name='CAPTURE_PAYMENT',\n            action=lambda key: payment.capture(auth.ref,\n                                               idempotency_key=key),\n            ambiguous_outcome_resolver=payment.lookup)\n        completed.append(('CAPTURE_PAYMENT', capture))\n\n        await booking_service.confirm(booking.id)\n        return 'CONFIRMED'\n\n    except RetriableError:\n        raise      # runtime backs off with jitter inside the deadline\n\n    except UnrecoverableError as failure:\n        return await compensate(ctx, booking, completed, failure)\n\n\nasync def compensate(ctx, booking, completed, failure):\n    # Business order, not a blind reverse loop: some steps cannot be undone.\n    for step, result in choose_compensation_order(completed):\n        if step == 'CAPTURE_PAYMENT':\n            await idempotent_retry(payment.refund, result.ref)\n\n        elif step == 'CONFIRM_SUPPLIER':\n            outcome = await idempotent_retry(supplier.cancel_if_allowed,\n                                             result.ref)\n            if outcome == 'NON_REFUNDABLE':\n                # Forward recovery beats a rollback that cannot happen.\n                return await manual_review(booking.id,\n                                           reason='supplier_irreversible')\n\n        elif step == 'AUTHORIZE_PAYMENT':\n            await idempotent_retry(payment.void, result.ref)\n\n        elif step == 'HOLD_INVENTORY':\n            await idempotent_retry(supplier.release, result.ref)\n\n    await booking_service.mark_compensated(booking.id, failure.code)\n    return 'COMPENSATED'"
+          },
+          {
+            "title": "Event envelope",
+            "language": "json",
+            "note": "saga_id, causation_id và traceparent là thứ cho phép truy một booking qua mọi asynchronous hop.",
+            "code": "{\n  \"event_id\": \"33d7cc8e-2f41-4b0a-9c7e-1d55ab903f21\",\n  \"event_type\": \"booking.inventory_held\",\n  \"schema_version\": 3,\n\n  \"aggregate\": {\n    \"type\": \"booking\",\n    \"id\": \"7f47cda4-9b12-4d3e-8a55-6c0f2b71e904\",\n    \"version\": 12\n  },\n\n  \"saga_id\": \"a61c963a-55d0-4f8e-9b3a-2e7c11d4a8f6\",\n  \"correlation_id\": \"a61c963a-55d0-4f8e-9b3a-2e7c11d4a8f6\",\n  \"causation_id\": \"command-9d3f7c21\",\n  \"occurred_at\": \"2026-08-20T09:15:31.214Z\",\n  \"producer\": \"inventory-service\",\n\n  \"traceparent\": \"00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01\",\n\n  \"payload\": {\n    \"supplier\": \"AIRLINE_X\",\n    \"hold_ref\": \"HLD-123456\",\n    \"expires_at\": \"2026-08-20T09:25:31Z\"\n  }\n}"
           }
         ],
         "tags": [
@@ -1582,7 +1682,7 @@
         ]
       },
       "created_at": "2026-08-10",
-      "updated_at": "2026-08-12"
+      "updated_at": "2026-08-21"
     },
     {
       "n": 15,

@@ -16,7 +16,7 @@ export const SYSTEM_DESIGN_RESEARCH = {
     'chat-messaging': ['messaging', 'observability'],
     'autocomplete-typeahead': ['search-ranking', 'caching'],
     'object-storage-large-upload': ['object-storage', 'observability'],
-    'ota-flight-booking': ['transactions', 'reliability'],
+    'ota-flight-booking': ['saga-outbox', 'transactions', 'reliability'],
     'high-traffic-booking-search': ['transactions', 'messaging'],
     'scaling-1m-to-10m-requests': ['transactions', 'messaging', 'caching', 'search-ranking', 'data-evolution', 'reliability'],
     'scaling-technique-catalogue': ['data-evolution', 'observability'],
@@ -25,6 +25,62 @@ export const SYSTEM_DESIGN_RESEARCH = {
     'multi-tenant-rabbitmq-fairness': ['tenant-fairness', 'messaging', 'rate-limiting']
   },
   packs: {
+    'saga-outbox': {
+      en: {
+        title: 'Saga and transactional outbox under at-least-once delivery',
+        intro: 'A booking crosses pricing, inventory, a supplier, payment and ticketing, so no single ACID transaction spans it. Commit each local step with its event intent, then make every external effect safe to repeat.',
+        sections: [
+          { title: 'Close the dual-write window, then order what you own', items: [
+            'Writing the database and then publishing to a broker are two independent writes: either order leaves a crash window where one succeeded and the other did not. Commit the domain row and an outbox row in one local transaction and let CDC publish from the log.',
+            'The outbox is a consistency technique, not a microservice one — a monolith can adopt it before any service is extracted, which is what makes it the safe first step of a strangler migration.',
+            'Ordering exists per partition, not per cluster. Key booking events by booking_id and carry a monotonic aggregate_version so a consumer can ignore stale replays and park on a gap; never force a global key to buy total ordering, because it turns one partition into the ceiling for the whole topic.'
+          ]},
+          { title: 'Aim for effectively-once, and treat a timeout as unknown', items: [
+            'A broker exactly-once guarantee holds inside its own boundary; an airline, GDS or PSP sits outside it and is never covered. Treat delivery as at-least-once and defend each side effect with a stable idempotency key, a unique constraint and an inbox row.',
+            'Do not mint a new idempotency key on retry — the key is the identity that lets the provider recognise the repeat. Keep personal data out of it, and store the first response so a client retry replays it instead of creating a second booking.',
+            'If a supplier call times out after the request left the building, the outcome is unknown: retrying under a fresh reference can create a duplicate PNR, and compensating immediately can refund a booking that exists. Route it through an explicit OUTCOME_UNKNOWN state that queries by client reference before it repeats anything.'
+          ]},
+          { title: 'Compensate by reversibility, alert on age, version the workflow', items: [
+            'Classify each step: fully reversible (release a hold), reversible but asynchronous (refund), reversible with cost (cancellation fee), conditionally reversible (rate deadline), and irreversible (an issued non-refundable ticket). Compensation is semantic correction, not database rollback, so it need not run in strict reverse order and may itself fail.',
+            'Prefer oldest-outbox-age and CDC lag over queue length: a large backlog draining fast can be healthy, while a twenty-minute-old outbox row is an incident even on a short queue. Make MANUAL_REVIEW a real terminal state rather than a stuck saga.',
+            'A saga started under V1 can still be running when V3 deploys, so pin in-flight executions to their own version and drain them. Broker retention plus maximum saga lifetime is what sets how long old event schemas and old workflow code must stay decodable.'
+          ]}
+        ]
+      },
+      vi: {
+        title: 'Saga và transactional outbox dưới at-least-once delivery',
+        intro: 'Một booking đi qua pricing, inventory, supplier, payment và ticketing nên không ACID transaction đơn nào phủ hết. Commit từng local step cùng event intent, rồi làm mọi external effect an toàn khi lặp lại.',
+        sections: [
+          { title: 'Đóng cửa sổ dual-write, rồi chỉ order ở nơi mình sở hữu', items: [
+            'Ghi database rồi publish lên broker là hai write độc lập: thứ tự nào cũng để lại crash window mà một bên thành công còn bên kia thì không. Commit domain row và outbox row trong cùng một local transaction rồi để CDC publish từ log.',
+            'Outbox là kỹ thuật consistency chứ không phải kỹ thuật microservice — monolith có thể dùng trước khi tách bất kỳ service nào, và đó là lý do nó là bước đầu an toàn của strangler migration.',
+            'Ordering tồn tại theo partition chứ không theo cluster. Key event booking bằng booking_id và mang aggregate_version tăng đơn điệu để consumer bỏ qua replay cũ và park khi thấy gap; đừng ép một global key để mua total ordering vì nó biến một partition thành trần của cả topic.'
+          ]},
+          { title: 'Nhắm effectively-once, và coi timeout là unknown', items: [
+            'Guarantee exactly-once của broker chỉ đúng trong biên của nó; airline, GDS hay PSP nằm ngoài và không bao giờ được phủ. Coi delivery là at-least-once và bảo vệ từng side effect bằng idempotency key ổn định, unique constraint và một inbox row.',
+            'Đừng sinh idempotency key mới khi retry — key chính là identity giúp provider nhận ra lần lặp. Không nhét dữ liệu cá nhân vào key, và lưu response đầu tiên để client retry nhận lại nó thay vì tạo booking thứ hai.',
+            'Nếu call tới supplier timeout sau khi request đã rời hệ thống thì kết quả là chưa biết: retry bằng reference mới có thể tạo PNR trùng, còn compensate ngay có thể refund một booking đang tồn tại. Đưa nó qua state OUTCOME_UNKNOWN tường minh, query theo client reference trước khi lặp lại bất cứ thứ gì.'
+          ]},
+          { title: 'Compensate theo reversibility, alert theo tuổi, versioning workflow', items: [
+            'Phân loại từng bước: reversible hoàn toàn (release hold), reversible nhưng asynchronous (refund), reversible có chi phí (phí huỷ), reversible có điều kiện (deadline của rate), và irreversible (vé đã issue không hoàn). Compensation là hiệu chỉnh ngữ nghĩa chứ không phải rollback database, nên không nhất thiết chạy ngược thứ tự và bản thân nó cũng có thể fail.',
+            'Ưu tiên oldest-outbox-age và CDC lag hơn queue length: backlog lớn nhưng drain nhanh có thể vẫn khoẻ, còn một outbox row hai mươi phút tuổi là sự cố dù queue ngắn. Để MANUAL_REVIEW là terminal state thật chứ không phải một saga bị kẹt.',
+            'Một saga bắt đầu ở V1 có thể vẫn chạy khi V3 deploy, nên pin execution đang chạy vào version của nó rồi drain. Retention của broker cộng maximum saga lifetime là thứ quyết định event schema cũ và workflow code cũ phải giải mã được trong bao lâu.'
+          ]}
+        ]
+      },
+      sources: [
+        ['Debezium — Outbox event router', 'https://debezium.io/documentation/reference/stable/transformations/outbox-event-router.html'],
+        ['AWS — Transactional outbox pattern', 'https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html'],
+        ['Azure — Saga design pattern', 'https://learn.microsoft.com/en-us/azure/architecture/reference-architectures/saga/saga'],
+        ['Azure — Compensating Transaction pattern', 'https://learn.microsoft.com/en-us/azure/architecture/patterns/compensating-transaction'],
+        ['Kafka — Idempotent producer and delivery semantics', 'https://kafka.apache.org/documentation/#semantics'],
+        ['Stripe — Idempotent requests', 'https://docs.stripe.com/api/idempotent_requests'],
+        ['Temporal — Durable execution and Event History', 'https://docs.temporal.io/evaluate/understanding-temporal'],
+        ['Temporal — Worker versioning', 'https://docs.temporal.io/production-deployment/worker-deployments/worker-versioning'],
+        ['PostgreSQL — Transaction isolation', 'https://www.postgresql.org/docs/17/transaction-iso.html'],
+        ['OpenTelemetry — Messaging semantic conventions', 'https://opentelemetry.io/docs/specs/semconv/messaging/messaging-spans/']
+      ]
+    },
     'flash-sale': {
       en: {
         title: 'Flash-sale capacity and hot-key contention',

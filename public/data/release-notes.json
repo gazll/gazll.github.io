@@ -2,6 +2,27 @@
   "version": 1,
   "releases": [
     {
+      "date": "2026-08-21",
+      "en": {
+        "title": "The OTA blueprint gets its saga and outbox internals"
+      },
+      "vi": {
+        "title": "Blueprint OTA có phần ruột saga và outbox"
+      },
+      "changes": [
+        {
+          "kind": "content",
+          "target": "system-design",
+          "en": {
+            "text": "**OTA flight-booking system** now carries the transaction machinery the flow always implied. Six worked examples were added: the booking **saga state machine** (where every timeout edge goes to `OUTCOME_UNKNOWN` rather than straight to failure), the **SQL schema** for saga instance/step, outbox, inbox and API idempotency, an **outbox producer** committing state and event in one transaction, an **inbox consumer** that turns redelivery into a no-op, an **orchestrated saga with compensation**, and the **event envelope** carrying `saga_id`, `causation_id` and `traceparent`. The reading estimate moved from 45 to 90 minutes. A new **Saga and transactional outbox** deep-dive lens joins it, citing Debezium, Azure, Kafka, Stripe, Temporal, PostgreSQL and OpenTelemetry — the last two origins were added to the reference allowlist for it."
+          },
+          "vi": {
+            "text": "**Hệ thống OTA đặt vé máy bay** giờ mang phần máy móc transaction mà luồng này vẫn luôn ngụ ý. Thêm sáu ví dụ đầy đủ: **state machine của booking saga** (mọi cạnh timeout đi vào `OUTCOME_UNKNOWN` thay vì thẳng tới failure), **schema SQL** cho saga instance/step, outbox, inbox và API idempotency, một **outbox producer** commit state và event trong cùng một transaction, một **inbox consumer** biến redelivery thành no-op, một **saga orchestration kèm compensation**, và **event envelope** mang `saga_id`, `causation_id` cùng `traceparent`. Thời lượng đọc từ 45 lên 90 phút. Kèm theo là lens deep-dive mới **Saga và transactional outbox**, trích Debezium, Azure, Kafka, Stripe, Temporal, PostgreSQL và OpenTelemetry — hai origin cuối được thêm vào allowlist tham chiếu cho phần này."
+          }
+        }
+      ]
+    },
+    {
       "date": "2026-08-20",
       "en": {
         "title": "The panel sheds rows, and the *arr stack joins NAS"

@@ -72,7 +72,8 @@ export const REFERENCE_ORIGINS = Object.freeze([
   'https://opentelemetry.io', 'https://www.rfc-editor.org', 'https://docs.spring.io',
   'https://openid.net', 'https://resilience4j.readme.io', 'https://www.openpolicyagent.org',
   'https://www.rabbitmq.com', 'https://www.pcisecuritystandards.org',
-  'https://blog.pcisecuritystandards.org'
+  'https://blog.pcisecuritystandards.org',
+  'https://debezium.io', 'https://docs.temporal.io'
 ]);
 
 /** Build one origin guard. `fallback` is what an unapproved URL becomes: '#'
