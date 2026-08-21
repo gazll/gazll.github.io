@@ -4,6 +4,11 @@
 <h2 id="1-three-layers">1. Ba tầng, không phải chín dịch vụ</h2>
 <p>Danh sách dịch vụ trông dài cho tới khi bạn gom theo trách nhiệm của từng tầng. Không có gì đi xuyên tầng ngoài các mũi tên bên dưới.</p>
 <!-- separator: a blank line here would truncate the block -->
+<figure>
+  <img src="assets/homelab/02-arr-stack-media-automation/02-request-to-library.svg" alt="Một yêu cầu đi từ người xem qua Jellyseerr tới Radarr hoặc Sonarr, rồi qua Prowlarr, qBittorrent và Bazarr, và đáp xuống storage nơi thư mục download và thư mục media là hai cái tên của cùng một inode." width="900" height="760" loading="lazy" decoding="async">
+  <figcaption>Hai chi tiết quyết định thiết lập có chạy đúng hay không đều nằm trên bức hình này: Bazarr khớp theo tên <em>bản phát hành</em> chứ không theo tên phim, và bước import là một hardlink nên file chỉ chiếm đĩa một lần.</figcaption>
+</figure>
+<!-- separator: a blank line here would truncate the block -->
 <table>
 <thead><tr><th>Tầng</th><th>Dịch vụ</th><th>Trách nhiệm</th></tr></thead>
 <tbody>

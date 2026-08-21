@@ -4,6 +4,11 @@
 <h2 id="1-three-layers">1. Three layers, not nine services</h2>
 <p>The service list looks long until you group it by what each layer is responsible for. Nothing crosses a layer except through the arrows below.</p>
 <!-- separator: a blank line here would truncate the block -->
+<figure>
+  <img src="assets/homelab/02-arr-stack-media-automation/02-request-to-library.svg" alt="A request flows from the viewer through Jellyseerr to Radarr or Sonarr, then through Prowlarr, qBittorrent and Bazarr, and lands in storage where the download path and the media path are two names for one inode." width="900" height="760" loading="lazy" decoding="async">
+  <figcaption>The two details that decide whether the setup works are both on this picture: Bazarr matches the <em>release</em> name rather than the film, and the import is a hardlink, so the file occupies the disk once.</figcaption>
+</figure>
+<!-- separator: a blank line here would truncate the block -->
 <table>
 <thead><tr><th>Layer</th><th>Services</th><th>Responsibility</th></tr></thead>
 <tbody>
