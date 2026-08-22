@@ -112,6 +112,24 @@ import { pathToFileURL } from 'node:url';
     assert.match(styles, /\.nv-sec\+\.nv-sec/);
   });
 
+  test('topic picker links do not inherit browser underlines', async () => {
+    const [header, styles] = await Promise.all([
+      read('app/components/content/ContentHeader.vue'),
+      read('public/styles.css')
+    ]);
+
+    assert.match(header, /<NuxtLink v-else class="topicpick"/);
+    assert.match(header, /<NuxtLink v-for="row in filteredTopics"[^>]*class="tm-row"/);
+    assert.match(styles, /\.topicpick\{[^}]*text-decoration:none/);
+    assert.match(styles, /\.tm-row\{[^}]*text-decoration:none/);
+  });
+
+  test('search overlay keeps the see-all action in its top search panel', async () => {
+    const overlay = await read('app/components/search/SearchOverlay.client.vue');
+
+    assert.match(overlay, /<div class="gs-box">[\s\S]*?<button[^>]*class="gs-more"[\s\S]*?<\/button>[\s\S]*?<\/div>\s*<div class="gs-body">/);
+  });
+
   test('migrated System Design questions remain readable and searchable at their new owner', async () => {
     const [endpoint, search, page, topic] = await Promise.all([
       read('server/api/content/system-design/[slug].get.ts'),

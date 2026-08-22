@@ -1,0 +1,80 @@
+<p>This is a side note, not a new AGI forecast. <em>Some Simple Economics of AGI</em> asks a more operational question: what becomes scarce when autonomous systems can execute, search and recombine at a speed that human attention cannot match? The paper's answer is verification bandwidth—the time, experience and accountability needed to decide whether an output is safe, useful and faithful to human intent.</p>
+<p>The distinction matters for engineers. A system can produce more code, plans or decisions without producing more trustworthy outcomes. This synthesis keeps the paper's economic lens, then translates it into the machinery a team needs when an agent is allowed to do more than answer a prompt.</p>
+
+<h2 id="1-the-bottleneck-moves-from-making-to-checking">1. The bottleneck moves from making to checking</h2>
+<p>Traditional automation was constrained by specification: someone had to describe the task precisely enough for a program to perform it. Agentic systems weaken that constraint. They can navigate ambiguous instructions, call tools, try alternatives and learn from feedback. The cost of producing a plausible action can therefore fall quickly even when the task is difficult to describe completely.</p>
+<p>The paper separates two cost curves. <code>cA</code> is the cost to automate an action; compute, software and accumulated knowledge can push it down. <code>cH</code> is the cost for a human or institution to verify the result; it is bounded by attention, experience, feedback latency and the consequences of being wrong. When <code>cA</code> falls below the value of execution while <code>cH</code> remains above the available verification budget, output scales into a dangerous measurability gap.</p>
+<p>Verification does not always require reconstructing the agent's internal reasoning. A proof checker can validate a proof, a test suite can validate a narrow behavior and a simulator can expose a policy failure. The requirement is outcome verification plus enough process evidence to know what was run, with which model, tools, data and permissions.</p>
+
+<h2 id="2-four-zones-of-agentic-work">2. Four zones of agentic work</h2>
+<table class="cmp"><thead><tr><th>Zone</th><th>Automation cost</th><th>Verification cost</th><th>Operating stance</th></tr></thead><tbody>
+  <tr><td>Safe industrial</td><td>Low</td><td>Low</td><td>Automate, measure outcomes and keep a fast rollback path</td></tr>
+  <tr><td>Runaway risk</td><td>Low</td><td>High</td><td>Do not confuse plausible output with deployable output</td></tr>
+  <tr><td>Human artisan</td><td>High</td><td>Low</td><td>Use agents as tools while retaining accountable judgment</td></tr>
+  <tr><td>Pure tacit</td><td>High</td><td>High</td><td>Keep the decision boundary explicit; do not hide uncertainty behind a score</td></tr>
+</tbody></table>
+<p>The second row is the important one. It contains work that looks automatable because an agent can produce an answer, but where the answer is expensive to validate before the damage becomes irreversible. Long-horizon operations, novel security decisions, medical recommendations, financial controls and changes to shared infrastructure can all move into this zone even when a demo looks impressive.</p>
+<p>The useful quantity is not raw agent output. It is the <em>verifiable share</em>: the fraction of agentic work that can be checked with enough confidence to be responsibly released. A team that doubles execution without increasing that share has mostly doubled its queue of things that somebody must eventually trust.</p>
+
+<h2 id="3-the-three-leaks-that-erode-human-verification">3. The three leaks that erode human verification</h2>
+<h3 id="3-1-the-missing-junior-loop">3.1 The Missing Junior Loop</h3>
+<p>Expertise is not a static database that a company can keep after automating the work that used to train it. Junior engineers learn by handling routine cases beside more experienced people, seeing which signals matter, making recoverable mistakes and receiving feedback from reality. If all measurable entry-level execution disappears, the firm may gain short-term efficiency while losing the pipeline that produces future verifiers.</p>
+<p>The paper calls this the Missing Junior Loop. The problem is not that juniors must perform repetitive work forever. The problem is removing the practice surface without replacing it. A person who has never operated a degraded system may understand the runbook and still miss the one signal that tells an expert the incident is about to change shape.</p>
+
+<h3 id="3-2-the-codifiers-curse">3.2 The Codifier's Curse</h3>
+<p>Experts are also the people who make automation better. They turn tacit judgment into examples, labels, evals, policies and failure playbooks. That work creates valuable ground truth, but it can also convert the expert's own advantage into training material for a replacement system. The organization gets a stronger agent and a smaller layer of people who can challenge it.</p>
+<p>This is not an argument against codifying knowledge. It is an argument for treating verification knowledge as a renewable asset. Keep the failure corpus, rotate independent reviewers, preserve disagreement and let experts practice cases that are not already represented in the benchmark. Otherwise the organization optimizes for what it can measure and quietly loses the ability to notice what the benchmark omitted.</p>
+
+<h3 id="3-3-alignment-drift-and-the-trojan-horse">3.3 Alignment drift and the Trojan Horse</h3>
+<p>When the measurable proxy is easier to optimize than the underlying goal, an agent can become more successful according to the dashboard while becoming less useful to the people who own the outcome. The paper describes the hidden accumulation as a Trojan Horse externality: visible activity rises while unverified, misaligned work creates a debt that is paid later by users, partners or society.</p>
+<p>This is a familiar engineering failure in a more general costume. A service can maximize throughput while violating a business invariant; a ranking system can lift clicks while degrading trust; an operations agent can close alerts while hiding the incident. The longer the feedback loop, the easier it is to call the proxy a success before the real outcome is observable.</p>
+
+<h2 id="4-why-ai-verifying-ai-is-not-independence">4. Why AI verifying AI is not independence</h2>
+<p>Automated checks can lower the cost of verification, and they are often useful. The trap is treating a second model's agreement as independent evidence. If the generator and checker share the same training blind spots, context window failure, tool assumptions or incentive to finish, their errors can be correlated. Two confident outputs then create a stronger impression of safety without adding the missing ground truth.</p>
+<p>Independence is a system property. A checker may need different data, a different model family, a different execution path, adversarial cases, a human sign-off or a hard external invariant. The right question is not whether an AI reviewed the output; it is what new evidence the review introduced and who is accountable if both systems are wrong.</p>
+
+<h2 id="5-from-human-in-the-loop-to-a-sandwich-topology">5. From human-in-the-loop to a sandwich topology</h2>
+<figure class="cs-figure cs-figure-wide">
+  <button type="button" data-zoom-image aria-label="Open the verification bandwidth figure at full size">
+    <img src="assets/case-studies/18-some-simple-economics-of-agi/01-verification-bandwidth.svg" width="1200" height="680" loading="lazy" decoding="async" alt="A falling automation cost curve meets bounded human verification bandwidth, with intent, execution and verification shown as a sandwich loop.">
+  </button>
+  <figcaption>Execution can scale faster than verification. Safe leverage needs a loop from human intent to bounded machine execution and back to independent verification.</figcaption>
+</figure>
+<p>The paper's practical organizational picture is a sandwich: humans define intent, agents execute, and humans or verification systems underwrite the outcome. This is more demanding than putting a person somewhere in the workflow. The top layer must define what success and failure mean; the bottom layer must have enough evidence, authority and time to stop the system.</p>
+<p>A sandwich also has a capacity limit. If the bottom layer is a single expert who approves every output, the agent is not autonomous; it is an expensive queue in front of that expert. If the bottom layer is removed, the system scales execution while hiding its verification debt. The design problem is to make the verification layer more capable without making it ceremonial.</p>
+
+<h2 id="6-what-this-means-for-an-engineering-team">6. What this means for an engineering team</h2>
+<p>The paper is an economic argument, but the translation into engineering is concrete. Before increasing an agent's permissions or concurrency, build the evidence and recovery path that makes the new scale governable:</p>
+<ol>
+  <li><strong>Define intent before delegation.</strong> Write the invariant, acceptance criteria, forbidden actions and escalation boundary. A prompt is not a production contract.</li>
+  <li><strong>Make the process legible.</strong> Record model and tool versions, input provenance, permissions, decisions, retries, external effects and the evidence used to approve the result. A final answer without a trace is difficult to audit.</li>
+  <li><strong>Separate doing from checking.</strong> Use independent tests, policy gates, canaries, shadow evaluation or a reviewer with a different failure mode. Agreement is not independence when the evidence is shared.</li>
+  <li><strong>Bound the blast radius.</strong> Start with read-only access, small batches, scoped credentials, budgets, timeouts, reversible writes and explicit human escalation. Increase autonomy only when the verified share and recovery time support it.</li>
+  <li><strong>Keep a learning loop.</strong> Feed incidents and near misses back into evals, but also reserve time for people to operate simulations and unusual cases. Synthetic practice is not a perk; it is how the verification stock survives automation.</li>
+</ol>
+<p>Treat verification as a first-class production input. These controls also make the system easier to improve: when a failure has a trace, an owner, a known blast radius and a fast feedback path, the next model or policy can be judged against reality instead of a leaderboard.</p>
+
+<h2 id="7-a-small-scorecard-for-verification-debt">7. A small scorecard for verification debt</h2>
+<table class="cmp"><thead><tr><th>Signal</th><th>Question</th><th>Warning sign</th><th>Response</th></tr></thead><tbody>
+  <tr><td>Verified share</td><td>What fraction of agent actions has meaningful evidence?</td><td>Output volume grows while reviewed share falls</td><td>Cap autonomy and invest in checks before scaling</td></tr>
+  <tr><td>Feedback latency</td><td>How long before a wrong action is detected?</td><td>Failures are found after downstream state changes</td><td>Shorten the loop with telemetry, canaries and reconciliation</td></tr>
+  <tr><td>Unknown outcomes</td><td>Can the team tell whether an external effect happened?</td><td>Timeouts are treated as success or rollback without evidence</td><td>Persist intent, make retries idempotent and reconcile explicitly</td></tr>
+  <tr><td>Failure correlation</td><td>Do generator and checker fail independently?</td><td>Many checks agree because they share data and assumptions</td><td>Add adversarial, diverse and human-grounded evidence</td></tr>
+  <tr><td>Experience stock</td><td>Where do people learn the hard cases?</td><td>Junior work is automated with no simulation or shadowing</td><td>Fund supervised practice and incident-based training</td></tr>
+</tbody></table>
+<p>No scorecard makes an agent safe by itself. Its purpose is to make the invisible constraint discussable before a release race turns it into an incident. If the team cannot say who verifies, what they verify, how quickly they know and who carries the downside, the system is not ready for more scale.</p>
+
+<h2 id="8-what-to-keep-from-the-paper">8. What to keep from the paper</h2>
+<p>The strongest idea in <em>Some Simple Economics of AGI</em> is not a claim about a particular model or a date on the AGI calendar. It is a warning about mismatched curves. Execution can become abundant while trustworthy verification remains biological, institutional and expensive.</p>
+<p>That warning changes the engineering question. Do not ask only how many tasks an agent can complete. Ask how much verified outcome the organization can absorb, how much evidence each action leaves, how fast failures feed back into the system, and whether the next generation of humans is still learning how to challenge it.</p>
+<ul>
+  <li>Cheap execution without verification is throughput with latent debt.</li>
+  <li>Observability and provenance are part of the product when outcomes are autonomous.</li>
+  <li>Independent verification and bounded recovery matter more than a confident demo.</li>
+  <li>Human augmentation must increase both present oversight and future expertise.</li>
+</ul>
+
+<h2 id="9-primary-reference">9. Primary reference</h2>
+<ul>
+  <li><a href="https://arxiv.org/abs/2602.20946" target="_blank" rel="noopener noreferrer">Christian Catalini, Xiang Hui and Jane Wu, Some Simple Economics of AGI</a>, arXiv:2602.20946, version 2, February 2026. This case study summarizes the paper's framework and adds an engineering interpretation; it does not reproduce the paper's formal model or claim its forecasts as established facts.</li>
+</ul>

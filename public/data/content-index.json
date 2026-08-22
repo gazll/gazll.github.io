@@ -118,6 +118,7 @@
         "03-spring-boot-deep-build.auto-configuration-build.q12",
         "03-spring-boot-deep-build.auto-configuration-build.q13",
         "03-spring-boot-deep-build.auto-configuration-build.q14",
+        "03-spring-boot-deep-build.auto-configuration-build.q15",
         "03-spring-boot-deep-build.bean-lifecycle-request-flow.q1",
         "03-spring-boot-deep-build.bean-lifecycle-request-flow.q2",
         "03-spring-boot-deep-build.bean-lifecycle-request-flow.q3"
@@ -143,6 +144,7 @@
         "03-spring-boot-deep-build.auto-configuration-build.q12",
         "03-spring-boot-deep-build.auto-configuration-build.q13",
         "03-spring-boot-deep-build.auto-configuration-build.q14",
+        "03-spring-boot-deep-build.auto-configuration-build.q15",
         "03-spring-boot-deep-build.bean-lifecycle-request-flow.q1",
         "03-spring-boot-deep-build.bean-lifecycle-request-flow.q2",
         "03-spring-boot-deep-build.bean-lifecycle-request-flow.q3"
@@ -195,6 +197,7 @@
         "05-db-core-index-lock.transactions-mvcc-locking.q6",
         "05-db-core-index-lock.transactions-mvcc-locking.q7",
         "05-db-core-index-lock.transactions-mvcc-locking.q8",
+        "05-db-core-index-lock.transactions-mvcc-locking.q9",
         "05-db-core-index-lock.modelling-the-schema.q1",
         "05-db-core-index-lock.modelling-the-schema.q2"
       ],
@@ -214,6 +217,7 @@
         "05-db-core-index-lock.transactions-mvcc-locking.q6",
         "05-db-core-index-lock.transactions-mvcc-locking.q7",
         "05-db-core-index-lock.transactions-mvcc-locking.q8",
+        "05-db-core-index-lock.transactions-mvcc-locking.q9",
         "05-db-core-index-lock.modelling-the-schema.q1",
         "05-db-core-index-lock.modelling-the-schema.q2"
       ]
@@ -286,6 +290,7 @@
         "08-message-queue.the-two-models.q1",
         "08-message-queue.the-two-models.q2",
         "08-message-queue.the-two-models.q3",
+        "08-message-queue.the-two-models.q4",
         "08-message-queue.reliability-delivery-semantics.q1",
         "08-message-queue.reliability-delivery-semantics.q2",
         "08-message-queue.reliability-delivery-semantics.q3",
@@ -301,6 +306,7 @@
         "08-message-queue.the-two-models.q1",
         "08-message-queue.the-two-models.q2",
         "08-message-queue.the-two-models.q3",
+        "08-message-queue.the-two-models.q4",
         "08-message-queue.reliability-delivery-semantics.q1",
         "08-message-queue.reliability-delivery-semantics.q2",
         "08-message-queue.reliability-delivery-semantics.q3",
@@ -1015,6 +1021,47 @@
         "27-api-gateway-identity-edge.internal-calls-sync-async-or-neither.q2"
       ],
       "track_item_ids": []
+    },
+    {
+      "n": 28,
+      "item_ids": [
+        "28-distributed-lock-lease.the-protocol-before-the-product.q1",
+        "28-distributed-lock-lease.the-protocol-before-the-product.q2",
+        "28-distributed-lock-lease.the-protocol-before-the-product.q3",
+        "28-distributed-lock-lease.the-protocol-before-the-product.q4",
+        "28-distributed-lock-lease.choose-the-authority-before-the-mechanism.q1",
+        "28-distributed-lock-lease.choose-the-authority-before-the-mechanism.q2",
+        "28-distributed-lock-lease.choose-the-authority-before-the-mechanism.q3",
+        "28-distributed-lock-lease.choose-the-authority-before-the-mechanism.q4",
+        "28-distributed-lock-lease.choose-the-authority-before-the-mechanism.q5",
+        "28-distributed-lock-lease.design-for-expiry-and-stale-work.q1",
+        "28-distributed-lock-lease.design-for-expiry-and-stale-work.q2",
+        "28-distributed-lock-lease.design-for-expiry-and-stale-work.q3",
+        "28-distributed-lock-lease.design-for-expiry-and-stale-work.q4",
+        "28-distributed-lock-lease.apply-operate-and-test-it.q1",
+        "28-distributed-lock-lease.apply-operate-and-test-it.q2",
+        "28-distributed-lock-lease.apply-operate-and-test-it.q3",
+        "28-distributed-lock-lease.apply-operate-and-test-it.q4"
+      ],
+      "track_item_ids": [
+        "28-distributed-lock-lease.the-protocol-before-the-product.q1",
+        "28-distributed-lock-lease.the-protocol-before-the-product.q2",
+        "28-distributed-lock-lease.the-protocol-before-the-product.q3",
+        "28-distributed-lock-lease.the-protocol-before-the-product.q4",
+        "28-distributed-lock-lease.choose-the-authority-before-the-mechanism.q1",
+        "28-distributed-lock-lease.choose-the-authority-before-the-mechanism.q2",
+        "28-distributed-lock-lease.choose-the-authority-before-the-mechanism.q3",
+        "28-distributed-lock-lease.choose-the-authority-before-the-mechanism.q4",
+        "28-distributed-lock-lease.choose-the-authority-before-the-mechanism.q5",
+        "28-distributed-lock-lease.design-for-expiry-and-stale-work.q1",
+        "28-distributed-lock-lease.design-for-expiry-and-stale-work.q2",
+        "28-distributed-lock-lease.design-for-expiry-and-stale-work.q3",
+        "28-distributed-lock-lease.design-for-expiry-and-stale-work.q4",
+        "28-distributed-lock-lease.apply-operate-and-test-it.q1",
+        "28-distributed-lock-lease.apply-operate-and-test-it.q2",
+        "28-distributed-lock-lease.apply-operate-and-test-it.q3",
+        "28-distributed-lock-lease.apply-operate-and-test-it.q4"
+      ]
     }
   ],
   "items": {
@@ -1258,6 +1305,10 @@
       "en": "How should you budget connections and align Hikari, JDBC, and database timeouts for autoscaling, rolling deploys, and failover?",
       "vi": "Nên budget connection và căn chỉnh timeout của Hikari, JDBC và database thế nào cho autoscaling, rolling deploy và failover?"
     },
+    "03-spring-boot-deep-build.auto-configuration-build.q15": {
+      "en": "How does HikariCP interact with transaction isolation, and how do you prevent connection state leaking between requests?",
+      "vi": "HikariCP tương tác với transaction isolation thế nào, và ngăn connection state bị rò giữa các request ra sao?"
+    },
     "03-spring-boot-deep-build.bean-lifecycle-request-flow.q1": {
       "en": "The full bean lifecycle: what are the 8 stages, and where do the intervention hooks sit?",
       "vi": "Bean lifecycle đầy đủ: 8 giai đoạn và hook can thiệp nằm ở đâu?"
@@ -1374,6 +1425,10 @@
       "en": "ACID — what does each letter actually promise, and what inside the engine enforces it?",
       "vi": "ACID — mỗi chữ thực sự hứa điều gì, và cái gì bên trong engine đảm bảo nó?"
     },
+    "05-db-core-index-lock.transactions-mvcc-locking.q9": {
+      "en": "How do you choose an isolation level for a real workflow instead of memorizing the anomaly table?",
+      "vi": "Chọn isolation level cho một workflow thực tế thế nào, thay vì chỉ học thuộc bảng anomaly?"
+    },
     "05-db-core-index-lock.modelling-the-schema.q1": {
       "en": "Why is a database constraint stronger than the same rule enforced in application code?",
       "vi": "Vì sao một constraint ở database mạnh hơn chính luật đó khi được kiểm trong code ứng dụng?"
@@ -1489,6 +1544,10 @@
     "08-message-queue.the-two-models.q3": {
       "en": "RabbitMQ vs Kafka — when do you use which?",
       "vi": "RabbitMQ vs Kafka — khi nào dùng cái nào?"
+    },
+    "08-message-queue.the-two-models.q4": {
+      "en": "Message queue vs pub/sub: how do delivery ownership and failure isolation differ?",
+      "vi": "Message queue và pub/sub khác nhau thế nào về quyền sở hữu delivery và cô lập lỗi?"
     },
     "08-message-queue.reliability-delivery-semantics.q1": {
       "en": "What do the delivery semantics at-most-once / at-least-once / exactly-once mean?",
@@ -2793,6 +2852,74 @@
     "27-api-gateway-identity-edge.internal-calls-sync-async-or-neither.q2": {
       "en": "What do you gain and owe when moving a hop onto a queue, and why must east-west traffic bypass the edge gateway?",
       "vi": "Đưa một hop lên queue được gì và phải trả giá gì, và vì sao east-west traffic phải bypass edge gateway?"
+    },
+    "28-distributed-lock-lease.the-protocol-before-the-product.q1": {
+      "en": "What problem does a distributed lock solve, and what does it leave to the rest of the system?",
+      "vi": "Distributed lock giải quyết vấn đề gì, và phần nào vẫn phải để hệ thống còn lại chịu trách nhiệm?"
+    },
+    "28-distributed-lock-lease.the-protocol-before-the-product.q2": {
+      "en": "How are safety, liveness and fairness different in a lock protocol?",
+      "vi": "Safety, liveness và fairness khác nhau thế nào trong lock protocol?"
+    },
+    "28-distributed-lock-lease.the-protocol-before-the-product.q3": {
+      "en": "What is the difference between a mutex, a lease and leader election?",
+      "vi": "Mutex, lease và leader election khác nhau thế nào?"
+    },
+    "28-distributed-lock-lease.the-protocol-before-the-product.q4": {
+      "en": "Why can a lease expire while its holder is still running?",
+      "vi": "Vì sao lease có thể hết hạn trong khi holder vẫn đang chạy?"
+    },
+    "28-distributed-lock-lease.choose-the-authority-before-the-mechanism.q1": {
+      "en": "When should a database constraint or transaction beat a distributed lock?",
+      "vi": "Khi nào database constraint hoặc transaction nên thắng distributed lock?"
+    },
+    "28-distributed-lock-lease.choose-the-authority-before-the-mechanism.q2": {
+      "en": "What do FOR UPDATE, NOWAIT and SKIP LOCKED mean, and when is each safe?",
+      "vi": "FOR UPDATE, NOWAIT và SKIP LOCKED nghĩa là gì, và khi nào từng lựa chọn an toàn?"
+    },
+    "28-distributed-lock-lease.choose-the-authority-before-the-mechanism.q3": {
+      "en": "How should PostgreSQL advisory locks be used without creating invisible ownership?",
+      "vi": "Dùng PostgreSQL advisory lock thế nào để không tạo ownership vô hình?"
+    },
+    "28-distributed-lock-lease.choose-the-authority-before-the-mechanism.q4": {
+      "en": "What is the safe single-instance Redis lock pattern, and what does it still not solve?",
+      "vi": "Safe single-instance Redis lock pattern là gì, và nó vẫn chưa giải quyết điều gì?"
+    },
+    "28-distributed-lock-lease.choose-the-authority-before-the-mechanism.q5": {
+      "en": "When do etcd, ZooKeeper or Kubernetes Lease fit better than a cache lock?",
+      "vi": "Khi nào etcd, ZooKeeper hoặc Kubernetes Lease hợp hơn cache lock?"
+    },
+    "28-distributed-lock-lease.design-for-expiry-and-stale-work.q1": {
+      "en": "What must a lock acquire, release and renewal contract specify?",
+      "vi": "Lock acquire, release và renewal contract phải chỉ rõ những gì?"
+    },
+    "28-distributed-lock-lease.design-for-expiry-and-stale-work.q2": {
+      "en": "How should TTL, renewal and critical-section length be chosen?",
+      "vi": "Chọn TTL, renewal và critical-section length thế nào?"
+    },
+    "28-distributed-lock-lease.design-for-expiry-and-stale-work.q3": {
+      "en": "How do fencing tokens stop a stale lease holder from writing?",
+      "vi": "Fencing token ngăn stale lease holder write như thế nào?"
+    },
+    "28-distributed-lock-lease.design-for-expiry-and-stale-work.q4": {
+      "en": "What should a worker do after it loses the lock in the middle of work?",
+      "vi": "Worker nên làm gì khi mất lock giữa chừng?"
+    },
+    "28-distributed-lock-lease.apply-operate-and-test-it.q1": {
+      "en": "Which pattern should a scheduler, resource worker or controller use?",
+      "vi": "Scheduler, resource worker hoặc controller nên dùng pattern nào?"
+    },
+    "28-distributed-lock-lease.apply-operate-and-test-it.q2": {
+      "en": "Why do idempotency and outbox still matter when a distributed lock is present?",
+      "vi": "Vì sao idempotency và outbox vẫn cần khi đã có distributed lock?"
+    },
+    "28-distributed-lock-lease.apply-operate-and-test-it.q3": {
+      "en": "Which metrics and logs reveal a distributed-lock problem before users do?",
+      "vi": "Metric và log nào cho thấy distributed-lock problem trước khi user thấy?"
+    },
+    "28-distributed-lock-lease.apply-operate-and-test-it.q4": {
+      "en": "How do you test a distributed lock so the test proves more than two clients can take turns?",
+      "vi": "Kiểm thử distributed lock thế nào để test chứng minh nhiều hơn việc hai client lần lượt lấy lock?"
     }
   }
 }

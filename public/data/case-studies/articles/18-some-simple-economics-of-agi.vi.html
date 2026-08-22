@@ -1,0 +1,80 @@
+<p>Đây là một note ngoài lề, không phải một dự báo AGI mới. <em>Some Simple Economics of AGI</em> đặt một câu hỏi mang tính vận hành hơn: điều gì trở nên khan hiếm khi autonomous system có thể execute, search và recombine nhanh hơn rất nhiều so với attention của con người? Câu trả lời của paper là verification bandwidth—thời gian, kinh nghiệm và trách nhiệm cần để quyết định một output có an toàn, hữu ích và trung thành với human intent hay không.</p>
+<p>Phân biệt này quan trọng với engineer. Một system có thể tạo nhiều code, plan hoặc decision hơn mà không tạo ra nhiều trustworthy outcome hơn. Bản synthesis này giữ lại economic lens của paper, rồi chuyển nó thành machinery mà team cần khi agent được phép làm nhiều hơn việc trả lời prompt.</p>
+
+<h2 id="1-the-bottleneck-moves-from-making-to-checking">1. Bottleneck chuyển từ making sang checking</h2>
+<p>Automation truyền thống bị giới hạn bởi specification: ai đó phải mô tả task đủ chính xác để program thực hiện. Agentic system làm yếu giới hạn đó. Agent có thể xử lý instruction mơ hồ, gọi tool, thử alternative và học từ feedback. Vì vậy chi phí tạo ra một action trông hợp lý có thể giảm nhanh, ngay cả khi task khó được mô tả đầy đủ.</p>
+<p>Paper tách hai cost curve. <code>cA</code> là cost để automate một action; compute, software và accumulated knowledge có thể kéo nó xuống. <code>cH</code> là cost để human hoặc institution verify result; nó bị giới hạn bởi attention, experience, feedback latency và hậu quả của sai lầm. Khi <code>cA</code> thấp hơn value của execution còn <code>cH</code> vẫn cao hơn verification budget, output sẽ scale vào một khoảng trống nguy hiểm.</p>
+<p>Verification không phải lúc nào cũng cần dựng lại reasoning bên trong agent. Proof checker có thể validate proof, test suite có thể validate một behavior hẹp, simulator có thể expose policy failure. Điều cần là outcome verification cùng đủ process evidence để biết result được chạy với model, tool, data và permission nào.</p>
+
+<h2 id="2-four-zones-of-agentic-work">2. Bốn vùng của agentic work</h2>
+<table class="cmp"><thead><tr><th>Zone</th><th>Automation cost</th><th>Verification cost</th><th>Operating stance</th></tr></thead><tbody>
+  <tr><td>Safe industrial</td><td>Thấp</td><td>Thấp</td><td>Automate, đo outcome và giữ rollback path nhanh</td></tr>
+  <tr><td>Runaway risk</td><td>Thấp</td><td>Cao</td><td>Đừng nhầm output có vẻ hợp lý với output đủ điều kiện deploy</td></tr>
+  <tr><td>Human artisan</td><td>Cao</td><td>Thấp</td><td>Dùng agent như tool nhưng giữ human judgment có trách nhiệm</td></tr>
+  <tr><td>Pure tacit</td><td>Cao</td><td>Cao</td><td>Giữ decision boundary rõ; đừng giấu uncertainty sau một score</td></tr>
+</tbody></table>
+<p>Hàng thứ hai là phần đáng chú ý. Đây là những work trông có vẻ automate được vì agent tạo ra answer, nhưng answer lại tốn kém để validate trước khi damage trở nên không thể đảo ngược. Long-horizon operation, security decision mới, medical recommendation, financial control và change trên shared infrastructure đều có thể rơi vào vùng này dù demo ban đầu rất ấn tượng.</p>
+<p>Đại lượng hữu ích không phải raw agent output. Đó là <em>verifiable share</em>: phần agentic work có thể được check đủ chắc để release một cách có trách nhiệm. Team tăng execution gấp đôi nhưng không tăng share này thực chất chỉ tăng gấp đôi queue của những thứ cuối cùng vẫn cần ai đó tin tưởng.</p>
+
+<h2 id="3-the-three-leaks-that-erode-human-verification">3. Ba chỗ rò làm verification của con người yếu đi</h2>
+<h3 id="3-1-the-missing-junior-loop">3.1 Missing Junior Loop</h3>
+<p>Expertise không phải một database tĩnh mà company có thể giữ nguyên sau khi automate phần work từng dùng để đào tạo nó. Junior engineer học bằng cách xử lý case routine cạnh người có kinh nghiệm, thấy signal nào quan trọng, mắc lỗi có thể recover và nhận feedback từ reality. Nếu toàn bộ measurable entry-level execution biến mất, firm có thể tăng short-term efficiency nhưng mất pipeline tạo ra verifier cho tương lai.</p>
+<p>Paper gọi đó là Missing Junior Loop. Vấn đề không phải junior phải làm repetitive work mãi. Vấn đề là xóa practice surface mà không thay thế nó. Người chưa từng vận hành một system degraded có thể hiểu runbook nhưng vẫn bỏ lỡ signal duy nhất báo cho expert rằng incident sắp đổi shape.</p>
+
+<h3 id="3-2-the-codifiers-curse">3.2 Codifier's Curse</h3>
+<p>Expert cũng là người làm automation tốt hơn. Họ chuyển tacit judgment thành example, label, eval, policy và failure playbook. Công việc đó tạo ra ground truth có giá trị, nhưng cũng có thể biến advantage của expert thành training material cho replacement system. Organization có agent mạnh hơn và lớp người có khả năng challenge agent nhỏ hơn.</p>
+<p>Đây không phải lập luận chống lại việc codify knowledge. Đây là lập luận coi verification knowledge như renewable asset. Giữ failure corpus, luân phiên independent reviewer, bảo toàn disagreement và cho expert luyện những case chưa có trong benchmark. Nếu không, organization sẽ optimize thứ có thể đo và âm thầm mất khả năng nhận ra thứ benchmark bỏ sót.</p>
+
+<h3 id="3-3-alignment-drift-and-the-trojan-horse">3.3 Alignment drift và Trojan Horse</h3>
+<p>Khi measurable proxy dễ optimize hơn underlying goal, agent có thể thành công hơn trên dashboard nhưng kém hữu ích hơn với người sở hữu outcome. Paper mô tả phần tích tụ ẩn đó như một Trojan Horse externality: visible activity tăng trong khi unverified, misaligned work tạo debt để user, partner hoặc society trả sau.</p>
+<p>Đây là một engineering failure quen thuộc trong bộ quần áo tổng quát hơn. Service có thể maximize throughput nhưng vi phạm business invariant; ranking system có thể tăng click nhưng làm giảm trust; operations agent có thể close alert nhưng che mất incident. Feedback loop càng dài, càng dễ gọi proxy là success trước khi real outcome quan sát được.</p>
+
+<h2 id="4-why-ai-verifying-ai-is-not-independence">4. Vì sao AI verify AI không phải independence</h2>
+<p>Automated check có thể hạ cost của verification và thường rất hữu ích. Cái bẫy là coi sự đồng ý của model thứ hai là independent evidence. Nếu generator và checker cùng training blind spot, context-window failure, tool assumption hoặc incentive phải hoàn thành, error của chúng có thể tương quan. Hai output cùng tự tin tạo ấn tượng safety mạnh hơn nhưng không thêm ground truth còn thiếu.</p>
+<p>Independence là một system property. Checker có thể cần data khác, model family khác, execution path khác, adversarial case, human sign-off hoặc hard external invariant. Câu hỏi đúng không phải AI có review output hay chưa; mà là review đã đưa thêm evidence nào và ai chịu trách nhiệm nếu cả hai system đều sai.</p>
+
+<h2 id="5-from-human-in-the-loop-to-a-sandwich-topology">5. Từ human-in-the-loop đến sandwich topology</h2>
+<figure class="cs-figure cs-figure-wide">
+  <button type="button" data-zoom-image aria-label="Mở hình verification bandwidth ở kích thước đầy đủ">
+    <img src="assets/case-studies/18-some-simple-economics-of-agi/01-verification-bandwidth.svg" width="1200" height="680" loading="lazy" decoding="async" alt="Đường cost automation đi xuống gặp verification bandwidth hữu hạn của con người; intent, execution và verification tạo thành một sandwich loop.">
+  </button>
+  <figcaption>Execution có thể scale nhanh hơn verification. Safe leverage cần loop từ human intent qua bounded machine execution rồi quay lại independent verification.</figcaption>
+</figure>
+<p>Bức tranh tổ chức thực tế của paper là một sandwich: human định nghĩa intent, agent execute, rồi human hoặc verification system underwrite outcome. Điều này đòi hỏi nhiều hơn việc đặt một người ở đâu đó trong workflow. Lớp trên phải định nghĩa success và failure; lớp dưới phải có đủ evidence, authority và time để dừng system.</p>
+<p>Sandwich cũng có capacity limit. Nếu lớp dưới chỉ là một expert duy nhất approve mọi output, agent không autonomous; nó chỉ là một queue đắt tiền trước expert đó. Nếu bỏ lớp dưới, system scale execution trong khi che verification debt. Bài toán design là làm verification layer capable hơn mà không biến nó thành nghi thức.</p>
+
+<h2 id="6-what-this-means-for-an-engineering-team">6. Điều này có nghĩa gì với engineering team?</h2>
+<p>Paper là một economic argument, nhưng bản dịch sang engineering rất cụ thể. Trước khi tăng permission hoặc concurrency của agent, hãy xây evidence và recovery path để scale mới vẫn governable:</p>
+<ol>
+  <li><strong>Định nghĩa intent trước khi delegate.</strong> Viết invariant, acceptance criteria, forbidden action và escalation boundary. Prompt không phải production contract.</li>
+  <li><strong>Làm process trở nên legible.</strong> Ghi model và tool version, input provenance, permission, decision, retry, external effect và evidence dùng để approve result. Final answer không có trace thì rất khó audit.</li>
+  <li><strong>Tách doing khỏi checking.</strong> Dùng independent test, policy gate, canary, shadow evaluation hoặc reviewer có failure mode khác. Agreement không phải independence khi evidence dùng chung.</li>
+  <li><strong>Giới hạn blast radius.</strong> Bắt đầu bằng read-only access, batch nhỏ, credential có scope, budget, timeout, write có thể reverse và human escalation rõ ràng. Chỉ tăng autonomy khi verifiable share và recovery time đủ.</li>
+  <li><strong>Giữ learning loop.</strong> Đưa incident và near miss vào eval, nhưng cũng dành time để người vận hành simulation và case bất thường. Synthetic practice không phải perk; nó là cách giữ stock của verification sau automation.</li>
+</ol>
+<p>Các control này biến verification thành production input. Chúng cũng làm system dễ cải thiện hơn: khi failure có trace, owner, blast radius đã biết và feedback path nhanh, model hoặc policy tiếp theo được đánh giá bằng reality chứ không phải leaderboard.</p>
+
+<h2 id="7-a-small-scorecard-for-verification-debt">7. Scorecard nhỏ cho verification debt</h2>
+<table class="cmp"><thead><tr><th>Signal</th><th>Question</th><th>Warning sign</th><th>Response</th></tr></thead><tbody>
+  <tr><td>Verified share</td><td>Bao nhiêu agent action có evidence có ý nghĩa?</td><td>Output volume tăng nhưng reviewed share giảm</td><td>Cap autonomy và đầu tư vào check trước khi scale</td></tr>
+  <tr><td>Feedback latency</td><td>Mất bao lâu để phát hiện action sai?</td><td>Failure chỉ được thấy sau downstream state change</td><td>Rút ngắn loop bằng telemetry, canary và reconciliation</td></tr>
+  <tr><td>Unknown outcomes</td><td>Team có biết external effect đã xảy ra không?</td><td>Timeout bị coi là success hoặc rollback mà không có evidence</td><td>Persist intent, làm retry idempotent và reconcile rõ ràng</td></tr>
+  <tr><td>Failure correlation</td><td>Generator và checker có fail độc lập không?</td><td>Nhiều check đồng ý vì dùng chung data và assumption</td><td>Thêm evidence adversarial, đa dạng và grounded bởi human</td></tr>
+  <tr><td>Experience stock</td><td>Con người học case khó ở đâu?</td><td>Junior work bị automate mà không có simulation hoặc shadowing</td><td>Đầu tư supervised practice và incident-based training</td></tr>
+</tbody></table>
+<p>Không scorecard nào tự làm agent an toàn. Mục đích là làm constraint vô hình trở nên có thể thảo luận trước khi release race biến nó thành incident. Nếu team không nói được ai verify, verify gì, biết sai nhanh đến đâu và ai chịu downside, system chưa sẵn sàng để scale thêm.</p>
+
+<h2 id="8-what-to-keep-from-the-paper">8. Điều nên giữ lại từ paper</h2>
+<p>Ý mạnh nhất của <em>Some Simple Economics of AGI</em> không phải claim về một model cụ thể hay một ngày nào đó trên lịch AGI. Đó là cảnh báo về những curve không cân xứng. Execution có thể trở nên abundant trong khi trustworthy verification vẫn bị giới hạn bởi biology, institution và cost.</p>
+<p>Cảnh báo đó đổi câu hỏi engineering. Đừng chỉ hỏi agent hoàn tất được bao nhiêu task. Hãy hỏi organization hấp thụ được bao nhiêu verified outcome, mỗi action để lại evidence gì, failure feedback vào system nhanh ra sao, và thế hệ human tiếp theo còn học được cách challenge system hay không.</p>
+<ul>
+  <li>Execution rẻ mà không có verification là throughput đi kèm latent debt.</li>
+  <li>Observability và provenance là một phần của product khi outcome được tạo tự động.</li>
+  <li>Independent verification và bounded recovery quan trọng hơn một demo tự tin.</li>
+  <li>Human augmentation phải tăng cả oversight hiện tại lẫn expertise của tương lai.</li>
+</ul>
+
+<h2 id="9-primary-reference">9. Primary reference</h2>
+<ul>
+  <li><a href="https://arxiv.org/abs/2602.20946" target="_blank" rel="noopener noreferrer">Christian Catalini, Xiang Hui và Jane Wu, Some Simple Economics of AGI</a>, arXiv:2602.20946, version 2, February 2026. Case study này tóm tắt framework của paper và thêm engineering interpretation; không tái hiện formal model hay coi forecast của paper là established fact.</li>
+</ul>

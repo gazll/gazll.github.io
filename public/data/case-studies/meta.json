@@ -511,6 +511,33 @@
           "Defense in depth"
         ]
       }
+    },
+    "18": {
+      "key": "18-some-simple-economics-of-agi",
+      "en": {
+        "title": "When execution becomes cheap, verification becomes scarce",
+        "excerpt": "A side note on Some Simple Economics of AGI: agentic output can scale faster than human verification, so observability, provenance, independent checks and synthetic practice become production infrastructure.",
+        "tags": [
+          "AGI economics",
+          "Agentic systems",
+          "Verification",
+          "Observability",
+          "Provenance",
+          "Human augmentation"
+        ]
+      },
+      "vi": {
+        "title": "Khi execution rẻ đi, verification trở thành nút thắt",
+        "excerpt": "Một note ngoài lề từ Some Simple Economics of AGI: agentic output có thể scale nhanh hơn năng lực verify của con người, nên observability, provenance, independent check và synthetic practice trở thành production infrastructure.",
+        "tags": [
+          "AGI economics",
+          "Agentic systems",
+          "Verification",
+          "Observability",
+          "Provenance",
+          "Human augmentation"
+        ]
+      }
     }
   }
 }

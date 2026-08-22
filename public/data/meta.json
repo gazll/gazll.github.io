@@ -112,7 +112,7 @@
         ]
       },
       "created_at": "2026-07-31",
-      "updated_at": "2026-08-12"
+      "updated_at": "2026-08-22"
     },
     "4": {
       "topic_type": "design",
@@ -184,7 +184,7 @@
         ]
       },
       "created_at": "2026-07-31",
-      "updated_at": "2026-08-21"
+      "updated_at": "2026-08-22"
     },
     "6": {
       "topic_type": "data",
@@ -296,7 +296,7 @@
         ]
       },
       "created_at": "2026-07-31",
-      "updated_at": "2026-08-12"
+      "updated_at": "2026-08-22"
     },
     "9": {
       "topic_type": "design",
@@ -995,6 +995,40 @@
       },
       "created_at": "2026-08-12",
       "updated_at": "2026-08-12"
+    },
+    "28": {
+      "topic_type": "design",
+      "key": "28-distributed-lock-lease",
+      "vi": {
+        "label": "Distributed Lock & Lease",
+        "title": "Distributed Lock & Lease — khóa, lease và cách không tự lừa mình",
+        "intro": "Một distributed lock không biến network thành transaction. Topic này bắt đầu từ safety/liveness, rồi chọn đúng authority giữa database, Redis, etcd và Kubernetes Lease; cuối cùng đi qua fencing token, idempotency, queue worker, scheduler, metric và fault injection.",
+        "tags": [
+          "Distributed lock",
+          "Lease",
+          "Fencing token",
+          "Leader election",
+          "Concurrency",
+          "Failure modes",
+          "Observability"
+        ]
+      },
+      "en": {
+        "label": "Distributed Lock & Lease",
+        "title": "Distributed Lock & Lease — coordination without false certainty",
+        "intro": "A distributed lock does not turn a network into a transaction. Start with safety and liveness, choose the right authority among a database, Redis, etcd and Kubernetes Lease, then design fencing, idempotency, queue workers, schedulers, metrics and fault injection around the failures that actually happen.",
+        "tags": [
+          "Distributed lock",
+          "Lease",
+          "Fencing token",
+          "Leader election",
+          "Concurrency",
+          "Failure modes",
+          "Observability"
+        ]
+      },
+      "created_at": "2026-08-22",
+      "updated_at": "2026-08-22"
     }
   }
 }

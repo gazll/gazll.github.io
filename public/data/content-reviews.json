@@ -1544,5 +1544,258 @@
       "https://www.postgresql.org/docs/18/storage-file-layout.html",
       "https://www.postgresql.org/docs/18/transaction-iso.html"
     ]
+  },
+  "05-db-core-index-lock.transactions-mvcc-locking.q9": {
+    "reviewed_at": "2026-08-22",
+    "target_versions": [
+      "MySQL 8.4 / InnoDB",
+      "PostgreSQL 18"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://dev.mysql.com/doc/refman/8.4/en/innodb-transaction-isolation-levels.html",
+      "https://www.postgresql.org/docs/18/sql-set-transaction.html"
+    ]
+  },
+  "08-message-queue.the-two-models.q4": {
+    "reviewed_at": "2026-08-22",
+    "target_versions": [
+      "RabbitMQ 4.x documentation",
+      "Apache Kafka 4.x documentation"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://www.rabbitmq.com/tutorials/tutorial-three-javascript",
+      "https://www.rabbitmq.com/docs/next/confirms",
+      "https://kafka.apache.org/documentation/#intro_consumers"
+    ]
+  },
+  "03-spring-boot-deep-build.auto-configuration-build.q15": {
+    "reviewed_at": "2026-08-22",
+    "target_versions": [
+      "HikariCP current documentation",
+      "Spring Boot 4.1.x",
+      "PostgreSQL 18"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://github.com/brettwooldridge/HikariCP",
+      "https://docs.spring.io/spring-boot/reference/data/sql.html",
+      "https://docs.spring.io/spring-framework/reference/data-access/transaction/declarative/tx-propagation.html",
+      "https://www.postgresql.org/docs/18/sql-set.html"
+    ]
+  },
+  "28-distributed-lock-lease.the-protocol-before-the-product.q1": {
+    "reviewed_at": "2026-08-22",
+    "target_versions": [
+      "Redis current distributed-lock guidance",
+      "PostgreSQL current explicit-locking guidance",
+      "MySQL 8.4 InnoDB locking reads"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://redis.io/docs/latest/develop/clients/patterns/distributed-locks/",
+      "https://www.postgresql.org/docs/current/explicit-locking.html",
+      "https://dev.mysql.com/doc/refman/8.4/en/innodb-locking-reads.html"
+    ]
+  },
+  "28-distributed-lock-lease.the-protocol-before-the-product.q2": {
+    "reviewed_at": "2026-08-22",
+    "target_versions": [
+      "Redis current distributed-lock guidance",
+      "PostgreSQL current explicit-locking guidance"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://redis.io/docs/latest/develop/clients/patterns/distributed-locks/",
+      "https://www.postgresql.org/docs/current/explicit-locking.html"
+    ]
+  },
+  "28-distributed-lock-lease.the-protocol-before-the-product.q3": {
+    "reviewed_at": "2026-08-22",
+    "target_versions": [
+      "Kubernetes current Lease API",
+      "etcd v3.7 election documentation"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://kubernetes.io/docs/concepts/architecture/leases/",
+      "https://etcd.io/docs/v3.7/tasks/operator/how-to-conduct-elections/"
+    ]
+  },
+  "28-distributed-lock-lease.the-protocol-before-the-product.q4": {
+    "reviewed_at": "2026-08-22",
+    "target_versions": [
+      "Redis current distributed-lock guidance",
+      "Kubernetes current Lease API"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://redis.io/docs/latest/develop/clients/patterns/distributed-locks/",
+      "https://kubernetes.io/docs/concepts/architecture/leases/"
+    ]
+  },
+  "28-distributed-lock-lease.choose-the-authority-before-the-mechanism.q1": {
+    "reviewed_at": "2026-08-22",
+    "target_versions": [
+      "PostgreSQL current explicit-locking guidance",
+      "MySQL 8.4 InnoDB locking reads"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://www.postgresql.org/docs/current/explicit-locking.html",
+      "https://dev.mysql.com/doc/refman/8.4/en/innodb-locking-reads.html"
+    ]
+  },
+  "28-distributed-lock-lease.choose-the-authority-before-the-mechanism.q2": {
+    "reviewed_at": "2026-08-22",
+    "target_versions": [
+      "PostgreSQL current explicit-locking guidance",
+      "MySQL 8.4 InnoDB locking reads"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://www.postgresql.org/docs/current/explicit-locking.html",
+      "https://dev.mysql.com/doc/refman/8.4/en/innodb-locking-reads.html"
+    ]
+  },
+  "28-distributed-lock-lease.choose-the-authority-before-the-mechanism.q3": {
+    "reviewed_at": "2026-08-22",
+    "target_versions": [
+      "PostgreSQL current advisory-lock documentation"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://www.postgresql.org/docs/current/explicit-locking.html",
+      "https://www.postgresql.org/docs/current/functions-admin.html"
+    ]
+  },
+  "28-distributed-lock-lease.choose-the-authority-before-the-mechanism.q4": {
+    "reviewed_at": "2026-08-22",
+    "target_versions": [
+      "Redis current SET command",
+      "Redis current distributed-lock guidance"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://redis.io/docs/latest/commands/set/",
+      "https://redis.io/docs/latest/develop/clients/patterns/distributed-locks/"
+    ]
+  },
+  "28-distributed-lock-lease.choose-the-authority-before-the-mechanism.q5": {
+    "reviewed_at": "2026-08-22",
+    "target_versions": [
+      "Kubernetes current Lease API",
+      "etcd v3.7 election documentation",
+      "ZooKeeper current recipes"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://kubernetes.io/docs/concepts/architecture/leases/",
+      "https://etcd.io/docs/v3.7/tasks/operator/how-to-conduct-elections/",
+      "https://zookeeper.apache.org/doc/r3.9.4/recipes.html"
+    ]
+  },
+  "28-distributed-lock-lease.design-for-expiry-and-stale-work.q1": {
+    "reviewed_at": "2026-08-22",
+    "target_versions": [
+      "Redis current distributed-lock guidance",
+      "Spring Integration current distributed-lock API"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://redis.io/docs/latest/develop/clients/patterns/distributed-locks/",
+      "https://docs.spring.io/spring-integration/reference/distributed-locks.html"
+    ]
+  },
+  "28-distributed-lock-lease.design-for-expiry-and-stale-work.q2": {
+    "reviewed_at": "2026-08-22",
+    "target_versions": [
+      "Redis current distributed-lock guidance",
+      "Spring Integration current renewable-lock API"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://redis.io/docs/latest/develop/clients/patterns/distributed-locks/",
+      "https://docs.spring.io/spring-integration/reference/distributed-locks.html"
+    ]
+  },
+  "28-distributed-lock-lease.design-for-expiry-and-stale-work.q3": {
+    "reviewed_at": "2026-08-22",
+    "target_versions": [
+      "Redis current distributed-lock guidance",
+      "PostgreSQL current conditional-write and locking guidance"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://redis.io/docs/latest/develop/clients/patterns/distributed-locks/",
+      "https://www.postgresql.org/docs/current/explicit-locking.html"
+    ]
+  },
+  "28-distributed-lock-lease.design-for-expiry-and-stale-work.q4": {
+    "reviewed_at": "2026-08-22",
+    "target_versions": [
+      "Redis current distributed-lock guidance",
+      "PostgreSQL current transaction guidance"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://redis.io/docs/latest/develop/clients/patterns/distributed-locks/",
+      "https://www.postgresql.org/docs/current/transaction-iso.html"
+    ]
+  },
+  "28-distributed-lock-lease.apply-operate-and-test-it.q1": {
+    "reviewed_at": "2026-08-22",
+    "target_versions": [
+      "Kubernetes current Lease API",
+      "PostgreSQL current explicit-locking guidance",
+      "Spring Integration current distributed-lock API"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://kubernetes.io/docs/concepts/architecture/leases/",
+      "https://www.postgresql.org/docs/current/explicit-locking.html",
+      "https://docs.spring.io/spring-integration/reference/distributed-locks.html"
+    ]
+  },
+  "28-distributed-lock-lease.apply-operate-and-test-it.q2": {
+    "reviewed_at": "2026-08-22",
+    "target_versions": [
+      "Redis current distributed-lock guidance",
+      "PostgreSQL current transaction guidance"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://redis.io/docs/latest/develop/clients/patterns/distributed-locks/",
+      "https://www.postgresql.org/docs/current/transaction-iso.html"
+    ]
+  },
+  "28-distributed-lock-lease.apply-operate-and-test-it.q3": {
+    "reviewed_at": "2026-08-22",
+    "target_versions": [
+      "Kubernetes current Lease API",
+      "Redis current distributed-lock guidance",
+      "OpenTelemetry current metrics guidance"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://kubernetes.io/docs/concepts/architecture/leases/",
+      "https://redis.io/docs/latest/develop/clients/patterns/distributed-locks/",
+      "https://opentelemetry.io/docs/specs/otel/metrics/"
+    ]
+  },
+  "28-distributed-lock-lease.apply-operate-and-test-it.q4": {
+    "reviewed_at": "2026-08-22",
+    "target_versions": [
+      "Redis current distributed-lock guidance",
+      "PostgreSQL current explicit-locking guidance",
+      "Kubernetes current Lease API"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://redis.io/docs/latest/develop/clients/patterns/distributed-locks/",
+      "https://www.postgresql.org/docs/current/explicit-locking.html",
+      "https://kubernetes.io/docs/concepts/architecture/leases/"
+    ]
   }
 }

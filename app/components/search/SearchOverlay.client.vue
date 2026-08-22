@@ -149,6 +149,7 @@ onBeforeUnmount(() => { stopHistory?.(); document.removeEventListener('keydown',
     <div class="gs-box">
       <span class="gs-box-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5" /><path d="M16 16l4 4" /></svg></span>
       <input ref="input" v-model="query" class="gs-input" type="search" autocomplete="off" spellcheck="false" :placeholder="labels.search" :aria-label="labels.searchAria">
+      <button v-if="query.trim()" class="gs-more" type="button" @click="showAll()"><span>{{ labels.seeAll.replace('{query}', query) }}</span><span>→</span></button>
       <button class="gs-esc" type="button" @click="close()">{{ labels.esc }}</button>
     </div>
     <div class="gs-body">
@@ -171,7 +172,6 @@ onBeforeUnmount(() => { stopHistory?.(); document.removeEventListener('keydown',
           </button>
         </section>
       </template>
-      <button v-if="query.trim()" class="gs-more" type="button" @click="showAll()"><span>{{ labels.seeAll.replace('{query}', query) }}</span><span>→</span></button>
     </div>
     <footer class="gs-foot"><span>{{ labels.footer }}</span><span class="gs-keys"><kbd>↑</kbd><kbd>↓</kbd> {{ labels.navigate }} · <kbd>Enter</kbd> {{ labels.open }}</span></footer>
   </section>

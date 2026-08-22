@@ -760,6 +760,22 @@ import { crossRefResolver, trackItemIds } from '../public/lib/cross-ref.js';
     assert.match(en, /CISA bastion-host guidance/);
   });
 
+  test('AGI economics side note treats verification as the scarce production input', async () => {
+    const article = manifest.articles.find(entry => entry.slug === 'some-simple-economics-of-agi');
+    assert.ok(article, 'the AGI economics side note must be published');
+    assert.equal(article.editorial, true);
+    assert.equal('source_url' in article, false);
+
+    const pair = pairFor(article);
+    const en = await readFile(path.join(publicRoot, pair.en.body_file), 'utf8');
+    const vi = await readFile(path.join(publicRoot, pair.vi.body_file), 'utf8');
+    assert.match(en, /Some Simple Economics of AGI/);
+    assert.match(en, /measurability gap/i);
+    assert.match(en, /verification as a first-class production input/i);
+    assert.match(en, /https:\/\/arxiv\.org\/abs\/2602\.20946/);
+    assert.match(vi, /verification.*production input/);
+  });
+
   test('the collection route pairs a numbered row with its localized metadata and both bodies', async () => {
     const manifest = JSON.parse(await readFile(path.join(dataRoot, 'case-studies/manifest.json'), 'utf8'));
     const meta = JSON.parse(await readFile(path.join(dataRoot, 'case-studies/meta.json'), 'utf8'));

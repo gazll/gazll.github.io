@@ -146,6 +146,11 @@
       "file": "topics/27-api-gateway-identity-edge.json",
       "topic_type": "design",
       "surface": "system-design"
+    },
+    {
+      "n": 28,
+      "file": "topics/28-distributed-lock-lease.json",
+      "topic_type": "design"
     }
   ]
 }

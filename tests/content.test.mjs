@@ -261,6 +261,40 @@ import { randomUUID } from 'node:crypto';
     }
   });
 
+  test('Distributed Lock & Lease explains authority, expiry and readable operating choices', () => {
+    const row = MANIFEST.topics.find(candidate => candidate.n === 28);
+    assert.ok(row, 'topic 28 must be published');
+    assert.equal(row.topic_type, 'design');
+
+    const en = TOPIC_FILES.get('data/' + row.file);
+    const vi = TOPIC_VI_FILES.get('data/' + row.file.replace(/\.json$/, '.vi.json'));
+    assert.ok(en && vi, 'topic 28 must have both language files');
+    assert.ok(en.sections.length >= 4, 'the topic needs a navigable learning outline');
+
+    const enItems = en.sections.flatMap(section => section.items);
+    const viItems = vi.sections.flatMap(section => section.items);
+    assert.equal(viItems.map(item => item.id).join('|'), enItems.map(item => item.id).join('|'));
+    assert.ok(enItems.length >= 14, 'the topic needs enough coverage to be useful beyond a lock recipe');
+
+    const enText = enItems.map(item => `${item.q}\n${item.a}`).join('\n');
+    const viText = viItems.map(item => `${item.q}\n${item.a}`).join('\n');
+    for (const pattern of [
+      /safety/i,
+      /liveness/i,
+      /fencing token/i,
+      /SKIP LOCKED/i,
+      /compare-and-delete/i,
+      /TTL|lease expiry/i,
+      /authoritative (database|DB)|correctness/i
+    ]) assert.match(enText, pattern, `English topic is missing ${pattern}`);
+    for (const pattern of [/fencing token/i, /SKIP LOCKED/i, /TTL|lease/i, /correctness|tính đúng đắn/i]) {
+      assert.match(viText, pattern, `Vietnamese topic is missing ${pattern}`);
+    }
+    assert.ok(enItems.some(item => /<table[ >]/i.test(item.a)), 'the topic needs a readable comparison table');
+    assert.ok(enItems.some(item => /:::tip|:::warn|<pre><code>/i.test(item.a)),
+      'the topic needs callouts or runnable-looking examples');
+  });
+
   test('content review metadata is keyed by real immutable item ids', async () => {
     const reviewPath = path.join(pub, 'data/content-reviews.json');
     const raw = await readFile(reviewPath, 'utf8').catch(() => null);
