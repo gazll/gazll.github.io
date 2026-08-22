@@ -14,20 +14,20 @@
           "kind": "content",
           "target": "system-design",
           "en": {
-            "text": "Thirteen blueprints had a **flat list of nodes with generic names** while their prose had just been rewritten — a picture that said `Cache` above a page that said `Redis with allkeys-lfu`. All twenty diagrams now group their paths in subgraphs, carry the mechanism on the edge, and name the technology the text already committed to: the corpus went from 268 lines, 3 subgraphs and 21 edge labels to **507 lines, 42 subgraphs and 164 edge labels**. The caching blueprint puts the whole miss chain on its arrows, so 250 rps at the edge visibly becomes 1 rps at the database. The OTA saga finally draws the ambiguous outcome the page is actually about. The booking design marks the one statement that has to serialize while everything around it scales sideways."
+            "text": "Updated all System Design diagrams to match their written architectures."
           },
           "vi": {
-            "text": "Mười ba blueprint có **một danh sách node phẳng với tên chung chung** trong khi phần chữ vừa được viết lại — một bức hình ghi `Cache` nằm trên một trang ghi `Redis với allkeys-lfu`. Cả hai mươi diagram giờ nhóm các đường đi bằng subgraph, mang cơ chế lên trên cạnh, và gọi tên công nghệ mà phần chữ đã chốt: toàn bộ đi từ 268 dòng, 3 subgraph và 21 nhãn cạnh lên **507 dòng, 42 subgraph và 164 nhãn cạnh**. Blueprint caching đặt trọn chuỗi miss lên các mũi tên, nên 250 rps ở edge hiện rõ thành 1 rps tới database. Saga OTA rốt cuộc cũng vẽ ra cái kết cục mơ hồ mà cả trang nói về nó. Thiết kế booking đánh dấu đúng câu lệnh duy nhất buộc phải tuần tự trong khi mọi thứ quanh nó scale ngang."
+            "text": "Cập nhật toàn bộ diagram System Design để khớp với kiến trúc trong phần chữ."
           }
         },
         {
           "kind": "fix",
           "target": "system-design",
           "en": {
-            "text": "A Mermaid syntax error used to ship silently: `lib/mermaid.js` degrades to the escaped source, so a broken diagram renders as a tidy code block and nothing says it stopped being a picture. `tools/check-diagrams.mjs` now parses every diagram with the **vendored** renderer — the same build the browser loads — and `check.mjs` runs it as a stage, so a typo fails the build instead of quietly becoming a listing."
+            "text": "Added Mermaid syntax validation to the content check pipeline."
           },
           "vi": {
-            "text": "Một lỗi cú pháp Mermaid trước đây lọt qua trong im lặng: `lib/mermaid.js` degrade về phần source đã escape, nên diagram hỏng hiện ra thành một khối code gọn gàng và không có gì nói rằng nó đã thôi là một bức hình. `tools/check-diagrams.mjs` giờ parse mọi diagram bằng chính bản renderer **đã vendor** — đúng bản trình duyệt tải — và `check.mjs` chạy nó như một stage, nên một lỗi gõ sẽ làm gãy build thay vì lặng lẽ biến thành một đoạn liệt kê."
+            "text": "Thêm kiểm tra cú pháp Mermaid vào pipeline validation nội dung."
           }
         }
       ]
@@ -46,11 +46,11 @@
           "target": "20-observability-sre",
           "en": {
             "section": "SLOs, alerting & incidents",
-            "text": "**SLI, SLO, SLA and the error budget** now carry the arithmetic instead of describing it. A table converts each objective into what it actually buys — `99.9%` is 43m 12s a month, `99.99%` is **4m 19s**, which is shorter than most human responses and therefore a statement about automation rather than about effort. Then the number that makes an SLO alertable at all: **burn rate**, defined, worked through at 1×, 14.4× and 100×, and turned into the multiwindow alert table (1h/5m at 14.4× pages, 3d/6h at 1× tickets) with the Prometheus rule written out. The short window is explained as what it really is — the reset switch that stops an alert paging for hours after the incident ended."
+            "text": "Added practical SLI, SLO, SLA, error-budget and burn-rate examples."
           },
           "vi": {
             "section": "SLO, cảnh báo & sự cố",
-            "text": "**SLI, SLO, SLA và error budget** giờ mang theo phần số học thay vì chỉ mô tả nó. Một bảng quy đổi mỗi mục tiêu thành thứ nó thực sự mua được — `99,9%` là 43m 12s mỗi tháng, `99,99%` là **4m 19s**, ngắn hơn phần lớn phản ứng của con người nên thực chất là một tuyên bố về tự động hoá chứ không phải về sự cố gắng. Rồi tới con số biến một SLO thành thứ cảnh báo được: **burn rate**, có định nghĩa, tính thật ở mức 1×, 14,4× và 100×, và dựng thành bảng cảnh báo hai cửa sổ (1h/5m ở 14,4× thì page, 3d/6h ở 1× thì ticket) kèm rule Prometheus viết đủ. Cửa sổ ngắn được giải thích đúng bản chất — cái công tắc reset ngăn một cảnh báo gọi người hàng giờ sau khi sự cố đã xong."
+            "text": "Bổ sung ví dụ thực tế về SLI, SLO, SLA, error budget và burn rate."
           }
         },
         {
@@ -58,11 +58,11 @@
           "target": "25-microservice",
           "en": {
             "section": "05 · Caching Pitfalls",
-            "text": "**Cache sizing** gets the table it was arguing for: resident keys, bytes per entry from `MEMORY USAGE`, fragmentation from the measured ratio, replication buffer, headroom — 2M product keys landing on ~5.5GB of maxmemory. Read backwards it answers the more useful question: given the memory you have, how many keys may you admit. Plus the four commands that say whether a cache is healthy (and why `KEYS *` is never one of them), and why `keyspace_hits` cannot answer per-class hit rate."
+            "text": "Added cache sizing guidance and health checks for Microservices."
           },
           "vi": {
             "section": "05 · Caching Pitfalls",
-            "text": "**Sizing cache** có được cái bảng mà nó vẫn đang lập luận tới: số khoá thường trú, byte mỗi entry lấy từ `MEMORY USAGE`, phân mảnh theo tỷ lệ đo được, buffer replication, khoảng dư — 2 triệu khoá product ra ~5,5GB maxmemory. Đọc ngược lại thì nó trả lời câu hữu ích hơn: với lượng bộ nhớ đang có, được phép nạp bao nhiêu khoá. Kèm bốn lệnh cho biết một cache có khoẻ không (và vì sao `KEYS *` không bao giờ là một trong số đó), cùng lý do `keyspace_hits` không trả lời được tỷ lệ hit theo từng nhóm khoá."
+            "text": "Bổ sung hướng dẫn sizing cache và health check cho Microservices."
           }
         },
         {
@@ -70,11 +70,11 @@
           "target": "10-system-design-rate-limit",
           "en": {
             "section": "Framework & building blocks",
-            "text": "The cache-aside race was **stated but never shown**, so it is drawn as a four-step timeline: the reader’s SELECT legitimately precedes the write, the writer’s DEL removes nothing, and the reader writes the old value back for a full TTL — with both sides doing exactly what they were told. Then the versioned key that removes the race rather than narrowing it, and a table separating what TTL jitter, single-flight, refresh-ahead and a rebuild budget each protect against, because they are routinely treated as interchangeable and only one of them survives a cold start."
+            "text": "Added a cache-aside race timeline and cache protection patterns."
           },
           "vi": {
             "section": "Khung & building blocks",
-            "text": "Cuộc đua của cache-aside vốn **được nói ra mà chưa bao giờ được cho xem**, nên giờ nó được vẽ thành một dòng thời gian bốn bước: lệnh SELECT của reader hoàn toàn hợp lệ khi xảy ra trước lệnh ghi, lệnh DEL của writer xoá đúng cái không có, và reader ghi ngược giá trị cũ vào suốt trọn một TTL — trong khi cả hai phía đều làm đúng những gì được bảo. Rồi tới khoá có version gỡ bỏ hẳn cuộc đua thay vì thu hẹp nó, và một bảng tách bạch rắc nhiễu TTL, single-flight, refresh-ahead và ngân sách dựng lại mỗi thứ chống được gì — vì chúng thường bị coi là thay thế được cho nhau, trong khi chỉ một thứ sống sót qua một lần khởi động lạnh."
+            "text": "Bổ sung timeline race của cache-aside và các pattern bảo vệ cache."
           }
         },
         {
@@ -82,11 +82,11 @@
           "target": "13-security-oauth2",
           "en": {
             "section": "JWT & tokens",
-            "text": "**Access token versus refresh token** side by side across six rows, because nearly every mistake here comes from treating them alike — where each is presented, what a theft actually buys, and why only one of them can be revoked at all. Then rotation with reuse detection written in the order the checks must happen, and the trap underneath it: a client that loses the response to a refresh retries with the spent token and looks exactly like a thief. That is absorbed at the client with one in-flight refresh, never by weakening the server check."
+            "text": "Added an access-token and refresh-token comparison with rotation guidance."
           },
           "vi": {
             "section": "JWT & token",
-            "text": "**Access token đối lại refresh token** đặt cạnh nhau qua sáu dòng, vì gần như mọi sai lầm ở đây đều đến từ việc đối xử với chúng như nhau — mỗi loại xuất trình cho ai, việc bị đánh cắp thực sự mua cho kẻ tấn công cái gì, và vì sao chỉ một trong hai là thu hồi được. Rồi tới rotation kèm phát hiện tái sử dụng, viết theo đúng thứ tự các phép kiểm phải diễn ra, và cái bẫy nằm bên dưới: một client mất response của lần refresh sẽ retry bằng token đã tiêu và trông y hệt kẻ trộm. Chuyện đó được hấp thụ ở phía client bằng cách chỉ cho một lần refresh đang bay, không bao giờ bằng cách làm yếu phép kiểm phía server."
+            "text": "Bổ sung so sánh access token và refresh token cùng hướng dẫn rotation."
           }
         },
         {
@@ -94,21 +94,21 @@
           "target": "18-query-optimization",
           "en": {
             "section": "Rewriting the query & reshaping the model",
-            "text": "The **application layer** gets one configuration instead of a list of knobs: Hikari, JPA batching and all three timeout layers in a single `application.yml`, ordered shortest to longest because an inner timeout that outlives an outer one can never fire. Pool size is derived with Little’s Law rather than guessed — 250 rps at 8ms is two busy connections, so a pool of 200 adds nothing except 198 requests queueing *inside the database* where no application metric can see them. Plus the two things that silently switch batching back off and report success either way."
+            "text": "Added application configuration examples for connection pools, batching and timeouts."
           },
           "vi": {
             "section": "Viết lại query & chỉnh mô hình",
-            "text": "**Tầng ứng dụng** có được một file cấu hình thay vì một danh sách núm vặn: Hikari, batching JPA và cả ba tầng timeout trong một `application.yml` duy nhất, xếp từ ngắn tới dài vì một timeout bên trong mà sống lâu hơn tầng ngoài thì không bao giờ kích hoạt được. Kích thước pool được suy ra bằng định luật Little chứ không đoán — 250 rps ở 8ms là hai connection bận, nên pool 200 chẳng thêm được gì ngoài 198 request xếp hàng *bên trong database*, nơi không metric nào của ứng dụng nhìn thấy. Kèm hai thứ lặng lẽ tắt batch trở lại mà vẫn báo thành công."
+            "text": "Bổ sung ví dụ cấu hình connection pool, batching và timeout cho tầng ứng dụng."
           }
         },
         {
           "kind": "fix",
           "target": "all-topics",
           "en": {
-            "text": "Four rules asked the browser for **a font weight that was never downloaded**. Only Space Grotesk ships a 700; the two IBM Plex families stop at 600. So the pressed sort chip, the done tick, the EN/VI switch label and — most visibly — the numeric emphasis on every blueprint were all faux bold: a weight the browser smears out of 600 rather than a real face. They use 600 now, which is this site’s bold in forty other rules, and it costs nothing to download."
+            "text": "Fixed unavailable font weights in the site UI."
           },
           "vi": {
-            "text": "Bốn rule đang đòi trình duyệt **một font weight chưa bao giờ được tải về**. Chỉ Space Grotesk có bản 700; hai họ IBM Plex dừng ở 600. Nên chip sắp xếp đang chọn, dấu tick đã xong, nhãn công tắc EN/VI và — rõ nhất — phần tô đậm số liệu trên mọi blueprint đều là faux bold: một weight do trình duyệt bôi ra từ 600 chứ không phải một font face thật. Giờ chúng dùng 600, vốn đã là chữ đậm của site này ở bốn mươi rule khác, và không tốn thêm byte nào để tải."
+            "text": "Sửa các font weight không tồn tại trong giao diện."
           }
         }
       ]
@@ -126,20 +126,20 @@
           "kind": "fix",
           "target": "case-studies",
           "en": {
-            "text": "**A/B testing in Tiki search** shipped five animated chart GIFs totalling 8.7MB. A GIF is already compressed, so gzip does nothing and the server does not even try — that was 8.7MB going down the wire for anyone who read to the end. They are lossless animated WebP now: **pixel-identical, 93% smaller**, canvas and frame count verified on write. Lossless turned out to be smaller than every lossy setting tried, because a flat-colour chart is exactly what it is best at — so nothing was traded away to get it. The page went from **9.16MB to 902KB**."
+            "text": "Replaced large animated GIFs in the Tiki search case study with smaller WebP files."
           },
           "vi": {
-            "text": "**A/B testing trong Tiki search** ship kèm năm biểu đồ GIF động tổng cộng 8,7MB. GIF vốn đã nén sẵn nên gzip không làm được gì và server cũng không buồn thử — tức là 8,7MB đi thẳng qua dây với bất kỳ ai đọc hết bài. Giờ chúng là WebP động lossless: **giống hệt từng pixel, nhỏ hơn 93%**, canvas và số frame đều được kiểm lúc ghi. Hoá ra lossless còn nhỏ hơn mọi mức lossy đã thử, vì biểu đồ màu phẳng đúng là thứ nó làm tốt nhất — nên không phải đánh đổi gì cả. Trang này từ **9,16MB xuống 902KB**."
+            "text": "Thay GIF động lớn trong case study Tiki search bằng WebP nhẹ hơn."
           }
         },
         {
           "kind": "change",
           "target": "case-studies",
           "en": {
-            "text": "A library card renders its cover at **112px**, and the file behind it ran to **2784px** wide — up to 25 times the pixels needed, on every card. Raster covers now carry a generated 320px thumbnail and the card reads that instead. The case-studies index dropped from 645KB of cover art to **63KB**, and System Design from 127KB to 35KB. The originals are untouched: the thumbnails live in their own tree because `assets/case-studies/` is asserted to hold exactly the figures the article bodies reference, and a thumbnail is not one of them. SVG covers are skipped — they already scale for a few kilobytes."
+            "text": "Added generated thumbnails for case-study library covers."
           },
           "vi": {
-            "text": "Card trong thư viện hiển thị ảnh bìa ở **112px**, còn file đằng sau nó rộng tới **2784px** — gấp tới 25 lần số pixel cần thiết, trên mọi card. Ảnh bìa raster giờ có một thumbnail 320px được sinh ra và card đọc bản đó. Trang case-studies giảm từ 645KB ảnh bìa xuống **63KB**, System Design từ 127KB xuống 35KB. Bản gốc không hề bị đụng tới: thumbnail nằm trong một cây thư mục riêng, vì `assets/case-studies/` được ràng buộc phải chứa đúng những hình mà thân bài tham chiếu, và thumbnail không phải một trong số đó. Ảnh bìa SVG được bỏ qua — chúng vốn đã co giãn được với chỉ vài kilobyte."
+            "text": "Thêm thumbnail sinh riêng cho ảnh bìa trong thư viện case study."
           }
         }
       ]
@@ -157,10 +157,10 @@
           "kind": "change",
           "target": "search",
           "en": {
-            "text": "The index shipped as **one file carrying both languages on every row**, so a reader folded one half and paid for the other. It is now prerendered once per language and each row is projected down to the one it serves. Opening search costs **483KB gzipped instead of 908KB** — a 47% cut with nothing lost, because the discarded half was never read. Switching language now costs a fetch, which the browser cache then serves for free; that is the only case where the new shape is worse, and only on the first switch. Capping body length was measured as the alternative and rejected: a 4,000-character cap saved half as much and truncated 10% of bodies, which is search recall traded for bytes."
+            "text": "Split the search index by language to reduce the initial download."
           },
           "vi": {
-            "text": "Index vốn được ship dưới dạng **một file mang cả hai ngôn ngữ trên mọi dòng**, nên người đọc chỉ dùng một nửa mà vẫn tải cả hai. Giờ nó được prerender riêng cho từng ngôn ngữ và mỗi dòng được chiếu xuống đúng ngôn ngữ mà route đó phục vụ. Mở search tốn **483KB gzip thay vì 908KB** — giảm 47% mà không mất gì, vì nửa bị bỏ vốn chưa bao giờ được đọc tới. Đổi ngôn ngữ giờ tốn một lần fetch, và cache trình duyệt sẽ phục vụ miễn phí từ lần sau; đó là trường hợp duy nhất hình dạng mới kém hơn, và chỉ ở lần đổi đầu tiên. Phương án cắt ngắn phần thân đã được đo và loại bỏ: cắt ở 4.000 ký tự chỉ tiết kiệm được một nửa chừng đó mà lại cắt cụt 10% số bài — tức đem độ bao phủ của search đi đổi lấy byte."
+            "text": "Tách search index theo ngôn ngữ để giảm dung lượng tải ban đầu."
           }
         }
       ]
@@ -178,20 +178,20 @@
           "kind": "fix",
           "target": "all-topics",
           "en": {
-            "text": "Every reader surface has a **Skip to content** link as the first thing a keyboard reaches, and on all twelve of them the destination was not focusable. The browser scrolled, but focus stayed on the link — so the next Tab went straight back into the navigation the reader had just asked to skip. The target also had no scroll margin, so what it scrolled to sat underneath the sticky header. Both are fixed, and `tests/native-surfaces.test.mjs` now derives the surface list from disk so a new page cannot ship a skip link that skips nothing."
+            "text": "Fixed skip-to-content focus and sticky-header positioning across reader surfaces."
           },
           "vi": {
-            "text": "Mọi khu vực đọc đều có link **Tới nội dung chính** là thứ đầu tiên bàn phím chạm tới, và ở cả mười hai chỗ thì đích đến đều không focus được. Trình duyệt có cuộn, nhưng focus vẫn nằm ở chính cái link — nên phím Tab kế tiếp lại quay thẳng vào phần điều hướng mà người đọc vừa xin bỏ qua. Đích đến cũng không có scroll margin, nên chỗ nó cuộn tới lại nằm dưới header sticky. Cả hai đã sửa, và `tests/native-surfaces.test.mjs` giờ tự đọc danh sách khu vực từ đĩa để một trang mới không thể ship một skip link chẳng bỏ qua được gì."
+            "text": "Sửa focus của link bỏ qua tới nội dung và vị trí dưới sticky header trên các trang đọc."
           }
         },
         {
           "kind": "change",
           "target": "system-design",
           "en": {
-            "text": "Two audits ran over the rewritten blueprints and both came back clean, which is worth recording because they are the checks that would have caught the recent bugs. Every **rps-per-day pair** — 68 of them — agrees with the site’s own yardstick of peak ≈ 20 × average, and every **tier verdict** across all forty language blocks uses one of the four fixed phrases rather than a synonym. A third sweep, for emphasis spans that open or close inside a word, is now part of the test suite rather than a one-off script."
+            "text": "Added validation coverage for System Design traffic calculations, tier verdicts and emphasis markup."
           },
           "vi": {
-            "text": "Hai đợt kiểm toán chạy trên các blueprint đã viết lại và cả hai đều sạch — đáng ghi lại vì đây chính là những phép kiểm sẽ bắt được các bug vừa rồi. Mọi cặp **rps trên ngày** — 68 cặp — đều khớp với thước đo của chính site là peak ≈ 20 × trung bình, và mọi **verdict theo tier** trên cả bốn mươi khối ngôn ngữ đều dùng một trong bốn cụm từ cố định chứ không phải từ đồng nghĩa. Đợt quét thứ ba, tìm các span tô đậm mở hoặc đóng vào giữa một từ, giờ nằm trong bộ test chứ không còn là một script chạy một lần."
+            "text": "Thêm validation cho phép tính traffic, verdict theo tier và markup nhấn mạnh trong System Design."
           }
         }
       ]
@@ -209,30 +209,30 @@
           "kind": "fix",
           "target": "search",
           "en": {
-            "text": "A blueprint’s search row carried its **title and excerpt and nothing else**. Every other surface ships a body — a track item ships its answer, a case study ships its whole article — so this was invisible from the outside: search worked, it simply could not reach the largest prose corpus on the site. `erasure coding`, `deficit round robin` and `Little’s Law` all returned nothing while the blueprint explaining them sat one click away. Blueprints now index their scope, requirements, capacity, data model, stack, trade-offs, tags and failure review. Raw code stays out on purpose, because a term matched inside a code block is usually noise. The index grew from 2.4 MB to 2.8 MB, and it is still fetched on demand rather than inlined into any page."
+            "text": "Added System Design body content to the search index."
           },
           "vi": {
-            "text": "Dòng search của một blueprint chỉ mang **tiêu đề và excerpt, không có gì khác**. Mọi khu vực còn lại đều có phần thân — một mục Study Track mang theo câu trả lời, một case study mang cả bài viết — nên lỗi này vô hình từ bên ngoài: search vẫn chạy, chỉ là nó không với tới được kho văn bản lớn nhất của site. `erasure coding`, `deficit round robin` và `định luật Little` đều không ra kết quả nào trong khi blueprint giải thích chúng nằm cách đúng một cú click. Blueprint giờ được index cả scope, yêu cầu, capacity, data model, stack, trade-off, tag và failure review. Phần code thô cố tình để ngoài, vì một từ khớp bên trong khối code thường chỉ là nhiễu. Index tăng từ 2,4 MB lên 2,8 MB, và vẫn được tải theo yêu cầu chứ không nhúng vào trang nào."
+            "text": "Đưa nội dung thân bài System Design vào search index."
           }
         },
         {
           "kind": "fix",
           "target": "system-design",
           "en": {
-            "text": "Two rendering defects in the blueprint prose. The quantity highlighter’s unit guard was not unicode-aware, so **a Vietnamese word after a number lost its first letter to the bold**: `1.000 mỗi phút` rendered as `1.000 m` in bold with `ỗi` hanging outside it, and `429 kèm` and `4 ký tự` did the same. It only ever happened in Vietnamese, which is why it survived. Separately, a digit glued to letters that are not a unit was being split — `3xx` rendered as a bold `3` followed by `xx` — so those few phrases are reworded rather than widening a pattern that would then stop emphasizing `10x`."
+            "text": "Fixed Vietnamese quantity highlighting and number-word rendering in blueprint prose."
           },
           "vi": {
-            "text": "Hai lỗi render trong phần văn bản blueprint. Bộ tô đậm số lượng có guard đơn vị không nhận biết unicode, nên **một từ tiếng Việt đứng sau con số bị mất chữ cái đầu vào phần in đậm**: `1.000 mỗi phút` hiện ra thành `1.000 m` in đậm còn `ỗi` rơi ra ngoài, và `429 kèm` cùng `4 ký tự` cũng vậy. Lỗi chỉ xảy ra ở tiếng Việt, đó là lý do nó sống sót lâu đến thế. Riêng biệt, một chữ số dính liền với các chữ cái không phải đơn vị thì bị tách — `3xx` hiện thành số `3` in đậm rồi tới `xx` — nên vài cụm đó được viết lại thay vì nới rộng một pattern mà nới ra thì `10x` sẽ thôi được tô đậm."
+            "text": "Sửa lỗi tô sáng số-lượng và hiển thị số dính chữ trong prose blueprint tiếng Việt."
           }
         },
         {
           "kind": "change",
           "target": "system-design",
           "en": {
-            "text": "The **failure review is authored, never invented**. When a blueprint had no `failure_review`, the page used to synthesize five questions and answer them with the first line of whatever field came to hand — text that read like a considered answer and was not one. All twenty blueprints now carry a real one, the validator requires it in both languages, and that fallback is gone. It also has its own entry in the contents rail instead of being buried under trade-offs, which on a page this long is the difference between jumping to it and scrolling for it."
+            "text": "Added authored failure reviews to all System Design blueprints."
           },
           "vi": {
-            "text": "**Failure review là do người viết, không phải do máy chế ra.** Khi một blueprint không có `failure_review`, trang này từng tự sinh năm câu hỏi rồi trả lời chúng bằng dòng đầu tiên của bất kỳ trường nào có sẵn — một đoạn text đọc như câu trả lời đã cân nhắc mà thực ra không phải. Cả hai mươi blueprint giờ đều có một bản thật, validator bắt buộc phải có ở cả hai ngôn ngữ, và đường dự phòng kia đã bị bỏ. Nó cũng có mục riêng trên thanh mục lục thay vì bị chôn dưới phần trade-off — trên một trang dài như hiện nay, đó là khác biệt giữa nhảy thẳng tới và phải cuộn đi tìm."
+            "text": "Bổ sung failure review do người viết cho toàn bộ blueprint System Design."
           }
         }
       ]
@@ -250,30 +250,30 @@
           "kind": "content",
           "target": "system-design",
           "en": {
-            "text": "The library held **two kinds of blueprint under one label**. Seven were worked designs; thirteen were checklists written in the imperative — *Estimate posts, feed reads, follows per user* — with **no numbers at all in capacity**, no code and no failure review. All thirteen have been rewritten to the standard the other seven set. Each now sizes itself against the four traffic tiers with peak rps and daily volume together, judges its components in the four fixed verdicts (`not needed` · `worth it` · `mandatory` · `needs its own scaling story`), carries worked code and closes with the same five-question failure review. The rewritten set is **URL shortener, news feed, chat, autocomplete, leaderboard, distributed cache, notification service, payment ledger, object storage, rate limiter, traffic and caching blocks, surviving high load** and **the design review framework**."
+            "text": "Rewrote 13 System Design blueprints with complete capacity, examples and failure reviews."
           },
           "vi": {
-            "text": "Thư viện đang chứa **hai loại blueprint dưới cùng một nhãn**. Bảy cái là thiết kế đã giải xong; mười ba cái là danh sách kiểm tra viết ở thể mệnh lệnh — *Ước lượng số bài đăng, lượt đọc feed, số follow mỗi người* — với **không một con số nào trong phần capacity**, không code và không failure review. Cả mười ba đã được viết lại theo đúng chuẩn mà bảy cái kia đặt ra. Mỗi cái giờ tự size theo bốn tier traffic với peak rps kèm khối lượng mỗi ngày, đánh giá từng thành phần bằng bốn verdict cố định (`không cần` · `nên có` · `bắt buộc` · `cần scale riêng`), mang code thật và khép lại bằng đúng năm câu hỏi failure review. Nhóm được viết lại gồm **URL shortener, news feed, chat, autocomplete, leaderboard, distributed cache, notification service, sổ cái thanh toán, object storage, rate limiter, khối traffic và caching, sống sót qua tải cao** và **khung design review**."
+            "text": "Viết lại 13 blueprint System Design với capacity, ví dụ và failure review đầy đủ."
           }
         },
         {
           "kind": "content",
           "target": "system-design",
           "en": {
-            "text": "Some of what the rewrite added is the part that was always missing from the classics. The URL shortener now settles **301 versus 302** — a permanent redirect is cached by the browser and the ISP, so you lose both the analytics and the ability to revoke. The news feed states the write amplification that forces a hybrid: at 200 followers, 1M posts/day is 200M timeline writes/day. Caching building blocks carries **the miss chain as arithmetic** — 250 rps peak through a 90% CDN and a 90% L2 leaves 1 rps at the database, and the same block shows what a cold deploy and an L2 outage do to that number. Surviving high load derives safe concurrency from Little’s Law instead of a round number: 250 rps at a 40 ms service time is 10 in flight, so a 200-thread pool is 190 requests queueing where no limiter can see them."
+            "text": "Added concrete traffic, cache, URL-shortener and concurrency trade-offs to the blueprints."
           },
           "vi": {
-            "text": "Một phần những gì đợt viết lại bổ sung chính là phần luôn thiếu ở các bài kinh điển. URL shortener giờ chốt hẳn **301 hay 302** — redirect vĩnh viễn bị trình duyệt và ISP cache lại, nên bạn mất cả analytics lẫn khả năng thu hồi. News feed nêu rõ độ khuếch đại ghi buộc phải dùng mô hình lai: với 200 follower, 1 triệu post/ngày là 200 triệu lượt ghi timeline/ngày. Khối traffic và caching mang theo **chuỗi miss dưới dạng phép tính** — 250 rps peak đi qua CDN hit 90% rồi L2 hit 90% chỉ còn 1 rps tới database, và cũng khối đó cho thấy một lần deploy lạnh và một lần L2 chết làm gì với con số ấy. Bài sống sót qua tải cao suy ra mức đồng thời an toàn từ định luật Little thay vì một con số tròn: 250 rps với thời gian phục vụ 40 ms là 10 request đang bay, nên một pool 200 thread là 190 request xếp hàng ở chỗ không bộ giới hạn nào nhìn thấy."
+            "text": "Bổ sung trade-off cụ thể về traffic, cache, URL shortener và concurrency cho các blueprint."
           }
         },
         {
           "kind": "change",
           "target": "system-design",
           "en": {
-            "text": "Every blueprint’s **duration was recalculated** rather than estimated. The old numbers contradicted each other: the API gateway article claimed 60 minutes for what is now the longest page on the site, while chat claimed 55 minutes for a fifth of the content. All twenty are now derived from the rendered length of the page at a single rate, so a longer blueprint always reads as a longer one. Seventeen of the twenty moved, the range widened from 35–90 to 30–120 minutes, and the one range value (`30–45 min`) is gone — the field is a single number everywhere now."
+            "text": "Recalculated reading times for every System Design blueprint."
           },
           "vi": {
-            "text": "**Thời lượng của mọi blueprint đã được tính lại** thay vì ước chừng. Các con số cũ mâu thuẫn nhau: bài API gateway ghi 60 phút cho thứ giờ là trang dài nhất site, trong khi bài chat ghi 55 phút cho một phần năm lượng nội dung. Cả hai mươi giờ đều suy ra từ độ dài trang đã render với cùng một tốc độ, nên blueprint dài hơn luôn hiện ra là dài hơn. Mười bảy trong hai mươi cái đã đổi, khoảng giá trị nới từ 35–90 lên 30–120 phút, và giá trị dạng khoảng duy nhất (`30–45 min`) đã bị bỏ — trường này giờ là một con số ở mọi nơi."
+            "text": "Tính lại thời lượng đọc cho toàn bộ blueprint System Design."
           }
         }
       ]
@@ -292,11 +292,11 @@
           "kind": "topic",
           "target": "01-java-core-jvm",
           "en": {
-            "text": "**The four OOP pillars** now have a card of their own in Language fundamentals, written as language mechanism rather than definition: what encapsulation actually protects, when an `abstract class` earns its place over an `interface`, and the pair that gets asked — overload resolved from the **static** type against override resolved from the object. The worked example is the two bugs that follow from confusing them: a `save(User)` that never runs because the reference is typed `Repo`, and the `NPE` from a constructor calling an overridable method before the subclass fields exist. The deep dive covers what dispatch costs (monomorphic, bimorphic, megamorphic) and why `static` methods and fields never dispatch at all. SOLID is not repeated here — it is owned by (12-architecture-patterns.patterns-principles.q2) and (22-low-level-design-ood.patterns-in-interview-code.q1), and the card points at both.",
+            "text": "Added an OOP fundamentals card to Topic 01.",
             "section": "Language fundamentals"
           },
           "vi": {
-            "text": "**Bốn trụ OOP** giờ có thẻ riêng trong Language fundamentals, viết theo hướng cơ chế ngôn ngữ chứ không phải định nghĩa: encapsulation thật sự bảo vệ cái gì, khi nào `abstract class` xứng đáng hơn `interface`, và cặp hay bị hỏi — overload giải theo type **tĩnh** đối lại override giải theo chính object. Ví dụ đi kèm là hai bug sinh ra từ việc nhầm hai thứ đó: một `save(User)` không bao giờ chạy vì reference khai kiểu `Repo`, và `NPE` từ constructor gọi một method có thể override trước khi field của lớp con tồn tại. Phần deep dive nói về giá của dispatch (monomorphic, bimorphic, megamorphic) và vì sao `static` method cùng field không dispatch. SOLID không lặp lại ở đây — nó thuộc về (12-architecture-patterns.patterns-principles.q2) và (22-low-level-design-ood.patterns-in-interview-code.q1), thẻ này trỏ sang cả hai.",
+            "text": "Thêm card nền tảng OOP vào Topic 01.",
             "section": "Nền tảng ngôn ngữ"
           },
           "count": 1
@@ -305,11 +305,11 @@
           "kind": "topic",
           "target": "05-db-core-index-lock",
           "en": {
-            "text": "**ACID, letter by letter**, joins Transactions/MVCC/locking. The four letters were only ever expanded in parentheses on the ACID-vs-BASE card; this one says what each actually promises and what enforces it — undo log, declared constraints, MVCC plus locks, redo log and WAL — with the InnoDB and PostgreSQL columns side by side. Three things it settles: durability is a **setting** (`innodb_flush_log_at_trx_commit`, `synchronous_commit`) rather than a law, the C in ACID is not the C in CAP, and A and D come free while I is the letter you pay for — which is why only isolation has levels.",
+            "text": "Added a dedicated ACID card to Topic 05.",
             "section": "Transactions, MVCC, locking"
           },
           "vi": {
-            "text": "**ACID, từng chữ một**, vào mục Transactions/MVCC/locking. Bốn chữ trước nay chỉ được mở ngoặc trong thẻ ACID-vs-BASE; thẻ này nói mỗi chữ thật sự hứa gì và cái gì đảm bảo nó — undo log, constraint đã khai báo, MVCC cộng lock, redo log và WAL — kèm bảng InnoDB và PostgreSQL đặt cạnh nhau. Ba điều nó chốt lại: durability là một **tham số cấu hình** (`innodb_flush_log_at_trx_commit`, `synchronous_commit`) chứ không phải định luật, chữ C trong ACID không phải chữ C trong CAP, và A với D gần như được cho không còn I mới là chữ phải trả giá — vì thế chỉ isolation mới có nhiều mức.",
+            "text": "Thêm card riêng về ACID vào Topic 05.",
             "section": "Transaction, MVCC, locking"
           },
           "count": 1
@@ -318,20 +318,20 @@
           "kind": "fix",
           "target": "all-topics",
           "en": {
-            "text": "An unknown URL used to land on Nuxt’s built-in error page: no header, no search, no way back in. There is a real error page now, with the site chrome, the search box and routes into every library — which matters because a stale bookmark outside the retired hash URLs is exactly what reaches it. **Stats** and **Admin** also drew a hero over an empty column until hydration finished; both now show the same loading block the interview journal uses."
+            "text": "Added a native error page with navigation and loading states for Stats and Admin."
           },
           "vi": {
-            "text": "Một URL không tồn tại trước đây rơi vào trang lỗi mặc định của Nuxt: không header, không tìm kiếm, không lối quay lại. Giờ đã có trang lỗi thật, đủ chrome của site, ô tìm kiếm và lối đi vào mọi thư viện — điều này quan trọng vì bookmark cũ nằm ngoài danh sách hash URL đã nghỉ hưu chính là thứ rơi vào đó. **Stats** và **Admin** trước đây cũng vẽ hero trên một cột rỗng cho tới khi hydrate xong; cả hai giờ hiện cùng khối loading mà nhật ký phỏng vấn đang dùng."
+            "text": "Thêm trang lỗi native có điều hướng và loading state cho Stats và Admin."
           }
         },
         {
           "kind": "change",
           "target": "all-topics",
           "en": {
-            "text": "The header **search** control is about twice the size it was — a wider box, a 24px icon and a readable shortcut hint. It stays one row with the rest of the header rather than growing tall, so the bar itself only gains 8px."
+            "text": "Enlarged the header search control and improved its shortcut hint."
           },
           "vi": {
-            "text": "Nút **tìm kiếm** trên header to gần gấp đôi — hộp rộng hơn, icon 24px và gợi ý phím tắt đọc được. Nó vẫn nằm cùng một hàng với phần còn lại của header thay vì cao lên, nên thanh header chỉ dày thêm 8px."
+            "text": "Tăng kích thước nút search trên header và cải thiện gợi ý phím tắt."
           }
         }
       ]
@@ -349,10 +349,10 @@
           "kind": "content",
           "target": "system-design",
           "en": {
-            "text": "**OTA flight-booking system** now carries the transaction machinery the flow always implied. Six worked examples were added: the booking **saga state machine** (where every timeout edge goes to `OUTCOME_UNKNOWN` rather than straight to failure), the **SQL schema** for saga instance/step, outbox, inbox and API idempotency, an **outbox producer** committing state and event in one transaction, an **inbox consumer** that turns redelivery into a no-op, an **orchestrated saga with compensation**, and the **event envelope** carrying `saga_id`, `causation_id` and `traceparent`. The reading estimate moved from 45 to 90 minutes. A new **Saga and transactional outbox** deep-dive lens joins it, citing Debezium, Azure, Kafka, Stripe, Temporal, PostgreSQL and OpenTelemetry — the last two origins were added to the reference allowlist for it."
+            "text": "Added saga, outbox and idempotency examples to the OTA booking blueprint."
           },
           "vi": {
-            "text": "**Hệ thống OTA đặt vé máy bay** giờ mang phần máy móc transaction mà luồng này vẫn luôn ngụ ý. Thêm sáu ví dụ đầy đủ: **state machine của booking saga** (mọi cạnh timeout đi vào `OUTCOME_UNKNOWN` thay vì thẳng tới failure), **schema SQL** cho saga instance/step, outbox, inbox và API idempotency, một **outbox producer** commit state và event trong cùng một transaction, một **inbox consumer** biến redelivery thành no-op, một **saga orchestration kèm compensation**, và **event envelope** mang `saga_id`, `causation_id` cùng `traceparent`. Thời lượng đọc từ 45 lên 90 phút. Kèm theo là lens deep-dive mới **Saga và transactional outbox**, trích Debezium, Azure, Kafka, Stripe, Temporal, PostgreSQL và OpenTelemetry — hai origin cuối được thêm vào allowlist tham chiếu cho phần này."
+            "text": "Bổ sung ví dụ saga, outbox và idempotency cho blueprint OTA booking."
           }
         }
       ]
@@ -370,20 +370,20 @@
           "kind": "change",
           "target": "all-topics",
           "en": {
-            "text": "The navigation panel is quieter. **Search** and **Release Notes** moved out of the list and into the panel header as icons — both stay fully routable, only where they are drawn changed. **Guide** was removed. **Tools** is now collapsed by default and opens on click, since a sibling app is something you go to on purpose rather than something you browse. The section holding Project, Photography and NAS is called **Experience** again, and the now-empty About section went with Guide."
+            "text": "Simplified the navigation panel and regrouped its links."
           },
           "vi": {
-            "text": "Panel điều hướng bớt rối. **Search** và **Release Notes** rời khỏi danh sách, lên header của panel dưới dạng icon — cả hai vẫn route được đầy đủ, chỉ đổi chỗ hiển thị. **Guide** đã bỏ. **Tools** giờ mặc định thu gọn và bấm mới mở ra, vì một app anh em là thứ bạn chủ động vào chứ không phải thứ để lướt. Section chứa Project, Photography và NAS trở lại tên **Experience**, còn section About rỗng thì đi cùng Guide."
+            "text": "Đơn giản hóa navigation panel và sắp xếp lại các liên kết."
           }
         },
         {
           "kind": "content",
           "target": "all-topics",
           "en": {
-            "text": "A second NAS article: **\"The *arr stack: automating a home media library\"**. It lays the nine services out as three layers — control, processing, data — then spends its length on the parts that decide whether the setup works. **Hardlinks** get the fullest treatment: what an inode actually is, why the seeding copy and the library copy cost disk once, and the trap that catches most people — two separate volume mounts are one filesystem on the host and two inside the container, so the hardlink fails and every import silently becomes a copy. Also: why Bazarr rejects a subtitle that exists (timing belongs to a release, not a title), what machine translation structurally cannot do for Vietnamese pronouns, why transcoding makes a moderate file worth more than a bigger one, and which services must never be exposed. Written from a shared Vietnamese account of a working setup, with indexers described by category rather than listed."
+            "text": "Added a bilingual NAS article about automating a home media library."
           },
           "vi": {
-            "text": "Bài NAS thứ hai: **\"*arr stack: tự động hoá thư viện phim tại nhà\"**. Bài bày chín dịch vụ thành ba tầng — control, processing, data — rồi dành phần lớn dung lượng cho những chỗ quyết định thiết lập có chạy đúng hay không. **Hardlink** được nói kỹ nhất: inode thực chất là gì, vì sao bản đang seed và bản trong thư viện chỉ tốn đĩa một lần, và cái bẫy hầu hết mọi người dính — hai volume mount riêng là một filesystem trên host nhưng là hai filesystem bên trong container, nên hardlink thất bại và mọi lần import lặng lẽ thành copy. Ngoài ra: vì sao Bazarr từ chối một phụ đề vốn đã tồn tại (timing thuộc về bản phát hành, không thuộc về tựa phim), điều mà dịch máy về mặt cấu trúc không làm được với đại từ tiếng Việt, vì sao transcode khiến file vừa phải có giá hơn file to, và những dịch vụ tuyệt đối không được mở ra ngoài. Viết lại từ một bài chia sẻ tiếng Việt về thiết lập thực tế, phần indexer mô tả theo nhóm thay vì liệt kê tên."
+            "text": "Thêm bài viết song ngữ về tự động hóa thư viện media tại nhà trên NAS."
           }
         }
       ]
@@ -401,30 +401,30 @@
           "kind": "feature",
           "target": "all-topics",
           "en": {
-            "text": "The navigation panel now has four sections instead of five. **Technical** holds the study path — Study Track, Search, Gazl Try, Stats — and, below a divider, the two reference libraries that are read rather than drilled: System Design and Case Studies. **Other knowledge** is new and holds material outside interview preparation: the CalebZone Project snapshot moved here, joined by **Photography** and **NAS / Home Server**. The old Experience section is gone, and \"Other\" was renamed **About** so two sections would not share a name."
+            "text": "Regrouped navigation into Technical, Reference, Experience and Tools."
           },
           "vi": {
-            "text": "Panel điều hướng giờ có bốn section thay vì năm. **Technical** giữ lộ trình học — Study Track, Search, Gazl Try, Stats — và bên dưới một đường kẻ là hai thư viện tra cứu vốn để đọc chứ không để cày: System Design và Case Studies. **Other knowledge** là section mới, chứa nội dung nằm ngoài phần ôn phỏng vấn: bản snapshot Project CalebZone chuyển sang đây, cùng với **Photography** và **NAS / Home Server**. Section Experience cũ không còn, và \"Other\" được đổi tên thành **About** để hai section không trùng tên."
+            "text": "Gom navigation thành Technical, Reference, Experience và Tools."
           }
         },
         {
           "kind": "content",
           "target": "all-topics",
           "en": {
-            "text": "Two Other Knowledge collections open with one article each, both bilingual. **Photography — \"Exposure: three controls, three different costs\"** treats shutter, aperture and ISO as three different currencies rather than three corners of a triangle: what a stop actually is, why stabilisation does nothing for a moving subject, why both ends of the aperture range cost resolution, and why ISO amplifies a signal rather than collecting light. **NAS / Home Server — \"RAID is not a backup\"** works through what each layer covers: parity levels, the resilver window and why drives from one batch fail together, ZFS checksums versus what classic RAID can detect, why snapshots live on the same disks, and the ECC argument stated accurately rather than as folklore."
+            "text": "Added bilingual Photography and Homelab knowledge articles."
           },
           "vi": {
-            "text": "Hai collection Other Knowledge mở màn với mỗi bên một bài, cả hai đều song ngữ. **Photography — \"Phơi sáng: ba control, ba cái giá khác nhau\"** xem shutter, khẩu độ và ISO là ba loại tiền khác nhau chứ không phải ba đỉnh một tam giác: một stop thật ra là gì, vì sao chống rung không cứu được chủ thể đang chuyển động, vì sao cả hai đầu dải khẩu đều lấy đi độ phân giải, và vì sao ISO khuếch đại tín hiệu chứ không thu thêm ánh sáng. **NAS / Home Server — \"RAID không phải backup\"** đi qua từng tầng che được cái gì: các mức parity, cửa sổ resilver và vì sao ổ cùng lô chết cùng nhau, checksum của ZFS so với thứ RAID cổ điển phát hiện được, vì sao snapshot nằm trên đúng những cái ổ đó, và lập luận về ECC được nêu cho chính xác thay vì theo lời đồn."
+            "text": "Thêm các bài kiến thức Photography và Homelab song ngữ."
           }
         },
         {
           "kind": "change",
           "target": "search",
           "en": {
-            "text": "Search gained a fourth surface. Other Knowledge articles are indexed alongside the Study Track, System Design and Case Studies, so one query still covers everything the site holds, and the surface filter offers **Other knowledge** as its own chip. Under the surface, the bilingual collection loader and the long-form reading chrome — heading TOC, its collapse state, the figure lightbox — were each extracted into one owner rather than copied for the new library."
+            "text": "Added Other Knowledge articles to the global search index."
           },
           "vi": {
-            "text": "Search có thêm surface thứ tư. Bài trong Other Knowledge được index cùng với Study Track, System Design và Case Studies, nên một câu truy vấn vẫn phủ hết những gì site có, và bộ lọc surface có riêng chip **Other knowledge**. Ở bên dưới, loader collection song ngữ cùng phần chrome đọc bài dài — TOC theo heading, trạng thái thu gọn của nó, lightbox cho hình — mỗi thứ được tách ra một chủ sở hữu duy nhất thay vì copy thêm một bản cho thư viện mới."
+            "text": "Đưa các bài Other Knowledge vào global search index."
           }
         }
       ]
@@ -442,30 +442,30 @@
           "kind": "fix",
           "target": "system-design",
           "en": {
-            "text": "A System Design card packed its kind, its duration, its publisher, the level badge and the update date into one uppercase strip — and the slot after the separator meant two different things: a blueprint’s effort on one card, a publisher on the next. In the **Latest updates** feed, which interleaves both kinds, \"45 MIN\" and \"SHOPIFY\" therefore read as the same kind of fact. The card now splits in two, matching the shape Case Studies already used: the kicker carries **kind and source**, and a closing meta row carries **duration and last update**. Production cases gain a read time they never showed, blueprints keep their effort, and both libraries now share one meta row. The production-case cover also gained an explicit width: it had none, so its automatic grid track was sized from the image itself, and a wide diagram could take the column and leave nothing for the text beside it."
+            "text": "Simplified System Design card metadata into readable fields."
           },
           "vi": {
-            "text": "Card System Design nhồi kind, thời lượng, publisher, badge level và ngày cập nhật vào chung một dải chữ hoa — và ô sau dấu phân cách mang hai nghĩa khác nhau: card này là effort của blueprint, card kia là publisher. Ở feed **Cập nhật mới nhất**, nơi hai loại card nằm xen kẽ, \"45 MIN\" và \"SHOPIFY\" vì thế đọc như cùng một loại thông tin. Card giờ tách làm hai, theo đúng bố cục Case Studies đang dùng: dòng kicker mang **kind và nguồn**, dòng meta khép lại card mang **thời lượng và lần cập nhật gần nhất**. Production case có thêm read time trước đây không hiện, blueprint vẫn giữ effort, và hai thư viện dùng chung một dòng meta. Ảnh bìa production case cũng được đặt chiều rộng cố định: trước đây nó không có width nên grid track tự động lấy kích thước từ chính tấm ảnh, và một sơ đồ rộng có thể chiếm hết cột, không chừa chỗ cho phần chữ bên cạnh."
+            "text": "Đơn giản hóa metadata trên card System Design thành các trường dễ đọc."
           }
         },
         {
           "kind": "fix",
           "target": "all-topics",
           "en": {
-            "text": "Every colour the site prints text in now clears **WCAG AA contrast (4.5:1)** on both page backgrounds. The muted grey used for card meta rows, tags, eyebrows and date stamps sat at 3.37:1 on white and 2.98:1 on the page — the smallest type on the site, at 9–10px, was also the hardest to read. It was darkened, along with the brass and teal accents, and the ratios are now checked by a test that also covers each difficulty pill on its own tinted fill and each topic-type accent on all three backgrounds it appears against."
+            "text": "Fixed text contrast to meet WCAG AA across page backgrounds."
           },
           "vi": {
-            "text": "Mọi màu chữ trên site giờ đều đạt **contrast WCAG AA (4.5:1)** trên cả hai nền trang. Màu xám nhạt dùng cho dòng meta của card, tag, eyebrow và mốc ngày chỉ đạt 3.37:1 trên nền trắng và 2.98:1 trên nền trang — chữ nhỏ nhất site, cỡ 9–10px, lại là chữ khó đọc nhất. Màu này đã được làm đậm hơn, cùng với hai accent brass và teal, và các tỉ lệ giờ được test kiểm: test phủ cả badge độ khó trên nền màu riêng của nó và accent theo topic-type trên cả ba nền mà nó xuất hiện."
+            "text": "Sửa độ tương phản chữ để đạt WCAG AA trên các nền trang."
           }
         },
         {
           "kind": "fix",
           "target": "search",
           "en": {
-            "text": "The topic picker’s filter box and the Ctrl/⌘+K search box both suppressed their focus outline with nothing in its place, so a keyboard reader tabbing in saw no change. Both rows now colour their own rule on focus. The featured star also gained an image role: its label sat on a bare inline element, which most screen readers do not announce."
+            "text": "Restored visible keyboard focus for topic and global search fields."
           },
           "vi": {
-            "text": "Ô lọc trong topic picker và ô tìm kiếm Ctrl/⌘+K đều tắt focus outline mà không thay bằng gì, nên người dùng bàn phím tab vào không thấy gì đổi. Cả hai giờ đổi màu đường kẻ của chính nó khi focus. Ngôi sao featured cũng được gán image role: nhãn của nó nằm trên một inline element trần, thứ mà phần lớn screen reader không đọc."
+            "text": "Khôi phục trạng thái focus bàn phím cho ô lọc topic và search."
           }
         }
       ]
@@ -483,10 +483,10 @@
           "kind": "content",
           "target": "interviews",
           "en": {
-            "text": "A new **11-card Gazl Try playbook** follows an interview from role-and-level calibration and the 90-second introduction through project proof, technical/business cases, behavioral questions, the candidate close and a practice scorecard. It replaces the myth that a longer interview guarantees an offer with observable—but non-conclusive—signals; gives DA, DE and Backend distinct technical lenses; and turns the café and 20% revenue prompts into hypothesis, data, decision and experiment frameworks. Company context from the supplied account remains explicit: OCB, MoMo, FPT, 7‑Eleven, Pizza Hut, GHN and Abbott, labelled as reported anecdotes rather than official hiring formats."
+            "text": "Added an 11-card bilingual Gazl Try interview playbook covering OCB, MoMo, FPT, 7‑Eleven, Pizza Hut, GHN and Abbott."
           },
           "vi": {
-            "text": "**Playbook Gazl Try gồm 11 thẻ** đi từ calibrate role/level và intro 90 giây tới chứng minh project, technical/business case, behavioral, candidate close cùng scorecard luyện tập. Bài thay quan niệm “phỏng vấn càng lâu càng chắc đậu” bằng các signal có thể quan sát nhưng không kết luận tuyệt đối; tách technical lens cho DA, DE và Backend; đồng thời nâng hai case chuỗi café và tăng revenue 20% thành khung hypothesis, data, decision và experiment. Bối cảnh công ty từ bài được cung cấp được giữ nguyên: OCB, MoMo, FPT, 7‑Eleven, Pizza Hut, GHN và Abbott, với nhãn trải nghiệm được kể lại thay vì format tuyển dụng chính thức."
+            "text": "Thêm playbook phỏng vấn Gazl Try song ngữ gồm 11 card, bao phủ OCB, MoMo, FPT, 7‑Eleven, Pizza Hut, GHN và Abbott."
           }
         }
       ]
@@ -504,10 +504,10 @@
           "kind": "topic",
           "target": "13-security-oauth2",
           "en": {
-            "text": "New advanced item in Security §JWT & tokens — **Where should a browser store JWTs?** A native BFF flow, XSS/CSRF decision matrix and hardened cookie example distinguish server-side tokens, in-memory SPA access tokens, sessionStorage and localStorage. The verdict follows the IETF browser-based-apps BCP draft: prefer BFF plus an opaque HttpOnly session cookie when a backend exists; treat sessionStorage as a bounded compromise and localStorage as non-sensitive UI storage. The Study Track now contains **383** questions (**442** across the library)."
+            "text": "Added a browser JWT-storage architecture guide with BFF, XSS and CSRF coverage."
           },
           "vi": {
-            "text": "Mục advanced mới trong Security §JWT & tokens — **Browser nên lưu JWT ở đâu?** Một BFF flow native, decision matrix XSS/CSRF và hardened-cookie example tách server-side token, in-memory SPA access token, sessionStorage cùng localStorage. Verdict theo BCP draft của IETF về browser-based apps: ưu tiên BFF cộng opaque HttpOnly session cookie khi có backend; xem sessionStorage là bounded compromise và localStorage là nơi lưu UI state không nhạy cảm. Study Track hiện có **383** câu hỏi (**442** trên toàn thư viện)."
+            "text": "Thêm hướng dẫn kiến trúc lưu JWT trên browser, gồm BFF, XSS và CSRF."
           }
         }
       ]
@@ -525,10 +525,10 @@
           "kind": "content",
           "target": "case-studies",
           "en": {
-            "text": "New bilingual editorial case study — **Four SSH compromises and the security boundary they missed**. It separates password guessing, scan noise, malicious-package execution and an unknown root compromise; replaces absolute claims with evidence levels; and upgrades the final private-bastion design with per-user identity, hardware-backed MFA, least privilege, off-host telemetry and a clean-rebuild incident playbook. One native architecture diagram and primary OpenSSH, Ubuntu, NIST and CISA references are included."
+            "text": "Added a bilingual SSH hardening case study covering four compromise patterns."
           },
           "vi": {
-            "text": "Editorial case study song ngữ mới — **Bốn lần SSH bị xâm nhập và security boundary còn thiếu**. Bài tách password guessing, scan noise, malicious-package execution và một root compromise chưa rõ nguyên nhân; thay khẳng định tuyệt đối bằng evidence level; đồng thời nâng cấp private-bastion design với identity theo từng user, hardware-backed MFA, least privilege, off-host telemetry và clean-rebuild incident playbook. Bài có một architecture diagram native cùng nguồn chính thức OpenSSH, Ubuntu, NIST và CISA."
+            "text": "Thêm case study SSH hardening song ngữ về bốn kiểu compromise."
           }
         }
       ]
@@ -546,10 +546,10 @@
           "kind": "topic",
           "target": "25-microservice",
           "en": {
-            "text": "New advanced item in Microservices §05 — **Cache expiration and TTL policies**. Three native diagrams separate expiration, eviction and invalidation; explain logical expiry versus physical cleanup; and compare fixed, sliding and absolute deadlines. The guide adds bounded jitter, an absolute cap for sessions and tokens, engine-specific Redis/Caffeine/Memcached semantics, operational signals and a policy decision checklist. The Study Track now contains **382** questions (**441** across the library)."
+            "text": "Added a cache expiration and TTL policy item to Topic 25."
           },
           "vi": {
-            "text": "Mục advanced mới trong Microservices §05 — **Cache expiration và TTL policy**. Ba diagram native tách expiration, eviction và invalidation; giải thích logical expiry so với physical cleanup; đồng thời so sánh deadline fixed, sliding và absolute. Bài bổ sung jitter có biên, absolute cap cho session/token, semantics riêng của Redis/Caffeine/Memcached, tín hiệu vận hành và checklist chọn policy. Study Track hiện có **382** câu hỏi (**441** trên toàn thư viện)."
+            "text": "Thêm item về expiration và chính sách TTL cache vào Topic 25."
           }
         }
       ]
@@ -567,10 +567,10 @@
           "kind": "topic",
           "target": "25-microservice",
           "en": {
-            "text": "New advanced item in Microservices §05 — **Cache eviction beyond LRU**. Four native diagrams connect capacity pressure, the separate admission and eviction gates, scan pollution, SLRU versus ARC, and W-TinyLFU. The implementation comparison is checked against primary Redis, Caffeine, Memcached, MySQL, PostgreSQL, Linux and OpenZFS sources; misleading shortcuts such as ‘Linux uses CLOCK’ are called out explicitly. The Study Track now contains **381** questions (**440** across the library)."
+            "text": "Added a cache eviction and admission item to Topic 25."
           },
           "vi": {
-            "text": "Mục advanced mới trong Microservices §05 — **Cache eviction vượt khỏi LRU**. Bốn diagram native nối bài toán áp lực dung lượng, hai cổng admission và eviction riêng biệt, scan pollution, SLRU so với ARC và W-TinyLFU. Phần so sánh implementation được kiểm chứng bằng nguồn chính thức của Redis, Caffeine, Memcached, MySQL, PostgreSQL, Linux và OpenZFS; các cách nói tắt dễ sai như ‘Linux dùng CLOCK’ được chỉ ra rõ ràng. Study Track hiện có **381** câu hỏi (**440** trên toàn thư viện)."
+            "text": "Thêm item về eviction và admission cache vào Topic 25."
           }
         }
       ]
@@ -588,20 +588,20 @@
           "kind": "topic",
           "target": "25-microservice",
           "en": {
-            "text": "New advanced item in Microservices §05 — **Cache stack and AMAT**. It separates HTTP, application, distributed, database and operating-system caches, derives the hit-rate break-even point, and explains why hit ratios from different layers cannot be added. Existing pattern, expiry and eviction items now form one internal learning path."
+            "text": "Added cache economics and AMAT guidance to Topic 25."
           },
           "vi": {
-            "text": "Mục advanced mới trong Microservices §05 — **Cache stack và AMAT**. Bài tách cache HTTP, application, distributed, database và operating system, suy ra điểm hit-rate break-even, đồng thời giải thích vì sao không được cộng hit ratio của các layer. Các mục pattern, expiry và eviction hiện nối thành một learning path nội bộ."
+            "text": "Thêm nội dung cache economics và AMAT vào Topic 25."
           }
         },
         {
           "kind": "topic",
           "target": "01-java-core-jvm",
           "en": {
-            "text": "New advanced item in Java Core §Memory — **JVM specification areas versus HotSpot process memory**. A native diagram separates logical runtime areas from heap, metaspace, code cache, native stacks, direct/foreign memory and mappings; the diagnostic path reconciles NMT with RSS and corrects the myth that C2 escape analysis stack-allocates ordinary objects."
+            "text": "Added a JVM specification-versus-process-memory item to Topic 01."
           },
           "vi": {
-            "text": "Mục advanced mới trong Java Core §Memory — **JVM specification area so với HotSpot process memory**. Diagram native tách runtime area logic khỏi heap, metaspace, code cache, native stack, direct/foreign memory và mapping; luồng chẩn đoán reconcile NMT với RSS và sửa myth rằng escape analysis của C2 stack-allocate object thông thường."
+            "text": "Thêm item phân biệt vùng nhớ JVM theo specification và process memory vào Topic 01."
           }
         }
       ]
@@ -619,30 +619,30 @@
           "kind": "content",
           "target": "case-studies",
           "en": {
-            "text": "New editorial case study — **How Discord stores trillions of messages**. It follows MongoDB to Cassandra to ScyllaDB, then focuses on the upstream controls that made the database migration work: consistent routing, request coalescing, token-range checkpoints, dual writes and sampled comparison reads. Published latency and node counts stay scoped to Discord's 2022 workload."
+            "text": "Added a Discord message-storage case study."
           },
           "vi": {
-            "text": "Editorial case study mới — **Discord lưu trữ hàng nghìn tỷ tin nhắn như thế nào?** Bài đi từ MongoDB sang Cassandra rồi ScyllaDB, sau đó tập trung vào upstream control giúp migration thành công: consistent routing, request coalescing, token-range checkpoint, dual write và sampled comparison read. Latency cùng node count được giới hạn đúng trong workload Discord năm 2022."
+            "text": "Thêm case study về cách Discord lưu trữ tin nhắn."
           }
         },
         {
           "kind": "content",
           "target": "case-studies",
           "en": {
-            "text": "New editorial case study — **Complex infrastructure for a small business: the cloud-cost shock**. A reported $312 monthly AWS bill becomes a FinOps and architecture-fitness exercise: identify the zero-user fixed floor, simplify duplicated environments and paid control planes, and compare managed cloud with one 4-core/8-GB server using explicit RPO, RTO and operator cost—not the false promise that one machine cannot go down."
+            "text": "Added a small-business cloud-cost case study."
           },
           "vi": {
-            "text": "Editorial case study mới — **Hạ tầng phức tạp cho business bé: cú sốc chi phí cloud**. Bill AWS được báo cáo ở mức 312 USD/tháng trở thành bài tập FinOps và architecture fitness: tìm fixed floor khi zero user, gộp environment cùng paid control plane bị nhân đôi, rồi so managed cloud với một server 4 core/8 GB bằng RPO, RTO và operator cost tường minh—không dựa vào lời hứa sai rằng một máy không thể downtime."
+            "text": "Thêm case study về cú sốc chi phí cloud của doanh nghiệp nhỏ."
           }
         },
         {
           "kind": "feature",
           "target": "case-studies",
           "en": {
-            "text": "External articles that are rewritten rather than preserved now carry explicit synthesis metadata. Their cards and readers say **Editorial synthesis** instead of mislabelling the body as the original publisher article."
+            "text": "Marked rewritten external articles as Editorial synthesis."
           },
           "vi": {
-            "text": "Bài external được biên soạn lại thay vì lưu nguyên văn giờ có synthesis metadata tường minh. Card và reader hiển thị **Editorial synthesis** thay vì ghi nhầm body là bài gốc của publisher."
+            "text": "Đánh dấu các bài viết bên ngoài đã biên soạn lại là Editorial synthesis."
           }
         }
       ]
@@ -660,30 +660,30 @@
           "kind": "topic",
           "target": "25-microservice",
           "en": {
-            "text": "Five additions to Microservices §05. **The six cache patterns, drawn** — cache-aside, read-through and refresh-ahead on the read path, write-through, write-behind and write-around on the write path, one diagram each, plus the combinations people actually run: cache-aside with write-around by default, refresh-ahead over a small hot set, write-behind only where a lost increment is a rounding error. **The two sizing mistakes** — a short TTL on a hot key, and writing every key you happen to read into the cache — with the memory budget, `maxmemory-policy` and the hit rate read per key class. **Redis beyond the cache** — twelve jobs mapped to the structure and commands that do them and what each costs, then the four guarantees underneath: one command at a time, opt-in multi-command atomicity, 16384 hash slots, and asynchronous replication that can lose an acknowledged write. Stampede, hot keys, penetration and avalanche stay where they were and the new items point at them. The progress ring grows by five."
+            "text": "Added end-to-end cache patterns and cache-layer guidance to Topic 25."
           },
           "vi": {
-            "text": "Năm mục mới trong Microservices §05. **Sáu cache pattern, có sơ đồ** — cache-aside, read-through và refresh-ahead ở đường đọc, write-through, write-behind và write-around ở đường ghi, mỗi cái một sơ đồ, kèm cách ghép mà thực tế người ta dùng: cache-aside với write-around làm mặc định, refresh-ahead cho tập key nóng nhỏ, write-behind chỉ ở chỗ mất một lần tăng chỉ là sai số làm tròn. **Hai lỗi sizing** — TTL ngắn đặt trên hot key, và cứ key nào đọc tới là ghi xuống cache — cùng ngân sách bộ nhớ, `maxmemory-policy` và hit rate đọc theo từng key class. **Redis ngoài việc cache** — mười hai công việc ánh xạ sang cấu trúc và lệnh làm được chúng cùng cái giá của từng cái, rồi bốn bảo đảm nằm dưới: mỗi lúc một lệnh, atomic nhiều lệnh phải chủ động chọn, 16384 hash slot, và replication bất đồng bộ có thể mất một lệnh ghi đã ACK. Stampede, hot key, penetration và avalanche vẫn ở nguyên chỗ cũ, các mục mới chỉ trỏ sang. Vòng tiến độ tăng thêm năm mục."
+            "text": "Bổ sung các cache pattern end-to-end và hướng dẫn cache layer vào Topic 25."
           }
         },
         {
           "kind": "feature",
           "target": "all-topics",
           "en": {
-            "text": "The Study Track now browses **378** questions (437 across the whole library). Seven new items means the progress ring’s denominator moved: nothing you have already reviewed changed, but the percentage is now out of a larger total."
+            "text": "Updated Study Track and library question counts."
           },
           "vi": {
-            "text": "Study Track giờ duyệt **378** câu hỏi (437 trên toàn thư viện). Thêm bảy mục nghĩa là mẫu số của vòng tiến độ đã đổi: những gì bạn đã review vẫn giữ nguyên, chỉ là phần trăm giờ tính trên tổng lớn hơn."
+            "text": "Cập nhật số lượng câu hỏi của Study Track và toàn bộ thư viện."
           }
         },
         {
           "kind": "topic",
           "target": "18-query-optimization",
           "en": {
-            "text": "Two additions to Query optimization §1. **PostgreSQL's buffer cache** — where a plan's `shared hit`, `read`, `dirtied` and `written` counters come from, with a diagram of the page path, the clock sweep whose usage counter stops at 5, the 256 KB ring that keeps a large sequential scan from flushing the array, and `pg_buffercache` in place of a hit ratio. **Sizing and the write side** — `shared_buffers` against double buffering and checkpoint size, `effective_cache_size` as a planner statement that allocates nothing, the checkpointer and bgwriter defaults, `num_timed` versus `num_requested`, full-page writes after a checkpoint, and prewarming an empty cache after a failover. Checked against the PostgreSQL 18 documentation."
+            "text": "Added PostgreSQL buffer-cache guidance to Topic 18."
           },
           "vi": {
-            "text": "Hai mục mới trong Query optimization §1. **Bộ đệm cache của PostgreSQL** — các con số `shared hit`, `read`, `dirtied` và `written` trong plan đến từ đâu, kèm sơ đồ đường đi của một page, clock sweep với usage counter dừng ở 5, ring 256 KB giữ cho một lần seq scan lớn không quét sạch mảng buffer, và `pg_buffercache` thay cho tỷ lệ hit. **Sizing và mặt ghi** — `shared_buffers` đặt cạnh double buffering và kích thước checkpoint, `effective_cache_size` là lời khai cho planner chứ không cấp phát gì, mặc định của checkpointer và bgwriter, `num_timed` so với `num_requested`, full-page write sau mỗi checkpoint, và làm ấm cache rỗng sau failover. Đã đối chiếu tài liệu PostgreSQL 18."
+            "text": "Thêm nội dung về PostgreSQL buffer cache vào Topic 18."
           }
         }
       ]
@@ -701,20 +701,20 @@
           "kind": "content",
           "target": "case-studies",
           "en": {
-            "text": "New case study — **Fixing one race condition twice**. A booking endpoint created two itineraries 25 ms apart. The first fix blocked a User-Agent string and the alerts stopped for two and a half years, until the identical mechanism returned wearing a `HEAD` request with the user's own browser UA. It walks the whole arc: detection by SQL batch, log archaeology when nothing reproduces, why the existing guard was check-then-act, why a one-second timestamp cannot be a version, the move to a conditional write decided by row count, and how a 23 ms race was made deterministic in testing. The account is anonymised — company, sites, people, tickets and identifiers removed, industry vocabulary kept."
+            "text": "Added a first-party case study about fixing a booking race condition."
           },
           "vi": {
-            "text": "Case study mới — **Hai lần sửa một race condition**. Một endpoint đặt chỗ tạo hai hành trình cách nhau 25 ms. Bản vá đầu chặn một chuỗi User-Agent và alert im suốt hai năm rưỡi, cho tới khi đúng cơ chế đó quay lại dưới dạng một request `HEAD` mang UA của chính trình duyệt người dùng. Bài đi trọn vòng đời: phát hiện bằng batch SQL, khảo cổ log khi không tái hiện được, vì sao guard sẵn có chỉ là check-then-act, vì sao timestamp tới giây không thể làm version, việc chuyển sang ghi có điều kiện quyết định bằng số dòng update, và cách biến một race 23 ms thành tất định khi test. Bài đã ẩn danh — bỏ tên công ty, site, người, ticket và mọi định danh, giữ lại từ vựng ngành."
+            "text": "Thêm case study first-party về việc sửa race condition trong booking."
           }
         },
         {
           "kind": "feature",
           "target": "case-studies",
           "en": {
-            "text": "New collection **Production Incidents**, and the library no longer assumes every article is an archived external one. A first-party row carries no publisher and no source URL, so it renders without the outbound credit link and without the historical-archive note — both of those exist to point at a source it does not have. The source count in the library header is now counted rather than hard-coded."
+            "text": "Added the Production Incidents case-study collection."
           },
           "vi": {
-            "text": "Nhóm mới **Production Incidents**, và thư viện không còn mặc định mọi bài đều là bài ngoài đã lưu trữ. Một bài first-party không có publisher và không có source URL, nên nó hiển thị mà không kèm link dẫn nguồn lẫn nhãn lưu trữ lịch sử — cả hai vốn sinh ra để trỏ tới một nguồn mà bài này không có. Số nguồn ở đầu thư viện giờ được đếm thay vì ghi cứng."
+            "text": "Thêm collection case study Production Incidents."
           }
         }
       ]
@@ -732,50 +732,50 @@
           "kind": "topic",
           "target": "01-java-core-jvm",
           "en": {
-            "text": "Three additions. **Why `com.acme.Order cannot be cast to com.acme.Order` happens** — a runtime class is its name *plus* its defining loader, so the same jar behind two loaders makes two types; the item shows the four lines that prove which loader is at fault and why the same rule duplicates `static` state. **What breaks when a HashMap key overrides only one of `equals`/`hashCode`** — walked through the three steps of a lookup, plus the mutable-key case where `remove` stops working. **Concurrency vs multithreading vs parallelism** — structure, mechanism and execution, with Little's Law turning the distinction into a number you can size a pool with."
+            "text": "Added Java class-loader identity and type-casting guidance to Topic 01."
           },
           "vi": {
-            "text": "Ba mục mới. **Vì sao có `com.acme.Order cannot be cast to com.acme.Order`** — một class ở runtime là tên *cộng với* loader đã define nó, nên cùng một jar sau hai loader thành hai type; mục này chỉ ra bốn dòng code chứng minh loader nào gây ra và vì sao cùng quy tắc đó nhân đôi cả `static` state. **Hỏng gì khi key của HashMap chỉ override một trong `equals`/`hashCode`** — đi qua ba bước của một lần lookup, kèm trường hợp key mutable khiến `remove` mất tác dụng. **Concurrency, multithreading và parallelism** — cấu trúc, cơ chế và thực thi, với Little's Law biến sự phân biệt đó thành một con số để size pool."
+            "text": "Thêm nội dung về class-loader identity và type casting vào Topic 01."
           }
         },
         {
           "kind": "topic",
           "target": "05-db-core-index-lock",
           "en": {
-            "text": "A UUIDv4 primary key and slowing inserts, engine by engine: InnoDB scatters the *rows* because the key is the table, while PostgreSQL keeps appending to the heap and pays in the index — full-page writes after every checkpoint. Four changes ranked by disruption, from `BINARY(16)`/`uuid` storage and a UUIDv7 generator (same column, no migration) up to splitting the public id from the clustered key. The B+Tree mechanics stay where they were owned."
+            "text": "Added UUID primary-key performance guidance for InnoDB and PostgreSQL to Topic 05."
           },
           "vi": {
-            "text": "Khoá chính UUIDv4 và insert chậm dần, xét theo từng engine: InnoDB làm *row* văng đi vì khoá chính là bảng, còn PostgreSQL vẫn append vào heap và trả giá ở index — full-page write sau mỗi checkpoint. Bốn thay đổi xếp theo mức xáo trộn, từ lưu `BINARY(16)`/`uuid` và đổi generator sang UUIDv7 (cùng cột, không migrate) cho tới tách public id khỏi khoá clustered. Phần cơ chế B+Tree vẫn nằm ở mục vốn sở hữu nó."
+            "text": "Thêm hướng dẫn hiệu năng UUID primary key trên InnoDB và PostgreSQL vào Topic 05."
           }
         },
         {
           "kind": "topic",
           "target": "06-db-scaling",
           "en": {
-            "text": "A worked incident: six nodes join a Cassandra/ScyllaDB cluster and some customers' balances come back empty. The symptom is the clue — a missing row is not an error — and the five candidates are ranked cheapest first: the `R + W > RF` math, a node that joined with `auto_bootstrap: false`, six bootstraps at once, `nodetool cleanup` run before repair, and expired hints. `nodetool getendpoints` plus a per-key read at ONE against ALL separates them, and the closing point is that a mutable balance cell has no safe read-modify-write in the first place."
+            "text": "Added a Cassandra/ScyllaDB missing-data incident walkthrough to Topic 06."
           },
           "vi": {
-            "text": "Một sự cố được mổ xẻ: sáu node join vào cụm Cassandra/ScyllaDB và số dư của vài khách hàng trả về rỗng. Triệu chứng chính là manh mối — row thiếu không phải là lỗi — và năm nghi phạm được xếp theo thứ tự kiểm tra rẻ trước: phép toán `R + W > RF`, node join với `auto_bootstrap: false`, sáu node bootstrap cùng lúc, `nodetool cleanup` chạy trước repair, và hint hết hạn. `nodetool getendpoints` cộng một lần đọc theo key ở ONE đối chiếu ALL sẽ tách chúng ra, và chốt lại: một ô balance mutable vốn dĩ không có read-modify-write nào an toàn."
+            "text": "Thêm walkthrough sự cố thiếu dữ liệu Cassandra/ScyllaDB vào Topic 06."
           }
         },
         {
           "kind": "topic",
           "target": "23-java-concurrency-coding",
           "en": {
-            "text": "The interview drill everyone meets: 20 threads each add a million to a `volatile int`. The total is never right, because `volatile` fixes visibility and ordering while `counter++` stays a three-step read-modify-write. The item gives the runnable drill, the fix ladder from `AtomicInteger` through `LongAdder` to removing the sharing entirely, and why \"I ran it and it printed the right number\" is a weak proof next to jcstress."
+            "text": "Added a volatile-counter concurrency drill to Topic 23."
           },
           "vi": {
-            "text": "Bài tập phỏng vấn ai cũng gặp: 20 luồng, mỗi luồng cộng một triệu vào một `volatile int`. Tổng không bao giờ đúng, vì `volatile` sửa visibility và ordering còn `counter++` vẫn là read-modify-write ba bước. Mục này có đoạn code chạy được, thang sửa lỗi từ `AtomicInteger` qua `LongAdder` tới bỏ hẳn chia sẻ, và vì sao \"em chạy thử thấy ra số đúng\" là chứng minh yếu so với jcstress."
+            "text": "Thêm bài luyện concurrency về volatile counter vào Topic 23."
           }
         },
         {
           "kind": "feature",
           "target": "all-topics",
           "en": {
-            "text": "The Study Track now browses **371** questions (430 across the whole library). Six new items means the progress ring's denominator moved: nothing you have already reviewed changed, but the percentage is now out of a larger total."
+            "text": "Updated Study Track and library question counts."
           },
           "vi": {
-            "text": "Study Track giờ duyệt **371** câu hỏi (430 trên toàn thư viện). Thêm sáu mục nghĩa là mẫu số của vòng tiến độ đã đổi: những gì bạn đã review vẫn giữ nguyên, chỉ là phần trăm giờ tính trên tổng lớn hơn."
+            "text": "Cập nhật số lượng câu hỏi của Study Track và toàn bộ thư viện."
           }
         }
       ]
@@ -793,20 +793,20 @@
           "kind": "feature",
           "target": "system-design",
           "en": {
-            "text": "Prose that was written as a list is now printed as one. Where a sentence enumerates behind a lead — `use the diagram as the target: CDN at the edge; search isolated; each database owns an outbox` — the lead keeps its line and the clauses become bullets, and a technology row that packs **Problem solved**, **Flow position**, **Failure / cost** and **Tier verdict** into one paragraph now gives each label its own line. Problem framing runs the full width of the article, and a list row's label no longer runs into its own sentence."
+            "text": "Preserved authored lists in System Design prose."
           },
           "vi": {
-            "text": "Đoạn văn vốn được viết như một danh sách giờ được in đúng như vậy. Khi một câu liệt kê sau phần dẫn — `dùng sơ đồ làm logical target: CDN ở edge; search cô lập; mỗi database có outbox riêng` — phần dẫn giữ nguyên dòng của nó còn các mệnh đề thành bullet; một technology row gói **Vấn đề giải quyết**, **Vị trí trong flow**, **Failure / cái giá** và **Phán quyết theo tier** vào một đoạn giờ tách mỗi nhãn ra một dòng. Problem framing chạy hết chiều rộng bài viết, và nhãn của một list row không còn dính vào câu của chính nó."
+            "text": "Giữ đúng các danh sách được viết trong prose System Design."
           }
         },
         {
           "kind": "feature",
           "target": "case-studies",
           "en": {
-            "text": "Both libraries now keep the group heading pinned while you scroll it, so a long list never leaves you asking which section you are in. Inside an article the way back is a pinned bar of its own, separate from the site header, and taking it returns you to the card you opened rather than to the top of the library. Guide briefs use the same list treatment as the blueprints."
+            "text": "Added sticky section navigation to System Design and Case Studies."
           },
           "vi": {
-            "text": "Cả hai thư viện giờ ghim tiêu đề nhóm khi bạn cuộn, nên một danh sách dài không còn khiến bạn tự hỏi mình đang ở chủ đề nào. Trong bài đọc, đường quay lại là một thanh riêng được ghim, tách khỏi header của site, và khi bấm nó bạn trở về đúng thẻ đã mở thay vì về đầu thư viện. Guide brief dùng cùng cách trình bày list như blueprint."
+            "text": "Thêm điều hướng section sticky cho System Design và Case Studies."
           }
         }
       ]
@@ -824,10 +824,10 @@
           "kind": "content",
           "target": "system-design",
           "en": {
-            "text": "Blueprint 16 now turns the supplied **E-commerce System Architecture** into a scale evolution from 1M through 10M to 100M requests/day. The original full-resolution figure sits beside an editable critical-path Mermaid diagram, while the article separates its `1M DAU` headline from request traffic and gives 18 component-by-component technology decisions. CDN, gateway, Kubernetes discovery, Elasticsearch/OpenSearch, Redis, Cart/Checkout/Order/Inventory/Payment persistence, Saga, idempotency, Outbox/Inbox, Kafka, RabbitMQ, retry/DLQ, after-payment workers, reconciliation and cells each state the problem solved, flow position, failure/cost and tier verdict; concrete PostgreSQL transaction shapes remain available in both languages."
+            "text": "Expanded Blueprint 16 with an e-commerce Saga and Outbox architecture."
           },
           "vi": {
-            "text": "Blueprint 16 giờ biến **E-commerce System Architecture** được cung cấp thành evolution path từ 1M qua 10M tới 100M requests/day. Ảnh full-resolution gốc nằm cạnh Mermaid critical path có thể chỉnh sửa; bài tách headline `1M DAU` khỏi request traffic và có 18 technology decision theo từng component. CDN, gateway, Kubernetes discovery, Elasticsearch/OpenSearch, Redis, persistence Cart/Checkout/Order/Inventory/Payment, Saga, idempotency, Outbox/Inbox, Kafka, RabbitMQ, retry/DLQ, after-payment worker, reconciliation và cell đều nêu bài toán giải quyết, vị trí trong flow, failure/cost cùng phán quyết theo tier; PostgreSQL transaction shape cụ thể vẫn có ở cả hai ngôn ngữ."
+            "text": "Mở rộng Blueprint 16 với kiến trúc e-commerce Saga và Outbox."
           }
         }
       ]
@@ -845,20 +845,20 @@
           "kind": "feature",
           "target": "search",
           "en": {
-            "text": "The header now carries a **search** control (`Ctrl`/`⌘` + `K`, or `/`) that queries the Study Track, the System Design blueprints and the case-study library at once. Every result names the topic or blueprint that owns it and links straight to that card, so a keyword answers *where do I read this* rather than *does this exist*. Accents are optional — `dong bo` finds `đồng bộ`. When one query returns more than the overlay shows, **See all results** opens a full panel at its own URL (`#/search/<query>`), filterable by surface."
+            "text": "Added global search across Study Track, System Design and Case Studies."
           },
           "vi": {
-            "text": "Header giờ có control **search** (`Ctrl`/`⌘` + `K`, hoặc `/`) tìm đồng thời trong Study Track, blueprint System Design và thư viện case study. Mỗi kết quả nêu rõ topic hoặc blueprint chứa nó và link thẳng tới card đó, nên một keyword trả lời *đọc ở đâu* chứ không chỉ *có tồn tại không*. Không cần gõ dấu — `dong bo` vẫn ra `đồng bộ`. Khi kết quả nhiều hơn phần overlay hiển thị, **See all results** mở panel đầy đủ với URL riêng (`#/search/<query>`), lọc được theo từng surface."
+            "text": "Thêm global search cho Study Track, System Design và Case Studies."
           }
         },
         {
           "kind": "feature",
           "target": "search",
           "en": {
-            "text": "Recent searches are remembered, and can be removed one at a time or cleared entirely. Signed out they live in the browser session only; signing in carries that session's searches into the account and keeps them in the Sheet from then on, so history follows the reader between devices."
+            "text": "Added signed-in and signed-out recent-search history controls."
           },
           "vi": {
-            "text": "Các lần tìm gần đây được ghi nhớ, xoá được từng mục hoặc xoá tất cả. Khi chưa đăng nhập, chúng chỉ nằm trong session của trình duyệt; lúc đăng nhập, phần lịch sử của session được mang sang tài khoản và lưu tiếp vào Sheet, nên lịch sử đi theo người đọc giữa các thiết bị."
+            "text": "Thêm quản lý lịch sử search gần đây cho cả signed-in và signed-out."
           }
         }
       ]
@@ -876,10 +876,10 @@
           "kind": "feature",
           "target": "system-design",
           "en": {
-            "text": "Added Topic 27 as the 19th System Design blueprint: 18 migrated notes cover four traffic tiers, gateway configuration, identity verification, authorization, migration and internal call boundaries. The topic lives entirely on the System Design surface, so the Study Track progress denominator remains 365 even though the library now holds 424 items across 27 topics."
+            "text": "Added Blueprint 19 for API Gateway and Identity Edge."
           },
           "vi": {
-            "text": "Thêm Topic 27 thành blueprint System Design thứ 19: 18 note bao phủ bốn traffic tier, gateway configuration, identity verification, authorization, migration và internal call boundary. Topic nằm hoàn toàn trên surface System Design, nên mẫu số progress của Study Track vẫn là 365 dù thư viện hiện có 424 item trong 27 topic."
+            "text": "Thêm Blueprint 19 về API Gateway và Identity Edge."
           }
         }
       ]
@@ -897,20 +897,20 @@
           "kind": "feature",
           "target": "all-topics",
           "en": {
-            "text": "The material explains a mechanism once and cites it everywhere else, and there are 359 of those citations per language. Until now each one rendered as the raw item id, so following a pointer meant hunting for it by hand. They are links now: an item still on the Study Track opens at its card, one that moved into a blueprint opens inside that blueprint, and the link is labelled with the question it leads to rather than the id. An id shown inside `code`, a `<pre>` block or a diagram stays text — there it is being displayed, not cited."
+            "text": "Turned written cross-references into navigable links."
           },
           "vi": {
-            "text": "Tài liệu giải thích một cơ chế đúng một lần rồi trỏ về đó từ mọi nơi khác, và mỗi ngôn ngữ đang có 359 con trỏ như vậy. Trước đây chúng hiện ra đúng dạng item id thô, nên đi theo một con trỏ nghĩa là tự đi tìm. Giờ chúng là link: item còn trên Study Track mở ra tại card của nó, item đã chuyển vào blueprint thì mở trong chính blueprint đó, và link mang tên câu hỏi đích chứ không phải id. Id nằm trong `code`, trong `<pre>` hay trong diagram vẫn là chữ — ở đó nó đang được trưng ra, không phải đang trỏ đi."
+            "text": "Biến cross-reference trong nội dung thành liên kết điều hướng."
           }
         },
         {
           "kind": "fix",
           "target": "05-db-core-index-lock",
           "en": {
-            "text": "One Vietnamese cross-reference pointed at a section slug that does not exist, so it led nowhere. Content validation only read the English base files for references; it now checks both languages, because an id is language-independent and a broken one in the companion is invisible to anyone reading English."
+            "text": "Fixed a broken Vietnamese cross-reference and expanded reference validation."
           },
           "vi": {
-            "text": "Một cross-reference bên bản tiếng Việt trỏ tới section slug không tồn tại nên không dẫn đi đâu cả. Trước đây khâu validate chỉ đọc file EN để kiểm reference; giờ kiểm cả hai ngôn ngữ, vì id không phụ thuộc ngôn ngữ và một ref hỏng bên file companion thì người đọc bản tiếng Anh không bao giờ thấy."
+            "text": "Sửa một cross-reference tiếng Việt bị hỏng và mở rộng validation tham chiếu."
           }
         }
       ]
@@ -928,10 +928,10 @@
           "kind": "content",
           "target": "language",
           "en": {
-            "text": "Every Vietnamese companion was reworded so the technical vocabulary stays in the form an interviewer says out loud — `memory`, `thread`, `lock`, `queue`, `record`, `partition key`, `version` — while the sentences around them stay Vietnamese. Translating those terms was making the Vietnamese side harder to use in the room it was written for: a reader who studied `hàng đợi` and `luồng` still has to answer a question about a queue and a thread. All 26 topics moved together with the System Design blueprints, the Case Studies reading guides and the labels on both surfaces. Item ids, difficulty and section order are untouched, so no progress, note or study-log row moved with them."
+            "text": "Standardized technical vocabulary across Vietnamese study content."
           },
           "vi": {
-            "text": "Toàn bộ file tiếng Việt được viết lại để technical vocabulary giữ nguyên dạng interviewer nói ra — `memory`, `thread`, `lock`, `queue`, `record`, `partition key`, `version` — còn câu văn quanh nó vẫn là tiếng Việt. Dịch những term đó làm bản tiếng Việt khó dùng đúng nơi nó được viết ra: người học `hàng đợi` và `luồng` rồi vẫn phải trả lời câu hỏi về queue và thread. Cả 26 topic đi cùng lúc với blueprint System Design, reading guide của Case Studies và label trên hai surface đó. Item id, difficulty và thứ tự section giữ nguyên, nên không có row progress, note hay study log nào bị ảnh hưởng."
+            "text": "Chuẩn hóa technical vocabulary trong nội dung học tiếng Việt."
           }
         }
       ]
@@ -949,10 +949,10 @@
           "kind": "feature",
           "target": "system-design",
           "en": {
-            "text": "The five failure-review lenses under a blueprint's trade-offs are prompts to think with, and for the flash-sale design they are now answered in full: which invariant is non-negotiable and what keeps it true when Redis is gone, which saturation signal fires before customers see the collapse, where a hot SKU or a slow provider gets contained, how an idempotency key plus a fencing version stop a retry from double-selling, and what has to reconcile to zero before recovery counts as proven rather than assumed."
+            "text": "Added complete answers to the failure-review lenses for Blueprint 18."
           },
           "vi": {
-            "text": "Năm lens failure review dưới phần trade-off của blueprint là prompt để tự chất vấn, và design flash sale giờ trả lời đủ cả năm: invariant nào không được phá và cái gì giữ nó đúng khi mất Redis, saturation signal nào bắn trước lúc khách thấy hệ thống sụp, hot SKU hoặc provider chậm bị contain ở đâu, idempotency key cộng fencing version chặn retry bán trùng thế nào, và cái gì phải reconcile về 0 trước khi recovery được coi là đã chứng minh chứ không phải phỏng đoán."
+            "text": "Bổ sung câu trả lời đầy đủ cho các failure-review lens của Blueprint 18."
           }
         }
       ]
@@ -970,10 +970,10 @@
           "kind": "feature",
           "target": "system-design",
           "en": {
-            "text": "Blueprint 18 dissects the synchronous Book → Inventory lock → Payment bottleneck in the supplied e-commerce architecture. It quantifies read amplification, per-hot-SKU serialization and connection-pool limits, then replaces unbounded contention with edge admission, atomic expiring holds, outbox-driven payment commands, asynchronous confirm/release and reconciliation. It now includes a traffic lifecycle from low traffic through pre-peak, surge, protection and recovery: what scales, what cannot scale, safe scale-in gates, cost tiers, queue backpressure and a trigger-to-action bottleneck runbook."
+            "text": "Added a capacity-first failure analysis for flash-sale inventory."
           },
           "vi": {
-            "text": "Blueprint 18 mổ xẻ bottleneck synchronous Book → lock Inventory → Payment trong kiến trúc e-commerce được cung cấp. Bài định lượng read amplification, giới hạn serialization theo hot SKU và connection pool, rồi thay contention vô hạn bằng edge admission, hold atomic có expiry, payment command qua outbox, confirm/release bất đồng bộ và reconciliation. Bài giờ có traffic lifecycle từ low traffic qua pre-peak, surge, protect đến recovery: phần nào scale được/không được, gate scale-in an toàn, cost tier, queue backpressure và runbook signal → action cho bottleneck."
+            "text": "Thêm phân tích failure theo capacity cho flash-sale inventory."
           }
         }
       ]
@@ -991,40 +991,40 @@
           "kind": "feature",
           "target": "system-design",
           "en": {
-            "text": "Blueprint 15 designs a booking and search platform at one million requests a day: a read-heavy search path split from a correctness-critical booking path, Kafka carrying payment, notification and indexing asynchronously, and inventory sharded so contention for one unit stays inside one shard. It argues the peak-to-average ratio rather than the headline request count, and says plainly where microservices and sharding buy isolation instead of throughput."
+            "text": "Added Blueprint 15 for a booking and search platform."
           },
           "vi": {
-            "text": "Blueprint 15 thiết kế nền tảng booking và search ở mức một triệu request mỗi ngày: tách đường search đọc nhiều khỏi đường booking đòi hỏi tính đúng đắn, dùng Kafka đưa payment, notification và indexing sang bất đồng bộ, và shard tồn kho để tranh chấp một đơn vị nằm gọn trong một shard. Bài lập luận theo tỷ lệ đỉnh trên trung bình chứ không theo con số request, và nói thẳng chỗ nào microservice và sharding mua sự cô lập chứ không phải throughput."
+            "text": "Thêm Blueprint 15 về nền tảng booking và search."
           }
         },
         {
           "kind": "feature",
           "target": "system-design",
           "en": {
-            "text": "Blueprint 16 now runs the same product through 1M, 10M and 100M requests a day, naming the binding constraint at each step and pricing every upgrade in complexity and on-call surface. It argues that a single primary absorbs all three write rates, so sharding must be justified by data volume or blast radius rather than by request count."
+            "text": "Expanded Blueprint 16 across 1M, 10M and 100M requests per day."
           },
           "vi": {
-            "text": "Blueprint 16 giờ đưa cùng một sản phẩm qua ba mức 1 triệu, 10 triệu và 100 triệu request mỗi ngày, gọi tên ràng buộc đang chặn ở từng bước và định giá mỗi nâng cấp bằng độ phức tạp cùng bề mặt trực. Bài lập luận rằng một primary duy nhất kham được cả ba mức ghi, nên sharding phải được biện minh bằng khối lượng dữ liệu hoặc bán kính ảnh hưởng chứ không phải bằng số request."
+            "text": "Mở rộng Blueprint 16 theo các mốc 1M, 10M và 100M request mỗi ngày."
           }
         },
         {
           "kind": "feature",
           "target": "system-design",
           "en": {
-            "text": "Blueprint 17 is the technique catalogue behind it: replicas, Redis versus Memcached, local cache tiers, distributed locks, RabbitMQ versus Kafka, sharding, bulkheads and backpressure. Each entry states the limit it removes, the limit it leaves untouched, the failure mode it introduces, and the cheaper option to exhaust first — including why a distributed lock is never a correctness mechanism."
+            "text": "Added Blueprint 17 as a scale and resilience technique catalogue."
           },
           "vi": {
-            "text": "Blueprint 17 là danh mục kỹ thuật phía sau nó: replica, Redis so với Memcached, các tầng cache local, distributed lock, RabbitMQ so với Kafka, sharding, bulkhead và backpressure. Mỗi mục nêu rõ giới hạn nó gỡ, giới hạn nó để nguyên, kiểu lỗi nó mang vào, và lựa chọn rẻ hơn cần vắt kiệt trước — bao gồm cả lý do distributed lock không bao giờ là cơ chế bảo đảm tính đúng đắn."
+            "text": "Thêm Blueprint 17 làm catalogue kỹ thuật scale và resilience."
           }
         },
         {
           "kind": "fix",
           "target": "system-design",
           "en": {
-            "text": "Mermaid diagrams were rendering as empty frames: the vendored renderer was missing dagre, its default layout engine, which is loaded through a dynamic import and so was invisible to the check that walked static imports only. The four missing modules are now vendored and the check follows what a browser actually requests. Diagrams also size to their own content instead of a fixed minimum height."
+            "text": "Fixed missing Mermaid layout dependencies and empty diagrams."
           },
           "vi": {
-            "text": "Sơ đồ Mermaid hiển thị ra khung trống: bản renderer vendored thiếu dagre — engine layout mặc định — vốn được nạp qua dynamic import nên không lộ ra với phép kiểm tra chỉ đi theo static import. Bốn module thiếu đã được bổ sung và phép kiểm tra giờ bám theo đúng những gì trình duyệt thực sự tải. Sơ đồ cũng co giãn theo nội dung thay vì bị ép một chiều cao tối thiểu."
+            "text": "Sửa dependency layout Mermaid bị thiếu và diagram bị trống."
           }
         }
       ]
@@ -1042,30 +1042,30 @@
           "kind": "feature",
           "target": "system-design",
           "en": {
-            "text": "A new library turns fourteen prompts into sectioned end-to-end blueprints: requirements, capacity, architecture, data model, technology choices and explicit trade-offs, each with editable Mermaid source."
+            "text": "Added the System Design blueprint library."
           },
           "vi": {
-            "text": "Thư viện mới biến mười bốn đề bài thành blueprint end-to-end có từng mục: requirements, capacity, architecture, data model, lựa chọn công nghệ và trade-off rõ ràng, mỗi bài đều có source Mermaid chỉnh sửa được."
+            "text": "Thêm thư viện blueprint System Design."
           }
         },
         {
           "kind": "content",
           "target": "case-studies",
           "en": {
-            "text": "Topic 10–11 deep dives, the OTA/whiteboard overlap from Topic 16 and all four Systems & Architecture at Scale production cases now live in System Design; immutable question links and legacy case-study URLs continue to resolve."
+            "text": "Moved selected deep dives and production cases into System Design."
           },
           "vi": {
-            "text": "Các deep dive Topic 10–11, phần OTA/whiteboard trùng từ Topic 16 cùng bốn production case Systems & Architecture at Scale đã chuyển sang System Design; link câu hỏi bất biến và URL Case Studies cũ vẫn dùng được."
+            "text": "Chuyển các deep dive và production case phù hợp vào System Design."
           }
         },
         {
           "kind": "change",
           "target": "all-topics",
           "en": {
-            "text": "The Study Track progress ring now counts 365 questions instead of 398: the 33 that moved into System Design are no longer part of its denominator, so the completion percentage rises without anything being lost. Every moved question keeps its identifier, and any progress or notes already recorded against it stay saved."
+            "text": "Updated Study Track progress after moving 33 questions to System Design."
           },
           "vi": {
-            "text": "Vòng tiến độ Study Track giờ đếm 365 câu thay vì 398: 33 câu đã chuyển sang System Design không còn nằm trong mẫu số, nên phần trăm hoàn thành tăng lên mà không mất gì cả. Mỗi câu đã chuyển vẫn giữ nguyên định danh, và tiến độ hay ghi chú đã lưu cho câu đó vẫn còn."
+            "text": "Cập nhật tiến độ Study Track sau khi chuyển 33 câu hỏi sang System Design."
           }
         }
       ]
@@ -1086,11 +1086,11 @@
           "count": 4,
           "en": {
             "section": "What a test is for",
-            "text": "A new topic, starting with what a test is actually for: why mock-heavy tests break on every refactor, which double to reach for, the bugs unit tests structurally cannot see, and building test data that stays readable."
+            "text": "Added Topic 26 on testing strategy."
           },
           "vi": {
             "section": "Test để làm gì",
-            "text": "Một topic mới, mở đầu bằng chuyện test sinh ra để làm gì: vì sao test mock dày đặc cứ refactor là đỏ, chọn test double nào, những bug mà unit test về bản chất không thấy được, và dựng test data sao cho còn đọc nổi."
+            "text": "Thêm Topic 26 về testing strategy."
           }
         },
         {
@@ -1099,11 +1099,11 @@
           "count": 4,
           "en": {
             "section": "Integration tests that tell the truth",
-            "text": "Where a green suite lies to you: H2 versus the real engine, why @Transactional on a test hides flush-time failures, the context cache that turns a suite into fourteen minutes, and contract tests between two teams."
+            "text": "Added integration-testing guidance for real engines, transactions and context caching."
           },
           "vi": {
             "section": "Integration test nói thật",
-            "text": "Chỗ mà một bộ test xanh nói dối bạn: H2 so với engine thật, vì sao @Transactional trên test che mất lỗi lúc flush, cache context biến bộ test thành mười bốn phút, và contract test giữa hai team."
+            "text": "Thêm hướng dẫn integration testing với engine thật, transaction và context cache."
           }
         },
         {
@@ -1112,11 +1112,11 @@
           "count": 5,
           "en": {
             "section": "Testing what usually breaks",
-            "text": "Testing the parts that actually break in production: time and time zones, races you can reproduce, injected failure for retries and circuit breakers, load tests that lie, and a policy for flaky tests."
+            "text": "Added failure, time, race and load-testing guidance to Topic 26."
           },
           "vi": {
             "section": "Test đúng chỗ hay hỏng",
-            "text": "Test đúng những chỗ thật sự hỏng trên production: thời gian và múi giờ, race tái hiện được, tiêm lỗi cho retry và circuit breaker, load test nói dối, và chính sách xử lý test flaky."
+            "text": "Thêm hướng dẫn test failure, time, race và load vào Topic 26."
           }
         },
         {
@@ -1125,11 +1125,11 @@
           "count": 4,
           "en": {
             "section": "Secure coding at the boundary",
-            "text": "Security beyond the login flow: injection everywhere a string is assembled rather than bound, mass assignment that lets a user set their own role, parsers that turn input into code execution, and SSRF through any URL a user supplies."
+            "text": "Added secure-coding guidance beyond OAuth2 to Topic 13."
           },
           "vi": {
             "section": "Viết code an toàn ở biên",
-            "text": "Bảo mật ngoài luồng đăng nhập: injection ở mọi chỗ chuỗi bị ghép thay vì bind, mass assignment cho phép người dùng tự đặt role, parser biến input thành thực thi code, và SSRF qua mọi URL người dùng nhập."
+            "text": "Thêm hướng dẫn secure coding ngoài OAuth2 vào Topic 13."
           }
         },
         {
@@ -1138,11 +1138,11 @@
           "count": 4,
           "en": {
             "section": "Protecting the data you store",
-            "text": "What \"encrypted at rest\" actually stops, where sensitive data really leaks, how deletion requests and an immutable audit trail coexist, and keeping dependencies from becoming the breach."
+            "text": "Added data-protection and dependency-security guidance to Topic 13."
           },
           "vi": {
             "section": "Bảo vệ dữ liệu đã lưu",
-            "text": "Câu \"đã mã hoá at rest\" thật sự chặn được gì, dữ liệu nhạy cảm rò ở đâu, yêu cầu xoá dữ liệu sống chung với audit trail bất biến ra sao, và giữ cho dependency không thành lỗ hổng."
+            "text": "Thêm hướng dẫn bảo vệ dữ liệu và dependency security vào Topic 13."
           }
         }
       ]
@@ -1163,11 +1163,11 @@
           "count": 2,
           "en": {
             "section": "Language fundamentals",
-            "text": "Time, properly: which java.time type belongs where and why LocalDateTime cannot store when something happened, then which clock to read in production and what breaks when the machine's clock moves."
+            "text": "Added production time and clock guidance to Topic 01."
           },
           "vi": {
             "section": "Nền tảng ngôn ngữ",
-            "text": "Thời gian, làm cho tử tế: kiểu java.time nào dùng ở đâu và vì sao LocalDateTime không lưu được thời điểm một việc đã xảy ra, rồi đọc đồng hồ nào trên production và cái gì hỏng khi đồng hồ máy bị dịch."
+            "text": "Thêm hướng dẫn time và clock trong production vào Topic 01."
           }
         },
         {
@@ -1176,11 +1176,11 @@
           "count": 2,
           "en": {
             "section": "IoC container & transactions",
-            "text": "Spring application events around a transaction — including the trap in the AFTER_COMMIT default — and which Spring Cache defaults hurt once there are ten pods and a rolling deploy."
+            "text": "Added Spring transaction-event and multi-pod cache guidance to Topic 03."
           },
           "vi": {
             "section": "IoC container & transaction",
-            "text": "Spring application event quanh một transaction — kể cả cái bẫy nằm trong default AFTER_COMMIT — và default nào của Spring Cache gây đau khi đã có mười pod cùng một lần rolling deploy."
+            "text": "Thêm hướng dẫn transaction event của Spring và cache nhiều pod vào Topic 03."
           }
         },
         {
@@ -1189,11 +1189,11 @@
           "count": 1,
           "en": {
             "section": "Bean lifecycle & request flow",
-            "text": "The JSON boundary as a contract: which ObjectMapper defaults quietly become breaking changes, and the three separate bugs in serializing a JPA entity straight out."
+            "text": "Added JSON-boundary and JPA serialization guidance to Topic 03."
           },
           "vi": {
             "section": "Vòng đời bean & request flow",
-            "text": "Biên JSON như một contract: default nào của ObjectMapper âm thầm trở thành breaking change, và ba bug riêng biệt khi serialize thẳng một entity JPA."
+            "text": "Thêm hướng dẫn JSON boundary và serialize JPA vào Topic 03."
           }
         },
         {
@@ -1202,11 +1202,11 @@
           "count": 2,
           "en": {
             "section": "Modelling the schema",
-            "text": "A new section on schema design: why a database constraint is stronger than the same rule in application code, and which modelling decisions — keys, soft delete, enums, nullable columns — are hardest to reverse."
+            "text": "Added schema-modelling guidance to Topic 05."
           },
           "vi": {
             "section": "Thiết kế schema",
-            "text": "Một section mới về thiết kế schema: vì sao constraint ở database mạnh hơn chính luật đó trong code, và quyết định mô hình hoá nào — key, soft delete, enum, cột nullable — khó đảo ngược nhất."
+            "text": "Thêm hướng dẫn modelling schema vào Topic 05."
           }
         },
         {
@@ -1215,11 +1215,11 @@
           "count": 1,
           "en": {
             "section": "Rewriting the query & reshaping the model",
-            "text": "Writing at volume: chunks and checkpoints instead of one transaction around two million rows, and FOR UPDATE SKIP LOCKED turning a table into a work queue."
+            "text": "Added batch-writing and `FOR UPDATE SKIP LOCKED` guidance to Topic 18."
           },
           "vi": {
             "section": "Viết lại query & chỉnh mô hình",
-            "text": "Ghi dữ liệu khối lượng lớn: chunk và checkpoint thay cho một transaction bao trọn hai triệu dòng, và FOR UPDATE SKIP LOCKED biến một bảng thành hàng đợi công việc."
+            "text": "Thêm hướng dẫn batch write và `FOR UPDATE SKIP LOCKED` vào Topic 18."
           }
         },
         {
@@ -1228,11 +1228,11 @@
           "count": 2,
           "en": {
             "section": "Reliability & delivery semantics",
-            "text": "The rebalance loop explained by the two liveness clocks a consumer answers to, and designing an event you can evolve without breaking consumers you do not control."
+            "text": "Added consumer-liveness and evolvable-event guidance to Topic 08."
           },
           "vi": {
             "section": "Độ tin cậy & ngữ nghĩa",
-            "text": "Vòng lặp rebalance giải thích bằng hai đồng hồ liveness mà consumer phải trả lời, và thiết kế event sao cho tiến hoá được mà không phá consumer mình không kiểm soát."
+            "text": "Thêm hướng dẫn consumer liveness và event có thể evolve vào Topic 08."
           }
         },
         {
@@ -1241,11 +1241,11 @@
           "count": 1,
           "en": {
             "section": "Framework & building blocks",
-            "text": "Local cache, distributed cache or both — and what a rolling deploy does when old and new code share one Redis."
+            "text": "Added local and distributed cache guidance for rolling deploys to Topic 10."
           },
           "vi": {
             "section": "Khung & building blocks",
-            "text": "Cache local, cache phân tán hay cả hai — và rolling deploy gây ra chuyện gì khi code cũ và code mới dùng chung một Redis."
+            "text": "Thêm hướng dẫn local và distributed cache khi rolling deploy vào Topic 10."
           }
         },
         {
@@ -1254,11 +1254,11 @@
           "count": 2,
           "en": {
             "section": "Contracts, errors & lifecycle",
-            "text": "Webhooks in both directions: delivering to endpoints you do not control, and what an inbound handler must do before it trusts a single field."
+            "text": "Added inbound and outbound webhook contracts to Topic 17."
           },
           "vi": {
             "section": "Hợp đồng, lỗi & vòng đời",
-            "text": "Webhook cả hai chiều: gửi tới những endpoint mình không kiểm soát, và handler nhận vào phải làm gì trước khi tin dù chỉ một field."
+            "text": "Thêm contract cho webhook inbound và outbound vào Topic 17."
           }
         },
         {
@@ -1267,11 +1267,11 @@
           "count": 1,
           "en": {
             "section": "08 · Operational Concerns",
-            "text": "Scheduled and background jobs across N replicas: duplicate runs, a lease that expires mid-run, overlap, missed runs, and the silent failure of a job that simply stopped."
+            "text": "Added distributed scheduler and lease guidance to Topic 25."
           },
           "vi": {
             "section": "08 · Operational Concerns",
-            "text": "Job theo lịch và job nền khi chạy N replica: chạy trùng, lease hết hạn giữa chừng, chồng lấn, lỡ lượt, và kiểu hỏng im lặng khi job ngừng chạy hẳn."
+            "text": "Thêm hướng dẫn distributed scheduler và lease vào Topic 25."
           }
         },
         {
@@ -1280,11 +1280,11 @@
           "count": 1,
           "en": {
             "section": "Engine by engine",
-            "text": "When a search engine earns its place next to the database, how the index gets fed without a dual write, and what it must never own."
+            "text": "Added search-engine ownership and indexing guidance to Topic 07."
           },
           "vi": {
             "section": "So sánh các engine",
-            "text": "Khi nào một search engine xứng đáng đứng cạnh database, index được nạp thế nào mà không dual write, và nó tuyệt đối không được sở hữu cái gì."
+            "text": "Thêm hướng dẫn ownership và indexing của search engine vào Topic 07."
           }
         },
         {
@@ -1293,11 +1293,11 @@
           "count": 2,
           "en": {
             "section": "Technical storytelling & fundamentals",
-            "text": "Writing a design doc or ADR that gets a decision made — and reviewing other people's work, plus arguing for engineering investment in terms a business will fund."
+            "text": "Added design-document and ADR guidance to Topic 16."
           },
           "vi": {
             "section": "Kể chuyện kỹ thuật & nền tảng",
-            "text": "Viết design doc hay ADR chốt được quyết định — và review công việc của người khác, cùng cách bảo vệ khoản đầu tư kỹ thuật bằng ngôn ngữ mà bên kinh doanh chịu chi."
+            "text": "Thêm hướng dẫn design document và ADR vào Topic 16."
           }
         }
       ]
@@ -1317,11 +1317,11 @@
           "count": 15,
           "en": {
             "section": "The 15 patterns, traced step by step",
-            "text": "Each pattern's static trace became a player: press play and the steps run in turn, or scrub, step and arrow-key through them at your own pace. Every frame was produced by running the real algorithm, so the animation cannot disagree with the code beside it — and the drawing is shared between languages, with only the step captions translated."
+            "text": "Added interactive animations for all 15 DSA patterns."
           },
           "vi": {
             "section": "15 dạng bài, lần theo từng bước",
-            "text": "Diagram tĩnh của mỗi dạng bài đã thành một player: bấm play là các bước chạy lần lượt, hoặc bạn tự kéo thanh trượt, bấm từng bước và dùng mũi tên theo nhịp của mình. Mọi frame đều sinh ra từ việc chạy thuật toán thật, nên animation không thể lệch với code bên cạnh — và hình vẽ dùng chung cho hai ngôn ngữ, chỉ chú thích từng bước là được dịch."
+            "text": "Thêm animation tương tác cho toàn bộ 15 pattern DSA."
           }
         }
       ]
@@ -1339,20 +1339,20 @@
           "kind": "feature",
           "target": "release-notes",
           "en": {
-            "text": "This page follows the header's EN/VI switch like the rest of the material. A note written in only one language falls back rather than showing a blank row."
+            "text": "Added bilingual release notes with date grouping."
           },
           "vi": {
-            "text": "Trang này theo công tắc EN/VI ở header như mọi tài liệu khác. Ghi chú chỉ viết một ngôn ngữ sẽ hiển thị bản có sẵn thay vì để trống."
+            "text": "Thêm release note song ngữ và gom theo ngày."
           }
         },
         {
           "kind": "feature",
           "target": "release-notes",
           "en": {
-            "text": "Releases that share a date are now collected under one heading instead of repeating it, since a single day often carries several. The data file still holds one entry per release — appending is what you actually do — and the grouping happens when the page renders."
+            "text": "Grouped same-day releases under one date heading."
           },
           "vi": {
-            "text": "Các release cùng ngày giờ được gom dưới một tiêu đề thay vì lặp lại ngày, vì một ngày thường có nhiều release. File dữ liệu vẫn giữ một entry cho mỗi release — vì thực tế bạn chỉ thêm vào cuối — còn việc gom nhóm diễn ra lúc render trang."
+            "text": "Gom các release cùng ngày dưới một tiêu đề ngày."
           }
         }
       ]
@@ -1373,11 +1373,11 @@
           "count": 6,
           "en": {
             "section": "Keycloak in practice",
-            "text": "New section on Keycloak as a concrete identity provider: realms and clients, resource-server validation (including the audience claim Spring does not check by default), where roles actually land in the token, token exchange vs client credentials, production failure modes, and how to argue Keycloak against a managed IdP."
+            "text": "Added a practical Keycloak section to Topic 13."
           },
           "vi": {
             "section": "Keycloak trong thực tế",
-            "text": "Section mới về Keycloak như một identity provider cụ thể: realm và client, cách resource server validate token (kể cả claim `aud` mà Spring không kiểm mặc định), role thực sự nằm ở đâu trong token, token exchange so với client credentials, các kiểu vỡ khi chạy production, và cách lập luận chọn Keycloak thay vì IdP managed."
+            "text": "Thêm section Keycloak thực hành vào Topic 13."
           }
         },
         {
@@ -1386,11 +1386,11 @@
           "count": 15,
           "en": {
             "section": "The 15 patterns, traced step by step",
-            "text": "Every recurring pattern now has a diagram that traces the algorithm one step at a time — pointers converging, a window sliding by one add and one remove, a monotonic stack resolving two pending indices at once, a DP table filling cell by cell. Each entry pairs the trace with the template, a decision table, and the traps."
+            "text": "Added step-by-step diagrams for all 15 DSA patterns."
           },
           "vi": {
             "section": "15 dạng bài, lần theo từng bước",
-            "text": "Mỗi dạng bài hay gặp giờ có một diagram lần theo thuật toán từng bước một — hai con trỏ hội tụ, cửa sổ trượt bằng một phép cộng và một phép trừ, monotonic stack giải hai index đang chờ cùng lúc, bảng DP điền dần từng ô. Mỗi mục đi kèm template, bảng quyết định và các cái bẫy."
+            "text": "Thêm diagram từng bước cho toàn bộ 15 pattern DSA."
           }
         }
       ]
@@ -1409,20 +1409,20 @@
           "target": "case-studies",
           "count": 11,
           "en": {
-            "text": "New Experience section: long-form engineering case studies with bilingual article bodies, figures served locally, and a collapsible table of contents. Case studies are reading material, so they carry no item ids and never move the progress ring."
+            "text": "Added the bilingual Case Studies library."
           },
           "vi": {
-            "text": "Mục Experience mới: các case study kỹ thuật dạng dài, nội dung song ngữ, hình ảnh phục vụ tại chỗ, và mục lục thu gọn được. Case study là tài liệu đọc, nên không có item id và không bao giờ làm đổi vòng tiến độ."
+            "text": "Thêm thư viện Case Studies song ngữ."
           }
         },
         {
           "kind": "feature",
           "target": "boot",
           "en": {
-            "text": "Every deploy is now one immutable asset version: `boot.js` reads `version.json` with no-store, then loads the stylesheet and app graph stamped with that release."
+            "text": "Added immutable asset versioning to every deployment."
           },
           "vi": {
-            "text": "Mỗi lần deploy giờ là một version asset bất biến: `boot.js` đọc `version.json` với no-store, rồi nạp stylesheet và app graph đã đóng dấu theo release đó."
+            "text": "Thêm version asset bất biến cho mỗi lần deploy."
           }
         }
       ]
@@ -1440,10 +1440,10 @@
           "kind": "content",
           "target": "all-topics",
           "en": {
-            "text": "Answers across all 25 topics were rewritten for density: long paragraphs broken into short runs, sentence chains turned into lists, and wide table cells split. The audit tool grew a `--dense` report so a wall of prose shows up before it ships."
+            "text": "Reworked all topic answers for clearer, denser reading."
           },
           "vi": {
-            "text": "Câu trả lời của cả 25 topic được viết lại cho thoáng: đoạn dài cắt thành nhiều đoạn ngắn, chuỗi câu dài đổi thành list, ô bảng rộng được tách ra. Công cụ audit có thêm báo cáo `--dense` để một khối chữ dày bị phát hiện trước khi lên site."
+            "text": "Viết lại câu trả lời của toàn bộ topic để dễ đọc và cô đọng hơn."
           }
         }
       ]
@@ -1463,10 +1463,10 @@
           "target": "07-sql-nosql-db-engines",
           "count": 2,
           "en": {
-            "text": "Added engine-level comparison detail, including how Oracle and MySQL differ in process model, durability settings and operating contract rather than product name."
+            "text": "Added engine-level SQL and NoSQL comparisons to Topic 07."
           },
           "vi": {
-            "text": "Thêm phần so sánh ở mức engine, gồm cả việc Oracle và MySQL khác nhau ở process model, cấu hình durability và hợp đồng vận hành — chứ không phải khác ở tên sản phẩm."
+            "text": "Thêm so sánh SQL và NoSQL theo engine vào Topic 07."
           }
         },
         {
@@ -1474,10 +1474,10 @@
           "target": "01-java-core-jvm",
           "count": 1,
           "en": {
-            "text": "HashMap vs ConcurrentHashMap deep dive: treeification, resize behaviour, and why the concurrent variant is not simply a synchronized map."
+            "text": "Added a HashMap versus ConcurrentHashMap deep dive to Topic 01."
           },
           "vi": {
-            "text": "Deep dive HashMap vs ConcurrentHashMap: treeification, hành vi khi resize, và vì sao bản concurrent không đơn giản là một map có synchronized."
+            "text": "Thêm deep dive HashMap và ConcurrentHashMap vào Topic 01."
           }
         }
       ]
@@ -1495,10 +1495,10 @@
           "kind": "feature",
           "target": "language",
           "en": {
-            "text": "The EN/VI switch for study material now sits in the header beside the progress ring — it was inside the nav panel and nobody could find it. Interface text stays English; only the material switches."
+            "text": "Moved the study-language switch into the header."
           },
           "vi": {
-            "text": "Công tắc EN/VI cho tài liệu học giờ nằm ở header, cạnh vòng tiến độ — trước đó nó ở trong nav panel và không ai tìm ra. Chữ giao diện vẫn là tiếng Anh; chỉ tài liệu mới đổi."
+            "text": "Đưa công tắc ngôn ngữ học tập lên header."
           }
         }
       ]

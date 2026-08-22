@@ -10,6 +10,7 @@
     "dev": "nuxt dev",
     "build": "nuxt build",
     "generate": "nuxt generate",
+    "postgenerate": "node tools/minify-static-libs.mjs .output/public",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "test": "node tools/check.mjs",
@@ -20,6 +21,7 @@
   },
   "devDependencies": {
     "jsdom": "^30.0.1",
-    "sharp": "^0.35.3"
+    "sharp": "^0.35.3",
+    "terser": "^5.50.0"
   }
 }

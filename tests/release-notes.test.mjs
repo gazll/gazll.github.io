@@ -53,6 +53,18 @@ test('every release and every change carries both languages', () => {
   }
 });
 
+test('release change summaries stay concise and state the change', () => {
+  for (const { release, change } of changes) {
+    for (const lang of LANGS) {
+      const text = String(change[lang].text || '');
+      assert.ok(text.length <= 260,
+        release.date + '/' + change.target + '/' + lang + ': release summary is too long');
+      assert.equal(text.includes('\n'), false,
+        release.date + '/' + change.target + '/' + lang + ': release summary has multiple lines');
+    }
+  }
+});
+
 test('a change naming a topic names one that exists by immutable key', () => {
   const keys = new Set(Object.values(META.topics).map(topic => topic.key));
   const stems = new Set(MANIFEST.topics.map(row => path.basename(row.file, '.json')));

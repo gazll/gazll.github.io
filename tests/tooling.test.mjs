@@ -1,9 +1,13 @@
 import assert from 'node:assert/strict';
+import { execFile } from 'node:child_process';
 import path from 'node:path';
 import test from 'node:test';
 import os from 'node:os';
 import { readFile, readdir, mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { promisify } from 'node:util';
 import { stampAssets } from '../tools/stamp-assets.mjs';
+
+const execFileAsync = promisify(execFile);
 
 /* The build and release path: what CI runs, what a deploy stamps, and
    the generated Pages artifact it uploads.
@@ -76,6 +80,36 @@ import { stampAssets } from '../tools/stamp-assets.mjs';
     assert.match(source, /projectHistory = jsonRowsHistory/);
     assert.match(source, /documentHistory = jsonRowsHistory/);
     assert.match(source, /interviewHistory = jsonRowsHistory/);
+  });
+
+  test('production generation minifies static lib modules without touching other assets', async () => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), 'gazl-minify-libs-'));
+    const publicRoot = path.join(directory, 'public');
+    const libRoot = path.join(publicRoot, 'lib');
+    const toolLibRoot = path.join(publicRoot, 'fshare-tool', 'lib');
+    const vendorRoot = path.join(publicRoot, 'vendor');
+    await mkdir(libRoot, { recursive: true });
+    await mkdir(toolLibRoot, { recursive: true });
+    await mkdir(vendorRoot, { recursive: true });
+    await writeFile(path.join(libRoot, 'value.js'), '/* remove me */\nexport const value = 1;\n');
+    await writeFile(path.join(toolLibRoot, 'tool.js'), 'export function tool() { return 2; }\n');
+    const vendorSource = '/* keep vendored file untouched */\nexport const vendor = 3;\n';
+    await writeFile(path.join(vendorRoot, 'vendor.js'), vendorSource);
+
+    try {
+      await execFileAsync(process.execPath, [
+        path.join(root, 'tools/minify-static-libs.mjs'),
+        publicRoot
+      ], { cwd: root });
+      const lib = await readFile(path.join(libRoot, 'value.js'), 'utf8');
+      const toolLib = await readFile(path.join(toolLibRoot, 'tool.js'), 'utf8');
+      const vendor = await readFile(path.join(vendorRoot, 'vendor.js'), 'utf8');
+      assert.doesNotMatch(lib, /\/\*|\n/);
+      assert.doesNotMatch(toolLib, /\/\*|\n/);
+      assert.equal(vendor, vendorSource);
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
   });
 }
 
