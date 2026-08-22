@@ -62,6 +62,11 @@ public/
     auth.js          Google Identity Services + the header avatar state machine
     store.js         offline-first progress, notes, study log
     interview-merge.js  the journal's seed/own merge rules, shared by view and tests
+    lunar.js         solar/lunar conversion (Ho Ngoc Duc) + can-chi pillars, at UTC+7
+    vn-holidays.js   the eleven statutory days off as RULES; the yearly notice is data
+    schedule.js      recurrence -> dated occurrences; fixed vs rolling is the whole file
+    inventory.js     things owned: warranty from purchase, part age from its service log
+    schedule-crypto.js  AES-GCM envelope, one module for both the seal tool and the page
   dsa-player.js       play/pause/step control for DSA animations, loaded by QuestionCard
   fshare-tool/        standalone FShare browser tool
   course-registration/ standalone course-registration browser tool
@@ -96,6 +101,12 @@ vendor/mermaid-11.16.1/  pinned upstream build; version lives in the directory n
     photography/     Other Knowledge collection: manifest, meta, NN-slug[.vi].json, articles/
     homelab/         the same shape for NAS / Home Server
     interviews.json     seed entries, merged under everyone's own Sheet rows
+    calendar/holidays.json  yearly ministry notices ONLY — compensatory days, make-up
+                         Saturdays, which side of 02/09 the second National Day sits.
+                         The statutory eleven are computed, never listed here
+    schedule/private.enc.json  the private reminder list, AES-256-GCM. The plaintext
+                         is secret/schedule.json and is gitignored; see the sealed-
+                         schedule rule below and docs/schedule-playbook.md
   assets/case-studies/  local article figures; never hotlinked from a publisher
   assets/covers/     GENERATED card thumbnails (tools/optimize-images.mjs). A separate
                      tree because assets/case-studies is asserted to hold exactly the
@@ -107,7 +118,11 @@ tests/               every tests/*.test.mjs; discovered from disk, never enumera
 tools/               check.mjs (the one entrypoint) · validate-content.mjs · audit-content.mjs
                      add-content.mjs · stamp-assets.mjs · optimize-images.mjs
                      check-diagrams.mjs (run by check.mjs, needs jsdom)
+                     schedule-seal.mjs (seal/unseal the private schedule; NOT a
+                     check.mjs stage — CI has no passphrase and no secret/)
 docs/content-playbook.md  how to add/update study content end to end
+docs/schedule-playbook.md  the calendar, the sealed schedule, and how to recover it
+secret/schedule.json  GITIGNORED. The real reminder list; the repo holds only its envelope
 secret/              GITIGNORED. Personal setup notes and credentials
 ```
 
@@ -350,6 +365,118 @@ secret/              GITIGNORED. Personal setup notes and credentials
   text because the resolver had no questions to look up.
   `server/api/content/item-index.get.ts` serves that file, and a test asserts
   no view goes back to the raw path.
+
+- **The private schedule ships as ciphertext, and the passphrase is the only
+  gate.** `gazll.github.io` is a user-pages repository, so it is necessarily
+  public and every file under `public/data/` answers a plain `GET`. A reminder
+  list hidden behind a signed-in view would be the "hiding the Admin menu is
+  cosmetic" mistake with real consequences, so `data/schedule/private.enc.json`
+  is an AES-256-GCM envelope and the plaintext lives in gitignored
+  `secret/schedule.json`. Three things follow and each has already been the
+  wrong instinct once:
+
+  1. **The KEY is the gate, never sign-in on its own.** A sign-in gate buys
+     nothing over ciphertext and invents a lockout — local development has no
+     `public/config.js`, so `Auth` is `offline` there and the gate would hide
+     the panel from the one person entitled to it. There are two ways to hold
+     the key and both must keep working: typing the passphrase, and signing in
+     with an account listed in the `schedule_access` sheet, which makes
+     `schedule.key` hand it over (the passphrase itself lives in a Script
+     Property, not a Sheet cell, because a Sheet is what gets shared by
+     accident). A backend-delivered key is used and **dropped** — writing it to
+     storage would outlive the row being deleted and make revocation a lie.
+     Even so, revocation is soft: the key must reach the browser to decrypt, so
+     taking access back for real means re-sealing under a new passphrase. Say
+     that plainly rather than implying the Sheet row is a boundary. Being
+     granted shows the whole file; the member chips filter the view and are not
+     a permission model.
+  2. **`tools/schedule-seal.mjs` must keep both directions.** `secret/` is
+     backed up by nothing; the envelope is in git, every version of it, so
+     `unseal` is the recovery path and `git log` on that one file is the
+     history. The passphrase is the only unrecoverable part.
+  3. **`schedule-seal.mjs --check` must never become a `check.mjs` stage.** CI
+     has neither the passphrase nor `secret/`, so it would fail on every run —
+     unlike the two `--check` tools that CI does run.
+
+  The Sheet's `schedule_inbox` is a holding pen, never the source of truth: a
+  row is transcribed into the sealed file and then marked `merged`, so losing
+  the Sheet costs at most the untranscribed notes.
+
+  Two shapes live in that file beside `events`, and neither is an event.
+  `members` is who a reminder belongs to — data rather than a closed set in
+  code, because a household changes without a release, and `seal` refuses an
+  event whose `member` names nobody so a typo cannot orphan a row into an owner
+  no filter ever shows. `notes` is what is true but not dated: what is in the
+  cupboard, why a schedule is on hold. A standing note has no date, no status
+  and no place in the agenda — give it one and it should have been a `once`
+  event instead. One member chip filters the grid dots, the agenda and the
+  notes together; filtering only the list under it was the wrong instinct.
+
+- **An inventory is not an agenda, and a part's age is not its owner's age.**
+  `items` in the sealed file is what you own — bought when, cost what, covered
+  until when — and it lives behind its own tab in `lib/inventory.js`, never in
+  `schedule.js`. A reminder repeats; a receipt never does, and the one date an
+  item has is DERIVED (`bought` + `warranty_months`) rather than authored.
+  Feeding eighty receipts into the agenda would bury the six things actually
+  due this quarter, so items are deliberately absent from it. Four rules the
+  shape depends on:
+
+  1. **Items split by household, not by member.** A NAS belongs to the house,
+     not to one of the people in it, so `households` is a separate axis from
+     `members` rather than a rename of it. One chip row serves both and
+     switches meaning with the tab — two filters at once only raise the
+     question of which is in charge.
+  2. **`bought` may be absent.** A receipt nobody kept is a real state, and
+     guessing a date makes the history lie rather than admit the gap. The row
+     shows no date and no age; never backfill a plausible one.
+  3. **`service` resets the part, not the thing.** A four-year-old pair of
+     earbuds whose battery was changed in June is not a four-year-old battery,
+     and that second number is the one being asked for. A vehicle is therefore
+     ONE item whose bugi, lọc gió and acquy are its service log — not four
+     unrelated purchases that happen to share a garage.
+  4. **A group is dated by its newest part.** A NAS given a drive last month is
+     something you touched last month; sorting it by the 2024 build date buries
+     it under every trinket bought since.
+
+  Checklist tick state is the one thing here that is state rather than content,
+  so it is **not** in the sealed file: it changes several times a trip and must
+  not need a commit. `localStorage` is the store — it must keep working signed
+  out — and the Sheet (`schedule.check`, on the existing `app_config`) is a sync
+  layer where the later timestamp wins. An entry's `id` is that stored key, so
+  `seal` checks entry ids for uniqueness across every list, not within one:
+  renaming one orphans its tick exactly as renaming a topic file orphans
+  `progress` rows.
+
+- **Fixed and rolling reminders are not the same recurrence, and confusing them
+  is silent.** A *fixed* event (`once`, `yearly`, `lunar-yearly`, `monthly`)
+  happens on a date the calendar decides — paying late does not move next year.
+  A *rolling* one (`{ kind: 'rolling', every, unit }`) is measured from the last
+  completion in `history`, so skipping one shifts everything after it. That
+  split also decides how long a missed occurrence stays live, and getting it
+  wrong is invisible: a rolling event whose date had passed was being skipped in
+  favour of the next cycle, so "deworming was due five weeks ago" rendered as
+  "due in five months". A rolling event therefore stays overdue for a whole
+  period; a fixed one expires `lead_days` after its date and hands over to the
+  next occurrence. `tests/calendar.test.mjs` pins both halves.
+
+- **Holiday statute is rules; the ministry notice is data.** Bộ luật Lao động
+  2019 Điều 112 grants eleven paid days, and `lib/vn-holidays.js` computes all
+  eleven for any year — never list them in a file. What genuinely cannot be
+  computed is published one year at a time: the extra days a Tết is granted, the
+  Saturdays worked in exchange, and which side of 02/09 the second National Day
+  falls on. Those, and only those, go in `data/calendar/holidays.json`. The
+  eleven-day count is asserted, because a Tết span computed one day short still
+  renders a plausible-looking calendar. A year with no notice falls back to the
+  statute, which is correct — just not what was announced.
+
+- **`/calendar` is client-only, and that is the point.** The site is prerendered
+  onto GitHub Pages, so a server-rendered calendar bakes the BUILD date in as
+  "today" and every relative line — days away, overdue, this month — is wrong
+  until the next deploy. `CalendarSurface.client.vue` reads the real date on
+  mount. Its category accents use `[data-cal-cat]` rather than reusing
+  `[data-topic-type]`: a topic type and a reminder category are different
+  vocabularies that both happen to want colour, and merging them would make
+  renaming one silently repaint the other.
 
 - **The Study Track chrome is gated on `body.view-track`.** `styles.css` hides
   `.track-only` — the progress ring — everywhere else, and the class used to be
@@ -980,6 +1107,10 @@ Three tests in `tests/security.test.mjs` pin this.
 Editing study content? `docs/content-playbook.md` is the full procedure —
 investigating what to change, the format rules, the VI/EN contract, and the
 patch tool. The commands below are what CI enforces.
+
+Editing the private schedule? `docs/schedule-playbook.md`. It is outside the
+three commands below on purpose: run `node tools/schedule-seal.mjs seal` and
+commit the envelope, because CI cannot re-seal what it cannot decrypt.
 
 **`check.mjs` is the third of three commands CI runs, not all of it.** The two
 that come first regenerate derived data from git history and fail if the

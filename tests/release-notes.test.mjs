@@ -13,7 +13,8 @@ const releases = NOTES.releases || [];
 const changes = releases.flatMap(r => (r.changes || []).map(c => ({ release: r, change: c })));
 const LANGS = ['en', 'vi'];
 const NON_TOPIC_TARGETS = new Set([
-  'case-studies', 'system-design', 'interviews', 'boot', 'language', 'all-topics', 'release-notes', 'search'
+  'case-studies', 'system-design', 'interviews', 'boot', 'language', 'all-topics', 'release-notes', 'search',
+  'calendar'
 ]);
 
 test('there is at least one release, and every release is dated ISO yyyy-mm-dd', () => {

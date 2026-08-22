@@ -1699,3 +1699,336 @@
   .err-links a{font-size:13px;color:var(--emerald-deep);text-decoration:none;border-bottom:1px solid transparent}
   .err-links a:hover{border-bottom-color:currentColor}
   .err-links a:focus-visible{outline:2px solid var(--emerald);outline-offset:3px;border-radius:3px}
+
+  /* ---------- calendar (/calendar) ----------
+
+     Two surfaces in one page: a public Vietnamese calendar, and the private
+     reminder list layered onto it. Category accents get their own attribute
+     rather than reusing [data-topic-type] — a topic type and a reminder
+     category are different vocabularies that happen to want colour, and
+     merging them would make renaming one silently repaint the other. Every
+     pair below clears 4.5:1 on --surface, --paper and its own soft fill. */
+
+  [data-cal-cat="finance"]     {--g:var(--emerald-deep);--g-soft:var(--emerald-soft)}
+  [data-cal-cat="vehicle"]     {--g:var(--indigo);      --g-soft:var(--indigo-soft)}
+  [data-cal-cat="health"]      {--g:var(--clay);        --g-soft:var(--clay-soft)}
+  [data-cal-cat="pet"]         {--g:var(--brass);       --g-soft:#FAF5E9}
+  [data-cal-cat="home"]        {--g:var(--teal);        --g-soft:var(--teal-soft)}
+  [data-cal-cat="device"]      {--g:#41505F;            --g-soft:#E9EDF1}
+  [data-cal-cat="document"]    {--g:#5B3E8E;            --g-soft:#EFEAF7}
+  [data-cal-cat="family"]      {--g:#9A3B62;            --g-soft:#F7E9EF}
+  [data-cal-cat="subscription"]{--g:#345E7A;            --g-soft:#E6EDF2}
+
+  .cal{margin-top:26px}
+
+  /* The toolbar sticks under the header, so stepping months never scrolls the
+     controls away mid-read. --hdr-h is published by useHeadroom(). */
+  .cal-bar{position:sticky;top:var(--hdr-h,64px);z-index:20;display:flex;flex-wrap:wrap;
+    align-items:center;gap:12px;padding:10px 0 12px;margin-bottom:14px;
+    background:linear-gradient(var(--paper) 78%, transparent);border-bottom:1px solid var(--line)}
+  .cal-nav{display:flex;align-items:center;gap:8px}
+  .cal-step{width:32px;height:32px;flex:none;border-radius:9px;border:1px solid var(--line);
+    background:var(--surface);color:var(--ink-soft);cursor:pointer;display:grid;place-items:center;
+    padding:0;transition:.15s ease}
+  .cal-step svg{width:17px;height:17px}
+  .cal-step:hover:not(:disabled){border-color:var(--emerald);color:var(--emerald)}
+  .cal-step:disabled{opacity:.35;cursor:default}
+  .cal-step:focus-visible{outline:2px solid var(--emerald);outline-offset:2px}
+  .cal-title{min-width:190px;display:flex;flex-direction:column;line-height:1.25}
+  .cal-title b{font-family:"Space Grotesk",sans-serif;font-size:17px;color:var(--ink)}
+  .cal-title span{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.4px;
+    text-transform:uppercase;color:var(--muted)}
+  .cal-today,.cal-lock,.cal-ghost{border:1px solid var(--line);background:var(--surface);
+    border-radius:999px;padding:6px 14px;font:inherit;font-size:12.5px;color:var(--ink-soft);
+    cursor:pointer;transition:.15s ease}
+  .cal-today:hover,.cal-lock:hover,.cal-ghost:hover{border-color:var(--emerald);color:var(--emerald)}
+  .cal-today:focus-visible,.cal-lock:focus-visible,.cal-ghost:focus-visible{outline:2px solid var(--emerald);outline-offset:2px}
+  .cal-lock{margin-left:auto;display:inline-flex;align-items:center;gap:7px}
+  .cal-lock svg{width:15px;height:15px}
+  .cal-lock.is-open{color:var(--emerald-deep);border-color:#CFE6DA;background:var(--emerald-soft)}
+
+  .cal-views{display:flex;gap:4px;padding:3px;border:1px solid var(--line);border-radius:999px;
+    background:var(--surface)}
+  .cal-tab{border:0;background:transparent;border-radius:999px;padding:5px 14px;font:inherit;
+    font-size:12.5px;color:var(--muted);cursor:pointer;transition:.15s ease}
+  .cal-tab:hover{color:var(--ink)}
+  .cal-tab[aria-selected="true"]{background:var(--emerald-soft);color:var(--emerald-deep);font-weight:600}
+  .cal-tab:focus-visible{outline:2px solid var(--emerald);outline-offset:2px}
+
+  .cal-body{display:grid;grid-template-columns:minmax(0,1fr) 318px;gap:22px;align-items:start}
+  .cal-main{min-width:0}
+
+  /* ---------- month grid ---------- */
+
+  .cal-head{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;margin-bottom:6px}
+  .cal-dow{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.6px;
+    text-transform:uppercase;color:var(--muted);text-align:center;padding:2px 0}
+  .cal-dow.is-weekend{color:var(--clay)}
+  /* Always six rows: a month that needs five would otherwise change the page
+     height on every step, and the rail beside it would jump with it. */
+  .cal-weeks{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));
+    grid-template-rows:repeat(6,minmax(84px,auto));gap:6px}
+  .cal-cell{position:relative;display:flex;flex-direction:column;gap:2px;text-align:left;
+    padding:7px 8px;border:1px solid var(--line);border-radius:11px;background:var(--surface);
+    font:inherit;cursor:pointer;overflow:hidden;transition:border-color .15s ease, background .15s ease}
+  .cal-cell:hover{border-color:var(--line-strong)}
+  .cal-cell:focus-visible{outline:2px solid var(--emerald);outline-offset:-2px}
+  .cal-cell.is-weekend{background:var(--paper)}
+  .cal-cell.is-out{opacity:.4}
+  .cal-cell.is-off{background:var(--clay-soft);border-color:#E6C6C0}
+  .cal-cell.is-off .cal-solar{color:var(--clay)}
+  .cal-cell.is-today{border-color:var(--emerald);box-shadow:inset 0 0 0 1px var(--emerald)}
+  .cal-cell.is-today .cal-solar{color:var(--emerald-deep);font-weight:700}
+  .cal-cell.is-selected{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+  .cal-solar{font-family:"Space Grotesk",sans-serif;font-size:16px;font-weight:600;color:var(--ink);line-height:1.1}
+  .cal-lunar{position:absolute;top:7px;right:8px;font-family:"IBM Plex Mono",monospace;
+    font-size:10px;color:var(--muted)}
+  /* Mùng 1 and rằm are not holidays, but they are the two lunar days a
+     household plans around, so they are marked rather than labelled. */
+  .cal-lunar.is-new-moon,.cal-lunar.is-full-moon{color:var(--brass);font-weight:600}
+  .cal-lunar.is-full-moon::after{content:"";display:inline-block;width:5px;height:5px;margin-left:3px;
+    border-radius:50%;background:var(--brass);vertical-align:middle}
+  .cal-lunar.is-new-moon::after{content:"";display:inline-block;width:5px;height:5px;margin-left:3px;
+    border-radius:50%;border:1px solid var(--brass);vertical-align:middle}
+  .cal-label{margin-top:auto;font-size:10.5px;line-height:1.3;color:var(--clay);
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .cal-label.is-work{color:var(--muted)}
+  .cal-dots{display:flex;gap:3px;flex-wrap:wrap;margin-top:3px}
+  .cal-dots i{width:6px;height:6px;border-radius:50%;background:var(--g,var(--muted))}
+  .cal-dots i.is-done{background:transparent;box-shadow:inset 0 0 0 1.5px var(--g,var(--muted));opacity:.6}
+  .cal-dots i.is-late{box-shadow:0 0 0 2px var(--clay-soft)}
+
+  /* ---------- year grid ---------- */
+
+  .cal-year{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+  .cal-mini{border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:12px 12px 14px}
+  .cal-mini h3{margin:0 0 8px;font-family:"Space Grotesk",sans-serif;font-size:13px;color:var(--ink)}
+  .cal-mini-head,.cal-mini-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px}
+  .cal-mini-head span{font-family:"IBM Plex Mono",monospace;font-size:9px;color:var(--muted);text-align:center}
+  .cal-mini-day{border:0;background:transparent;border-radius:6px;padding:3px 0;font:inherit;
+    font-size:11px;color:var(--ink-soft);cursor:pointer;position:relative}
+  .cal-mini-day:hover{background:var(--paper)}
+  .cal-mini-day:focus-visible{outline:2px solid var(--emerald);outline-offset:-1px}
+  .cal-mini-day.is-out{opacity:.25}
+  .cal-mini-day.is-off{background:var(--clay-soft);color:var(--clay);font-weight:600}
+  .cal-mini-day.is-today{background:var(--emerald);color:#fff;font-weight:700}
+  .cal-mini-day.has-event::after{content:"";position:absolute;left:50%;bottom:1px;transform:translateX(-50%);
+    width:4px;height:4px;border-radius:50%;background:var(--indigo)}
+
+  /* ---------- agenda ---------- */
+
+  .cal-agenda{display:flex;flex-direction:column;gap:22px}
+  .cal-group-head{display:flex;align-items:center;gap:9px;margin:0 0 10px;
+    font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.8px;
+    text-transform:uppercase;color:var(--muted)}
+  .cal-group-head span{font-size:10px;padding:1px 7px;border-radius:999px;
+    background:var(--paper);border:1px solid var(--line);color:var(--ink-soft)}
+  .cal-group-head[data-status="overdue"]{color:var(--clay)}
+  .cal-group-head[data-status="due"]{color:var(--brass)}
+  .cal-item{display:flex;gap:16px;align-items:flex-start;justify-content:space-between;
+    padding:13px 16px 13px 14px;margin-bottom:8px;background:var(--surface);
+    border:1px solid var(--line);border-left:3px solid var(--g,var(--line-strong));border-radius:11px}
+  .cal-item[data-status="overdue"]{background:var(--clay-soft);border-color:#E6C6C0;border-left-color:var(--clay)}
+  .cal-item-main{min-width:0}
+  .cal-item h4{margin:0 0 4px;font-family:"Space Grotesk",sans-serif;font-size:15px;color:var(--ink)}
+  .cal-item-meta{margin:0;display:flex;flex-wrap:wrap;gap:4px 0;font-family:"IBM Plex Mono",monospace;
+    font-size:10.5px;letter-spacing:.3px;color:var(--muted)}
+  .cal-item-meta>*+*::before{content:"·";margin:0 7px;color:var(--line-strong)}
+  .cal-cat{color:var(--g,var(--muted));text-transform:uppercase;font-weight:600}
+  .cal-item-note{margin:7px 0 0;font-size:13px;line-height:1.55;color:var(--ink-soft)}
+  .cal-item-est{margin:5px 0 0;font-size:11px;color:var(--brass)}
+  .cal-item-when{flex:none;text-align:right;display:flex;flex-direction:column;gap:2px;min-width:104px}
+  .cal-item-when b{font-family:"Space Grotesk",sans-serif;font-size:15px;color:var(--ink)}
+  .cal-item-when b i{font-style:normal;color:var(--brass);margin-left:2px}
+  .cal-item-when span{font-family:"IBM Plex Mono",monospace;font-size:10px;color:var(--muted)}
+  .cal-away{font-weight:600}
+  .cal-away[data-status="overdue"]{color:var(--clay)}
+  .cal-away[data-status="due"]{color:var(--brass)}
+  .cal-away[data-status="soon"]{color:var(--ink-soft)}
+  .cal-locked,.cal-empty{padding:34px 22px;border:1px dashed var(--line-strong);border-radius:12px;
+    background:var(--surface);text-align:center;color:var(--muted)}
+  .cal-locked h3{margin:0 0 6px;font-family:"Space Grotesk",sans-serif;font-size:16px;color:var(--ink)}
+  .cal-locked p{margin:0 auto;font-size:13.5px;max-width:46ch}
+
+  /* ---------- rail ---------- */
+
+  .cal-rail{display:flex;flex-direction:column;gap:12px;position:sticky;top:calc(var(--hdr-h,64px) + 62px)}
+  .cal-card{border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:14px 15px}
+  .cal-kicker{margin:0 0 8px;font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.8px;
+    text-transform:uppercase;color:var(--muted)}
+  .cal-today-card{background:linear-gradient(160deg,var(--emerald-soft),var(--surface) 62%);
+    border-color:#CFE6DA}
+  .cal-bigdate{margin:0;font-family:"Space Grotesk",sans-serif;font-size:26px;font-weight:600;
+    line-height:1.1;color:var(--ink)}
+  .cal-bigmoon{margin:2px 0 10px;font-size:13px;color:var(--emerald-deep)}
+  .cal-pillars{margin:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+  .cal-pillars dt{font-family:"IBM Plex Mono",monospace;font-size:9px;letter-spacing:.5px;
+    text-transform:uppercase;color:var(--muted)}
+  .cal-pillars dd{margin:1px 0 0;font-size:12.5px;color:var(--ink-soft)}
+  .cal-today-holiday{margin:10px 0 0;font-size:12.5px;color:var(--clay)}
+  .cal-today-holiday[data-kind="observance"]{color:var(--brass)}
+  .cal-daymoon{margin:0 0 9px;font-size:13px;color:var(--ink-soft)}
+  .cal-daylist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+  .cal-daylist li{font-size:12.5px;color:var(--ink-soft);padding-left:11px;position:relative}
+  .cal-daylist li::before{content:"";position:absolute;left:0;top:7px;width:5px;height:5px;
+    border-radius:50%;background:var(--brass)}
+  .cal-daylist li[data-kind="statutory"]::before,.cal-daylist li[data-kind="compensatory"]::before{background:var(--clay)}
+  .cal-daylist li.is-event::before{background:var(--g,var(--indigo))}
+  .cal-daylist em{font-style:normal;font-family:"IBM Plex Mono",monospace;font-size:9.5px;
+    letter-spacing:.4px;text-transform:uppercase;color:var(--clay);margin-left:6px}
+  .cal-muted{margin:0;font-size:12.5px;color:var(--muted)}
+  .cal-next{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+  .cal-next button{display:flex;align-items:baseline;gap:9px;width:100%;border:0;background:transparent;
+    border-radius:7px;padding:5px 7px;font:inherit;text-align:left;cursor:pointer}
+  .cal-next button:hover{background:var(--paper)}
+  .cal-next button:focus-visible{outline:2px solid var(--emerald);outline-offset:-1px}
+  .cal-next b{flex:none;font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--clay)}
+  .cal-next span{flex:1;min-width:0;font-size:12.5px;color:var(--ink-soft);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .cal-next i{flex:none;font-style:normal;font-family:"IBM Plex Mono",monospace;font-size:10px;color:var(--muted)}
+
+  .cal-unlock form{display:flex;flex-direction:column;gap:9px}
+  .cal-field{display:flex;flex-direction:column;gap:4px}
+  .cal-field span{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.5px;
+    text-transform:uppercase;color:var(--muted)}
+  .cal-field input,.cal-inbox-form input,.cal-inbox-form select{border:1px solid var(--line);
+    border-radius:9px;background:var(--paper);padding:8px 10px;font:inherit;font-size:13px;color:var(--ink)}
+  .cal-field input:focus,.cal-inbox-form input:focus,.cal-inbox-form select:focus{outline:2px solid var(--emerald);outline-offset:1px}
+  .cal-check{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink-soft)}
+  .cal-primary{border:1px solid var(--emerald-deep);background:var(--emerald-deep);color:#fff;
+    border-radius:999px;padding:8px 18px;font:inherit;font-size:13px;font-weight:600;cursor:pointer;
+    transition:.15s ease}
+  .cal-primary:hover:not(:disabled){background:var(--emerald)}
+  .cal-primary:disabled{opacity:.45;cursor:default}
+  .cal-primary:focus-visible{outline:2px solid var(--emerald);outline-offset:2px}
+  .cal-linkbtn{align-self:flex-start;border:0;background:none;padding:0;font:inherit;font-size:12px;
+    color:var(--muted);text-decoration:underline;cursor:pointer}
+  .cal-linkbtn:hover{color:var(--emerald)}
+  .cal-linkbtn:focus-visible{outline:2px solid var(--emerald);outline-offset:2px;border-radius:3px}
+  /* The hint ships unencrypted beside the ciphertext, so it is public. Styled
+     as a quiet aside rather than as something to read aloud. */
+  .cal-hint{margin:0;font-family:"IBM Plex Mono",monospace;font-size:13px;letter-spacing:.06em;color:var(--ink-soft)}
+  .cal-hint span{font-size:9.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);margin-right:7px}
+
+  .cal-error{margin:0;font-size:12.5px;color:var(--clay);line-height:1.5}
+
+
+  /* Member filter + standing notes. Both only exist once the schedule is open,
+     so neither has a signed-out state to design for. */
+
+  .cal-members{display:flex;flex-wrap:wrap;gap:6px;margin:-4px 0 16px}
+  .cal-mchip{border:1px solid var(--line);background:var(--surface);border-radius:999px;
+    padding:4px 13px;font:inherit;font-size:12.5px;color:var(--muted);cursor:pointer;transition:.15s ease}
+  .cal-mchip:hover{border-color:var(--line-strong);color:var(--ink)}
+  .cal-mchip[aria-pressed="true"]{background:var(--emerald-soft);border-color:var(--emerald);
+    color:var(--emerald-deep);font-weight:600}
+  .cal-mchip:focus-visible{outline:2px solid var(--emerald);outline-offset:2px}
+
+  .cal-owner{color:var(--ink-soft);font-weight:600}
+  .cal-standing{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+  .cal-standing li{padding-left:10px;border-left:2px solid var(--g,var(--line-strong))}
+  .cal-standing b{display:block;font-family:"Space Grotesk",sans-serif;font-size:12.5px;color:var(--ink)}
+  .cal-standing span{display:block;font-size:12.5px;line-height:1.5;color:var(--ink-soft)}
+  .cal-standing i{display:block;margin-top:2px;font-style:normal;font-family:"IBM Plex Mono",monospace;
+    font-size:9.5px;letter-spacing:.4px;text-transform:uppercase;color:var(--muted)}
+
+
+  /* ---------- things owned ---------- */
+
+  .cal-items{display:flex;flex-direction:column;gap:22px}
+  /* The only list here worth acting on: cover about to lapse, while there is
+     still time to test the thing and file a claim. */
+  .cal-warranty{border:1px solid #E3D6B8;border-radius:12px;background:#FAF5E9;padding:14px 16px}
+  .cal-warranty h3{margin:0 0 9px;font-family:"IBM Plex Mono",monospace;font-size:10.5px;
+    letter-spacing:.8px;text-transform:uppercase;color:var(--brass)}
+  .cal-warranty ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:5px}
+  .cal-warranty li{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline;font-size:13px}
+  .cal-warranty b{color:var(--ink)}
+  .cal-warranty span{font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--brass)}
+
+  .cal-igroup h3{display:flex;align-items:center;gap:9px;margin:0 0 10px;
+    font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.8px;
+    text-transform:uppercase;color:var(--muted)}
+  .cal-igroup h3 span{font-size:10px;padding:1px 7px;border-radius:999px;background:var(--paper);
+    border:1px solid var(--line);color:var(--ink-soft)}
+  .cal-ilist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+  .cal-ilist li{display:flex;gap:16px;align-items:flex-start;justify-content:space-between;
+    padding:11px 15px;background:var(--surface);border:1px solid var(--line);border-radius:10px}
+  .cal-iname{min-width:0}
+  .cal-iname b{font-family:"Space Grotesk",sans-serif;font-size:14px;color:var(--ink)}
+  .cal-iname p{margin:3px 0 0;font-size:12.5px;line-height:1.5;color:var(--ink-soft)}
+  /* A replacement resets the clock for one part while the item keeps its own
+     purchase date, so it prints as its own line rather than as a note. */
+  .cal-iservice{font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--teal)}
+  .cal-iservice i{font-style:normal;color:var(--muted)}
+  .cal-iservice em{font-style:normal;margin-left:7px;color:var(--muted)}
+  .cal-imeta{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:2px;
+    font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--muted);min-width:128px}
+  .cal-iage{color:var(--ink-soft)}
+  .cal-iwarr[data-warranty="active"]{color:var(--emerald-deep)}
+  .cal-iwarr[data-warranty="ending"]{color:var(--brass);font-weight:600}
+  .cal-iwarr[data-warranty="expired"]{color:var(--muted)}
+
+  /* ---------- checklists ---------- */
+
+  .cal-checklist .cal-kicker{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+  .cal-checklist .cal-kicker b{font-family:"IBM Plex Mono",monospace;font-size:10px;color:var(--emerald-deep)}
+  .cal-cl-note{margin:-4px 0 9px}
+  .cal-checklist ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:3px}
+  .cal-checklist label{display:flex;align-items:flex-start;gap:8px;padding:4px 5px;border-radius:7px;
+    cursor:pointer;font-size:12.5px;line-height:1.45;color:var(--ink-soft)}
+  .cal-checklist label:hover{background:var(--paper)}
+  .cal-checklist input{margin-top:3px;flex:none;accent-color:var(--emerald)}
+  .cal-checklist label.is-done span{color:var(--muted);text-decoration:line-through}
+  .cal-checklist label i{display:block;font-style:normal;font-family:"IBM Plex Mono",monospace;
+    font-size:9.5px;color:var(--muted);text-decoration:none}
+  .cal-checklist input:focus-visible{outline:2px solid var(--emerald);outline-offset:2px}
+
+  @media (max-width:720px){
+    .cal-ilist li{flex-direction:column;gap:8px}
+    .cal-imeta{align-items:flex-start;flex-direction:row;flex-wrap:wrap;gap:4px 12px;min-width:0}
+  }
+
+  /* ---------- inbox ---------- */
+
+  .cal-inbox{margin-top:30px;padding:20px 22px 22px;border:1px solid var(--line);border-radius:14px;
+    background:var(--surface)}
+  .cal-inbox-head h2{margin:0 0 4px;font-family:"Space Grotesk",sans-serif;font-size:17px;color:var(--ink)}
+  .cal-inbox-head p{margin:0 0 14px;font-size:13px;color:var(--muted);max-width:70ch}
+  .cal-inbox-form{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+  .cal-inbox-form input:first-child{flex:1 1 300px}
+  .cal-notes{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+  .cal-notes li{display:flex;gap:14px;align-items:flex-start;justify-content:space-between;
+    padding:11px 13px;border:1px solid var(--line);border-radius:10px;background:var(--paper)}
+  .cal-notes li.is-merged{opacity:.6}
+  .cal-note-body{margin:0;font-size:13.5px;color:var(--ink);line-height:1.5}
+  .cal-note-meta{margin:4px 0 0;display:flex;flex-wrap:wrap;font-family:"IBM Plex Mono",monospace;
+    font-size:10px;color:var(--muted)}
+  .cal-note-meta>*+*::before{content:"·";margin:0 7px;color:var(--line-strong)}
+  .cal-note-actions{flex:none;display:flex;gap:6px}
+  .cal-note-actions button{border:1px solid var(--line);background:var(--surface);border-radius:999px;
+    padding:4px 11px;font:inherit;font-size:11.5px;color:var(--ink-soft);cursor:pointer;transition:.15s ease}
+  .cal-note-actions button:hover{border-color:var(--emerald);color:var(--emerald)}
+  .cal-note-actions button.is-danger:hover{border-color:var(--clay);color:var(--clay)}
+  .cal-note-actions button:focus-visible{outline:2px solid var(--emerald);outline-offset:2px}
+  .cal-ghost{margin-top:12px}
+
+  @media (max-width:1040px){
+    .cal-body{grid-template-columns:minmax(0,1fr)}
+    .cal-rail{position:static;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+  }
+  @media (max-width:720px){
+    .cal-bar{gap:8px}
+    .cal-title{min-width:120px}
+    .cal-lock{margin-left:0;order:4}
+    .cal-weeks{grid-template-rows:repeat(6,minmax(58px,auto));gap:3px}
+    .cal-cell{padding:5px}
+    /* Below this width a holiday name cannot be read inside a 44px cell, so the
+       day keeps its tint and the name moves to the rail's day detail. */
+    .cal-label{display:none}
+    .cal-solar{font-size:13px}
+    .cal-lunar{top:4px;right:5px;font-size:9px}
+    .cal-item{flex-direction:column;gap:8px}
+    .cal-item-when{text-align:left;flex-direction:row;gap:10px;align-items:baseline}
+    .cal-notes li{flex-direction:column;gap:9px}
+  }

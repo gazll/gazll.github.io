@@ -2,6 +2,77 @@
   "version": 1,
   "releases": [
     {
+      "date": "2026-08-22",
+      "en": {
+        "title": "A calendar, and the reminders behind it"
+      },
+      "vi": {
+        "title": "Một cuốn lịch, và những mốc cần nhớ phía sau"
+      },
+      "changes": [
+        {
+          "kind": "feature",
+          "target": "calendar",
+          "en": {
+            "text": "Added /calendar: Vietnamese solar and lunar dates with can-chi pillars, the eleven statutory holidays computed from the 2019 labour code, and month, year and agenda views covering five years ahead."
+          },
+          "vi": {
+            "text": "Thêm /calendar: lịch dương và âm kèm can chi, mười một ngày nghỉ lễ tính theo Bộ luật Lao động 2019, cùng ba chế độ xem tháng, năm và danh sách sắp tới trong vòng năm năm."
+          }
+        },
+        {
+          "kind": "feature",
+          "target": "calendar",
+          "en": {
+            "text": "A private reminder tracker layers onto the same calendar: annual fees, servicing intervals, vaccinations and lunar anniversaries, each resolved to its next date and grouped by how urgent it is."
+          },
+          "vi": {
+            "text": "Lịch nhắc việc riêng chồng lên cùng cuốn lịch đó: phí thường niên, chu kỳ bảo dưỡng, tiêm phòng và ngày giỗ theo âm lịch, mỗi mục tự tính ra mốc kế tiếp và xếp nhóm theo mức gấp."
+          }
+        },
+        {
+          "kind": "change",
+          "target": "calendar",
+          "en": {
+            "text": "The reminder list ships encrypted, because this repository is public. The plaintext stays in gitignored secret/, and tools/schedule-seal.mjs runs both ways so any commit can be recovered with the passphrase alone."
+          },
+          "vi": {
+            "text": "Danh sách nhắc việc được mã hoá trước khi commit, vì repo này là public. Bản gốc nằm trong secret/ đã gitignore, và tools/schedule-seal.mjs chạy được hai chiều nên chỉ cần passphrase là khôi phục lại được từ bất kỳ commit nào."
+          }
+        },
+        {
+          "kind": "feature",
+          "target": "calendar",
+          "en": {
+            "text": "Added a Things tab: what the household owns, grouped so a NAS keeps its drives and UPS, with the warranty end derived from the purchase date."
+          },
+          "vi": {
+            "text": "Thêm tab Đồ đạc: những gì trong nhà, gom nhóm để NAS giữ ổ cứng và UPS của nó, hạn bảo hành tính ra từ ngày mua."
+          }
+        },
+        {
+          "kind": "feature",
+          "target": "calendar",
+          "en": {
+            "text": "Each item carries a service log, so a four-year-old pair of earbuds whose battery was changed in June reports a two-month-old battery rather than a four-year-old one."
+          },
+          "vi": {
+            "text": "Mỗi món có lịch sử thay thế riêng, nên đôi tai nghe bốn năm tuổi vừa thay pin hồi tháng 6 sẽ báo pin hai tháng chứ không phải bốn năm."
+          }
+        },
+        {
+          "kind": "feature",
+          "target": "calendar",
+          "en": {
+            "text": "Trip checklists with tick boxes. The list is content and ships sealed; ticking is per-trip state, so it stays in the browser and syncs to the Sheet instead of needing a commit."
+          },
+          "vi": {
+            "text": "Checklist chuẩn bị cho mỗi chuyến đi, có ô tick. Danh sách là nội dung nên nằm trong file mã hoá; còn tick là trạng thái từng chuyến nên lưu ở trình duyệt và đồng bộ qua Sheet, không phải commit."
+          }
+        }
+      ]
+    },
+    {
       "date": "2026-08-21",
       "en": {
         "title": "The diagrams caught up with the pages"

@@ -28,6 +28,11 @@ var ALLOWED_EMAILS = [];
 /** Abuse guard: a single request may not write more rows than this. */
 var MAX_ROWS_PER_PUSH = 2000;
 
+/** Calendar checklist ticks share the generic app_config sheet. The prefix
+ *  keeps them apart from any other setting that app may come to store. */
+var CALENDAR_APP = 'calendar';
+var CHECK_PREFIX = 'check:';
+
 /* ------------------------------------------------------------------ */
 /* Sheet definitions                                                   */
 /* ------------------------------------------------------------------ */
@@ -49,8 +54,68 @@ var SHEETS = {
   search_history:      ['user_id', 'q', 'hits', 'last_at'],
 
   /** Generic per-user settings, namespaced by `app` so other tools can share. */
-  app_config:          ['user_id', 'app', 'key', 'value', 'updated_at']
+  app_config:          ['user_id', 'app', 'key', 'value', 'updated_at'],
+
+  /** Schedule inbox: reminders captured on a phone, away from the repository.
+   *  A holding pen, never the source of truth — the schedule itself lives in
+   *  the sealed JSON in git. A row is transcribed into that file and then
+   *  marked `merged`, so losing this sheet loses at most the untranscribed
+   *  notes. Keep it that way: nothing here should ever be the only copy. */
+  schedule_inbox:      ['id', 'user_id', 'body', 'category', 'due_hint', 'status', 'created_at', 'updated_at'],
+
+  /** Who may open the sealed schedule. Edit by hand, exactly like setting a
+   *  role in `profiles`: one row per person, keyed on the Google email.
+   *  The passphrase itself is NOT here — it is a Script Property, because a
+   *  Sheet cell is the thing most likely to be shared by accident. */
+  schedule_access:     ['email', 'name', 'note', 'granted_at']
 };
+
+/**
+ * A menu in the Spreadsheet itself.
+ *
+ * Running these from the Apps Script editor works, but every dialog they open
+ * appears in the SPREADSHEET tab rather than the editor — so the editor looks
+ * like it has hung while the prompt waits, unseen, in the other tab. Driving
+ * them from the Sheet puts the click and the dialog in the same window.
+ */
+function onOpen() {
+  SpreadsheetApp.getUi()
+    .createMenu('gazl')
+    .addItem('Tạo/kiểm tra các sheet', 'setup')
+    .addSeparator()
+    .addItem('Cài passphrase lịch riêng', 'setScheduleKey')
+    .addItem('Kiểm tra passphrase', 'checkScheduleKey')
+    .addToUi();
+}
+
+/**
+ * Run by hand (menu gazl -> Cài passphrase, or Run -> setScheduleKey).
+ *
+ * The Script Properties pane does the same thing, but this asks in a dialog
+ * that closes, so the passphrase never sits in a settings field, never lands
+ * in this file, and never enters the version history Apps Script keeps of it.
+ * Never replace the prompt with a literal — a saved deployment version would
+ * keep that string forever.
+ */
+function setScheduleKey() {
+  var ui = SpreadsheetApp.getUi();
+  var answer = ui.prompt('Passphrase cho lịch riêng', 'Dán passphrase vào đây:', ui.ButtonSet.OK_CANCEL);
+  if (answer.getSelectedButton() !== ui.Button.OK) return;
+
+  var key = trim(answer.getResponseText());
+  if (!key) { ui.alert('Chưa nhập gì — không thay đổi.'); return; }
+
+  PropertiesService.getScriptProperties().setProperty('SCHEDULE_KEY', key);
+  ui.alert('Đã lưu. Nhớ Deploy -> Manage deployments -> New version.');
+}
+
+/** Confirms a key is stored without revealing it. */
+function checkScheduleKey() {
+  var key = PropertiesService.getScriptProperties().getProperty('SCHEDULE_KEY');
+  SpreadsheetApp.getUi().alert(key
+    ? 'SCHEDULE_KEY đã có (' + key.length + ' ký tự).'
+    : 'Chưa có SCHEDULE_KEY.');
+}
 
 /** Run once by hand (Run -> setup) to create every sheet declared above. */
 function setup() {
@@ -386,6 +451,134 @@ var ACTIONS = {
     });
   },
 
+  /* ---- Schedule access ----------------------------------------------- */
+
+  /**
+   * Hands the schedule passphrase to an account listed in `schedule_access`.
+   *
+   * The point is that the other people never see a passphrase: they sign in,
+   * the page asks for the key, and it opens. Granting is one row in a Sheet,
+   * the same gesture as setting a role in `profiles`.
+   *
+   * Revocation is SOFT and must be described that way. The key reaches the
+   * browser to do its job, so anyone who has been granted could have kept a
+   * copy of it. Deleting the row stops the page handing it over again; taking
+   * it back for real means re-sealing the file under a new passphrase.
+   */
+  'schedule.key': function (user) {
+    var key = PropertiesService.getScriptProperties().getProperty('SCHEDULE_KEY');
+    if (!key) throw publicError('Chưa cấu hình SCHEDULE_KEY trong Script Properties.');
+    if (!hasScheduleAccess(user)) throw publicError('Tài khoản này chưa được cấp quyền xem lịch riêng.');
+    return { key: key };
+  },
+
+  /* ---- Schedule inbox ----------------------------------------------- */
+
+  /**
+   * Notes captured away from the repository, plus checklist tick state.
+   *
+   * Ticks reuse app_config rather than earning a sheet: they are one boolean
+   * per entry id, they change several times a trip, and they are the only part
+   * of the calendar that is state rather than content. The sealed file says
+   * what belongs on a list; this says what has been done about it.
+   */
+  'schedule.list': function (user) {
+    return {
+      inbox: mine(table('schedule_inbox').read(), user).map(function (r) {
+        return {
+          id: r.id, body: r.body, category: r.category, due_hint: r.due_hint,
+          status: r.status || 'pending', created_at: iso(r.created_at), updated_at: iso(r.updated_at)
+        };
+      }).sort(function (a, b) { return String(a.created_at).localeCompare(String(b.created_at)); }),
+
+      checks: mine(table('app_config').read(), user)
+        .filter(function (r) { return String(r.app) === CALENDAR_APP && String(r.key).indexOf(CHECK_PREFIX) === 0; })
+        .reduce(function (acc, r) {
+          acc[String(r.key).slice(CHECK_PREFIX.length)] = { done: String(r.value) === '1', at: iso(r.updated_at) };
+          return acc;
+        }, {})
+    };
+  },
+
+  /** One checklist entry. Keyed on (user, app, key), so ticking twice is one row. */
+  'schedule.check': function (user, p) {
+    var id = trim(p && p.id);
+    if (!id) throw publicError('Thiếu id.');
+    return withLock(function () {
+      upsertByKey(table('app_config'), user, [{ id: id }], ['app', 'key'], function () {
+        return {
+          user_id: user.sub,
+          app: CALENDAR_APP,
+          key: CHECK_PREFIX + id,
+          value: p && p.done ? '1' : '0',
+          updated_at: nowIso()
+        };
+      });
+      return { id: id, done: Boolean(p && p.done) };
+    });
+  },
+
+  /** One note. The id is minted here so a retry cannot create a second row. */
+  'schedule.add': function (user, p) {
+    var body = trim(limitedString(p && p.body, 2000, 'Nội dung'));
+    if (!body) throw publicError('Thiếu nội dung.');
+    var row = {
+      id: uuid(),
+      user_id: user.sub,
+      body: body,
+      category: limitedString(p && p.category, 40, 'Nhóm'),
+      due_hint: limitedString(p && p.due_hint, 60, 'Mốc thời gian'),
+      status: 'pending',
+      created_at: nowIso(),
+      updated_at: nowIso()
+    };
+    return withLock(function () {
+      table('schedule_inbox').appendAll([row]);
+      return { id: row.id, created_at: row.created_at };
+    });
+  },
+
+  /** Edit or mark merged. Only the caller's own rows are reachable. */
+  'schedule.update': function (user, p) {
+    var id = trim(p && p.id);
+    if (!id) throw publicError('Thiếu id.');
+    return withLock(function () {
+      var t = table('schedule_inbox');
+      var row = findBy(mine(t.read(), user), 'id', id);
+      if (!row) throw publicError('Không tìm thấy ghi chú.');
+
+      var fields = { updated_at: nowIso() };
+      if (p.body !== undefined) fields.body = limitedString(p.body, 2000, 'Nội dung');
+      if (p.category !== undefined) fields.category = limitedString(p.category, 40, 'Nhóm');
+      if (p.due_hint !== undefined) fields.due_hint = limitedString(p.due_hint, 60, 'Mốc thời gian');
+      if (p.status !== undefined) {
+        var status = trim(p.status);
+        if (status !== 'pending' && status !== 'merged') throw publicError('Trạng thái không hợp lệ.');
+        fields.status = status;
+      }
+      t.update(row._row, fields);
+      return { id: id };
+    });
+  },
+
+  'schedule.delete': function (user, p) {
+    var all = Boolean(p && p.all);
+    var mergedOnly = Boolean(p && p.merged);
+    var id = trim(p && p.id);
+    if (!all && !mergedOnly && !id) throw publicError('Thiếu id.');
+
+    return withLock(function () {
+      return {
+        deleted: table('schedule_inbox').deleteWhere(function (r) {
+          if (String(r.user_id) !== String(user.sub)) return false;
+          if (all) return true;
+          if (mergedOnly) return String(r.status) === 'merged';
+          return String(r.id) === id;
+        })
+      };
+    });
+  },
+
   /** Feeds the streak and heatmap in the stats view. */
   'studyLog': function (user) {
     return {
@@ -559,6 +752,25 @@ var ACTIONS = {
  * batch: each Spreadsheet API call is a round-trip, and per-cell access is
  * what makes Apps Script slow.
  */
+/**
+ * True when this account may be handed the schedule passphrase.
+ *
+ * An admin always may — otherwise the owner could lock themselves out of their
+ * own file by clearing the sheet. Everyone else needs a row, matched on the
+ * verified token's email, lowercased so a stray capital does not silently deny
+ * someone who was granted.
+ */
+function hasScheduleAccess(user) {
+  if (user.role === 'admin') return true;
+  var email = trim(user.email).toLowerCase();
+  if (!email) return false;
+  var rows = table('schedule_access').read();
+  for (var i = 0; i < rows.length; i++) {
+    if (trim(rows[i].email).toLowerCase() === email) return true;
+  }
+  return false;
+}
+
 function table(name) {
   var headers = SHEETS[name];
   if (!headers) throw new Error('Sheet chưa khai báo: ' + name);

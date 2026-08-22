@@ -19,7 +19,8 @@ const viLabels: Record<string, string> = {
   'Selected work and experience': 'Công việc và trải nghiệm đã chọn', Photography: 'Nhiếp ảnh', 'Field notes and visual stories': 'Ghi chép thực địa và câu chuyện hình ảnh',
   'NAS / Home Server': 'NAS / Home Server', 'Self-hosting and infrastructure': 'Tự host và hạ tầng', 'Fshare Bulk Copy': 'Fshare Bulk Copy',
   'Copy many Fshare links at once': 'Sao chép nhiều link Fshare cùng lúc', 'Course Registration': 'Đăng ký môn học',
-  'Plan and register course sets': 'Lập kế hoạch và đăng ký nhóm môn', 'Release Notes': 'Ghi chú phát hành', Search: 'Tìm kiếm',
+  'Plan and register course sets': 'Lập kế hoạch và đăng ký nhóm môn', Calendar: 'Lịch',
+  'Lunar dates, holidays and reminders': 'Lịch âm, ngày lễ và nhắc việc', 'Release Notes': 'Ghi chú phát hành', Search: 'Tìm kiếm',
   'Knowledge Base': 'Kho kiến thức', topic: 'chủ đề', 'Open navigation menu': 'Mở menu điều hướng', 'Previous topic': 'Chủ đề trước',
   'Next topic': 'Chủ đề tiếp theo', 'Search all material': 'Tìm kiếm toàn bộ nội dung', 'Search (Ctrl+K)': 'Tìm kiếm (Ctrl+K)',
   'Content language': 'Ngôn ngữ nội dung', 'Close menu': 'Đóng menu', 'Filter topics…': 'Lọc chủ đề…', 'Filter topics': 'Lọc chủ đề',
@@ -44,6 +45,7 @@ const navGroups = [
     { to: '/homelab', label: 'NAS / Home Server', desc: 'Self-hosting and infrastructure', icon: ['M4 5h16v5H4zM4 14h16v5H4z', 'M7.5 7.5h.01M7.5 16.5h.01'] }
   ] },
   { label: 'Tools', links: [
+    { to: '/calendar', label: 'Calendar', desc: 'Lunar dates, holidays and reminders', icon: ['M4 6h16v14H4z', 'M4 10h16M8 3.5v4M16 3.5v4'] },
     { to: '/fshare-tool', label: 'Fshare Bulk Copy', desc: 'Copy many Fshare links at once', icon: ['M14.5 3.5a5 5 0 0 0-6.1 6.7L3.5 15v5.5H9l4.8-4.9a5 5 0 0 0 6.7-6.1L17 12l-2.5-.5L14 9z'] },
     { to: '/course-registration', label: 'Course Registration', desc: 'Plan and register course sets', icon: ['M14.5 3.5a5 5 0 0 0-6.1 6.7L3.5 15v5.5H9l4.8-4.9a5 5 0 0 0 6.7-6.1L17 12l-2.5-.5L14 9z'] }
   ] }
@@ -53,7 +55,8 @@ const routeLabels: Record<string, string> = {
   '/': 'Study Track', '/gazl-try': 'Gazl Try', '/stats': 'Stats', '/admin': 'Admin',
   '/system-design': 'System Design', '/case-studies': 'Case Studies', '/project': 'Project',
   '/photography': 'Photography', '/homelab': 'NAS / Home Server', '/fshare-tool': 'Fshare Bulk Copy',
-  '/course-registration': 'Course Registration', '/release-notes': 'Release Notes', '/search': 'Search'
+  '/course-registration': 'Course Registration', '/calendar': 'Calendar',
+  '/release-notes': 'Release Notes', '/search': 'Search'
 };
 const currentLabel = computed(() => {
   if (routeLabels[route.path]) return localize(routeLabels[route.path]);
