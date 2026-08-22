@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { contentDateFacts } from '~/utils/content-dates.js';
 import { PUBLISHER_ORIGINS, originGuard } from '../../../public/lib/constants.js';
+import { manualReviewMarkup, syncManualReviewControls } from '../../../public/lib/manual-review.js';
 
 const props = defineProps<{
   collection: 'case-studies' | 'photography' | 'homelab'
@@ -17,6 +18,7 @@ const guide = computed(() => (lang.value === 'vi' && data.value.vi ? data.value.
 const body = computed(() => lang.value === 'vi' ? data.value.viBody : data.value.enBody);
 const decoratedBody = computed(() => body.value.replace(/<h([23])\b([^>]*\bid=["']([^"']+)["'][^>]*)>([\s\S]*?)<\/h\1>/gi,
   (_match: string, level: string, attrs: string, id: string, label: string) => `<h${level}${attrs}><a class="md-heading-anchor" href="#${encodeURIComponent(id)}" aria-label="${lang.value === 'vi' ? 'Liên kết đến mục này' : 'Link to this section'}">${label}</a></h${level}>`));
+const decoratedBodyWithReviews = computed(() => decorateReviewQuestions(decoratedBody.value));
 const dates = computed(() => contentDateFacts(data.value.row, lang.value, { includePublished: true }));
 const categoryLabel = computed(() => {
   const category = data.value.categories[data.value.row.category];
@@ -39,6 +41,27 @@ const labels = computed(() => lang.value === 'vi' ? {
   historicalNote: 'Architecture, technology choices and benchmark figures reflect the system and workload described at publication time.',
   synthesisNote: 'This article is a rewritten case study based on the credited source, not a preserved copy of the original.'
 });
+
+const progress = import.meta.client && props.collection === 'case-studies' ? useStudyProgress() : null;
+const reviewLabels = { pending: 'Mark reviewed', done: 'Reviewed' };
+
+function decorateReviewQuestions(html: string) {
+  if (props.collection !== 'case-studies') return html;
+  let sectionNumber = 0;
+  return html.replace(
+    /(<h[23]\b[^>]*\bid=["'][^"']*(?:question|review)[^"']*["'][^>]*>[\s\S]*?<\/h[23]>)(\s*<ol\b[^>]*>)([\s\S]*?)(<\/ol>)/gi,
+    (match: string, heading: string, listStart: string, listBody: string, listEnd: string) => {
+      const headingId = /\bid=["']([^"']+)["']/i.exec(heading)?.[1] || `review-${++sectionNumber}`;
+      let questionNumber = 0;
+      const markedList = listBody.replace(/<li\b([^>]*)>([\s\S]*?)<\/li>/gi,
+        (_item: string, attrs: string, question: string) => {
+          questionNumber += 1;
+          const reviewId = `case-studies.${props.slug}.${headingId}.q${questionNumber}`;
+          return `<li${attrs} class="cs-review-question"><span class="cs-review-question-body">${question}</span>${manualReviewMarkup(reviewId, reviewLabels)}</li>`;
+        });
+      return questionNumber ? heading + listStart + markedList + listEnd : match;
+    });
+}
 
 /* Outbound credit links are pinned to the approved publisher origins by
    lib/constants.js — the one allowlist owner. A first-party row carries no
@@ -72,15 +95,32 @@ const decodeHeading = (value: string) => value
   .replace(/&gt;/g, '>')
   .replace(/&quot;/g, '"')
   .replace(/&#39;/g, "'");
-const headings = computed(() => [...decoratedBody.value.matchAll(/<h([23])\b[^>]*\bid=["']([^"']+)["'][^>]*>([\s\S]*?)<\/h\1>/gi)]
+const headings = computed(() => [...decoratedBodyWithReviews.value.matchAll(/<h([23])\b[^>]*\bid=["']([^"']+)["'][^>]*>([\s\S]*?)<\/h\1>/gi)]
   .map(match => ({ level: Number(match[1]), id: match[2], text: decodeHeading(match[3]).trim() })));
 
 const lightbox = useTemplateRef<HTMLDialogElement>('lightbox');
 const lightboxImage = ref({ src: '', alt: '', caption: '' });
 const tocCollapsed = ref(false);
-onMounted(() => { tocCollapsed.value = localStorage.getItem('gazll:article-toc') === 'collapsed'; });
+const articleBody = ref<HTMLElement | null>(null);
+function syncReviews() {
+  syncManualReviewControls(articleBody.value, progress?.reviewed.value, reviewLabels);
+}
+onMounted(() => {
+  tocCollapsed.value = localStorage.getItem('gazll:article-toc') === 'collapsed';
+  syncReviews();
+});
 watch(tocCollapsed, value => { if (import.meta.client) localStorage.setItem('gazll:article-toc', value ? 'collapsed' : 'open'); });
+watch(() => lang.value, () => nextTick(syncReviews));
+watch(() => progress?.reviewed.value, () => nextTick(syncReviews));
 function onArticleClick(event: MouseEvent) {
+  const reviewControl = (event.target as HTMLElement).closest<HTMLElement>('[data-manual-review-id]');
+  if (reviewControl && articleBody.value?.contains(reviewControl)) {
+    event.preventDefault();
+    const id = reviewControl.dataset.manualReviewId;
+    if (id) progress?.markReviewed(id);
+    syncReviews();
+    return;
+  }
   const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-zoom-image]');
   const image = button?.querySelector<HTMLImageElement>('img');
   if (!button || !image) return;
@@ -166,7 +206,7 @@ useHead(() => ({
             <div class="cs-toc-head"><p>{{ labels.contents }}</p><button type="button" class="cs-toc-toggle" :aria-expanded="!tocCollapsed" @click="tocCollapsed = !tocCollapsed"><span aria-hidden="true">{{ tocCollapsed ? '›' : '‹' }}</span><span class="sr-only">Toggle contents</span></button></div>
             <div class="cs-toc-content" :hidden="tocCollapsed"><nav><a v-for="heading in headings" :key="heading.id" :href="`#${heading.id}`" :class="{ sub: heading.level === 3 }">{{ heading.text }}</a></nav></div>
           </aside>
-          <article class="cs-article-body" @click="onArticleClick" v-html="decoratedBody" />
+          <article ref="articleBody" class="cs-article-body" @click="onArticleClick" v-html="decoratedBodyWithReviews" />
         </div>
 
         <footer v-if="creditHref" class="cs-source">

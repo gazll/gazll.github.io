@@ -361,8 +361,9 @@ secret/              GITIGNORED. Personal setup notes and credentials
 - **Nuxt owns navigation and public routes.** `app/components/content/ContentHeader.vue` is the shared header/menu, and `app/pages/` owns route rendering. The old hash-router menu, view registry and hash migration are gone. Standalone browser tools keep their own isolated controllers under `public/fshare-tool/` and `public/course-registration/`, mounted through `StaticToolSurface`.
 
 - **Case studies are numbered and bilingual, but are not Study Track topics.**
-  They do not have item ids, difficulty, reviewed state or notes, and never
-  change the progress denominator. Their manifest follows the Topic convention:
+  They do not have Study Track item ids, difficulty or notes. Their review-question
+  lists use separate manual markers and never change the progress denominator.
+  Their manifest follows the Topic convention:
   an immutable numbered row points at `NN-slug.json`, with a complete
   `NN-slug.vi.json` companion; localized metadata stays in the collection's own
   `meta.json`, and the collection route pairs them. The chosen language is the

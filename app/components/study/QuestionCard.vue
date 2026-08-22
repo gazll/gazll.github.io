@@ -51,7 +51,6 @@ async function setOpen(next: boolean) {
   if (open.value === next) return;
   open.value = next;
   if (open.value) {
-    progress?.markReviewed(props.item.id);
     await nextTick();
     const dsaPlayerUrl = new URL('/lib/dsa-player.js', window.location.origin).href;
     dsaPlayer ||= await import(/* @vite-ignore */ dsaPlayerUrl);
@@ -125,6 +124,7 @@ async function copyLink() {
         </svg>
       </button>
       <div class="qmeta">
+        <StudyManualReviewButton :review-id="item.id" />
         <button class="qcopy" type="button" :class="{ 'is-copied': copied }" :aria-label="copied ? 'Link copied' : 'Copy link to this question'" @click="copyLink">
           <svg class="qcopy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path v-if="copied" d="M5 13l4 4L19 7" />

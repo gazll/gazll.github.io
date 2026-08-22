@@ -6,6 +6,7 @@ import { contentDateFacts } from '~/utils/content-dates.js';
 import { safeDecodeURIComponent } from '~/utils/uri.js';
 import { crossRefResolver, trackItemIds } from '../../../public/lib/cross-ref.js';
 import { copyText } from '../../../public/lib/clipboard.js';
+import { syncManualReviewControls } from '../../../public/lib/manual-review.js';
 
 const route = useRoute();
 const lang = computed<'en' | 'vi'>(() => route.query.lang === 'vi' ? 'vi' : 'en');
@@ -14,6 +15,8 @@ const { data, error } = await useAsyncData(`system-design:${slug}`, () => $fetch
 if (error.value) throw error.value;
 const design = computed(() => data.value.design);
 const copy = computed(() => design.value[lang.value] || design.value.en || design.value.vi);
+const progress = import.meta.client ? useStudyProgress() : null;
+const reviewLabels = { pending: 'Mark reviewed', done: 'Reviewed' };
 const labels = computed(() => lang.value === 'vi' ? {
   back: 'Thư viện System Design', toc: 'Trong bài này', scope: 'Phạm vi và bài toán', requirements: 'Yêu cầu',
   functional: 'Yêu cầu chức năng', quality: 'Thuộc tính chất lượng', capacity: 'Capacity và constraint',
@@ -88,7 +91,10 @@ const dataModelHtml = computed(() => comparisonTable(
 const stackHtml = computed(() => comparisonTable(
   copy.value.stack, [labels.value.stackLayer, labels.value.stackReason], 'sd-stack-decision-table'));
 const tradeoffHtml = computed(() => tradeoffCards(copy.value.tradeoffs));
-const failureHtml = computed(() => failureCards(failureReview.value));
+const failureHtml = computed(() => failureCards(failureReview.value, {
+  idFor: (_entry: any, index: number) => `system-design.${slug}.failure-review.q${index + 1}`,
+  labels: reviewLabels
+}));
 const dataIntroHtml = computed(() => proseParagraph(labels.value.dataIntro, 'sd-section-intro'));
 const stackIntroHtml = computed(() => proseParagraph(labels.value.stackIntro, 'sd-section-intro'));
 const tradeoffIntroHtml = computed(() => proseParagraph(labels.value.tradeoffIntro, 'sd-section-intro'));
@@ -135,6 +141,19 @@ const noteHtml = (markdown: string) => renderMarkdown(markdown, {
 const copiedNote = ref('');
 const copiedCode = ref('');
 const tocCollapsed = ref(false);
+const articleBody = ref<HTMLElement | null>(null);
+function syncReviews() {
+  syncManualReviewControls(articleBody.value, progress?.reviewed.value, reviewLabels);
+}
+function onArticleBodyClick(event: MouseEvent) {
+  const control = (event.target as HTMLElement).closest<HTMLElement>('[data-manual-review-id]');
+  if (!control || !articleBody.value?.contains(control)) return;
+  event.preventDefault();
+  const id = control.dataset.manualReviewId;
+  if (!id) return;
+  progress?.markReviewed(id);
+  syncReviews();
+}
 async function copyNoteLink(id: string) {
   const url = new URL(route.fullPath, window.location.origin);
   url.hash = `question-${id}`;
@@ -162,9 +181,12 @@ function revealHash() {
 onMounted(() => {
   tocCollapsed.value = localStorage.getItem('gazll:system-design-toc') === 'collapsed';
   revealHash();
+  syncReviews();
 });
 watch(tocCollapsed, value => { if (import.meta.client) localStorage.setItem('gazll:system-design-toc', value ? 'collapsed' : 'open'); });
 watch(() => route.hash, revealHash);
+watch(() => lang.value, () => nextTick(syncReviews));
+watch(() => progress?.reviewed.value, () => nextTick(syncReviews));
 useHead(() => ({
   htmlAttrs: { lang: lang.value },
   title: `${copy.value.title} — GAZLL`,
@@ -200,7 +222,7 @@ useHead(() => ({
             <div class="sd-toc-head"><p>{{ labels.toc }}</p><button type="button" class="sd-toc-toggle" :aria-expanded="!tocCollapsed" @click="tocCollapsed = !tocCollapsed"><span aria-hidden="true" /><span class="sr-only">{{ labels.toggleContents }}</span></button></div>
             <nav><a v-for="section in sections" :key="section.id" :href="`#${section.id}`">{{ section.title }}</a></nav>
           </aside>
-          <div class="sd-article-body">
+          <div ref="articleBody" class="sd-article-body" @click="onArticleBodyClick">
             <section id="problem-framing" class="sd-section sd-scope"><h2>{{ labels.scope }}</h2><div v-html="scopeHtml" /></section>
             <section id="requirements" class="sd-section sd-requirements"><h2>{{ labels.requirements }}</h2><div>
               <article><h3>{{ labels.functional }}</h3><div v-html="functionalHtml" /></article>
@@ -225,7 +247,7 @@ useHead(() => ({
               <aside id="failure-review" class="sd-failure-review"><strong>{{ labels.failureReviewAnswered }}</strong><div v-html="failureHtml" /></aside>
             </section>
             <section v-if="research.length" id="engineering-deep-dives" class="sd-section sd-research"><h2>{{ labels.research }}</h2><section v-for="pack in research" :key="pack.id" class="sd-research-pack"><header><h3>{{ pack.copy.title }}</h3><p>{{ pack.copy.intro }}</p></header><div class="sd-research-grid"><article v-for="part in pack.copy.sections" :key="part.title"><h3>{{ part.title }}</h3><ul><li v-for="item in part.items" :key="item">{{ item }}</li></ul></article></div><footer><strong>{{ labels.further }}</strong><template v-for="source in pack.sources" :key="source[1]"><a v-if="researchHref(source[1])" :href="researchHref(source[1])" target="_blank" rel="noopener noreferrer">{{ source[0] }} ↗</a></template></footer></section></section>
-            <section v-if="sourceNotes.length" id="migrated-notes" class="sd-section sd-notes"><h2>{{ labels.migrated }}</h2><p>{{ copy.migrated_note || (lang === 'vi' ? 'Các deep dive này được chuyển từ Study Track và giữ nguyên ID để bookmark, progress và cross-reference tiếp tục hoạt động.' : 'These deep dives moved from Study Track and retain their IDs so bookmarks, progress and cross-references keep working.') }}</p><details v-for="note in sourceNotes" :id="`question-${note.id}`" :key="note.id"><summary><span>{{ note.item.q }}</span><code>{{ note.id }}</code></summary><div><div class="sd-note-actions"><button type="button" @click="copyNoteLink(note.id)">{{ copiedNote === note.id ? labels.copied : labels.copy }}</button></div><div v-html="noteHtml(note.item.a)" /></div></details></section>
+            <section v-if="sourceNotes.length" id="migrated-notes" class="sd-section sd-notes"><h2>{{ labels.migrated }}</h2><p>{{ copy.migrated_note || (lang === 'vi' ? 'Các deep dive này được chuyển từ Study Track và giữ nguyên ID để bookmark, progress và cross-reference tiếp tục hoạt động.' : 'These deep dives moved from Study Track and retain their IDs so bookmarks, progress and cross-references keep working.') }}</p><details v-for="note in sourceNotes" :id="`question-${note.id}`" :key="note.id"><summary><span>{{ note.item.q }}</span><code>{{ note.id }}</code></summary><div><div class="sd-note-actions"><StudyManualReviewButton :review-id="note.id" /><button type="button" @click="copyNoteLink(note.id)">{{ copiedNote === note.id ? labels.copied : labels.copy }}</button></div><div v-html="noteHtml(note.item.a)" /></div></details></section>
           </div>
         </div>
       </article>

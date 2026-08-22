@@ -10,6 +10,7 @@
 
 import { escapeHtml } from '../../public/lib/markdown.js';
 import { bulletParts, labelledParts, sentences } from '../../public/lib/prose.js';
+import { manualReviewMarkup } from '../../public/lib/manual-review.js';
 
 const numberLabel = n => String(n).padStart(2, '0');
 
@@ -170,8 +171,13 @@ export function tradeoffCards(rows) {
 }
 
 /** One failure-review card per lens, question emphasised over structured prose. */
-export function failureCards(entries) {
-  return (entries || []).map((entry, index) => '<article><span>' + numberLabel(index + 1)
-    + '</span><div><h3>' + emphasize(entry.question) + '</h3>'
-    + proseParagraph(entry.answer, '') + '</div></article>').join('');
+export function failureCards(entries, options = {}) {
+  const reviewLabels = options.labels || { pending: 'Mark reviewed', done: 'Reviewed' };
+  return (entries || []).map((entry, index) => {
+    const reviewId = options.idFor ? options.idFor(entry, index) : '';
+    const marker = reviewId ? manualReviewMarkup(reviewId, reviewLabels) : '';
+    return '<article><span>' + numberLabel(index + 1)
+      + '</span><div><div class="sd-review-question-head"><h3>' + emphasize(entry.question) + '</h3>'
+      + marker + '</div>' + proseParagraph(entry.answer, '') + '</div></article>';
+  }).join('');
 }
