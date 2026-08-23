@@ -129,6 +129,7 @@ export function extractLinkcode(s) {
   s = (s || '').trim();
   let m = s.match(/fshare\.vn\/folder\/([A-Za-z0-9]{4,})/i);              if (m) return m[1];
   m = s.match(/fshare\.vn(?:%2F)+folder(?:%2F)+([A-Za-z0-9]{4,})/i);      if (m) return m[1];
+  m = s.match(/fshare\.annnekkk\.com\/(?:folder\/)?([A-Za-z0-9]{4,})(?:[/?#]|$)/i); if (m) return m[1];
   m = s.match(/#([A-Za-z0-9]{4,})/);                                      if (m) return m[1];
   if (/^[A-Za-z0-9]{4,}$/.test(s)) return s;
   return null;
@@ -139,7 +140,7 @@ export function extractAllLinkcodes(text) {
   const out = [], seen = Object.create(null);
   const push = (c) => { if (c && !seen[c]) { seen[c] = true; out.push(c); } };
 
-  const re = /fshare\.vn(?:%2F|\/)+folder(?:%2F|\/)+([A-Za-z0-9]{4,})/gi;
+  const re = /(?:fshare\.vn(?:%2F|\/)+folder(?:%2F|\/)+|fshare\.annnekkk\.com(?:%2F|\/)(?:folder(?:%2F|\/)?)?)([A-Za-z0-9]{4,})/gi;
   let m;
   while ((m = re.exec(text))) push(m[1]);
 
