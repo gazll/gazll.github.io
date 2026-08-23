@@ -35,7 +35,11 @@ test('FShare transport requests the current folder API shape', async () => {
   };
 
   try {
-    const result = await api.apiFolder('R9QLIGGPYCICTVL', 1, 'type,name');
+    const first = api.apiFolder('R9QLIGGPYCICTVL', 1, 'type,name');
+    const second = api.apiFolder('R9QLIGGPYCICTVL', 1, 'type,name');
+    assert.strictEqual(second, first, 'identical folder requests share one in-flight promise');
+
+    const result = await first;
     assert.equal(result.items[0].linkcode, 'FILECODE');
     assert.equal(calls.length, 1);
     assert.equal(calls[0].url,

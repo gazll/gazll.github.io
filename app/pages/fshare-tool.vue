@@ -8,7 +8,7 @@ useHead({
 
 <template>
   <ClientOnly>
-    <StaticToolSurface shell="/shells/fshare-tool.html" controller="/fshare-tool/app.js" />
+    <StaticToolSurface shell="/shells/fshare-tool.html" controller="/fshare-tool/app.js" lang="en" />
     <template #fallback>
       <div class="static-tool-surface">
         <p class="static-tool-status" role="status">Loading Fshare tool…</p>

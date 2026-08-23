@@ -13,6 +13,7 @@ export const API = 'https://fshare.annnekkk.com/api/folder';
 export const currentSort = () => S.sortValue;
 
 const RETRIES = 3;
+const inFlight = new Map();
 
 export const API_ORIGIN = new URL(API).origin;
 
@@ -35,9 +36,15 @@ const isNetworkFailure = (e) => e instanceof TypeError;
    moves on, silently losing every file inside it, which is far worse than
    waiting a moment. Backoff is 400ms, then 800ms. */
 export function apiFolder(linkcode, page, sort) {
+  const usePage = page || 1;
+  const useSort = sort || currentSort();
+  const key = JSON.stringify([linkcode, usePage, useSort]);
+  const existing = inFlight.get(key);
+  if (existing) return existing;
+
   const url = API + '?linkcode=' + encodeURIComponent(linkcode) +
-              '&sort=' + encodeURIComponent(sort || currentSort()) +
-              '&page=' + (page || 1);
+              '&sort=' + encodeURIComponent(useSort) +
+              '&page=' + usePage;
 
   const attempt = (n) =>
     fetch(url, { cache: 'no-store' }).then((res) => {
@@ -52,7 +59,9 @@ export function apiFolder(linkcode, page, sort) {
       return new Promise((r) => setTimeout(r, 400 * n)).then(() => attempt(n + 1));
     });
 
-  return attempt(1);
+  const request = attempt(1).finally(() => inFlight.delete(key));
+  inFlight.set(key, request);
+  return request;
 }
 
 /** Total page count is only exposed through the upstream _links.last URL. */
