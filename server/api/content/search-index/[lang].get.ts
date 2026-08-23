@@ -4,8 +4,11 @@ import { plainText } from '~~/public/lib/search-text.js';
 
 const json = async (file: string) => JSON.parse(await readFile(path.join(process.cwd(), 'public', file), 'utf8'));
 
-export default defineEventHandler(async (event: any) => {
-  const lang = getRouterParam(event, 'lang') === 'vi' ? 'vi' : 'en';
+/* EN and VI are projections of one immutable bilingual index. Share the
+   expensive source build when both routes are prerendered in one process. */
+let entriesPromise: Promise<any[]> | undefined;
+
+const buildEntries = async () => {
   const [index, meta, systemDesign, caseManifest, caseMeta, photoManifest, photoMeta, homeManifest, homeMeta] = await Promise.all([
     json('data/content-index.json'), json('data/meta.json'), json('data/system-design/catalog.json'),
     json('data/case-studies/manifest.json'), json('data/case-studies/meta.json'),
@@ -98,7 +101,7 @@ export default defineEventHandler(async (event: any) => {
     catch { return ''; }
   };
   const addCollection = async (surface: string, manifest: any, metadata: any, dir = surface) => {
-    for (const article of manifest.articles) {
+    const collectionEntries = await Promise.all(manifest.articles.map(async (article: any) => {
       const copy = metadata.articles[String(article.n)];
       const stem = article.file
         ? String(article.file).split('/').pop()!.replace(/\.json$/, '')
@@ -106,18 +109,25 @@ export default defineEventHandler(async (event: any) => {
       const [bodyEn, bodyVi] = await Promise.all([
         articleBody(dir, `${stem}.html`), articleBody(dir, `${stem}.vi.html`)
       ]);
-      entries.push({
+      return {
         id: `${surface}:${article.slug}`, surface,
         en: copy.en.title, vi: copy.vi?.title || copy.en.title,
         bodyEn, bodyVi: bodyVi || bodyEn,
         contextEn: copy.en.excerpt, contextVi: copy.vi?.excerpt || copy.en.excerpt,
         href: `/${surface}/${article.slug}`
-      });
-    }
+      };
+    }));
+    entries.push(...collectionEntries);
   };
   await addCollection('case-studies', caseManifest, caseMeta);
   await addCollection('photography', photoManifest, photoMeta);
   await addCollection('homelab', homeManifest, homeMeta);
+  return entries;
+};
+
+export default defineEventHandler(async (event: any) => {
+  const lang = getRouterParam(event, 'lang') === 'vi' ? 'vi' : 'en';
+  const entries = await (entriesPromise ??= buildEntries());
 
   /* One language per file. Rows are built bilingual because that is how the
      sources read, then projected down to the one this route serves: a reader

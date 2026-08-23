@@ -31,9 +31,11 @@ const OVERRIDES_URL = '/data/calendar/holidays.json';
 const VIEW_KEY = 'gazll:calendar-view';
 const KEY_STORE = 'gazll:schedule-key';
 const CHECKS_KEY = 'gazll:calendar-checks';
+const VIEW_TABS = ['month', 'year', 'agenda', 'items'] as const;
+type CalendarView = typeof VIEW_TABS[number];
 
 const today = ref(todayISO());
-const view = ref<'month' | 'year' | 'agenda' | 'items'>('month');
+const view = ref<CalendarView>('month');
 const cursor = ref(today.value.slice(0, 7));
 const cursorYear = ref(Number(today.value.slice(0, 4)));
 const selected = ref<string | null>(null);
@@ -55,9 +57,12 @@ const passphrase = ref('');
 const remember = ref(false);
 const unlockError = ref('');
 const unlocking = ref(false);
+const showPassphrase = ref(false);
 const hint = ref('');
 const hintShown = ref(false);
 const authState = ref('loading');
+const unlockInput = ref<HTMLInputElement | null>(null);
+const selectedInline = ref<HTMLElement | null>(null);
 
 const inbox = ref<any[]>([]);
 const inboxBody = ref('');
@@ -138,6 +143,18 @@ const t = computed(() => vi.value ? {
   weekdaysLong: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
   monthNames: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
   dayPillar: 'Day', monthPillar: 'Month', yearPillar: 'Year'
+});
+
+const ux = computed(() => vi.value ? {
+  reminders: 'nhắc việc', records: 'mục', privateLabel: 'Lịch riêng',
+  show: 'Hiện', hide: 'Ẩn', opening: 'Đang mở…', selectedDay: 'Ngày đã chọn',
+  holidayLegend: 'Ngày lễ', reminderLegend: 'Nhắc việc', lunarLegend: 'Mùng 1 / Rằm',
+  openPrivate: 'Mở lịch riêng để xem nội dung này', twelveMonths: '12 tháng'
+} : {
+  reminders: 'reminders', records: 'records', privateLabel: 'Private schedule',
+  show: 'Show', hide: 'Hide', opening: 'Opening…', selectedDay: 'Selected day',
+  holidayLegend: 'Public holiday', reminderLegend: 'Reminder', lunarLegend: 'New / full moon',
+  openPrivate: 'Open the private schedule to see this content', twelveMonths: '12 months'
 });
 
 /* One holidayMap per year, kept because the year view asks for the same year
@@ -300,6 +317,15 @@ const selectedPillar = computed(() => {
   return canChiDay(d, m, y);
 });
 
+function cellAria(cell: any) {
+  const details = [formatDate(cell.date), lunarText(cell.lunar)];
+  if (cell.label) details.push(cell.label);
+  if (cell.events.length) {
+    details.push(`${cell.events.length} ${ux.value.reminders}: ${cell.events.map((row: any) => row.title).join(', ')}`);
+  }
+  return details.join('. ');
+}
+
 /** The next public holidays — the rail's content for everyone, locked or not. */
 const nextHolidays = computed(() => {
   const rows: any[] = [];
@@ -316,6 +342,22 @@ const nextHolidays = computed(() => {
 const agendaRows = computed(() =>
   locked.value ? [] : agenda(visibleEvents.value, { today: today.value, lang: props.lang }));
 const agendaBuckets = computed(() => agendaGroups(agendaRows.value, today.value));
+const viewSubtitle = computed(() => {
+  if (view.value === 'month') return monthTitle.value.lunar;
+  if (view.value === 'year') return ux.value.twelveMonths;
+  if (locked.value) return ux.value.privateLabel;
+  const count = view.value === 'agenda' ? agendaRows.value.length : itemList.value.length;
+  return `${count} ${view.value === 'agenda' ? ux.value.reminders : ux.value.records}`;
+});
+const viewTitle = computed(() => {
+  if (view.value === 'month') return monthTitle.value.solar;
+  if (view.value === 'year') return String(cursorYear.value);
+  return t.value[view.value];
+});
+const tabCount = (tab: CalendarView) => {
+  if (locked.value || (tab !== 'agenda' && tab !== 'items')) return null;
+  return tab === 'agenda' ? agendaRows.value.length : itemList.value.length;
+};
 const groupLabel = (id: string) => ({
   overdue: t.value.overdue, due: t.value.due, month: t.value.monthGroup,
   ninety: t.value.ninety, later: t.value.later
@@ -350,15 +392,33 @@ function goToday() {
   cursorYear.value = Number(today.value.slice(0, 4));
   selected.value = today.value;
 }
-function openDay(date: string) {
+function openDay(date: string, reveal = false) {
   selected.value = date;
   cursor.value = date.slice(0, 7);
   cursorYear.value = Number(date.slice(0, 4));
   if (view.value === 'year') view.value = 'month';
+  if (reveal && typeof window !== 'undefined' && window.matchMedia('(max-width: 1040px)').matches) {
+    void nextTick(() => selectedInline.value?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }));
+  }
 }
-function setView(next: 'month' | 'year' | 'agenda' | 'items') {
+function setView(next: CalendarView) {
   view.value = next;
   try { localStorage.setItem(VIEW_KEY, next); } catch (error) { /* private mode */ }
+}
+function moveView(event: KeyboardEvent, current: CalendarView) {
+  if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+  event.preventDefault();
+  const index = VIEW_TABS.indexOf(current);
+  const nextIndex = event.key === 'Home' ? 0 : event.key === 'End' ? VIEW_TABS.length - 1
+    : (index + (event.key === 'ArrowRight' ? 1 : -1) + VIEW_TABS.length) % VIEW_TABS.length;
+  setView(VIEW_TABS[nextIndex]);
+  void nextTick(() => document.getElementById(`cal-tab-${VIEW_TABS[nextIndex]}`)?.focus());
+}
+function focusUnlock() {
+  void nextTick(() => {
+    unlockInput.value?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    unlockInput.value?.focus({ preventScroll: true });
+  });
 }
 
 /* ---------- unlocking ---------- */
@@ -584,27 +644,33 @@ onBeforeUnmount(() => stopAuth?.());
   <div class="cal">
     <div class="cal-bar">
       <div class="cal-nav">
-        <button type="button" class="cal-step" :aria-label="t.prev" :disabled="view === 'agenda' || view === 'items'" @click="view === 'year' ? cursorYear = clampYear(cursorYear - 1) : stepMonth(-1)">
+        <button v-if="view === 'month' || view === 'year'" type="button" class="cal-step" :aria-label="t.prev" @click="view === 'year' ? cursorYear = clampYear(cursorYear - 1) : stepMonth(-1)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg>
         </button>
         <div class="cal-title">
-          <b>{{ view === 'year' ? cursorYear : monthTitle.solar }}</b>
-          <span v-if="view !== 'year'">{{ monthTitle.lunar }}</span>
+          <b>{{ viewTitle }}</b>
+          <span>{{ viewSubtitle }}</span>
         </div>
-        <button type="button" class="cal-step" :aria-label="t.next" :disabled="view === 'agenda' || view === 'items'" @click="view === 'year' ? cursorYear = clampYear(cursorYear + 1) : stepMonth(1)">
+        <button v-if="view === 'month' || view === 'year'" type="button" class="cal-step" :aria-label="t.next" @click="view === 'year' ? cursorYear = clampYear(cursorYear + 1) : stepMonth(1)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M9 5l7 7-7 7" /></svg>
         </button>
-        <button type="button" class="cal-today" @click="goToday">{{ t.todayLabel }}</button>
+        <button v-if="view === 'month' || view === 'year'" type="button" class="cal-today" @click="goToday">{{ t.todayLabel }}</button>
       </div>
 
       <div class="cal-views" role="tablist" :aria-label="t.month">
-        <button v-for="tab in (['month', 'year', 'agenda', 'items'] as const)" :key="tab" type="button" role="tab"
-                class="cal-tab" :aria-selected="view === tab" @click="setView(tab)">{{ t[tab] }}</button>
+        <button v-for="tab in VIEW_TABS" :id="`cal-tab-${tab}`" :key="tab" type="button" role="tab"
+                class="cal-tab" :aria-selected="view === tab" aria-controls="cal-view-panel"
+                :tabindex="view === tab ? 0 : -1" @click="setView(tab)" @keydown="moveView($event, tab)">
+          <span>{{ t[tab] }}</span><b v-if="tabCount(tab) != null">{{ tabCount(tab) }}</b>
+        </button>
       </div>
 
-      <button v-if="!locked" type="button" class="cal-lock is-open" @click="lock">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M7 11V8a5 5 0 0 1 9.5-2M5 11h14v9H5z" /></svg>
-        {{ t.lock }}
+      <button type="button" class="cal-lock" :class="{ 'is-open': !locked }" @click="locked ? focusUnlock() : lock()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
+          <path v-if="locked" d="M7 11V8a5 5 0 0 1 10 0v3M5 11h14v9H5z" />
+          <path v-else d="M7 11V8a5 5 0 0 1 9.5-2M5 11h14v9H5z" />
+        </svg>
+        {{ locked ? t.unlock : t.lock }}
       </button>
     </div>
 
@@ -626,7 +692,7 @@ onBeforeUnmount(() => stopAuth?.());
     </div>
 
     <div class="cal-body">
-      <div class="cal-main">
+      <div id="cal-view-panel" class="cal-main" role="tabpanel" :aria-labelledby="`cal-tab-${view}`">
         <!-- Month grid -->
         <div v-if="view === 'month'" class="cal-grid">
           <div class="cal-head">
@@ -638,16 +704,34 @@ onBeforeUnmount(() => stopAuth?.());
                     class="cal-cell"
                     :class="{ 'is-out': !cell.inMonth, 'is-today': cell.isToday, 'is-off': cell.dayOff,
                               'is-weekend': cell.weekend, 'is-selected': cell.date === selected }"
-                    :aria-selected="cell.date === selected" @click="openDay(cell.date)">
+                    :aria-label="cellAria(cell)" :aria-pressed="cell.date === selected" @click="openDay(cell.date, true)">
               <span class="cal-solar">{{ cell.day }}</span>
               <span class="cal-lunar" :class="cell.marker ? `is-${cell.marker}` : ''">{{ cell.lunarLabel }}</span>
               <span v-if="cell.label" class="cal-label" :class="{ 'is-work': cell.workday }">{{ cell.label }}</span>
+              <span v-if="cell.events.length" class="cal-cell-events" aria-hidden="true">
+                <span v-for="row in cell.events.slice(0, 2)" :key="row.id" class="cal-cell-event" :data-cal-cat="row.event.category">{{ row.title }}</span>
+                <span v-if="cell.events.length > 2" class="cal-cell-more">+{{ cell.events.length - 2 }}</span>
+              </span>
               <span v-if="cell.events.length" class="cal-dots">
                 <i v-for="row in cell.events.slice(0, 4)" :key="row.id"
                    :data-cal-cat="row.event.category" :class="{ 'is-done': row.settled, 'is-late': row.status === 'overdue' }" />
               </span>
             </button>
           </div>
+          <div class="cal-legend" aria-hidden="true">
+            <span class="is-holiday"><i />{{ ux.holidayLegend }}</span>
+            <span class="is-reminder"><i />{{ ux.reminderLegend }}</span>
+            <span class="is-lunar"><i />{{ ux.lunarLegend }}</span>
+          </div>
+          <section v-if="selectedCell" ref="selectedInline" class="cal-card cal-selected cal-selected-inline" aria-live="polite">
+            <p class="cal-kicker">{{ ux.selectedDay }}</p>
+            <div class="cal-selected-head"><b>{{ formatDate(selectedCell.date) }}</b><span>{{ selectedCell.lunar.day }} {{ lunarMonthName(selectedCell.lunar.month, selectedCell.lunar.leap, props.lang) }} · {{ selectedPillar }}</span></div>
+            <ul v-if="selectedCell.holidays.length || selectedCell.events.length" class="cal-daylist">
+              <li v-for="row in selectedCell.holidays" :key="row.id" :data-kind="row.kind">{{ row[props.lang] || row.en }}<em v-if="row.kind === 'statutory' || row.kind === 'compensatory'">{{ t.dayOff }}</em><em v-else-if="row.workday">{{ t.workday }}</em></li>
+              <li v-for="row in selectedCell.events" :key="row.id" :data-cal-cat="row.event.category" class="is-event">{{ row.title }}</li>
+            </ul>
+            <p v-else class="cal-muted">{{ t.nothingOn }}</p>
+          </section>
         </div>
 
         <!-- Year grid -->
@@ -671,6 +755,7 @@ onBeforeUnmount(() => stopAuth?.());
           <div v-if="locked" class="cal-locked">
             <h3>{{ t.lockedTitle }}</h3>
             <p>{{ t.lockedBody }}</p>
+            <button type="button" class="cal-primary" @click="focusUnlock">{{ ux.openPrivate }}</button>
           </div>
           <p v-else-if="!agendaRows.length" class="cal-empty">{{ t.noPrivate }}</p>
           <section v-for="group in agendaBuckets" :key="group.id" class="cal-group">
@@ -702,6 +787,7 @@ onBeforeUnmount(() => stopAuth?.());
           <div v-if="locked" class="cal-locked">
             <h3>{{ t.lockedTitle }}</h3>
             <p>{{ t.lockedBody }}</p>
+            <button type="button" class="cal-primary" @click="focusUnlock">{{ ux.openPrivate }}</button>
           </div>
           <p v-else-if="!itemList.length" class="cal-empty">{{ t.noItems }}</p>
           <template v-else>
@@ -765,7 +851,7 @@ onBeforeUnmount(() => stopAuth?.());
       </div>
 
       <aside class="cal-rail">
-        <section class="cal-card cal-today-card">
+        <section class="cal-card cal-today-card" :class="{ 'is-selected-today': selected === today && view === 'month' }">
           <p class="cal-kicker">{{ todayCard.weekday }}</p>
           <p class="cal-bigdate">{{ todayCard.solar }}</p>
           <p class="cal-bigmoon">{{ todayCard.lunarDay }}</p>
@@ -779,9 +865,9 @@ onBeforeUnmount(() => stopAuth?.());
           </p>
         </section>
 
-        <section v-if="selectedCell" class="cal-card">
-          <p class="cal-kicker">{{ formatDate(selectedCell.date) }}</p>
-          <p class="cal-daymoon">{{ selectedCell.lunar.day }} {{ lunarMonthName(selectedCell.lunar.month, selectedCell.lunar.leap, props.lang) }} · {{ selectedPillar }}</p>
+        <section v-if="selectedCell && (selectedCell.date !== today || selectedCell.holidays.length || selectedCell.events.length)" class="cal-card cal-selected cal-selected-rail" aria-live="polite">
+          <p class="cal-kicker">{{ ux.selectedDay }}</p>
+          <div class="cal-selected-head"><b>{{ formatDate(selectedCell.date) }}</b><span>{{ selectedCell.lunar.day }} {{ lunarMonthName(selectedCell.lunar.month, selectedCell.lunar.leap, props.lang) }} · {{ selectedPillar }}</span></div>
           <ul v-if="selectedCell.holidays.length || selectedCell.events.length" class="cal-daylist">
             <li v-for="row in selectedCell.holidays" :key="row.id" :data-kind="row.kind">
               {{ row[props.lang] || row.en }}
@@ -847,10 +933,13 @@ onBeforeUnmount(() => stopAuth?.());
           <form v-else @submit.prevent="unlock">
             <label class="cal-field">
               <span>{{ t.passphrase }}</span>
-              <input v-model="passphrase" type="password" autocomplete="off" spellcheck="false">
+              <span class="cal-password">
+                <input ref="unlockInput" v-model="passphrase" :type="showPassphrase ? 'text' : 'password'" autocomplete="off" spellcheck="false">
+                <button type="button" @click="showPassphrase = !showPassphrase">{{ showPassphrase ? ux.hide : ux.show }}</button>
+              </span>
             </label>
             <label class="cal-check"><input v-model="remember" type="checkbox">{{ t.rememberDevice }}</label>
-            <button type="submit" class="cal-primary" :disabled="!passphrase || unlocking">{{ t.unlock }}</button>
+            <button type="submit" class="cal-primary" :disabled="!passphrase || unlocking">{{ unlocking ? ux.opening : t.unlock }}</button>
             <p v-if="unlockError" class="cal-error">{{ unlockError }}</p>
             <button v-if="!hintShown" type="button" class="cal-linkbtn" @click="revealHint">{{ t.forgot }}</button>
             <p v-else-if="hint" class="cal-hint"><span>{{ t.hintLabel }}</span>{{ hint }}</p>

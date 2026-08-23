@@ -85,7 +85,12 @@ export default defineNuxtConfig({
   },
   nitro: {
     prerender: {
-      crawlLinks: true,
+      /* Every content route is enumerated above. Crawling links again walks
+         the language-query variants and payload links without producing
+         additional static files. */
+      crawlLinks: false,
+      /* Content pages are independent local renders; let Nitro overlap them. */
+      concurrency: 16,
       routes: contentRoutes()
     }
   },

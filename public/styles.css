@@ -1723,9 +1723,10 @@
 
   /* The toolbar sticks under the header, so stepping months never scrolls the
      controls away mid-read. --hdr-h is published by useHeadroom(). */
-  .cal-bar{position:sticky;top:var(--hdr-h,64px);z-index:20;display:flex;flex-wrap:wrap;
-    align-items:center;gap:12px;padding:10px 0 12px;margin-bottom:14px;
-    background:linear-gradient(var(--paper) 78%, transparent);border-bottom:1px solid var(--line)}
+  .cal-bar{position:sticky;top:var(--hdr-h,64px);z-index:20;display:grid;
+    grid-template-columns:minmax(260px,1fr) auto auto;align-items:center;gap:12px;
+    padding:10px 0 12px;margin-bottom:14px;background:linear-gradient(var(--paper) 82%,transparent);
+    border-bottom:1px solid var(--line);backdrop-filter:blur(8px)}
   .cal-nav{display:flex;align-items:center;gap:8px}
   .cal-step{width:32px;height:32px;flex:none;border-radius:9px;border:1px solid var(--line);
     background:var(--surface);color:var(--ink-soft);cursor:pointer;display:grid;place-items:center;
@@ -1734,7 +1735,7 @@
   .cal-step:hover:not(:disabled){border-color:var(--emerald);color:var(--emerald)}
   .cal-step:disabled{opacity:.35;cursor:default}
   .cal-step:focus-visible{outline:2px solid var(--emerald);outline-offset:2px}
-  .cal-title{min-width:190px;display:flex;flex-direction:column;line-height:1.25}
+  .cal-title{min-width:0;display:flex;flex-direction:column;line-height:1.25}
   .cal-title b{font-family:"Space Grotesk",sans-serif;font-size:17px;color:var(--ink)}
   .cal-title span{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.4px;
     text-transform:uppercase;color:var(--muted)}
@@ -1743,16 +1744,19 @@
     cursor:pointer;transition:.15s ease}
   .cal-today:hover,.cal-lock:hover,.cal-ghost:hover{border-color:var(--emerald);color:var(--emerald)}
   .cal-today:focus-visible,.cal-lock:focus-visible,.cal-ghost:focus-visible{outline:2px solid var(--emerald);outline-offset:2px}
-  .cal-lock{margin-left:auto;display:inline-flex;align-items:center;gap:7px}
+  .cal-lock{display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
   .cal-lock svg{width:15px;height:15px}
   .cal-lock.is-open{color:var(--emerald-deep);border-color:#CFE6DA;background:var(--emerald-soft)}
 
   .cal-views{display:flex;gap:4px;padding:3px;border:1px solid var(--line);border-radius:999px;
     background:var(--surface)}
-  .cal-tab{border:0;background:transparent;border-radius:999px;padding:5px 14px;font:inherit;
-    font-size:12.5px;color:var(--muted);cursor:pointer;transition:.15s ease}
+  .cal-tab{border:0;background:transparent;border-radius:999px;padding:5px 12px;font:inherit;
+    font-size:12.5px;color:var(--muted);cursor:pointer;transition:.15s ease;display:flex;align-items:center;gap:6px}
   .cal-tab:hover{color:var(--ink)}
   .cal-tab[aria-selected="true"]{background:var(--emerald-soft);color:var(--emerald-deep);font-weight:600}
+  .cal-tab b{min-width:17px;padding:1px 5px;border-radius:999px;background:var(--paper);
+    font-family:"IBM Plex Mono",monospace;font-size:9px;line-height:1.5;text-align:center;color:var(--muted)}
+  .cal-tab[aria-selected="true"] b{background:var(--surface);color:var(--emerald-deep)}
   .cal-tab:focus-visible{outline:2px solid var(--emerald);outline-offset:2px}
 
   .cal-body{display:grid;grid-template-columns:minmax(0,1fr) 318px;gap:22px;align-items:start}
@@ -1767,7 +1771,7 @@
   /* Always six rows: a month that needs five would otherwise change the page
      height on every step, and the rail beside it would jump with it. */
   .cal-weeks{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));
-    grid-template-rows:repeat(6,minmax(84px,auto));gap:6px}
+    grid-template-rows:repeat(6,minmax(96px,auto));gap:6px}
   .cal-cell{position:relative;display:flex;flex-direction:column;gap:2px;text-align:left;
     padding:7px 8px;border:1px solid var(--line);border-radius:11px;background:var(--surface);
     font:inherit;cursor:pointer;overflow:hidden;transition:border-color .15s ease, background .15s ease}
@@ -1793,10 +1797,24 @@
   .cal-label{margin-top:auto;font-size:10.5px;line-height:1.3;color:var(--clay);
     display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   .cal-label.is-work{color:var(--muted)}
-  .cal-dots{display:flex;gap:3px;flex-wrap:wrap;margin-top:3px}
+  .cal-cell-events{display:flex;flex-direction:column;gap:2px;margin-top:auto;min-width:0;width:100%}
+  .cal-label+.cal-cell-events{margin-top:3px}
+  .cal-cell-event{position:relative;display:block;padding-left:9px;font-size:9.5px;line-height:1.35;
+    color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .cal-cell-event::before{content:"";position:absolute;left:0;top:4px;width:5px;height:5px;
+    border-radius:50%;background:var(--g,var(--muted))}
+  .cal-cell-more{font-family:"IBM Plex Mono",monospace;font-size:9px;color:var(--muted);padding-left:9px}
+  .cal-dots{display:none;gap:3px;flex-wrap:wrap;margin-top:3px}
   .cal-dots i{width:6px;height:6px;border-radius:50%;background:var(--g,var(--muted))}
   .cal-dots i.is-done{background:transparent;box-shadow:inset 0 0 0 1.5px var(--g,var(--muted));opacity:.6}
   .cal-dots i.is-late{box-shadow:0 0 0 2px var(--clay-soft)}
+  .cal-legend{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:7px 16px;
+    padding:9px 3px 0;font-family:"IBM Plex Mono",monospace;font-size:9.5px;color:var(--muted)}
+  .cal-legend span{display:inline-flex;align-items:center;gap:6px}
+  .cal-legend i{width:7px;height:7px;border-radius:50%;background:var(--indigo)}
+  .cal-legend .is-holiday i{background:var(--clay)}
+  .cal-legend .is-lunar i{background:transparent;border:1px solid var(--brass)}
+  .cal-selected-inline{display:none;margin-top:12px}
 
   /* ---------- year grid ---------- */
 
@@ -1849,6 +1867,7 @@
     background:var(--surface);text-align:center;color:var(--muted)}
   .cal-locked h3{margin:0 0 6px;font-family:"Space Grotesk",sans-serif;font-size:16px;color:var(--ink)}
   .cal-locked p{margin:0 auto;font-size:13.5px;max-width:46ch}
+  .cal-locked .cal-primary{margin-top:16px}
 
   /* ---------- rail ---------- */
 
@@ -1867,7 +1886,10 @@
   .cal-pillars dd{margin:1px 0 0;font-size:12.5px;color:var(--ink-soft)}
   .cal-today-holiday{margin:10px 0 0;font-size:12.5px;color:var(--clay)}
   .cal-today-holiday[data-kind="observance"]{color:var(--brass)}
-  .cal-daymoon{margin:0 0 9px;font-size:13px;color:var(--ink-soft)}
+  .cal-selected{border-color:#D5E6DE;background:linear-gradient(155deg,var(--emerald-soft),var(--surface) 58%)}
+  .cal-selected-head{display:flex;flex-direction:column;gap:2px;margin-bottom:10px}
+  .cal-selected-head b{font-family:"Space Grotesk",sans-serif;font-size:16px;color:var(--ink)}
+  .cal-selected-head span{font-size:12.5px;color:var(--emerald-deep)}
   .cal-daylist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
   .cal-daylist li{font-size:12.5px;color:var(--ink-soft);padding-left:11px;position:relative}
   .cal-daylist li::before{content:"";position:absolute;left:0;top:7px;width:5px;height:5px;
@@ -1895,6 +1917,12 @@
     border-radius:9px;background:var(--paper);padding:8px 10px;font:inherit;font-size:13px;color:var(--ink)}
   .cal-field input:focus,.cal-inbox-form input:focus,.cal-inbox-form select:focus{outline:2px solid var(--emerald);outline-offset:1px}
   .cal-check{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink-soft)}
+  .cal-password{position:relative;display:block}
+  .cal-password input{width:100%;padding-right:55px;box-sizing:border-box}
+  .cal-password button{position:absolute;right:4px;top:50%;transform:translateY(-50%);border:0;
+    border-radius:6px;background:transparent;padding:4px 7px;font:inherit;font-size:10.5px;color:var(--muted);cursor:pointer}
+  .cal-password button:hover{background:var(--surface);color:var(--ink)}
+  .cal-password button:focus-visible{outline:2px solid var(--emerald);outline-offset:0}
   .cal-primary{border:1px solid var(--emerald-deep);background:var(--emerald-deep);color:#fff;
     border-radius:999px;padding:8px 18px;font:inherit;font-size:13px;font-weight:600;cursor:pointer;
     transition:.15s ease}
@@ -2016,11 +2044,26 @@
   @media (max-width:1040px){
     .cal-body{grid-template-columns:minmax(0,1fr)}
     .cal-rail{position:static;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+    .cal-selected-inline{display:block}
+    .cal-selected-rail{display:none}
+    .cal-today-card.is-selected-today{display:none}
+  }
+  @media (max-width:900px){
+    .cal-cell-events{display:none}
+    .cal-dots{display:flex;margin-top:auto}
   }
   @media (max-width:720px){
-    .cal-bar{gap:8px}
-    .cal-title{min-width:120px}
-    .cal-lock{margin-left:0;order:4}
+    .cal{margin-top:18px}
+    .cal-bar{grid-template-columns:minmax(0,1fr);gap:8px;padding-top:8px}
+    .cal-nav{width:100%;gap:6px}
+    .cal-title{flex:1;text-align:center}
+    .cal-title b{font-size:16px}
+    .cal-title span{font-size:9.5px}
+    .cal-views{width:100%;box-sizing:border-box}
+    .cal-tab{flex:1;justify-content:center;padding-inline:7px}
+    .cal-lock{justify-self:start}
+    .cal-members{flex-wrap:nowrap;overflow-x:auto;padding:2px 1px 5px;margin-bottom:11px;scrollbar-width:thin}
+    .cal-mchip{flex:none}
     .cal-weeks{grid-template-rows:repeat(6,minmax(58px,auto));gap:3px}
     .cal-cell{padding:5px}
     /* Below this width a holiday name cannot be read inside a 44px cell, so the
@@ -2031,4 +2074,16 @@
     .cal-item{flex-direction:column;gap:8px}
     .cal-item-when{text-align:left;flex-direction:row;gap:10px;align-items:baseline}
     .cal-notes li{flex-direction:column;gap:9px}
+    .cal-inbox{padding:16px 14px}
+    .cal-inbox-form>*{flex:1 1 100%}
+    .cal-note-actions{width:100%;overflow-x:auto}
+  }
+  @media (max-width:420px){
+    .cal-today{padding-inline:10px}
+    .cal-tab{font-size:11.5px}
+    .cal-tab b{display:none}
+    .cal-rail{grid-template-columns:minmax(0,1fr)}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .cal-step,.cal-tab,.cal-today,.cal-lock,.cal-ghost,.cal-mchip,.cal-primary{transition:none}
   }
