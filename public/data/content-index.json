@@ -16,6 +16,7 @@
         "01-java-core-jvm.concurrency.q4",
         "01-java-core-jvm.concurrency.q5",
         "01-java-core-jvm.concurrency.q6",
+        "01-java-core-jvm.concurrency.q7",
         "01-java-core-jvm.language-fundamentals.q1",
         "01-java-core-jvm.language-fundamentals.q2",
         "01-java-core-jvm.language-fundamentals.q3",
@@ -30,7 +31,8 @@
         "01-java-core-jvm.collections-data-structures.q3",
         "01-java-core-jvm.collections-data-structures.q4",
         "01-java-core-jvm.collections-data-structures.q5",
-        "01-java-core-jvm.collections-data-structures.q6"
+        "01-java-core-jvm.collections-data-structures.q6",
+        "01-java-core-jvm.collections-data-structures.q7"
       ],
       "track_item_ids": [
         "01-java-core-jvm.memory-execution-model.q1",
@@ -45,6 +47,7 @@
         "01-java-core-jvm.concurrency.q4",
         "01-java-core-jvm.concurrency.q5",
         "01-java-core-jvm.concurrency.q6",
+        "01-java-core-jvm.concurrency.q7",
         "01-java-core-jvm.language-fundamentals.q1",
         "01-java-core-jvm.language-fundamentals.q2",
         "01-java-core-jvm.language-fundamentals.q3",
@@ -59,7 +62,8 @@
         "01-java-core-jvm.collections-data-structures.q3",
         "01-java-core-jvm.collections-data-structures.q4",
         "01-java-core-jvm.collections-data-structures.q5",
-        "01-java-core-jvm.collections-data-structures.q6"
+        "01-java-core-jvm.collections-data-structures.q6",
+        "01-java-core-jvm.collections-data-structures.q7"
       ]
     },
     {
@@ -72,12 +76,14 @@
         "02-java-8-25-java-vs-go.release-timeline.q5",
         "02-java-8-25-java-vs-go.release-timeline.q6",
         "02-java-8-25-java-vs-go.release-timeline.q7",
+        "02-java-8-25-java-vs-go.release-timeline.q8",
         "02-java-8-25-java-vs-go.java-vs-go-2025-2026.q1",
         "02-java-8-25-java-vs-go.java-vs-go-2025-2026.q2",
         "02-java-8-25-java-vs-go.java-vs-go-2025-2026.q3",
         "02-java-8-25-java-vs-go.java-vs-go-2025-2026.q4",
         "02-java-8-25-java-vs-go.java-vs-go-2025-2026.q5",
-        "02-java-8-25-java-vs-go.java-vs-go-2025-2026.q6"
+        "02-java-8-25-java-vs-go.java-vs-go-2025-2026.q6",
+        "02-java-8-25-java-vs-go.java-vs-go-2025-2026.q7"
       ],
       "track_item_ids": [
         "02-java-8-25-java-vs-go.release-timeline.q1",
@@ -87,12 +93,14 @@
         "02-java-8-25-java-vs-go.release-timeline.q5",
         "02-java-8-25-java-vs-go.release-timeline.q6",
         "02-java-8-25-java-vs-go.release-timeline.q7",
+        "02-java-8-25-java-vs-go.release-timeline.q8",
         "02-java-8-25-java-vs-go.java-vs-go-2025-2026.q1",
         "02-java-8-25-java-vs-go.java-vs-go-2025-2026.q2",
         "02-java-8-25-java-vs-go.java-vs-go-2025-2026.q3",
         "02-java-8-25-java-vs-go.java-vs-go-2025-2026.q4",
         "02-java-8-25-java-vs-go.java-vs-go-2025-2026.q5",
-        "02-java-8-25-java-vs-go.java-vs-go-2025-2026.q6"
+        "02-java-8-25-java-vs-go.java-vs-go-2025-2026.q6",
+        "02-java-8-25-java-vs-go.java-vs-go-2025-2026.q7"
       ]
     },
     {
@@ -104,6 +112,7 @@
         "03-spring-boot-deep-build.ioc-container-transactions.q4",
         "03-spring-boot-deep-build.ioc-container-transactions.q5",
         "03-spring-boot-deep-build.ioc-container-transactions.q6",
+        "03-spring-boot-deep-build.ioc-container-transactions.q7",
         "03-spring-boot-deep-build.auto-configuration-build.q1",
         "03-spring-boot-deep-build.auto-configuration-build.q2",
         "03-spring-boot-deep-build.auto-configuration-build.q3",
@@ -119,6 +128,7 @@
         "03-spring-boot-deep-build.auto-configuration-build.q13",
         "03-spring-boot-deep-build.auto-configuration-build.q14",
         "03-spring-boot-deep-build.auto-configuration-build.q15",
+        "03-spring-boot-deep-build.auto-configuration-build.q16",
         "03-spring-boot-deep-build.bean-lifecycle-request-flow.q1",
         "03-spring-boot-deep-build.bean-lifecycle-request-flow.q2",
         "03-spring-boot-deep-build.bean-lifecycle-request-flow.q3"
@@ -130,6 +140,7 @@
         "03-spring-boot-deep-build.ioc-container-transactions.q4",
         "03-spring-boot-deep-build.ioc-container-transactions.q5",
         "03-spring-boot-deep-build.ioc-container-transactions.q6",
+        "03-spring-boot-deep-build.ioc-container-transactions.q7",
         "03-spring-boot-deep-build.auto-configuration-build.q1",
         "03-spring-boot-deep-build.auto-configuration-build.q2",
         "03-spring-boot-deep-build.auto-configuration-build.q3",
@@ -145,6 +156,7 @@
         "03-spring-boot-deep-build.auto-configuration-build.q13",
         "03-spring-boot-deep-build.auto-configuration-build.q14",
         "03-spring-boot-deep-build.auto-configuration-build.q15",
+        "03-spring-boot-deep-build.auto-configuration-build.q16",
         "03-spring-boot-deep-build.bean-lifecycle-request-flow.q1",
         "03-spring-boot-deep-build.bean-lifecycle-request-flow.q2",
         "03-spring-boot-deep-build.bean-lifecycle-request-flow.q3"
@@ -159,11 +171,13 @@
         "04-rest-grpc-webflux.protocols.q4",
         "04-rest-grpc-webflux.protocols.q5",
         "04-rest-grpc-webflux.protocols.q6",
+        "04-rest-grpc-webflux.protocols.q7",
         "04-rest-grpc-webflux.reactive-webflux.q1",
         "04-rest-grpc-webflux.reactive-webflux.q2",
         "04-rest-grpc-webflux.reactive-webflux.q3",
         "04-rest-grpc-webflux.reactive-webflux.q4",
-        "04-rest-grpc-webflux.reactive-webflux.q5"
+        "04-rest-grpc-webflux.reactive-webflux.q5",
+        "04-rest-grpc-webflux.reactive-webflux.q6"
       ],
       "track_item_ids": [
         "04-rest-grpc-webflux.protocols.q1",
@@ -172,11 +186,13 @@
         "04-rest-grpc-webflux.protocols.q4",
         "04-rest-grpc-webflux.protocols.q5",
         "04-rest-grpc-webflux.protocols.q6",
+        "04-rest-grpc-webflux.protocols.q7",
         "04-rest-grpc-webflux.reactive-webflux.q1",
         "04-rest-grpc-webflux.reactive-webflux.q2",
         "04-rest-grpc-webflux.reactive-webflux.q3",
         "04-rest-grpc-webflux.reactive-webflux.q4",
-        "04-rest-grpc-webflux.reactive-webflux.q5"
+        "04-rest-grpc-webflux.reactive-webflux.q5",
+        "04-rest-grpc-webflux.reactive-webflux.q6"
       ]
     },
     {
@@ -199,7 +215,8 @@
         "05-db-core-index-lock.transactions-mvcc-locking.q8",
         "05-db-core-index-lock.transactions-mvcc-locking.q9",
         "05-db-core-index-lock.modelling-the-schema.q1",
-        "05-db-core-index-lock.modelling-the-schema.q2"
+        "05-db-core-index-lock.modelling-the-schema.q2",
+        "05-db-core-index-lock.modelling-the-schema.q3"
       ],
       "track_item_ids": [
         "05-db-core-index-lock.indexes-what-they-really-are.q1",
@@ -219,7 +236,8 @@
         "05-db-core-index-lock.transactions-mvcc-locking.q8",
         "05-db-core-index-lock.transactions-mvcc-locking.q9",
         "05-db-core-index-lock.modelling-the-schema.q1",
-        "05-db-core-index-lock.modelling-the-schema.q2"
+        "05-db-core-index-lock.modelling-the-schema.q2",
+        "05-db-core-index-lock.modelling-the-schema.q3"
       ]
     },
     {
@@ -235,7 +253,8 @@
         "06-db-scaling.sharding-partitioning.q4",
         "06-db-scaling.sharding-partitioning.q5",
         "06-db-scaling.sharding-partitioning.q6",
-        "06-db-scaling.sharding-partitioning.q7"
+        "06-db-scaling.sharding-partitioning.q7",
+        "06-db-scaling.sharding-partitioning.q8"
       ],
       "track_item_ids": [
         "06-db-scaling.replication-consistency.q1",
@@ -248,7 +267,8 @@
         "06-db-scaling.sharding-partitioning.q4",
         "06-db-scaling.sharding-partitioning.q5",
         "06-db-scaling.sharding-partitioning.q6",
-        "06-db-scaling.sharding-partitioning.q7"
+        "06-db-scaling.sharding-partitioning.q7",
+        "06-db-scaling.sharding-partitioning.q8"
       ]
     },
     {
@@ -266,7 +286,8 @@
         "07-sql-nosql-db-engines.engine-by-engine.q6",
         "07-sql-nosql-db-engines.engine-by-engine.q7",
         "07-sql-nosql-db-engines.engine-by-engine.q8",
-        "07-sql-nosql-db-engines.engine-by-engine.q9"
+        "07-sql-nosql-db-engines.engine-by-engine.q9",
+        "07-sql-nosql-db-engines.engine-by-engine.q10"
       ],
       "track_item_ids": [
         "07-sql-nosql-db-engines.the-big-picture.q1",
@@ -281,7 +302,8 @@
         "07-sql-nosql-db-engines.engine-by-engine.q6",
         "07-sql-nosql-db-engines.engine-by-engine.q7",
         "07-sql-nosql-db-engines.engine-by-engine.q8",
-        "07-sql-nosql-db-engines.engine-by-engine.q9"
+        "07-sql-nosql-db-engines.engine-by-engine.q9",
+        "07-sql-nosql-db-engines.engine-by-engine.q10"
       ]
     },
     {
@@ -359,15 +381,18 @@
         "10-system-design-rate-limit.framework-building-blocks.q4",
         "10-system-design-rate-limit.framework-building-blocks.q5",
         "10-system-design-rate-limit.framework-building-blocks.q6",
+        "10-system-design-rate-limit.framework-building-blocks.q7",
         "10-system-design-rate-limit.rate-limiting-in-depth.q1",
         "10-system-design-rate-limit.rate-limiting-in-depth.q2",
         "10-system-design-rate-limit.rate-limiting-in-depth.q3",
         "10-system-design-rate-limit.rate-limiting-in-depth.q4",
         "10-system-design-rate-limit.rate-limiting-in-depth.q5",
+        "10-system-design-rate-limit.rate-limiting-in-depth.q6",
         "10-system-design-rate-limit.surviving-high-load.q1",
         "10-system-design-rate-limit.surviving-high-load.q2",
         "10-system-design-rate-limit.surviving-high-load.q3",
-        "10-system-design-rate-limit.surviving-high-load.q4"
+        "10-system-design-rate-limit.surviving-high-load.q4",
+        "10-system-design-rate-limit.surviving-high-load.q5"
       ],
       "track_item_ids": []
     },
@@ -393,7 +418,8 @@
         "11-system-design-cases.the-big-prompts.q17",
         "11-system-design-cases.the-big-prompts.q18",
         "11-system-design-cases.the-big-prompts.q19",
-        "11-system-design-cases.the-big-prompts.q20"
+        "11-system-design-cases.the-big-prompts.q20",
+        "11-system-design-cases.the-big-prompts.q21"
       ],
       "track_item_ids": []
     },
@@ -421,7 +447,8 @@
         "12-architecture-patterns.clean-layered-building-it-for-real.q5",
         "12-architecture-patterns.clean-layered-building-it-for-real.q6",
         "12-architecture-patterns.clean-layered-building-it-for-real.q7",
-        "12-architecture-patterns.clean-layered-building-it-for-real.q8"
+        "12-architecture-patterns.clean-layered-building-it-for-real.q8",
+        "12-architecture-patterns.clean-layered-building-it-for-real.q9"
       ],
       "track_item_ids": [
         "12-architecture-patterns.architecture-styles.q1",
@@ -445,7 +472,8 @@
         "12-architecture-patterns.clean-layered-building-it-for-real.q5",
         "12-architecture-patterns.clean-layered-building-it-for-real.q6",
         "12-architecture-patterns.clean-layered-building-it-for-real.q7",
-        "12-architecture-patterns.clean-layered-building-it-for-real.q8"
+        "12-architecture-patterns.clean-layered-building-it-for-real.q8",
+        "12-architecture-patterns.clean-layered-building-it-for-real.q9"
       ]
     },
     {
@@ -478,7 +506,10 @@
         "13-security-oauth2.protecting-the-data-you-store.q1",
         "13-security-oauth2.protecting-the-data-you-store.q2",
         "13-security-oauth2.protecting-the-data-you-store.q3",
-        "13-security-oauth2.protecting-the-data-you-store.q4"
+        "13-security-oauth2.protecting-the-data-you-store.q4",
+        "13-security-oauth2.protecting-the-data-you-store.q5",
+        "13-security-oauth2.protecting-the-data-you-store.q6",
+        "13-security-oauth2.protecting-the-data-you-store.q7"
       ],
       "track_item_ids": [
         "13-security-oauth2.oauth2-oidc.q1",
@@ -508,7 +539,10 @@
         "13-security-oauth2.protecting-the-data-you-store.q1",
         "13-security-oauth2.protecting-the-data-you-store.q2",
         "13-security-oauth2.protecting-the-data-you-store.q3",
-        "13-security-oauth2.protecting-the-data-you-store.q4"
+        "13-security-oauth2.protecting-the-data-you-store.q4",
+        "13-security-oauth2.protecting-the-data-you-store.q5",
+        "13-security-oauth2.protecting-the-data-you-store.q6",
+        "13-security-oauth2.protecting-the-data-you-store.q7"
       ]
     },
     {
@@ -530,7 +564,8 @@
         "14-devops-k8s-best-practices.ci-cd-2026-best-practices.q4",
         "14-devops-k8s-best-practices.ci-cd-2026-best-practices.q5",
         "14-devops-k8s-best-practices.ci-cd-2026-best-practices.q6",
-        "14-devops-k8s-best-practices.ci-cd-2026-best-practices.q7"
+        "14-devops-k8s-best-practices.ci-cd-2026-best-practices.q7",
+        "14-devops-k8s-best-practices.ci-cd-2026-best-practices.q8"
       ],
       "track_item_ids": [
         "14-devops-k8s-best-practices.docker-kubernetes.q1",
@@ -549,7 +584,8 @@
         "14-devops-k8s-best-practices.ci-cd-2026-best-practices.q4",
         "14-devops-k8s-best-practices.ci-cd-2026-best-practices.q5",
         "14-devops-k8s-best-practices.ci-cd-2026-best-practices.q6",
-        "14-devops-k8s-best-practices.ci-cd-2026-best-practices.q7"
+        "14-devops-k8s-best-practices.ci-cd-2026-best-practices.q7",
+        "14-devops-k8s-best-practices.ci-cd-2026-best-practices.q8"
       ]
     },
     {
@@ -558,6 +594,7 @@
         "15-network-i-o-models.web-protocols.q1",
         "15-network-i-o-models.web-protocols.q2",
         "15-network-i-o-models.web-protocols.q3",
+        "15-network-i-o-models.web-protocols.q4",
         "15-network-i-o-models.realtime-event-driven.q1",
         "15-network-i-o-models.realtime-event-driven.q2",
         "15-network-i-o-models.realtime-event-driven.q3",
@@ -566,12 +603,14 @@
         "15-network-i-o-models.threading-network-programming.q3",
         "15-network-i-o-models.threading-network-programming.q4",
         "15-network-i-o-models.threading-network-programming.q5",
-        "15-network-i-o-models.threading-network-programming.q6"
+        "15-network-i-o-models.threading-network-programming.q6",
+        "15-network-i-o-models.threading-network-programming.q7"
       ],
       "track_item_ids": [
         "15-network-i-o-models.web-protocols.q1",
         "15-network-i-o-models.web-protocols.q2",
         "15-network-i-o-models.web-protocols.q3",
+        "15-network-i-o-models.web-protocols.q4",
         "15-network-i-o-models.realtime-event-driven.q1",
         "15-network-i-o-models.realtime-event-driven.q2",
         "15-network-i-o-models.realtime-event-driven.q3",
@@ -580,7 +619,8 @@
         "15-network-i-o-models.threading-network-programming.q3",
         "15-network-i-o-models.threading-network-programming.q4",
         "15-network-i-o-models.threading-network-programming.q5",
-        "15-network-i-o-models.threading-network-programming.q6"
+        "15-network-i-o-models.threading-network-programming.q6",
+        "15-network-i-o-models.threading-network-programming.q7"
       ]
     },
     {
@@ -629,7 +669,9 @@
         "17-rest-api-design.contracts-errors-lifecycle.q4",
         "17-rest-api-design.contracts-errors-lifecycle.q5",
         "17-rest-api-design.contracts-errors-lifecycle.q6",
-        "17-rest-api-design.contracts-errors-lifecycle.q7"
+        "17-rest-api-design.contracts-errors-lifecycle.q7",
+        "17-rest-api-design.contracts-errors-lifecycle.q8",
+        "17-rest-api-design.contracts-errors-lifecycle.q9"
       ],
       "track_item_ids": [
         "17-rest-api-design.modelling-resources-uris.q1",
@@ -642,7 +684,9 @@
         "17-rest-api-design.contracts-errors-lifecycle.q4",
         "17-rest-api-design.contracts-errors-lifecycle.q5",
         "17-rest-api-design.contracts-errors-lifecycle.q6",
-        "17-rest-api-design.contracts-errors-lifecycle.q7"
+        "17-rest-api-design.contracts-errors-lifecycle.q7",
+        "17-rest-api-design.contracts-errors-lifecycle.q8",
+        "17-rest-api-design.contracts-errors-lifecycle.q9"
       ]
     },
     {
@@ -659,7 +703,8 @@
         "18-query-optimization.rewriting-the-query-reshaping-the-model.q2",
         "18-query-optimization.rewriting-the-query-reshaping-the-model.q3",
         "18-query-optimization.rewriting-the-query-reshaping-the-model.q4",
-        "18-query-optimization.rewriting-the-query-reshaping-the-model.q5"
+        "18-query-optimization.rewriting-the-query-reshaping-the-model.q5",
+        "18-query-optimization.rewriting-the-query-reshaping-the-model.q6"
       ],
       "track_item_ids": [
         "18-query-optimization.measure-first-reading-the-execution-plan.q1",
@@ -673,7 +718,8 @@
         "18-query-optimization.rewriting-the-query-reshaping-the-model.q2",
         "18-query-optimization.rewriting-the-query-reshaping-the-model.q3",
         "18-query-optimization.rewriting-the-query-reshaping-the-model.q4",
-        "18-query-optimization.rewriting-the-query-reshaping-the-model.q5"
+        "18-query-optimization.rewriting-the-query-reshaping-the-model.q5",
+        "18-query-optimization.rewriting-the-query-reshaping-the-model.q6"
       ]
     },
     {
@@ -683,6 +729,7 @@
         "19-dsa-leetcode.the-solving-framework-core-patterns.q2",
         "19-dsa-leetcode.the-solving-framework-core-patterns.q3",
         "19-dsa-leetcode.the-solving-framework-core-patterns.q4",
+        "19-dsa-leetcode.the-solving-framework-core-patterns.q5",
         "19-dsa-leetcode.the-patterns-that-keep-coming-up.q1",
         "19-dsa-leetcode.the-patterns-that-keep-coming-up.q2",
         "19-dsa-leetcode.the-patterns-that-keep-coming-up.q3",
@@ -712,6 +759,7 @@
         "19-dsa-leetcode.the-solving-framework-core-patterns.q2",
         "19-dsa-leetcode.the-solving-framework-core-patterns.q3",
         "19-dsa-leetcode.the-solving-framework-core-patterns.q4",
+        "19-dsa-leetcode.the-solving-framework-core-patterns.q5",
         "19-dsa-leetcode.the-patterns-that-keep-coming-up.q1",
         "19-dsa-leetcode.the-patterns-that-keep-coming-up.q2",
         "19-dsa-leetcode.the-patterns-that-keep-coming-up.q3",
@@ -747,7 +795,9 @@
         "20-observability-sre.slos-alerting-incidents.q1",
         "20-observability-sre.slos-alerting-incidents.q2",
         "20-observability-sre.slos-alerting-incidents.q3",
-        "20-observability-sre.slos-alerting-incidents.q4"
+        "20-observability-sre.slos-alerting-incidents.q4",
+        "20-observability-sre.slos-alerting-incidents.q5",
+        "20-observability-sre.slos-alerting-incidents.q6"
       ],
       "track_item_ids": [
         "20-observability-sre.the-three-pillars-how-to-measure.q1",
@@ -757,7 +807,9 @@
         "20-observability-sre.slos-alerting-incidents.q1",
         "20-observability-sre.slos-alerting-incidents.q2",
         "20-observability-sre.slos-alerting-incidents.q3",
-        "20-observability-sre.slos-alerting-incidents.q4"
+        "20-observability-sre.slos-alerting-incidents.q4",
+        "20-observability-sre.slos-alerting-incidents.q5",
+        "20-observability-sre.slos-alerting-incidents.q6"
       ]
     },
     {
@@ -770,7 +822,8 @@
         "21-linux-production-debug.jvm-network-deep-dive-on-prod.q1",
         "21-linux-production-debug.jvm-network-deep-dive-on-prod.q2",
         "21-linux-production-debug.jvm-network-deep-dive-on-prod.q3",
-        "21-linux-production-debug.jvm-network-deep-dive-on-prod.q4"
+        "21-linux-production-debug.jvm-network-deep-dive-on-prod.q4",
+        "21-linux-production-debug.jvm-network-deep-dive-on-prod.q5"
       ],
       "track_item_ids": [
         "21-linux-production-debug.diagnosing-the-system.q1",
@@ -780,7 +833,8 @@
         "21-linux-production-debug.jvm-network-deep-dive-on-prod.q1",
         "21-linux-production-debug.jvm-network-deep-dive-on-prod.q2",
         "21-linux-production-debug.jvm-network-deep-dive-on-prod.q3",
-        "21-linux-production-debug.jvm-network-deep-dive-on-prod.q4"
+        "21-linux-production-debug.jvm-network-deep-dive-on-prod.q4",
+        "21-linux-production-debug.jvm-network-deep-dive-on-prod.q5"
       ]
     },
     {
@@ -794,7 +848,8 @@
         "22-low-level-design-ood.patterns-in-interview-code.q2",
         "22-low-level-design-ood.patterns-in-interview-code.q3",
         "22-low-level-design-ood.patterns-in-interview-code.q4",
-        "22-low-level-design-ood.patterns-in-interview-code.q5"
+        "22-low-level-design-ood.patterns-in-interview-code.q5",
+        "22-low-level-design-ood.patterns-in-interview-code.q6"
       ],
       "track_item_ids": [
         "22-low-level-design-ood.the-lld-framework-classic-problems.q1",
@@ -805,7 +860,8 @@
         "22-low-level-design-ood.patterns-in-interview-code.q2",
         "22-low-level-design-ood.patterns-in-interview-code.q3",
         "22-low-level-design-ood.patterns-in-interview-code.q4",
-        "22-low-level-design-ood.patterns-in-interview-code.q5"
+        "22-low-level-design-ood.patterns-in-interview-code.q5",
+        "22-low-level-design-ood.patterns-in-interview-code.q6"
       ]
     },
     {
@@ -819,7 +875,8 @@
         "23-java-concurrency-coding.async-the-modern-toolkit.q2",
         "23-java-concurrency-coding.async-the-modern-toolkit.q3",
         "23-java-concurrency-coding.async-the-modern-toolkit.q4",
-        "23-java-concurrency-coding.async-the-modern-toolkit.q5"
+        "23-java-concurrency-coding.async-the-modern-toolkit.q5",
+        "23-java-concurrency-coding.async-the-modern-toolkit.q6"
       ],
       "track_item_ids": [
         "23-java-concurrency-coding.classic-synchronisation-problems.q1",
@@ -830,7 +887,8 @@
         "23-java-concurrency-coding.async-the-modern-toolkit.q2",
         "23-java-concurrency-coding.async-the-modern-toolkit.q3",
         "23-java-concurrency-coding.async-the-modern-toolkit.q4",
-        "23-java-concurrency-coding.async-the-modern-toolkit.q5"
+        "23-java-concurrency-coding.async-the-modern-toolkit.q5",
+        "23-java-concurrency-coding.async-the-modern-toolkit.q6"
       ]
     },
     {
@@ -843,7 +901,8 @@
         "24-domain-driven-design.tactical-modelling-it.q1",
         "24-domain-driven-design.tactical-modelling-it.q2",
         "24-domain-driven-design.tactical-modelling-it.q3",
-        "24-domain-driven-design.tactical-modelling-it.q4"
+        "24-domain-driven-design.tactical-modelling-it.q4",
+        "24-domain-driven-design.tactical-modelling-it.q5"
       ],
       "track_item_ids": [
         "24-domain-driven-design.strategic-splitting-the-domain.q1",
@@ -853,7 +912,8 @@
         "24-domain-driven-design.tactical-modelling-it.q1",
         "24-domain-driven-design.tactical-modelling-it.q2",
         "24-domain-driven-design.tactical-modelling-it.q3",
-        "24-domain-driven-design.tactical-modelling-it.q4"
+        "24-domain-driven-design.tactical-modelling-it.q4",
+        "24-domain-driven-design.tactical-modelling-it.q5"
       ]
     },
     {
@@ -980,7 +1040,9 @@
         "26-testing-strategy.testing-what-usually-breaks.q2",
         "26-testing-strategy.testing-what-usually-breaks.q3",
         "26-testing-strategy.testing-what-usually-breaks.q4",
-        "26-testing-strategy.testing-what-usually-breaks.q5"
+        "26-testing-strategy.testing-what-usually-breaks.q5",
+        "26-testing-strategy.testing-what-usually-breaks.q6",
+        "26-testing-strategy.testing-what-usually-breaks.q7"
       ],
       "track_item_ids": [
         "26-testing-strategy.what-a-test-is-for.q1",
@@ -995,7 +1057,9 @@
         "26-testing-strategy.testing-what-usually-breaks.q2",
         "26-testing-strategy.testing-what-usually-breaks.q3",
         "26-testing-strategy.testing-what-usually-breaks.q4",
-        "26-testing-strategy.testing-what-usually-breaks.q5"
+        "26-testing-strategy.testing-what-usually-breaks.q5",
+        "26-testing-strategy.testing-what-usually-breaks.q6",
+        "26-testing-strategy.testing-what-usually-breaks.q7"
       ]
     },
     {
@@ -1018,7 +1082,8 @@
         "27-api-gateway-identity-edge.introducing-a-gateway-into-a-running-system.q2",
         "27-api-gateway-identity-edge.introducing-a-gateway-into-a-running-system.q3",
         "27-api-gateway-identity-edge.internal-calls-sync-async-or-neither.q1",
-        "27-api-gateway-identity-edge.internal-calls-sync-async-or-neither.q2"
+        "27-api-gateway-identity-edge.internal-calls-sync-async-or-neither.q2",
+        "27-api-gateway-identity-edge.internal-calls-sync-async-or-neither.q3"
       ],
       "track_item_ids": []
     },
@@ -1113,6 +1178,10 @@
       "en": "Concurrency, multithreading and parallelism — what is the real difference, and how does it change the design you pick?",
       "vi": "Concurrency, multithreading và parallelism khác nhau thật sự ở đâu, và điều đó đổi thiết kế bạn chọn thế nào?"
     },
+    "01-java-core-jvm.concurrency.q7": {
+      "en": "Virtual threads are cheap, so can I remove every executor and downstream limit?",
+      "vi": "Virtual thread nhẹ, vậy có thể bỏ hết executor và giới hạn downstream không?"
+    },
     "01-java-core-jvm.language-fundamentals.q1": {
       "en": "The equals()/hashCode() contract — what happens if you violate it?",
       "vi": "Hợp đồng equals()/hashCode() — vi phạm gây hậu quả gì?"
@@ -1173,6 +1242,10 @@
       "en": "A class is used as a HashMap key — why must it override both `equals` and `hashCode`, and what exactly breaks when only one of them is there?",
       "vi": "Một class dùng làm key của HashMap — vì sao phải override cả `equals` lẫn `hashCode`, và hỏng chính xác chỗ nào khi chỉ có một trong hai?"
     },
+    "01-java-core-jvm.collections-data-structures.q7": {
+      "en": "ConcurrentHashMap is thread-safe; when is a multi-step cache or deduplication operation still wrong?",
+      "vi": "ConcurrentHashMap thread-safe; khi nào một thao tác cache hoặc dedup nhiều bước vẫn sai?"
+    },
     "02-java-8-25-java-vs-go.release-timeline.q1": {
       "en": "How did Java 8 change the way Java is written?",
       "vi": "Java 8 đã thay đổi cách viết Java thế nào?"
@@ -1201,6 +1274,10 @@
       "en": "Why do enterprises stick to LTS releases instead of the latest version every 6 months?",
       "vi": "Vì sao enterprise bám LTS thay vì bản mới nhất mỗi 6 tháng?"
     },
+    "02-java-8-25-java-vs-go.release-timeline.q8": {
+      "en": "How do you read Java release notes without accidentally shipping a preview or vendor-specific feature?",
+      "vi": "Đọc release note Java thế nào để không vô tình ship feature preview hoặc feature riêng của vendor?"
+    },
     "02-java-8-25-java-vs-go.java-vs-go-2025-2026.q1": {
       "en": "Virtual Threads vs Goroutines — how do the models differ?",
       "vi": "Virtual Threads vs Goroutines — mô hình khác nhau ra sao?"
@@ -1225,6 +1302,10 @@
       "en": "Records, sealed classes, and pattern matching combine to create what programming style?",
       "vi": "Records, sealed classes, pattern matching kết hợp tạo phong cách lập trình gì?"
     },
+    "02-java-8-25-java-vs-go.java-vs-go-2025-2026.q7": {
+      "en": "What must a fair Java-versus-Go backend benchmark hold constant?",
+      "vi": "Một benchmark backend Java so với Go công bằng phải giữ những gì cố định?"
+    },
     "03-spring-boot-deep-build.ioc-container-transactions.q1": {
       "en": "How does the IoC/DI container work? Bean scopes and lifecycle?",
       "vi": "IoC/DI container hoạt động thế nào? Bean scopes và vòng đời?"
@@ -1248,6 +1329,10 @@
     "03-spring-boot-deep-build.ioc-container-transactions.q6": {
       "en": "Spring Cache turns caching into one annotation. Which of its defaults will hurt you in production?",
       "vi": "Spring Cache biến caching thành một annotation. Default nào của nó sẽ làm bạn đau trong production?"
+    },
+    "03-spring-boot-deep-build.ioc-container-transactions.q7": {
+      "en": "Why does a Spring transaction work in MVC but disappear in a reactive or asynchronous call?",
+      "vi": "Vì sao transaction Spring chạy đúng trong MVC nhưng biến mất khi gọi reactive hoặc async?"
     },
     "03-spring-boot-deep-build.auto-configuration-build.q1": {
       "en": "How does Spring Boot auto-configuration work under the hood?",
@@ -1309,6 +1394,10 @@
       "en": "How does HikariCP interact with transaction isolation, and how do you prevent connection state leaking between requests?",
       "vi": "HikariCP tương tác với transaction isolation thế nào, và ngăn connection state bị rò giữa các request ra sao?"
     },
+    "03-spring-boot-deep-build.auto-configuration-build.q16": {
+      "en": "How do you make a Spring Boot dependency upgrade reproducible instead of trusting a green build?",
+      "vi": "Làm sao để upgrade dependency Spring Boot reproducible thay vì chỉ tin một lần build xanh?"
+    },
     "03-spring-boot-deep-build.bean-lifecycle-request-flow.q1": {
       "en": "The full bean lifecycle: what are the 8 stages, and where do the intervention hooks sit?",
       "vi": "Bean lifecycle đầy đủ: 8 giai đoạn và hook can thiệp nằm ở đâu?"
@@ -1345,6 +1434,10 @@
       "en": "GraphQL vs REST — when does each fit?",
       "vi": "GraphQL vs REST — khi nào hợp?"
     },
+    "04-rest-grpc-webflux.protocols.q7": {
+      "en": "How do you benchmark REST and gRPC fairly, and what does flow control actually protect?",
+      "vi": "Làm sao benchmark REST và gRPC công bằng, và flow control thực sự bảo vệ điều gì?"
+    },
     "04-rest-grpc-webflux.reactive-webflux.q1": {
       "en": "Reactive programming (WebFlux): what are Mono/Flux, the event loop, and backpressure?",
       "vi": "Lập trình reactive (WebFlux): Mono/Flux, event loop và backpressure là gì?"
@@ -1364,6 +1457,10 @@
     "04-rest-grpc-webflux.reactive-webflux.q5": {
       "en": "What benefits does a contract-first approach with OpenAPI/Protobuf bring?",
       "vi": "Contract-first với OpenAPI/Protobuf mang lại lợi ích gì?"
+    },
+    "04-rest-grpc-webflux.reactive-webflux.q6": {
+      "en": "How do you keep a reactive service safe when a downstream or stream is slower than the producer?",
+      "vi": "Làm sao giữ reactive service an toàn khi downstream hoặc stream chậm hơn producer?"
     },
     "05-db-core-index-lock.indexes-what-they-really-are.q1": {
       "en": "What is an index? What index data structures exist and what are they used for?",
@@ -1437,6 +1534,10 @@
       "en": "Which schema decisions are hardest to reverse later — keys, soft delete, enums, and the nullable-everything habit?",
       "vi": "Quyết định schema nào khó đảo ngược nhất về sau — key, soft delete, enum, và thói quen để nullable hết?"
     },
+    "05-db-core-index-lock.modelling-the-schema.q3": {
+      "en": "How do you keep a transactional source of truth and a derived projection from becoming two competing databases?",
+      "vi": "Làm sao giữ database transaction là nguồn sự thật, còn projection dẫn xuất không biến thành một database cạnh tranh?"
+    },
     "06-db-scaling.replication-consistency.q1": {
       "en": "What's the difference between async/semi-sync/sync replication? What problems does replication lag cause?",
       "vi": "Replication async/semi-sync/sync khác gì? Replication lag gây hệ quả gì?"
@@ -1480,6 +1581,10 @@
     "06-db-scaling.sharding-partitioning.q7": {
       "en": "What is CDC (Change Data Capture) / Debezium used for?",
       "vi": "CDC (Change Data Capture) / Debezium dùng để làm gì?"
+    },
+    "06-db-scaling.sharding-partitioning.q8": {
+      "en": "How do you choose a partition or shard key, and migrate to a better key without losing correctness?",
+      "vi": "Chọn partition hoặc shard key thế nào, và migrate sang key tốt hơn mà không mất correctness?"
     },
     "07-sql-nosql-db-engines.the-big-picture.q1": {
       "en": "SQL vs NoSQL — how do you choose based on the problem?",
@@ -1532,6 +1637,10 @@
     "07-sql-nosql-db-engines.engine-by-engine.q9": {
       "en": "When does a search engine earn its place next to the database, and what must it never own?",
       "vi": "Khi nào một search engine xứng đáng đứng cạnh database, và nó tuyệt đối không được sở hữu cái gì?"
+    },
+    "07-sql-nosql-db-engines.engine-by-engine.q10": {
+      "en": "How do you make a search, cache, or OLAP projection rebuildable and freshness-aware?",
+      "vi": "Làm sao để search, cache hoặc OLAP projection có thể rebuild và biết mình đang stale đến mức nào?"
     },
     "08-message-queue.the-two-models.q1": {
       "en": "The RabbitMQ model: exchange, queue, binding, routing key?",
@@ -1590,12 +1699,12 @@
       "vi": "Event là một contract đã phát đi và không rút lại được. Thiết kế và tiến hoá nó thế nào để không phá những consumer mình không kiểm soát?"
     },
     "09-distributed-tx-fintech.distributed-transaction-patterns.q1": {
-      "en": "Why avoid 2PC in microservices?",
-      "vi": "Vì sao tránh 2PC trong micro-services?"
+      "en": "How should you choose local ACID, 2PC/XA, or a Saga?",
+      "vi": "Chọn local ACID, 2PC/XA hay Saga như thế nào?"
     },
     "09-distributed-tx-fintech.distributed-transaction-patterns.q2": {
       "en": "Saga: choreography vs orchestration? Compensating transaction?",
-      "vi": "Saga: choreography vs orchestration? Compensating transaction?"
+      "vi": "Saga: choreography hay orchestration? Compensating transaction là gì?"
     },
     "09-distributed-tx-fintech.distributed-transaction-patterns.q3": {
       "en": "The Outbox pattern, and why is dual-write dangerous?",
@@ -1607,15 +1716,15 @@
     },
     "09-distributed-tx-fintech.distributed-transaction-patterns.q5": {
       "en": "Two services need to stay consistent without a distributed transaction — what are the options?",
-      "vi": "Hai service phải giữ consistent state mà không có distributed transaction — các lựa chọn?"
+      "vi": "Hai service cần giữ consistent state mà không có distributed transaction — các lựa chọn?"
     },
     "09-distributed-tx-fintech.distributed-transaction-patterns.q6": {
       "en": "Distributed lock (Redis/Redlock) — when to use it, and what are the risks?",
-      "vi": "Distributed lock (Redis/Redlock) — khi nào dùng và rủi ro?"
+      "vi": "Distributed lock (Redis/Redlock) — khi nào dùng và rủi ro gì?"
     },
     "09-distributed-tx-fintech.correctness-where-money-is-involved.q1": {
       "en": "Real-world scenario: a call to a PSP/bank times out and you don't know whether the money was already deducted?",
-      "vi": "Tình huống thực chiến: gọi PSP/ngân hàng timeout, không biết tiền đã trừ chưa?"
+      "vi": "Tình huống thực chiến: gọi PSP/ngân hàng timeout, không biết tiền đã bị trừ chưa?"
     },
     "09-distributed-tx-fintech.correctness-where-money-is-involved.q2": {
       "en": "Idempotency in payments: how do you implement it airtight?",
@@ -1623,7 +1732,7 @@
     },
     "09-distributed-tx-fintech.correctness-where-money-is-involved.q3": {
       "en": "Double-entry bookkeeping — why is it the gold standard for a ledger?",
-      "vi": "Double-entry bookkeeping — vì sao là chuẩn vàng cho ledger?"
+      "vi": "Double-entry bookkeeping — vì sao là gold standard cho ledger?"
     },
     "09-distributed-tx-fintech.correctness-where-money-is-involved.q4": {
       "en": "Why not use float for money? What's the correct way to store it?",
@@ -1631,7 +1740,7 @@
     },
     "09-distributed-tx-fintech.correctness-where-money-is-involved.q5": {
       "en": "How do you prevent double-spend / balance races under high load?",
-      "vi": "Chống double-spend / race trên số dư under high load?"
+      "vi": "Chống double-spend / race trên số dư under high load thế nào?"
     },
     "09-distributed-tx-fintech.correctness-where-money-is-involved.q6": {
       "en": "Eventual consistency in fintech: where is it acceptable, and where is it forbidden?",
@@ -1661,6 +1770,10 @@
       "en": "For a service running on ten pods, when do you use an L1 local cache, a shared L2 cache, or both—and how will you bound stale reads, invalidation loss, deploy compatibility, and origin fallback?",
       "vi": "Với service chạy trên mười pod, khi nào bạn dùng L1 local cache, L2 shared cache hoặc cả hai—và bạn sẽ giới hạn stale read, invalidation bị mất, compatibility khi deploy và fallback về origin như thế nào?"
     },
+    "10-system-design-rate-limit.framework-building-blocks.q7": {
+      "en": "How should a capacity estimate include bytes, concurrency, retries, and the first architectural threshold?",
+      "vi": "Capacity estimate nên tính byte, concurrency, retry và ngưỡng đổi kiến trúc như thế nào?"
+    },
     "10-system-design-rate-limit.rate-limiting-in-depth.q1": {
       "en": "Design a token-bucket limit for a named API: what is the key, refill rate, burst allowance, client response contract, and atomic state in single-node and distributed deployments?",
       "vi": "Thiết kế token-bucket limit cho một API cụ thể: key là gì, refill rate, burst allowance, response contract cho client và atomic state ở deployment single-node lẫn distributed được xác định thế nào?"
@@ -1681,6 +1794,10 @@
       "en": "Which limits belong at the edge, gateway, service, and downstream boundary, and how do rate limit, quota, concurrency limit, and overload shedding differ in keying, response, and policy?",
       "vi": "Những limit nào thuộc edge, gateway, service và downstream boundary, và rate limit, quota, concurrency limit cùng overload shedding khác nhau thế nào về keying, response và policy?"
     },
+    "10-system-design-rate-limit.rate-limiting-in-depth.q6": {
+      "en": "When the shared limiter is unavailable or partitioned, how do you choose fail-open, fail-closed, or local fallback?",
+      "vi": "Khi shared limiter unavailable hoặc bị partition, chọn fail-open, fail-closed hay local fallback thế nào?"
+    },
     "10-system-design-rate-limit.surviving-high-load.q1": {
       "en": "Given sustained overload, how would you sequence workload reduction, asynchronous work, caching, isolation, and autoscaling while preserving the critical path and its invariants?",
       "vi": "Khi hệ thống quá tải kéo dài, bạn sẽ sắp xếp workload reduction, asynchronous work, caching, isolation và autoscaling như thế nào để vẫn bảo vệ critical path cùng các bất biến của nó?"
@@ -1696,6 +1813,10 @@
     "10-system-design-rate-limit.surviving-high-load.q4": {
       "en": "An endpoint’s p99 has regressed: how do you use metrics, tracing, profiles, and queue, lock, connection, or GC signals to prove the constraint and select a safe experiment?",
       "vi": "p99 của một endpoint bị xấu đi: bạn dùng metrics, tracing, profile và tín hiệu từ queue, lock, connection hoặc GC như thế nào để chứng minh bottleneck và chọn một thí nghiệm an toàn?"
+    },
+    "10-system-design-rate-limit.surviving-high-load.q5": {
+      "en": "What makes overload control reversible instead of a permanent emergency switch?",
+      "vi": "Điều gì làm overload control có thể hồi phục thay vì trở thành emergency switch vĩnh viễn?"
     },
     "11-system-design-cases.the-big-prompts.q1": {
       "en": "Design a wallet-to-wallet payment system. Which ledger invariants must be atomic, and how do you handle idempotency, PSP timeouts or unknown outcomes, and reconciliation without coupling the design to an OTA booking flow?",
@@ -1776,6 +1897,10 @@
     "11-system-design-cases.the-big-prompts.q20": {
       "en": "During a flash sale, Redis is lost, an expired hold races with delayed PSP success, and the gateway, client, and payment webhook all retry. Define the authoritative state, idempotency boundary, expiry rule, and reconciliation path so neither oversell nor a duplicate charge can occur.",
       "vi": "Trong flash sale, Redis bị mất, hold hết hạn chạy đua với PSP success đến muộn, còn gateway, client và payment webhook đều retry. Hãy định nghĩa authoritative state, idempotency boundary, expiry rule và reconciliation path để không oversell cũng không charge trùng."
+    },
+    "11-system-design-cases.the-big-prompts.q21": {
+      "en": "How do you review a system-design answer so repeated mechanisms stay canonical while each domain still gets a real design?",
+      "vi": "Review một system-design answer thế nào để mechanism lặp lại vẫn có canonical owner nhưng mỗi domain vẫn có design thật?"
     },
     "12-architecture-patterns.architecture-styles.q1": {
       "en": "Layered (n-tier) architecture: pros/cons?",
@@ -1864,6 +1989,10 @@
     "12-architecture-patterns.clean-layered-building-it-for-real.q8": {
       "en": "Package-by-layer vs package-by-feature, and Spring Modulith for a modular monolith?",
       "vi": "Package-by-layer vs package-by-feature, và Spring Modulith cho modular monolith?"
+    },
+    "12-architecture-patterns.clean-layered-building-it-for-real.q9": {
+      "en": "How do architecture fitness functions and ADRs keep a boundary honest after the initial design?",
+      "vi": "Làm sao fitness function và ADR giữ cho boundary không bị trôi sau thiết kế ban đầu?"
     },
     "13-security-oauth2.oauth2-oidc.q1": {
       "en": "OAuth 2.x: what are the roles, modern flows, and flows to avoid?",
@@ -1977,6 +2106,18 @@
       "en": "Most of your running code came from other people. How do you keep dependencies and images from becoming the breach?",
       "vi": "Phần lớn code đang chạy là của người khác viết. Làm sao để dependency và image không trở thành lỗ hổng?"
     },
+    "13-security-oauth2.protecting-the-data-you-store.q5": {
+      "en": "A request carries a valid access token. Why can it still be a cross-tenant data breach, and where should the authorization decision live?",
+      "vi": "Một request mang access token hợp lệ. Vì sao nó vẫn có thể thành vụ lộ dữ liệu cross-tenant, và quyết định authorization nên nằm ở đâu?"
+    },
+    "13-security-oauth2.protecting-the-data-you-store.q6": {
+      "en": "How do you design a webhook or signed/capability URL so a valid signature cannot be replayed or broadened into access?",
+      "vi": "Thiết kế webhook hoặc signed/capability URL thế nào để chữ ký hợp lệ không bị replay hoặc mở rộng thành quyền truy cập?"
+    },
+    "13-security-oauth2.protecting-the-data-you-store.q7": {
+      "en": "What has to be operationally true for key rotation, session revocation, and audit to remain safe during an IdP or policy outage?",
+      "vi": "Cần điều kiện vận hành nào để key rotation, session revocation và audit vẫn an toàn khi IdP hoặc policy service bị outage?"
+    },
     "14-devops-k8s-best-practices.docker-kubernetes.q1": {
       "en": "Docker: image layers, multi-stage builds, and common commands?",
       "vi": "Docker: image layers, multi-stage build và lệnh thường dùng?"
@@ -2045,6 +2186,10 @@
       "en": "How do versioned migrations with Flyway/Liquibase and expand-contract change a live database with zero downtime?",
       "vi": "Migration schema zero-downtime: versioned migration (Flyway/Liquibase) & expand-contract đổi DB khi đang chạy?"
     },
+    "14-devops-k8s-best-practices.ci-cd-2026-best-practices.q8": {
+      "en": "What rollout and termination contract keeps Kubernetes traffic safe during deploy, drain, eviction, and rollback?",
+      "vi": "Rollout và termination contract nào giữ traffic an toàn khi Kubernetes deploy, drain, eviction và rollback?"
+    },
     "15-network-i-o-models.web-protocols.q1": {
       "en": "How do HTTP and HTTPS differ? How does a TLS 1.3 handshake work?",
       "vi": "HTTP vs HTTPS khác gì? TLS handshake (1.3) diễn ra thế nào?"
@@ -2056,6 +2201,10 @@
     "15-network-i-o-models.web-protocols.q3": {
       "en": "What makes a well-designed RESTful API: Richardson maturity, idempotency, status codes, and versioning?",
       "vi": "RESTful API 'chuẩn': Richardson maturity, idempotency, status code, versioning?"
+    },
+    "15-network-i-o-models.web-protocols.q4": {
+      "en": "How do you handle a large HTTP request end to end without turning it into a memory incident?",
+      "vi": "Làm sao xử lý HTTP request lớn end-to-end mà không biến nó thành memory incident?"
     },
     "15-network-i-o-models.realtime-event-driven.q1": {
       "en": "How do polling, SSE, and WebSocket compare, and how does event-driven architecture differ from realtime delivery to clients?",
@@ -2092,6 +2241,10 @@
     "15-network-i-o-models.threading-network-programming.q6": {
       "en": "What is the end-to-end lifecycle of an HTTP request, from DNS resolution until the client renders the response?",
       "vi": "Vòng đời end-to-end của một HTTP request: từ DNS tới lúc client render response?"
+    },
+    "15-network-i-o-models.threading-network-programming.q7": {
+      "en": "How do deadlines and retries behave when a request body or mutation may have partially completed?",
+      "vi": "Deadline và retry hoạt động thế nào khi request body hoặc mutation có thể đã hoàn tất một phần?"
     },
     "16-project-concurrency-whiteboard.presenting-dissecting-the-ota-project.q1": {
       "en": "Given an OTA flight-booking brief, sketch the system for search, hold, payment, and ticketing. Which assumptions, ownership boundaries, and browse-versus-commit consistency rules would you state before drawing?",
@@ -2201,6 +2354,14 @@
       "en": "A payment provider posts a webhook to you. What must the handler do before it trusts a single field?",
       "vi": "Một payment provider gửi webhook tới bạn. Handler phải làm gì trước khi tin dù chỉ một field?"
     },
+    "17-rest-api-design.contracts-errors-lifecycle.q8": {
+      "en": "How should a large upload be modelled as an API resource?",
+      "vi": "Nên model large upload như một API resource thế nào?"
+    },
+    "17-rest-api-design.contracts-errors-lifecycle.q9": {
+      "en": "When is 202 Accepted a truthful contract for a long-running job?",
+      "vi": "Khi nào 202 Accepted mới là contract trung thực cho long-running job?"
+    },
     "18-query-optimization.measure-first-reading-the-execution-plan.q1": {
       "en": "What is the standard process for investigating a slow query, and where should you start?",
       "vi": "Quy trình chuẩn khi gặp một query chậm: bắt đầu từ đâu?"
@@ -2249,6 +2410,10 @@
       "en": "A job must insert two million rows and process a work queue. What breaks if you treat it like ordinary application writes?",
       "vi": "Một job phải chèn hai triệu dòng và xử lý một work queue. Coi nó như ghi dữ liệu bình thường thì hỏng ở đâu?"
     },
+    "18-query-optimization.rewriting-the-query-reshaping-the-model.q6": {
+      "en": "When should a slow query become a cache, materialized view, CDC projection, or OLAP model?",
+      "vi": "Khi nào một query chậm nên trở thành cache, materialized view, CDC projection hoặc OLAP model?"
+    },
     "19-dsa-leetcode.the-solving-framework-core-patterns.q1": {
       "en": "What is the six-step framework for solving a coding interview problem while thinking out loud?",
       "vi": "Khung sáu bước giải một bài coding interview (nói ra thành tiếng)?"
@@ -2264,6 +2429,10 @@
     "19-dsa-leetcode.the-solving-framework-core-patterns.q4": {
       "en": "Two pointers: how do you recognize the pattern, and what common variants should you know?",
       "vi": "Two pointers: nhận dạng và các biến thể hay gặp?"
+    },
+    "19-dsa-leetcode.the-solving-framework-core-patterns.q5": {
+      "en": "How do you prove an algorithm and its performance claim before trusting one visual trace?",
+      "vi": "Làm sao chứng minh algorithm và performance claim trước khi tin một visual trace?"
     },
     "19-dsa-leetcode.the-patterns-that-keep-coming-up.q1": {
       "en": "Hash map + prefix sum: how do subarray-sum problems work, and why can sliding window fail?",
@@ -2389,6 +2558,14 @@
       "en": "How should structured logging and correlation be designed so logs are actually searchable?",
       "vi": "Structured logging và correlation: log thế nào để tra ra được?"
     },
+    "20-observability-sre.slos-alerting-incidents.q5": {
+      "en": "An API is healthy, but the queue, outbox, or reconciliation backlog is growing. What should the SLI and alert measure?",
+      "vi": "API vẫn healthy nhưng queue, outbox hoặc reconciliation backlog cứ tăng. SLI và alert nên đo gì?"
+    },
+    "20-observability-sre.slos-alerting-incidents.q6": {
+      "en": "How should observability fail without becoming a second outage, and how do you verify the monitoring path?",
+      "vi": "Observability nên fail thế nào để không trở thành outage thứ hai, và kiểm chứng monitoring path ra sao?"
+    },
     "21-linux-production-debug.diagnosing-the-system.q1": {
       "en": "A server suddenly becomes slow: which commands do you run in the first 60 seconds?",
       "vi": "Server chậm bất thường: quy trình 60 giây đầu tiên gõ lệnh gì?"
@@ -2420,6 +2597,10 @@
     "21-linux-production-debug.jvm-network-deep-dive-on-prod.q4": {
       "en": "How do tcpdump, ss, and netstat help debug networking between two services?",
       "vi": "tcpdump, ss và netstat: bắt lỗi mạng giữa hai service?"
+    },
+    "21-linux-production-debug.jvm-network-deep-dive-on-prod.q5": {
+      "en": "How do you investigate a production latency incident without making the system worse?",
+      "vi": "Điều tra latency incident trên production thế nào mà không làm hệ thống tệ hơn?"
     },
     "22-low-level-design-ood.the-lld-framework-classic-problems.q1": {
       "en": "How does a low-level design interview differ from system design, and what five-step framework should you use?",
@@ -2457,6 +2638,10 @@
       "en": "How do you design an object model for testability, invariants, and deterministic concurrency tests?",
       "vi": "Thiết kế object model để dễ test, bảo vệ invariant và kiểm thử concurrency có tính deterministic như thế nào?"
     },
+    "22-low-level-design-ood.patterns-in-interview-code.q6": {
+      "en": "What must a correct in-memory TTL cache specify beyond O(1) get and put?",
+      "vi": "Một TTL cache in-memory đúng cần đặc tả gì ngoài get và put O(1)?"
+    },
     "23-java-concurrency-coding.classic-synchronisation-problems.q1": {
       "en": "Bounded blocking queue: how would you implement it with wait/notify and with Lock/Condition?",
       "vi": "Bounded blocking queue: cài bằng wait/notify và bằng Lock/Condition?"
@@ -2493,6 +2678,10 @@
       "en": "Interview drill: 20 threads each add one million to a `volatile int counter`. Is the total right, and how do you prove your answer?",
       "vi": "Bài tập phỏng vấn: 20 luồng, mỗi luồng cộng một triệu vào `volatile int counter`. Tổng có đúng không, và chứng minh câu trả lời thế nào?"
     },
+    "23-java-concurrency-coding.async-the-modern-toolkit.q6": {
+      "en": "How do you design cancellation and backpressure for async fan-out without orphan work?",
+      "vi": "Thiết kế cancellation và backpressure cho async fan-out thế nào để không có orphan work?"
+    },
     "24-domain-driven-design.strategic-splitting-the-domain.q1": {
       "en": "What problem does DDD actually solve? What does ubiquitous language really mean?",
       "vi": "DDD thực ra giải quyết vấn đề gì? Ubiquitous language nghĩa là gì cho đúng?"
@@ -2524,6 +2713,10 @@
     "24-domain-driven-design.tactical-modelling-it.q4": {
       "en": "Repository, Factory, and Domain Service: where does each belong, and when is it needed?",
       "vi": "Repository, Factory và Domain Service — mỗi thứ đặt ở đâu và khi nào cần?"
+    },
+    "24-domain-driven-design.tactical-modelling-it.q5": {
+      "en": "How do you turn a DDD model into an executable boundary and review checklist?",
+      "vi": "Làm sao biến DDD model thành boundary có thể kiểm chứng và checklist review thực thi được?"
     },
     "25-microservice.01-cascading-failure-retry-storm.q1": {
       "en": "Why can one slow downstream service take down every upstream service even when CPU utilization is still low?",
@@ -2781,6 +2974,14 @@
       "en": "A test fails once a week and passes on rerun. What is the policy, and why is high coverage no defence?",
       "vi": "Một test mỗi tuần đỏ một lần, chạy lại là xanh. Chính sách xử lý là gì, và vì sao coverage cao không cứu được?"
     },
+    "26-testing-strategy.testing-what-usually-breaks.q6": {
+      "en": "How do you test a distributed failure state with timeout-after-commit, retries, and an unknown outcome?",
+      "vi": "Test distributed failure state thế nào khi timeout-after-commit, retry và kết quả unknown xảy ra?"
+    },
+    "26-testing-strategy.testing-what-usually-breaks.q7": {
+      "en": "What must a restore, replay, or cutover test prove before you call a system recoverable?",
+      "vi": "Restore, replay hoặc cutover test phải chứng minh gì trước khi gọi hệ thống là recoverable?"
+    },
     "27-api-gateway-identity-edge.the-edge-in-four-sizes.q1": {
       "en": "How do you turn 10k, 100k, 1M and 100M requests a day into the peak rate the edge is sized for, and what does one extra hop cost at each tier?",
       "vi": "Làm sao đổi 10k, 100k, 1M và 100M request mỗi ngày thành peak rate để size edge, và thêm một hop tốn gì ở mỗi tier?"
@@ -2852,6 +3053,10 @@
     "27-api-gateway-identity-edge.internal-calls-sync-async-or-neither.q2": {
       "en": "What do you gain and owe when moving a hop onto a queue, and why must east-west traffic bypass the edge gateway?",
       "vi": "Đưa một hop lên queue được gì và phải trả giá gì, và vì sao east-west traffic phải bypass edge gateway?"
+    },
+    "27-api-gateway-identity-edge.internal-calls-sync-async-or-neither.q3": {
+      "en": "How should an edge route large uploads and asynchronous jobs without hiding failure?",
+      "vi": "Edge nên route large upload và asynchronous job thế nào để không che giấu failure?"
     },
     "28-distributed-lock-lease.the-protocol-before-the-product.q1": {
       "en": "What problem does a distributed lock solve, and what does it leave to the rest of the system?",

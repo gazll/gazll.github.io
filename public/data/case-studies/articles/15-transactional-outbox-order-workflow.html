@@ -1,4 +1,5 @@
 <h2 id="problem">1. The problem is not choosing the right order</h2>
+<p><strong>Case boundary:</strong> this is a repository-authored design example, not a claim that a named production system uses these exact tables. The generic Outbox, broker-delivery and API-contract background belongs to <a href="https://gazll.github.io/system-design/09-distributed-tx-fintech">Topic 09</a>, <a href="https://gazll.github.io/system-design/08-message-queue">Topic 08</a> and <a href="https://gazll.github.io/system-design/17-rest-api-design">Topic 17</a>. This case follows one concrete order through its local commits, relay crashes, duplicate handling and business recovery.</p>
 <p>A client sends a request to Service A. A must update its own data and publish a message that asks Service B to create related data. These actions belong to two resource managers: a database and a message broker. A local transaction cannot commit both automatically.</p>
 <table>
   <thead><tr><th>Order</th><th>Crash window</th><th>Observable state</th></tr></thead>
@@ -8,17 +9,18 @@
     <tr><td>Publish inside DB transaction</td><td>Broker confirms, then DB rolls back</td><td>The message escaped; rollback cannot recall it</td></tr>
   </tbody>
 </table>
-<p>Retrying the entire request is not a complete solution either: the client can time out after A committed, resend, and trigger another execution. The right question is: <strong>which consistency boundary can the system actually commit atomically?</strong></p>
+<p>Retrying the entire request is not a complete solution either: the client can time out after A committed, resend, and trigger another execution. The useful question is: <strong>which consistency boundary can the system actually commit atomically?</strong> Here it is Service A's local database; publication and downstream effects remain later, observable steps.</p>
 
 <h2 id="business-flow">2. Start with the real-world process</h2>
-<p>Use the order as the root aggregate. Creating an order, taking payment, reserving inventory and shipping are not one long transaction; they form a workflow of separate commitments, each with a state and a compensation path.</p>
+<p>Use the order as the root aggregate. Creating an order, taking payment, reserving inventory and shipping are not one long transaction; they form a workflow of separate commitments, each with a state and a compensation path owned by the relevant domain.</p>
 <ol>
   <li>Order Service creates an order in <code>CREATED</code>.</li>
   <li>The user checks out: the order moves to <code>PAYMENT_PENDING</code>.</li>
-  <li>Payment Service succeeds: the order moves to <code>PAID</code>; on failure it moves to <code>PAYMENT_FAILED</code>.</li>
-  <li>Inventory Service reserves stock: success produces <code>INVENTORY_RESERVED</code>; rejection requests a refund.</li>
+  <li>Payment Service succeeds: the order moves to <code>PAID</code>; on a confirmed failure it moves to <code>PAYMENT_FAILED</code>.</li>
+  <li>Inventory Service reserves stock: success produces <code>INVENTORY_RESERVED</code>; rejection creates a refund intent.</li>
   <li>Only after both money and stock are confirmed does Shipping Service receive a shipment request.</li>
 </ol>
+<p>Order Service owns the workflow state, Payment Service owns the payment attempt and provider reference, Inventory Service owns stock, and Shipping Service owns shipment state. A refund is a new business operation, not a database rollback. If a provider call times out after the request may have reached it, the order must remain <code>PAYMENT_UNKNOWN</code> until a provider status query, callback or reconciliation job establishes the outcome.</p>
 <figure class="cs-figure">
   <button type="button" data-zoom-image aria-label="Open the Transactional Outbox diagram at full size">
     <img src="assets/case-studies/15-transactional-outbox-order-workflow/01-outbox-flow.svg" width="1200" height="660" loading="lazy" decoding="async" alt="Service A commits a business row and outbox event together; a relay sends the event through a broker; Service B deduplicates before committing its data.">
@@ -27,12 +29,13 @@
 </figure>
 
 <h2 id="outbox-write">3. One commit for the business row and delivery intent</h2>
-<p>Service A does not publish directly inside the request transaction. It writes both business state and the event to its database. A commit preserves both; a rollback removes both.</p>
+<p>Service A does not publish directly inside the request transaction. It writes both business state and the event to the <strong>same local database and transaction</strong>. A successful database commit preserves both under that database's configured durability contract; a rollback removes both. The broker is outside this atomic boundary, so the relay publishes later.</p>
 <pre><code>BEGIN;
 
 UPDATE orders
 SET status = 'PAYMENT_PENDING', version = version + 1
 WHERE id = 'order-123' AND version = 7;
+-- require affected rows = 1; otherwise reject a stale command
 
 INSERT INTO outbox_events (
   event_id, aggregate_id, aggregate_version,
@@ -43,22 +46,46 @@ INSERT INTO outbox_events (
 );
 
 COMMIT;</code></pre>
-<p><code>event_id</code> is the stable identity for retries. <code>aggregate_id</code> groups events for one order; <code>aggregate_version</code> helps consumers detect stale or out-of-order events. The payload should carry the contracted data rather than forcing consumers to read Service A's private database.</p>
+<p><code>event_id</code> is the stable identity for retries. <code>aggregate_id</code> groups events for one order; <code>aggregate_version</code> lets a consumer validate the sequence, but it does not reorder or repair events by itself. If the consumer has version 8 and receives version 7, it can record a stale duplicate as a no-op; if it receives version 9 before 8, it must queue a gap or request repair rather than apply the event blindly. The payload should carry the contracted data rather than forcing consumers to read Service A's private database.</p>
 
 <h2 id="relay">4. The relay publishes without pretending to be exactly-once</h2>
-<p>A relay claims <code>PENDING</code> rows, publishes them, waits for broker acknowledgement, then marks them <code>PUBLISHED</code>. Multiple workers may use leases or <code>FOR UPDATE SKIP LOCKED</code> to avoid claiming the same batch. On publish failure, the row remains durable and is retried with backoff.</p>
+<p>For this case, a relay claims <code>PENDING</code> rows with a short, expiring lease, publishes them, waits for the broker's documented acknowledgement, then records the local observation as <code>PUBLISHED</code>. A lease is a recovery mechanism, not proof that an old worker has stopped. <code>FOR UPDATE SKIP LOCKED</code> can help queue-like claiming, but its skipped view is not a general correctness read; the application still needs expiry, reclaim and duplicate-safe publication.</p>
+<p>The fields, claim order and <code>LIMIT</code> below are illustrative. Lease duration, batch size and ordering key must be chosen from the broker/database workload and failure measurements.</p>
+<pre><code>BEGIN;
+
+SELECT event_id
+FROM outbox_events
+WHERE status = 'PENDING'
+  AND (lease_until IS NULL OR lease_until &lt; CURRENT_TIMESTAMP)
+ORDER BY aggregate_id, aggregate_version, created_at, event_id
+FOR UPDATE SKIP LOCKED
+LIMIT 50;
+
+UPDATE outbox_events
+SET status = 'CLAIMED', lease_owner = :worker,
+    lease_until = :lease_until, claim_token = :token
+WHERE event_id IN (:claimed_ids);
+
+COMMIT;
+-- publish outside the claim transaction
+-- acknowledge, then update only with the same claim_token</code></pre>
 <table>
-  <thead><tr><th>Where does the relay stop?</th><th>After restart</th><th>Design requirement</th></tr></thead>
+  <thead><tr><th>Where does the relay stop?</th><th>After restart or lease expiry</th><th>Design requirement</th></tr></thead>
   <tbody>
-    <tr><td>Before broker acknowledgement</td><td>Publish again</td><td>The event is not lost</td></tr>
-    <tr><td>After acknowledgement, before marking published</td><td>May publish twice</td><td>The consumer must be idempotent</td></tr>
-    <tr><td>After marking published</td><td>Do not claim again</td><td>Retain for audit, then clean up by policy</td></tr>
+    <tr><td>Claimed, before publish</td><td>Reclaim after <code>lease_until</code>; the old worker may still have been paused</td><td>Oldest-claimed alert, bounded work and a reclaim path</td></tr>
+    <tr><td>After broker acknowledgement, before marking published</td><td>May publish twice</td><td>Stable event ID, Inbox/business-key protection and a conditional status update</td></tr>
+    <tr><td>After marking published</td><td>Do not claim again</td><td>Retain for audit, repair and cleanup by an explicit policy</td></tr>
   </tbody>
 </table>
-<p>This is <strong>at-least-once delivery</strong>. Calling it exactly-once merely moves the duplicate into a less visible corner; end-to-end correctness still needs stable identity and idempotent side effects.</p>
+<p>In this article, <code>PUBLISHED</code> means that the relay observed the broker publication boundary; it does <strong>not</strong> mean that a consumer acknowledged the message or that the order business effect completed. This is <strong>at-least-once delivery</strong>. Calling it exactly-once merely moves the duplicate into a less visible corner; end-to-end correctness still needs stable identity and idempotent side effects.</p>
+<pre><code>UPDATE outbox_events
+SET status = 'PUBLISHED', lease_owner = NULL, lease_until = NULL
+WHERE event_id = :event_id
+  AND claim_token = :token;</code></pre>
+<p>If that conditional update affects zero rows, the worker lost its claim or a repair process changed the row. It must not overwrite the newer state; the publication may still be a harmless duplicate.</p>
 
 <h2 id="consumer">5. Service B uses an Inbox to turn duplicates into no-ops</h2>
-<p>Service B must not read an <code>event_id</code>, see that it is absent, and then insert the business row. Two concurrent consumers can both pass that check. The deduplication marker and business mutation must commit in one local transaction.</p>
+<p>Service B must not read an <code>event_id</code>, see that it is absent, and then insert the business row. Two concurrent consumers can both pass that check. The deduplication marker and the local business mutation must commit in one local transaction, with a unique key scoped to the consumer and event.</p>
 <pre><code>BEGIN;
 
 WITH accepted AS (
@@ -67,69 +94,90 @@ WITH accepted AS (
   ON CONFLICT DO NOTHING
   RETURNING event_id
 )
-INSERT INTO payments (order_id, amount, status)
-SELECT 'order-123', 500000, 'AUTHORIZED'
+INSERT INTO payments (order_id, payment_attempt, amount, status)
+SELECT 'order-123', 1, 500000, 'AUTHORIZATION_PENDING'
 FROM accepted;
 
 COMMIT;</code></pre>
-<p>In addition to event deduplication, the business table should have a constraint for the intent, such as <code>UNIQUE(order_id, payment_attempt)</code>. Event identity blocks replay of one message; the business key blocks two different messages that accidentally request the same side effect.</p>
+<p>The example uses PostgreSQL-style illustrative SQL; the invariant is portable even when the syntax is not. The inserted row is a local authorization intent, not proof that the external provider has authorized the payment. The Inbox must have a uniqueness rule such as <code>UNIQUE(consumer_name, event_id)</code>, while the business table needs a separate intent rule such as <code>UNIQUE(order_id, payment_attempt)</code>. Event identity blocks replay of one message; the business key blocks two different messages that accidentally request the same side effect.</p>
+<p>If the event ID is already present, the consumer records a no-op. If the same ID arrives with a conflicting payload, it goes to quarantine rather than silently changing history. A notification or another downstream effect after this transaction belongs to Service B's own outbox; never commit the Inbox marker first and assume the later effect will happen.</p>
 
-<h2 id="saga">6. Outbox transports events; a Saga controls the business</h2>
-<p>Outbox does not know which order transition is legal. The order state machine encodes invariants and compensating actions.</p>
+<h2 id="saga">6. Outbox transports events; the order workflow controls the business</h2>
+<p>The generic Saga choice is covered in <a href="https://gazll.github.io/system-design/09-distributed-tx-fintech">Topic 09</a>; the queue acknowledgement boundary is covered in <a href="https://gazll.github.io/system-design/08-message-queue">Topic 08</a>. This case keeps only the transitions needed to implement this order. Outbox transports a durable intent; the order state machine decides which event is legal and which business action follows.</p>
 <table>
-  <thead><tr><th>Event</th><th>Legal transition</th><th>Next action</th></tr></thead>
+  <thead><tr><th>Event or outcome</th><th>Legal transition</th><th>Next action</th></tr></thead>
   <tbody>
-    <tr><td><code>PaymentSucceeded</code></td><td><code>PAYMENT_PENDING → PAID</code></td><td>Emit <code>InventoryReservationRequested</code></td></tr>
-    <tr><td><code>PaymentFailed</code></td><td><code>PAYMENT_PENDING → PAYMENT_FAILED</code></td><td>Stop the workflow</td></tr>
-    <tr><td><code>InventoryReserved</code></td><td><code>PAID → INVENTORY_RESERVED</code></td><td>Emit <code>ShipmentRequested</code></td></tr>
-    <tr><td><code>InventoryRejected</code></td><td><code>PAID → REFUND_PENDING</code></td><td>Emit <code>RefundRequested</code></td></tr>
+    <tr><td><code>PaymentSucceeded</code></td><td><code>PAYMENT_PENDING &rarr; PAID</code></td><td>Emit <code>InventoryReservationRequested</code></td></tr>
+    <tr><td><code>PaymentFailed</code></td><td><code>PAYMENT_PENDING &rarr; PAYMENT_FAILED</code></td><td>Stop the workflow</td></tr>
+    <tr><td>Provider status confirms success after timeout</td><td><code>PAYMENT_UNKNOWN &rarr; PAID</code></td><td>Use the original provider reference; do not create a new charge</td></tr>
+    <tr><td><code>InventoryReserved</code></td><td><code>PAID &rarr; INVENTORY_RESERVED</code></td><td>Emit <code>ShipmentRequested</code></td></tr>
+    <tr><td><code>InventoryRejected</code></td><td><code>PAID &rarr; REFUND_PENDING</code></td><td>Emit one <code>RefundRequested</code> intent</td></tr>
+    <tr><td>Refund fails or remains unknown</td><td><code>REFUND_PENDING &rarr; RECONCILIATION_REQUIRED</code></td><td>Alert the owner; reconcile before retrying a new intent</td></tr>
   </tbody>
 </table>
-<p>Choreography works when the flow is short and ownership is clear. As branches, timeouts and compensations multiply, an orchestrator can make the state machine more visible. In either style, every service writes only its own database and emits through its own outbox.</p>
+<p>Choreography can fit this short flow when ownership is clear. If branches, timeouts and compensations multiply, an orchestrator can make the state machine and durable workflow state more visible. Either way, compensation is a new business transaction, not a rollback of a completed remote effect. Every service writes only its own database and emits through its own outbox.</p>
 
 <h2 id="api-contract">7. The API promises only what is durable</h2>
-<p>When the Order Service transaction commits, the whole workflow is not complete. The API should return <code>202 Accepted</code> with a pending state:</p>
+<p>When the Order Service transaction commits, the whole workflow is not complete. The endpoint can return <code>202 Accepted</code> only after durable acceptance, with a status resource that is authorized for the same tenant and order. The values below are illustrative; actual retry hints and expiry must follow measured workload, provider contracts and product SLOs:</p>
 <pre><code>HTTP/1.1 202 Accepted
 Location: /orders/order-123
+Retry-After: 3
+Content-Type: application/json
 
 {
   "orderId": "order-123",
-  "status": "PAYMENT_PENDING"
+  "status": "PAYMENT_PENDING",
+  "expiresAt": "2026-08-23T12:05:00Z",
+  "links": {
+    "self": "/orders/order-123"
+  }
 }</code></pre>
-<p>The client may poll the resource, receive an SSE/WebSocket notification, or accept a webhook. A client retrying the same checkout intent should send an idempotency key so Order Service returns the existing order instead of starting a second Saga.</p>
+<p>The client may poll the resource, receive an SSE/WebSocket notification, or accept a webhook. A client retrying the same checkout intent should send one stable idempotency key so Order Service returns the existing order instead of starting a second workflow. A key reused with different parameters is a conflict, not permission to create another order. See <a href="https://gazll.github.io/system-design/17-rest-api-design">Topic 17</a> for the general status/error contract; this case adds the concrete states <code>PAYMENT_UNKNOWN</code>, <code>REFUND_PENDING</code>, <code>RECONCILIATION_REQUIRED</code> and terminal expiry.</p>
+<p><code>PAYMENT_UNKNOWN</code> means the request outcome is not yet known, not that payment failed. The service queries the provider, accepts the signed callback or runs reconciliation under the original provider key/reference. If the status resource expires, it exposes a terminal failure or manual-review state according to product policy; it must not hide the item or blindly send a new charge.</p>
 
 <h2 id="operations">8. The production work that is often omitted</h2>
 <ul>
-  <li><strong>Lag:</strong> measure the age of the oldest <code>PENDING</code> row, not only queue depth.</li>
-  <li><strong>Retry:</strong> use exponential backoff with jitter; separate transient failure from invalid payloads.</li>
-  <li><strong>Poison event:</strong> move it to an error state or DLQ with an alert and replay procedure; never hot-loop forever.</li>
-  <li><strong>Ordering:</strong> partition by <code>aggregate_id</code> when per-order ordering matters; consumers still validate versions.</li>
-  <li><strong>Retention:</strong> archive or delete outbox and inbox rows according to the promised deduplication window.</li>
-  <li><strong>Reconciliation:</strong> compare business state with downstream event/state to locate stuck workflows.</li>
-  <li><strong>Tracing:</strong> carry <code>correlation_id</code> and <code>causation_id</code> through every event.</li>
+  <li><strong>Lag:</strong> measure <code>outbox_oldest_pending_age_seconds</code> and the oldest claimed age, not only queue depth; assign an owner and a repair runbook.</li>
+  <li><strong>Claim recovery:</strong> count expired leases and conditional mark failures; alert when a reclaimed row keeps publishing duplicates.</li>
+  <li><strong>Retry:</strong> choose one retry owner per hop, use deadlines, exponential backoff with jitter and a retry budget, and classify non-retriable payload errors.</li>
+  <li><strong>Poison event:</strong> move it to an error state or DLQ with an alert, schema check, authorized redrive and replay procedure; never hot-loop forever.</li>
+  <li><strong>Ordering:</strong> partition by <code>aggregate_id</code> when per-order ordering matters; consumers still validate versions and route gaps to repair.</li>
+  <li><strong>Retention:</strong> keep Outbox history for the maximum duplicate, replay and reconciliation window promised by the product; do not copy a provider's key TTL without checking scope.</li>
+  <li><strong>Inbox:</strong> monitor duplicate no-ops, growth and cleanup age; the durable business key must remain safe even after an Inbox row expires.</li>
+  <li><strong>Reconciliation:</strong> measure provider-unknown items, refund debt and <code>RECONCILIATION_REQUIRED</code> age; compare authoritative business state with downstream state.</li>
+  <li><strong>Tracing:</strong> carry opaque <code>correlation_id</code>, <code>causation_id</code> and trace context through every event, but never put secrets or full payment/PII payloads in trace attributes.</li>
+  <li><strong>Access:</strong> tenant-scope status, DLQ and replay operations; record who redrove an event and why.</li>
+  <li><strong>Relay choice:</strong> polling is the example here; CDC/outbox routers are alternatives with their own connector lag, schema, offset and replay operations.</li>
 </ul>
 
 <h2 id="tests">9. Failure cases that must be tested</h2>
 <ol>
   <li>Business transaction rolls back: neither the business change nor an outbox row exists.</li>
-  <li>Crash after commit, before the first poll: the restarted relay still publishes the event.</li>
-  <li>Crash after broker acknowledgement, before updating outbox: B receives a duplicate but creates one side effect.</li>
-  <li>Two relays claim concurrently: one row is not processed in parallel outside the chosen claim mechanism.</li>
-  <li>Two consumers receive the same event concurrently: the inbox unique constraint adjudicates.</li>
-  <li>An old event version arrives after a new one: the state machine rejects or reconciles it.</li>
-  <li>Inventory rejects after payment succeeds: the Saga creates exactly one refund intent.</li>
-  <li>The client times out and retries: its idempotency key returns the same order.</li>
+  <li>Database commit succeeds but the process dies before the response: the same client key returns the existing order.</li>
+  <li>Relay claims a row and dies before publish: lease expiry makes it reclaimable and the oldest-claimed alert fires.</li>
+  <li>Relay publishes successfully, then dies before updating Outbox: B receives a duplicate but creates one side effect.</li>
+  <li>A stale worker updates after its lease is stolen: the claim token prevents it from overwriting the newer state.</li>
+  <li>Two consumers receive the same event concurrently: the Inbox unique constraint adjudicates.</li>
+  <li>A mutant commits the Inbox marker before the business effect: the test fails because the effect would be lost on crash.</li>
+  <li>An old event arrives after a new one: the state machine no-ops a stale duplicate or queues a version gap for repair.</li>
+  <li>A provider times out after transmission: the workflow queries the original reference and never retries with a new intent.</li>
+  <li>The same provider callback and an authorized replay arrive twice: both are harmless and do not create a second refund or charge.</li>
+  <li>Inventory rejects after payment succeeds: exactly one refund intent is created; a failed refund enters reconciliation.</li>
+  <li>An incompatible event schema is redriven: compatibility and quarantine checks run before production effects.</li>
+  <li>Inbox or Outbox retention expires: the business key, audit policy and reconciliation path still define safe behavior.</li>
 </ol>
 
 <h2 id="decision">10. Design conclusion</h2>
-<p>Do not choose “save first” or “send first.” Service A commits the business row and outbox row in one local transaction; the relay publishes with retries; Service B uses a transactional inbox and business constraints for idempotency. Above that delivery mechanism, the order state machine or Saga defines real-world sequencing and compensation.</p>
-<p>Transactional Outbox converts an uncontrolled atomicity gap into two visible problems: <strong>observable eventual delivery</strong> and <strong>identified duplicate processing</strong>. That is an operable trade-off, not magic that removes every failure.</p>
+<p>Do not choose “save first” or “send first.” In this order implementation, Service A commits the business row and Outbox row in the same local transaction; the leased relay publishes with at-least-once semantics; Service B commits its Inbox marker and business-key-guarded effect together. Above that delivery mechanism, the order state machine defines legal transitions, provider-unknown handling and compensation.</p>
+<p>Transactional Outbox converts an uncontrolled atomicity gap into visible, owned work: durable local intent, eventual broker publication, identified duplicate processing and reconciliation for outcomes that cannot be observed immediately. It does not make a payment provider, broker consumer or compensation step exactly once.</p>
 
 <h2 id="questions">11. Review questions</h2>
 <ol>
   <li>Why does wrapping publish inside a database transaction still not make the dual write atomic?</li>
-  <li>At which relay crash point is a duplicate created, and why can it not mark <code>PUBLISHED</code> before publishing?</li>
-  <li>How should the inbox be designed so two concurrent consumers cannot both create a payment?</li>
-  <li>When is per-aggregate ordering required, and how does a consumer protect itself with versions?</li>
-  <li>If payment succeeds but inventory is unavailable, what is the compensating action and which service owns that decision?</li>
+  <li>At which relay crash point is a duplicate created, and why can it not mark <code>PUBLISHED</code> before broker acknowledgement?</li>
+  <li>What expires a relay claim, and how does a claim token stop an old worker from overwriting a reclaimed row?</li>
+  <li>How do the Inbox event key and the payment business key protect different invariants?</li>
+  <li>What should happen when version 9 arrives while version 8 is missing?</li>
+  <li>If payment times out after transmission, why is <code>PAYMENT_UNKNOWN</code> safer than sending a new charge?</li>
+  <li>If payment succeeds but inventory is unavailable, which service owns the refund decision and what happens if compensation also fails?</li>
 </ol>

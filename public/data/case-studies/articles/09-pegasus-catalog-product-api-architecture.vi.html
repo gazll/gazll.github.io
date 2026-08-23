@@ -39,6 +39,7 @@
   <li>Compressor: compressor có thể config để compress data khi lưu trữ và serve</li>
 </ul>
 <h2 id="entry-point">Entry point</h2>
+<p><strong>Ranh giới bằng chứng:</strong> Các số 24K RPS/TP99, 15K connection, hit rate 95%, payload 200KB với 8000 connection và 10/7Gbps là measurement của workload này. Hãy đo lại payload mix, cache hit ratio, client connection reuse, L4/L7 path, warm-up, CPU và cách tính percentile trước khi dùng chúng làm capacity target.</p>
 <p><strong>REST API</strong></p>
 <p>Pegasus dùng Vert.x connector cho REST API. Mọi HTTP request bắt đầu từ Vert.x internal event loop, sau đó được routed tới processor tương ứng và execute theo một strategy có thể config. Pegasus hỗ trợ các strategy sau:</p>
 <ul>
@@ -74,6 +75,7 @@
 <p>Để giải quyết vấn đề thiếu connection pool, Pegasus expose API qua gRPC vì gRPC trong PHP đã hỗ trợ persistent connection. Feature này chưa được tích hợp với Tala. Response format gần như giống REST API.</p>
 <p>gRPC có thể không đem lại lợi ích nếu language đã hỗ trợ persistent HTTP connection.</p>
 <h2 id="in-mem-cache">In-memory cache</h2>
+<p><strong>Contract của coalescing:</strong> Promise Cache là local single-flight, không phải distributed lock hay source of truth. Nó cần owner deadline, giới hạn và cancellation của waiter, policy cho error/stale value cùng fallback khi owner crash. Consistent hashing đánh đổi locality lấy skew và khả năng tập trung failure.</p>
 <p>Pegasus dùng Guava cho product cache trong in-memory. Đây là một Map đơn giản từ product ID tới product payload. Payload thường là JSON đã transform (xem thêm ở phần Compressor).</p>
 <p>Cache thực chất là một chuỗi loader dùng Decorator pattern. Loader cơ bản nhất là DirectMongoLoader, query trực tiếp từ MongoDB. Loader này được bọc trong GuavaLoader, lưu payload vào Guava Loading Cache và chỉ gọi loader khi cache miss.</p>
 <p>Với single API, logic rất đơn giản: trả payload khi cache hit; khi cache miss thì query product từ MongoDB.</p>
@@ -99,6 +101,7 @@
   <figcaption>Hình 6 · In-memory cache</figcaption>
 </figure>
 <h2 id="compressor">Compressor</h2>
+<p><strong>Trade-off:</strong> Compression phải được negotiate và bounded. Hãy đo wire bytes, compression CPU, allocation/GC, decompression time và tail latency theo từng payload class; payload nhỏ hơn chưa chắc nhanh hơn, đồng thời cần giới hạn input/output để phòng decompression bomb.</p>
 <p>Pegasus hỗ trợ configurable Compressor cho product payload. Có thể config compressor riêng cho single query và multi query. Để tối ưu hai API này, chúng tôi dùng application server riêng cho từng API.</p>
 <ul>
   <li>Để query các sản phẩm đơn lẻ: <code>http://pegasus.xxx</code></li>

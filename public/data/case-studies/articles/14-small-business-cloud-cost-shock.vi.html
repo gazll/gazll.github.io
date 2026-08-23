@@ -40,6 +40,7 @@
 </figure>
 
 <h2 id="4-is-one-4-core-8-gb-server-the-answer">4. Một server 4 core, 8 GB có phải đáp án?</h2>
+<p><strong>Ghi chú nghiên cứu:</strong> bill được kể lại và shape một server là local hypothesis, không phải price hay availability benchmark có thể tái lập. Simplification an toàn phải test theo request/DB/backup workload thật, restore RTO/RPO, security control, monitoring, deploy rollback và khả năng operator recover một failure domain đơn.</p>
 <p>Với product thi chưa launch, server 4 core, 8 GB có thể dư xa compute capacity workload hiện tại cần. Modular monolith, PostgreSQL, reverse proxy và background worker có thể phục vụ lượng traffic đáng kể trên cấu hình này nếu query, payload và concurrency hợp lý. Thay nhiều managed component bằng một máy có thể giảm cash bill rất mạnh.</p>
 <p>Nhưng kết luận rằng nó “đảm bảo không downtime” là sai. Một máy gộp application, database, disk, operating system, network path, provider và deployment vào các failure domain chung. Disk hỏng, kernel update lỗi, filesystem đầy, provider outage, migration phá dữ liệu hoặc human mistake có thể hạ toàn bộ service lẫn local backup cùng lúc.</p>
 <p>So sánh đúng không phải 4 core với ECS. Đó là total cost cho một service level tường minh:</p>
@@ -62,5 +63,6 @@
 <p><strong>Ngày 61–90 — định nghĩa evolution.</strong> Viết threshold cho scale-out: CPU hay connection saturation kéo dài, recovery objective một server không đạt, deployment chặn nhau, regulation yêu cầu isolation hoặc incident cost vượt managed-service premium. Chỉ mua Savings Plan sau khi có baseline ổn định; commitment discount lãng phí hiệu quả hệt như discount capacity hữu ích.</p>
 
 <h2 id="7-the-decision-rule">7. Decision rule</h2>
+<p><strong>Ghi chú về recovery:</strong> giảm cost chỉ hoàn tất khi vẫn giữ encrypted off-host backup, restore evidence, least privilege, MFA, audit/incident evidence, deploy có thể tái tạo và rollback path đã đo. Bỏ staging, log, CI/CD hoặc managed service có thể giảm một line item nhưng chuyển failure/labor risk sang chỗ khác; comparison phải tính risk-adjusted total.</p>
 <p>Architecture phải tối thiểu hóa tổng infrastructure cost, engineering time và accepted risk. Trước product-market fit, reversibility cùng khả năng sống sót thường quan trọng hơn theoretical scale. Khi traffic, revenue, team size hoặc regulation thay đổi, chính các managed control đó có thể trở nên rẻ so với outage hay coordination mà chúng ngăn được.</p>
 <p>Vì vậy câu trả lời mạnh nhất cho phản biện bare metal là: đúng, một server vừa phải có thể là architecture đúng ở hiện tại; sai, capacity của nó không đảm bảo availability. Hãy dùng nó với off-host backup, monitoring, restore drill và upgrade trigger đã document. Cloud không phải mục tiêu, monthly spend thấp nhất cũng không phải mục tiêu. Mục tiêu là architecture rẻ nhất đáp ứng business contract hôm nay và có thể evolve trước khi contract ngày mai làm nó gãy.</p>

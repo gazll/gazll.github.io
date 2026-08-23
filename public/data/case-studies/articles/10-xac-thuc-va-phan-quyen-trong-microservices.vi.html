@@ -63,6 +63,7 @@
 <p>Token thường được cấp qua OAuth 2, một authorization framework cho phép service hoặc third-party app đại diện (delegation) cho user để truy cập resource của user trên một service khác.</p>
 <p>OAuth 2 là chuẩn mở, có đầy đủ tài liệu, thư viện ở tất cả các ngôn ngữ khác nhau giúp cho việc tích hợp, phát triển dựa trên nó trở nên dễ dàng và nhanh chóng.</p>
 <h2 id="kien-truc-cho-xac-thuc-va-phan-quyen">Architecture for authentication và authorization</h2>
+<p><strong>Ranh giới khi review.</strong> Đây là thiết kế lịch sử mang tính minh họa, không phải bằng chứng rằng JWT hợp lệ, chữ ký RSA hay flow OAuth tự động cho phép truy cập mọi resource mà request nêu tên. Authentication và delegation chỉ xác lập principal cùng quan hệ client; service sở hữu resource vẫn phải lấy tenant, owner, trạng thái object, action và policy của field từ state đáng tin. Hãy strip rồi bind lại identity header qua từng service hop, đồng thời giữ cùng check qua cache, export và async worker. Thiết kế production cũng phải quy định điều gì xảy ra khi IdP, JWKS hoặc policy service unavailable, khi membership bị revoke, và khi decision trong cache đã cũ.</p>
 <p>Sau khi có identity và communication protocol, câu hỏi tiếp theo là identity đó có permission thực hiện action hoặc truy cập resource hay không. Ở Tiki, service mới và legacy system vẫn chạy song song, nên có hai cách tổ chức authorization như dưới đây.</p>
 <h3 id="xac-thuc-phan-quyen-tai-lop-ria">Authentication và permission enforcement tại edge layer</h3>
 <figure class="cs-figure cs-figure-wide">

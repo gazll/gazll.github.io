@@ -1,5 +1,6 @@
 <p>In Ecommerce, the hot deal is a very efficient way to run marketing. Marketers can discount a product 90% in very short of time to get huge traffic to visit the website. But this activity also requires the system to scale so much. Systems have to handle large customers who are trying to place orders as quickly as possible. Because the discount is extremely high and products are very cheap with very small quantities. So systems have to guarantee the consistency of inventory and price very accuracy.</p>
 <p>For a long time, handling hot deals is a very painful point in our system. We tried and failed so many times. But finally, our catalog platform team can solve it well. Here is our sharing about our solutions.</p>
+<p><strong>Case boundary and evidence scope:</strong> this article owns the reported Tiki/Talaria hot-deal path: price identity, deal quota, inventory admission and peak protection. The linked <a href="https://engineering.tiki.vn/pegasus-catalog-product-api-architecture-f217c8623c9b" target="_blank" rel="noopener noreferrer">Tiki Engineering post</a> could not be fetched during review and a secondary publisher mirror returned 403. Therefore the named components and timings below remain case reports, not independently verified facts or portable capacity limits. Generic broker delivery, OTA concurrency/state and microservice overload/retry material is covered in <a href="https://gazll.github.io/system-design/08-message-queue">Topic 08</a>, <a href="https://gazll.github.io/system-design/16-project-concurrency-whiteboard">Topic 16</a> and <a href="https://gazll.github.io/system-design/25-microservice">Topic 25</a>; this case keeps the peak-sale admission boundary.</p>
 <h2 id="1-oversold-deal-problem">1. Oversold deal problem.</h2>
 <p>Users usually use deals to run a promotional campaign. Users set up special prices with very limited quantity in a period of time. The expected behaviors:</p>
 <ul>
@@ -23,7 +24,7 @@
   </button>
   <figcaption>Figure 1 · 2.1. Change the deal price process.</figcaption>
 </figure>
-<p>Deal worker updates price in MySql. Last time, it took 10 seconds from deal worker update price to MySql until price synced to MongoDB.</p>
+<p>The case reports that deal worker updates price in MySql and that it once took about 10 seconds from the worker update in MySql until price synced to MongoDB. Treat this as a local case report and workload observation, not a general replication target.</p>
 <p>So even when the deal is closed, the user still can buy a product with a deal price because the checkout service gets the price of a product from Pegasus, is not updated yet. <strong>And no matter how faster the system can replicate changes, It never guarantees to change price atomic.</strong></p>
 <h3 id="2-2-close-deals-process">2.2. Close deals process.</h3>
 <figure class="cs-figure cs-figure-wide">
@@ -32,7 +33,7 @@
   </button>
   <figcaption>Figure 2 · 2.2. Close deals process.</figcaption>
 </figure>
-<p>we can see that: once, the number of the deal is large, the deal worker takes much time to process all deal, it also takes time to get ordered quantity from sales_order_deal table to deal worker.</p>
+<p>In the reported workload, once the number of deals is large, the deal worker takes much time to process them all, and it also takes time to get ordered quantity from the <code>sales_order_deal</code> table to the deal worker.</p>
 <p>So, it can not close the deal right after the ordered quantity exceeds the max quantity of deal. Users still can buy products with the deal price even when ordered quantity is larger than max quantity. <strong>And no matter how faster It can be, It never guarantees to close deals atomic.</strong></p>
 <h2 id="3-the-new-deal-solution">3. The new deal solution.</h2>
 <p>To solve the oversold problem, we have to guarantee the consistency of two data: the price of a deal and the special quantity:</p>
@@ -56,6 +57,7 @@
   <figcaption>Figure 4 · 3. The new deal solution.</figcaption>
 </figure>
 <h3 id="3-1-price-system-replicate-the-deal-price-process">3.1. Price system — replicate the deal price process.</h3>
+<p><strong>Identity boundary:</strong> a price value alone is not enough to bind a deal. Carry product, price ID, effective version, deal quota and validity window through checkout; a retry or reprice must validate the same identity. An older replication event must not reopen a terminal <code>SOLD_OUT</code> state. This is the case's price-ID mapping, not proof of one atomic transaction across every catalog store.</p>
 <p>The deal information is replicated to the price system.</p>
 <figure class="cs-figure cs-figure-wide">
   <button type="button" data-zoom-image aria-label="Open figure 5 at full size">
@@ -64,6 +66,7 @@
   <figcaption>Figure 5 · 3.1. Price system — replicate the deal price process.</figcaption>
 </figure>
 <h3 id="3-2-arcturus-inventory-process">3.2. Arcturus inventory process.</h3>
+<p><strong>Atomicity question:</strong> the article reports that Arcturus checks inventory and deal quantity together; keep that as a local design claim, not a universal property of every inventory service. For another system, state whether one partition/transaction owns both counters or whether reconciliation accepts a bounded oversell. Stale or reordered quantity events must not move a terminal <code>SOLD_OUT</code> state backwards.</p>
 <figure class="cs-figure cs-figure-wide">
   <button type="button" data-zoom-image aria-label="Open figure 6 at full size">
     <img src="assets/case-studies/11-how-to-handle-hot-deals-at-the-peak-time/06-figure.webp" width="1348" height="720" loading="lazy" decoding="async" alt="Figure 6 for 3.2. Arcturus inventory process.">
@@ -71,6 +74,7 @@
   <figcaption>Figure 6 · 3.2. Arcturus inventory process.</figcaption>
 </figure>
 <h3 id="3-3-checkout-process">3.3. Checkout process</h3>
+<p><strong>Checkout recovery:</strong> revalidate the current price ID and deal quota at admission, then reserve with a stable idempotency key and expiry. A timeout after a mutation is <code>UNKNOWN</code> until the inventory authority is queried; do not retry with a new key. Confirm or release from an order event, and expose a pending/reprice outcome instead of hiding the conflict behind a generic error.</p>
 <figure class="cs-figure cs-figure-wide">
   <button type="button" data-zoom-image aria-label="Open figure 7 at full size">
     <img src="assets/case-studies/11-how-to-handle-hot-deals-at-the-peak-time/07-figure.webp" width="1360" height="1020" loading="lazy" decoding="async" alt="Figure 7 for 3.3. Checkout process">
@@ -78,6 +82,7 @@
   <figcaption>Figure 7 · 3.3. Checkout process</figcaption>
 </figure>
 <h3 id="3-4-system-architecture">3.4. System architecture.</h3>
+<p><strong>Peak protection:</strong> a complete design also needs wait-room or token admission, per-tenant and per-product limits, bounded queues, load shedding, an absolute deadline and a retry budget. Measure queue age, admission rejects, inventory conflicts, price-version lag, <code>SOLD_OUT</code> propagation lag and origin saturation. These are recommended controls for a hot path, not claims that the case's original implementation used every one of them.</p>
 <figure class="cs-figure cs-figure-wide">
   <button type="button" data-zoom-image aria-label="Open figure 8 at full size">
     <img src="assets/case-studies/11-how-to-handle-hot-deals-at-the-peak-time/08-figure.webp" width="1704" height="832" loading="lazy" decoding="async" alt="Figure 8 for 3.4. System architecture.">

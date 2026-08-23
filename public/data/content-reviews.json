@@ -122,13 +122,16 @@
     ]
   },
   "06-db-scaling.replication-consistency.q2": {
-    "reviewed_at": "2026-08-12",
+    "reviewed_at": "2026-08-23",
     "target_versions": [
-      "PostgreSQL 18"
+      "PostgreSQL 18 current replication documentation",
+      "Application-level LSN/session visibility contract"
     ],
-    "claim_type": "normative",
+    "claim_type": "heuristic",
     "sources": [
-      "https://www.postgresql.org/docs/current/functions-admin.html"
+      "https://www.postgresql.org/docs/current/warm-standby.html",
+      "https://www.postgresql.org/docs/current/functions-admin.html",
+      "https://www.postgresql.org/docs/current/logical-replication.html"
     ]
   },
   "06-db-scaling.replication-consistency.q4": {
@@ -377,14 +380,16 @@
     ]
   },
   "08-message-queue.reliability-delivery-semantics.q2": {
-    "reviewed_at": "2026-08-12",
+    "reviewed_at": "2026-08-23",
     "target_versions": [
-      "RabbitMQ current documentation"
+      "RabbitMQ current documentation",
+      "RabbitMQ quorum queues and streams documentation"
     ],
     "claim_type": "normative",
     "sources": [
       "https://www.rabbitmq.com/docs/confirms",
       "https://www.rabbitmq.com/docs/quorum-queues",
+      "https://www.rabbitmq.com/docs/streams",
       "https://www.rabbitmq.com/tutorials/tutorial-seven-java"
     ]
   },
@@ -1339,26 +1344,36 @@
     ]
   },
   "09-distributed-tx-fintech.correctness-where-money-is-involved.q1": {
-    "reviewed_at": "2026-08-19",
+    "reviewed_at": "2026-08-23",
     "target_versions": [
-      "Stripe API current low-level error guidance",
-      "Stripe PaymentIntents current status guidance"
+      "Stripe API current idempotent request behavior",
+      "Stripe PaymentIntent current lifecycle guidance",
+      "Stripe current webhook guidance",
+      "Adyen current API idempotency guidance",
+      "AWS Builders' Library current idempotent API guidance"
     ],
     "claim_type": "heuristic",
     "sources": [
-      "https://docs.stripe.com/error-low-level",
-      "https://docs.stripe.com/payments/payment-intents/verifying-status"
+      "https://docs.stripe.com/api/idempotent_requests",
+      "https://docs.stripe.com/payments/paymentintents/lifecycle?locale=en-GB",
+      "https://docs.stripe.com/webhooks?lang=node",
+      "https://docs.adyen.com/development-resources/api-idempotency",
+      "https://aws.amazon.com/builders-library/making-retries-safe-with-idempotent-APIs/"
     ]
   },
   "09-distributed-tx-fintech.correctness-where-money-is-involved.q2": {
-    "reviewed_at": "2026-08-19",
+    "reviewed_at": "2026-08-23",
     "target_versions": [
       "Stripe API current idempotent request behavior",
+      "Adyen current API idempotency guidance",
+      "AWS Builders' Library current idempotent API guidance",
       "PostgreSQL current unique constraints reference"
     ],
     "claim_type": "normative",
     "sources": [
       "https://docs.stripe.com/api/idempotent_requests",
+      "https://docs.adyen.com/development-resources/api-idempotency",
+      "https://aws.amazon.com/builders-library/making-retries-safe-with-idempotent-APIs/",
       "https://www.postgresql.org/docs/current/ddl-constraints.html"
     ]
   },
@@ -1796,6 +1811,249 @@
       "https://redis.io/docs/latest/develop/clients/patterns/distributed-locks/",
       "https://www.postgresql.org/docs/current/explicit-locking.html",
       "https://kubernetes.io/docs/concepts/architecture/leases/"
+    ]
+  },
+  "10-system-design-rate-limit.surviving-high-load.q2": {
+    "reviewed_at": "2026-08-23",
+    "target_versions": [
+      "Google SRE current overload guidance",
+      "Envoy current circuit-breaking guidance"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://sre.google/sre-book/handling-overload/",
+      "https://sre.google/sre-book/addressing-cascading-failures/",
+      "https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/",
+      "https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/upstream/circuit_breaking"
+    ]
+  },
+  "10-system-design-rate-limit.rate-limiting-in-depth.q5": {
+    "reviewed_at": "2026-08-23",
+    "target_versions": [
+      "RFC 6585",
+      "RFC 9110",
+      "Envoy current rate-limit filter documentation"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://www.rfc-editor.org/rfc/rfc6585.html",
+      "https://www.rfc-editor.org/rfc/rfc9110.html",
+      "https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/rate_limit_filter"
+    ]
+  },
+  "11-system-design-cases.the-big-prompts.q2": {
+    "reviewed_at": "2026-08-23",
+    "target_versions": [
+      "Apple UserNotifications current provider documentation",
+      "Firebase Cloud Messaging current documentation"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://developer.apple.com/documentation/usernotifications/sending-notification-requests-to-apns?changes=_3_4",
+      "https://firebase.google.com/docs/cloud-messaging",
+      "https://firebase.google.com/docs/cloud-messaging/customize-messages/collapsible-message-types",
+      "https://firebase.google.com/docs/cloud-messaging/customize-messages/setting-message-lifespan?authuser=2"
+    ]
+  },
+  "11-system-design-cases.the-big-prompts.q10": {
+    "reviewed_at": "2026-08-23",
+    "target_versions": [
+      "AWS S3 current presigned URL and multipart-upload documentation",
+      "Google Cloud Storage current resumable-upload documentation"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://docs.aws.amazon.com/AmazonS3/latest/userguide/using-presigned-url.html",
+      "https://docs.aws.amazon.com/AmazonS3/latest/userguide/mpuoverview.html",
+      "https://docs.aws.amazon.com/AmazonS3/latest/userguide/checking-object-integrity-upload.html",
+      "https://docs.cloud.google.com/storage/docs/resumable-uploads?authuser=09",
+      "https://docs.cloud.google.com/storage/docs/access-control/signed-urls?authuser=09"
+    ]
+  },
+  "11-system-design-cases.the-big-prompts.q1": {
+    "reviewed_at": "2026-08-23",
+    "target_versions": [
+      "Stripe current idempotent request, PaymentIntent and webhook guidance",
+      "Adyen current API idempotency guidance",
+      "AWS current transactional outbox guidance"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://docs.stripe.com/api/idempotent_requests",
+      "https://docs.stripe.com/payments/paymentintents/lifecycle?locale=en-GB",
+      "https://docs.stripe.com/webhooks?lang=node",
+      "https://docs.adyen.com/development-resources/api-idempotency",
+      "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html"
+    ]
+  },
+  "11-system-design-cases.the-big-prompts.q11": {
+    "reviewed_at": "2026-08-23",
+    "target_versions": [
+      "Stripe current idempotent request, PaymentIntent and webhook guidance",
+      "Adyen current API idempotency guidance",
+      "AWS Builders' Library current idempotent API guidance"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.stripe.com/api/idempotent_requests",
+      "https://docs.stripe.com/payments/paymentintents/lifecycle?locale=en-GB",
+      "https://docs.stripe.com/webhooks?lang=node",
+      "https://docs.adyen.com/development-resources/api-idempotency",
+      "https://aws.amazon.com/builders-library/making-retries-safe-with-idempotent-APIs/"
+    ]
+  },
+  "11-system-design-cases.the-big-prompts.q14": {
+    "reviewed_at": "2026-08-23",
+    "target_versions": [
+      "PostgreSQL current transaction isolation and conditional-write guidance",
+      "Stripe current PaymentIntent and webhook guidance",
+      "AWS current Saga and transactional outbox guidance"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://www.postgresql.org/docs/current/transaction-iso.html",
+      "https://docs.stripe.com/payments/paymentintents/lifecycle?locale=en-GB",
+      "https://docs.stripe.com/webhooks?lang=node",
+      "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/saga-patterns.html",
+      "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html"
+    ]
+  },
+  "05-db-core-index-lock.modelling-the-schema.q3": {
+    "reviewed_at": "2026-08-23",
+    "target_versions": [
+      "PostgreSQL 18 current logical-decoding documentation",
+      "Debezium stable architecture documentation",
+      "Elasticsearch current near-real-time search documentation"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://www.postgresql.org/docs/current/logicaldecoding.html",
+      "https://debezium.io/documentation/reference/stable/architecture.html",
+      "https://www.elastic.co/docs/manage-data/data-store/near-real-time-search"
+    ]
+  },
+  "06-db-scaling.sharding-partitioning.q8": {
+    "reviewed_at": "2026-08-23",
+    "target_versions": [
+      "Apache Cassandra current data-modeling and topology documentation",
+      "MongoDB current sharding documentation"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://cassandra.apache.org/doc/latest/cassandra/developing/data-modeling/intro.html",
+      "https://cassandra.apache.org/doc/latest/cassandra/managing/operating/topo_changes.html",
+      "https://www.mongodb.com/docs/manual/sharding/"
+    ]
+  },
+  "07-sql-nosql-db-engines.engine-by-engine.q10": {
+    "reviewed_at": "2026-08-23",
+    "target_versions": [
+      "Debezium stable architecture and outbox documentation",
+      "Elasticsearch current near-real-time and reindex documentation",
+      "Apache Kafka current delivery-semantics documentation"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://debezium.io/documentation/reference/stable/architecture.html",
+      "https://debezium.io/documentation/reference/stable/transformations/outbox-event-router.html",
+      "https://www.elastic.co/docs/manage-data/data-store/near-real-time-search",
+      "https://www.elastic.co/docs/api/doc/elasticsearch/operation/operation-reindex",
+      "https://kafka.apache.org/documentation/#semantics"
+    ]
+  },
+  "18-query-optimization.rewriting-the-query-reshaping-the-model.q6": {
+    "reviewed_at": "2026-08-23",
+    "target_versions": [
+      "PostgreSQL 18 current EXPLAIN and materialized-view documentation",
+      "Debezium stable architecture documentation",
+      "Elasticsearch current reindex documentation"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://www.postgresql.org/docs/current/using-explain.html",
+      "https://www.postgresql.org/docs/current/rules-materializedviews.html",
+      "https://debezium.io/documentation/reference/stable/architecture.html",
+      "https://www.elastic.co/docs/api/doc/elasticsearch/operation/operation-reindex"
+    ]
+  },
+  "20-observability-sre.slos-alerting-incidents.q5": {
+    "reviewed_at": "2026-08-23",
+    "target_versions": [
+      "Google SRE current SLO guidance",
+      "OpenTelemetry Semantic Conventions 1.44.0 at review",
+      "Prometheus current alerting and recording-rule documentation"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://sre.google/sre-book/service-level-objectives/",
+      "https://sre.google/sre-book/monitoring-distributed-systems/",
+      "https://opentelemetry.io/docs/specs/semconv/messaging/messaging-spans/",
+      "https://prometheus.io/docs/prometheus/latest/configuration/recording_rules/",
+      "https://prometheus.io/docs/prometheus/latest/configuration/alerting_rules/"
+    ]
+  },
+  "20-observability-sre.slos-alerting-incidents.q6": {
+    "reviewed_at": "2026-08-23",
+    "target_versions": [
+      "OpenTelemetry Collector current resiliency and internal-telemetry documentation",
+      "Prometheus current alerting documentation",
+      "Google SRE current distributed-monitoring guidance"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://opentelemetry.io/docs/collector/resiliency/",
+      "https://opentelemetry.io/docs/collector/internal-telemetry/",
+      "https://opentelemetry.io/docs/collector/troubleshooting/",
+      "https://prometheus.io/docs/prometheus/latest/configuration/alerting_rules/",
+      "https://sre.google/sre-book/monitoring-distributed-systems/"
+    ]
+  },
+  "21-linux-production-debug.jvm-network-deep-dive-on-prod.q5": {
+    "reviewed_at": "2026-08-23",
+    "target_versions": [
+      "Java SE 21 diagnostic-tools documentation",
+      "Linux kernel current PSI and cgroup-v2 documentation",
+      "async-profiler current project documentation"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://docs.oracle.com/en/java/javase/21/troubleshoot/diagnostic-tools.html",
+      "https://docs.oracle.com/en/java/javase/21/docs/specs/man/jfr.html",
+      "https://github.com/async-profiler/async-profiler/blob/master/README.md",
+      "https://docs.kernel.org/accounting/psi.html",
+      "https://docs.kernel.org/admin-guide/cgroup-v2.html",
+      "https://man7.org/linux/man-pages/man8/tcpdump.8.html"
+    ]
+  },
+  "26-testing-strategy.testing-what-usually-breaks.q6": {
+    "reviewed_at": "2026-08-23",
+    "target_versions": [
+      "Pact current specification",
+      "Testcontainers current documentation",
+      "Google SRE current testing-for-reliability guidance"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://docs.pact.io/implementation_guides/pact_specification",
+      "https://testcontainers.com/guides/",
+      "https://docs.aws.amazon.com/fis/latest/userguide/run-experiment.html",
+      "https://sre.google/sre-book/testing-reliability/"
+    ]
+  },
+  "26-testing-strategy.testing-what-usually-breaks.q7": {
+    "reviewed_at": "2026-08-23",
+    "target_versions": [
+      "AWS Backup current restore-testing documentation",
+      "PostgreSQL 18 current backup and PITR documentation",
+      "Kubernetes current rolling-update and rollback documentation"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://docs.aws.amazon.com/aws-backup/latest/devguide/restore-testing.html",
+      "https://www.postgresql.org/docs/current/backup.html",
+      "https://www.postgresql.org/docs/current/continuous-archiving.html",
+      "https://kubernetes.io/docs/tasks/run-application/update-deployment-rolling/",
+      "https://sre.google/sre-book/testing-reliability/"
     ]
   }
 }

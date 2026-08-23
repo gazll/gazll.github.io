@@ -39,6 +39,7 @@
   <li>Compressor: A configurable compressor to compress data when storing and serving</li>
 </ul>
 <h2 id="entry-point">Entry-point</h2>
+<p><strong>Evidence boundary:</strong> The 24K RPS/TP99, 15K connections, 95% hit rate, 200KB/8000-connection, and 10/7Gbps figures are measurements from this workload. Reproduce the payload mix, cache hit ratio, client connection reuse, L4/L7 path, warm-up, CPU, and percentile definition before using them as a capacity target.</p>
 <p><strong>Restful API</strong></p>
 <p>Pegasus use Vert.x connector for its Restful API. All HTTP requests start from the Vert.x internal event loop, and then are routed to one of the corresponding processors and executed with a configurable strategy. Pegasus supports the following strategies:</p>
 <ul>
@@ -74,6 +75,7 @@
 <p>To accommodate for this lack of connection pool, Pegasus also exposes its API via GRPC, since GRPC in PHP already supports persistent connection. This is, however, not yet integrated with Tala. The response format is almost quite identical to the Restful API.</p>
 <p>It is worth noting that using GRPC might not have any benefit with language which already supports persistent HTTP connections.</p>
 <h2 id="in-mem-cache">In-mem cache</h2>
+<p><strong>Coalescing contract:</strong> The Promise Cache is local single-flight, not a distributed lock or source of truth. It needs an owner deadline, waiter cap and cancellation, an error/stale-value policy, and a fallback when the owner crashes. Consistent hashing trades locality against skew and failure concentration.</p>
 <p>Pegasus uses Guava for its in-memory product cache. This is a very simple Map from product id to product payload. The payload is usually transformed JSON (more on this under the Compressor section).</p>
 <p>The cache is actually a series of loaders using Decorator pattern. The most basic loader is DirectMongoLoader, which queries directly from MongoDB. This loader is wrapped inside GuavaLoader, which will store the payload in Guava Loading Cache and only calls the it when cache miss happens.</p>
 <p>For the single API, it’s very straightforward: return the payload in the cache in case of cache hit, or try to query single product from mongo when cache misses.</p>
@@ -99,6 +101,7 @@
   <figcaption>Figure 6 · In-mem cache</figcaption>
 </figure>
 <h2 id="compressor">Compressor</h2>
+<p><strong>Trade-off:</strong> Compression must be negotiated and bounded. Measure wire bytes, compression CPU, allocation/GC, decompression time, and tail latency for each payload class; a smaller payload is not automatically faster, and input/output limits must defend against decompression bombs.</p>
 <p>Pegasus supports configurable Compressors for product payload. We can configure separate compressor for single and multi query. To optimize the two APIs (single &amp; multi), we have a separate application server for each APIs.</p>
 <ul>
   <li>To query single products: <code>http://pegasus.xxx</code></li>

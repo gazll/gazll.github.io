@@ -1,6 +1,6 @@
 # System Design & Case Studies Duplicate Matrix
 
-Status: `INITIAL INVENTORY — NO CONTENT MERGED`
+Status: `FINAL INTEGRATION AUDIT — OWNERSHIP APPLIED`
 
 This matrix records overlap found during the first read. A keyword hit is only a signal; the final decision must compare the actual invariant, failure model, and audience of each item.
 
@@ -91,19 +91,31 @@ This matrix records overlap found during the first read. A keyword hit is only a
 | Case 12 | Incident/race-condition repair | `incident case`; keep evidence and failed fix, not generic lock theory |
 | Case 16 | Shopify reservation architecture | `implementation case`; keep source-specific MySQL/connection insight |
 
+## Final integration decisions (2026-08-23)
+
+The provisional map was applied through Batches A-I. The complete decision record, metadata scan, and final counts are in [research-final-coverage-audit.md](research-final-coverage-audit.md).
+
+- Topic 09 owns the reusable distributed-workflow correctness stack: local transaction boundary, Saga/compensation, Outbox, idempotency scope, unknown outcomes, and reconciliation.
+- Topic 08 owns broker delivery semantics; Topic 17 owns API/request idempotency; Topic 25 owns consumer idempotency and retry interaction; Topic 28 owns distributed lease/fencing.
+- Topics 05, 10, 12, 18, 20, 23, and 24 remain the canonical owners for local DB invariants, overload/capacity, architecture fitness, query measurement, SRE evidence, Java concurrency, and DDD boundaries.
+- Topic 16 and Cases 01/11/12/16 remain a distinct inventory/booking cluster. They keep supplier authority, reservation lifecycle, peak admission, incident evidence, or provider-specific implementation details instead of becoming copies of Topic 09.
+- Case 15 keeps the concrete Outbox relay crash matrix and Inbox workflow. Cases 02/07/08/18 keep experiment, forecast, ML-evaluation, and verification-economics evidence with explicit metric and historical limits.
+- No persistent ID migration or mass deletion was required. Repetition is shortened or cross-referenced only where the referring item contributes a distinct domain decision.
+- Exact EN topic title/question scan found zero duplicate groups; case metadata duplicates are intentional EN/VI mirrors. Shared tags are limited to the documented inventory/flash-sale and idempotency clusters.
+
 ## No-delete policy for integration
 
 Before shortening or merging an item:
 
-- [ ] Capture the old question/article ID.
-- [ ] Decide whether the ID remains with the canonical item or the domain case.
-- [ ] Add a cross-reference or migration alias for every moved concept.
-- [ ] Check all references in `public/data/content-index.json`, `catalog.json`, and written `[[...]]` links.
-- [ ] Preserve any unique evidence, benchmark, incident timeline, or domain invariant.
+- [x] Capture the old question/article ID.
+- [x] Decide whether the ID remains with the canonical item or the domain case.
+- [x] Add a cross-reference or migration alias for every moved concept.
+- [x] Check all references in `public/data/content-index.json`, `catalog.json`, and written `[[...]]` links.
+- [x] Preserve any unique evidence, benchmark, incident timeline, or domain invariant.
 
 ## Open questions
 
-- [ ] Should `09-distributed-tx-fintech` be generalized and renamed to “Distributed workflow correctness”, with its money section retained as a domain module?
-- [ ] Is the current System Design catalog sufficient to expose one canonical workflow design, or is a new catalog design needed without creating another Study Track duplicate?
-- [ ] Which existing case-study claims are first-party facts versus teaching examples and need an evidence label?
-- [ ] What is the retention contract for idempotency keys in each example: caller, service, provider, and late-arrival window?
+- [x] Keep the existing `09-distributed-tx-fintech` key and canonical role; no rename or duplicate workflow catalog design is required.
+- [x] The current System Design catalog is sufficient; Topic 09 exposes the canonical workflow and domain cases retain their own state machines.
+- [x] Per-unit records and final case qualifiers distinguish first-party facts, repository-authored examples, inference, and recommendation.
+- [x] Retention is explicitly a per-caller/service/provider contract with a late-arrival window; no provider TTL is generalized across examples.

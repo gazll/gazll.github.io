@@ -1,5 +1,6 @@
 <p>Hành trình MongoDB → Cassandra → ScyllaDB của Discord thường bị rút gọn thành một phép so sánh database. Câu chuyện hữu ích hơn nằm ở sự thay đổi constraint. Datastore giải quyết capacity hôm qua có thể trở thành bottleneck vận hành ngày mai, và thay engine không loại bỏ access pattern bị skew. Vì vậy Discord thay cả storage engine lẫn layer định hình traffic trước khi chạm storage.</p>
 <p>Case study này là editorial synthesis từ bài chia sẻ tháng 3/2023 của Discord Engineering. Mọi node count, migration rate và latency bên dưới là số đo được công bố cho system tại thời điểm đó, không phải benchmark tổng quát cho các sản phẩm liên quan.</p>
+<p><strong>Scope note:</strong> Một message system production còn cần retention, deletion/moderation, backup-restore, tenant isolation và authorization rule rõ ràng. Các phần này nằm ngoài account Discord được trích dẫn và phải được đặc tả, test riêng cho product đang thiết kế.</p>
 
 <h2 id="1-three-generations-of-storage">1. Ba thế hệ storage</h2>
 <p>Ban đầu Discord lưu message trong MongoDB. Khi product phát triển, team cần horizontal scaling dễ dự đoán, fault tolerance và một system có chi phí bảo trì tương đối thấp. Họ chuyển message history sang Cassandra; tới năm 2017, 12 node Cassandra lưu hàng tỷ message. Write path và distributed model của Cassandra phù hợp với workload ở giai đoạn đó.</p>
@@ -18,6 +19,7 @@
 ) WITH CLUSTERING ORDER BY (message_id DESC);</code></pre>
 <p>Time bucket ngăn một channel sống lâu trở thành partition tăng vô hạn. Nó không làm demand đồng đều. Private server của vài người bạn và server có hàng trăm nghìn member có key cùng hình dạng nhưng request rate chênh nhau nhiều bậc. Partition size và partition heat là hai chiều thiết kế riêng biệt.</p>
 <p>Cassandra write nối vào commit log và cập nhật memtable trước khi flush thành SSTable. Read có thể phải tra memtable cùng nhiều SSTable nên nhạy hơn với trạng thái compaction. Khi nhiều user đọc một channel và bucket phổ biến, replica giữ partition đó có thể tụt lại. Vì Discord dùng quorum read/write, replica chậm có thể tăng latency cho cả request không liên quan tới hot channel ban đầu.</p>
+<p><strong>Hot-key boundary:</strong> Bucket chỉ kiểm soát partition size, không kiểm soát demand. Phải authorize channel hoặc tenant và áp dụng rate/concurrency policy trước khi coalescing; consistent hashing cải thiện locality nhưng có thể dồn hot key và tự nó không tạo fairness.</p>
 
 <h2 id="3-why-operations-became-the-constraint">3. Vì sao operations trở thành constraint</h2>
 <p>Compaction backlog làm read đắt hơn trong khi lại tiêu tài nguyên cần để bắt kịp. Discord mô tả thao tác thủ công “gossip dance”: đưa một node khỏi traffic, cho nó compact, đưa trở lại để hinted handoff bắt kịp rồi lặp lại. Đồng thời engineer phải tune heap và garbage collector vì JVM pause dài xuất hiện trực tiếp thành tail-latency spike.</p>
@@ -32,6 +34,7 @@
   <figcaption>Consistent routing giúp request coalescing hiệu quả trước khi traffic chạm storage.</figcaption>
 </figure>
 <p>Service coalesce các request cùng đọc một row. Request đầu tạo worker task; request đến sau subscribe vào task đang chạy thay vì mở database read mới. Khi một announcement lớn khiến hàng nghìn client fetch cùng history, database work tăng chậm hơn nhiều so với caller count.</p>
+<p><strong>Bounded single-flight:</strong> Owner cần deadline, giới hạn số waiter, waiter cancellation và kết quả rõ ràng khi owner fail, data stale hoặc origin quá tải. Coalescing chỉ suppress các read tương đương đang chạy đồng thời; nó không phải cache hay durable lock.</p>
 <p>Coalescing chỉ hoạt động giữa các request gặp nhau trong cùng process. Discord truyền channel ID làm routing key và dùng consistent-hash routing để request cho một channel đi vào cùng data-service instance. Routing cùng in-process worker registry là một cơ chế thống nhất: bỏ một nửa thì suppression ratio sụp đổ.</p>
 
 <h2 id="5-choosing-scylladb-with-eyes-open">5. Chọn ScyllaDB với đầy đủ điều kiện</h2>
@@ -48,6 +51,7 @@
 </figure>
 <p>Ước lượng mới còn chín ngày và peak copy rate được báo cáo đạt 3,2 triệu message mỗi giây. Gần cuối, tiến độ dừng ở 99,9999% vì token range cuối chứa lượng tombstone khổng lồ Cassandra chưa compact bỏ. Compact range bị ảnh hưởng giúp migration hoàn thành. Phần cuối của migration thường chứa data kém đại diện nhất; phần trăm hoàn tất không phải risk metric đáng tin.</p>
 <p>Dual write giữ target cập nhật nhưng không chứng minh hai bên tương đương. Discord lấy mẫu một tỷ lệ nhỏ production read, query cả hai database và so sánh result. Chỉ sau validation cùng quan sát full production load, team mới đặt ScyllaDB làm primary. Migration plan vững cần cơ chế riêng cho copy progress, ongoing-write coverage và semantic comparison.</p>
+<p><strong>Migration gate:</strong> Checklist có thể tái dùng cần token-range checkpoint và replay, dual-write coverage, count/checksum hoặc semantic comparison, xử lý delete/tombstone, staged read, rollback và repair sau cutover. Sampled comparison là evidence hữu ích nhưng không chứng minh mọi row và failure path đều giống nhau.</p>
 
 <h2 id="7-reported-results">7. Kết quả được công bố</h2>
 <p>Discord chuyển message database vào tháng 5/2022. Vài tháng sau, họ báo cáo chạy 72 node ScyllaDB thay vì 177 node Cassandra. Node shape không giống nhau: mỗi ScyllaDB node có 9 TB disk, trong khi Cassandra node trung bình có 4 TB; vì thế node count riêng lẻ không phải efficiency benchmark đã chuẩn hóa.</p>

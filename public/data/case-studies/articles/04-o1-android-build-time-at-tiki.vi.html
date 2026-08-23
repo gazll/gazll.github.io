@@ -156,6 +156,7 @@ interface HomeActivityModule</code></pre>
 <p>Vẫn còn một vấn đề nữa. Vì hầu hết tất cả các màn hình đều bị loại khỏi APK gỡ lỗi, làm cách nào chúng tôi có thể mở màn hình mà chúng tôi đang phát triển?<br>Điều này có thể dễ dàng thực hiện được bằng deep link bằng lệnh ADB:</p>
 <pre><code>adb shell am start -a android.intent.action.VIEW -d sample://sample</code></pre>
 <h2 id="the-result">The result</h2>
+<p><strong>Ranh giới đo lường.</strong> “O(1) build time” là cách gọi hữu ích cho debug workflow được chọn này dưới một dependency closure cố định; nó không phải guarantee về complexity cho clean release build, resource/manifest processing, CI, instrumentation test, packaging, install hay runtime startup. Các con số là quan sát lịch sử từ nguồn first-party nhưng chưa có đủ machine, toolchain, cache, task graph và sample size để tái lập đầy đủ. Hãy kiểm chứng bằng Gradle profiling hoặc Build Analyzer, và vẫn coi full graph cùng release pipeline là authoritative. Optional binding và deep link chỉ thuộc debug/test path có guard; chúng không được che lỗi cross-feature integration hoặc lọt vào production artifact.</p>
 <p>Sau khi triển khai ý tưởng này vào dự án Tiki Android, build time đã giảm đi một nửa. Một trong những điểm cộng của việc này là kích thước APK gỡ lỗi trở nên thực sự nhỏ do tất cả feature của ứng dụng bị loại trừ, điều này cũng sẽ tiết kiệm rất nhiều thời gian khi triển khai APK trên thiết bị thử nghiệm.</p>
 <figure class="cs-figure cs-figure-wide">
   <button type="button" data-zoom-image aria-label="Mở hình 6 ở kích thước đầy đủ">

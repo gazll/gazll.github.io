@@ -57,7 +57,9 @@
       "source_items": [
         "10-system-design-rate-limit.framework-building-blocks.q1",
         "10-system-design-rate-limit.framework-building-blocks.q2",
-        "11-system-design-cases.the-big-prompts.q12"
+        "10-system-design-rate-limit.framework-building-blocks.q7",
+        "11-system-design-cases.the-big-prompts.q12",
+        "11-system-design-cases.the-big-prompts.q21"
       ],
       "diagram": "flowchart TB\n  R[Journeys, invariants, non-goals] --> E[Workload envelope]\n  E -->|peak = 20x average, tier named| T{Which tier: T1 to T4}\n  T --> C[Contracts and source of truth]\n  C --> H[High-level design]\n  subgraph GATE[Every component owes a verdict]\n    direction LR\n    H --> V{not needed / worth it / mandatory}\n    V -.->|no verdict| BACK[Unjustified: cut it]\n    V -->|justified| D[Critical deep dives]\n  end\n  D --> F[Failure and operations review]\n  F --> O[Decision records with consequences]\n  O --> TR[Review trigger: the threshold]\n  subgraph EVID[Arithmetic is input, never proof]\n    direction LR\n    E -.-> BM[Benchmark or scaling trigger]\n    F -.-> RISK[(Risk register: signal + owner)]\n  end\n  TR -->|workload, regulation or cost crosses it| E\n  BM --> O",
       "en": {
@@ -243,7 +245,7 @@
         ]
       },
       "created_at": "2026-08-10",
-      "updated_at": "2026-08-21"
+      "updated_at": "2026-08-23"
     },
     {
       "n": 2,
@@ -455,7 +457,8 @@
         "10-system-design-rate-limit.surviving-high-load.q1",
         "10-system-design-rate-limit.surviving-high-load.q2",
         "10-system-design-rate-limit.surviving-high-load.q3",
-        "10-system-design-rate-limit.surviving-high-load.q4"
+        "10-system-design-rate-limit.surviving-high-load.q4",
+        "10-system-design-rate-limit.surviving-high-load.q5"
       ],
       "diagram": "flowchart TB\n  C[Clients] --> DL[Attach deadline + idempotency key]\n  DL --> CLS[Classify: tenant, route, cost, priority]\n  CLS --> A{Admission control}\n  subgraph POOLS[Separate pools, not a priority field]\n    direction LR\n    A -->|critical| QC[Bounded queue: checkout]\n    A -->|bulk| QB[Bounded queue: reporting]\n    QC --> WC[Workers with reserved capacity]\n    QB --> WB[Workers, shed first]\n  end\n  A -.->|tenant over policy| R429[429 + Retry-After]\n  A -.->|no capacity for this class| R503[503 + shed class]\n  WC --> BH[Bulkhead sized by Little's Law]\n  WB --> BH\n  BH --> D[Downstream dependency]\n  EXP[Deadline passed] -->|cancel, do not complete| WC\n  subgraph SIGNALS[Oldest age, not queue depth]\n    direction LR\n    QC -. oldest runnable age .-> S[Saturation signals]\n    D -. latency and errors .-> S\n    RB[Retry budget: global share] -. consumption .-> S\n  end\n  S --> A\n  AS[Autoscaler] -.->|answers the trend, not the spike| WC",
       "en": {
@@ -641,7 +644,7 @@
         ]
       },
       "created_at": "2026-08-10",
-      "updated_at": "2026-08-21"
+      "updated_at": "2026-08-23"
     },
     {
       "n": 4,
@@ -656,6 +659,7 @@
         "10-system-design-rate-limit.rate-limiting-in-depth.q3",
         "10-system-design-rate-limit.rate-limiting-in-depth.q4",
         "10-system-design-rate-limit.rate-limiting-in-depth.q5",
+        "10-system-design-rate-limit.rate-limiting-in-depth.q6",
         "11-system-design-cases.the-big-prompts.q5",
         "16-project-concurrency-whiteboard.whiteboard-dsa.q1"
       ],
@@ -859,7 +863,7 @@
         ]
       },
       "created_at": "2026-08-10",
-      "updated_at": "2026-08-21"
+      "updated_at": "2026-08-23"
     },
     {
       "n": 5,
@@ -3908,7 +3912,8 @@
         "27-api-gateway-identity-edge.introducing-a-gateway-into-a-running-system.q2",
         "27-api-gateway-identity-edge.introducing-a-gateway-into-a-running-system.q3",
         "27-api-gateway-identity-edge.internal-calls-sync-async-or-neither.q1",
-        "27-api-gateway-identity-edge.internal-calls-sync-async-or-neither.q2"
+        "27-api-gateway-identity-edge.internal-calls-sync-async-or-neither.q2",
+        "27-api-gateway-identity-edge.internal-calls-sync-async-or-neither.q3"
       ],
       "diagram": "flowchart TB\n  C[Client] --> CDN[CDN / static]\n  C --> LB[L4 load balancer + TLS]\n  subgraph EDGE[Gateway concerns, in the order they run]\n    direction TB\n    LB --> RT[Route match + request limits]\n    RT --> AN[AuthN: verify token signature]\n    AN --> AZ[AuthZ: coarse policy at the edge]\n    AZ --> RL[Rate limit per tenant and route]\n    RL --> CB[Circuit breaker + timeout budget]\n  end\n  AN -. JWKS cache, refresh on unknown kid .-> IDP[Identity provider]\n  IDP -.->|IdP down: cached keys still verify| AN\n  AZ -. decision cache, short TTL .-> PDP[Policy decision point]\n  PDP -.->|PDP down: deny or degrade, decide it| AZ\n  RL --> RC[(Redis rate-limit counters)]\n  subgraph CELLS[T4: cells, each with its own key material]\n    direction LR\n    CB --> C1[Cell 1 services]\n    CB --> C2[Cell 2 services]\n  end\n  C1 -->|east-west mTLS, fine-grained authZ| S2[Service B]\n  C1 --> DB1[(DB per service)]\n  C1 -->|async event| MQ[[Message broker]] --> W[Worker]\n  OBS[Edge telemetry: 4xx cause, breaker] -.-> CB",
       "en": {
@@ -4164,7 +4169,7 @@
         ]
       },
       "created_at": "2026-08-12",
-      "updated_at": "2026-08-21"
+      "updated_at": "2026-08-23"
     },
     {
       "n": 20,

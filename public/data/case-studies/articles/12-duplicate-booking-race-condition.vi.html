@@ -7,6 +7,7 @@
 <p>Endpoint nhận cả <code>POST</code> lẫn <code>GET</code> vì payment redirect của 3-D Secure quay về qua GET URL. Như vậy một state-changing action có thể bị browser, link scanner hoặc security software fetch. Method filter giảm accidental call, nhưng correctness vẫn phải chịu được duplicate request từ bất kỳ nguồn nào.</p>
 
 <h2 id="evidence">2. Evidence thực sự nói gì?</h2>
+<p><strong>Boundary của evidence:</strong> khoảng cách 2 ms, read/write window 25 ms, 117 request bị block và giai đoạn yên 33 ngày là observation của incident này. Chúng hữu ích để tạo regression test deterministic, không phải threshold phổ quát để tune booking system.</p>
 <p>Một scheduled query—not exception hay customer report—phát hiện incident:</p>
 <pre><code>SELECT session_id, COUNT(itn_no)
 FROM itinerary_tracking
@@ -47,6 +48,7 @@ new BookingThread(...).start();</code></pre>
 <p>Optimistic-lock token hiện có cũng không phân xử được race. Nó tái sử dụng update timestamp có resolution một giây. Hai request cách nhau 23 ms thấy cùng rounded value nên cả hai update đều match. Tăng precision chỉ làm collision ít hơn, không làm nó bất khả thi; probability reduction không phải correctness guarantee.</p>
 
 <h2 id="correct-fix">6. Đưa quyết định vào một atomic write</h2>
+<p><strong>CAS chứng minh điều gì:</strong> integer version cộng affected-row count phân xử được một shared session row. Nó không làm side effect tới GDS, PSP hay ticketing trở thành atomic. Hãy persist intent trước external call, dùng lại provider key khi retry và giữ response mơ hồ ở <code>UNKNOWN</code> cho tới inquiry hoặc reconciliation.</p>
 <p>Permanent fix thêm integer column <code>VERSION</code>. Mọi session update đều increment nó, còn booking transition match version đã đọc:</p>
 <figure>
   <img src="assets/case-studies/12-duplicate-booking-race-condition/02-conditional-write.svg" alt="So sánh check-then-act với conditional update dùng affected-row count để database chọn đúng một winner." width="880" height="420" loading="lazy">
@@ -67,11 +69,13 @@ if (count != 1) {
 <p>Web tier đồng thời route <code>HEAD</code> sang handler trả <code>405 Method Not Allowed</code> kèm <code>Allow: GET, POST</code>. Nó loại một accidental trigger đã biết và làm HTTP semantics đúng hơn. Đây là defense in depth, không phải concurrency guarantee.</p>
 
 <h2 id="verification">7. Verify invariant, rollout và rollback</h2>
+<p><strong>Regression matrix:</strong> thêm hai call đồng thời, năm call duplicate, retry sau ambiguous timeout, callback duplicate và sai thứ tự, hai session khác nhau cho một passenger, cùng attempt mutate session không thuộc quyền. Case cuối là test BOLA/ownership; không được nhầm version predicate với authorization.</p>
 <p>Schema migration dùng <code>VERSION INT DEFAULT 0 NOT NULL</code>, nên live session đang tồn tại nhận token hợp lệ mà không cần backfill riêng. Execution plan trước và sau predicate được so sánh để xác nhận hot update giữ nguyên access path.</p>
 <p>Test assert outcome thay vì implementation detail: hai concurrent booking call cho một success và một failure; năm call cho đúng một success; update bình thường increment version; HEAD không bao giờ chạm booking API. Một controlled delay nới rộng window 23 ms, biến probabilistic race thành deterministic integration test.</p>
 <p>Thay đổi đi qua năm repository, bốn product line, mười hai screen và một shared session table. Team chạy 17 unit test cùng 39 integration scenario, monitor rejection lẫn booking signal sau release và chuẩn bị sẵn revert change. Additive database column được giữ khi rollback vì old code có thể bỏ qua nó an toàn.</p>
 
 <h2 id="limits">8. Fix này đảm bảo gì—và không đảm bảo gì?</h2>
+<p>Version local không phải distributed lock và không ngăn hai session tạo cùng external booking. Boundary đó cần business idempotency key, unique constraint đúng scope và reconciliation cho kết quả GDS/PSP đến trễ. Timeout nên hiển thị là pending hoặc unknown cho tới khi external authority trả lời.</p>
 <p>Version check hoạt động vì hai duplicate request chia sẻ một session row. Duplicate từ hai session, device hoặc expired session có thể vượt boundary này. API design mạnh hơn dùng idempotency key sinh theo booking intent và bảo vệ bằng unique constraint; mọi retry khi đó trả original outcome thay vì tạo booking khác.</p>
 <p>State-changing command cũng không nên ẩn sau fetchable GET. Redirect của 3-D Secure có thể về một idempotent confirmation endpoint, rồi endpoint đó submit hoặc resume booking command dưới cùng intent key.</p>
 <p>Bài học kỹ thuật rất gọn: xác định invariant, tìm shared serialization point và để một atomic write chọn winner. Edge filter giảm noise. Nó không thể thay database-enforced correctness.</p>

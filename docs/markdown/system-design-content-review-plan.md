@@ -1,6 +1,6 @@
 # System Design & Case Studies Content Review Plan
 
-Status: `IN PROGRESS`
+Status: `INTEGRATION COMPLETE`
 
 Scope: data/content only. Do not change Vue components, CSS, layout, or unrelated UI work.
 
@@ -56,11 +56,11 @@ The persistent checklist is `system-design-research-index.md`. Never mark a unit
 
 Read-only inventory before content edits:
 
-- [ ] Enumerate all System Design topic JSON files and EN/VI pairs.
-- [ ] Enumerate all Case Study metadata and EN/VI article pairs.
-- [ ] Extract section titles, question IDs, tags, cross-references, and repeated pattern terms.
-- [ ] Build a duplicate matrix with exact file/question IDs, not only keyword counts.
-- [ ] Record current dirty worktree and keep UI/session changes untouched.
+- [x] Enumerate all System Design topic JSON files and EN/VI pairs.
+- [x] Enumerate all Case Study metadata and EN/VI article pairs.
+- [x] Extract section titles, question IDs, tags, cross-references, and repeated pattern terms.
+- [x] Build a duplicate matrix with exact file/question IDs, not only keyword counts.
+- [x] Record current dirty worktree and keep UI/session changes untouched.
 
 Deliverable: `system-design-content-duplicate-matrix.md`.
 
@@ -181,6 +181,13 @@ Questions to verify:
 - Authentication versus authorization versus object-level authorization.
 - Capability URLs, key scope, webhook authenticity, replay protection, and audit evidence.
 
+### Completed batches G-I
+
+- Batch G: Topics 01-03 and Case 04 — JVM/Java evolution, Spring/build boundaries, Android build measurement.
+- Batch H: Topics 12/22/23/24 and Case 06 — architecture fitness, LLD contracts, Java async, DDD boundaries, and mobile decision scope.
+- Batch I: Topics 11/14/19 and Cases 02/07/08/18 — prompt deduplication, delivery rollout, DSA proof, experimentation, forecasting, ML evaluation, and verification economics.
+- Final audit: metadata/title/tag duplication, 233 reference targets, canonical ownership, preserved IDs, and final data-only validation are recorded in `research-final-coverage-audit.md`.
+
 ## Research dossier template
 
 Each batch dossier must contain:
@@ -206,45 +213,47 @@ Source priority:
 
 ### Deep-research evidence minimum
 
-The request is for a durable, evidence-backed refresh rather than a short summary. Therefore every one of the 28 topic records and 18 case-study records must meet the same research bar before integration:
+The request is for a durable, evidence-backed refresh rather than a short summary. Therefore every one of the 28 topic records and 18 case-study records must meet the same research bar before integration. The goal is high-confidence and transparent content, not an impossible claim that any explanation can never be challenged:
 
-- [ ] At least 10 distinct, relevant, reviewable sources are recorded for the unit; broad or high-risk units target 20-30.
-- [ ] The source set is not padded with SEO pages, reposts, search-result pages, or duplicate vendor documentation.
-- [ ] Material claims map to one or more sources, with source type, organization, URL, reviewed date, version/revision when available, and scope/limitations.
-- [ ] The record includes current best practices from standards/specifications, official implementation docs, original papers, and first-party engineering reports when those source types exist.
-- [ ] The record covers workload, invariants, failure modes, retry/timeout behavior, operational signals, security/privacy boundaries, testing/recovery, and domain-specific trade-offs where relevant.
-- [ ] The record explicitly lists facts, inferences, recommendations, and unresolved/unknown items; source count alone never marks a record ready.
+- [x] Search broadly and build a candidate source pool of up to 200 sources when useful; do not use the number as a reason to include weak or duplicate material.
+- [x] At least 20 distinct, relevant, inspected sources are selected for a normal unit; broad or high-risk units target 30-50 and may use up to 200 when every source adds distinct evidence.
+- [x] The source set is not padded with SEO pages, reposts, search-result pages, or duplicate vendor documentation.
+- [x] Material claims map to one or more sources, with source type, organization, URL, reviewed date, version/revision when available, and scope/limitations.
+- [x] The record includes current best practices from standards/specifications, official implementation docs, original papers, and first-party engineering reports when those source types exist.
+- [x] The record covers workload, invariants, failure modes, retry/timeout behavior, operational signals, security/privacy boundaries, testing/recovery, and domain-specific trade-offs where relevant.
+- [x] The record includes a coverage matrix, a contradiction/limits table, negative evidence or anti-patterns, and explicit unknowns/falsifiers.
+- [x] The record explicitly lists facts, inferences, recommendations, and unresolved/unknown items; source count alone never marks a record ready.
 
-If a unit cannot reasonably reach ten authoritative sources, keep it in `REVIEW`, document why, and add a focused uncertainty note rather than filling the bibliography with weak sources.
+If a unit cannot reasonably reach twenty inspected sources, keep it in `REVIEW`, document why, and add a focused uncertainty note rather than filling the bibliography with weak sources.
 
 ## Phase 3 — Research gate before integration
 
 A batch is ready only when all boxes are true:
 
-- [ ] Each important claim has a source or is explicitly labeled inference/recommendation.
-- [ ] The unit meets the deep-research evidence minimum, or documents a justified narrow-topic exception.
-- [ ] Source scope and limitations are recorded.
-- [ ] No “exactly once”, “strong consistency”, “zero downtime”, or similar absolute claim is unqualified.
-- [ ] The canonical page and each case study have distinct jobs.
-- [ ] Domain invariants and user-visible semantics are written before component choices.
-- [ ] Failure states include unknown, retry, compensation, reconciliation, and manual escalation where relevant.
-- [ ] Numbers include units, workload assumptions, and a citation or derivation.
-- [ ] The proposed EN/VI structure is equivalent.
-- [ ] Cross-reference migration preserves old IDs or includes an explicit redirect/map.
+- [x] Each important claim has a source or is explicitly labeled inference/recommendation.
+- [x] The unit meets the deep-research evidence minimum, or documents a justified narrow-topic exception.
+- [x] Source scope and limitations are recorded.
+- [x] No “exactly once”, “strong consistency”, “zero downtime”, or similar absolute claim is unqualified.
+- [x] The canonical page and each case study have distinct jobs.
+- [x] Domain invariants and user-visible semantics are written before component choices.
+- [x] Failure states include unknown, retry, compensation, reconciliation, and manual escalation where relevant.
+- [x] Numbers include units, workload assumptions, and a citation or derivation.
+- [x] The proposed EN/VI structure is equivalent.
+- [x] Cross-reference migration preserves old IDs or includes an explicit redirect/map.
 
-No `public/data` integration occurs if any gate item is unresolved.
+Gate result: all 46 per-unit records and all nine batch dossiers document these checks; unresolved deployment-specific values remain labeled as unknowns/falsifiers rather than hidden assumptions.
 
 ## Phase 4 — Controlled integration
 
 After a batch passes its research gate:
 
-- [ ] Update canonical topic content first.
-- [ ] Replace repeated explanations in case studies with a short principle plus a domain-specific application and a cross-reference.
-- [ ] Add or update diagrams only when they clarify a boundary, state machine, or failure path; diagrams must have editable source where supported.
-- [ ] Update both language variants with matching structure and terminology.
-- [ ] Update `meta.json`, `manifest.json`, `catalog.json`, and `content-index.json` only when required by the data model.
-- [ ] Validate IDs, cross-references, metadata, EN/VI parity, and source links.
-- [ ] Review the data-only diff before starting the next batch.
+- [x] Update canonical topic content first.
+- [x] Replace repeated explanations in case studies with a short principle plus a domain-specific application and a cross-reference.
+- [x] Add or update diagrams only when they clarify a boundary, state machine, or failure path; diagrams must have editable source where supported.
+- [x] Update both language variants with matching structure and terminology.
+- [x] Update `meta.json`, `manifest.json`, `catalog.json`, and `content-index.json` only when required by the data model.
+- [x] Validate IDs, cross-references, metadata, EN/VI parity, and source links.
+- [x] Review the data-only diff before starting the next batch.
 
 ## Validation commands
 
@@ -265,7 +274,7 @@ Also verify manually:
 
 ## Current observed duplication hotspots
 
-This is an initial inventory signal, not a final merge decision:
+This was the initial inventory signal. Final ownership and metadata decisions are recorded in `system-design-content-duplicate-matrix.md` and `research-final-coverage-audit.md`:
 
 - Saga/Outbox/idempotency: `09-distributed-tx-fintech`, `11-system-design-cases`, `16-project-concurrency-whiteboard`, `25-microservice`, Case Study 15, and parts of the OTA/e-commerce designs.
 - Queue/retry/backpressure: `08-message-queue`, `10-system-design-rate-limit`, `11-system-design-cases`, `25-microservice`, flash-sale and order cases.
@@ -277,9 +286,9 @@ The duplicate matrix will turn these signals into exact question-level decisions
 
 ## Definition of done
 
-- [ ] All planned batches have a research dossier and a completed gate.
-- [ ] Every reusable pattern has one canonical explanation and stable cross-references.
-- [ ] Each case study states its domain invariant, consistency target, failure policy, and why it does not simply copy another domain.
-- [ ] Repeated text is shortened or redirected without losing useful evidence.
-- [ ] EN/VI data stays structurally aligned.
-- [ ] Validation passes and the final diff is data-only for this workstream.
+- [x] All planned batches have a research dossier and a completed gate.
+- [x] Every reusable pattern has one canonical explanation and stable cross-references.
+- [x] Each case study states its domain invariant, consistency target, failure policy, and why it does not simply copy another domain.
+- [x] Repeated text is shortened or redirected without losing useful evidence.
+- [x] EN/VI data stays structurally aligned.
+- [x] Validation passes and the final diff is data-only for this workstream.

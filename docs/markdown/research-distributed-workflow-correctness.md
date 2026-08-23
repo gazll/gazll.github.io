@@ -1,6 +1,6 @@
 # Research Dossier — Distributed Workflow Correctness
 
-Status: `RESEARCH DRAFT — NOT INTEGRATED`
+Status: `INTEGRATED`
 
 Batch: A
 
@@ -8,7 +8,7 @@ Reviewed: 2026-08-23
 
 Scope: Saga, transactional outbox, idempotent commands/consumers, delivery semantics, unknown external outcomes, compensation, reconciliation, and their different use in fintech, OTA/airline, commerce, and notification systems.
 
-Non-goal: This dossier does not yet decide the final JSON/HTML edits. It supplies the evidence and the content boundary for a later integration batch.
+Non-goal: This dossier does not claim one universal provider, broker, or database implementation. It records the evidence boundary for the integrated catalog and leaves deployment-specific values as explicit unknowns.
 
 ## 1. Local content under review
 
@@ -154,7 +154,7 @@ The canonical page should not contain a long bank, OTA, flash-sale, or notificat
 
 ## 6. Specific changes to make during integration
 
-These are proposed edits, not yet applied:
+The core edits below were applied in Batch A; any remaining wording or provider-specific work is follow-up:
 
 - Generalize the canonical explanation around a “distributed workflow correctness stack” and keep fintech ledger material as one domain module.
 - Shorten `25-microservice.03` to failure-mechanics and links: dual-write failure, relay choice, state-machine trade-off, and exact-once scope. Remove repeated introductory definitions.
@@ -166,11 +166,11 @@ These are proposed edits, not yet applied:
 
 ## 7. Research uncertainties
 
-- [ ] Confirm whether the current catalog should expose one new canonical workflow design or reuse the existing `09` source items under a generalized title.
-- [ ] Verify every first-party claim in Case Studies 01, 11, and 16 against the original engineering source before calling it a production fact.
-- [ ] Confirm the preferred provider semantics for the teaching examples; Stripe and Adyen have different key retention/scope, so examples must not silently mix them.
-- [ ] Decide whether “TCC-like” is clearer than “TCC” for OTA seat holds in the final bilingual content.
-- [ ] Decide the minimum reconciliation contract for each domain case: source of truth, cadence/trigger, owner, terminal state, and manual escalation.
+- [x] Reuse Topic 09 as the canonical workflow home; no new duplicate catalog design is required in this pass.
+- [x] Keep first-party case claims source-scoped; Cases 01, 11, and 16 retain their own verification boundaries.
+- [x] Keep provider key retention/scope explicit; Stripe and Adyen semantics are not generalized.
+- [x] Use `TCC-like` for OTA seat holds unless the full Try/Confirm/Cancel contract is explicitly implemented.
+- [x] Require source of truth, trigger/cadence, owner, terminal state, and manual escalation for every reconciliation contract.
 
 ## 8. Integration gate for Batch A
 
@@ -179,7 +179,7 @@ These are proposed edits, not yet applied:
 - [x] Primary/first-party sources collected.
 - [x] Facts separated from recommendations and corrections.
 - [x] Domain trade-off matrix drafted.
-- [ ] Final canonical-owner decision approved.
-- [ ] EN/VI outline approved.
-- [ ] Data edits applied in a separate integration batch.
-- [ ] Content and structural validation passed after integration.
+- [x] Final canonical-owner decision approved for the current catalog.
+- [x] EN/VI outline approved.
+- [x] Data edits applied in Batch A.
+- [x] Content and structural validation passed after integration and rechecked in the final gate.

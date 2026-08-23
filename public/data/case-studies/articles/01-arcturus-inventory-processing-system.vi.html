@@ -28,6 +28,7 @@
 </ul>
 
 <h3 id="consistency-model">4.1. Consistency model</h3>
+<p><strong>Boundary của correctness:</strong> bài gốc mô tả một command queue, nhưng đó là design của case chứ không phải guarantee ordering phổ quát. Biến thể production phải định nghĩa partition key, command ID, last applied offset và offset n chỉ được advance sau khi state tương ứng đã durable hay chưa. Replay phải idempotent hoặc monotonic. Eventual consistency của projection không đồng nghĩa với synchronous inventory admission.</p>
 <p>Để giải quyết bài toán eventual consistency, thiết kế dựa trên transaction log. System state không chỉ là state trong database mà còn là state của từng update command cho inventory. Mỗi thay đổi của system state được lưu trong command queue cùng một offset cụ thể.</p>
 <p>State offset được dùng làm checkpoint để restore system state bất cứ lúc nào. Ý tưởng chính là đảm bảo eventual consistency của dữ liệu.</p>
 <p>Hệ thống có một command queue. Nếu external system muốn cập nhật inventory, nó gửi command tới Inventory system. Command được lưu trong queue, đóng vai trò transaction log để duy trì system state. Hai data source cuối cùng phải consistent là command queue và persistent database; persistent database offset luôn nhỏ hơn hoặc bằng latest offset của command queue.</p>
@@ -47,6 +48,7 @@
 <p>Nhưng với model này, hệ thống có thể replicate data giữa nhiều data source một cách đáng tin cậy: command queue, in-memory, database và server node.</p>
 
 <h3 id="processing-model">4.2. Processing model.</h3>
+<p><strong>Crash transition:</strong> hãy viết rõ chuỗi: command được nhận, apply vào memory, change được buffer, database được flush, rồi mới advance checkpoint. Nếu processor chết sau memory update nhưng trước checkpoint, replay từ checkpoint durable cuối cùng không được decrement stock hai lần. Nếu checkpoint advance trước, recovery có thể bỏ qua mutation. Single-thread processing và local memory là chiến lược performance; tự chúng không phải proof của correctness.</p>
 <figure class="cs-figure">
   <button type="button" data-zoom-image aria-label="Mở sơ đồ Processing model Arcturus ở kích thước đầy đủ">
     <img src="assets/case-studies/01-arcturus-inventory-processing-system/02-processing-model.webp" width="641" height="421" loading="lazy" decoding="async" alt="Processing model Arcturus với ring buffer lệnh và thay đổi, cache in-memory, database và durability async">
@@ -64,6 +66,7 @@
 <p>Hệ thống dùng một non-blocking queue đặc biệt: ring buffer. Nó dựa trên open-source project Disruptor L-Max và có thể xử lý tới 1 triệu transaction mỗi giây. Có hai ring buffer: một buffer cho command cần process và một buffer cho data change cần persist async vào database.</p>
 
 <h3 id="checkout-integration">4.3. Checkout integration.</h3>
+<p><strong>Integration contract:</strong> reserve, confirm và reverse nên mang theo reservation ID, SKU/warehouse/quantity, expiry, command ID và terminal state. Checkout retry dùng lại identity đó; order event đến trễ hoặc duplicate phải vô hại. Nếu inventory call timeout, giữ <code>PENDING</code> hoặc <code>UNKNOWN</code> rồi reconcile thay vì tạo reservation thứ hai. Design phải nêu transition local nào atomic và outcome cross-system nào sẽ được repair eventual.</p>
 <p>Order và inventory data phải consistent. Điều này đòi hỏi integrity và consistency giữa số lượng đã bán với quantity của từng SKU. Khi khách hàng đặt order, hệ thống phải update nhiều data. Hai data quan trọng là order và inventory, được quản lý bởi hai system riêng biệt: checkout và inventory. Các system này expose HTTP API để integration.</p>
 <p>Do thuộc tính của HTTP nên hệ thống không thể tạo atomic transaction để cập nhật dữ liệu đơn hàng và inventory của hai hệ thống. Vì vậy có nguy cơ xảy ra inconsistency giữa dữ liệu đơn hàng và inventory: dữ liệu inventory được cập nhật cho một đơn hàng mới nhưng không thể tạo đơn hàng thành công, khi đó inventory của một SKU sẽ bị mất và không thể sử dụng cho khách hàng tiếp theo. Để giải quyết vấn đề này, quá trình xử lý được chia thành hai giai đoạn:</p>
 <ul>
@@ -109,6 +112,7 @@
 </ul>
 
 <h3 id="benchmark">4.6. Benchmark.</h3>
+<p><strong>Benchmark boundary:</strong> 350k transaction/giây trong memory, 120k transaction/giây với full I/O và 5.600 request/giây ở staging là ba workload khác nhau, không phải capacity limit có thể so trực tiếp. Muốn reproduce cần hardware, payload, số operator/worker, warm-up, semantics của acknowledgement/durability, schema database, cache hit ratio và latency p50/p95/p99. Nếu thiếu các control này, hãy giữ các con số như historical observation của case.</p>
 <p>Chỉ process transaction trong memory, không tính database, Inventory Processor đạt <strong>350k transactions/s</strong> với nhiều operation trên một key.</p>
 <figure class="cs-figure cs-figure-compact">
   <button type="button" data-zoom-image aria-label="Mở kết quả in-memory benchmark ở kích thước đầy đủ">

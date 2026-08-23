@@ -131,6 +131,7 @@
   <figcaption>Hình 16 · 7. Production effectiveness</figcaption>
 </figure>
 <p>Ở case approve, bot đưa ra decision khá tốt so với con người. Ở case reject, bot còn hạn chế vì logo của các brand nổi tiếng có thể được redesign với nhiều style/material khác nhau, hoặc bị chỉnh sửa khiến model không detect được.</p>
+<p><strong>Ranh giới evidence.</strong> mAP, classification accuracy và quan sát production ba tháng chỉ có ý nghĩa khi có dataset manifest, split theo seller/product và thời gian, duplicate policy, evaluator version, IoU threshold, NMS/confidence threshold, cách average class, xử lý unknown/abstain và denominator của reviewer. Detector/classifier là evidence và triage signal, không phải phán quyết tự động về hàng giả hay trademark. Open-set, occlusion, logo bị chỉnh sửa, hard-negative, calibration, appeal và false-positive harm test phải quyết định auto-action boundary; human review, provenance, privacy và rollback vẫn là một phần của production system.</p>
 <h2 id="8-conclusions"><strong>8. Kết luận</strong></h2>
 <p>Ưu điểm:</p>
 <ul>

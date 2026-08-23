@@ -56,6 +56,7 @@
   <figcaption>Hình 4 · 3. New deal solution</figcaption>
 </figure>
 <h3 id="3-1-price-system-replicate-the-deal-price-process">3.1. Price system — replicate deal price.</h3>
+<p><strong>Boundary của identity:</strong> chỉ price value là chưa đủ để bind một deal. Hãy truyền product, price ID, effective version, deal quota và validity window qua checkout; retry hoặc reprice phải validate cùng identity. Event replication cũ không được mở lại state terminal <code>SOLD_OUT</code>. Đây là cách case map price ID, không phải bằng chứng mọi catalog store dùng chung một atomic transaction.</p>
 <p>Thông tin deal được replicate vào hệ thống giá.</p>
 <figure class="cs-figure cs-figure-wide">
   <button type="button" data-zoom-image aria-label="Mở hình 5 ở kích thước đầy đủ">
@@ -64,6 +65,7 @@
   <figcaption>Hình 5 · 3.1. Price system — replicate deal price</figcaption>
 </figure>
 <h3 id="3-2-arcturus-inventory-process">3.2. Arcturus inventory process.</h3>
+<p><strong>Câu hỏi về atomicity:</strong> bài viết báo cáo Arcturus kiểm tra inventory và deal quantity cùng nhau; hãy giữ đây là claim của design local, không phải thuộc tính phổ quát của mọi inventory service. Với hệ thống khác, phải nêu một partition/transaction có sở hữu cả hai counter hay reconciliation chấp nhận bounded oversell. Quantity event stale hoặc đến sai thứ tự không được đưa state terminal <code>SOLD_OUT</code> lùi lại.</p>
 <figure class="cs-figure cs-figure-wide">
   <button type="button" data-zoom-image aria-label="Mở hình 6 ở kích thước đầy đủ">
     <img src="assets/case-studies/11-how-to-handle-hot-deals-at-the-peak-time/06-figure.webp" width="1348" height="720" loading="lazy" decoding="async" alt="Hình 6 cho 3.2. Arcturus inventory process">
@@ -71,6 +73,7 @@
   <figcaption>Hình 6 · 3.2. Arcturus inventory process</figcaption>
 </figure>
 <h3 id="3-3-checkout-process">3.3. Checkout process</h3>
+<p><strong>Checkout recovery:</strong> revalidate price ID hiện tại và deal quota tại admission, sau đó reserve bằng idempotency key ổn định và expiry. Timeout sau mutation là <code>UNKNOWN</code> cho tới khi query inventory authority; không retry bằng key mới. Confirm hoặc release từ order event, đồng thời trả outcome pending/reprice thay vì giấu conflict sau lỗi chung.</p>
 <figure class="cs-figure cs-figure-wide">
   <button type="button" data-zoom-image aria-label="Mở hình 7 ở kích thước đầy đủ">
     <img src="assets/case-studies/11-how-to-handle-hot-deals-at-the-peak-time/07-figure.webp" width="1360" height="1020" loading="lazy" decoding="async" alt="Hình 7 cho 3.3. Checkout process">
@@ -78,6 +81,7 @@
   <figcaption>Hình 7 · 3.3. Checkout process</figcaption>
 </figure>
 <h3 id="3-4-system-architecture">3.4. System architecture.</h3>
+<p><strong>Peak protection:</strong> design hoàn chỉnh còn cần wait-room hoặc token admission, limit theo tenant và product, bounded queue, load shedding, absolute deadline và retry budget. Hãy đo queue age, admission reject, inventory conflict, price-version lag, propagation lag của <code>SOLD_OUT</code> và origin saturation. Đây là control nên có cho hot path, không phải claim rằng implementation gốc của case đã dùng tất cả.</p>
 <figure class="cs-figure cs-figure-wide">
   <button type="button" data-zoom-image aria-label="Mở hình 8 ở kích thước đầy đủ">
     <img src="assets/case-studies/11-how-to-handle-hot-deals-at-the-peak-time/08-figure.webp" width="1704" height="832" loading="lazy" decoding="async" alt="Hình 8 cho 3.4. System architecture">

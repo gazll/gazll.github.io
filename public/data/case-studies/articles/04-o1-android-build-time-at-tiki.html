@@ -156,6 +156,7 @@ interface HomeActivityModule</code></pre>
 <p>There is still one more issue. Since most all of the screens are excluded from the debug APK, how can we open the screen that we are developing?<br>This can easily be done with a deep link using ADB command:</p>
 <pre><code>adb shell am start -a android.intent.action.VIEW -d sample://sample</code></pre>
 <h2 id="the-result">The result</h2>
+<p><strong>Measurement boundary.</strong> “O(1) build time” is useful shorthand for this selected debug workflow under a fixed dependency closure; it is not a complexity guarantee for clean release builds, resource/manifest processing, CI, instrumentation tests, packaging, install, or runtime startup. The reported numbers are historical first-party observations without a complete machine, toolchain, cache, task-graph, and sample-size record. Reproduce the claim with Gradle profiling or Build Analyzer, and keep the full graph and release pipeline authoritative. Optional bindings and deep links belong only to the guarded debug/test path; they must not hide cross-feature integration failures or leak into a production artifact.</p>
 <p>After implementing this idea to the Tiki Android project, the build time has reduced by half. One of the bonus from this is the debug APK size become really small since all of the app’s feature is excluded, this will also save a lot of time when deploying the APK to test device.</p>
 <figure class="cs-figure cs-figure-wide">
   <button type="button" data-zoom-image aria-label="Open figure 6 at full size">

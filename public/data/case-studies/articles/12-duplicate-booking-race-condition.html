@@ -7,6 +7,7 @@
 <p>The endpoint accepted both <code>POST</code> and <code>GET</code> because a 3-D Secure payment redirect returned through a GET URL. That made a state-changing action fetchable by browsers, link scanners and security software. Method filtering could reduce accidental calls, but correctness still had to survive duplicate requests from any source.</p>
 
 <h2 id="evidence">2. What the evidence actually said</h2>
+<p><strong>Evidence boundary:</strong> the 2 ms arrival gap, 25 ms read/write window, 117 blocked requests and 33-day quiet period are observations from this incident. They are useful for constructing a deterministic regression test, not universal thresholds for tuning a booking system.</p>
 <p>A scheduled query—not an exception or customer report—detected the incident:</p>
 <pre><code>SELECT session_id, COUNT(itn_no)
 FROM itinerary_tracking
@@ -47,6 +48,7 @@ new BookingThread(...).start();</code></pre>
 <p>The existing optimistic-lock token also could not adjudicate the race. It reused an update timestamp with one-second resolution. Requests 23 ms apart observed the same rounded value, so both updates matched. Increasing precision would make collision less likely, not impossible; probability reduction is not a correctness guarantee.</p>
 
 <h2 id="correct-fix">6. Move the decision into one atomic write</h2>
+<p><strong>What the CAS proves:</strong> an integer version plus affected-row count adjudicates one shared session row. It does not make a GDS, PSP or ticketing side effect atomic. Persist the intent before the external call, reuse the same provider key on retry, and keep an ambiguous response in <code>UNKNOWN</code> until inquiry or reconciliation.</p>
 <p>The permanent fix introduced an integer <code>VERSION</code> column. Every session update incremented it, and the booking transition matched the version previously read:</p>
 <figure>
   <img src="assets/case-studies/12-duplicate-booking-race-condition/02-conditional-write.svg" alt="Check-then-act compared with a conditional update whose affected-row count lets the database select one winner." width="880" height="420" loading="lazy">
@@ -67,11 +69,13 @@ if (count != 1) {
 <p>The web tier separately routed <code>HEAD</code> to a handler returning <code>405 Method Not Allowed</code> with <code>Allow: GET, POST</code>. That removed a known accidental trigger and improved HTTP semantics. It was defense in depth, not the concurrency guarantee.</p>
 
 <h2 id="verification">7. Verify the invariant, rollout and rollback</h2>
+<p><strong>Regression matrix:</strong> include two simultaneous calls, five duplicate calls, a retry after an ambiguous timeout, duplicate and out-of-order callbacks, two different sessions for one passenger, and an unauthorized attempt to mutate another session. The last case is a BOLA/ownership test; a correct version predicate must not be mistaken for authorization.</p>
 <p>The schema migration used <code>VERSION INT DEFAULT 0 NOT NULL</code>, so existing live sessions received a valid token without a separate backfill. Execution plans before and after the predicate were compared to confirm the hot update kept the same access path.</p>
 <p>Tests asserted outcomes, not implementation details: two concurrent booking calls produced one success and one failure; five produced exactly one success; ordinary updates incremented the version; and HEAD never reached the booking API. A controlled delay widened the 23 ms window, turning a probabilistic race into a deterministic integration test.</p>
 <p>The change crossed five repositories, four product lines, twelve screens and a shared session table. The team ran 17 unit tests and 39 integration scenarios, monitored rejection and booking signals after release, and prepared revert changes in advance. The additive database column stayed during rollback because old code safely ignored it.</p>
 
 <h2 id="limits">8. What this fix guarantees—and what it does not</h2>
+<p>The local version is not a distributed lock and does not prevent two sessions from creating the same external booking. That boundary needs a business idempotency key and a unique constraint at the correct scope, plus a reconciliation path for late GDS/PSP results. A timeout should remain visible as pending or unknown until the external authority answers.</p>
 <p>The version check works because both duplicate requests share one session row. Duplicates from two sessions, devices or expired sessions can bypass that boundary. The stronger API design is an idempotency key created per booking intent and protected by a unique constraint; every retry then returns the original outcome instead of creating another booking.</p>
 <p>A state-changing command should also not be hidden behind a fetchable GET. The 3-D Secure redirect can land on an idempotent confirmation endpoint, which then submits or resumes the booking command under the same intent key.</p>
 <p>The technical lesson is compact: identify the invariant, find the shared serialization point, and let one atomic write choose the winner. Edge filters reduce noise. They cannot replace database-enforced correctness.</p>

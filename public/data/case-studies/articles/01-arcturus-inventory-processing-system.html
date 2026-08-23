@@ -28,6 +28,7 @@
 </ul>
 
 <h3 id="consistency-model">4.1. Consistency Model.</h3>
+<p><strong>Correctness boundary:</strong> the original article reports one command queue, but that is a case design rather than a universal ordering guarantee. A production variant should define the partition key, command ID, last applied offset and whether offset n is advanced only after the corresponding state is durable. Replay must be idempotent or monotonic. Eventual projection consistency is not the same as synchronous inventory admission.</p>
 <p>To deal with the eventual consistency problems, the design is based on the transaction log model. The state of the system is not only the state of data in the database but also the state of each command to update the inventory’s data. So the state of the system has been changed since it received the update command from external systems (checkout, warehouse, order management system…). Each state change of the system is stored in a command queue with a specific offset.</p>
 <p>The offset of the state is used as the checkpoint to recover the state of the system anytime. It is the main idea to guarantee the eventual consistency of the data.</p>
 <p>The system has one command queue. If an external system wants to update the inventory’s data, it will send a command to the inventory system. The command is stored in a command queue. The command queue is used as a transaction log to maintain the state of the system. There are two main data sources that need to be eventually consistent: the command queue and the persistent database. The offset of the persistent database is always less than or equal to the latest offset of the command queue.</p>
@@ -47,6 +48,7 @@
 <p>But with this model, the system is reliable to replicate data between many data sources: command queue, local memory, database, and server nodes.</p>
 
 <h3 id="processing-model">4.2. Processing Model.</h3>
+<p><strong>Crash transition:</strong> make the sequence explicit: command accepted, in-memory state applied, change buffered, database state flushed, then checkpoint advanced. If the processor dies after the memory update but before the checkpoint, replay from the last durable checkpoint must not double-decrement stock. If the checkpoint advances first, recovery can skip a mutation. Single-thread processing and local memory are performance strategies; they are not, by themselves, a correctness proof.</p>
 <figure class="cs-figure">
   <button type="button" data-zoom-image aria-label="Open the Arcturus processing model diagram at full size">
     <img src="assets/case-studies/01-arcturus-inventory-processing-system/02-processing-model.webp" width="641" height="421" loading="lazy" decoding="async" alt="Arcturus processing model with command and change ring buffers, local-memory cache, database and asynchronous persistence">
@@ -64,6 +66,7 @@
 <p>The system uses a special non-blocking queue: ring buffer. It is based on a famous open-source: Disruptor L-Max. It can handle up to 1 million transactions per second. There are two rings: one for buffering commands to process and one for buffering the data changes to persist in the database asynchronously.</p>
 
 <h3 id="checkout-integration">4.3. Checkout Integration.</h3>
+<p><strong>Integration contract:</strong> reserve, confirm and reverse should carry a reservation ID, SKU/warehouse/quantity, expiry, command ID and terminal state. A checkout retry reuses that identity; late duplicate order events must be harmless. If an inventory call times out, retain <code>PENDING</code> or <code>UNKNOWN</code> and reconcile instead of issuing a second reservation. The design must state which local transition is atomic and which cross-system outcome is eventually repaired.</p>
 <p>The consistency data of order and inventory are crucial. It requires the integrity and consistency of the number of sold items with the quantity of each SKU. When a customer places an order, systems have to update a lot of data. There are two important data: order and inventory. These data are managed by two separate systems: checkout and inventory. These systems expose HTTP API for integration.</p>
 <p>Because of the property of HTTP, the system can’t create an atomic transaction to update the order and inventory data of two systems. So there is a risk for the inconsistency of order and inventory data: the inventory’s data is updated for a new order, but the order can’t be created successfully, then the inventory of an SKU is lost and can’t be used for the next customers. To solve this problem, the processing is separated into two phases:</p>
 <ul>
@@ -109,6 +112,7 @@
 </ul>
 
 <h3 id="benchmark">4.6. Benchmark.</h3>
+<p><strong>Benchmark boundary:</strong> the reported 350k in-memory transactions per second, 120k full-I/O transactions per second and 5,600 staging requests per second are three different workloads, not directly comparable capacity limits. Reproduction needs hardware, payload, operator/worker count, warm-up, acknowledgement/durability semantics, database schema, cache hit ratio and p50/p95/p99 latency. Without those controls, keep the figures as historical case observations.</p>
 <p>With only processing transaction in memory, don’t care database, the inventory processor can process with rate <strong>350k transaction / s</strong> with multi-operator on 1 key.</p>
 <figure class="cs-figure cs-figure-compact">
   <button type="button" data-zoom-image aria-label="Open the in-memory benchmark result at full size">
