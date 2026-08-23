@@ -33,6 +33,23 @@ var MAX_ROWS_PER_PUSH = 2000;
 var CALENDAR_APP = 'calendar';
 var CHECK_PREFIX = 'check:';
 
+/**
+ * Ticks are CO-OP, not personal: the sealed file is one file and everyone who
+ * can open it is looking at the same household, so "đã mua men vi sinh chưa"
+ * must read the same for all of them. They therefore live under a bucket id in
+ * `user_id` rather than under a person's `sub` — and because the rows are now
+ * shared, both reading and writing them are gated on `hasScheduleAccess`,
+ * which per-user rows never needed.
+ *
+ * The cluster is `schedule_access` today. When clusters become one per
+ * passphrase, only CLUSTER changes — an id derived per key instead of this one
+ * constant — and existing rows keep working because the bucket id is data, not
+ * code. Bucket ids carry a prefix so they can never collide with a Google
+ * `sub`, which is digits only.
+ */
+var SCHEDULE_CLUSTER = 'shared';
+function scheduleBucket() { return 'schedule:' + SCHEDULE_CLUSTER; }
+
 /* ------------------------------------------------------------------ */
 /* Sheet definitions                                                   */
 /* ------------------------------------------------------------------ */
@@ -491,8 +508,15 @@ var ACTIONS = {
         };
       }).sort(function (a, b) { return String(a.created_at).localeCompare(String(b.created_at)); }),
 
-      checks: mine(table('app_config').read(), user)
-        .filter(function (r) { return String(r.app) === CALENDAR_APP && String(r.key).indexOf(CHECK_PREFIX) === 0; })
+      /* Not `mine()`: these rows belong to the cluster. An account without
+         schedule access gets an empty map rather than an error, because the
+         inbox beside it IS per-user and must still answer. */
+      checks: !hasScheduleAccess(user) ? {} : table('app_config').read()
+        .filter(function (r) {
+          return String(r.user_id) === scheduleBucket()
+            && String(r.app) === CALENDAR_APP
+            && String(r.key).indexOf(CHECK_PREFIX) === 0;
+        })
         .reduce(function (acc, r) {
           acc[String(r.key).slice(CHECK_PREFIX.length)] = { done: String(r.value) === '1', at: iso(r.updated_at) };
           return acc;
@@ -504,15 +528,14 @@ var ACTIONS = {
   'schedule.check': function (user, p) {
     var id = trim(p && p.id);
     if (!id) throw publicError('Thiếu id.');
+    if (!hasScheduleAccess(user)) throw publicError('Tài khoản này chưa được cấp quyền xem lịch riêng.');
     return withLock(function () {
-      upsertByKey(table('app_config'), user, [{ id: id }], ['app', 'key'], function () {
-        return {
-          user_id: user.sub,
-          app: CALENDAR_APP,
-          key: CHECK_PREFIX + id,
-          value: p && p.done ? '1' : '0',
-          updated_at: nowIso()
-        };
+      upsertShared(table('app_config'), scheduleBucket(), ['app', 'key'], {
+        user_id: scheduleBucket(),
+        app: CALENDAR_APP,
+        key: CHECK_PREFIX + id,
+        value: p && p.done ? '1' : '0',
+        updated_at: nowIso()
       });
       return { id: id, done: Boolean(p && p.done) };
     });
@@ -869,6 +892,23 @@ function upsertByKey(t, user, incoming, keyFields, mapRow) {
 /** '|' is safe as a separator: item_ids look like '01-java-core-jvm.memory-execution-model.q1' — hyphens and dots, never '|'. */
 function keyOf(row, fields) {
   return fields.map(function (f) { return String(row[f] == null ? '' : row[f]); }).join('|');
+}
+
+/**
+ * One row in a shared bucket, keyed the way `upsertByKey` keys a personal one.
+ * Deliberately separate: `upsertByKey` is built on `mine()`, and `mine()` is
+ * the ownership boundary — widening it to take a bucket would put "whose row is
+ * this" behind a parameter on every caller in the file.
+ */
+function upsertShared(t, bucket, keyFields, row) {
+  var k = keyOf(row, keyFields);
+  var rows = t.read();
+  for (var i = 0; i < rows.length; i++) {
+    if (String(rows[i].user_id) !== String(bucket)) continue;
+    if (keyOf(rows[i], keyFields) === k) { t.update(rows[i]._row, row); return 1; }
+  }
+  t.appendAll([row]);
+  return 1;
 }
 
 /** Every read must pass through here — this is the ownership boundary. */

@@ -96,6 +96,7 @@ const t = computed(() => vi.value ? {
   copyJson: 'Copy JSON', copied: 'Đã copy', markMerged: 'Đã chuyển', reopen: 'Mở lại',
   remove: 'Xoá', merged: 'Đã chuyển', clearMerged: 'Xoá mục đã chuyển',
   backendMissing: 'Backend chưa có action schedule.* — cần Deploy → New version cho Apps Script.',
+  checkLocalOnly: 'Tài khoản này chưa nằm trong nhóm lịch riêng, nên dấu tick chỉ lưu trên máy này.',
   nothingOn: 'Không có gì trong ngày này.', allMembers: 'Tất cả', standing: 'Ghi chú',
   items: 'Đồ đạc', other: 'Khác', noItems: 'Chưa có món nào.', bought: 'Mua',
   warrantyTo: 'BH đến', warrantyLeft: 'BH còn', warrantyOver: 'Hết bảo hành',
@@ -127,6 +128,7 @@ const t = computed(() => vi.value ? {
   copyJson: 'Copy JSON', copied: 'Copied', markMerged: 'Mark merged', reopen: 'Reopen',
   remove: 'Delete', merged: 'Merged', clearMerged: 'Clear merged notes',
   backendMissing: 'The backend has no schedule.* actions yet — redeploy Apps Script (Deploy → New version).',
+  checkLocalOnly: 'This account is not in the schedule group, so ticks stay on this device only.',
   nothingOn: 'Nothing on this day.', allMembers: 'Everyone', standing: 'Notes',
   items: 'Things', other: 'Other', noItems: 'Nothing recorded yet.', bought: 'Bought',
   warrantyTo: 'Warranty to', warrantyLeft: 'Warranty ends in', warrantyOver: 'Out of warranty',
@@ -462,8 +464,12 @@ async function toggleCheck(id: string, done: boolean) {
   checks.value = { ...checks.value, [id]: { done, at: new Date().toISOString() } };
   writeLocalChecks(checks.value);
   if (!signedIn.value) return;
-  try { await callBackend('schedule.check', { id, done }); }
-  catch (error: any) { inboxNotice.value = error?.message || String(error); }
+  try { await callBackend('schedule.check', { id, done }); inboxNotice.value = ''; }
+  catch (error: any) {
+    const message = error?.message || String(error);
+    inboxNotice.value = /cấp quyền|not in the schedule|schedule group/i.test(message)
+      ? t.value.checkLocalOnly : message;
+  }
 }
 
 /* ---------- inbox ---------- */
@@ -716,7 +722,7 @@ onBeforeUnmount(() => stopAuth?.());
                   <div class="cal-iname">
                     <b>{{ row.name }}</b>
                     <p v-if="row.note">{{ row.note }}</p>
-                    <p v-for="entry in row.service" :key="entry.date" class="cal-iservice">
+                    <p v-for="entry in row.service" :key="`${entry.date}:${entry.what}`" class="cal-iservice">
                       {{ t.replaced }}: {{ entry.what }} — {{ shortDate(entry.date) }}
                       <i>({{ duration(entry.monthsAgo) }} {{ t.ago }})</i>
                       <em v-if="entry.price">{{ entry.price }}</em>
@@ -739,7 +745,7 @@ onBeforeUnmount(() => stopAuth?.());
                   <div class="cal-iname">
                     <b>{{ row.name }}</b>
                     <p v-if="row.note">{{ row.note }}</p>
-                    <p v-for="entry in row.service" :key="entry.date" class="cal-iservice">
+                    <p v-for="entry in row.service" :key="`${entry.date}:${entry.what}`" class="cal-iservice">
                       {{ t.replaced }}: {{ entry.what }} — {{ shortDate(entry.date) }}
                       <i>({{ duration(entry.monthsAgo) }} {{ t.ago }})</i>
                       <em v-if="entry.price">{{ entry.price }}</em>
