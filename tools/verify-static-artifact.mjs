@@ -49,6 +49,22 @@ for (const row of htmlFiles) {
   }
 }
 
+/* Source guardrails run before Nuxt generates the bundle. Keep a second,
+   release-boundary check because build transforms and generated config can
+   introduce text that never existed in a tracked source file. Public OAuth
+   client IDs are intentionally excluded; private keys and bearer credentials
+   are not. Vendored output is checked by its own dependency policy. */
+const textFiles = rows.filter(row => row.stat.isFile()
+  && /\.(?:html?|m?js|json|css|txt|xml|svg)$/i.test(row.file)
+  && !row.file.includes(`${path.sep}vendor${path.sep}`));
+const privateCredentialPattern = /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|ya29\.[A-Za-z0-9._-]+|GOCSPX-[A-Za-z0-9._-]+/;
+for (const row of textFiles) {
+  const source = await readFile(row.file, 'utf8');
+  if (privateCredentialPattern.test(source)) {
+    failures.push(`${path.relative(root, row.file)} contains a private credential pattern`);
+  }
+}
+
 const compatibilityModules = rows.filter(row => row.stat.isFile()
   && /\.m?js$/.test(row.file)
   && !row.file.includes(`${path.sep}_nuxt${path.sep}`)

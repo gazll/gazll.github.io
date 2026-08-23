@@ -61,6 +61,8 @@ const execFileAsync = promisify(execFile);
     }
     assert.match(verifier, /isSymbolicLink/);
     assert.match(verifier, /--check/);
+    assert.match(verifier, /privateCredentialPattern/);
+    assert.match(verifier, /GOCSPX/);
   });
 
   /* Vendored code is upstream output pinned by directory name: linting it proves

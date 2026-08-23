@@ -208,7 +208,7 @@ import { crossRefResolver, trackItemIds } from '../public/lib/cross-ref.js';
     const expected = await movedSourceIds();
     const actual = catalog.designs.flatMap(design => design.source_items);
 
-    assert.equal(expected.length, 59);
+    assert.equal(expected.length, 64);
     assert.equal(actual.length, expected.length);
     assert.equal(new Set(actual).size, actual.length, 'one source question was assigned to two blueprints');
     assert.deepEqual([...actual].sort(), [...expected].sort());
@@ -333,7 +333,7 @@ import { crossRefResolver, trackItemIds } from '../public/lib/cross-ref.js';
           `${source.slug}: localized image metadata lost`);
       }
     }
-    assert.equal(migrated, 59, 'the migrated deep dives are all still reachable');
+    assert.equal(migrated, 64, 'the migrated deep dives are all still reachable');
   });
 
   test('the production cases handed to System Design are paired in both directions', async () => {
@@ -471,6 +471,7 @@ import { crossRefResolver, trackItemIds } from '../public/lib/cross-ref.js';
         assert.equal(bare(scope), bare(escapeHtml(design[lang].scope)),
           `${design.slug}.${lang}: renderScope changed the text`);
         assert.match(scope, /^<p/, `${design.slug}.${lang}: scope must start with a paragraph`);
+        assert.match(scope, /class="sd-prose(?: |")/, `${design.slug}.${lang}: prose paragraph marker missing`);
         // bullets always follow the line that introduces them
         if (scope.includes('sd-clause-list')) {
           assert.match(scope, /<\/p><ul class="sd-clause-list">/, `${design.slug}.${lang}: bullets without a lead`);

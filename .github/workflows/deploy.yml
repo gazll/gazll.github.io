@@ -33,6 +33,9 @@ jobs:
       - name: Install Nuxt dependencies
         run: npm ci --legacy-peer-deps --prefer-offline --no-audit --no-fund
 
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high --no-fund
+
       - name: Enforce security guardrails
         shell: bash
         run: |

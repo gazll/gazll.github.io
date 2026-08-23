@@ -5,7 +5,11 @@
    application/json or an Authorization header would trigger one and fail. */
 import { SCRIPT_URL } from '../config.js';
 
-export const isConfigured = () => Boolean(SCRIPT_URL);
+export const MAX_RESPONSE_CHARS = 2 * 1024 * 1024;
+const REQUEST_TIMEOUT_MS = 20_000;
+
+const isHttpsUrl = value => typeof value === 'string' && /^https:\/\//i.test(value);
+export const isConfigured = () => isHttpsUrl(SCRIPT_URL);
 
 /** `authExpired` tells the store to keep its queue and ask for a new token. */
 export class ApiError extends Error {
@@ -17,11 +21,18 @@ export class ApiError extends Error {
 }
 
 export async function call(action, payload = {}, idToken = null) {
-  if (!SCRIPT_URL) throw new ApiError('SCRIPT_URL is not configured.');
+  if (!isConfigured()) throw new ApiError('SCRIPT_URL is not configured.');
   if (!idToken) throw new ApiError('Not signed in.', { authExpired: true });
 
   let res;
+  let text;
+  let controller = null;
+  let timeout = null;
   try {
+    if (typeof AbortController !== 'undefined') {
+      controller = new AbortController();
+      timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+    }
     res = await fetch(SCRIPT_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },   // see note above
@@ -29,13 +40,23 @@ export async function call(action, payload = {}, idToken = null) {
       cache: 'no-store',
       credentials: 'omit',
       referrerPolicy: 'no-referrer',
-      redirect: 'follow'
+      redirect: 'follow',
+      ...(controller ? { signal: controller.signal } : {})
     });
+    const contentLength = Number(res.headers?.get?.('Content-Length'));
+    if (Number.isFinite(contentLength) && contentLength > MAX_RESPONSE_CHARS) {
+      throw new ApiError('Backend response is too large.');
+    }
+    text = await res.text();
   } catch (e) {
+    if (e instanceof ApiError) throw e;
+    if (e?.name === 'AbortError') throw new ApiError('Backend request timed out.');
     throw new ApiError('Could not reach the backend: ' + (e.message || e));
+  } finally {
+    if (timeout != null) clearTimeout(timeout);
   }
 
-  const text = await res.text();
+  if (text.length > MAX_RESPONSE_CHARS) throw new ApiError('Backend response is too large.');
   let body;
   try {
     body = JSON.parse(text);
@@ -60,10 +81,12 @@ export async function call(action, payload = {}, idToken = null) {
 
 /** Liveness probe, for diagnosing a bad configuration. */
 export async function ping() {
-  if (!SCRIPT_URL) return false;
+  if (!isConfigured()) return false;
   try {
     const res = await fetch(SCRIPT_URL, { redirect: 'follow' });
-    const body = await res.json();
+    const text = await res.text();
+    if (text.length > MAX_RESPONSE_CHARS) return false;
+    const body = JSON.parse(text);
     return Boolean(body && body.ok);
   } catch (e) {
     return false;

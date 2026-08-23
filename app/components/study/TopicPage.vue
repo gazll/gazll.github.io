@@ -17,6 +17,7 @@ const metadata = computed(() => {
   const entry = data.value!.meta;
   return entry[lang.value] || entry.en || entry.vi || {};
 });
+const studyProgress = import.meta.client ? useStudyProgress() : null;
 const moved = computed(() => new Set<string>(data.value?.row.system_design_items || []));
 const sections = computed(() => (source.value?.sections || []).map((section: any) => ({
   ...section,
@@ -25,15 +26,56 @@ const sections = computed(() => (source.value?.sections || []).map((section: any
     .map((item: any) => ({ ...item, reviewed_at: data.value?.reviews[item.id]?.reviewed_at || '' }))
 })).filter((section: any) => section.items.length));
 const itemCount = computed(() => sections.value.reduce((sum: number, section: any) => sum + section.items.length, 0));
+const reviewedCount = computed(() => {
+  const reviewed = new Set(studyProgress?.reviewed.value || []);
+  return sections.value.reduce((sum: number, section: any) => sum + section.items.filter((item: any) => reviewed.has(item.id)).length, 0);
+});
+const nextUnreviewedId = computed(() => {
+  const reviewed = new Set(studyProgress?.reviewed.value || []);
+  for (const section of sections.value) {
+    const item = section.items.find((candidate: any) => !reviewed.has(candidate.id));
+    if (item) return item.id;
+  }
+  return '';
+});
 const dates = computed(() => contentDateFacts(data.value!.meta, lang.value));
-/* One resolver for the whole page: a written (item-id) becomes a link labelled
-   with the target QUESTION, not a bare Q3 that names nothing. content-index.json
-   is the only file that carries every id with both languages of its question,
-   and it is already fetched (and cached) for the progress ring. */
-const { data: index } = await useAsyncData('content-index', () => $fetch<any>('/api/content/item-index'));
+const pageLabels = computed(() => lang.value === 'vi' ? {
+  items: 'mục',
+  sections: 'phần',
+  reviewed: 'đã ôn',
+  continue: 'Tiếp tục học',
+  complete: 'Đã hoàn tất',
+  toolbar: 'Điều khiển học',
+  expandAll: 'Mở tất cả',
+  collapseAll: 'Thu tất cả',
+  previous: 'Chủ đề trước',
+  next: 'Chủ đề tiếp theo',
+  finished: 'Đã hoàn tất',
+  topic: 'Chủ đề',
+  navigation: 'Điều hướng chủ đề'
+} : {
+  items: 'items',
+  sections: 'sections',
+  reviewed: 'reviewed',
+  continue: 'Continue studying',
+  complete: 'All caught up',
+  toolbar: 'Study controls',
+  expandAll: 'Expand all',
+  collapseAll: 'Collapse all',
+  previous: 'Previous topic',
+  next: 'Next topic',
+  finished: 'Finished',
+  topic: 'Topic',
+  navigation: 'Topic navigation'
+});
+/* One resolver for the whole page: the server projects only the question
+   labels cited by this topic. The full content index no longer rides along
+   with every first view just to make a handful of cross-reference links. */
 const resolveRef = computed(() => crossRefResolver({
-  questions: index.value?.items || {},
-  onTrack: trackItemIds(index.value),
+  // Older prerendered pages can still use `/api/content/item-index`; new
+  // payloads carry only the cross-references needed by this topic.
+  questions: data.value?.crossRefs || {},
+  onTrack: trackItemIds({ topics: data.value?.progressIndex?.topics || [] }),
   owners: data.value?.sourceOwners || {},
   lang: lang.value
 }));
@@ -65,6 +107,21 @@ function setAll(open: boolean) {
   expandAll.value = open;
   expandToken.value += 1;
 }
+function continueStudy() {
+  if (!import.meta.client || !nextUnreviewedId.value) return;
+  const hash = `question-${nextUnreviewedId.value}`;
+  const target = document.getElementById(hash);
+  if (!target) return;
+  if (window.location.hash !== `#${hash}`) {
+    window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}#${hash}`);
+  }
+  window.dispatchEvent(new Event('hashchange'));
+  target.scrollIntoView({
+    behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+    block: 'start'
+  });
+  void nextTick(() => document.getElementById(`${hash}-toggle`)?.focus({ preventScroll: true }));
+}
 
 useHead(() => ({
   htmlAttrs: { lang: lang.value },
@@ -76,7 +133,7 @@ useHead(() => ({
 
 <template>
   <div class="view-track">
-    <ContentHeader :lang="lang" :topic="headerTopic" :topics="headerTopics" />
+    <ContentHeader :lang="lang" :topic="headerTopic" :topics="headerTopics" :progress-index="data!.progressIndex" />
 
     <main>
       <section id="view-track" tabindex="-1" class="view">
@@ -97,46 +154,55 @@ useHead(() => ({
             </div>
           </section>
 
-          <div class="toolbar" aria-label="Study controls">
-            <span class="sectioncount">
-              <span><b>{{ itemCount }}</b> items</span>
-              <span><b>{{ sections.length }}</b> sections</span>
+          <div id="study-toolbar" class="toolbar" role="toolbar" :aria-label="pageLabels.toolbar">
+            <span class="sectioncount" aria-live="polite" aria-atomic="true">
+              <span><b>{{ itemCount }}</b> {{ pageLabels.items }}</span>
+              <span><b>{{ sections.length }}</b> {{ pageLabels.sections }}</span>
+              <span class="study-progress"><b>{{ reviewedCount }}</b>/{{ itemCount }} {{ pageLabels.reviewed }}</span>
             </span>
             <div class="tb-actions">
+              <button v-if="nextUnreviewedId" id="study-continue" class="btn-primary study-continue" type="button" @click="continueStudy">
+                <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 10h10M10 5l5 5-5 5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                <span>{{ pageLabels.continue }}</span>
+              </button>
+              <span v-else class="study-complete" role="status">
+                <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m4.5 10 3.3 3.3 7.7-7.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                <span>{{ pageLabels.complete }}</span>
+              </span>
               <button class="btn-ghost" type="button" :aria-pressed="expandAll" @click="setAll(!expandAll)">
                 <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
                   <path v-if="expandAll" d="m5.5 12.5 4.5-4.5 4.5 4.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
                   <path v-else d="m5.5 7.5 4.5 4.5 4.5-4.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
                 </svg>
-                <span>{{ expandAll ? 'Collapse all' : 'Expand all' }}</span>
+                <span>{{ expandAll ? pageLabels.collapseAll : pageLabels.expandAll }}</span>
               </button>
             </div>
           </div>
           <template v-for="(section, sectionIndex) in sections" :key="section.title">
-            <div :id="`${data!.stem}-section-${sectionIndex + 1}`" class="section-h">
+            <h2 :id="`${data!.stem}-section-${sectionIndex + 1}`" class="section-h">
               <span class="section-index" aria-hidden="true">{{ String(sectionIndex + 1).padStart(2, '0') }}</span>
               <a class="topic-heading-anchor" :href="`#${data!.stem}-section-${sectionIndex + 1}`">{{ section.title }}</a><span class="sline" />
-            </div>
+            </h2>
             <StudyQuestionCard v-for="item in section.items" :key="item.id" :item="item" :pair="itemPairs[item.id]" :lang="lang" :source-owners="data!.sourceOwners" :resolve-ref="resolveRef" :force-open="expandAll" :force-token="expandToken" />
           </template>
         </div>
 
-        <nav class="pager" aria-label="Topic navigation">
+        <nav class="pager" :aria-label="pageLabels.navigation">
           <NuxtLink v-if="previous" class="pbtn prev" :to="`/topics/${rowSlug(previous)}?lang=${lang}`">
             <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m12.5 4.5-5.5 5.5 5.5 5.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
-            <span>Previous topic</span>
+            <span>{{ pageLabels.previous }}</span>
           </NuxtLink>
           <span v-else class="pbtn prev" aria-disabled="true">
             <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m12.5 4.5-5.5 5.5 5.5 5.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
-            <span>Previous topic</span>
+            <span>{{ pageLabels.previous }}</span>
           </span>
-          <div class="pcenter">Topic <b>{{ currentIndex + 1 }}</b> / {{ data!.rows.length }}</div>
+          <div class="pcenter">{{ pageLabels.topic }} <b>{{ currentIndex + 1 }}</b> / {{ data!.rows.length }}</div>
           <NuxtLink v-if="next" class="pbtn next" :to="`/topics/${rowSlug(next)}?lang=${lang}`">
-            <span>Next topic</span>
+            <span>{{ pageLabels.next }}</span>
             <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m7.5 4.5 5.5 5.5-5.5 5.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
           </NuxtLink>
           <span v-else class="pbtn next" aria-disabled="true">
-            <span>Finished</span>
+            <span>{{ pageLabels.finished }}</span>
             <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m4.5 10 3.3 3.3 7.7-7.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
           </span>
         </nav>

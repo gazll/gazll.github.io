@@ -14,6 +14,7 @@ const SENT = String.fromCharCode(0xE000);
 // checks every one of these points at a real item, so the only question here
 // is whether the caller can turn it into a route.
 const XREF = /\(([a-z0-9-]+\.[a-z0-9-]+\.q\d+)\)/g;
+const INTERNAL_HREF = /^(?:#[^\s]*|\/(?!\/)[^\s]*)$/;
 
 export function renderMarkdown(md, options) {
   const lines = String(md || '').replace(/\r/g, '').split('\n');
@@ -28,8 +29,9 @@ export function renderMarkdown(md, options) {
     if (!resolveRef) return t;
     return t.replace(XREF, (whole, id) => {
       const target = resolveRef(id);
-      return target
-        ? '(<a class="xref" href="' + target.href + '" title="' + id + '">&#8594; ' + target.label + '</a>)'
+      const href = target && String(target.href || '');
+      return target && INTERNAL_HREF.test(href)
+        ? '(<a class="xref" href="' + escapeHtml(href) + '" title="' + escapeHtml(id) + '">&#8594; ' + escapeHtml(target.label) + '</a>)'
         : whole;
     });
   }
@@ -126,7 +128,7 @@ export function renderMarkdown(md, options) {
         // Rendering the same safe subset as the main body makes deliberate
         // paragraph/list breaks visible and keeps dense decision summaries
         // readable without changing existing one-line callouts.
-        html += '<div class="' + cls + '">' + (label ? '<b>' + label + ':</b> ' : '')
+        html += '<div class="' + cls + '">' + (label ? '<b>' + escapeHtml(label) + ':</b> ' : '')
           + renderMarkdown(inner.join('\n'), options) + '</div>';
       }
       continue;

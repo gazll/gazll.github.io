@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { contentDateFacts } from '~/utils/content-dates.js';
+import { safeJsonLd } from '~/utils/safe-jsonld.js';
 import { PUBLISHER_ORIGINS, originGuard } from '../../../public/lib/constants.js';
 import { manualReviewMarkup, syncManualReviewControls } from '../../../public/lib/manual-review.js';
 
@@ -43,7 +44,9 @@ const labels = computed(() => lang.value === 'vi' ? {
 });
 
 const progress = import.meta.client && props.collection === 'case-studies' ? useStudyProgress() : null;
-const reviewLabels = { pending: 'Mark reviewed', done: 'Unmark reviewed' };
+const reviewLabels = computed(() => lang.value === 'vi'
+  ? { pending: 'Đánh dấu đã ôn', done: 'Bỏ đánh dấu đã ôn' }
+  : { pending: 'Mark reviewed', done: 'Unmark reviewed' });
 
 function decorateReviewQuestions(html: string) {
   if (props.collection !== 'case-studies') return html;
@@ -57,7 +60,7 @@ function decorateReviewQuestions(html: string) {
         (_item: string, attrs: string, question: string) => {
           questionNumber += 1;
           const reviewId = `case-studies.${props.slug}.${headingId}.q${questionNumber}`;
-          return `<li${attrs} class="cs-review-question"><span class="cs-review-question-body">${question}</span>${manualReviewMarkup(reviewId, reviewLabels)}</li>`;
+          return `<li${attrs} class="cs-review-question"><span class="cs-review-question-body">${question}</span>${manualReviewMarkup(reviewId, reviewLabels.value)}</li>`;
         });
       return questionNumber ? heading + listStart + markedList + listEnd : match;
     });
@@ -100,16 +103,52 @@ const headings = computed(() => [...decoratedBodyWithReviews.value.matchAll(/<h(
 
 const lightbox = useTemplateRef<HTMLDialogElement>('lightbox');
 const lightboxImage = ref({ src: '', alt: '', caption: '' });
+const lightboxReturnFocus = ref<HTMLElement | null>(null);
 const tocCollapsed = ref(false);
 const articleBody = ref<HTMLElement | null>(null);
+const mobileToc = ref<HTMLDetailsElement | null>(null);
+const activeHeadingId = ref(headings.value[0]?.id || '');
+const activeHeadingLabel = computed(() => headings.value.find(heading => heading.id === activeHeadingId.value)?.text || labels.value.contents);
+let tocObserver: IntersectionObserver | null = null;
+function syncActiveHeading() {
+  tocObserver?.disconnect();
+  tocObserver = null;
+  const ids = headings.value.map(heading => heading.id);
+  activeHeadingId.value = ids[0] || '';
+  if (!import.meta.client || !articleBody.value || typeof IntersectionObserver === 'undefined') return;
+  const targets = ids
+    .map(id => document.getElementById(id))
+    .filter((node): node is HTMLElement => Boolean(node));
+  if (!targets.length) return;
+  tocObserver = new IntersectionObserver(entries => {
+    const visible = entries
+      .filter(entry => entry.isIntersecting)
+      .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+    if (visible[0]) {
+      activeHeadingId.value = visible[0].target.id;
+      return;
+    }
+    const passed = targets.filter(target => target.getBoundingClientRect().top <= window.innerHeight * 0.32);
+    if (passed.length) activeHeadingId.value = passed[passed.length - 1].id;
+  }, { rootMargin: '-16% 0px -68% 0px', threshold: [0, 0.1, 0.5] });
+  targets.forEach(target => tocObserver?.observe(target));
+}
 function syncReviews() {
-  syncManualReviewControls(articleBody.value, progress?.reviewed.value, reviewLabels);
+  syncManualReviewControls(articleBody.value, progress?.reviewed.value, reviewLabels.value);
+}
+function closeMobileToc() {
+  if (mobileToc.value) mobileToc.value.open = false;
 }
 onMounted(() => {
   tocCollapsed.value = localStorage.getItem('gazll:article-toc') === 'collapsed';
-  syncReviews();
+  void nextTick(() => {
+    syncActiveHeading();
+    syncReviews();
+  });
 });
+onBeforeUnmount(() => tocObserver?.disconnect());
 watch(tocCollapsed, value => { if (import.meta.client) localStorage.setItem('gazll:article-toc', value ? 'collapsed' : 'open'); });
+watch(() => headings.value.map(heading => heading.id).join('|'), () => nextTick(syncActiveHeading));
 watch(() => lang.value, () => nextTick(syncReviews));
 watch(() => progress?.reviewed.value, () => nextTick(syncReviews));
 function onArticleClick(event: MouseEvent) {
@@ -126,7 +165,16 @@ function onArticleClick(event: MouseEvent) {
   if (!button || !image) return;
   const caption = button.closest('figure')?.querySelector('figcaption')?.textContent?.trim() || '';
   lightboxImage.value = { src: image.currentSrc || image.src, alt: image.alt, caption };
+  lightboxReturnFocus.value = button;
   lightbox.value?.showModal();
+  void nextTick(() => lightbox.value?.querySelector<HTMLButtonElement>('button')?.focus());
+}
+function closeLightbox() {
+  if (lightbox.value?.open) lightbox.value.close();
+  void nextTick(() => {
+    if (lightboxReturnFocus.value?.isConnected) lightboxReturnFocus.value.focus({ preventScroll: true });
+    lightboxReturnFocus.value = null;
+  });
 }
 
 useHead(() => ({
@@ -138,7 +186,7 @@ useHead(() => ({
   ],
   script: [{
     type: 'application/ld+json',
-    innerHTML: JSON.stringify({
+    innerHTML: safeJsonLd({
       '@context': 'https://schema.org',
       '@type': 'Article',
       headline: copy.value.title,
@@ -155,12 +203,12 @@ useHead(() => ({
   <div>
     <ContentHeader :lang="lang" />
     <main id="view-host" tabindex="-1" class="view">
-      <div class="cs-article">
-        <div class="cs-backbar">
+      <div :id="`${collection}-article`" :data-ui="`${collection}-article`" class="cs-article">
+        <div :id="`${collection}-article-backbar`" data-ui="article-backbar" class="cs-backbar">
           <NuxtLink class="cs-back" :to="{ path: `/${collection}`, query: lang === 'vi' ? { lang } : {} }">← {{ labels.back }}</NuxtLink>
         </div>
 
-        <header class="cs-article-head">
+        <header :id="`${collection}-article-header`" data-ui="article-header" class="cs-article-head">
           <p class="cs-eyebrow">{{ data.row.company || categoryLabel }} · {{ categoryLabel }}</p>
           <h1>{{ copy.title }}</h1>
           <p class="cs-deck">{{ copy.excerpt }}</p>
@@ -197,23 +245,23 @@ useHead(() => ({
           </template>
         </section>
 
-        <details v-if="headings.length" class="cs-toc-mobile">
-          <summary>{{ labels.contents }}</summary>
-          <nav><a v-for="heading in headings" :key="heading.id" :href="`#${heading.id}`" :class="{ sub: heading.level === 3 }">{{ heading.text }}</a></nav>
+        <details v-if="headings.length" ref="mobileToc" :id="`${collection}-article-toc-mobile`" data-ui="article-toc-mobile" class="cs-toc-mobile">
+          <summary><span>{{ labels.contents }}</span><span class="toc-current" aria-live="polite">{{ activeHeadingLabel }}</span></summary>
+          <nav><a v-for="heading in headings" :key="heading.id" :href="`#${heading.id}`" :class="{ sub: heading.level === 3 }" :aria-current="activeHeadingId === heading.id ? 'location' : undefined" @click="closeMobileToc">{{ heading.text }}</a></nav>
         </details>
-        <div class="cs-article-grid" :class="{ 'is-toc-collapsed': tocCollapsed }">
-          <aside class="cs-toc" :class="{ 'is-collapsed': tocCollapsed }" :aria-label="labels.contents">
+        <div :id="`${collection}-article-grid`" data-ui="article-grid" class="cs-article-grid" :class="{ 'is-toc-collapsed': tocCollapsed }">
+          <aside :id="`${collection}-article-toc`" data-ui="article-toc" class="cs-toc" :class="{ 'is-collapsed': tocCollapsed }" :aria-label="labels.contents">
             <div class="cs-toc-head"><p>{{ labels.contents }}</p><button type="button" class="cs-toc-toggle" :aria-expanded="!tocCollapsed" @click="tocCollapsed = !tocCollapsed"><span aria-hidden="true">{{ tocCollapsed ? '›' : '‹' }}</span><span class="sr-only">Toggle contents</span></button></div>
-            <div class="cs-toc-content" :hidden="tocCollapsed"><nav><a v-for="heading in headings" :key="heading.id" :href="`#${heading.id}`" :class="{ sub: heading.level === 3 }">{{ heading.text }}</a></nav></div>
+            <div class="cs-toc-content" :hidden="tocCollapsed"><nav><a v-for="heading in headings" :key="heading.id" :href="`#${heading.id}`" :class="{ sub: heading.level === 3 }" :aria-current="activeHeadingId === heading.id ? 'location' : undefined">{{ heading.text }}</a></nav></div>
           </aside>
-          <article ref="articleBody" class="cs-article-body" @click="onArticleClick" v-html="decoratedBodyWithReviews" />
+          <article :id="`${collection}-article-body`" data-ui="article-body" ref="articleBody" class="cs-article-body" @click="onArticleClick" v-html="decoratedBodyWithReviews" />
         </div>
 
-        <footer v-if="creditHref" class="cs-source">
+        <footer v-if="creditHref" :id="`${collection}-article-source`" data-ui="article-source" class="cs-source">
           <span>{{ labels.source }}</span><a :href="creditHref" target="_blank" rel="noopener noreferrer">{{ data.row.company }} — {{ labels.original }} ↗</a>
         </footer>
-        <dialog ref="lightbox" class="cs-lightbox" @click.self="lightbox?.close()">
-          <button type="button" :aria-label="labels.close" @click="lightbox?.close()">×</button>
+        <dialog :id="`${collection}-lightbox`" data-ui="article-lightbox" ref="lightbox" class="cs-lightbox" :aria-label="lang === 'vi' ? 'Xem ảnh' : 'Image preview'" @click.self="closeLightbox" @cancel.prevent="closeLightbox">
+          <button type="button" :aria-label="labels.close" @click="closeLightbox">×</button>
           <figure v-if="lightboxImage.src"><img :src="lightboxImage.src" :alt="lightboxImage.alt"><figcaption>{{ lightboxImage.caption }}</figcaption></figure>
         </dialog>
       </div>

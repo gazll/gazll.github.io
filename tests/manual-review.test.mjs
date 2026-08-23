@@ -12,7 +12,7 @@ test('opening a Study Track question does not mark it reviewed', async () => {
   const openHandler = card.slice(card.indexOf('async function setOpen'), card.indexOf('function revealHash'));
 
   assert.doesNotMatch(openHandler, /markReviewed/);
-  assert.match(card, /<StudyManualReviewButton :review-id="item\.id" \/>/);
+  assert.match(card, /<StudyManualReviewButton :review-id="item\.id" :lang="localLang" \/>/);
   assert.match(card, /<div class="qmeta">[\s\S]*?<StudyManualReviewButton/);
 });
 
@@ -43,7 +43,7 @@ test('manual review markers can be toggled off and synced as a deletion', async 
   ]);
 
   assert.match(button, /toggleReviewed/);
-  assert.match(button, /isReviewed \? 'Unmark reviewed' : 'Mark reviewed'/);
+  assert.match(button, /isReviewed \? labels\.done : labels\.pending/);
   assert.match(progress, /function toggleReviewed/);
   assert.match(store, /unmarkReviewed\(id\)/);
   assert.match(store, /progress_remove/);

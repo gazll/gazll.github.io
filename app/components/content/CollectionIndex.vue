@@ -65,8 +65,8 @@ watch(sortMode, () => sticky.rebind());
   <div>
     <ContentHeader :lang="lang" />
     <main id="view-host" tabindex="-1" ref="libraryRoot" class="view">
-      <div class="cs-library">
-        <header class="cs-library-hero">
+      <div :id="`${collection}-library`" :data-ui="`${collection}-library`" class="cs-library">
+        <header :id="`${collection}-library-header`" data-ui="library-header" class="cs-library-hero">
           <p class="cs-eyebrow">{{ copy.eyebrow }}</p>
           <h1>{{ copy.title }}</h1>
           <p>{{ copy.intro }}</p>
@@ -77,9 +77,9 @@ watch(sortMode, () => sticky.rebind());
           </div>
         </header>
 
-        <div v-if="collection === 'case-studies'" class="content-sort" role="group" :aria-label="labels.order"><span>{{ labels.order }}</span><button type="button" :aria-pressed="sortMode === 'curriculum'" @click="sortMode = 'curriculum'">{{ labels.curriculum }}</button><button type="button" :aria-pressed="sortMode === 'recent'" @click="sortMode = 'recent'">{{ labels.recent }}</button></div>
+        <div v-if="collection === 'case-studies'" id="collection-sort" data-ui="collection-sort" class="content-sort" role="group" :aria-label="labels.order"><span>{{ labels.order }}</span><button type="button" :aria-pressed="sortMode === 'curriculum'" @click="sortMode = 'curriculum'">{{ labels.curriculum }}</button><button type="button" :aria-pressed="sortMode === 'recent'" @click="sortMode = 'recent'">{{ labels.recent }}</button></div>
 
-        <section v-for="group in groups" :key="group.id" class="cs-category" :aria-labelledby="`collection-${group.id}`">
+        <section v-for="group in groups" :key="group.id" data-ui="collection-group" :data-category-id="group.id" class="cs-category" :aria-labelledby="`collection-${group.id}`">
           <header class="cs-category-head">
             <div>
               <p>{{ labels.collectionLabel }}</p>

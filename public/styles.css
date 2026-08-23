@@ -6,6 +6,22 @@
     --teal:#1C7684; --teal-soft:#E3F1F3;
     --code-bg:#0F1D31; --code-bg-2:#16273F; --code-text:#E6ECF5; --code-dim:#8A9AB4;
     --code-green:#86D6AC; --code-blue:#8DBBEC; --code-amber:#E2B871; --code-clay:#E69185;
+    /* Reading roles: neutral hierarchy carries the prose; accents only mark
+       meaning, navigation, attention, and code. Keep these roles stable so a
+       long article never turns into a patchwork of accent-coloured sentences. */
+    --text-normal:#34465B; --text-header:#14233A; --text-meta:#536477; --text-label:#385367;
+    --text-high-attention:#914133; --text-rule:#085239; --text-link:#0B5F6B;
+    --text-code:#E6ECF5; --text-code-muted:#A8B7C9; --text-code-inline:#24415F;
+    --surface-reading:#FFFFFF; --surface-reading-soft:#F7F9FC; --surface-reading-info:#EEF3F6;
+    --surface-reading-attention:#F8ECE8; --surface-code-inline:#E9EEF4;
+    --surface-code:#0F1D31; --surface-code-raised:#16273F;
+    --text-migrated:#5B4A30; --text-migrated-heading:#4A351A; --text-migrated-accent:#795822;
+    --surface-migrated:#FBF7EE; --surface-migrated-soft:#FFFDF8; --surface-migrated-active:#F3E7CA;
+    --line-migrated:#E1D4B9;
+    --surface-topbar:#DCE7F0; --surface-topbar-raised:#E8F0F6; --surface-topbar-hover:#D3E1EC;
+    --text-topbar:#14233A; --text-topbar-muted:#536477; --text-topbar-accent:#085239;
+    --line-topbar:#B7C8D6; --focus-topbar:#0B5F6B;
+    --reading-size:clamp(16px,.98rem + .18vw,17.5px); --reading-leading:1.76; --reading-heading-leading:1.14;
     --radius:14px; --shadow:0 1px 2px rgba(20,35,58,.05), 0 12px 30px -18px rgba(20,35,58,.28);
     /* One knob for how wide the whole shell runs: header, topic bar and main
        all use it, so they stay in one column. Change it here only. */
@@ -30,7 +46,8 @@
     backdrop-filter:saturate(140%) blur(10px);border-bottom:1px solid var(--line);
     transition:transform .26s ease, box-shadow .2s ease;}/* hides on scroll down, returns on scroll up */
   
-  header.top.hidden{transform:translateY(-100%)}/* Nav lives in the drawer, so the bar is just: menu · topic · account.
+  header.top.hidden{transform:translateY(-100%)}
+  header.top.hidden:focus-within{transform:translateY(0)}/* Nav lives in the drawer, so the bar is just: menu · topic · account.
      position:relative so the topic dropdown hangs off this centred column
      rather than off the full-bleed header. */
   
@@ -195,7 +212,7 @@
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .np-action:hover{border-color:var(--emerald);color:var(--emerald)}
   .np-action:focus-visible{outline:2px solid var(--emerald);outline-offset:2px}
-  .np-action[aria-current="true"]{background:var(--emerald-soft);border-color:#cfe6da;color:var(--emerald-deep)}
+  .np-action[aria-current="page"]{background:var(--emerald-soft);border-color:#cfe6da;color:var(--emerald-deep)}
   .np-close{width:32px;height:32px;border-radius:9px;border:1px solid var(--line);background:var(--surface);
     color:var(--ink-soft);cursor:pointer;display:grid;place-items:center;padding:0;transition:.15s ease}
   .np-close svg{width:16px;height:16px}
@@ -238,7 +255,7 @@
   .navlink[aria-current="true"]::before{content:"";position:absolute;left:-10px;top:50%;transform:translateY(-50%);
     width:3px;height:20px;border-radius:0 3px 3px 0;background:var(--emerald)}
 
-  .np-foot{margin:0;padding:12px 18px 16px;border-top:1px solid var(--line);
+  .np-foot{margin:0;padding:12px 18px max(16px,calc(16px + env(safe-area-inset-bottom)));border-top:1px solid var(--line);
     font-size:11.5px;line-height:1.5;color:var(--muted)}/* ---------- content language switch ---------- *//* One control (role="switch"), used identically by the header and every per-card toggle. */
 
   :root{--switch-w:46px; --switch-h:24px; --switch-knob:20px}
@@ -362,6 +379,78 @@
     background:var(--g-soft,var(--paper));border:1px solid var(--g-line,var(--line));border-radius:6px;padding:2px 7px}
   .page .rn-text p{margin:0;font-size:14.5px}
   .page .rn-text p + p{margin-top:7px}/* ---------- Experience: long-form engineering case studies ---------- */
+
+  /* ---------- release notes reading pass ----------
+     Keep the date as a quiet rail and give each release its own readable
+     surface. The old list had almost no internal breathing room, especially
+     once the Vietnamese copy wrapped onto a second line. */
+
+  .rn-page{padding:clamp(30px,4vw,50px) clamp(22px,5vw,72px) 58px;overflow:hidden}
+  .rn-head{max-width:900px;padding-bottom:28px;border-bottom:1px solid var(--line-strong)}
+  .rn-page>.rn-head h1{margin:0 0 10px;font-family:"Space Grotesk",sans-serif;font-size:clamp(32px,4.5vw,52px);
+    line-height:1.05;letter-spacing:-1.2px;color:var(--ink)}
+  .rn-page .rn-intro{max-width:62ch;margin:0;color:var(--ink-soft);font-size:16px;line-height:1.68}
+  .rn-summary{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+  .rn-summary span{display:inline-flex;align-items:baseline;gap:5px;padding:6px 10px;border:1px solid var(--line);
+    border-radius:8px;background:#F8FAFC;color:var(--muted);font-family:"IBM Plex Mono",monospace;font-size:10.5px;
+    letter-spacing:.1px;text-transform:uppercase}
+  .rn-summary b{color:var(--ink);font-size:13px;font-variant-numeric:tabular-nums}
+  .rn-body{max-width:1080px;margin:0 auto}
+  .rn-day{display:grid;grid-template-columns:154px minmax(0,1fr);gap:34px;margin:0;padding:32px 0}
+  .rn-day:first-child{padding-top:30px}
+  .rn-day + .rn-day{margin:0;border-top:1px solid var(--line);padding-top:32px}
+  .rn-dayhead{position:sticky;top:calc(var(--hdr-h,64px) + 18px);align-self:start;display:flex;flex-direction:column;
+    align-items:flex-start;gap:8px;margin:0;padding:3px 0 0}
+  .rn-date{font-size:12px;line-height:1.35;letter-spacing:.55px}
+  .rn-daymeta{white-space:normal;font-size:10.5px;line-height:1.5}
+  .rn-daymeta::before{display:none}
+  .rn-dayhead>.rn-added{margin-top:2px}
+  .rn-rel{margin:0;padding:19px 21px 21px;border:1px solid var(--line-strong);border-radius:14px;background:#FBFCFE;
+    box-shadow:0 8px 22px -24px rgba(20,35,58,.55)}
+  .rn-rel:hover{border-color:#b8c5d5}
+  .rn-rel + .rn-rel{margin-top:12px;border-top:1px solid var(--line-strong);padding-top:19px}
+  .rn-relhead{align-items:flex-start;margin-bottom:15px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+  .page .rn-title{font-size:19px;line-height:1.25;letter-spacing:-.15px}
+  .page .rn-changes{padding:4px 0 0 19px;border-left:2px solid #cbd6e2}
+  .page .rn-change{margin:0 0 16px;padding:0 0 15px;border-bottom:1px solid #e7ebf0}
+  .page .rn-change:last-child{margin-bottom:0;padding-bottom:0;border-bottom:0}
+  .rn-change::before{left:-26px;top:6px;width:9px;height:9px;border-color:#b8c5d5}
+  .rn-k-topic::before{border-color:var(--indigo)}
+  .rn-k-content::before{border-color:var(--emerald)}
+  .rn-k-feature::before{border-color:var(--brass)}
+  .rn-k-change::before{border-color:var(--teal)}
+  .rn-k-fix::before{border-color:var(--clay)}
+  .rn-cmeta{gap:6px 8px;margin-bottom:6px}
+  .page .rn-text p{font-size:15px;line-height:1.68;color:var(--ink-soft)}
+
+  @media (max-width:760px){
+    .rn-page{padding:25px 16px 40px}
+    .rn-head{padding-bottom:22px}
+    .rn-page>.rn-head h1{font-size:clamp(30px,9vw,42px);letter-spacing:-.8px}
+    .rn-page .rn-intro{font-size:15px;line-height:1.62}
+    .rn-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:17px}
+    .rn-summary span{display:flex;flex-direction:column;align-items:flex-start;gap:1px;min-width:0;padding:7px 8px;font-size:9px;line-height:1.35}
+    .rn-summary b{font-size:14px}
+    .rn-day,.rn-day:first-child,.rn-day + .rn-day{display:block;padding:24px 0;margin:0}
+    .rn-day + .rn-day{border-top:1px solid var(--line)}
+    .rn-dayhead{position:static;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:5px 10px;margin-bottom:12px;padding:0}
+    .rn-dayhead>.rn-added{grid-column:2;grid-row:1;align-self:start;margin:0}
+    .rn-daymeta{grid-column:1;grid-row:2}
+    .rn-rel{padding:16px 14px 17px;border-radius:12px}
+    .rn-rel + .rn-rel{margin-top:10px;padding-top:16px}
+    .page .rn-title{font-size:17px}
+    .page .rn-changes{padding-left:16px}
+    .rn-change::before{left:-23px}
+    .page .rn-text p{font-size:14.5px;line-height:1.66}
+  }
+
+  @media (max-width:420px){
+    .rn-page{padding-inline:13px}
+    .rn-summary span{padding-inline:7px}
+    .rn-day{padding-block:20px!important}
+    .rn-rel{padding-inline:12px}
+    .page .rn-changes{padding-left:14px}
+  }
 
   .cs-library{max-width:1180px;margin:0 auto}
   .cs-library-hero{position:relative;overflow:hidden;padding:42px 44px;border:1px solid var(--line);
@@ -567,6 +656,20 @@
   .cs-lightbox figure{margin:0;display:grid;justify-items:center;gap:11px}
   .cs-lightbox img{display:block;max-width:100%;height:auto;max-height:calc(94vh - 100px);object-fit:contain}
   .cs-lightbox figcaption{font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--muted);text-align:center}/* ---------- Experience: system-design blueprints ---------- */
+  @media (max-width:760px){
+    .cs-lightbox{max-height:100dvh;padding:56px max(14px,env(safe-area-inset-right)) max(18px,calc(18px + env(safe-area-inset-bottom))) max(14px,env(safe-area-inset-left))}
+    .cs-lightbox>button{width:44px;height:44px;right:max(12px,env(safe-area-inset-right));top:max(12px,env(safe-area-inset-top))}
+    .cs-lightbox img{max-height:calc(100dvh - 130px)}
+  }
+  /* Diagram actions are frequently used with a thumb after a reader opens a
+     long blueprint on a phone. Give the whole action row a stable tap rhythm
+     instead of leaving the zoom cluster at desktop-sized hit boxes. */
+  @media (max-width:760px){
+    .sd-diagram>figcaption{align-items:flex-start;flex-direction:column;gap:10px}
+    .sd-diagram-actions{width:100%;justify-content:flex-start}
+    .sd-diagram button,.sd-diagram>figcaption a{min-height:44px;display:inline-flex;align-items:center}
+    .sd-diagram-zoom button{min-width:44px}
+  }
   .sd-library{max-width:1180px;margin:0 auto}
   .sd-hero{position:relative;overflow:hidden;padding:44px;border:1px solid #cdd5ef;border-radius:18px;
     background:linear-gradient(135deg,#fff 0%,#F8F9FD 55%,var(--indigo-soft) 100%);box-shadow:var(--shadow);margin-bottom:34px}
@@ -1602,6 +1705,7 @@
   .gs-clear{margin-left:auto;cursor:pointer;font:inherit;font-family:"IBM Plex Mono",monospace;font-size:10px;
     letter-spacing:.5px;text-transform:uppercase;color:var(--clay);border:0;background:none;padding:2px 4px}
   .gs-clear:hover{text-decoration:underline}
+  .gs-clear:focus-visible,.gs-recent:focus-visible,.gs-forget:focus-visible{outline:2px solid var(--text-link);outline-offset:2px;border-radius:5px}
 
   .gs-hit{display:flex;gap:11px;align-items:flex-start;padding:9px 10px;border-radius:11px;
     border:1px solid transparent;text-decoration:none;color:inherit;transition:background .12s ease,border-color .12s ease}
@@ -1678,10 +1782,18 @@
     .searchtrigger{width:48px;padding:0;justify-content:center}
   }
   @media (max-width:760px){
+    .np-head{padding-top:max(16px,env(safe-area-inset-top))}
+    .np-action{height:44px;min-height:44px}
     .gs-overlay{top:0;left:0;transform:none;width:100vw;max-height:100vh;height:100%;border-radius:0;border:0}
+    .gs-overlay{max-height:100dvh;height:100dvh}
     .gs-hit-snippet{-webkit-line-clamp:2}
     .gs-keys{display:none}
     .gs-page-head h1{font-size:26px}
+    .gs-esc{min-width:44px;min-height:44px;padding-inline:9px}
+    .gs-recent{min-height:44px}
+    .gs-forget{width:44px;height:44px}
+    .gs-clear{min-height:40px;padding-inline:7px}
+    .gs-foot{padding-bottom:max(9px,env(safe-area-inset-bottom))}
   }/* Native async fallbacks stay readable before client hydration completes. */
 
   .loading-block{min-height:120px;display:grid;place-items:center;margin:0;color:var(--muted);
@@ -1850,8 +1962,8 @@
   .cal-group-head[data-status="due"]{color:var(--brass)}
   .cal-item{display:flex;gap:16px;align-items:flex-start;justify-content:space-between;
     padding:13px 16px 13px 14px;margin-bottom:8px;background:var(--surface);
-    border:1px solid var(--line);border-left:3px solid var(--g,var(--line-strong));border-radius:11px}
-  .cal-item[data-status="overdue"]{background:var(--clay-soft);border-color:#E6C6C0;border-left-color:var(--clay)}
+    border:1px solid var(--line);border-radius:11px;box-shadow:inset 0 2px 0 var(--g,var(--line-strong))}
+  .cal-item[data-status="overdue"]{background:var(--clay-soft);border-color:#E6C6C0;box-shadow:inset 0 2px 0 var(--clay)}
   .cal-item-main{min-width:0}
   .cal-item h4{margin:0 0 4px;font-family:"Space Grotesk",sans-serif;font-size:15px;color:var(--ink)}
   .cal-item-meta{margin:0;display:flex;flex-wrap:wrap;gap:4px 0;font-family:"IBM Plex Mono",monospace;
@@ -1903,6 +2015,9 @@
   .cal-daylist li.is-event::before{background:var(--g,var(--indigo))}
   .cal-daylist em{font-style:normal;font-family:"IBM Plex Mono",monospace;font-size:9.5px;
     letter-spacing:.4px;text-transform:uppercase;color:var(--clay);margin-left:6px}
+  .cal-event-cat{display:inline-block;margin-left:6px;font-family:"IBM Plex Mono",monospace;font-size:9px;
+    letter-spacing:.35px;text-transform:uppercase;color:var(--g,var(--muted));background:var(--g-soft,var(--surface-reading-soft));
+    border:1px solid color-mix(in srgb,var(--g,var(--line-strong)) 30%,transparent);border-radius:999px;padding:1px 5px}
   .cal-muted{margin:0;font-size:12.5px;color:var(--muted)}
   .cal-next{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
   .cal-next button{display:flex;align-items:baseline;gap:9px;width:100%;border:0;background:transparent;
@@ -1927,6 +2042,7 @@
   .cal-password button{position:absolute;right:4px;top:50%;transform:translateY(-50%);border:0;
     border-radius:6px;background:transparent;padding:4px 7px;font:inherit;font-size:10.5px;color:var(--muted);cursor:pointer}
   .cal-password button:hover{background:var(--surface);color:var(--ink)}
+  .cal-password button:disabled{opacity:.45;cursor:default}
   .cal-password button:focus-visible{outline:2px solid var(--emerald);outline-offset:0}
   .cal-primary{border:1px solid var(--emerald-deep);background:var(--emerald-deep);color:#fff;
     border-radius:999px;padding:8px 18px;font:inherit;font-size:13px;font-weight:600;cursor:pointer;
@@ -1959,7 +2075,7 @@
 
   .cal-owner{color:var(--ink-soft);font-weight:600}
   .cal-standing{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
-  .cal-standing li{padding-left:10px;border-left:2px solid var(--g,var(--line-strong))}
+  .cal-standing li{padding:9px 0 0;border-top:1px solid var(--line);box-shadow:inset 0 2px 0 var(--g,var(--line-strong))}
   .cal-standing b{display:block;font-family:"Space Grotesk",sans-serif;font-size:12.5px;color:var(--ink)}
   .cal-standing span{display:block;font-size:12.5px;line-height:1.5;color:var(--ink-soft)}
   .cal-standing i{display:block;margin-top:2px;font-style:normal;font-family:"IBM Plex Mono",monospace;
@@ -2039,12 +2155,16 @@
     font-size:10px;color:var(--muted)}
   .cal-note-meta>*+*::before{content:"·";margin:0 7px;color:var(--line-strong)}
   .cal-note-actions{flex:none;display:flex;gap:6px}
+  .cal-note-actions button{flex:none}
   .cal-note-actions button{border:1px solid var(--line);background:var(--surface);border-radius:999px;
     padding:4px 11px;font:inherit;font-size:11.5px;color:var(--ink-soft);cursor:pointer;transition:.15s ease}
   .cal-note-actions button:hover{border-color:var(--emerald);color:var(--emerald)}
   .cal-note-actions button.is-danger:hover{border-color:var(--clay);color:var(--clay)}
   .cal-note-actions button:focus-visible{outline:2px solid var(--emerald);outline-offset:2px}
   .cal-ghost{margin-top:12px}
+  .cal-note-actions button:disabled,.cal-ghost:disabled{opacity:.45;cursor:default}
+  .cal-note-actions button:disabled:hover{border-color:var(--line);color:var(--muted)}
+  .cal-ghost:disabled:hover{border-color:var(--line);color:var(--ink-soft)}
 
   @media (max-width:1040px){
     .cal-bar{grid-template-columns:minmax(260px,1fr) auto;grid-template-areas:"nav lock" "views views"}
@@ -2254,4 +2374,762 @@
     .view-track .answer-body,.view-track .note-input{font-size:16px}
     .view-track .pbtn{width:44px;min-width:44px;padding:8px}
     .cal-tab{min-width:64px;padding-inline:7px}
+  }
+
+  /* ---------- header balance pass ----------
+     The topic is the user's primary orientation cue. Let it absorb the
+     available shell width, then give search a real field on wider screens.
+     The phone keeps one compact row: no flex spacer can push the topic away
+     from the controls or create a second, empty header zone. */
+
+  .topicpick .tp-text{flex:1 1 auto}
+
+  @media (min-width:1200px){
+    .top-inner{gap:14px}
+    .topicpick{flex:1 1 680px;max-width:none}
+    .headright{flex:0 1 470px;min-width:390px;margin-left:0;gap:10px}
+    .searchtrigger{flex:1 1 300px;min-width:270px;width:auto;justify-content:flex-start}
+    .searchtrigger .st-label{flex:1 1 auto}
+  }
+
+  @media (min-width:761px) and (max-width:1199px){
+    .top-inner{gap:10px}
+    .topicpick{flex:1 1 420px;max-width:none}
+    .headright{flex:0 1 360px;min-width:310px;margin-left:0;gap:8px}
+    .searchtrigger{flex:1 1 190px;min-width:175px;width:auto;padding-inline:14px;justify-content:flex-start}
+    .searchtrigger .st-label{display:inline;flex:1 1 auto}
+    .searchtrigger .st-key{display:none}
+  }
+
+  @media (max-width:760px){
+    .top-inner{gap:8px;padding-left:max(12px,env(safe-area-inset-left));
+      padding-right:max(12px,env(safe-area-inset-right))}
+    .topicpick{flex:1 1 0;width:auto;max-width:none;min-width:0}
+    .headright{flex:0 0 auto;min-width:0;margin-left:0;gap:2px}
+    .searchtrigger{flex:0 0 44px;width:44px;min-width:44px;padding:0;justify-content:center}
+  }
+
+  @media (max-width:420px){
+    .top-inner{gap:6px}
+    .headright{gap:0}
+  }
+
+  /* ---------- study card reading pass ----------
+     The prompt is the content users scan first. Give it a vertical eyebrow,
+     keep actions in a compact rail, and let the answer use the card's full
+     reading surface instead of an accidental 78ch column. */
+
+  .view-track .qtop{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:stretch}
+  .view-track .qhead{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:start;
+    column-gap:14px;min-height:78px;padding:16px 18px}
+  .view-track .qhead>.qid{grid-column:1;grid-row:1;min-width:35px;padding-top:4px}
+  .view-track .qprompt{grid-column:2;grid-row:1;display:flex;flex-direction:column;align-items:flex-start;
+    gap:6px;min-width:0;padding-top:1px}
+  .view-track .qprompt>.content-level{margin:0;align-self:flex-start;font-size:9px;letter-spacing:.65px}
+  .view-track .qtext{display:block;max-width:none;color:var(--ink);font-size:17px;font-weight:600;line-height:1.42;
+    text-wrap:balance}
+  .view-track .qhead>.chev{grid-column:3;grid-row:1;align-self:center;margin-top:11px}
+  .view-track .qmeta{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:6px;
+    width:140px;min-width:140px;padding:12px 12px 12px 10px;border-left:1px solid var(--line);background:#F8FAFC}
+  .view-track .qmeta>.manual-review,.view-track .qmeta>.qcopy,.view-track .qmeta>.qlangbtn{
+    width:100%;min-width:0;min-height:32px}
+  .view-track .qmeta>.manual-review,.view-track .qmeta>.qcopy{justify-content:flex-start;padding:7px 8px}
+  .view-track .qmeta>.qlangbtn{justify-content:center;padding:4px 6px}
+  .view-track .qmeta>.qcopy,.view-track .qmeta>.qlangbtn{opacity:1;pointer-events:auto}
+  .view-track .qmeta>.manual-review.is-reviewed{background:var(--emerald-soft);border-color:#b8d9c8}
+  .view-track .answer{padding:0 22px 24px;border-top-color:#d2dbe6;background:#FCFDFE}
+  .view-track .answer-body{width:100%;max-width:none;padding-top:19px;color:var(--ink-soft);font-size:15.5px;line-height:1.72}
+  .view-track .answer-body>h2,.view-track .answer-body>h3,.view-track .answer-body>h4{color:var(--ink);line-height:1.25}
+  .view-track .answer-body>h2{margin:23px 0 9px;padding-top:13px;border-top:1px solid var(--line-strong);font-size:20px}
+  .view-track .answer-body>h3{margin:19px 0 7px;font-size:17px}
+  .view-track .answer-body>h4{margin:15px 0 6px;font-size:15px}
+  .view-track .answer-body>ul,.view-track .answer-body>ol{padding-left:23px}
+  .view-track .notebox{width:100%;max-width:none;margin-top:21px;padding-top:15px}
+  .view-track .qreview{display:flex;align-items:center;min-height:30px;margin:15px 0 0;padding:7px 10px;
+    border-left:3px solid var(--emerald);border-radius:0 7px 7px 0;background:var(--emerald-soft)}
+
+  @media (max-width:760px){
+    .view-track .qhead{grid-template-columns:38px minmax(0,1fr) auto;column-gap:10px;min-height:74px;padding:14px 12px}
+    .view-track .qmeta{width:49px;min-width:49px;gap:5px;padding:9px 5px 9px 4px}
+    .view-track .qcard[data-qid] .qhead{grid-template-columns:38px minmax(0,1fr) auto;column-gap:10px}
+    .view-track .qcard[data-qid] .qmeta{width:49px;min-width:49px;gap:5px;padding:9px 5px 9px 4px}
+    .view-track .qmeta>.manual-review,.view-track .qmeta>.qcopy,.view-track .qmeta>.qlangbtn{
+      width:40px;min-width:40px;min-height:40px;padding:0;justify-content:center;border-radius:9px}
+    .view-track .qmeta>.manual-review .manual-review-label,.view-track .qmeta>.qcopy .qcopy-label,
+    .view-track .qmeta>.qlangbtn .lang-label{display:none}
+    .view-track .qtext{font-size:16px;line-height:1.44}
+    .view-track .qprompt{gap:5px}
+    .view-track .answer{padding:0 14px 20px}
+    .view-track .answer-body{padding-top:17px;font-size:15.5px;line-height:1.74}
+    .view-track .answer-body>h2{font-size:19px}
+  }
+
+  @media (max-width:420px){
+    .view-track .qhead{grid-template-columns:31px minmax(0,1fr) auto;column-gap:8px;padding:12px 10px}
+    .view-track .qhead>.qid{min-width:0;font-size:10px}
+    .view-track .qmeta{width:45px;min-width:45px;padding-right:4px}
+    .view-track .qcard[data-qid] .qhead{grid-template-columns:31px minmax(0,1fr) auto;column-gap:8px;padding:12px 10px}
+    .view-track .qcard[data-qid] .qmeta{width:45px;min-width:45px;padding-right:4px}
+    .view-track .qmeta>.manual-review,.view-track .qmeta>.qcopy,.view-track .qmeta>.qlangbtn{
+      width:36px;min-width:36px;height:38px;min-height:38px}
+    .view-track .qtext{font-size:16px}
+  }
+
+  /* ---------- system-design article alignment pass ----------
+     The article title and the reading surface should share one horizontal
+     measure. The contents rail is a navigation aid, not a permanent second
+     column: keep its control compact and reveal the links as a floating
+     panel so opening it never squeezes the prose. */
+
+  .sd-article{--sd-gutter:clamp(16px,4.5vw,58px)}
+  .sd-article-head,.sd-article-grid,.sd-article-body{width:100%;max-width:none}
+  .sd-article-head{margin:0 0 24px;padding:8px var(--sd-gutter) 0}
+  .sd-article-grid{position:relative;display:block;transition:none}
+  .sd-backbar,.sd-article.toc-collapsed .sd-backbar{padding-left:var(--sd-gutter);padding-right:var(--sd-gutter);--sd-rail:0}
+
+  .sd-toc{position:relative;top:auto;z-index:15;display:block;max-height:none;overflow:visible;
+    margin:0 0 12px;padding:0;border:0}
+  .sd-toc-head{width:max-content;max-width:100%;min-height:40px;margin:0;padding:5px 7px 5px 11px;
+    border:1px solid var(--line);border-radius:10px;background:var(--surface);box-shadow:var(--shadow)}
+  .sd-toc>.sd-toc-head>p{font-size:10px;color:var(--indigo);letter-spacing:.75px}
+  .sd-toc-toggle{width:34px;height:30px;border-radius:8px;color:var(--indigo);background:var(--indigo-soft)}
+  .sd-toc-toggle:hover{border-color:var(--indigo);background:#F0F2FB}
+  .sd-toc nav{position:absolute;z-index:20;top:calc(100% + 8px);left:0;width:min(390px,calc(100vw - 2 * var(--sd-gutter)));
+    max-height:min(60vh,480px);overflow-y:auto;display:flex;padding:8px;gap:2px;
+    border:1px solid var(--line-strong);border-radius:12px;background:var(--surface);
+    box-shadow:0 20px 44px -24px rgba(20,35,58,.46)}
+  .sd-article.toc-collapsed .sd-toc{padding-right:0}
+  .sd-article.toc-collapsed .sd-toc-head>p{display:block}
+  .sd-article.toc-collapsed .sd-toc nav{display:none}
+  .sd-toc a{padding:8px 10px;font-size:12.5px;line-height:1.4}
+  .sd-toc a:hover{color:var(--indigo);background:var(--indigo-soft)}
+  .sd-article-body{padding:44px var(--sd-gutter) 58px;border-radius:14px}
+
+  @media (max-width:760px){
+    .sd-article-head{padding:8px var(--sd-gutter) 0}
+    .sd-backbar,.sd-article.toc-collapsed .sd-backbar{padding-left:var(--sd-gutter);padding-right:var(--sd-gutter)}
+    .sd-toc{display:none}
+    .sd-article-body{padding:30px var(--sd-gutter) 38px}
+    .sd-toc-mobile{margin:0 0 14px}
+  }
+
+  /* ---------- system-design reading typography pass ----------
+     These paragraphs are a reading surface, not a newspaper column. Keep the
+     rag natural, mark the opening of the design with a quiet drop cap, and use
+     first-line indentation for prose without indenting labels, tables, cards,
+     or code notes. */
+
+  .sd-article-body,.sd-article-body p{text-align:left;text-align-last:auto}
+  .sd-article-body .sd-prose,.sd-article-body .sd-part>p,
+  .sd-article-body .sd-notes details>div p{text-indent:1.45em}
+  .sd-article-body .sd-lead,.sd-article-body .sd-thesis,
+  .sd-article-body .sd-decision-name,.sd-article-body .sd-failure-review p{text-indent:0}
+  .sd-article-body .sd-scope .sd-prose:first-of-type{text-indent:0}
+  .sd-article-body .sd-scope .sd-prose:first-of-type::first-letter{
+    float:left;margin:.08em .14em 0 0;color:var(--indigo);font-family:"Space Grotesk",sans-serif;
+    font-size:3.7em;font-weight:600;line-height:.76}
+
+  @media (max-width:760px){
+    .sd-article-body .sd-scope .sd-prose:first-of-type::first-letter{font-size:3.2em}
+  }
+
+  /* ---------- system-design reading color system ----------
+     Long-form reading needs a stable semantic ladder: navy or slate carries
+     the explanation, clay marks risk, emerald marks a rule, teal marks a
+     navigable action, and the terminal ramp belongs only to code. Blueprint
+     indigo can still identify a topic elsewhere, but it no longer carries
+     paragraphs or the article's primary labels. */
+
+  .sd-article-head h1,.sd-article-body h2,.sd-article-body h3,
+  .sd-article-body .sd-decision-name,.sd-article-body .sd-tradeoff-list strong,
+  .sd-article-body .sd-failure-review h3{color:var(--text-header)}
+  .sd-article-head .intro{color:var(--text-normal)}
+  .sd-article-body{color:var(--text-normal);background:var(--surface-reading)}
+  .sd-article-body .sd-prose,.sd-article-body .sd-section>p,
+  .sd-article-body .sd-section>ul:not(.sd-clause-list)>li,
+  .sd-article-body .sd-clause-list>li,.sd-article-body .sd-requirements li,
+  .sd-article-body .sd-decision-detail,.sd-article-body .sd-tradeoff-list p,
+  .sd-article-body .sd-tradeoff-detail,.sd-article-body .sd-failure-review p,
+  .sd-article-body .sd-research-pack>header p,.sd-article-body .sd-research-grid li,
+  .sd-article-body .sd-notes details>div,.sd-article-body .sd-code-sample>header p{
+    color:var(--text-normal)
+  }
+  .sd-article-body .sd-scope .sd-lead{color:var(--text-header)}
+  .sd-article-body .sd-scope .sd-thesis{color:var(--text-header);background:var(--emerald-soft)}
+
+  .sd-article .cs-eyebrow,.sd-article .sd-blueprint-source span,
+  .sd-article .sd-research>p,.sd-article .sd-notes>p,
+  .sd-article .sd-research-pack>footer strong,.sd-article .sd-mermaid-source summary,
+  .sd-article .sd-notes summary code{color:var(--text-meta)}
+  .sd-article .sd-toc-head>p,.sd-article .sd-toc-mobile summary,
+  .sd-article-body .sd-part-label,.sd-article-body .sd-decision-legend,
+  .sd-article-body .sd-decision-checks>strong,
+  .sd-article-body .sd-decision-name>span,
+  .sd-article-body .sd-code-sample>header>span,
+  .sd-article-body .sd-code-run b{color:var(--text-label)}
+
+  .sd-article-body .sd-crit{color:var(--text-high-attention)}
+  .sd-article-body .sd-note{color:var(--text-rule)}
+  .sd-article-body .sd-num{color:var(--text-header)}
+  .sd-article-body .sd-scope .sd-prose:first-of-type::first-letter{color:var(--text-header)}
+  .sd-article-body .sd-clause-list>li::before{background:var(--text-rule)}
+  .sd-article-body .sd-section>ul:not(.sd-clause-list)>li::before{color:var(--text-rule)}
+  .sd-article-body .sd-requirements li::marker,.sd-article-body .sd-research-grid li::marker{color:var(--text-rule)}
+
+  .sd-article-body a,.sd-article .sd-blueprint-source a,
+  .sd-article .sd-research-pack>footer a{color:var(--text-link)}
+  .sd-article .sd-toc a,.sd-article .sd-toc-mobile a{color:var(--text-normal)}
+  .sd-article .sd-toc a:hover,.sd-article .sd-toc-mobile a:hover,
+  .sd-article .sd-research-pack>footer a:hover{color:var(--text-link)}
+
+  .sd-article .sd-toc-head>p{color:var(--text-label)}
+  .sd-article .sd-toc-toggle{color:var(--text-link);background:var(--surface-reading-info)}
+  .sd-article .sd-toc-toggle:hover{border-color:var(--text-link);color:var(--text-link);background:#E5F0F2}
+  .sd-article .sd-toc-toggle:focus-visible,.sd-article .sd-toc-mobile summary:focus-visible,
+  .sd-article .sd-toc a:focus-visible,.sd-article .sd-toc-mobile a:focus-visible{outline-color:var(--text-link)}
+
+  .sd-article-body .sd-decision-legend,.sd-article-body .sd-decision-checks,
+  .sd-article-body .sd-research-pack>header,.sd-article-body .sd-code-sample>header,
+  .sd-article-body .sd-diagram>figcaption{background:var(--surface-reading-info)}
+  .sd-article-body .sd-decision-name>span{background:var(--surface-reading-info)}
+  .sd-article-body .sd-decision-checks{border-color:var(--line-strong)}
+  .sd-article-body .sd-decision-checks>strong{color:var(--text-label)}
+  .sd-article-body .sd-mermaid-status{background:var(--surface-reading-attention);color:var(--text-high-attention)!important}
+  .sd-article-body .sd-notes details.link-target{border-color:var(--text-link);box-shadow:0 0 0 3px rgba(11,95,107,.14)}
+  .sd-article-body .sd-diagram button,.sd-article-body .sd-diagram>figcaption a,
+  .sd-article-body .sd-note-actions button{color:var(--text-link)}
+  .sd-article-body .sd-diagram button:hover,.sd-article-body .sd-diagram>figcaption a:hover,
+  .sd-article-body .sd-diagram button.is-copied,.sd-article-body .sd-note-actions button:hover,
+  .sd-article-body .sd-note-actions button.is-copied{border-color:var(--text-link)}
+  .sd-article-body .sd-diagram button:focus-visible,.sd-article-body .sd-diagram>figcaption a:focus-visible,
+  .sd-article-body .sd-note-actions button:focus-visible,.sd-article-body .sd-reference-figure a:focus-visible{
+    outline-color:var(--text-link)
+  }
+
+  .sd-article-body code{color:var(--text-code-inline);background:var(--surface-code-inline);border-color:var(--line)}
+  .sd-article-body pre,.sd-article-body .sd-code-frame{background:var(--surface-code)}
+  .sd-article-body pre code{color:var(--text-code);background:none}
+  .sd-article-body pre code .c{color:var(--text-code-muted)}
+  .sd-article-body pre code .f{color:var(--code-blue)}
+  .sd-article-body .sd-code-frame button{background:var(--surface-code-raised);color:var(--text-code)}
+  .sd-article-body .sd-code-run code{color:var(--text-code-inline);background:none}
+
+  /* ---------- migrated-notes archival lane ----------
+     These entries came from the old Study Track, so they should read as a
+     preserved source layer rather than another blueprint decision block. A
+     warm brass/sand surface separates provenance without weakening the shared
+     body typography or the review state. */
+
+  .sd-article-body .sd-notes{padding:20px;border:1px solid var(--line-migrated);border-radius:14px;
+    background:var(--surface-migrated);color:var(--text-migrated)}
+  .sd-article-body .sd-notes>h2{border-top-color:var(--line-migrated);color:var(--text-migrated-heading)}
+  .sd-article-body .sd-notes>p{font-family:"IBM Plex Sans",sans-serif;font-size:14px;line-height:1.62;color:var(--text-migrated)}
+  .sd-article-body .sd-notes details{border-color:var(--line-migrated);background:var(--surface-migrated-soft)}
+  .sd-article-body .sd-notes details:hover{border-color:var(--text-migrated-accent)}
+  .sd-article-body .sd-notes details[open]{border-color:var(--text-migrated-accent)}
+  .sd-article-body .sd-notes details.link-target{border-color:var(--text-migrated-accent);
+    box-shadow:0 0 0 3px rgba(121,88,34,.16)}
+  .sd-article-body .sd-notes summary{color:var(--text-migrated-heading);background:var(--surface-migrated-soft)}
+  .sd-article-body .sd-notes summary:hover{background:var(--surface-migrated-active)}
+  .sd-article-body .sd-notes summary code{color:var(--text-migrated-accent);background:var(--surface-migrated-active);
+    border-color:var(--line-migrated)}
+  .sd-article-body .sd-notes details>div{border-top-color:var(--line-migrated);background:var(--surface-migrated-soft);
+    color:var(--text-migrated)}
+  .sd-article-body .sd-notes details>div p,.sd-article-body .sd-notes details>div li{color:var(--text-migrated)}
+  .sd-article-body .sd-notes a.xref{color:var(--text-migrated-accent);text-decoration-color:currentColor}
+  .sd-article-body .sd-notes a.xref:hover{color:var(--text-migrated-heading)}
+  .sd-article-body .sd-notes .sd-note-actions button{border-color:var(--line-migrated);background:var(--surface-migrated-soft);
+    color:var(--text-migrated-accent)}
+  .sd-article-body .sd-notes .sd-note-actions button:hover,
+  .sd-article-body .sd-notes .sd-note-actions button.is-copied{border-color:var(--text-migrated-accent);background:var(--surface-migrated-active);
+    color:var(--text-migrated-heading)}
+  .sd-article-body .sd-notes .sd-note-actions .manual-review.is-reviewed{border-color:var(--emerald);
+    background:var(--emerald-soft);color:var(--emerald-deep)}
+  .sd-article-body .sd-notes .sd-note-actions button:focus-visible{outline-color:var(--text-migrated-accent)}
+
+  @media (max-width:760px){
+    .sd-article-body .sd-notes{padding:15px 13px}
+    .sd-article-body .sd-notes>p{font-size:14px}
+  }
+
+  /* ---------- top-inner instrument bar ----------
+     The header is orientation chrome, not another white reading card. A cool
+     steel-blue band separates it from the paper canvas while its controls keep
+     white surfaces and the same semantic action colours as the rest of Gazl. */
+
+  header.top{background:var(--surface-topbar);border-bottom-color:var(--line-topbar)}
+  .top-inner{background:var(--surface-topbar);color:var(--text-topbar)}
+  .top-inner .progress-meta,.top-inner .tb-count{color:var(--text-topbar-muted)}
+  .top-inner .progress-meta b,.top-inner .tb-count b{color:var(--text-topbar-accent)}
+  .top-inner .ring{background:conic-gradient(var(--emerald) calc(var(--p)*1%),var(--line-topbar) 0)}
+  .top-inner .ring::after{background:var(--surface-topbar)}
+  .top-inner .langswitch .lang-label{color:var(--text-topbar-muted)}
+  .top-inner .langswitch[aria-checked="false"] .lang-label[data-lang="en"],
+  .top-inner .langswitch[aria-checked="true"] .lang-label[data-lang="vi"]{color:var(--text-topbar)}
+  .top-inner .langswitch:focus-visible{outline-color:var(--focus-topbar)}
+
+  .top-inner .navtoggle,.top-inner .topicpick,.top-inner .tstep,
+  .top-inner .searchtrigger,.top-inner .authbtn{border-color:var(--line-topbar)}
+  .top-inner .navtoggle:hover,.top-inner .topicpick:hover,.top-inner .tstep:hover:not(:disabled),
+  .top-inner .searchtrigger:hover,.top-inner .authbtn:hover{border-color:var(--text-topbar-accent)}
+  .top-inner .navtoggle:focus-visible,.top-inner .topicpick:focus-visible,
+  .top-inner .tstep:focus-visible,.top-inner .searchtrigger:focus-visible,
+  .top-inner .authbtn:focus-visible{outline-color:var(--focus-topbar)}
+  .top-inner .st-key{background:var(--surface-topbar-raised);border-color:var(--line-topbar)}
+
+  /* ---------- release-notes full-bleed shell ----------
+     The page owns the background and separators; the header and list own the
+     reading gutter. This keeps the requested zero outer padding without
+     making text touch the viewport edge. */
+
+  .rn-page{padding:0;overflow:hidden}
+  .rn-page>.rn-head{max-width:none;padding:clamp(30px,4vw,50px) clamp(22px,5vw,72px) 28px}
+  .rn-page>.rn-body{max-width:1080px;margin:0 auto;padding:0 clamp(22px,5vw,72px) 58px}
+
+  @media (max-width:760px){
+    .rn-page>.rn-head{padding:25px 16px 22px}
+    .rn-page>.rn-body{padding:0 16px 40px}
+  }
+
+  @media (max-width:420px){
+    .rn-page>.rn-head{padding-inline:13px}
+    .rn-page>.rn-body{padding-inline:13px}
+  }
+
+  /* A location cue makes a long contents rail useful without adding another
+     persistent control. Keep it semantic so the cue still works without the
+     accent colour. */
+  .sd-toc a[aria-current="location"],.sd-toc-mobile a[aria-current="location"],
+  .cs-toc a[aria-current="location"],.cs-toc-mobile a[aria-current="location"],
+  .pj-toc a[aria-current="location"],.pj-toc-mobile a[aria-current="location"]{
+    color:var(--text-link);background:var(--surface-reading-info);font-weight:600
+  }
+  .sd-toc a[aria-current="location"]::before,.cs-toc a[aria-current="location"]::before{
+    content:"";display:inline-block;width:3px;height:1.05em;margin:-.12em 6px -.12em -3px;
+    border-radius:999px;background:currentColor;vertical-align:middle
+  }
+  .pj-toc a[aria-current="location"]::before,.pj-toc-mobile a[aria-current="location"]::before{
+    content:"";display:inline-block;width:3px;height:1.05em;margin:-.12em 6px -.12em -3px;
+    border-radius:999px;background:currentColor;vertical-align:middle
+  }
+  .toc-current{min-width:0;max-width:58%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+    color:var(--text-meta);font-family:"IBM Plex Mono",monospace;font-size:10px;font-weight:500;letter-spacing:.15px}
+
+  @media (max-width:760px){
+    /* On a phone the date and release are already two levels of hierarchy;
+       removing the nested card chrome gives the change list more width and
+       makes the timeline read as one continuous stream. */
+    .rn-rel{background:transparent;border-color:transparent;box-shadow:none;border-radius:0;padding-inline:0}
+    .rn-rel + .rn-rel{border-top-color:var(--line);padding-top:16px}
+    .rn-relhead{padding-bottom:10px}
+    .page .rn-changes{border-left-color:var(--line-strong)}
+  }
+
+  /* ---------- mobile study focus pass ----------
+     The answer is the phone user's work surface. Keep the question header
+     in document flow on small screens so a tall action rail never occupies a
+     second, permanent viewport. The actions remain reachable beside it. */
+
+  .note-toggle{display:inline-flex;align-items:center;justify-content:center;min-height:34px;padding:6px 10px;
+    border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--text-link);
+    font:inherit;font-family:"IBM Plex Mono",monospace;font-size:10.5px;font-weight:600;cursor:pointer}
+  .note-toggle:hover{border-color:var(--text-link);background:var(--surface-reading-info)}
+  .note-toggle:focus-visible{outline:2px solid var(--text-link);outline-offset:2px}
+
+  @media (max-width:760px){
+    .view-track .qcard.open .qtop,.view-track .qcard.open>.qhead{position:static;top:auto;z-index:auto;
+      border-bottom:0;border-radius:0}
+    .view-track .qmeta{width:54px;min-width:54px;gap:6px;padding-inline:5px}
+    .view-track .qmeta>.manual-review,.view-track .qmeta>.qcopy,.view-track .qmeta>.qlangbtn{
+      width:44px;min-width:44px;height:44px;min-height:44px}
+    .view-track .note-toggle{min-height:44px;padding-inline:12px}
+    .cs-toc-mobile summary,.sd-toc-mobile summary,.pj-toc-mobile summary{min-height:44px;display:flex;align-items:center;gap:10px}
+    .np-close,.tstep{width:44px;height:44px;min-width:44px}
+    .cal-mini-day{min-height:44px}
+  }
+
+  @media (max-width:420px){
+    .view-track .qmeta{width:52px;min-width:52px;padding-inline:4px}
+    .view-track .qmeta>.manual-review,.view-track .qmeta>.qcopy,.view-track .qmeta>.qlangbtn{
+      width:44px;min-width:44px;height:44px;min-height:44px}
+  }
+
+  @media (max-width:360px){
+    /* A seven-column month cannot provide a comfortable tap width at 320px.
+       Keep the calendar discoverable and let the data grid scroll as a unit. */
+    .cal-grid{overflow-x:auto;padding-bottom:4px}
+    .cal-head,.cal-weeks{min-width:326px}
+  }
+
+  /* Keep mobile article chrome on one reading axis. The border can stay
+     full-bleed, but the title, TOC label, back link and first paragraph should
+     all begin at the same 20px text edge. */
+  @media (max-width:760px){
+    .sd-article-head,.cs-article-head{padding-inline:20px}
+    .sd-backbar,.cs-backbar{padding-inline:20px}
+    .sd-article-body,.cs-article-body{padding-inline:20px}
+    .sd-toc-mobile,.cs-toc-mobile{padding:0}
+    .sd-toc-mobile summary,.cs-toc-mobile summary{padding-inline:20px}
+    .sd-toc-mobile nav,.cs-toc-mobile nav{padding:8px 20px 12px}
+  }
+
+  /* ---------- calendar instrument refinement ----------
+
+     The calendar is a working surface rather than another reading card. The
+     date controls stay together, today's context moves above the grid on
+     smaller screens, and private actions use a separate visual lane. */
+
+  #calendar-page .page{max-width:1440px;padding:22px clamp(14px,2.8vw,30px) 34px}
+  #calendar-intro.calendar-hero{margin-bottom:18px;padding:22px clamp(16px,2.4vw,28px);border-color:var(--line-strong);
+    background:linear-gradient(125deg,var(--surface) 0%,var(--surface-reading-info) 100%);box-shadow:none}
+  #calendar-intro.calendar-hero::before{width:36%;opacity:.45}
+  #calendar-intro h1{position:relative;margin:0 0 7px;font-family:"Space Grotesk",sans-serif;font-size:clamp(26px,3vw,36px);
+    line-height:1.08;letter-spacing:-.6px;color:var(--text-header)}
+  #calendar-intro .intro{position:relative;max-width:76ch;color:var(--text-normal);line-height:1.65}
+  #calendar-page .cal{margin-top:0}
+  .cal[data-private="open"] .cal-bar{border-color:var(--emerald-soft)}
+  .cal-bar{padding:10px 12px;border-radius:12px;box-shadow:0 8px 20px -18px rgba(20,35,58,.5)}
+  .cal-nav{min-width:0}
+  .cal-title{gap:2px}
+  .cal-title b{font-size:18px;letter-spacing:-.2px}
+  .cal-views{gap:2px;border-radius:10px}
+  .cal-tab{min-height:34px;border-radius:7px}
+  .cal-tab[aria-selected="true"]{box-shadow:inset 0 0 0 1px var(--emerald-soft)}
+  .cal-today,.cal-lock{min-height:34px;border-radius:8px}
+  .cal-cell{min-height:96px;touch-action:manipulation}
+  .cal-cell.is-selected{background:var(--surface-reading-info)}
+  .cal-cell-flag,.cal-event-count{display:none}
+  .cal-selected-inline{border-color:var(--emerald-soft);box-shadow:inset 0 3px 0 var(--emerald)}
+  .cal-event-cat{max-width:18ch;overflow:hidden;text-overflow:ellipsis;vertical-align:middle;text-transform:none}
+  .cal-cat{text-transform:none}
+  .cal-rail{gap:12px}
+  .cal-card{padding:15px 16px}
+  .cal-inbox{border-top:1px solid var(--line);background:var(--surface-reading-soft);box-shadow:inset 0 2px 0 var(--teal)}
+
+  .cal-today-strip{display:none}
+
+  @media (max-width:1040px){
+    .cal-today-strip{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 14px;padding:11px 12px;
+      border:1px solid var(--emerald-soft);border-radius:10px;background:var(--emerald-soft);box-shadow:inset 0 2px 0 var(--emerald)}
+    .cal-today-strip-main{min-width:0;display:grid;grid-template-columns:auto auto;align-items:baseline;column-gap:8px;row-gap:1px}
+    .cal-today-strip-label{grid-column:1/-1;font-family:"IBM Plex Mono",monospace;font-size:9.5px;letter-spacing:.75px;
+      text-transform:uppercase;color:var(--emerald-deep)}
+    .cal-today-strip-main strong{font-family:"Space Grotesk",sans-serif;font-size:18px;line-height:1.1;color:var(--ink)}
+    .cal-today-strip-meta{min-width:0;font-size:12px;color:var(--emerald-deep);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .cal-today-strip-holiday{grid-column:1/-1;min-width:0;font-size:11.5px;color:var(--clay);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .cal-today-strip-action{flex:none;min-height:38px;padding:7px 12px;border:1px solid var(--emerald);border-radius:8px;background:var(--surface);
+      color:var(--emerald-deep);font:inherit;font-size:12px;font-weight:600;cursor:pointer}
+    .cal-today-strip-action:hover{border-color:var(--emerald)}
+    .cal-today-strip-action:focus-visible{outline:2px solid var(--emerald);outline-offset:2px}
+    .cal-today-card{display:none!important}
+    .cal-rail{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+    .cal-unlock{order:-1}
+  }
+
+  @media (max-width:900px){
+    .cal-cell-flag{display:block;position:absolute;left:6px;top:30px;font-family:"IBM Plex Mono",monospace;font-size:8px;
+      font-weight:600;letter-spacing:-.15px;line-height:1;color:var(--clay);white-space:nowrap}
+    .cal-cell-flag.is-work{color:var(--muted)}
+    .cal-event-count{display:inline-flex;position:absolute;right:6px;bottom:5px;align-items:center;justify-content:center;min-width:17px;height:17px;
+      padding:0 4px;border:1px solid var(--line-strong);border-radius:5px;background:var(--surface);font-family:"IBM Plex Mono",monospace;
+      font-size:9px;font-weight:600;line-height:1;color:var(--ink-soft)}
+  }
+
+  @media (max-width:720px){
+    #calendar-page .page{padding:15px 12px 24px}
+    #calendar-intro.calendar-hero{padding:18px 14px;margin-bottom:12px}
+    #calendar-intro h1{font-size:clamp(24px,7vw,31px)}
+    #calendar-intro .intro{font-size:14px;line-height:1.58}
+    .cal-bar{gap:8px;padding:9px}
+    .cal-title b{font-size:16px}
+    .cal-title span{font-size:9px}
+    .cal-step,.cal-today,.cal-lock{min-height:44px}
+    .cal-step{width:44px;height:44px;border-radius:8px}
+    .cal-step svg{width:18px;height:18px}
+    .cal-today,.cal-lock{padding-inline:12px}
+    .cal-views{width:100%;overflow-x:auto;scrollbar-width:none}
+    .cal-views::-webkit-scrollbar{display:none}
+    .cal-tab{flex:1 0 auto;min-width:72px;min-height:44px;padding-inline:9px}
+    .cal-members{gap:7px}
+    .cal-mchip{min-height:40px;padding-inline:13px}
+    .cal-today-strip{margin-bottom:12px;padding:10px}
+    .cal-today-strip-action{min-height:44px}
+    .cal-body{gap:16px}
+    .cal-weeks{grid-template-rows:repeat(6,minmax(62px,auto));gap:3px}
+    .cal-cell{min-height:62px;padding:5px;border-radius:7px}
+    .cal-solar{font-size:14px}
+    .cal-cell.is-today .cal-solar{width:22px;height:22px;font-size:13px}
+    .cal-lunar{top:4px;right:5px;font-size:9px}
+    .cal-cell-flag{top:31px;left:5px}
+    .cal-event-count{right:5px;bottom:4px}
+    .cal-selected-inline{margin-top:14px;padding:14px}
+    .cal-rail{grid-template-columns:1fr;gap:10px}
+    .cal-next button{min-height:44px;padding-block:7px}
+    .cal-checklist label{min-height:44px;padding:8px 5px;align-items:center}
+    .cal-checklist input{width:18px;height:18px;margin-top:0}
+    .cal-primary{min-height:44px}
+    .cal-linkbtn{min-height:40px;padding:8px 0}
+    .cal-password button{min-height:32px}
+    .cal-inbox{margin-top:20px;padding:16px 14px;border-top:1px solid var(--line)}
+    .cal-inbox-form input,.cal-inbox-form select{min-height:44px}
+    .cal-note-actions{gap:7px}
+    .cal-note-actions button{min-height:44px;padding-inline:12px;border-radius:8px}
+    .cal-inbox[aria-busy="true"] .cal-note-actions{opacity:.65}
+  }
+
+  @media (max-width:600px){
+    .cal-rail{grid-template-columns:1fr}
+  }
+
+  @media (max-width:420px){
+    .cal-title span{display:none}
+    .cal-tab{min-width:68px;padding-inline:7px;font-size:11.5px}
+    .cal-tab b{display:none}
+    .cal-today-strip-main{column-gap:6px}
+    .cal-today-strip-meta{font-size:11px}
+    .cal-today-strip-action{padding-inline:10px}
+    .cal-legend{justify-content:flex-start;gap:7px 11px;font-size:9px}
+  }
+
+  @media (max-width:360px){
+    .cal-grid{overflow-x:auto;padding-bottom:5px;scroll-snap-type:x proximity}
+    .cal-head,.cal-weeks{min-width:350px}
+    .cal-cell{scroll-snap-align:start}
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    .cal-bar,.cal-cell,.cal-today-strip-action{transition:none}
+  }
+
+  /* ---------- mobile adaptation pass ----------
+     On a phone the question owns the width. Keep its actions as a short
+     footer row instead of a tall side rail, then move selected calendar
+     detail directly after the grid so the next useful thing is one thumb
+     away. */
+
+  @media (max-width:760px){
+    .view-track .qtop{grid-template-columns:minmax(0,1fr)}
+    .view-track .qhead{grid-column:1;min-width:0;width:100%}
+    .view-track .qmeta{grid-column:1;display:flex;flex-direction:row;align-items:stretch;
+      width:100%;min-width:0;gap:6px;padding:6px 10px 8px;border-top:1px solid var(--line);
+      border-left:0;background:var(--surface-reading-soft)}
+    .view-track .qmeta>.manual-review,.view-track .qmeta>.qcopy,.view-track .qmeta>.qlangbtn{
+      flex:1 1 0;width:auto;min-width:0;max-width:none;height:44px;min-height:44px;padding-inline:8px;
+      justify-content:center;border-radius:9px}
+    .view-track .qmeta>.manual-review .manual-review-label{display:inline}
+    .view-track .qmeta>.qcopy .qcopy-label,.view-track .qmeta>.qlangbtn .lang-label{display:none}
+    .view-track .qmeta>.manual-review{gap:5px;font-size:10px}
+
+    .sd-article-head h1,.cs-article-head h1{font-size:clamp(28px,8vw,34px);line-height:1.1}
+    .sd-toc-mobile nav a,.cs-toc-mobile nav a,.pj-toc-mobile nav a{
+      display:flex;align-items:center;min-height:44px;padding:9px 12px;line-height:1.35}
+    .sd-article-body,.cs-article-body{box-shadow:none;border-radius:12px}
+
+    .cal-grid{display:flex;flex-direction:column}
+    .cal-head{order:1}
+    .cal-weeks{order:2}
+    .cal-selected-inline{order:3}
+    .cal-legend{order:4}
+  }
+
+  @media (max-width:600px){
+    .top-inner .progress-wrap{display:none}
+  }
+
+  @media (max-width:420px){
+    .top-inner .progress-wrap{display:none}
+    .view-track .qmeta{gap:5px;padding:6px 8px 8px}
+    .view-track .qmeta>.manual-review,.view-track .qmeta>.qcopy,.view-track .qmeta>.qlangbtn{
+      padding-inline:6px}
+    .view-track .qmeta>.manual-review .manual-review-label{font-size:9.5px}
+    .sd-article-head h1,.cs-article-head h1{font-size:clamp(27px,8.5vw,32px)}
+  }
+
+  /* ---------- retrieval aids ----------
+     Long archives and study topics need a next action, not another layer of
+     decoration. Keep the continue action explicit and let release readers
+     narrow the archive without losing the global summary. */
+
+  .view-track .study-progress{color:var(--text-meta);font-variant-numeric:tabular-nums}
+  .view-track .study-continue{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:40px;padding:7px 12px;white-space:nowrap}
+  .view-track .study-continue svg{width:16px;height:16px;flex:none}
+  .view-track .note-title-group{display:flex;align-items:center;gap:8px;min-width:0}
+  .view-track .note-status{min-width:0;color:var(--text-rule);font-family:"IBM Plex Mono",monospace;font-size:9.5px;letter-spacing:.2px}
+
+  .rn-filters{display:flex;align-items:flex-end;flex-wrap:wrap;gap:9px 10px;margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
+  .rn-filter-title{flex:1 0 100%;font-family:"IBM Plex Mono",monospace;font-size:10px;font-weight:600;letter-spacing:.55px;text-transform:uppercase;color:var(--text-label)}
+  .rn-filter-field{display:flex;flex:1 1 150px;flex-direction:column;gap:4px;min-width:0;color:var(--text-meta);font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.2px}
+  .rn-filter-field select{width:100%;min-height:40px;padding:7px 28px 7px 10px;border:1px solid var(--line-strong);border-radius:9px;background:var(--surface);color:var(--text-normal);font:inherit;font-size:12px;cursor:pointer}
+  .rn-filter-field select:focus-visible,.rn-filter-clear:focus-visible{outline:2px solid var(--text-link);outline-offset:2px}
+  .rn-filter-clear{min-height:40px;padding:7px 12px;border:1px solid var(--line-strong);border-radius:9px;background:var(--surface);color:var(--text-normal);font:inherit;font-size:11px;cursor:pointer;white-space:nowrap}
+  .rn-filter-clear:hover:not(:disabled){border-color:var(--text-link);color:var(--text-link)}
+  .rn-filter-clear:disabled{opacity:.55;cursor:default}
+  .rn-empty{max-width:1080px;margin:24px auto 0;padding:22px 18px;display:flex;align-items:center;justify-content:space-between;gap:16px;border:1px solid var(--line);border-radius:12px;background:var(--surface-reading-soft);color:var(--text-normal);font-size:15px;line-height:1.6}
+  .rn-empty-clear{flex:none;min-height:40px;padding:7px 12px;border:1px solid var(--line-strong);border-radius:9px;background:var(--surface);color:var(--text-link);font:inherit;font-size:11px;font-weight:600;cursor:pointer}
+  .rn-empty-clear:hover{border-color:var(--text-link);background:var(--surface-reading-info)}
+  .rn-empty-clear:focus-visible{outline:2px solid var(--text-link);outline-offset:2px}
+
+  @media (max-width:760px){
+    .view-track .study-progress{display:none}
+    .view-track .study-continue{min-height:44px;padding-inline:12px}
+    .rn-filters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch;gap:8px;margin-top:15px;padding-top:12px}
+    .rn-filter-title{grid-column:1/-1}
+    .rn-filter-field select,.rn-filter-clear{min-height:44px}
+    .rn-filter-clear{grid-column:1/-1}
+    .rn-empty{align-items:flex-start;flex-direction:column;margin-top:18px;padding:18px 14px}
+    .rn-empty-clear{min-height:44px;width:100%}
+  }
+
+  @media (max-width:420px){
+    .view-track .study-continue{flex:1 1 auto}
+    .rn-filters{grid-template-columns:1fr}
+    .rn-filter-title,.rn-filter-clear{grid-column:auto}
+  }
+
+  /* ---------- confidence states ----------
+     A filtered archive should explain what remains, while irreversible inbox
+     actions should require a second, nearby tap instead of a browser dialog. */
+
+  .view-track .study-complete{display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:6px 10px;border:1px solid var(--emerald-soft);
+    border-radius:8px;background:var(--emerald-soft);color:var(--emerald-deep);font-family:"IBM Plex Mono",monospace;font-size:10px;font-weight:600;letter-spacing:.2px}
+  .view-track .study-complete svg{width:15px;height:15px;flex:none}
+  .rn-filter-summary{margin:10px 0 0;color:var(--text-meta);font-family:"IBM Plex Mono",monospace;font-size:10.5px;line-height:1.45;letter-spacing:.1px}
+  .rn-filter-summary b{color:var(--text-header);font-variant-numeric:tabular-nums}
+  .cal-inline-cancel{min-height:34px;padding-inline:8px}
+  .cal-note-actions .cal-inline-cancel{border-color:transparent;background:transparent;color:var(--muted)}
+  .cal-note-actions .cal-inline-cancel:hover:not(:disabled){border-color:var(--line-strong);background:var(--surface);color:var(--ink)}
+  @media (max-width:760px){
+    .view-track .study-complete{min-height:44px;padding-inline:12px}
+    .rn-filter-summary{margin-top:9px;font-size:10px}
+    .cal-inline-cancel{min-height:44px}
+  }
+
+  .gs-error-state{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .gs-retry{flex:none;min-height:40px;padding:7px 11px;border:1px solid var(--line-strong);border-radius:8px;background:var(--surface);
+    color:var(--text-link);font:inherit;font-family:"IBM Plex Mono",monospace;font-size:10.5px;font-weight:600;cursor:pointer}
+  .gs-retry:hover{border-color:var(--text-link);background:var(--surface-reading-info)}
+  .gs-retry:focus-visible{outline:2px solid var(--text-link);outline-offset:2px}
+  @media (max-width:420px){.gs-error-state{align-items:flex-start;flex-direction:column}.gs-retry{min-height:44px;width:100%}}
+
+  .static-tool-error{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .static-tool-retry{min-height:40px;padding:7px 12px;border:1px solid var(--line-strong);border-radius:8px;background:var(--surface);
+    color:var(--text-link);font:inherit;font-family:"IBM Plex Mono",monospace;font-size:10.5px;font-weight:600;cursor:pointer}
+  .static-tool-retry:hover{border-color:var(--text-link);background:var(--surface-reading-info)}
+  .static-tool-retry:focus-visible{outline:2px solid var(--text-link);outline-offset:2px}
+  @media (max-width:420px){.static-tool-error{align-items:flex-start;flex-direction:column}.static-tool-retry{width:100%;min-height:44px}}
+
+  /* The mobile action rail should explain itself without making the reader
+     decode three icons. Keep the full labels for desktop and assistive tech;
+     the short labels reclaim just enough room for a comfortable thumb target. */
+  .manual-review-short,.qcopy-short,.qlang-current{display:none}
+  @media (max-width:760px){
+    .view-track .sectioncount>span:nth-child(2){display:none}
+    .view-track .sectioncount .study-progress{display:inline-flex!important}
+    .view-track .qmeta>.manual-review .manual-review-label,
+    .view-track .qmeta>.qcopy .qcopy-label{display:none}
+    .view-track .qmeta>.manual-review .manual-review-short,
+    .view-track .qmeta>.qcopy .qcopy-short,
+    .view-track .qmeta>.qlangbtn .qlang-current{display:inline}
+  }
+
+  /* ---------- content reading refinement ----------
+     The content is the product surface. Keep its outer panel generous, then
+     use a quiet typographic ladder inside it: IBM Plex Sans for sustained
+     reading, Space Grotesk for hierarchy, and the terminal ramp only for
+     code. Semantic colors carry meaning; they do not decorate every sentence. */
+
+  :root{scrollbar-color:var(--line-strong) var(--paper);scrollbar-width:thin}
+  ::selection{background:var(--teal-soft);color:var(--ink)}
+
+  .view-track .answer-body,.cs-article-body,.sd-article-body,.rn-text{
+    font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:var(--reading-size);line-height:var(--reading-leading);
+    text-align:start;text-wrap:pretty;color:var(--text-normal);font-kerning:normal}
+  .view-track .answer-body p,.cs-article-body p,.rn-text p,.page .rn-text p{
+    margin:0 0 .9em;color:var(--text-normal);font-size:inherit;line-height:inherit;text-align:start;text-wrap:pretty}
+  .view-track .answer-body>p+p,.cs-article-body>p+p{ text-indent:1.2em }
+  .view-track .answer-body h2,.view-track .answer-body h3,.view-track .answer-body h4,
+  .cs-article-body h2,.cs-article-body h3,.cs-article-body h4{
+    color:var(--text-header);font-family:"Space Grotesk",sans-serif;font-weight:600;line-height:var(--reading-heading-leading);
+    letter-spacing:-.02em;text-wrap:balance}
+  .view-track .answer-body h2+p,.view-track .answer-body h3+p,.view-track .answer-body h4+p,
+  .cs-article-body h2+p,.cs-article-body h3+p,.cs-article-body h4+p{ text-indent:0 }
+  .view-track .answer-body>p:first-of-type::first-letter,.cs-article-body>p:first-of-type::first-letter{
+    float:left;margin:.08em .14em 0 0;color:var(--text-header);font-family:"Space Grotesk",sans-serif;
+    font-size:3.35em;font-weight:600;line-height:.76}
+  .view-track .answer-body strong,.cs-article-body strong{color:var(--text-header);font-weight:600}
+  .view-track .answer-body em,.cs-article-body em{color:var(--text-high-attention);font-style:normal;font-weight:500}
+  .view-track .answer-body a,.cs-article-body a,.rn-text a{
+    color:var(--text-link);text-decoration-thickness:1px;text-underline-offset:3px;text-decoration-color:currentColor;
+    overflow-wrap:anywhere}
+  .view-track .answer-body a:hover,.cs-article-body a:hover,.rn-text a:hover{color:var(--text-rule)}
+  .view-track .answer-body a.extlink{
+    border-color:var(--line-strong);background:var(--surface-reading-info);color:var(--text-link)}
+  .view-track .answer-body a.xref{color:var(--text-link);text-decoration-color:currentColor}
+  .view-track .answer-body a.extlink:hover,.view-track .answer-body a.xref:hover{color:var(--text-rule)}
+  .view-track .answer-body .hl-g{color:var(--text-rule)}
+  .view-track .answer-body .hl-r{color:var(--text-high-attention)}
+  .view-track .answer-body .hl-o{color:var(--brass)}
+  .view-track .answer-body .hl-b{color:var(--text-link)}
+
+  .view-track .answer-body code,.cs-article-body code,.page code{
+    font-family:"IBM Plex Mono",monospace;font-size:.86em;line-height:1.45;color:var(--text-code-inline);
+    background:var(--surface-code-inline);border:1px solid var(--line);border-radius:5px;padding:.12em .38em;
+    font-variant-ligatures:none;overflow-wrap:anywhere}
+  .view-track .answer-body pre,.cs-article-body pre,.page pre{
+    margin:1.15em 0 1.35em;padding:15px 17px;max-width:100%;overflow:auto;border:1px solid var(--code-bg-2);
+    border-radius:var(--radius);background:linear-gradient(180deg,var(--surface-code-raised),var(--surface-code));
+    color:var(--text-code);font-family:"IBM Plex Mono",monospace;font-size:.8125rem;
+    line-height:1.65;tab-size:2;font-variant-ligatures:none;white-space:pre}
+  .view-track .answer-body pre code,.cs-article-body pre code,.page pre code{
+    padding:0;border:0;background:none;color:var(--text-code);font-size:1em;line-height:inherit;overflow-wrap:normal}
+  .view-track .answer-body pre code .c,.cs-article-body pre code .c,.page pre code .c{color:var(--text-code-muted)}
+  pre code .f{color:var(--code-blue)}
+
+  .view-track .answer-body blockquote,.cs-article-body blockquote,.page blockquote{
+    margin:1.25em 0;padding:14px 18px;border:1px solid var(--line);border-inline-start-color:var(--text-rule);
+    border-radius:0 var(--radius) var(--radius) 0;background:var(--surface-reading-info);color:var(--text-header)}
+  .view-track .answer-body blockquote p,.cs-article-body blockquote p,.page blockquote p{color:inherit;margin:0;line-height:1.68}
+  .view-track .answer-body ul,.view-track .answer-body ol,.cs-article-body ul,.cs-article-body ol{
+    padding-inline-start:1.35em;color:var(--text-normal)}
+  .view-track .answer-body li,.cs-article-body li{color:var(--text-normal);line-height:1.68;overflow-wrap:anywhere}
+  .view-track .answer-body li::marker,.cs-article-body li::marker{color:var(--text-rule)}
+
+  .view-track .answer-body table,.cs-article-body table,.page table{
+    width:100%;max-width:100%;border-collapse:collapse;margin:1.2em 0;font-size:.92em;line-height:1.55;
+    color:var(--text-normal)}
+  .view-track .answer-body th,.view-track .answer-body td,.cs-article-body th,.cs-article-body td,.page th,.page td{
+    padding:9px 11px;border:1px solid var(--line);text-align:start;vertical-align:top;overflow-wrap:anywhere}
+  .view-track .answer-body th,.cs-article-body th,.page th{
+    background:var(--surface-reading-info);color:var(--text-label);font-family:"IBM Plex Mono",monospace;
+    font-size:.82em;font-weight:600;letter-spacing:.02em}
+  .view-track .answer-body tr:nth-child(even) td,.cs-article-body tr:nth-child(even) td,.page tr:nth-child(even) td{
+    background:var(--surface-reading-soft)}
+
+  .view-track .answer-body hr,.cs-article-body hr{border:0;border-top:1px solid var(--line-strong);margin:2em 0}
+  .view-track .answer-body img,.cs-article-body img{border-radius:var(--radius)}
+  .view-track .answer-body :where(.takeaway,.warn),.cs-article-body :where(.cs-guide-brief,.cs-archive-note){
+    overflow-wrap:anywhere}
+
+  .pj-doc-body{font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:var(--reading-size);line-height:var(--reading-leading);color:var(--text-normal)}
+  .pj-doc-body p,.pj-doc-body li{font-size:inherit;line-height:inherit;color:var(--text-normal);text-align:start;text-wrap:pretty}
+  .pj-doc-body p{margin:0 0 .9em}
+  .pj-doc-body h1,.pj-doc-body h2,.pj-doc-body h3,.pj-doc-body h4{
+    color:var(--text-header);font-family:"Space Grotesk",sans-serif;font-weight:600;line-height:var(--reading-heading-leading);
+    letter-spacing:-.02em;text-wrap:balance}
+  .pj-doc-body a{color:var(--text-link);text-underline-offset:3px;text-decoration-color:currentColor;overflow-wrap:anywhere}
+  .pj-doc-body a:hover{color:var(--text-rule)}
+  .pj-doc-body code{color:var(--text-code-inline);background:var(--surface-code-inline);border-color:var(--line);font-family:"IBM Plex Mono",monospace}
+  .pj-doc-body pre{background:linear-gradient(180deg,var(--surface-code-raised),var(--surface-code));color:var(--text-code);border-color:var(--code-bg-2)}
+  .pj-doc-body pre code{color:var(--text-code);background:none}
+  .pj-doc-body th{background:var(--surface-reading-info);color:var(--text-label)}
+
+  :lang(vi) .view-track .answer-body,:lang(vi) .cs-article-body,:lang(vi) .rn-text,:lang(vi) .page .rn-text{line-height:1.8}
+
+  @media (max-width:760px){
+    .view-track .answer-body,.cs-article-body,.sd-article-body,.rn-text,.pj-doc-body{font-size:16px;line-height:1.78}
+    .view-track .answer-body>p+p,.cs-article-body>p+p{ text-indent:1em }
+    .view-track .answer-body>p:first-of-type::first-letter,.cs-article-body>p:first-of-type::first-letter{font-size:3em}
+    .view-track .answer-body pre,.cs-article-body pre,.page pre{padding:13px 12px;font-size:.75rem}
+    .view-track .answer-body table,.cs-article-body table,.page table{font-size:.8125rem}
+    .view-track .answer-body th,.view-track .answer-body td,.cs-article-body th,.cs-article-body td,.page th,.page td{padding:8px 9px}
   }

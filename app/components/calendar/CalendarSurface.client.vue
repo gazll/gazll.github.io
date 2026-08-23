@@ -19,7 +19,7 @@
 import { canChiDay, canChiMonth, canChiYear, lunarMonthName, solarToLunar } from '../../../public/lib/lunar.js';
 import { holidayMap, isDayOff, lunarMarker, shiftDays } from '../../../public/lib/vn-holidays.js';
 import { agenda, agendaGroups, diffDays, localized, occurrenceMap, todayISO } from '../../../public/lib/schedule.js';
-import { isEnvelope, unseal } from '../../../public/lib/schedule-crypto.js';
+import { isEnvelope, MAX_ENVELOPE_JSON_CHARS, unseal } from '../../../public/lib/schedule-crypto.js';
 import { checklistRows, endingSoon, groupedItems, itemRows } from '../../../public/lib/inventory.js';
 import { copyText } from '../../../public/lib/clipboard.js';
 
@@ -33,6 +33,7 @@ const KEY_STORE = 'gazll:schedule-key';
 const CHECKS_KEY = 'gazll:calendar-checks';
 const VIEW_TABS = ['month', 'year', 'agenda', 'items'] as const;
 type CalendarView = typeof VIEW_TABS[number];
+const CATEGORY_OPTIONS = ['finance', 'vehicle', 'health', 'pet', 'home', 'document', 'family', 'subscription'] as const;
 
 const today = ref(todayISO());
 const view = ref<CalendarView>('month');
@@ -71,6 +72,8 @@ const inboxHint = ref('');
 const inboxNotice = ref('');
 const inboxBusy = ref(false);
 const copiedId = ref('');
+const removeCandidate = ref<string | null>(null);
+const clearMergedPending = ref(false);
 let stopAuth: (() => void) | null = null;
 
 /* Five years forward is the promise; one year back is there so January does
@@ -89,7 +92,7 @@ const t = computed(() => vi.value ? {
   lockedTitle: 'Lịch riêng đang khoá',
   lockedBody: 'Danh sách nhắc việc được mã hoá trong repo. Nhập passphrase để mở ngay trên trình duyệt.',
   grantedHint: 'Hoặc đăng nhập bằng tài khoản đã được cấp quyền — trang sẽ tự mở.',
-  upcomingHolidays: 'Ngày lễ sắp tới', noPrivate: 'Chưa có mục nào trong lịch riêng.',
+  upcomingHolidays: 'Ngày lễ sắp tới', noPrivate: 'Chưa có mục nào trong lịch riêng.', category: 'Nhóm nhắc việc',
   overdue: 'Quá hạn', due: 'Cần làm ngay', monthGroup: 'Trong tháng này',
   ninety: '90 ngày tới', later: 'Xa hơn', daysLeft: 'còn', daysOver: 'trễ', days: 'ngày',
   lastDone: 'lần cuối', estimate: 'ước tính theo số km', every: 'Mỗi', once: 'Một lần',
@@ -99,7 +102,7 @@ const t = computed(() => vi.value ? {
   inboxAdd: 'Thêm ghi chú', inboxPlaceholder: 'Ví dụ: gia hạn bảo hiểm xe máy tháng 11',
   inboxHintPlaceholder: 'Mốc thời gian (tuỳ chọn)', inboxEmpty: 'Hộp chờ trống.',
   copyJson: 'Copy JSON', copied: 'Đã copy', markMerged: 'Đã chuyển', reopen: 'Mở lại',
-  remove: 'Xoá', merged: 'Đã chuyển', clearMerged: 'Xoá mục đã chuyển',
+  remove: 'Xoá', confirmRemove: 'Xoá mục này?', cancel: 'Huỷ', merged: 'Đã chuyển', clearMerged: 'Xoá mục đã chuyển', confirmClearMerged: 'Xoá tất cả mục đã chuyển?',
   backendMissing: 'Backend chưa có action schedule.* — cần Deploy → New version cho Apps Script.',
   checkLocalOnly: 'Tài khoản này chưa nằm trong nhóm lịch riêng, nên dấu tick chỉ lưu trên máy này.',
   nothingOn: 'Không có gì trong ngày này.', allMembers: 'Tất cả', standing: 'Ghi chú',
@@ -121,7 +124,7 @@ const t = computed(() => vi.value ? {
   lockedTitle: 'Private schedule is locked',
   lockedBody: 'The reminder list ships encrypted. Enter the passphrase to open it in this browser.',
   grantedHint: 'Or sign in with an account that has been granted access — the page opens itself.',
-  upcomingHolidays: 'Upcoming holidays', noPrivate: 'Nothing in the private schedule yet.',
+  upcomingHolidays: 'Upcoming holidays', noPrivate: 'Nothing in the private schedule yet.', category: 'Reminder category',
   overdue: 'Overdue', due: 'Due now', monthGroup: 'Later this month',
   ninety: 'Next 90 days', later: 'Further out', daysLeft: 'in', daysOver: 'late by', days: 'days',
   lastDone: 'last done', estimate: 'estimated from distance', every: 'Every', once: 'One-off',
@@ -131,7 +134,7 @@ const t = computed(() => vi.value ? {
   inboxAdd: 'Add note', inboxPlaceholder: 'e.g. renew motorbike insurance in November',
   inboxHintPlaceholder: 'When, roughly (optional)', inboxEmpty: 'The inbox is empty.',
   copyJson: 'Copy JSON', copied: 'Copied', markMerged: 'Mark merged', reopen: 'Reopen',
-  remove: 'Delete', merged: 'Merged', clearMerged: 'Clear merged notes',
+  remove: 'Delete', confirmRemove: 'Delete this note?', cancel: 'Cancel', merged: 'Merged', clearMerged: 'Clear merged notes', confirmClearMerged: 'Delete all merged notes?',
   backendMissing: 'The backend has no schedule.* actions yet — redeploy Apps Script (Deploy → New version).',
   checkLocalOnly: 'This account is not in the schedule group, so ticks stay on this device only.',
   nothingOn: 'Nothing on this day.', allMembers: 'Everyone', standing: 'Notes',
@@ -158,6 +161,17 @@ const ux = computed(() => vi.value ? {
   openPrivate: 'Open the private schedule to see this content', twelveMonths: '12 months',
   calendarViews: 'Calendar views'
 });
+
+/* Keep storage values stable while presenting a language-appropriate label.
+   Category names are part of the private data contract, not UI copy. */
+const categoryLabels = computed<Record<string, string>>(() => vi.value ? {
+  finance: 'Tài chính', vehicle: 'Xe cộ', health: 'Sức khỏe', pet: 'Thú cưng',
+  home: 'Nhà cửa', document: 'Giấy tờ', family: 'Gia đình', subscription: 'Định kỳ'
+} : {
+  finance: 'Finance', vehicle: 'Vehicle', health: 'Health', pet: 'Pet',
+  home: 'Home', document: 'Documents', family: 'Family', subscription: 'Subscription'
+});
+const categoryLabel = (value: string) => categoryLabels.value[value] || value;
 
 /* One holidayMap per year, kept because the year view asks for the same year
    twelve times and each map does its own lunar conversions. */
@@ -278,6 +292,39 @@ function gridFor(ym: string) {
 }
 
 const monthCells = computed(() => gridFor(cursor.value));
+/* A month is a dense 42-button surface. Keep only one date in the normal Tab
+   order, then let arrow keys move by day/row without forcing a keyboard user
+   through every cell before reaching the next control. */
+const monthFocusDate = computed(() => {
+  const cells = monthCells.value;
+  return cells.find(cell => cell.date === selected.value)?.date
+    || cells.find(cell => cell.inMonth)?.date || cells[0]?.date || '';
+});
+function moveMonthCell(event: KeyboardEvent, date: string) {
+  const delta = event.key === 'ArrowLeft' ? -1 : event.key === 'ArrowRight' ? 1
+    : event.key === 'ArrowUp' ? -7 : event.key === 'ArrowDown' ? 7 : 0;
+  const index = monthCells.value.findIndex(cell => cell.date === date);
+  if (index < 0 || !delta) {
+    if (index >= 0 && event.key === 'Home') {
+      event.preventDefault();
+      const target = monthCells.value[index - (index % 7)];
+      openDay(target.date);
+      void nextTick(() => document.getElementById(`calendar-cell-${target.date}`)?.focus());
+    } else if (index >= 0 && event.key === 'End') {
+      event.preventDefault();
+      const target = monthCells.value[Math.min(index + (6 - (index % 7)), monthCells.value.length - 1)];
+      openDay(target.date);
+      void nextTick(() => document.getElementById(`calendar-cell-${target.date}`)?.focus());
+    }
+    return;
+  }
+  const nextIndex = index + delta;
+  const target = monthCells.value[nextIndex];
+  if (!target) return;
+  event.preventDefault();
+  openDay(target.date);
+  void nextTick(() => document.getElementById(`calendar-cell-${target.date}`)?.focus());
+}
 const yearMonths = computed(() => Array.from({ length: 12 }, (_, index) => ({
   ym: `${cursorYear.value}-${String(index + 1).padStart(2, '0')}`,
   label: t.value.monthNames[index],
@@ -319,11 +366,14 @@ const selectedPillar = computed(() => {
   return canChiDay(d, m, y);
 });
 
+const eventAria = (row: any) => row.event?.category
+  ? `${row.title} (${categoryLabel(row.event.category)})`
+  : row.title;
 function cellAria(cell: any) {
   const details = [formatDate(cell.date), lunarText(cell.lunar)];
   if (cell.label) details.push(cell.label);
   if (cell.events.length) {
-    details.push(`${cell.events.length} ${ux.value.reminders}: ${cell.events.map((row: any) => row.title).join(', ')}`);
+    details.push(`${cell.events.length} ${ux.value.reminders}: ${cell.events.map(eventAria).join(', ')}`);
   }
   return details.join('. ');
 }
@@ -382,6 +432,12 @@ const awayText = (row: any) => row.daysAway < 0
 /* ---------- navigation ---------- */
 
 const clampYear = (year: number) => Math.min(maxYear.value, Math.max(minYear.value, year));
+const canStepPrev = computed(() => view.value === 'year'
+  ? cursorYear.value > minYear.value
+  : cursor.value > `${minYear.value}-01`);
+const canStepNext = computed(() => view.value === 'year'
+  ? cursorYear.value < maxYear.value
+  : cursor.value < `${maxYear.value}-12`);
 function stepMonth(delta: number) {
   const [y, m] = cursor.value.split('-').map(Number);
   const total = y * 12 + (m - 1) + delta;
@@ -390,6 +446,7 @@ function stepMonth(delta: number) {
   cursorYear.value = year;
 }
 function goToday() {
+  if (view.value !== 'month') setView('month');
   cursor.value = today.value.slice(0, 7);
   cursorYear.value = Number(today.value.slice(0, 4));
   selected.value = today.value;
@@ -398,9 +455,10 @@ function openDay(date: string, reveal = false) {
   selected.value = date;
   cursor.value = date.slice(0, 7);
   cursorYear.value = Number(date.slice(0, 4));
-  if (view.value === 'year') view.value = 'month';
+  if (view.value !== 'month') setView('month');
   if (reveal && typeof window !== 'undefined' && window.matchMedia('(max-width: 1040px)').matches) {
-    void nextTick(() => selectedInline.value?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }));
+    const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+    void nextTick(() => selectedInline.value?.scrollIntoView({ behavior, block: 'nearest' }));
   }
 }
 function setView(next: CalendarView) {
@@ -418,7 +476,8 @@ function moveView(event: KeyboardEvent, current: CalendarView) {
 }
 function focusUnlock() {
   void nextTick(() => {
-    unlockInput.value?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const behavior = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+    unlockInput.value?.scrollIntoView({ behavior, block: 'center' });
     unlockInput.value?.focus({ preventScroll: true });
   });
 }
@@ -428,7 +487,10 @@ function focusUnlock() {
 async function openSealed(secret: string) {
   const response = await fetch(SEALED_URL, { cache: 'no-cache' });
   if (!response.ok) { sealedMissing.value = true; throw new Error(t.value.sealedMissing); }
-  const envelope = await response.json();
+  const text = await response.text();
+  if (text.length > MAX_ENVELOPE_JSON_CHARS) throw new Error(t.value.sealedMissing);
+  let envelope;
+  try { envelope = JSON.parse(text); } catch (error) { throw new Error(t.value.sealedMissing); }
   if (!isEnvelope(envelope)) throw new Error(t.value.sealedMissing);
   const document = await unseal(envelope, secret);
   events.value = Array.isArray(document.events) ? document.events : [];
@@ -447,7 +509,11 @@ async function revealHint() {
   try {
     const response = await fetch(SEALED_URL, { cache: 'no-cache' });
     if (!response.ok) return;
-    const envelope = await response.json();
+    const text = await response.text();
+    if (text.length > MAX_ENVELOPE_JSON_CHARS) return;
+    let envelope;
+    try { envelope = JSON.parse(text); } catch (error) { return; }
+    if (!isEnvelope(envelope)) return;
     hint.value = String(envelope?.hint || '');
   } catch (error) { /* no file yet: the toggle simply shows nothing */ }
 }
@@ -484,6 +550,11 @@ function lock() {
   memberFilter.value = 'all';
   householdFilter.value = 'all';
   inbox.value = [];
+  unlockError.value = '';
+  passphrase.value = '';
+  showPassphrase.value = false;
+  hint.value = '';
+  hintShown.value = false;
   try { sessionStorage.removeItem(KEY_STORE); localStorage.removeItem(KEY_STORE); } catch (error) { /* private mode */ }
 }
 
@@ -584,16 +655,41 @@ async function addNote() {
 }
 
 async function setStatus(row: any, status: string) {
+  if (inboxBusy.value) return;
+  inboxBusy.value = true;
   try { await callBackend('schedule.update', { id: row.id, status }); await loadInbox(); }
   catch (error: any) { inboxNotice.value = error?.message || String(error); }
+  finally { inboxBusy.value = false; }
 }
 async function removeNote(row: any) {
+  if (inboxBusy.value) return;
+  if (removeCandidate.value !== row.id) {
+    removeCandidate.value = row.id;
+    clearMergedPending.value = false;
+    return;
+  }
+  inboxBusy.value = true;
   try { await callBackend('schedule.delete', { id: row.id }); await loadInbox(); }
   catch (error: any) { inboxNotice.value = error?.message || String(error); }
+  finally { inboxBusy.value = false; removeCandidate.value = null; }
+}
+function cancelRemove() {
+  removeCandidate.value = null;
 }
 async function clearMerged() {
+  if (inboxBusy.value) return;
+  if (!clearMergedPending.value) {
+    clearMergedPending.value = true;
+    removeCandidate.value = null;
+    return;
+  }
+  inboxBusy.value = true;
   try { await callBackend('schedule.delete', { merged: true }); await loadInbox(); }
   catch (error: any) { inboxNotice.value = error?.message || String(error); }
+  finally { inboxBusy.value = false; clearMergedPending.value = false; }
+}
+function cancelClearMerged() {
+  clearMergedPending.value = false;
 }
 
 /** A note becomes a skeleton event, ready to paste into secret/schedule.json. */
@@ -643,23 +739,23 @@ onBeforeUnmount(() => stopAuth?.());
 </script>
 
 <template>
-  <div class="cal">
-    <div class="cal-bar">
-      <div class="cal-nav">
-        <button v-if="view === 'month' || view === 'year'" type="button" class="cal-step" :aria-label="t.prev" @click="view === 'year' ? cursorYear = clampYear(cursorYear - 1) : stepMonth(-1)">
+  <div id="calendar-surface" data-ui="calendar-surface" class="cal" :data-private="locked ? 'locked' : 'open'">
+    <div id="calendar-toolbar" data-ui="calendar-toolbar" class="cal-bar">
+      <div id="calendar-date-nav" data-ui="calendar-date-nav" class="cal-nav" :aria-label="vi ? 'Điều hướng lịch' : 'Calendar navigation'">
+        <button v-if="view === 'month' || view === 'year'" type="button" class="cal-step" :aria-label="t.prev" :disabled="!canStepPrev" @click="view === 'year' ? cursorYear = clampYear(cursorYear - 1) : stepMonth(-1)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg>
         </button>
-        <div class="cal-title">
+        <div class="cal-title" aria-live="polite" aria-atomic="true">
           <b>{{ viewTitle }}</b>
           <span>{{ viewSubtitle }}</span>
         </div>
-        <button v-if="view === 'month' || view === 'year'" type="button" class="cal-step" :aria-label="t.next" @click="view === 'year' ? cursorYear = clampYear(cursorYear + 1) : stepMonth(1)">
+        <button v-if="view === 'month' || view === 'year'" type="button" class="cal-step" :aria-label="t.next" :disabled="!canStepNext" @click="view === 'year' ? cursorYear = clampYear(cursorYear + 1) : stepMonth(1)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M9 5l7 7-7 7" /></svg>
         </button>
         <button v-if="view === 'month' || view === 'year'" type="button" class="cal-today" @click="goToday">{{ t.todayLabel }}</button>
       </div>
 
-      <div class="cal-views" role="tablist" :aria-label="ux.calendarViews">
+      <div id="calendar-views" data-ui="calendar-views" class="cal-views" role="tablist" :aria-label="ux.calendarViews">
         <button v-for="tab in VIEW_TABS" :id="`cal-tab-${tab}`" :key="tab" type="button" role="tab"
                 class="cal-tab" :aria-selected="view === tab" aria-controls="cal-view-panel"
                 :tabindex="view === tab ? 0 : -1" @click="setView(tab)" @keydown="moveView($event, tab)">
@@ -667,7 +763,9 @@ onBeforeUnmount(() => stopAuth?.());
         </button>
       </div>
 
-      <button type="button" class="cal-lock" :class="{ 'is-open': !locked }" @click="locked ? focusUnlock() : lock()">
+      <button id="calendar-lock" data-ui="calendar-lock" type="button" class="cal-lock" :class="{ 'is-open': !locked }"
+              :aria-expanded="!locked" :aria-controls="locked ? 'calendar-unlock' : undefined"
+              @click="locked ? focusUnlock() : lock()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
           <path v-if="locked" d="M7 11V8a5 5 0 0 1 10 0v3M5 11h14v9H5z" />
           <path v-else d="M7 11V8a5 5 0 0 1 9.5-2M5 11h14v9H5z" />
@@ -678,14 +776,16 @@ onBeforeUnmount(() => stopAuth?.());
 
     <!-- One filter for the whole page: it narrows the dots on the grid, the
          agenda and the standing notes together. -->
-    <div v-if="!locked && view === 'items' && households.length" class="cal-members">
+    <div v-if="!locked && view === 'items' && households.length" id="calendar-household-filter" data-ui="calendar-household-filter"
+         class="cal-members" role="group" :aria-label="vi ? 'Lọc theo hộ gia đình' : 'Filter by household'">
       <button type="button" class="cal-mchip" :aria-pressed="householdFilter === 'all'" @click="householdFilter = 'all'">{{ t.allMembers }}</button>
       <button v-for="house in households" :key="house.id" type="button" class="cal-mchip"
               :aria-pressed="householdFilter === house.id" @click="householdFilter = house.id">
         {{ localized(house.name, props.lang) }}
       </button>
     </div>
-    <div v-else-if="!locked && members.length" class="cal-members">
+    <div v-else-if="!locked && members.length" id="calendar-member-filter" data-ui="calendar-member-filter"
+         class="cal-members" role="group" :aria-label="vi ? 'Lọc theo thành viên' : 'Filter by member'">
       <button type="button" class="cal-mchip" :aria-pressed="memberFilter === 'all'" @click="memberFilter = 'all'">{{ t.allMembers }}</button>
       <button v-for="member in members" :key="member.id" type="button" class="cal-mchip"
               :aria-pressed="memberFilter === member.id" @click="memberFilter = member.id">
@@ -693,44 +793,60 @@ onBeforeUnmount(() => stopAuth?.());
       </button>
     </div>
 
+    <section id="calendar-today-strip" data-ui="calendar-today-strip" class="cal-today-strip"
+             aria-labelledby="calendar-today-strip-label">
+      <div class="cal-today-strip-main">
+        <span id="calendar-today-strip-label" class="cal-today-strip-label">{{ t.todayLabel }}</span>
+        <strong>{{ todayCard.solar }}</strong>
+        <span class="cal-today-strip-meta">{{ todayCard.weekday }} · {{ todayCard.lunarDay }}</span>
+        <span v-if="todayCard.holidays.length" class="cal-today-strip-holiday">{{ todayCard.holidays[0][props.lang] || todayCard.holidays[0].en }}</span>
+      </div>
+      <button type="button" class="cal-today-strip-action" aria-controls="cal-view-panel" @click="goToday">{{ t.todayLabel }}</button>
+    </section>
+
     <div class="cal-body">
-      <div id="cal-view-panel" class="cal-main" role="tabpanel" :aria-labelledby="`cal-tab-${view}`">
+      <div id="cal-view-panel" data-ui="calendar-view-panel" class="cal-main" role="tabpanel" :aria-labelledby="`cal-tab-${view}`">
         <!-- Month grid -->
-        <div v-if="view === 'month'" class="cal-grid">
+        <div v-if="view === 'month'" id="calendar-month-grid" data-ui="calendar-month-grid" class="cal-grid">
           <div class="cal-head">
             <div v-for="(name, index) in t.weekdays" :key="name"
                  class="cal-dow" :class="{ 'is-weekend': index > 4 }">{{ name }}</div>
           </div>
           <div class="cal-weeks">
-            <button v-for="cell in monthCells" :key="cell.date" type="button"
+            <button v-for="cell in monthCells" :id="`calendar-cell-${cell.date}`" :key="cell.date" type="button"
                     class="cal-cell"
                     :class="{ 'is-out': !cell.inMonth, 'is-today': cell.isToday, 'is-off': cell.dayOff,
                               'is-weekend': cell.weekend, 'is-selected': cell.date === selected }"
-                    :aria-label="cellAria(cell)" :aria-pressed="cell.date === selected" @click="openDay(cell.date, true)">
+                    :aria-label="cellAria(cell)" :aria-pressed="cell.date === selected"
+                    :aria-current="cell.isToday ? 'date' : undefined" :tabindex="cell.date === monthFocusDate ? 0 : -1"
+                    @click="openDay(cell.date, true)" @keydown="moveMonthCell($event, cell.date)">
               <span class="cal-solar">{{ cell.day }}</span>
               <span class="cal-lunar" :class="cell.marker ? `is-${cell.marker}` : ''">{{ cell.lunarLabel }}</span>
+              <span v-if="cell.label" class="cal-cell-flag" :class="{ 'is-work': cell.workday }" aria-hidden="true">{{ cell.workday ? (vi ? 'Bù' : 'WORK') : (vi ? 'Nghỉ' : 'OFF') }}</span>
               <span v-if="cell.label" class="cal-label" :class="{ 'is-work': cell.workday }">{{ cell.label }}</span>
               <span v-if="cell.events.length" class="cal-cell-events" aria-hidden="true">
                 <span v-for="row in cell.events.slice(0, 2)" :key="row.id" class="cal-cell-event" :data-cal-cat="row.event.category">{{ row.title }}</span>
                 <span v-if="cell.events.length > 2" class="cal-cell-more">+{{ cell.events.length - 2 }}</span>
               </span>
-              <span v-if="cell.events.length" class="cal-dots">
+              <span v-if="cell.events.length" class="cal-event-count" aria-hidden="true">{{ cell.events.length }}</span>
+              <span v-if="cell.events.length" class="cal-dots" aria-hidden="true">
                 <i v-for="row in cell.events.slice(0, 4)" :key="row.id"
                    :data-cal-cat="row.event.category" :class="{ 'is-done': row.settled, 'is-late': row.status === 'overdue' }" />
               </span>
             </button>
           </div>
-          <div class="cal-legend" aria-hidden="true">
+          <div id="calendar-legend" data-ui="calendar-legend" class="cal-legend" role="group" :aria-label="props.lang === 'vi' ? 'Chú giải lịch' : 'Calendar legend'">
             <span class="is-holiday"><i />{{ ux.holidayLegend }}</span>
             <span class="is-reminder"><i />{{ ux.reminderLegend }}</span>
             <span class="is-lunar"><i />{{ ux.lunarLegend }}</span>
           </div>
-          <section v-if="selectedCell" ref="selectedInline" class="cal-card cal-selected cal-selected-inline" aria-live="polite">
-            <p class="cal-kicker">{{ ux.selectedDay }}</p>
+          <section v-if="selectedCell" id="calendar-selected-inline" data-ui="calendar-selected-day" ref="selectedInline"
+                   class="cal-card cal-selected cal-selected-inline" aria-live="polite" aria-labelledby="calendar-selected-inline-label">
+            <p id="calendar-selected-inline-label" class="cal-kicker">{{ ux.selectedDay }}</p>
             <div class="cal-selected-head"><b>{{ formatDate(selectedCell.date) }}</b><span>{{ selectedCell.lunar.day }} {{ lunarMonthName(selectedCell.lunar.month, selectedCell.lunar.leap, props.lang) }} · {{ selectedPillar }}</span></div>
             <ul v-if="selectedCell.holidays.length || selectedCell.events.length" class="cal-daylist">
               <li v-for="row in selectedCell.holidays" :key="row.id" :data-kind="row.kind">{{ row[props.lang] || row.en }}<em v-if="row.kind === 'statutory' || row.kind === 'compensatory'">{{ t.dayOff }}</em><em v-else-if="row.workday">{{ t.workday }}</em></li>
-              <li v-for="row in selectedCell.events" :key="row.id" :data-cal-cat="row.event.category" class="is-event">{{ row.title }}</li>
+              <li v-for="row in selectedCell.events" :key="row.id" :data-cal-cat="row.event.category" class="is-event"><span>{{ row.title }}</span><small v-if="row.event.category" class="cal-event-cat">{{ categoryLabel(row.event.category) }}</small></li>
             </ul>
             <p v-else class="cal-muted">{{ t.nothingOn }}</p>
           </section>
@@ -746,8 +862,10 @@ onBeforeUnmount(() => stopAuth?.());
                       class="cal-mini-day"
                       :class="{ 'is-out': !cell.inMonth, 'is-today': cell.isToday, 'is-off': cell.dayOff,
                                 'has-event': cell.events.length > 0 }"
+                      :aria-label="cellAria(cell)" :aria-pressed="cell.date === selected"
+                      :aria-current="cell.isToday ? 'date' : undefined"
                       :title="`${formatDate(cell.date)}${cell.label ? ' — ' + cell.label : ''}`"
-                      @click="openDay(cell.date)">{{ cell.day }}</button>
+                      @click="openDay(cell.date, true)">{{ cell.day }}</button>
             </div>
           </section>
         </div>
@@ -767,7 +885,7 @@ onBeforeUnmount(() => stopAuth?.());
                 <h4>{{ row.title }}</h4>
                 <p class="cal-item-meta">
                   <span v-if="row.member" class="cal-owner">{{ memberName(row.member) }}</span>
-                  <span class="cal-cat">{{ row.event.category }}</span>
+                  <span class="cal-cat">{{ categoryLabel(row.event.category) }}</span>
                   <span>{{ cadence(row.event) }}</span>
                   <span v-if="row.lastDone">{{ t.lastDone }} {{ shortDate(row.lastDone) }}</span>
                   <span v-if="row.event.cost">{{ row.event.cost }}</span>
@@ -852,9 +970,9 @@ onBeforeUnmount(() => stopAuth?.());
         </div>
       </div>
 
-      <aside class="cal-rail">
-        <section class="cal-card cal-today-card" :class="{ 'is-selected-today': selected === today && view === 'month' }">
-          <p class="cal-kicker">{{ todayCard.weekday }}</p>
+      <aside id="calendar-rail" data-ui="calendar-rail" class="cal-rail" :aria-label="vi ? 'Thông tin lịch' : 'Calendar context'">
+        <section id="calendar-today-card" data-ui="calendar-today-card" class="cal-card cal-today-card" :class="{ 'is-selected-today': selected === today && view === 'month' }" aria-labelledby="calendar-today-card-label">
+          <h2 id="calendar-today-card-label" class="cal-kicker">{{ todayCard.weekday }}</h2>
           <p class="cal-bigdate">{{ todayCard.solar }}</p>
           <p class="cal-bigmoon">{{ todayCard.lunarDay }}</p>
           <dl class="cal-pillars">
@@ -867,8 +985,8 @@ onBeforeUnmount(() => stopAuth?.());
           </p>
         </section>
 
-        <section v-if="selectedCell && (selectedCell.date !== today || selectedCell.holidays.length || selectedCell.events.length)" class="cal-card cal-selected cal-selected-rail" aria-live="polite">
-          <p class="cal-kicker">{{ ux.selectedDay }}</p>
+        <section v-if="selectedCell && (selectedCell.date !== today || selectedCell.holidays.length || selectedCell.events.length)" id="calendar-selected-rail" data-ui="calendar-selected-day" class="cal-card cal-selected cal-selected-rail" aria-live="polite" aria-labelledby="calendar-selected-rail-label">
+          <p id="calendar-selected-rail-label" class="cal-kicker">{{ ux.selectedDay }}</p>
           <div class="cal-selected-head"><b>{{ formatDate(selectedCell.date) }}</b><span>{{ selectedCell.lunar.day }} {{ lunarMonthName(selectedCell.lunar.month, selectedCell.lunar.leap, props.lang) }} · {{ selectedPillar }}</span></div>
           <ul v-if="selectedCell.holidays.length || selectedCell.events.length" class="cal-daylist">
             <li v-for="row in selectedCell.holidays" :key="row.id" :data-kind="row.kind">
@@ -877,7 +995,7 @@ onBeforeUnmount(() => stopAuth?.());
               <em v-else-if="row.workday">{{ t.workday }}</em>
             </li>
             <li v-for="row in selectedCell.events" :key="row.id" :data-cal-cat="row.event.category" class="is-event">
-              {{ row.title }}
+              <span>{{ row.title }}</span><small v-if="row.event.category" class="cal-event-cat">{{ categoryLabel(row.event.category) }}</small>
             </li>
           </ul>
           <p v-else class="cal-muted">{{ t.nothingOn }}</p>
@@ -912,11 +1030,11 @@ onBeforeUnmount(() => stopAuth?.());
           </ul>
         </section>
 
-        <section class="cal-card">
-          <p class="cal-kicker">{{ t.upcomingHolidays }}</p>
+        <section id="calendar-upcoming-holidays" data-ui="calendar-upcoming-holidays" class="cal-card" aria-labelledby="calendar-upcoming-holidays-label">
+          <h2 id="calendar-upcoming-holidays-label" class="cal-kicker">{{ t.upcomingHolidays }}</h2>
           <ul class="cal-next">
             <li v-for="row in nextHolidays" :key="row.date + row.label">
-              <button type="button" @click="openDay(row.date)">
+              <button type="button" @click="openDay(row.date, true)">
                 <b>{{ shortDate(row.date) }}</b><span>{{ row.label }}</span><i>{{ row.away }}{{ vi ? 'n' : 'd' }}</i>
               </button>
             </li>
@@ -929,20 +1047,20 @@ onBeforeUnmount(() => stopAuth?.());
              your own calendar whenever Google sign-in is unavailable, which is
              exactly the state of local development. Sign-in gates the Sheet
              inbox below, and nothing else. -->
-        <section v-if="locked" class="cal-card cal-unlock">
-          <p class="cal-kicker">{{ t.lockedTitle }}</p>
+        <section v-if="locked" id="calendar-unlock" data-ui="calendar-unlock" class="cal-card cal-unlock" aria-labelledby="calendar-unlock-title">
+          <h2 id="calendar-unlock-title" class="cal-kicker">{{ t.lockedTitle }}</h2>
           <p v-if="sealedMissing" class="cal-muted">{{ t.sealedMissing }}</p>
-          <form v-else @submit.prevent="unlock">
+          <form v-else :aria-busy="unlocking" @submit.prevent="unlock">
             <label class="cal-field">
               <span>{{ t.passphrase }}</span>
               <span class="cal-password">
-                <input ref="unlockInput" v-model="passphrase" :type="showPassphrase ? 'text' : 'password'" autocomplete="off" spellcheck="false">
-                <button type="button" @click="showPassphrase = !showPassphrase">{{ showPassphrase ? ux.hide : ux.show }}</button>
+                <input ref="unlockInput" v-model="passphrase" :type="showPassphrase ? 'text' : 'password'" autocomplete="off" spellcheck="false" :disabled="unlocking">
+                <button type="button" :disabled="unlocking" @click="showPassphrase = !showPassphrase">{{ showPassphrase ? ux.hide : ux.show }}</button>
               </span>
             </label>
-            <label class="cal-check"><input v-model="remember" type="checkbox">{{ t.rememberDevice }}</label>
+            <label class="cal-check"><input v-model="remember" type="checkbox" :disabled="unlocking">{{ t.rememberDevice }}</label>
             <button type="submit" class="cal-primary" :disabled="!passphrase || unlocking">{{ unlocking ? ux.opening : t.unlock }}</button>
-            <p v-if="unlockError" class="cal-error">{{ unlockError }}</p>
+            <p v-if="unlockError" class="cal-error" role="alert">{{ unlockError }}</p>
             <button v-if="!hintShown" type="button" class="cal-linkbtn" @click="revealHint">{{ t.forgot }}</button>
             <p v-else-if="hint" class="cal-hint"><span>{{ t.hintLabel }}</span>{{ hint }}</p>
             <p class="cal-muted">{{ t.grantedHint }}</p>
@@ -955,36 +1073,37 @@ onBeforeUnmount(() => stopAuth?.());
     <!-- Inbox: the holding pen between "I remembered something" and "it is in
          the sealed file". Signed in only, because it is the one part that
          lives in the Sheet. -->
-    <section v-if="!locked && signedIn" class="cal-inbox">
+    <section v-if="!locked && signedIn" id="calendar-inbox" data-ui="calendar-inbox" class="cal-inbox" aria-labelledby="calendar-inbox-title" :aria-busy="inboxBusy">
       <div class="cal-inbox-head">
-        <h2>{{ t.inbox }}</h2>
+        <h2 id="calendar-inbox-title">{{ t.inbox }}</h2>
         <p>{{ t.inboxIntro }}</p>
       </div>
       <form class="cal-inbox-form" @submit.prevent="addNote">
-        <input v-model="inboxBody" type="text" :placeholder="t.inboxPlaceholder" maxlength="2000">
-        <input v-model="inboxHint" type="text" :placeholder="t.inboxHintPlaceholder" maxlength="60">
-        <select v-model="inboxCategory">
+        <input v-model="inboxBody" type="text" :placeholder="t.inboxPlaceholder" :aria-label="t.inboxPlaceholder" maxlength="2000">
+        <input v-model="inboxHint" type="text" :placeholder="t.inboxHintPlaceholder" :aria-label="t.inboxHintPlaceholder" maxlength="60">
+        <select v-model="inboxCategory" :aria-label="t.category">
           <option value="">—</option>
-          <option v-for="name in ['finance', 'vehicle', 'health', 'pet', 'home', 'document', 'family', 'subscription']" :key="name" :value="name">{{ name }}</option>
+          <option v-for="name in CATEGORY_OPTIONS" :key="name" :value="name">{{ categoryLabel(name) }}</option>
         </select>
         <button type="submit" class="cal-primary" :disabled="!inboxBody.trim() || inboxBusy">{{ t.inboxAdd }}</button>
       </form>
-      <p v-if="inboxNotice" class="cal-error">{{ inboxNotice }}</p>
+      <p v-if="inboxNotice" class="cal-error" role="alert">{{ inboxNotice }}</p>
       <p v-if="!inbox.length && !inboxNotice" class="cal-muted">{{ t.inboxEmpty }}</p>
       <ul class="cal-notes">
         <li v-for="row in pendingInbox" :key="row.id">
           <div>
             <p class="cal-note-body">{{ row.body }}</p>
             <p class="cal-note-meta">
-              <span v-if="row.category" :data-cal-cat="row.category" class="cal-cat">{{ row.category }}</span>
+              <span v-if="row.category" :data-cal-cat="row.category" class="cal-cat">{{ categoryLabel(row.category) }}</span>
               <span v-if="row.due_hint">{{ row.due_hint }}</span>
               <span>{{ String(row.created_at).slice(0, 10) }}</span>
             </p>
           </div>
           <div class="cal-note-actions">
-            <button type="button" @click="copyNote(row)">{{ copiedId === row.id ? t.copied : t.copyJson }}</button>
-            <button type="button" @click="setStatus(row, 'merged')">{{ t.markMerged }}</button>
-            <button type="button" class="is-danger" @click="removeNote(row)">{{ t.remove }}</button>
+            <button type="button" :disabled="inboxBusy" @click="copyNote(row)">{{ copiedId === row.id ? t.copied : t.copyJson }}</button>
+            <button type="button" :disabled="inboxBusy" @click="setStatus(row, 'merged')">{{ t.markMerged }}</button>
+            <button type="button" class="is-danger" :disabled="inboxBusy" @click="removeNote(row)">{{ removeCandidate === row.id ? t.confirmRemove : t.remove }}</button>
+            <button v-if="removeCandidate === row.id" type="button" class="cal-linkbtn cal-inline-cancel" :disabled="inboxBusy" @click="cancelRemove">{{ t.cancel }}</button>
           </div>
         </li>
         <li v-for="row in mergedInbox" :key="row.id" class="is-merged">
@@ -993,12 +1112,14 @@ onBeforeUnmount(() => stopAuth?.());
             <p class="cal-note-meta"><span>{{ t.merged }}</span><span>{{ String(row.updated_at).slice(0, 10) }}</span></p>
           </div>
           <div class="cal-note-actions">
-            <button type="button" @click="setStatus(row, 'pending')">{{ t.reopen }}</button>
-            <button type="button" class="is-danger" @click="removeNote(row)">{{ t.remove }}</button>
+            <button type="button" :disabled="inboxBusy" @click="setStatus(row, 'pending')">{{ t.reopen }}</button>
+            <button type="button" class="is-danger" :disabled="inboxBusy" @click="removeNote(row)">{{ removeCandidate === row.id ? t.confirmRemove : t.remove }}</button>
+            <button v-if="removeCandidate === row.id" type="button" class="cal-linkbtn cal-inline-cancel" :disabled="inboxBusy" @click="cancelRemove">{{ t.cancel }}</button>
           </div>
         </li>
       </ul>
-      <button v-if="mergedInbox.length" type="button" class="cal-ghost" @click="clearMerged">{{ t.clearMerged }}</button>
+      <button v-if="mergedInbox.length" type="button" class="cal-ghost" :disabled="inboxBusy" @click="clearMerged">{{ clearMergedPending ? t.confirmClearMerged : t.clearMerged }}</button>
+      <button v-if="clearMergedPending" type="button" class="cal-linkbtn cal-inline-cancel" :disabled="inboxBusy" @click="cancelClearMerged">{{ t.cancel }}</button>
     </section>
   </div>
 </template>

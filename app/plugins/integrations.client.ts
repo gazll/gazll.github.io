@@ -1,30 +1,20 @@
-async function deployedVersion() {
-  try {
-    const url = new URL('/version.json', window.location.origin);
-    url.searchParams.set('_', String(Date.now()));
-    const response = await fetch(url, { cache: 'no-store' });
-    const release = response.ok ? await response.json() : null;
-    return /^[A-Za-z0-9._-]+$/.test(release?.version || '') ? release.version : 'dev';
-  } catch (error) {
-    return 'dev';
-  }
-}
+import { Auth } from '../../public/lib/auth.js';
+import { Store } from '../../public/lib/store.js';
+import { SearchHistory } from '../../public/lib/search-history.js';
+import { call } from '../../public/lib/api.js';
 
-export default defineNuxtPlugin(async () => {
-  const version = await deployedVersion();
-  const moduleUrl = (path: string) => version === 'dev' ? path : `${path}?v=${encodeURIComponent(version)}`;
-  const [{ Auth }, { Store }, { SearchHistory }, { call }] = await Promise.all([
-    import(/* @vite-ignore */ moduleUrl('/lib/auth.js')),
-    import(/* @vite-ignore */ moduleUrl('/lib/store.js')),
-    import(/* @vite-ignore */ moduleUrl('/lib/search-history.js')),
-    import(/* @vite-ignore */ moduleUrl('/lib/api.js'))
-  ]);
-
+export default defineNuxtPlugin(() => {
   Store.attachAuth();
   SearchHistory.attachAuth();
-  // Google Identity Services is an optional network integration. Hydration and
-  // all offline features must not wait for that script to load.
-  void Auth.init();
+
+  // Google Identity Services is optional. Start it after the first useful
+  // paint so the third-party request cannot compete with the document, CSS or
+  // hydration on a slow phone. An explicit sign-in click still initializes it
+  // immediately through Auth.signIn().
+  const startAuth = () => { void Auth.init(); };
+  const idle = (globalThis as any).requestIdleCallback;
+  if (typeof idle === 'function') idle(startAuth, { timeout: 2000 });
+  else setTimeout(startAuth, 0);
 
   return { provide: { auth: Auth, studyStore: Store, searchHistory: SearchHistory, apiCall: call } };
 });

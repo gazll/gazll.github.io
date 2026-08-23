@@ -1,15 +1,17 @@
 <script setup lang="ts">
-/* The denominator comes from data/content-index.json, never from the topics
+/* The denominator comes from the compact topic payload, never from the topics
    that happen to be loaded: topic files arrive lazily, so counting what is in
-   memory would shrink the ring to the one open topic. The index already drops
-   everything routed to another surface, which is why it is smaller than what
-   data/topics/ holds. */
-const props = withDefaults(defineProps<{ lang?: 'en' | 'vi' }>(), { lang: 'en' });
+   memory would shrink the ring to the one open topic. The legacy
+   `/api/content/item-index` route remains available for older prerendered
+   pages, while current pages receive the projection directly. */
+const props = withDefaults(defineProps<{ lang?: 'en' | 'vi'; index?: any }>(), { lang: 'en' });
 
 const { reviewed } = useStudyProgress();
-const { data: index } = await useAsyncData('content-index', () => $fetch<any>('/api/content/item-index'));
 
-const trackIds = computed<Set<string>>(() => new Set(Object.keys(index.value?.items || {})));
+const trackIds = computed<Set<string>>(() => new Set(
+  props.index?.track_item_ids
+    || Object.values(props.index?.topics || {}).flatMap((row: any) => row.track_item_ids || [])
+));
 const total = computed(() => trackIds.value.size);
 // Items moved to another surface keep their ids as stored Sheet keys, so a
 // reader's old progress rows stay in the Sheet but must not be counted here.

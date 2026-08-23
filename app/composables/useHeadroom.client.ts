@@ -31,8 +31,14 @@ export function useHeadroom() {
       const height = header.classList.contains('hidden') ? 0 : header.getBoundingClientRect().height;
       document.documentElement.style.setProperty('--hdr-h', `${height}px`);
     };
+    const revealOnFocus = () => {
+      if (!header.classList.contains('hidden')) return;
+      header.classList.remove('hidden');
+      syncHeaderOffset();
+    };
     const resize = new ResizeObserver(syncHeaderOffset);
     resize.observe(header);
+    header.addEventListener('focusin', revealOnFocus);
 
     const apply = () => {
       queued = false;
@@ -64,6 +70,7 @@ export function useHeadroom() {
 
     onBeforeUnmount(() => {
       window.removeEventListener('scroll', onScroll);
+      header.removeEventListener('focusin', revealOnFocus);
       resize.disconnect();
       document.documentElement.style.removeProperty('--hdr-h');
     });

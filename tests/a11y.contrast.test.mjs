@@ -52,6 +52,36 @@ test('every text colour clears WCAG AA against the surface it is printed on', as
     }
   }
 
+  // System-design reading roles stay semantic: normal and header copy use the
+  // reading surface, attention/rule/link copy uses its stable pale context,
+  // and code text is measured against the terminal surface rather than white.
+  const readingRoles = [
+    ['text-normal', surface, '--surface'],
+    ['text-header', surface, '--surface'],
+    ['text-meta', surface, '--surface'],
+    ['text-label', tokens.get('surface-reading-info'), '--surface-reading-info'],
+    ['text-high-attention', tokens.get('surface-reading-attention'), '--surface-reading-attention'],
+    ['text-rule', surface, '--surface'],
+    ['text-link', surface, '--surface'],
+    ['text-code', tokens.get('surface-code'), '--surface-code'],
+    ['text-code-muted', tokens.get('surface-code'), '--surface-code'],
+    ['text-code-inline', tokens.get('surface-code-inline'), '--surface-code-inline'],
+    ['text-migrated', tokens.get('surface-migrated'), '--surface-migrated'],
+    ['text-migrated-heading', tokens.get('surface-migrated'), '--surface-migrated'],
+    ['text-migrated-accent', tokens.get('surface-migrated-soft'), '--surface-migrated-soft'],
+    ['text-topbar', tokens.get('surface-topbar'), '--surface-topbar'],
+    ['text-topbar-muted', tokens.get('surface-topbar'), '--surface-topbar'],
+    ['text-topbar-accent', tokens.get('surface-topbar'), '--surface-topbar'],
+    ['focus-topbar', tokens.get('surface-topbar'), '--surface-topbar']
+  ];
+  for (const [name, background, label] of readingRoles) {
+    const value = tokens.get(name);
+    assert.ok(value && background, '--' + name + ' reading role tokens must exist');
+    const ratio = contrast(value, background);
+    assert.ok(ratio >= AA_NORMAL,
+      '--' + name + ' on ' + label + ' is ' + ratio.toFixed(2) + ':1, below ' + AA_NORMAL);
+  }
+
   // The difficulty pills print their accent on their own soft fill.
   const pills = [
     ['level-core', tokens.get('emerald-deep'), tokens.get('emerald-soft')],

@@ -60,20 +60,25 @@ export function serviceLog(item, today = todayISO()) {
     .map(entry => ({ ...entry, monthsAgo: monthsBetween(entry.date, today) }));
 }
 
-/** Age of each named part: its last replacement, or the purchase if never. */
-export function partAges(item, today = todayISO()) {
+function partAgesFromService(service) {
   const seen = new Map();
-  for (const entry of serviceLog(item, today)) {
+  for (const entry of service) {
     if (!entry.part || seen.has(entry.part)) continue;   // sorted, so first is newest
     seen.set(entry.part, { part: entry.part, since: entry.date, months: entry.monthsAgo, replaced: true });
   }
   return [...seen.values()];
 }
 
+/** Age of each named part: its last replacement, or the purchase if never. */
+export function partAges(item, today = todayISO()) {
+  return partAgesFromService(serviceLog(item, today));
+}
+
 /** One resolved row per item, sorted newest purchase first. */
 export function itemRows(items, { today = todayISO(), lang = 'en' } = {}) {
   return (items || []).map(item => {
     const end = warrantyEnd(item);
+    const service = serviceLog(item, today);
     return {
       id: item.id,
       item,
@@ -87,8 +92,8 @@ export function itemRows(items, { today = todayISO(), lang = 'en' } = {}) {
       warrantyStatus: warrantyStatus(item, today),
       warrantyDaysLeft: end ? diffDays(today, end) : null,
       monthsOwned: monthsOwned(item, today),
-      service: serviceLog(item, today),
-      parts: partAges(item, today)
+      service,
+      parts: partAgesFromService(service)
     };
   }).sort((a, b) => String(b.bought || '').localeCompare(String(a.bought || '')) || a.id.localeCompare(b.id));
 }

@@ -33,6 +33,72 @@ import { pathToFileURL } from 'node:url';
     assert.match(header, /<SearchOverlay/);
   });
 
+  test('major surfaces expose stable targeting hooks for development', async () => {
+    const [header, design, question, release, collection, libraries, calendar] = await Promise.all([
+      read('app/components/content/ContentHeader.vue'),
+      read('app/pages/system-design/[slug].vue'),
+      read('app/components/study/QuestionCard.vue'),
+      read('app/pages/release-notes.vue'),
+      read('app/components/content/CollectionArticle.vue'),
+      read('app/components/content/CollectionIndex.vue'),
+      read('app/components/calendar/CalendarSurface.client.vue')
+    ]);
+
+    for (const hook of [
+      'id="site-header" class="top" data-ui="site-header"',
+      'id="top-inner" class="top-inner" data-ui="top-inner"',
+      'id="header-controls" class="headright" data-ui="header-controls"'
+    ]) assert.ok(header.includes(hook), `header hook missing: ${hook}`);
+    for (const hook of [
+      'id="system-design-article" data-ui="system-design-article"',
+      'id="system-design-body" data-ui="system-design-body"',
+      'data-ui="migrated-note"',
+      'data-ui="research-pack"'
+    ]) assert.ok(design.includes(hook), `system-design hook missing: ${hook}`);
+    for (const hook of [
+      'data-ui="study-question-card"',
+      ':id="`question-${item.id}-toggle`"',
+      ':id="`question-${item.id}-answer-body`"'
+    ]) assert.ok(question.includes(hook), `study hook missing: ${hook}`);
+    for (const hook of [
+      'id="release-notes-page" data-ui="release-notes-page"',
+      'id="release-notes-list" data-ui="release-list"',
+      'data-ui="release-item"'
+    ]) assert.ok(release.includes(hook), `release hook missing: ${hook}`);
+    for (const hook of [
+      ':id="`${collection}-article`" :data-ui="`${collection}-article`"',
+      ':id="`${collection}-article-body`" data-ui="article-body"',
+      'data-ui="article-lightbox"'
+    ]) assert.ok(collection.includes(hook), `collection hook missing: ${hook}`);
+    for (const hook of [
+      ':id="`${collection}-library`" :data-ui="`${collection}-library`"',
+      'data-ui="collection-group"'
+    ]) assert.ok(libraries.includes(hook), `library hook missing: ${hook}`);
+    for (const hook of [
+      'id="calendar-surface" data-ui="calendar-surface"',
+      'id="calendar-toolbar" data-ui="calendar-toolbar"',
+      'id="calendar-date-nav" data-ui="calendar-date-nav"',
+      'id="calendar-views" data-ui="calendar-views"',
+      'id="cal-view-panel" data-ui="calendar-view-panel"',
+      'id="calendar-month-grid" data-ui="calendar-month-grid"',
+      'id="calendar-today-strip" data-ui="calendar-today-strip"',
+      'id="calendar-rail" data-ui="calendar-rail"',
+      'id="calendar-unlock" data-ui="calendar-unlock"'
+    ]) assert.ok(calendar.includes(hook), `calendar hook missing: ${hook}`);
+    assert.match(calendar, /openDay\(row\.date, true\)/, 'calendar holiday links should reveal the selected day');
+    assert.match(calendar, /:aria-busy="inboxBusy"/, 'calendar inbox should expose its pending state');
+    assert.match(calendar, /:disabled="inboxBusy"/, 'calendar inbox actions should lock while syncing');
+    assert.match(calendar, /aria-live="polite" aria-atomic="true"/, 'calendar navigation should announce view changes');
+    assert.match(calendar, /:disabled="!canStepPrev"/, 'calendar should stop at its supported lower boundary');
+    assert.match(calendar, /:disabled="!canStepNext"/, 'calendar should stop at its supported upper boundary');
+    assert.match(calendar, /monthFocusDate/, 'calendar month grid should expose one roving keyboard focus target');
+    assert.match(calendar, /@keydown="moveMonthCell\(\$event, cell\.date\)"/, 'calendar month grid should support arrow navigation');
+    assert.match(calendar, /removeCandidate/,
+      'calendar destructive inbox actions should have an inline confirmation state');
+    assert.match(calendar, /confirmClearMerged/,
+      'bulk inbox deletion should have an explicit confirmation state');
+  });
+
   test('native search uses the established search UI contract and a static client index', async () => {
     const [page, overlay, config] = await Promise.all([
       read('app/pages/search.vue'),
@@ -46,6 +112,8 @@ import { pathToFileURL } from 'node:url';
     assert.match(overlay, /ctrlKey \|\| event\.metaKey/);
     // one index file per language: fetching the other one renders every row blank
     assert.match(overlay, /search-index\/\$\{props\.lang\}/);
+    assert.match(overlay, /labels\.remove/);
+    assert.match(page, /labels\.remove/);
     assert.match(config, /search-index\/en/);
     assert.match(config, /search-index\/vi/);
   });
@@ -102,6 +170,81 @@ import { pathToFileURL } from 'node:url';
       'the Mermaid diagram must not be client-only');
     assert.match(design, /class="sd-article-grid"/);
     assert.match(design, /class="sd-article-body"/);
+    assert.match(design, /IntersectionObserver/);
+    assert.match(design, /activeSectionId/);
+    assert.match(article, /IntersectionObserver/);
+    assert.match(article, /activeHeadingId/);
+    assert.match(article, /aria-current.*location/);
+    assert.match(article, /lightboxReturnFocus/);
+    assert.match(article, /function closeLightbox/);
+    assert.match(article, /@cancel\.prevent="closeLightbox"/);
+    assert.ok(styles.includes('.cs-lightbox>button{width:44px;height:44px;right:max(12px,env(safe-area-inset-right))'),
+      'article image controls should keep a visible close target');
+    assert.ok(styles.includes('.sd-diagram-zoom button{min-width:44px}'),
+      'diagram zoom controls should remain thumb-sized on mobile');
+    const project = await read('app/pages/project.vue');
+    assert.match(project, /activeSectionId/);
+    assert.match(project, /aria-current="activeSectionId === entry\[0\] \? 'location' : undefined"/);
+  });
+
+  test('system-design articles keep one reading column and an on-demand contents panel', async () => {
+    const [design, styles] = await Promise.all([
+      read('app/pages/system-design/[slug].vue'),
+      read('public/styles.css')
+    ]);
+
+    assert.match(design, /const tocCollapsed = ref\(true\)/);
+    assert.ok(styles.includes('.sd-article-head,.sd-article-grid,.sd-article-body{width:100%;max-width:none}'));
+    assert.ok(styles.includes('.sd-article-grid{position:relative;display:block;transition:none}'));
+    assert.ok(styles.includes('.sd-toc nav{position:absolute;'));
+    assert.ok(styles.includes('.sd-article.toc-collapsed .sd-toc nav{display:none}'));
+    assert.ok(styles.includes('.sd-toc a[aria-current="location"]'));
+    assert.ok(styles.includes('.cs-toc a[aria-current="location"]'));
+    assert.ok(styles.includes('.pj-toc a[aria-current="location"]'));
+    assert.ok(styles.includes('.toc-current{min-width:0;max-width:58%'));
+  });
+
+  test('system-design prose keeps a natural rag, indentation and opening drop cap', async () => {
+    const styles = await read('public/styles.css');
+
+    assert.ok(styles.includes('.sd-article-body,.sd-article-body p{text-align:left;text-align-last:auto}'));
+    assert.ok(styles.includes('.sd-article-body .sd-prose,.sd-article-body .sd-part>p,'));
+    assert.ok(styles.includes('.sd-article-body .sd-scope .sd-prose:first-of-type::first-letter'));
+  });
+
+  test('release notes use a zero-padding shell with explicit inner reading gutters', async () => {
+    const styles = await read('public/styles.css');
+
+    assert.ok(styles.includes('.rn-page{padding:0;overflow:hidden}'));
+    assert.ok(styles.includes('.rn-page>.rn-head{max-width:none;padding:clamp(30px,4vw,50px)'));
+    assert.ok(styles.includes('.rn-page>.rn-body{max-width:1080px;margin:0 auto;padding:0 clamp(22px,5vw,72px)'));
+    assert.ok(styles.includes('.rn-rel{background:transparent;border-color:transparent;box-shadow:none;border-radius:0;padding-inline:0}'));
+    assert.ok(styles.includes('.rn-filters{display:flex;align-items:flex-end;flex-wrap:wrap;'));
+    assert.ok(styles.includes('.rn-filter-field select{width:100%;min-height:40px;'));
+    assert.match(await read('app/pages/release-notes.vue'), /class="rn-empty-clear"/, 'empty release filters should offer a direct reset');
+  });
+
+  test('system-design reading colors use semantic roles instead of purple body text', async () => {
+    const styles = await read('public/styles.css');
+
+    for (const token of [
+      '--text-normal:#34465B', '--text-header:#14233A', '--text-meta:#536477',
+      '--text-label:#385367', '--text-high-attention:#914133', '--text-rule:#085239',
+      '--text-link:#0B5F6B', '--text-code:#E6ECF5', '--text-code-muted:#A8B7C9',
+      '--text-code-inline:#24415F', '--text-migrated:#5B4A30',
+      '--text-migrated-heading:#4A351A', '--text-migrated-accent:#795822',
+      '--surface-topbar:#DCE7F0', '--text-topbar:#14233A', '--text-topbar-muted:#536477',
+      '--text-topbar-accent:#085239', '--focus-topbar:#0B5F6B'
+    ]) assert.ok(styles.includes(token), `${token} reading role missing`);
+    assert.ok(styles.includes('.sd-article-body .sd-crit{color:var(--text-high-attention)}'));
+    assert.ok(styles.includes('.sd-article-body .sd-scope .sd-prose:first-of-type::first-letter{color:var(--text-header)}'));
+    assert.ok(styles.includes('.sd-article-body .sd-prose,.sd-article-body .sd-section>p,'));
+    assert.ok(styles.includes('.sd-article-body pre code{color:var(--text-code);background:none}'));
+    assert.ok(styles.includes('.sd-article-body .sd-notes{padding:20px;border:1px solid var(--line-migrated)'));
+    assert.ok(styles.includes('.sd-article-body .sd-notes summary{color:var(--text-migrated-heading)'));
+    assert.ok(styles.includes('header.top{background:var(--surface-topbar);border-bottom-color:var(--line-topbar)}'));
+    assert.ok(styles.includes('.top-inner{background:var(--surface-topbar);color:var(--text-topbar)}'));
+    assert.ok(styles.includes('.top-inner .ring::after{background:var(--surface-topbar)}'));
   });
 
   test('topic and navigation rows retain visible spacing and separators', async () => {
@@ -124,10 +267,47 @@ import { pathToFileURL } from 'node:url';
     assert.match(styles, /\.tm-row\{[^}]*text-decoration:none/);
   });
 
+  test('header spends its available width on topic context and search', async () => {
+    const styles = await read('public/styles.css');
+
+    assert.ok(styles.includes('.topicpick .tp-text{flex:1 1 auto}'));
+    assert.ok(styles.includes('.topicpick{flex:1 1 680px;max-width:none}'));
+    assert.ok(styles.includes('.searchtrigger{flex:1 1 300px;min-width:270px;width:auto;justify-content:flex-start}'));
+    assert.ok(styles.includes('.top-inner{gap:8px;padding-left:max(12px,env(safe-area-inset-left));'));
+    assert.ok(styles.includes('.searchtrigger{flex:0 0 44px;width:44px;min-width:44px;padding:0;justify-content:center}'));
+  });
+
+  test('navigation surfaces keep keyboard focus inside open menus', async () => {
+    const header = await read('app/components/content/ContentHeader.vue');
+    assert.match(header, /function trapMenuFocus/);
+    assert.match(header, /function moveTopic/);
+    assert.match(header, /@keydown="moveTopic"/);
+    assert.match(header, /ref="drawer"/);
+    assert.match(header, /ref="topicMenu"/);
+    assert.match(header, /rememberLanguageScroll/);
+    assert.match(header, /restoreLanguageScroll/);
+    assert.match(header, /languageActionLabel/);
+    assert.match(header, /topicQuery\.value = ''/,
+      'closing the topic picker should clear a stale filter');
+    assert.match(header, /aria-current="route\.path === '\/release-notes' \? 'page' : undefined"/);
+    assert.match(header, /sessionStorage\.setItem\(LANGUAGE_SCROLL_KEY/,
+      'language changes should preserve the reader viewport');
+  });
+
   test('search overlay keeps the see-all action in its top search panel', async () => {
     const overlay = await read('app/components/search/SearchOverlay.client.vue');
 
     assert.match(overlay, /<div class="gs-box">[\s\S]*?<button[^>]*class="gs-more"[\s\S]*?<\/button>[\s\S]*?<\/div>\s*<div class="gs-body">/);
+    assert.match(overlay, /role="combobox"/);
+    assert.match(overlay, /aria-activedescendant/);
+    assert.match(overlay, /role="listbox"/);
+    assert.match(overlay, /function retrySearch/);
+    assert.match(overlay, /class="gs-retry"/);
+    assert.match(overlay, /function trapFocus/);
+    assert.match(overlay, /ref="overlay"/);
+    assert.match(overlay, /labels\.remove/,
+      'recent-search removal should expose a localized accessible name');
+    assert.match(overlay, /scrollIntoView\(\{ block: 'nearest' \}\)/);
   });
 
   test('migrated System Design questions remain readable and searchable at their new owner', async () => {
@@ -148,9 +328,10 @@ import { pathToFileURL } from 'node:url';
   });
 
   test('study cards preserve bilingual controls, bulk expansion, review dates and deep links', async () => {
-    const [topic, card] = await Promise.all([
+    const [topic, card, styles] = await Promise.all([
       read('app/components/study/TopicPage.vue'),
-      read('app/components/study/QuestionCard.vue')
+      read('app/components/study/QuestionCard.vue'),
+      read('public/styles.css')
     ]);
 
     assert.match(topic, /Expand all/);
@@ -160,6 +341,43 @@ import { pathToFileURL } from 'node:url';
     assert.match(card, /revealHash/);
     assert.match(card, /resolveRef/);
     assert.match(card, /Copied/);
+    assert.match(card, /class="qprompt"/);
+    assert.match(card, /role="region"/);
+    assert.match(card, /class="note-toggle"/);
+    assert.match(card, /class="note-status"/);
+    assert.match(card, /role="status" aria-live="polite"/, 'review/copy actions should announce completion');
+    assert.match(card, /function persistNote/);
+    assert.match(card, /function switchLanguage/);
+    assert.match(card, /class="sr-only" role="status" aria-live="polite">\{\{ languageAnnouncement/,
+      'question language changes should announce the new reading language');
+    assert.match(card, /window\.scrollBy\(0, delta\)/,
+      'question language changes should preserve the card viewport on mobile');
+    assert.match(styles, /\.view-track \.qmeta\{[^}]*flex-direction:column/);
+    assert.match(styles, /\.view-track \.answer-body\{[^}]*max-width:none/);
+    assert.match(styles, /\.view-track \.qcard\.open \.qtop,\.view-track \.qcard\.open>\.qhead\{position:static/);
+    assert.match(styles, /\.view-track \.qmeta\{grid-column:1;display:flex;flex-direction:row/,
+      'mobile study actions should become a horizontal footer row');
+    assert.match(styles, /\.view-track \.qmeta>\.manual-review \.manual-review-label\{display:inline\}/,
+      'mobile review state should keep a visible label');
+    assert.match(card, /class="qcopy-short"/);
+    assert.match(card, /class="qlang-current"/);
+    assert.match(styles, /\.manual-review-short,\.qcopy-short,\.qlang-current\{display:none\}/);
+    assert.match(styles, /\.view-track \.sectioncount \.study-progress\{display:inline-flex!important\}/,
+      'mobile study controls should retain review progress');
+    assert.match(topic, /const nextUnreviewedId/,
+      'study topics should expose a clear resume target');
+    assert.match(topic, /class="sectioncount" aria-live="polite" aria-atomic="true"/,
+      'study progress should announce reviewed-count changes');
+    assert.match(topic, /id="study-continue"/,
+      'study topics should expose a continue action');
+    assert.match(topic, /class="study-complete"/,
+      'fully reviewed study topics should expose a completion state');
+    assert.match(topic, /focus\(\{ preventScroll: true \}\)/,
+      'study continue should return keyboard focus to the opened question');
+    assert.match(styles, /\.cal-selected-inline\{order:3\}/,
+      'mobile calendar should surface selected-day detail before the legend');
+    assert.match(styles, /\.sd-toc-mobile nav a,\.cs-toc-mobile nav a,\.pj-toc-mobile nav a\{[\s\S]*?min-height:44px/,
+      'mobile article TOC links should remain thumb-sized');
   });
 
   test('Gazl is a native Vue journal with CRUD, import, sync and Mermaid review', async () => {
@@ -222,11 +440,20 @@ import { pathToFileURL } from 'node:url';
 
     for (const contract of ['pj-toc', 'ContentMermaidDiagram', 'pj-requirement-list', 'pj-sample-list', 'pj-doc-group']) assert.ok(project.includes(contract));
     assert.match(releases, /group.*Map|const groups = new Map/);
+    assert.match(releases, /id="release-notes-filters"/);
+    assert.match(releases, /const filteredDays/);
+    assert.match(releases, /id="release-year-filter"/);
+    assert.match(releases, /id="release-kind-filter"/);
+    assert.match(releases, /filteredSummary/);
+    assert.match(releases, /id="release-notes-filter-summary"/);
     assert.match(search, /searchHistory/);
     assert.match(overlay, /Recent searches/);
     assert.match(collection, /Recently updated/);
     assert.match(article, /is-toc-collapsed/);
     assert.match(article, /md-heading-anchor/);
+    assert.match(article, /function closeMobileToc/);
+    assert.match(project, /function closeMobileToc/);
+    assert.match(overlay, /aria-activedescendant/);
   });
 }
 
@@ -246,6 +473,7 @@ import { pathToFileURL } from 'node:url';
     for (const selector of ['class="rn-change"', 'class="rn-cmeta"', 'class="rn-text"']) {
       assert.ok(release.includes(selector), `release notes is missing ${selector}`);
     }
+    assert.match(release, /const groups = new Map/);
     assert.match(gazl, /empty-q/);
     assert.match(question, /new URL\('\/lib\/dsa-player\.js', window\.location\.origin\)/);
     assert.doesNotMatch(question, /\/views\/dsa-player\.js/);
@@ -276,8 +504,11 @@ import { pathToFileURL } from 'node:url';
     assert.ok(header.includes('useHeadroom()'), 'the shared header must run headroom');
     assert.match(headroom, /setProperty\('--hdr-h'/, '--hdr-h must be published');
     assert.match(headroom, /classList\.add\('hidden'\)/, 'the header must hide on scroll-down');
+    assert.match(headroom, /revealOnFocus/,
+      'keyboard focus should reveal a header hidden by headroom');
     // Every sticky offset is measured against it, so the fallback is not enough.
     assert.ok(styles.includes('header.top.hidden{transform:translateY(-100%)}'));
+    assert.ok(styles.includes('header.top.hidden:focus-within{transform:translateY(0)}'));
     assert.ok((styles.match(/var\(--hdr-h/g) || []).length >= 5,
       'sticky rules still depend on --hdr-h');
     // The drawer and topic panel own the header while open.
@@ -466,6 +697,21 @@ import { pathToFileURL } from 'node:url';
     const css = await read('public/styles.css');
     assert.match(css, /prefers-reduced-motion:reduce/);
     assert.match(css, /\.loading-block/);
+  });
+
+  test('static tools expose a bilingual retry state instead of leaking loader errors', async () => {
+    const [surface, fshare, course, styles] = await Promise.all([
+      read('app/components/StaticToolSurface.client.vue'),
+      read('app/pages/fshare-tool.vue'),
+      read('app/pages/course-registration.vue'),
+      read('public/styles.css')
+    ]);
+    assert.match(surface, /lang\?: 'en' \| 'vi'/);
+    assert.match(surface, /function retry/);
+    assert.match(surface, /class="static-tool-retry"/);
+    assert.match(fshare, /lang="en"/);
+    assert.match(course, /lang="vi"/);
+    assert.match(styles, /\.static-tool-retry:focus-visible/);
   });
 }
 

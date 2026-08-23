@@ -21,6 +21,15 @@ export const ENVELOPE_VERSION = 1;
 export const KDF_ITERATIONS = 310000;
 const SALT_BYTES = 16;
 const IV_BYTES = 12;
+/* The envelope is fetched from a public repository. Treat its metadata as
+   hostile input: without a ceiling, a tampered `iterations` field could make
+   every visitor spend an unbounded amount of CPU before the passphrase is
+   even checked. Ciphertext is also bounded so a compromised static artifact
+   cannot turn an unlock attempt into an allocation bomb. */
+const MAX_CIPHERTEXT_BYTES = 2 * 1024 * 1024;
+const MIN_CIPHERTEXT_BYTES = 16; // AES-GCM authentication tag
+export const MAX_ENVELOPE_JSON_CHARS = 3 * 1024 * 1024;
+const MAX_HINT_CHARS = 2000;
 
 const subtle = () => {
   const api = globalThis.crypto?.subtle;
@@ -28,7 +37,18 @@ const subtle = () => {
   return api;
 };
 
-const toBase64 = (bytes) => btoa(String.fromCharCode(...new Uint8Array(bytes)));
+/* Spreading a whole ciphertext into String.fromCharCode hits the browser's
+   argument limit once a private schedule grows beyond a few hundred KB. Keep
+   the conversion linear and bounded in every engine instead. */
+const toBase64 = (bytes) => {
+  const view = new Uint8Array(bytes);
+  let binary = '';
+  const chunk = 0x8000;
+  for (let offset = 0; offset < view.length; offset += chunk) {
+    binary += String.fromCharCode(...view.subarray(offset, offset + chunk));
+  }
+  return btoa(binary);
+};
 const fromBase64 = (text) => Uint8Array.from(atob(text), char => char.charCodeAt(0));
 
 async function deriveKey(passphrase, salt, iterations) {
@@ -42,6 +62,45 @@ async function deriveKey(passphrase, salt, iterations) {
     false,
     ['encrypt', 'decrypt']
   );
+}
+
+const BASE64 = /^[A-Za-z0-9+/]+={0,2}$/;
+
+function decodeField(value, name, { exactBytes, minBytes = 0, maxBytes = MAX_CIPHERTEXT_BYTES } = {}) {
+  if (typeof value !== 'string' || !value || value.length > Math.ceil(maxBytes * 4 / 3) + 4 || !BASE64.test(value)) {
+    throw new Error(`Invalid sealed schedule ${name}.`);
+  }
+  let bytes;
+  try { bytes = fromBase64(value); }
+  catch (error) { throw new Error(`Invalid sealed schedule ${name}.`); }
+  if (exactBytes != null && bytes.length !== exactBytes) throw new Error(`Invalid sealed schedule ${name}.`);
+  if (bytes.length < minBytes || bytes.length > maxBytes) throw new Error(`Invalid sealed schedule ${name}.`);
+  return bytes;
+}
+
+function validateEnvelope(envelope) {
+  if (!envelope || typeof envelope !== 'object' || Array.isArray(envelope)) {
+    throw new Error('Not a sealed envelope.');
+  }
+  if (envelope.v !== ENVELOPE_VERSION || envelope.alg !== 'AES-GCM-256' || envelope.kdf !== 'PBKDF2-SHA-256') {
+    throw new Error(`Unsupported envelope version ${envelope.v}.`);
+  }
+  const iterations = Number(envelope.iterations);
+  /* This version emits one fixed KDF profile. Reject both a downgrade and an
+     attacker-controlled increase instead of silently accepting either. */
+  if (!Number.isSafeInteger(iterations) || iterations !== KDF_ITERATIONS) {
+    throw new Error('Unsupported sealed schedule KDF parameters.');
+  }
+  const salt = decodeField(envelope.salt, 'salt', { exactBytes: SALT_BYTES, maxBytes: SALT_BYTES });
+  const iv = decodeField(envelope.iv, 'iv', { exactBytes: IV_BYTES, maxBytes: IV_BYTES });
+  const ct = decodeField(envelope.ct, 'ciphertext', {
+    minBytes: MIN_CIPHERTEXT_BYTES,
+    maxBytes: MAX_CIPHERTEXT_BYTES
+  });
+  if (envelope.hint != null && (typeof envelope.hint !== 'string' || envelope.hint.length > MAX_HINT_CHARS)) {
+    throw new Error('Invalid sealed schedule hint.');
+  }
+  return { salt, iv, ct, iterations };
 }
 
 /**
@@ -77,17 +136,16 @@ export async function seal(value, passphrase, { hint = '' } = {}) {
 
 /** The envelope back to the original object. Throws on a wrong passphrase. */
 export async function unseal(envelope, passphrase) {
-  if (!envelope || typeof envelope !== 'object') throw new Error('Not a sealed envelope.');
-  if (envelope.v !== ENVELOPE_VERSION) throw new Error(`Unsupported envelope version ${envelope.v}.`);
+  const checked = validateEnvelope(envelope);
   if (!passphrase) throw new Error('A passphrase is required.');
 
-  const key = await deriveKey(passphrase, fromBase64(envelope.salt), Number(envelope.iterations) || KDF_ITERATIONS);
+  const key = await deriveKey(passphrase, checked.salt, checked.iterations);
   let plain;
   try {
     plain = await subtle().decrypt(
-      { name: 'AES-GCM', iv: fromBase64(envelope.iv) },
+      { name: 'AES-GCM', iv: checked.iv },
       key,
-      fromBase64(envelope.ct)
+      checked.ct
     );
   } catch (error) {
     // GCM authenticates, so a failure here is a wrong key or a damaged file —
@@ -99,4 +157,7 @@ export async function unseal(envelope, passphrase) {
 
 /** A cheap shape check before asking anyone for a passphrase. */
 export const isEnvelope = (value) =>
-  Boolean(value && typeof value === 'object' && value.v === ENVELOPE_VERSION && value.ct && value.iv && value.salt);
+  (() => {
+    try { validateEnvelope(value); return true; }
+    catch (error) { return false; }
+  })();

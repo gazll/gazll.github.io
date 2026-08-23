@@ -1,5 +1,22 @@
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 const DAY_MS = 86400000;
+const dateFormatters = new Map();
+const relativeFormatters = new Map();
+
+const localeFor = lang => lang === 'vi' ? 'vi-VN' : 'en';
+const dateFormatter = lang => {
+  const locale = localeFor(lang);
+  if (!dateFormatters.has(locale)) dateFormatters.set(locale, new Intl.DateTimeFormat(locale, {
+    day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC'
+  }));
+  return dateFormatters.get(locale);
+};
+const relativeFormatter = lang => {
+  const locale = localeFor(lang);
+  if (!relativeFormatters.has(locale)) relativeFormatters.set(locale,
+    new Intl.RelativeTimeFormat(locale, { numeric: 'auto' }));
+  return relativeFormatters.get(locale);
+};
 
 const LABELS = {
   en: { published: 'Source published', created: 'Added to Gazl', updated: 'Updated', reviewed: 'Technically reviewed' },
@@ -10,12 +27,7 @@ export function formatContentDate(value, lang = 'en') {
   if (!ISO_DATE.test(String(value || ''))) return '';
   const date = new Date(value + 'T00:00:00Z');
   if (Number.isNaN(date.getTime())) return '';
-  return new Intl.DateTimeFormat(lang === 'vi' ? 'vi-VN' : 'en', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-    timeZone: 'UTC'
-  }).format(date);
+  return dateFormatter(lang).format(date);
 }
 
 /* "Updated 3 days ago" answers the question a date stamp is actually asked —
@@ -42,8 +54,7 @@ export function relativeContentDate(value, lang = 'en', now = Date.now()) {
   const days = Math.round((then - Math.floor(now / DAY_MS) * DAY_MS) / DAY_MS);
   if (Math.abs(days) > RECENT_DAYS) return formatContentDate(value, lang);
 
-  const locale = lang === 'vi' ? 'vi-VN' : 'en';
-  const relative = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
+  const relative = relativeFormatter(lang);
   if (Math.abs(days) < 7) return relative.format(days, 'day');
   return relative.format(Math.round(days / 7), 'week');
 }

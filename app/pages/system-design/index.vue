@@ -34,8 +34,8 @@ useStickyGroupHeads(libraryRoot, '.sd-group>header');
   <div>
     <ContentHeader :lang="lang" />
     <main id="view-host" tabindex="-1" ref="libraryRoot" class="view">
-      <div class="sd-library">
-        <header class="sd-hero">
+      <div id="system-design-library" data-ui="system-design-library" class="sd-library">
+        <header id="system-design-library-header" data-ui="library-header" class="sd-hero">
           <p class="cs-eyebrow">{{ copy.eyebrow }}</p>
           <h1>{{ copy.title }}</h1>
           <p>{{ copy.intro }}</p>
@@ -46,7 +46,7 @@ useStickyGroupHeads(libraryRoot, '.sd-group>header');
           </div>
         </header>
 
-        <section v-for="group in groups" :key="group.id" class="sd-group" :aria-labelledby="`sd-group-${group.id}`">
+        <section v-for="group in groups" :key="group.id" data-ui="system-design-group" :data-group-id="group.id" class="sd-group" :aria-labelledby="`sd-group-${group.id}`">
           <header>
             <div><p>Blueprint collection</p><h2 :id="`sd-group-${group.id}`">{{ group.copy.label }}</h2><span>{{ group.copy.description }}</span></div>
             <b>{{ group.designs.length }}</b>
@@ -66,7 +66,7 @@ useStickyGroupHeads(libraryRoot, '.sd-group>header');
           </div>
         </section>
 
-        <section v-if="data.cases?.length" class="sd-group sd-production" aria-labelledby="sd-group-production-cases">
+        <section v-if="data.cases?.length" id="system-design-production-cases" data-ui="system-design-production-cases" class="sd-group sd-production" aria-labelledby="sd-group-production-cases">
           <header>
             <div><p>Production evidence</p><h2 id="sd-group-production-cases">{{ production.label }}</h2><span>{{ production.description }}</span></div>
             <b>{{ data.cases.length }}</b>

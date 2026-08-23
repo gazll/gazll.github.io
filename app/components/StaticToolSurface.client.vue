@@ -2,11 +2,15 @@
 const props = defineProps<{
   shell: string
   controller: string
+  lang?: 'en' | 'vi'
 }>();
 
 const mountPoint = useTemplateRef<HTMLElement>('mountPoint');
 const failure = ref('');
 const loading = ref(true);
+const labels = computed(() => props.lang === 'vi'
+  ? { loading: 'Đang tải công cụ…', error: 'Không thể tải công cụ này.', retry: 'Thử lại' }
+  : { loading: 'Loading tool…', error: 'This tool could not be loaded.', retry: 'Try again' });
 
 async function deployedVersion() {
   try {
@@ -41,16 +45,20 @@ onMounted(async () => {
     loading.value = false;
   }
 });
+function retry() {
+  if (import.meta.client) window.location.reload();
+}
 </script>
 
 <template>
-  <div class="static-tool-surface">
+  <div class="static-tool-surface" :aria-busy="loading">
     <div ref="mountPoint" class="static-tool-mount"></div>
     <p v-show="loading" class="static-tool-status" role="status" aria-live="polite">
-      Loading tool…
+      {{ labels.loading }}
     </p>
-    <p v-show="!loading && failure" class="static-tool-status static-tool-error" role="alert">
-      {{ failure }}
-    </p>
+    <div v-show="!loading && failure" class="static-tool-status static-tool-error" role="alert">
+      <span>{{ labels.error }}</span>
+      <button type="button" class="static-tool-retry" @click="retry">{{ labels.retry }}</button>
+    </div>
   </div>
 </template>

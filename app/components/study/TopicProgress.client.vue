@@ -6,19 +6,18 @@
    I not finished". The migration dropped it and left the `.tm-prog/.tm-bar/
    .tm-pct` rules behind with nothing rendering them.
 
-   Client-only, and it shares `useAsyncData`'s `content-index` key with the
-   progress ring, so the index is fetched once however many rows render. The
-   denominator is that index for the same reason the ring uses it: item files
-   load lazily, so counting what is in memory would shrink to the open topic. */
-const props = defineProps<{ n: number }>();
+   Client-only, and it receives the compact progress projection from the
+   current topic payload, so opening the picker never starts one request per
+   row. The denominator is that projection: item files load lazily, so
+   counting what is in memory would shrink to the open topic. The legacy
+   `/api/content/item-index` route remains available for older prerendered
+   pages. */
+const props = defineProps<{ n: number; index?: any }>();
 
 const { reviewed } = useStudyProgress();
-/* Not awaited: an async setup inside <ClientOnly> has no Suspense boundary to
-   resolve against, so awaiting here renders nothing at all. The ref fills in. */
-const { data: index } = useAsyncData('content-index', () => $fetch<any>('/api/content/item-index'));
 
 const itemIds = computed<string[]>(() => {
-  const rows: any[] = Object.values(index.value?.topics || {});
+  const rows: any[] = Object.values(props.index?.topics || {});
   return rows.find(row => row.n === props.n)?.item_ids || [];
 });
 const total = computed(() => itemIds.value.length);

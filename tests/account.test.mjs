@@ -94,6 +94,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
       clearTimeout(id) { if (timers[id - 1]) timers[id - 1].cancelled = true; },
       TextDecoder,
       Uint8Array,
+      URL,
       window: { google }
     });
 
@@ -143,6 +144,22 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
     assert.equal(b.Auth.token, null);
     assert.equal(b.Auth.connecting, false);
     assert.equal(b.promptCalls, 0, 'startup must not open Google sign-in');
+  });
+
+  test('a profile hint cannot make the avatar request an arbitrary origin', async () => {
+    const b = await loadAuth({ storedProfile: {
+      ...HINT,
+      picture: 'https://attacker.invalid/avatar.png'
+    } });
+    await b.Auth.init();
+    assert.equal(b.Auth.identity.picture, '');
+
+    const trusted = await loadAuth({ storedProfile: {
+      ...HINT,
+      picture: 'https://lh3.googleusercontent.com/a/profile'
+    } });
+    await trusted.Auth.init();
+    assert.equal(trusted.Auth.identity.picture, 'https://lh3.googleusercontent.com/a/profile');
   });
 
   test('a credential arriving after an explicit prompt resolves into signed', async () => {
@@ -530,6 +547,32 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
     assert.equal(request.options.cache, 'no-store');
     assert.equal(request.options.credentials, 'omit');
     assert.equal(request.options.referrerPolicy, 'no-referrer');
+  });
+
+  test('the API transport rejects oversized backend responses before JSON parsing', async () => {
+    const source = await readFile(path.join(root, 'public/lib/api.js'), 'utf8');
+    const context = vm.createContext({
+      fetch: async () => ({ ok: true, status: 200, async text() { return 'x'.repeat(2 * 1024 * 1024 + 1); } })
+    });
+    const config = new vm.SourceTextModule(
+      'export const SCRIPT_URL = "https://backend.invalid/exec";',
+      { context, identifier: 'config.js' }
+    );
+    await config.link(() => {});
+    await config.evaluate();
+    const apiModule = new vm.SourceTextModule(source, {
+      context,
+      identifier: path.join(root, 'public/lib/api.js')
+    });
+    await apiModule.link(specifier => {
+      assert.equal(specifier, '../config.js');
+      return config;
+    });
+    await apiModule.evaluate();
+    await assert.rejects(
+      () => apiModule.namespace.call('pull', {}, 'private-id-token'),
+      /response is too large/i
+    );
   });
 
   test('an unauthenticated backend request is rejected before any action can run', async () => {

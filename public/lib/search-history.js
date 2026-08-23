@@ -14,7 +14,10 @@
    reader nothing: every network path here fails into local-only history. */
 import { call } from './api.js';
 import { Auth } from './auth.js';
-import { fold } from './search.js';
+// Keep history on the small text leaf. Importing the full search engine here
+// pulls ranking, highlighting and markdown escaping into every initial page,
+// even when the search panel has not been opened yet.
+import { fold } from './search-text.js';
 
 const SESSION_KEY = 'gazl.search.session';
 const ACCOUNT_PREFIX = 'gazl.search.';
@@ -95,6 +98,7 @@ export const SearchHistory = {
 
   _pending: new Map(),
   _timer: null,
+  _inflight: null,
 
   get signedIn() { return this.bucket !== 'anon'; },
   get storageKey() { return this.signedIn ? ACCOUNT_PREFIX + this.bucket : SESSION_KEY; },
@@ -211,14 +215,23 @@ export const SearchHistory = {
   },
 
   /** Best-effort: a failed send leaves the rows queued for the next attempt. */
-  async _flush() {
+  _flush() {
     clearTimeout(this._timer);
-    if (!this.signedIn || !this.auth.enabled || !this.auth.token || !this._pending.size) return;
+    if (this._inflight) return this._inflight;
+    if (!this.signedIn || !this.auth.enabled || !this.auth.token || !this._pending.size) return Promise.resolve();
     const batch = [...this._pending.values()];
-    try {
-      await call('search.push', { history: batch }, this.auth.token);
-      for (const entry of batch) this._pending.delete(keyOf(entry));
-    } catch (error) {}
+    this._inflight = (async () => {
+      try {
+        await call('search.push', { history: batch }, this.auth.token);
+        for (const entry of batch) this._pending.delete(keyOf(entry));
+      } catch (error) {
+        // Best effort: keeping the entries queued lets the next sign-in or
+        // successful network event retry without duplicating requests now.
+      } finally {
+        this._inflight = null;
+      }
+    })();
+    return this._inflight;
   },
 
   async _deleteRemote(payload) {

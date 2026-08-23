@@ -9,11 +9,11 @@ useSeoMeta({
 </script>
 
 <template>
-  <div>
+  <div id="calendar-page" data-ui="calendar-page">
     <ContentHeader :lang="lang" />
     <main id="view-host" tabindex="-1" class="view">
       <div class="page">
-        <section class="hero">
+        <section id="calendar-intro" data-ui="calendar-intro" class="hero calendar-hero">
           <h1>{{ lang === 'vi' ? 'Lịch' : 'Calendar' }}</h1>
           <p class="intro">
             {{ lang === 'vi'

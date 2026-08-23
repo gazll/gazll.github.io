@@ -49,6 +49,10 @@ export default defineNuxtConfig({
   compatibilityDate: '2026-08-20',
   devtools: { enabled: false },
   ssr: true,
+  /* Keep the shared stylesheet cacheable across routes instead of copying it
+     into every prerendered HTML document. Vite still emits the minified,
+     hashed CSS asset. */
+  features: { inlineStyles: false },
   app: {
     head: {
       htmlAttrs: { lang: 'en' },
@@ -83,7 +87,6 @@ export default defineNuxtConfig({
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
         { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap' },
-        { rel: 'stylesheet', href: '/styles.css' }
       ]
     }
   },

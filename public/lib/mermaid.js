@@ -39,8 +39,13 @@ export async function mountMermaidDiagrams(root) {
   const nodes = [...root.querySelectorAll('[data-mermaid-diagram]')];
   if (!nodes.length) return true;
   try {
-    if (document.fonts?.ready) await document.fonts.ready;
-    const mermaid = await engine();
+    // Font readiness and the lazy vendor download are independent. Starting
+    // both together removes a needless waterfall on the first blueprint open,
+    // while still waiting for the final font metrics before layout is painted.
+    const mermaidPromise = engine();
+    const mermaid = document.fonts?.ready
+      ? (await Promise.all([mermaidPromise, document.fonts.ready]))[0]
+      : await mermaidPromise;
     await mermaid.run({ nodes, suppressErrors: true });
     nodes.forEach(node => node.closest('[data-diagram-frame]')?.classList.add('is-rendered'));
     return true;

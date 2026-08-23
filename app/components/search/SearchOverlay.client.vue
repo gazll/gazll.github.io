@@ -20,19 +20,21 @@ const entries = ref<SearchEntry[]>([]);
 const loading = ref(false);
 const loadError = ref(false);
 const input = ref<HTMLInputElement>();
+const overlay = ref<HTMLElement | null>(null);
 const activeIndex = ref(-1);
+const returnFocus = ref<HTMLElement | null>(null);
 const { $searchHistory } = useNuxtApp() as any;
 const historyRevision = ref(0);
 let stopHistory: (() => void) | null = null;
 const recent = computed(() => { historyRevision.value; return $searchHistory?.entries || []; });
 const labels = computed(() => props.lang === 'vi' ? {
-  search: 'Tìm kiếm câu hỏi, blueprint và case study…', searchAria: 'Tìm kiếm toàn bộ nội dung', dialog: 'Tìm kiếm', esc: 'Esc',
-  loading: 'Đang tải thư viện…', error: 'Không thể tải tìm kiếm. Hãy đóng panel và thử lại.', recent: 'Tìm kiếm gần đây', clear: 'Xóa hết',
+  search: 'Tìm kiếm câu hỏi, blueprint và case study…', searchAria: 'Tìm kiếm toàn bộ nội dung', dialog: 'Tìm kiếm', esc: 'Esc', remove: 'Xóa tìm kiếm',
+  loading: 'Đang tải thư viện…', error: 'Không thể tải tìm kiếm.', retry: 'Thử lại', results: 'Kết quả tìm kiếm', recent: 'Tìm kiếm gần đây', clear: 'Xóa hết',
   empty: 'Nhập vài từ để tìm trên mọi khu vực kiến thức.', noResult: 'Không có kết quả cho “{query}”. Hãy thử từ khóa ngắn hoặc rộng hơn.',
   seeAll: 'Xem toàn bộ kết quả cho “{query}”', footer: 'Tìm kiếm trên mọi thư viện GAZLL', navigate: 'di chuyển', open: 'mở'
 } : {
-  search: 'Search questions, blueprints and case studies…', searchAria: 'Search all material', dialog: 'Search', esc: 'Esc',
-  loading: 'Loading the libraries…', error: 'Search could not load. Close this panel and try again.', recent: 'Recent searches', clear: 'Clear all',
+  search: 'Search questions, blueprints and case studies…', searchAria: 'Search all material', dialog: 'Search', esc: 'Esc', remove: 'Remove search',
+  loading: 'Loading the libraries…', error: 'Search could not load.', retry: 'Retry', results: 'Search results', recent: 'Recent searches', clear: 'Clear all',
   empty: 'Type a few words to search every study and knowledge surface.', noResult: 'No result matches “{query}”. Try fewer or broader terms.',
   seeAll: 'See all results for “{query}”', footer: 'Search across every GAZLL library', navigate: 'navigate', open: 'open'
 });
@@ -45,6 +47,11 @@ const surfaceLabels = computed<Record<string, string>>(() => props.lang === 'vi'
 const surfaceBadges: Record<string, string> = {
   track: 'TOPIC', 'system-design': 'DESIGN', 'case-studies': 'CASE', photography: 'PHOTO', homelab: 'LAB'
 };
+const resultId = (entry: SearchEntry) => `search-result-${entry.id.replace(/[^a-zA-Z0-9_-]+/g, '-')}`;
+const activeResultId = computed(() => {
+  const entry = results.value[activeIndex.value];
+  return entry ? resultId(entry) : undefined;
+});
 
 /* Folded once per language, not per keystroke — prepareEntries walks the whole
    index and builds the folded copies every highlight offset is measured
@@ -79,6 +86,9 @@ async function load() {
 watch(() => props.lang, () => { if (isOpen.value) load(); });
 function open(initial = '') {
   if (initial) query.value = initial;
+  if (import.meta.client && document.activeElement instanceof HTMLElement) {
+    returnFocus.value = document.activeElement;
+  }
   isOpen.value = true;
   activeIndex.value = -1;
   document.body.classList.add('search-open');
@@ -88,7 +98,13 @@ function open(initial = '') {
 function close(refocus = true) {
   isOpen.value = false;
   document.body.classList.remove('search-open');
-  if (refocus) nextTick(() => document.querySelector<HTMLElement>('#searchTrigger')?.focus());
+  if (refocus) nextTick(() => {
+    const target = returnFocus.value?.isConnected
+      ? returnFocus.value
+      : document.querySelector<HTMLElement>('#searchTrigger');
+    target?.focus();
+    returnFocus.value = null;
+  });
 }
 function routeFor(entry: SearchEntry) {
   const [path, hash = ''] = entry.href.split('#', 2);
@@ -109,6 +125,28 @@ async function showAll() {
   close(false);
   await router.push({ path: '/search', query: { ...(value ? { q: value } : {}), ...(props.lang === 'vi' ? { lang: 'vi' } : {}) } });
 }
+function retrySearch() {
+  void load();
+}
+function trapFocus(event: KeyboardEvent) {
+  if (event.key !== 'Tab' || !overlay.value) return;
+  const focusable = Array.from(overlay.value.querySelectorAll<HTMLElement>(
+    'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])'
+  )).filter(node => node.getClientRects().length > 0);
+  if (!focusable.length) return;
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+  if (!overlay.value.contains(document.activeElement)) {
+    event.preventDefault();
+    (event.shiftKey ? last : first).focus();
+  } else if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault();
+    last.focus();
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault();
+    first.focus();
+  }
+}
 function onKeydown(event: KeyboardEvent) {
   if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
     event.preventDefault();
@@ -120,6 +158,7 @@ function onKeydown(event: KeyboardEvent) {
     event.preventDefault(); open(); return;
   }
   if (!isOpen.value) return;
+  if (event.key === 'Tab') { trapFocus(event); return; }
   if (event.key === 'Escape') { event.preventDefault(); close(); return; }
   if (event.key === 'ArrowDown') {
     event.preventDefault(); activeIndex.value = Math.min(results.value.length - 1, activeIndex.value + 1); return;
@@ -140,38 +179,44 @@ onMounted(() => {
   document.addEventListener('keydown', onKeydown);
   stopHistory = $searchHistory?.onChange(() => { historyRevision.value += 1; }) || null;
 });
+watch(activeIndex, index => {
+  if (index < 0) return;
+  void nextTick(() => document.getElementById(activeResultId.value || '')?.scrollIntoView({ block: 'nearest' }));
+});
 onBeforeUnmount(() => { stopHistory?.(); document.removeEventListener('keydown', onKeydown); document.body.classList.remove('search-open'); });
 </script>
 
 <template>
   <div class="gs-scrim" :hidden="!isOpen" aria-hidden="true" @click="close()" />
-  <section class="gs-overlay" :hidden="!isOpen" role="dialog" aria-modal="true" :aria-label="labels.dialog">
+  <section ref="overlay" class="gs-overlay" :hidden="!isOpen" role="dialog" aria-modal="true" :aria-label="labels.dialog">
     <div class="gs-box">
       <span class="gs-box-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5" /><path d="M16 16l4 4" /></svg></span>
-      <input ref="input" v-model="query" class="gs-input" type="search" autocomplete="off" spellcheck="false" :placeholder="labels.search" :aria-label="labels.searchAria">
+      <input id="search-input" ref="input" v-model="query" class="gs-input" type="search" role="combobox" aria-autocomplete="list" autocomplete="off" spellcheck="false" :placeholder="labels.search" :aria-label="labels.searchAria" :aria-controls="query.trim() && results.length ? 'search-results' : undefined" :aria-expanded="Boolean(query.trim() && results.length)" :aria-activedescendant="activeResultId">
       <button v-if="query.trim()" class="gs-more" type="button" @click="showAll()"><span>{{ labels.seeAll.replace('{query}', query) }}</span><span>→</span></button>
       <button class="gs-esc" type="button" @click="close()">{{ labels.esc }}</button>
     </div>
     <div class="gs-body">
       <p v-if="loading" class="gs-empty">{{ labels.loading }}</p>
-      <p v-else-if="loadError" class="gs-empty">{{ labels.error }}</p>
-      <section v-else-if="!query.trim() && recent.length" class="gs-group gs-history"><h3>{{ labels.recent }} <button type="button" class="gs-clear" @click="$searchHistory.clear()">{{ labels.clear }}</button></h3><div v-for="entry in recent" :key="entry.q" class="gs-recent-row"><button type="button" class="gs-recent" @click="query = entry.q">{{ entry.q }}</button><button type="button" class="gs-forget" :aria-label="`Remove ${entry.q}`" @click="$searchHistory.remove(entry.q)">×</button></div></section>
+      <div v-else-if="loadError" class="gs-empty gs-error-state" role="alert"><span>{{ labels.error }}</span><button type="button" class="gs-retry" @click="retrySearch">{{ labels.retry }}</button></div>
+      <section v-else-if="!query.trim() && recent.length" class="gs-group gs-history"><h3>{{ labels.recent }} <button type="button" class="gs-clear" @click="$searchHistory.clear()">{{ labels.clear }}</button></h3><div v-for="entry in recent" :key="entry.q" class="gs-recent-row"><button type="button" class="gs-recent" @click="query = entry.q">{{ entry.q }}</button><button type="button" class="gs-forget" :aria-label="`${labels.remove}: ${entry.q}`" @click="$searchHistory.remove(entry.q)">×</button></div></section>
       <p v-else-if="!query.trim()" class="gs-empty">{{ labels.empty }}</p>
       <p v-else-if="!results.length" class="gs-empty">{{ labels.noResult.replace('{query}', query) }}</p>
-      <template v-for="([surface, rows]) in groupedResults" :key="surface">
-        <section class="gs-group">
-          <h3>{{ surfaceLabels[surface] }} <span>{{ rows?.length }}</span></h3>
-          <button v-for="entry in rows" :key="entry.id" type="button" class="gs-hit" :class="{ 'is-active': results.indexOf(entry) === activeIndex }" @click="follow(entry)">
-            <span class="gs-hit-badge">{{ surfaceBadges[entry.surface] }}</span>
-            <span class="gs-hit-main">
-              <span class="gs-hit-title" v-html="entry.titleHtml" />
-              <span v-if="entry.snippet" class="gs-hit-snippet" v-html="entry.snippet" />
-              <span class="gs-hit-context">{{ entry.context }}</span>
-            </span>
-            <span class="gs-hit-go">↵</span>
-          </button>
-        </section>
-      </template>
+      <div v-else-if="results.length" id="search-results" class="gs-result-list" role="listbox" :aria-label="labels.results">
+        <template v-for="([surface, rows]) in groupedResults" :key="surface">
+          <section class="gs-group">
+            <h3>{{ surfaceLabels[surface] }} <span>{{ rows?.length }}</span></h3>
+            <button v-for="entry in rows" :id="resultId(entry)" :key="entry.id" type="button" role="option" class="gs-hit" :aria-selected="results.indexOf(entry) === activeIndex" :class="{ 'is-active': results.indexOf(entry) === activeIndex }" @click="follow(entry)">
+              <span class="gs-hit-badge">{{ surfaceBadges[entry.surface] }}</span>
+              <span class="gs-hit-main">
+                <span class="gs-hit-title" v-html="entry.titleHtml" />
+                <span v-if="entry.snippet" class="gs-hit-snippet" v-html="entry.snippet" />
+                <span class="gs-hit-context">{{ entry.context }}</span>
+              </span>
+              <span class="gs-hit-go">↵</span>
+            </button>
+          </section>
+        </template>
+      </div>
     </div>
     <footer class="gs-foot"><span>{{ labels.footer }}</span><span class="gs-keys"><kbd>↑</kbd><kbd>↓</kbd> {{ labels.navigate }} · <kbd>Enter</kbd> {{ labels.open }}</span></footer>
   </section>

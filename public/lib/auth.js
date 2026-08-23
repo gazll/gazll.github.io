@@ -122,7 +122,7 @@ export const Auth = {
     if (!this.session || !profile) return;
     this.session.role = profile.role || 'user';
     if (profile.name) this.session.name = profile.name;
-    if (profile.picture) this.session.picture = profile.picture;
+    if (profile.picture) this.session.picture = safeAvatarUrl(profile.picture);
     writeHint(this.session);
     emit();
   }
@@ -194,7 +194,7 @@ function onCredential(response) {
     sub: claims.sub,
     email: claims.email || '',
     name: claims.name || '',
-    picture: claims.picture || '',
+    picture: safeAvatarUrl(claims.picture),
     role: keepRole || 'user',
     token,
     exp
@@ -236,8 +236,22 @@ function readHint() {
     if (!h || typeof h !== 'object' || !h.sub) return null;
     // A stored `token`/`exp` would mean an older or tampered entry. Drop it:
     // this object must never be able to authenticate anything.
-    return { sub: String(h.sub), email: String(h.email || ''), name: String(h.name || ''), picture: String(h.picture || '') };
+    return { sub: String(h.sub), email: String(h.email || ''), name: String(h.name || ''), picture: safeAvatarUrl(h.picture) };
   } catch (e) { return null; }
+}
+
+/* Google supplies profile pictures from googleusercontent.com. A profile hint
+   is deliberately attacker-writable localStorage, so do not let it choose an
+   arbitrary URL for an <img> request (or become a future sink if the avatar
+   markup changes). */
+function safeAvatarUrl(value) {
+  if (!value) return '';
+  try {
+    const url = new URL(String(value));
+    return url.protocol === 'https:'
+      && (url.hostname === 'googleusercontent.com' || url.hostname.endsWith('.googleusercontent.com'))
+      ? url.href : '';
+  } catch (e) { return ''; }
 }
 
 function clearHint() {

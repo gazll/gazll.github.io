@@ -1,14 +1,19 @@
 <script setup lang="ts">
 type TopicRow = { n: number; file: string; topic_type: string; label: string };
 
-const props = defineProps<{ lang: 'en' | 'vi'; topic?: TopicRow; topics?: TopicRow[] }>();
+const props = defineProps<{ lang: 'en' | 'vi'; topic?: TopicRow; topics?: TopicRow[]; progressIndex?: any }>();
 const route = useRoute();
 const drawerOpen = ref(false);
 const topicOpen = ref(false);
 const topicQuery = ref('');
+const drawerReturnFocus = ref<HTMLElement | null>(null);
+const topicReturnFocus = ref<HTMLElement | null>(null);
+const drawer = ref<HTMLElement | null>(null);
+const topicMenu = ref<HTMLElement | null>(null);
 const searchOverlay = ref<{ open: (query?: string) => void }>();
 const nuxtApp = useNuxtApp() as any;
 const isAdmin = ref(false);
+const LANGUAGE_SCROLL_KEY = 'gazll:language-scroll';
 let stopAuth: (() => void) | null = null;
 
 const viLabels: Record<string, string> = {
@@ -29,6 +34,9 @@ const viLabels: Record<string, string> = {
   'Skip to content': 'Tới nội dung chính', 'Toggle contents': 'Bật/tắt mục lục', 'Everything works signed out — progress is saved on this device.': 'Mọi thứ đều dùng được khi đăng xuất — tiến độ được lưu trên thiết bị này.'
 };
 const localize = (value: string) => props.lang === 'vi' ? viLabels[value] || value : value;
+const languageActionLabel = computed(() => props.lang === 'vi'
+  ? 'Chuyển nội dung sang tiếng Anh'
+  : 'Switch content to Vietnamese');
 
 const navGroups = [
   { label: 'Technical', links: [
@@ -82,20 +90,38 @@ const isCurrent = (path: string) => path === '/'
   : route.path === path || route.path.startsWith(`${path}/`);
 
 function setDrawer(open: boolean) {
+  if (open && !drawerOpen.value && import.meta.client) {
+    drawerReturnFocus.value = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+  }
+  const wasOpen = drawerOpen.value;
   drawerOpen.value = open;
   if (import.meta.client) document.body.classList.toggle('nav-open', open);
   if (open) nextTick(() => document.querySelector<HTMLButtonElement>('.np-close')?.focus());
+  else if (wasOpen) nextTick(() => {
+    if (drawerReturnFocus.value?.isConnected) drawerReturnFocus.value.focus();
+    drawerReturnFocus.value = null;
+  });
 }
 function setTopic(open: boolean) {
+  if (open && !topicOpen.value && import.meta.client) {
+    topicReturnFocus.value = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+  }
+  const wasOpen = topicOpen.value;
   topicOpen.value = open;
+  if (!open) topicQuery.value = '';
   if (import.meta.client) document.body.classList.toggle('topic-open', open);
   if (open) nextTick(() => document.querySelector<HTMLInputElement>('.tm-search input')?.focus());
+  else if (wasOpen) nextTick(() => {
+    if (topicReturnFocus.value?.isConnected) topicReturnFocus.value.focus();
+    topicReturnFocus.value = null;
+  });
 }
 function onKeydown(event: KeyboardEvent) {
   if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
     setDrawer(false);
     setTopic(false);
   }
+  trapMenuFocus(event);
   if (event.key === 'Escape') { setDrawer(false); setTopic(false); }
 }
 function openSearch() {
@@ -104,7 +130,77 @@ function openSearch() {
   searchOverlay.value?.open();
 }
 
-watch(() => route.fullPath, () => { setDrawer(false); setTopic(false); });
+/* The topic picker is a searchable listbox. Once the filter input has done
+   its job, arrow keys should move through the visible rows instead of making
+   a reader tab past every result. */
+function moveTopic(event: KeyboardEvent) {
+  if (!topicOpen.value || !['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) return;
+  const rows = Array.from(topicMenu.value?.querySelectorAll<HTMLElement>('.tm-row') || [])
+    .filter(row => row.getClientRects().length > 0);
+  if (!rows.length) return;
+  const current = rows.indexOf(document.activeElement as HTMLElement);
+  const next = event.key === 'Home' ? 0
+    : event.key === 'End' ? rows.length - 1
+      : current < 0 ? (event.key === 'ArrowUp' ? rows.length - 1 : 0)
+        : Math.max(0, Math.min(rows.length - 1, current + (event.key === 'ArrowDown' ? 1 : -1)));
+  event.preventDefault();
+  rows[next]?.focus();
+}
+
+/* Language changes keep the same article/topic open, so returning the reader
+   to the old viewport is less surprising than Nuxt's default scroll-to-top.
+   Store a one-shot record so it also survives a shared-header remount. */
+function rememberLanguageScroll(event?: MouseEvent) {
+  if (!import.meta.client || (event && (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey))) return;
+  try {
+    sessionStorage.setItem(LANGUAGE_SCROLL_KEY, JSON.stringify({
+      path: route.path,
+      lang: props.lang === 'vi' ? 'en' : 'vi',
+      y: Math.max(0, Math.round(window.scrollY))
+    }));
+  } catch (error) { /* private mode: the route still changes normally */ }
+}
+function restoreLanguageScroll() {
+  if (!import.meta.client) return;
+  try {
+    const raw = sessionStorage.getItem(LANGUAGE_SCROLL_KEY);
+    if (!raw) return;
+    const saved = JSON.parse(raw);
+    if (saved?.path !== route.path || saved?.lang !== props.lang || !Number.isFinite(saved.y)) return;
+    sessionStorage.removeItem(LANGUAGE_SCROLL_KEY);
+    const y = Math.max(0, Number(saved.y));
+    if (typeof window.requestAnimationFrame === 'function') window.requestAnimationFrame(() => window.scrollTo(0, y));
+    else window.setTimeout(() => window.scrollTo(0, y), 0);
+  } catch (error) { /* malformed or unavailable storage: use normal router scroll */ }
+}
+
+function trapMenuFocus(event: KeyboardEvent) {
+  if (event.key !== 'Tab') return;
+  const root = drawerOpen.value ? drawer.value : topicOpen.value ? topicMenu.value : null;
+  if (!root) return;
+  const focusable = Array.from(root.querySelectorAll<HTMLElement>(
+    'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])'
+  )).filter(node => node.getClientRects().length > 0);
+  if (!focusable.length) return;
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+  if (!root.contains(document.activeElement)) {
+    event.preventDefault();
+    (event.shiftKey ? last : first).focus();
+  } else if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault();
+    last.focus();
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault();
+    first.focus();
+  }
+}
+
+watch(() => route.fullPath, () => {
+  setDrawer(false);
+  setTopic(false);
+  void nextTick(restoreLanguageScroll);
+});
 /* The progress ring is Study Track chrome — styles.css gates it behind
    `body.view-track`, a class the retired hash router used to set and nothing
    replaced, so the ring was in the DOM and display:none on every page. The
@@ -119,6 +215,7 @@ useHeadroom();
 onMounted(() => {
   document.addEventListener('keydown', onKeydown);
   markTrack();
+  restoreLanguageScroll();
   const updateAdmin = () => { isAdmin.value = Boolean(nuxtApp.$auth?.isAdmin); };
   updateAdmin();
   stopAuth = nuxtApp.$auth?.onChange(updateAdmin) || null;
@@ -132,23 +229,23 @@ onBeforeUnmount(() => {
 
 <template>
   <a class="skiplink" :href="topic ? '#view-track' : '#view-host'">{{ localize('Skip to content') }}</a>
-  <header class="top">
-    <div class="top-inner">
-      <button class="navtoggle" type="button" :aria-label="localize('Open navigation menu')" :aria-expanded="drawerOpen" aria-controls="navPanel" @click="setDrawer(true)">
+  <header id="site-header" class="top" data-ui="site-header">
+    <div id="top-inner" class="top-inner" data-ui="top-inner">
+      <button id="site-nav-toggle" class="navtoggle" data-ui="navigation-toggle" type="button" :aria-label="localize('Open navigation menu')" :aria-expanded="drawerOpen" aria-controls="navPanel" @click="setDrawer(true)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
       </button>
 
-      <button v-if="topic" class="topicpick" type="button" :data-topic-type="topic.topic_type" aria-haspopup="listbox" :aria-expanded="topicOpen" aria-controls="topicMenu" @click="setTopic(!topicOpen)">
+      <button v-if="topic" id="topic-picker" class="topicpick" data-ui="topic-picker" type="button" :data-topic-type="topic.topic_type" aria-haspopup="listbox" :aria-expanded="topicOpen" aria-controls="topicList" @click="setTopic(!topicOpen)">
         <span class="tp-n">{{ String(topic.n).padStart(2, '0') }}</span>
         <span class="tp-text"><span class="tp-label">{{ topic.label }}</span><span class="tp-sub">{{ topic.topic_type }} {{ localize('topic') }}</span></span>
         <svg class="tp-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9" /></svg>
       </button>
-      <NuxtLink v-else class="topicpick" :to="withLang('/')">
+      <NuxtLink v-else class="topicpick" id="site-brand" data-ui="site-brand" :to="withLang('/')">
         <span class="tp-n">&lt;/&gt;</span>
         <span class="tp-text"><span class="tp-label">GAZLL</span><span class="tp-sub">{{ currentLabel }}</span></span>
       </NuxtLink>
 
-      <div v-if="topic && topics?.length" class="tb-steps">
+      <div v-if="topic && topics?.length" id="topic-stepper" class="tb-steps" data-ui="topic-stepper">
         <NuxtLink v-if="previousTopic" class="tstep" :to="withLang(topicPath(previousTopic))" :aria-label="localize('Previous topic')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><polyline points="15 6 9 12 15 18" /></svg>
         </NuxtLink>
@@ -164,13 +261,15 @@ onBeforeUnmount(() => {
         </button>
       </div>
 
-      <nav class="headright" :aria-label="localize('Header controls')">
-        <button id="searchTrigger" class="searchtrigger" type="button" :aria-label="localize('Search all material')" :title="localize('Search (Ctrl+K)')" @click="openSearch">
+      <nav id="header-controls" class="headright" data-ui="header-controls" :aria-label="localize('Header controls')">
+        <button id="searchTrigger" class="searchtrigger" data-ui="search-trigger" type="button" :aria-label="localize('Search all material')" :title="localize('Search (Ctrl+K)')" @click="openSearch">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5" /><path d="M16 16l4 4" /></svg>
           <span class="st-label">{{ localize('Search') }}</span><kbd class="st-key">{{ localize('Ctrl K') }}</kbd>
         </button>
-        <ClientOnly><StudyProgressRing :lang="lang" /></ClientOnly>
-        <NuxtLink class="langswitch hdr-lang" role="switch" :aria-checked="lang === 'vi'" :aria-label="localize('Content language')" :to="{ path: route.path, query: { ...route.query, lang: lang === 'vi' ? 'en' : 'vi' }, hash: route.hash || undefined }">
+        <!-- The denominator is useful only on study pages. Avoid constructing
+             the async content-index reader on tools and long-form surfaces. -->
+        <ClientOnly v-if="topic"><StudyProgressRing :lang="lang" :index="progressIndex" /></ClientOnly>
+        <NuxtLink id="header-language-switch" class="langswitch hdr-lang" data-ui="language-switch" role="switch" :aria-checked="lang === 'vi'" :aria-label="languageActionLabel" :to="{ path: route.path, query: { ...route.query, lang: lang === 'vi' ? 'en' : 'vi' }, hash: route.hash || undefined }" @click="rememberLanguageScroll">
           <span class="lang-label" data-lang="en">EN</span>
           <span class="lang-track" aria-hidden="true"><span class="lang-knob"><ContentFlagIcon :lang="lang" /></span></span>
           <span class="lang-label" data-lang="vi">VI</span>
@@ -178,16 +277,16 @@ onBeforeUnmount(() => {
         <ClientOnly><AuthControl /></ClientOnly>
       </nav>
 
-      <div v-if="topic" id="topicMenu" class="topicmenu" :hidden="!topicOpen">
+      <div v-if="topic" id="topicMenu" ref="topicMenu" class="topicmenu" data-ui="topic-menu" :hidden="!topicOpen" @keydown="moveTopic">
         <div class="tm-search">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5" /><path d="M16 16l4 4" /></svg>
           <input v-model="topicQuery" type="search" :placeholder="localize('Filter topics…')" autocomplete="off" :aria-label="localize('Filter topics')">
         </div>
-        <div class="tm-list" role="listbox" :aria-label="localize('Topics')">
-          <NuxtLink v-for="row in filteredTopics" :key="row.n" class="tm-row" :data-topic-type="row.topic_type" :aria-selected="row.n === topic.n" :to="withLang(topicPath(row))">
+        <div id="topicList" class="tm-list" role="listbox" :aria-label="localize('Topics')">
+          <NuxtLink v-for="row in filteredTopics" :key="row.n" class="tm-row" role="option" :data-topic-type="row.topic_type" :aria-selected="row.n === topic.n" :to="withLang(topicPath(row))">
             <span class="tm-n">{{ String(row.n).padStart(2, '0') }}</span>
             <span class="tm-main"><span class="tm-label">{{ row.label }}</span><span class="tm-meta">{{ row.topic_type }}</span></span>
-            <ClientOnly><StudyTopicProgress :n="row.n" /></ClientOnly>
+            <ClientOnly><StudyTopicProgress :n="row.n" :index="progressIndex" /></ClientOnly>
           </NuxtLink>
           <p v-if="!filteredTopics.length" class="tm-empty">{{ localize('Nothing matches that filter.') }}</p>
         </div>
@@ -197,11 +296,11 @@ onBeforeUnmount(() => {
 
   <div v-if="topic" class="topic-scrim" aria-hidden="true" @click="setTopic(false)" />
   <div class="nav-scrim" aria-hidden="true" @click="setDrawer(false)" />
-  <aside id="navPanel" class="navpanel" :aria-label="localize('Main navigation')" :aria-hidden="!drawerOpen" :inert="!drawerOpen">
+  <aside id="navPanel" ref="drawer" class="navpanel" data-ui="navigation-panel" :aria-label="localize('Main navigation')" :aria-hidden="!drawerOpen" :inert="!drawerOpen">
     <div class="np-head">
       <div class="np-brand"><span class="seal">&lt;/&gt;</span><b>GAZLL</b></div>
       <div class="np-actions">
-        <NuxtLink class="np-action" :aria-current="route.path === '/release-notes'" :to="withLang('/release-notes')">
+        <NuxtLink class="np-action" :aria-current="route.path === '/release-notes' ? 'page' : undefined" :to="withLang('/release-notes')">
           <svg class="nv-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h9l3 3v15H6zM9 11h6M9 15h6" /></svg><span>{{ localize('Release Notes') }}</span>
         </NuxtLink>
         <button class="np-close" type="button" :aria-label="localize('Close menu')" @click="setDrawer(false)">

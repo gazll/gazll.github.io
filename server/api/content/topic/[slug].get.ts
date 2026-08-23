@@ -1,16 +1,18 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
+import { progressIndex, referencedIds, slimQuestions } from '../../../utils/content-index.js';
 
 const publicFile = (file: string) => path.join(process.cwd(), 'public', file);
 const json = async (file: string) => JSON.parse(await readFile(publicFile(file), 'utf8'));
 
 export default defineEventHandler(async event => {
   const requested = getRouterParam(event, 'slug') || 'first';
-  const [manifest, meta, reviews, systemDesign] = await Promise.all([
+  const [manifest, meta, reviews, systemDesign, contentIndex] = await Promise.all([
     json('data/manifest.json'),
     json('data/meta.json'),
     json('data/content-reviews.json'),
-    json('data/system-design/catalog.json')
+    json('data/system-design/catalog.json'),
+    json('data/content-index.json')
   ]);
   const rows = manifest.topics.filter((row: { surface?: string }) => !row.surface || row.surface === 'track');
   const row = requested === 'first'
@@ -25,5 +27,9 @@ export default defineEventHandler(async event => {
 
   const sourceOwners = Object.fromEntries(systemDesign.designs.flatMap((design: any) =>
     (design.source_items || []).map((id: string) => [id, design.slug])));
-  return { rows, row, meta: meta.topics[String(row.n)], topicMeta: meta.topics, reviews, en, vi, stem, sourceOwners };
+  const ids = referencedIds({ en, vi });
+  return {
+    rows, row, meta: meta.topics[String(row.n)], topicMeta: meta.topics, reviews, en, vi, stem,
+    sourceOwners, crossRefs: slimQuestions(contentIndex, ids), progressIndex: progressIndex(contentIndex)
+  };
 });

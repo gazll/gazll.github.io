@@ -63,7 +63,8 @@ function bulletList(items) {
 
 export function proseParagraph(value, className) {
   const source = String(value || '').trim();
-  const attribute = className ? ' class="' + className + '"' : '';
+  const classes = ['sd-prose', className].filter(Boolean).join(' ');
+  const attribute = ' class="' + classes + '"';
   const { lead, items } = bulletParts(source);
   // A list with no lead opens on a bare bullet and the reader loses the
   // sentence it belongs to, so that case stays a paragraph.
@@ -140,7 +141,7 @@ export function detailProse(value, className) {
     // while they stay rare.
     const head = (part.label ? '<b class="sd-part-label">' + escapeHtml(part.label) + ':</b> ' : '')
       + emphasize(listed ? lead : part.body);
-    return '<div class="sd-part">' + (head.trim() ? '<p>' + head + '</p>' : '')
+    return '<div class="sd-part">' + (head.trim() ? '<p class="sd-prose">' + head + '</p>' : '')
       + (listed ? bulletList(items) : '') + '</div>';
   }).join('') + '</div>';
 }

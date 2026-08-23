@@ -28,6 +28,12 @@ var ALLOWED_EMAILS = [];
 /** Abuse guard: a single request may not write more rows than this. */
 var MAX_ROWS_PER_PUSH = 2000;
 
+/** Reject oversized bodies before parsing or hashing a bearer token. Apps
+ * Script has generous quotas, but this endpoint is public and must not let an
+ * anonymous caller turn JSON parsing into the quota bottleneck. */
+var MAX_REQUEST_CHARS = 1000000;
+var MAX_ID_TOKEN_CHARS = 4096;
+
 /** Calendar checklist ticks share the generic app_config sheet. The prefix
  *  keeps them apart from any other setting that app may come to store. */
 var CALENDAR_APP = 'calendar';
@@ -173,9 +179,14 @@ function doGet() {
  */
 function doPost(e) {
   try {
-    var req = JSON.parse((e && e.postData && e.postData.contents) || '{}');
-    var action = String(req.action || '');
-    var payload = req.payload || {};
+    var raw = String((e && e.postData && e.postData.contents) || '{}');
+    if (raw.length > MAX_REQUEST_CHARS) throw publicError('Request quá lớn.');
+    var req = JSON.parse(raw);
+    if (!req || typeof req !== 'object' || Array.isArray(req)) throw publicError('Request không hợp lệ.');
+    var action = String(req.action || '').trim();
+    if (action.length > 80) throw publicError('Action không hợp lệ.');
+    var payload = req.payload;
+    if (!payload || typeof payload !== 'object' || Array.isArray(payload)) payload = {};
 
     var user = requireUser(req.idToken);       // always first
     var handler = ACTIONS[action];
@@ -215,10 +226,12 @@ function publicError(message) {
 
 /** Verified identity { sub, email, name, picture, role }, or throws. */
 function requireUser(idToken) {
-  if (!idToken) throw publicError('Thiếu idToken — cần đăng nhập.');
+  var token = String(idToken || '');
+  if (!token) throw publicError('Thiếu idToken — cần đăng nhập.');
+  if (token.length > MAX_ID_TOKEN_CHARS) throw publicError('idToken không hợp lệ.');
   if (CLIENT_ID.indexOf('PASTE_YOUR') === 0) throw publicError('Backend chưa cấu hình CLIENT_ID.');
 
-  var identity = verifyIdToken(idToken);
+  var identity = verifyIdToken(token);
 
   if (ALLOWED_EMAILS.length && ALLOWED_EMAILS.indexOf(identity.email) === -1) {
     throw publicError('Không được phép: email này chưa nằm trong ALLOWED_EMAILS.');
@@ -227,6 +240,8 @@ function requireUser(idToken) {
 }
 
 function verifyIdToken(idToken) {
+  idToken = String(idToken || '');
+  if (!idToken || idToken.length > MAX_ID_TOKEN_CHARS) throw publicError('Token không hợp lệ.');
   var cache = CacheService.getScriptCache();
   var key = 'tok_' + Utilities.base64EncodeWebSafe(
     Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, idToken));
@@ -247,7 +262,11 @@ function verifyIdToken(idToken) {
     { muteHttpExceptions: true });
 
   if (res.getResponseCode() !== 200) throw publicError('Token không hợp lệ hoặc đã hết hạn.');
-  var info = JSON.parse(res.getContentText());
+  var responseText = res.getContentText();
+  if (responseText.length > 32768) throw publicError('Token không hợp lệ.');
+  var info;
+  try { info = JSON.parse(responseText); }
+  catch (err) { throw publicError('Token không hợp lệ.'); }
 
   // Dropping any of these four opens the door to impersonation.
   if (info.aud !== CLIENT_ID) throw publicError('Token phát cho app khác (aud không khớp).');
@@ -258,11 +277,16 @@ function verifyIdToken(idToken) {
   if (!(secondsLeft > 0)) throw publicError('Token đã hết hạn.');
   if (String(info.email_verified) !== 'true') throw publicError('Email chưa được Google xác minh.');
 
+  var sub = String(info.sub || '').trim();
+  var email = String(info.email || '').trim().toLowerCase();
+  if (!sub || sub.length > 128 || /[\u0000-\u001f\u007f]/.test(sub)) throw publicError('Token thiếu subject hợp lệ.');
+  if (!email || email.length > 320 || /[\s<>]/.test(email)) throw publicError('Token thiếu email hợp lệ.');
+
   var identity = {
-    sub: info.sub,
-    email: String(info.email || '').toLowerCase(),
-    name: info.name || '',
-    picture: info.picture || ''
+    sub: sub,
+    email: email,
+    name: limitedString(info.name, 200, 'Tên tài khoản'),
+    picture: limitedString(info.picture, 2000, 'Ảnh đại diện')
   };
   cache.put(key, JSON.stringify(identity), Math.min(secondsLeft, 21600)); // 6h is the hard cap
   return identity;
@@ -313,7 +337,9 @@ function upsertProfile(identity) {
 /* Actions                                                             */
 /* ------------------------------------------------------------------ */
 
-var ACTIONS = {
+/* Null-prototype dispatch prevents names such as `constructor` or `toString`
+ * from resolving to Object.prototype methods when the action comes from JSON. */
+var ACTIONS = Object.assign(Object.create(null), {
 
   /** Everything the client needs to merge against its localStorage copy. */
   'pull': function (user) {
@@ -330,7 +356,30 @@ var ACTIONS = {
 
   /** Batched write. Idempotent per item_id, so a retry cannot duplicate. */
   'push': function (user, p) {
-    var progress = asArray(p.progress), progressRemove = asArray(p.progress_remove), notes = asArray(p.notes), log = asArray(p.log);
+    p = p && typeof p === 'object' && !Array.isArray(p) ? p : {};
+    var progress = asArray(p.progress).map(function (raw) {
+      var row = raw && typeof raw === 'object' ? raw : {};
+      row.item_id = limitedString(row.item_id, 240, 'item_id').trim();
+      return row;
+    });
+    var progressRemove = asArray(p.progress_remove).map(function (raw) {
+      var row = raw && typeof raw === 'object' ? raw : {};
+      return { item_id: limitedString(row.item_id, 240, 'item_id').trim() };
+    });
+    var notes = asArray(p.notes).map(function (raw) {
+      var row = raw && typeof raw === 'object' ? raw : {};
+      return {
+        item_id: limitedString(row.item_id, 240, 'item_id').trim(),
+        body: limitedString(row.body, 20000, 'Ghi chú')
+      };
+    });
+    var log = asArray(p.log).map(function (raw) {
+      var row = raw && typeof raw === 'object' ? raw : {};
+      return {
+        item_id: limitedString(row.item_id, 240, 'item_id').trim(),
+        opened_at: limitedString(row.opened_at, 80, 'Thời điểm')
+      };
+    });
     if (progress.length + progressRemove.length + notes.length + log.length > MAX_ROWS_PER_PUSH) {
       throw publicError('Request quá lớn (giới hạn ' + MAX_ROWS_PER_PUSH + ' dòng).');
     }
@@ -339,7 +388,7 @@ var ACTIONS = {
       var counts = { progress: 0, progress_removed: 0, notes: 0, log: 0 };
 
       if (progressRemove.length) {
-        var removeIds = {};
+        var removeIds = Object.create(null);
         progressRemove.forEach(function (r) {
           var id = String(r && r.item_id || '');
           if (id) removeIds[id] = true;
@@ -374,14 +423,14 @@ var ACTIONS = {
 
   /** History plus settings for one app, merged client-side with localStorage. */
   'fshare.pull': function (user, p) {
-    var app = String((p && p.app) || 'fshare');
+    var app = limitedString((p && p.app) || 'fshare', 40, 'App').trim() || 'fshare';
     return {
       history: mine(table('fshare_history').read(), user).map(function (r) {
         return { lc: r.linkcode, name: r.name, hits: Number(r.hits) || 1, at: iso(r.last_at) };
       }),
       config: mine(table('app_config').read(), user)
         .filter(function (r) { return String(r.app) === app; })
-        .reduce(function (acc, r) { acc[r.key] = r.value; return acc; }, {})
+        .reduce(function (acc, r) { acc[r.key] = r.value; return acc; }, Object.create(null))
     };
   },
 
@@ -390,12 +439,24 @@ var ACTIONS = {
    * retry updates in place instead of duplicating — same contract as 'push'.
    */
   'fshare.push': function (user, p) {
-    var history = asArray(p && p.history);
-    var config  = (p && p.config) || {};
-    var app     = String((p && p.app) || 'fshare');
+    var app     = limitedString((p && p.app) || 'fshare', 40, 'App').trim() || 'fshare';
+    var history = asArray(p && p.history).map(function (raw) {
+      var row = raw && typeof raw === 'object' ? raw : {};
+      return {
+        lc: limitedString(row.lc, 240, 'Linkcode').trim(),
+        name: limitedString(row.name, 500, 'Tên file'),
+        hits: boundedNumber(row.hits, 1, 1, 1000000),
+        at: limitedString(row.at, 80, 'Thời điểm')
+      };
+    });
+    var config  = (p && p.config && typeof p.config === 'object' && !Array.isArray(p.config)) ? p.config : {};
 
     var configRows = Object.keys(config).map(function (k) {
-      return { app: app, key: String(k), value: String(config[k]) };
+      return {
+        app: app,
+        key: limitedString(k, 120, 'Config key').trim(),
+        value: limitedString(config[k], 4000, 'Config value')
+      };
     });
     if (history.length + configRows.length > MAX_ROWS_PER_PUSH) {
       throw publicError('Request quá lớn (giới hạn ' + MAX_ROWS_PER_PUSH + ' dòng).');
@@ -443,7 +504,10 @@ var ACTIONS = {
 
   /** Upsert by (user, q): searching the same thing twice updates one row. */
   'search.push': function (user, p) {
-    var history = asArray(p && p.history);
+    var history = asArray(p && p.history).map(function (raw) {
+      var row = raw && typeof raw === 'object' ? raw : {};
+      return { q: limitedString(row.q, 200, 'Query'), hits: boundedNumber(row.hits, 1, 1, 1000000), at: limitedString(row.at, 80, 'Thời điểm') };
+    });
     if (!history.length) return { history: 0 };
     if (history.length > MAX_ROWS_PER_PUSH) {
       throw publicError('Request quá lớn (giới hạn ' + MAX_ROWS_PER_PUSH + ' dòng).');
@@ -466,8 +530,10 @@ var ACTIONS = {
   /** Removes named queries, or the whole history when `all` is set. */
   'search.delete': function (user, p) {
     var all = Boolean(p && p.all);
-    var wanted = {};
-    asArray(p && p.queries).forEach(function (q) { wanted[String(q)] = 1; });
+    var wanted = Object.create(null);
+    var queries = asArray(p && p.queries);
+    if (queries.length > MAX_ROWS_PER_PUSH) throw publicError('Request quá lớn.');
+    queries.forEach(function (q) { wanted[limitedString(q, 200, 'Query')] = 1; });
     if (!all && !Object.keys(wanted).length) throw publicError('Thiếu queries.');
 
     return withLock(function () {
@@ -531,13 +597,13 @@ var ACTIONS = {
         .reduce(function (acc, r) {
           acc[String(r.key).slice(CHECK_PREFIX.length)] = { done: String(r.value) === '1', at: iso(r.updated_at) };
           return acc;
-        }, {})
+        }, Object.create(null))
     };
   },
 
   /** One checklist entry. Keyed on (user, app, key), so ticking twice is one row. */
   'schedule.check': function (user, p) {
-    var id = trim(p && p.id);
+    var id = trim(limitedString(p && p.id, 240, 'Id'));
     if (!id) throw publicError('Thiếu id.');
     if (!hasScheduleAccess(user)) throw publicError('Tài khoản này chưa được cấp quyền xem lịch riêng.');
     return withLock(function () {
@@ -574,7 +640,7 @@ var ACTIONS = {
 
   /** Edit or mark merged. Only the caller's own rows are reachable. */
   'schedule.update': function (user, p) {
-    var id = trim(p && p.id);
+    var id = trim(limitedString(p && p.id, 240, 'Id'));
     if (!id) throw publicError('Thiếu id.');
     return withLock(function () {
       var t = table('schedule_inbox');
@@ -598,7 +664,7 @@ var ACTIONS = {
   'schedule.delete': function (user, p) {
     var all = Boolean(p && p.all);
     var mergedOnly = Boolean(p && p.merged);
-    var id = trim(p && p.id);
+    var id = trim(limitedString(p && p.id, 240, 'Id'));
     if (!all && !mergedOnly && !id) throw publicError('Thiếu id.');
 
     return withLock(function () {
@@ -625,7 +691,7 @@ var ACTIONS = {
   /** Companies with their questions nested, so the view needs one call. */
   'interviews.list': function (user) {
     var qs = mine(table('interview_questions').read(), user);
-    var bySet = {};
+    var bySet = Object.create(null);
     qs.sort(bySort).forEach(function (q) {
       var key = String(q.interview_id) + '|' + String(q.question_set_id || '');
       (bySet[key] = bySet[key] || []).push({
@@ -654,8 +720,9 @@ var ACTIONS = {
 
   /** One company plus all its questions in a single round-trip. */
   'interviews.save': function (user, p) {
-    var c = p.company || {};
-    if (!String(c.name || '').trim()) throw publicError('Tên công ty không được để trống.');
+    var c = p && p.company && typeof p.company === 'object' && !Array.isArray(p.company) ? p.company : {};
+    var companyName = limitedString(c.name, 300, 'Tên công ty').trim();
+    if (!companyName) throw publicError('Tên công ty không được để trống.');
     var referencesJson = JSON.stringify(normalizeReferences(c.references));
     if (referencesJson.length > 24000) throw publicError('Danh sách tài liệu vượt giới hạn 24.000 ký tự.');
     var roundsJson = JSON.stringify(normalizeRounds(c.rounds));
@@ -666,7 +733,8 @@ var ACTIONS = {
     if (questions.length > 200) throw publicError('Tối đa 200 câu hỏi cho một công ty.');
     // Validate and serialize everything before touching the Sheet. A rejected
     // diagram must never arrive after the old question set has been deleted.
-    var prepared = questions.map(function (q, i) {
+    var prepared = questions.map(function (raw, i) {
+      var q = raw && typeof raw === 'object' ? raw : {};
       var diagramsJson = JSON.stringify(normalizeDiagrams(q.diagrams));
       if (diagramsJson.length > 40000) throw publicError('Diagram của một câu hỏi vượt giới hạn 40.000 ký tự.');
       return {
@@ -682,18 +750,19 @@ var ACTIONS = {
     return withLock(function () {
       var t = table('interviews');
       var rows = mine(t.read(), user);
-      var existing = c.id ? findBy(rows, 'id', c.id) : null;
+      var companyId = c.id ? limitedString(c.id, 240, 'Id').trim() : '';
+      var existing = companyId ? findBy(rows, 'id', companyId) : null;
       var id = existing ? existing.id : uuid();
       var questionSetId = uuid();
 
       var fields = {
         id: id, user_id: user.sub,
-        name: String(c.name).trim(),
-        role: String(c.role || ''),
-        happened_on: String(c.date || ''),
+        name: companyName,
+        role: limitedString(c.role, 300, 'Vai trò'),
+        happened_on: limitedString(c.date, 40, 'Thời điểm'),
         result: ['pending', 'passed', 'offer', 'failed'].indexOf(c.result) >= 0 ? c.result : 'pending',
-        stack: asArray(c.stack).map(trim).filter(Boolean).join(', '),
-        sort_order: Number(c.sort_order) || 0,
+        stack: normalizeStack(c.stack),
+        sort_order: boundedNumber(c.sort_order, 0, -1000000, 1000000),
         updated_at: nowIso(),
         active_question_set: questionSetId,
         references_json: referencesJson,
@@ -724,7 +793,7 @@ var ACTIONS = {
   },
 
   'interviews.delete': function (user, p) {
-    var id = String(p.id || '');
+    var id = limitedString(p && p.id, 240, 'Id').trim();
     if (!id) throw publicError('Thiếu id.');
     return withLock(function () {
       var n = table('interviews').deleteWhere(function (r) { return r.user_id === user.sub && r.id === id; });
@@ -738,7 +807,7 @@ var ACTIONS = {
     if (user.role !== 'admin') throw publicError('Không được phép: cần quyền admin.');
 
     var count = function (rows, pred) {
-      var m = {};
+      var m = Object.create(null);
       rows.forEach(function (r) {
         if (pred && !pred(r)) return;
         m[r.user_id] = (m[r.user_id] || 0) + 1;
@@ -751,7 +820,7 @@ var ACTIONS = {
     var logRows = table('study_log').read();
     var opens = count(logRows);
 
-    var lastSeen = {}, days = {};
+    var lastSeen = Object.create(null), days = Object.create(null);
     logRows.forEach(function (r) {
       var at = iso(r.opened_at);
       if (!at) return;
@@ -775,7 +844,7 @@ var ACTIONS = {
       }).sort(function (a, b) { return (b.last_activity || '').localeCompare(a.last_activity || ''); })
     };
   }
-};
+});
 
 /* ------------------------------------------------------------------ */
 /* Sheet-as-table helper                                               */
@@ -855,7 +924,7 @@ function table(name) {
     update: function (row, fields) {
       var cur = sh.getRange(row, 1, 1, headers.length).getValues()[0];
       for (var c = 0; c < headers.length; c++) {
-        if (Object.prototype.hasOwnProperty.call(fields, headers[c])) cur[c] = fields[headers[c]];
+        if (Object.prototype.hasOwnProperty.call(fields, headers[c])) cur[c] = safeCellValue(fields[headers[c]]);
       }
       sh.getRange(row, 1, 1, headers.length).setValues([cur]);
     },
@@ -864,7 +933,7 @@ function table(name) {
     appendAll: function (objs) {
       if (!objs || !objs.length) return 0;
       var block = objs.map(function (o) {
-        return headers.map(function (h) { return o[h] === undefined || o[h] === null ? '' : o[h]; });
+        return headers.map(function (h) { return safeCellValue(o[h] === undefined || o[h] === null ? '' : o[h]); });
       });
       sh.getRange(sh.getLastRow() + 1, 1, block.length, headers.length).setValues(block);
       return block.length;
@@ -881,12 +950,22 @@ function table(name) {
   return api;
 }
 
+/** Google Sheets evaluates strings beginning with formula characters when
+ * setValues() writes them. User-controlled names, notes, URLs and markdown
+ * must remain text, otherwise a value such as `=IMPORTDATA(...)` becomes a
+ * formula in the owner's spreadsheet. A leading apostrophe is Sheets' native
+ * text marker and is not returned by getValues(). */
+function safeCellValue(value) {
+  if (typeof value !== 'string') return value;
+  return /^[\s\u200b]*[=+\-@]/.test(value) ? "'" + value : value;
+}
+
 /** Existing rows updated in place, new ones batched into one append. */
 function upsertByKey(t, user, incoming, keyFields, mapRow) {
-  var existing = {};
+  var existing = Object.create(null);
   mine(t.read(), user).forEach(function (r) { existing[keyOf(r, keyFields)] = r; });
 
-  var toAppend = [], seen = {}, n = 0;
+  var toAppend = [], seen = Object.create(null), n = 0;
   incoming.forEach(function (raw) {
     var row = mapRow(raw);
     var k = keyOf(row, keyFields);
@@ -948,6 +1027,16 @@ function limitedString(v, max, label) {
   var value = String(v == null ? '' : v);
   if (value.length > max) throw publicError(label + ' vượt giới hạn ' + max + ' ký tự.');
   return value;
+}
+function boundedNumber(v, fallback, min, max) {
+  var n = Number(v);
+  return isFinite(n) && n >= min && n <= max ? n : fallback;
+}
+function normalizeStack(v) {
+  var rows = asArray(v);
+  if (rows.length > 50) throw publicError('Stack có tối đa 50 mục.');
+  return rows.map(function (row) { return limitedString(row, 100, 'Stack').trim(); })
+    .filter(Boolean).join(', ');
 }
 function normalizeDiagramList(v, label) {
   var rows = asArray(v);

@@ -66,6 +66,7 @@ if (bridgeChannel) {
 
 function bridgeBootstrap(appUrl) {
   const nttOrigin = 'https://phongdaotao.ntt.edu.vn';
+  const MAX_RESPONSE_CHARS = 2_000_000;
   const allowedPaths = new Set([
     '/SinhVienDangKy/MonHocPhanChoDangKy',
     '/SinhVienDangKy/HocPhanDaDangKy',
@@ -77,7 +78,23 @@ function bridgeBootstrap(appUrl) {
     return;
   }
 
-  const target = new URL(appUrl);
+  let target;
+  try {
+    target = new URL(appUrl);
+  } catch {
+    alert('Bridge không hợp lệ. Hãy tạo lại bookmark từ trang GAZLL.');
+    return;
+  }
+  /* The bookmarklet crosses from an authenticated NTT tab into a popup. Do
+     not let a copied or tampered argument redirect that private response to a
+     third-party origin. Production is the published GAZLL origin; loopback is
+     allowed only for local development. */
+  const loopback = ['localhost', '127.0.0.1', '[::1]'].includes(target.hostname);
+  if ((target.protocol !== 'https:' && !loopback) ||
+      (!loopback && target.origin !== 'https://gazll.github.io')) {
+    alert('Bridge không trỏ tới GAZLL hợp lệ. Hãy tạo lại bookmark từ trang GAZLL.');
+    return;
+  }
   const appOrigin = target.origin;
   const channel = crypto.randomUUID();
   target.hash = 'bridge=' + encodeURIComponent(channel);
@@ -120,6 +137,14 @@ function bridgeBootstrap(appUrl) {
         signal: controller.signal
       });
       const html = await response.text();
+      if (html.length > MAX_RESPONSE_CHARS) {
+        send({
+          type: 'ntt-course:response',
+          id: message.id,
+          error: 'NTT response is too large.'
+        });
+        return;
+      }
       send({
         type: 'ntt-course:response',
         id: message.id,

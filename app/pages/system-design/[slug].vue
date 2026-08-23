@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { renderMarkdown } from '~/utils/markdown.js';
+import { safeJsonLd } from '~/utils/safe-jsonld.js';
 import { comparisonTable, emphasize, failureCards, list, proseParagraph, renderScope, tradeoffCards } from '~/utils/design-prose.js';
 import { PROMPT_ORIGINS, REFERENCE_ORIGINS, originGuard } from '../../../public/lib/constants.js';
 import { contentDateFacts } from '~/utils/content-dates.js';
 import { safeDecodeURIComponent } from '~/utils/uri.js';
-import { crossRefResolver, trackItemIds } from '../../../public/lib/cross-ref.js';
+import { crossRefResolver } from '../../../public/lib/cross-ref.js';
 import { copyText } from '../../../public/lib/clipboard.js';
 import { syncManualReviewControls } from '../../../public/lib/manual-review.js';
 
@@ -16,7 +17,9 @@ if (error.value) throw error.value;
 const design = computed(() => data.value.design);
 const copy = computed(() => design.value[lang.value] || design.value.en || design.value.vi);
 const progress = import.meta.client ? useStudyProgress() : null;
-const reviewLabels = { pending: 'Mark reviewed', done: 'Unmark reviewed' };
+const reviewLabels = computed(() => lang.value === 'vi'
+  ? { pending: 'Đánh dấu đã ôn', done: 'Bỏ đánh dấu đã ôn' }
+  : { pending: 'Mark reviewed', done: 'Unmark reviewed' });
 const labels = computed(() => lang.value === 'vi' ? {
   back: 'Thư viện System Design', toc: 'Trong bài này', scope: 'Phạm vi và bài toán', requirements: 'Yêu cầu',
   functional: 'Yêu cầu chức năng', quality: 'Thuộc tính chất lượng', capacity: 'Capacity và constraint',
@@ -93,7 +96,7 @@ const stackHtml = computed(() => comparisonTable(
 const tradeoffHtml = computed(() => tradeoffCards(copy.value.tradeoffs));
 const failureHtml = computed(() => failureCards(failureReview.value, {
   idFor: (_entry: any, index: number) => `system-design.${slug}.failure-review.q${index + 1}`,
-  labels: reviewLabels
+  labels: reviewLabels.value
 }));
 const dataIntroHtml = computed(() => proseParagraph(labels.value.dataIntro, 'sd-section-intro'));
 const stackIntroHtml = computed(() => proseParagraph(labels.value.stackIntro, 'sd-section-intro'));
@@ -108,8 +111,8 @@ const researchHref = originGuard(REFERENCE_ORIGINS, '');
 const blueprintSource = computed(() => promptHref(design.value.source_url || ''));
 
 /* Blueprint figures are repository-owned assets only: a narrow allow-list stops
-   a catalog edit turning the <img> or its full-size link into an external
-   request or a path traversal. */
+   a catalog edit turning the image element or its full-size link into an
+   external request or a path traversal. */
 const DESIGN_IMAGE = /^assets\/system-design\/[a-z0-9][a-z0-9._/-]*\.(?:avif|jpe?g|png|webp)$/i;
 const referenceImage = computed(() => {
   const image = design.value.reference_image;
@@ -125,12 +128,12 @@ const referenceImage = computed(() => {
 });
 
 /* A migrated note cites the same written (item-id) references a topic answer
-   does, so it resolves through the same owner — see lib/cross-ref.js. A bare
+   does. The server projects only those labels into this page payload. A bare
    "Q3" label names nothing; the target's own question does. */
-const { data: index } = await useAsyncData('content-index', () => $fetch<any>('/api/content/item-index'));
 const resolveRef = computed(() => crossRefResolver({
-  questions: index.value?.items || {},
-  onTrack: trackItemIds(index.value),
+  // Older prerendered pages can still use `/api/content/item-index`; new
+  // payloads carry only the cross-references needed by this article.
+  questions: data.value?.crossRefs || {},
   owners: data.value?.sourceOwners || {},
   lang: lang.value
 }));
@@ -140,10 +143,43 @@ const noteHtml = (markdown: string) => renderMarkdown(markdown, {
 });
 const copiedNote = ref('');
 const copiedCode = ref('');
-const tocCollapsed = ref(false);
+/* The desktop contents rail is now an on-demand panel. Start collapsed so a
+   first visit gets the full reading column; returning readers keep their
+   previous choice through the existing localStorage preference. */
+const tocCollapsed = ref(true);
 const articleBody = ref<HTMLElement | null>(null);
+const mobileToc = ref<HTMLDetailsElement | null>(null);
+const activeSectionId = ref(sections.value[0]?.id || '');
+const activeSectionLabel = computed(() => sections.value.find(section => section.id === activeSectionId.value)?.title || labels.value.toc);
+let tocObserver: IntersectionObserver | null = null;
+function syncActiveSection() {
+  tocObserver?.disconnect();
+  tocObserver = null;
+  const ids = sections.value.map(section => section.id);
+  activeSectionId.value = ids[0] || '';
+  if (!import.meta.client || !articleBody.value || typeof IntersectionObserver === 'undefined') return;
+  const targets = ids
+    .map(id => document.getElementById(id))
+    .filter((node): node is HTMLElement => Boolean(node));
+  if (!targets.length) return;
+  tocObserver = new IntersectionObserver(entries => {
+    const visible = entries
+      .filter(entry => entry.isIntersecting)
+      .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+    if (visible[0]) {
+      activeSectionId.value = visible[0].target.id;
+      return;
+    }
+    const passed = targets.filter(target => target.getBoundingClientRect().top <= window.innerHeight * 0.32);
+    if (passed.length) activeSectionId.value = passed[passed.length - 1].id;
+  }, { rootMargin: '-16% 0px -68% 0px', threshold: [0, 0.1, 0.5] });
+  targets.forEach(target => tocObserver?.observe(target));
+}
 function syncReviews() {
-  syncManualReviewControls(articleBody.value, progress?.reviewed.value, reviewLabels);
+  syncManualReviewControls(articleBody.value, progress?.reviewed.value, reviewLabels.value);
+}
+function closeMobileToc() {
+  if (mobileToc.value) mobileToc.value.open = false;
 }
 function onArticleBodyClick(event: MouseEvent) {
   const control = (event.target as HTMLElement).closest<HTMLElement>('[data-manual-review-id]');
@@ -180,10 +216,15 @@ function revealHash() {
 }
 onMounted(() => {
   tocCollapsed.value = localStorage.getItem('gazll:system-design-toc') === 'collapsed';
-  revealHash();
-  syncReviews();
+  void nextTick(() => {
+    syncActiveSection();
+    revealHash();
+    syncReviews();
+  });
 });
+onBeforeUnmount(() => tocObserver?.disconnect());
 watch(tocCollapsed, value => { if (import.meta.client) localStorage.setItem('gazll:system-design-toc', value ? 'collapsed' : 'open'); });
+watch(() => sections.value.map(section => section.id).join('|'), () => nextTick(syncActiveSection));
 watch(() => route.hash, revealHash);
 watch(() => lang.value, () => nextTick(syncReviews));
 watch(() => progress?.reviewed.value, () => nextTick(syncReviews));
@@ -194,7 +235,7 @@ useHead(() => ({
   link: [
     { rel: 'canonical', href: `https://gazll.github.io/system-design/${slug}` }
   ],
-  script: [{ type: 'application/ld+json', innerHTML: JSON.stringify({
+  script: [{ type: 'application/ld+json', innerHTML: safeJsonLd({
     '@context': 'https://schema.org', '@type': 'Article', headline: copy.value.title,
     description: copy.value.excerpt || copy.value.scope, datePublished: design.value.created_at,
     dateModified: design.value.updated_at || design.value.created_at, inLanguage: lang.value
@@ -206,9 +247,9 @@ useHead(() => ({
   <div>
     <ContentHeader :lang="lang" />
     <main id="view-host" tabindex="-1" class="view">
-      <article class="sd-article" :class="{ 'toc-collapsed': tocCollapsed }">
-        <div class="sd-backbar"><NuxtLink class="cs-back" :to="{ path: '/system-design', query: lang === 'vi' ? { lang: 'vi' } : {} }">← {{ labels.back }}</NuxtLink></div>
-        <header class="sd-article-head">
+      <article id="system-design-article" data-ui="system-design-article" class="sd-article" :class="{ 'toc-collapsed': tocCollapsed }">
+        <div id="system-design-backbar" data-ui="article-backbar" class="sd-backbar"><NuxtLink class="cs-back" :to="{ path: '/system-design', query: lang === 'vi' ? { lang: 'vi' } : {} }">← {{ labels.back }}</NuxtLink></div>
+        <header id="system-design-header" data-ui="system-design-header" class="sd-article-head">
           <p class="cs-eyebrow">{{ labels.blueprint }} · {{ design.level }} · {{ design.effort }}</p>
           <h1>{{ copy.title }}</h1>
           <p class="intro">{{ copy.scope || copy.excerpt }}</p>
@@ -216,13 +257,13 @@ useHead(() => ({
           <div class="cs-tags"><span v-for="tag in copy.tags || []" :key="tag">{{ tag }}</span></div>
           <p v-if="blueprintSource" class="sd-blueprint-source"><span>{{ labels.source }}</span><a :href="blueprintSource" target="_blank" rel="noopener noreferrer">{{ copy.source_label || design.source_label || labels.source }} ↗</a></p>
         </header>
-        <details class="sd-toc-mobile"><summary>{{ labels.toc }}</summary><nav><a v-for="section in sections" :key="section.id" :href="`#${section.id}`">{{ section.title }}</a></nav></details>
-        <div class="sd-article-grid">
-          <aside class="sd-toc" :aria-label="labels.articleContents">
+        <details id="system-design-toc-mobile" ref="mobileToc" data-ui="article-toc-mobile" class="sd-toc-mobile"><summary><span>{{ labels.toc }}</span><span class="toc-current" aria-live="polite">{{ activeSectionLabel }}</span></summary><nav><a v-for="section in sections" :key="section.id" :href="`#${section.id}`" :aria-current="activeSectionId === section.id ? 'location' : undefined" @click="closeMobileToc">{{ section.title }}</a></nav></details>
+        <div id="system-design-grid" data-ui="system-design-grid" class="sd-article-grid">
+          <aside id="system-design-toc" data-ui="article-toc" class="sd-toc" :aria-label="labels.articleContents">
             <div class="sd-toc-head"><p>{{ labels.toc }}</p><button type="button" class="sd-toc-toggle" :aria-expanded="!tocCollapsed" @click="tocCollapsed = !tocCollapsed"><span aria-hidden="true" /><span class="sr-only">{{ labels.toggleContents }}</span></button></div>
-            <nav><a v-for="section in sections" :key="section.id" :href="`#${section.id}`">{{ section.title }}</a></nav>
+            <nav><a v-for="section in sections" :key="section.id" :href="`#${section.id}`" :aria-current="activeSectionId === section.id ? 'location' : undefined">{{ section.title }}</a></nav>
           </aside>
-          <div ref="articleBody" class="sd-article-body" @click="onArticleBodyClick">
+          <div id="system-design-body" data-ui="system-design-body" ref="articleBody" class="sd-article-body" @click="onArticleBodyClick">
             <section id="problem-framing" class="sd-section sd-scope"><h2>{{ labels.scope }}</h2><div v-html="scopeHtml" /></section>
             <section id="requirements" class="sd-section sd-requirements"><h2>{{ labels.requirements }}</h2><div>
               <article><h3>{{ labels.functional }}</h3><div v-html="functionalHtml" /></article>
@@ -230,7 +271,7 @@ useHead(() => ({
             </div></section>
             <section id="capacity-constraints" class="sd-section capacity-constraints"><h2>{{ labels.capacity }}</h2><div v-html="capacityHtml" /></section>
             <figure v-if="referenceImage" class="sd-reference-figure">
-              <a :href="`/${referenceImage.src}`" target="_blank" rel="noopener noreferrer"><img :src="`/${referenceImage.src}`" :alt="referenceImage.alt" :width="referenceImage.width" :height="referenceImage.height" loading="lazy" decoding="async"></a>
+              <a :href="`/${referenceImage.src}`" target="_blank" rel="noopener noreferrer"><img src="/assets/system-design/16-ecommerce-saga-outbox-1m-dau.webp" :src="`/${referenceImage.src}`" :alt="referenceImage.alt" :width="referenceImage.width" :height="referenceImage.height" loading="lazy" decoding="async"></a>
               <figcaption v-html="referenceImage.captionHtml" />
             </figure>
             <section v-if="design.diagram" id="architecture" class="sd-section">
@@ -241,13 +282,13 @@ useHead(() => ({
             <section id="data-model" class="sd-section sd-decision-section sd-data-decision"><h2>{{ labels.data }}</h2><div v-html="dataIntroHtml" /><div v-html="dataModelHtml" /><aside class="sd-decision-checks"><strong>{{ labels.dataChecksTitle }}</strong><ul><li v-for="check in labels.dataChecks" :key="check">{{ check }}</li></ul></aside></section>
             <section id="technology-choices" class="sd-section sd-decision-section sd-stack-decision"><h2>{{ labels.stack }}</h2><div v-html="stackIntroHtml" /><div v-html="stackHtml" /><aside class="sd-decision-checks"><strong>{{ labels.stackChecksTitle }}</strong><ul><li v-for="check in labels.stackChecks" :key="check">{{ check }}</li></ul></aside></section>
             <section v-if="copy.code_samples?.length" id="code-samples" class="sd-section sd-code-samples"><h2>{{ labels.code }}</h2><div class="sd-code-grid">
-              <article v-for="sample in copy.code_samples" :key="sample.title" class="sd-code-sample"><header><div><h3>{{ sample.title }}</h3><p v-if="sample.note">{{ sample.note }}</p></div><span>{{ sample.language || labels.plainText }}</span></header><div class="sd-code-frame"><button type="button" @click="copyCodeSample(sample)">{{ copiedCode === sample.title ? labels.copied : labels.copyCode }}</button><pre><code>{{ sample.code }}</code></pre></div><p v-if="sample.run" class="sd-code-run"><b>{{ labels.run }}</b><code>{{ sample.run }}</code></p></article>
+              <article v-for="sample in copy.code_samples" :key="sample.title" data-ui="code-sample" :data-code-language="sample.language || labels.plainText" class="sd-code-sample"><header><div><h3>{{ sample.title }}</h3><p v-if="sample.note">{{ sample.note }}</p></div><span>{{ sample.language || labels.plainText }}</span></header><div class="sd-code-frame"><button type="button" @click="copyCodeSample(sample)">{{ copiedCode === sample.title ? labels.copied : labels.copyCode }}</button><pre><code>{{ sample.code }}</code></pre></div><p v-if="sample.run" class="sd-code-run"><b>{{ labels.run }}</b><code>{{ sample.run }}</code></p></article>
             </div></section>
             <section id="tradeoffs-failure-review" class="sd-section sd-tradeoff-review"><h2>{{ labels.tradeoffs }}</h2><div v-html="tradeoffIntroHtml" /><div class="sd-tradeoff-list" v-html="tradeoffHtml" />
               <aside id="failure-review" class="sd-failure-review"><strong>{{ labels.failureReviewAnswered }}</strong><div v-html="failureHtml" /></aside>
             </section>
-            <section v-if="research.length" id="engineering-deep-dives" class="sd-section sd-research"><h2>{{ labels.research }}</h2><section v-for="pack in research" :key="pack.id" class="sd-research-pack"><header><h3>{{ pack.copy.title }}</h3><p>{{ pack.copy.intro }}</p></header><div class="sd-research-grid"><article v-for="part in pack.copy.sections" :key="part.title"><h3>{{ part.title }}</h3><ul><li v-for="item in part.items" :key="item">{{ item }}</li></ul></article></div><footer><strong>{{ labels.further }}</strong><template v-for="source in pack.sources" :key="source[1]"><a v-if="researchHref(source[1])" :href="researchHref(source[1])" target="_blank" rel="noopener noreferrer">{{ source[0] }} ↗</a></template></footer></section></section>
-            <section v-if="sourceNotes.length" id="migrated-notes" class="sd-section sd-notes"><h2>{{ labels.migrated }}</h2><p>{{ copy.migrated_note || (lang === 'vi' ? 'Các deep dive này được chuyển từ Study Track và giữ nguyên ID để bookmark, progress và cross-reference tiếp tục hoạt động.' : 'These deep dives moved from Study Track and retain their IDs so bookmarks, progress and cross-references keep working.') }}</p><details v-for="note in sourceNotes" :id="`question-${note.id}`" :key="note.id"><summary><span>{{ note.item.q }}</span><code>{{ note.id }}</code></summary><div><div class="sd-note-actions"><StudyManualReviewButton :review-id="note.id" /><button type="button" @click="copyNoteLink(note.id)">{{ copiedNote === note.id ? labels.copied : labels.copy }}</button></div><div v-html="noteHtml(note.item.a)" /></div></details></section>
+            <section v-if="research.length" id="engineering-deep-dives" class="sd-section sd-research"><h2>{{ labels.research }}</h2><section v-for="pack in research" :key="pack.id" data-ui="research-pack" :data-research-id="pack.id" class="sd-research-pack"><header><h3>{{ pack.copy.title }}</h3><p>{{ pack.copy.intro }}</p></header><div class="sd-research-grid"><article v-for="part in pack.copy.sections" :key="part.title"><h3>{{ part.title }}</h3><ul><li v-for="item in part.items" :key="item">{{ item }}</li></ul></article></div><footer><strong>{{ labels.further }}</strong><template v-for="source in pack.sources" :key="source[1]"><a v-if="researchHref(source[1])" :href="researchHref(source[1])" target="_blank" rel="noopener noreferrer">{{ source[0] }} ↗</a></template></footer></section></section>
+            <section v-if="sourceNotes.length" id="migrated-notes" data-ui="migrated-notes" class="sd-section sd-notes"><h2>{{ labels.migrated }}</h2><p>{{ copy.migrated_note || (lang === 'vi' ? 'Các deep dive này được chuyển từ Study Track và giữ nguyên ID để bookmark, progress và cross-reference tiếp tục hoạt động.' : 'These deep dives moved from Study Track and retain their IDs so bookmarks, progress and cross-references keep working.') }}</p><details v-for="note in sourceNotes" :id="`question-${note.id}`" :key="note.id" data-ui="migrated-note"><summary><span>{{ note.item.q }}</span><code>{{ note.id }}</code></summary><div><div class="sd-note-actions" data-ui="migrated-note-actions"><StudyManualReviewButton :review-id="note.id" :lang="lang" /><button type="button" @click="copyNoteLink(note.id)">{{ copiedNote === note.id ? labels.copied : labels.copy }}</button></div><div v-html="noteHtml(note.item.a)" /></div></details></section>
           </div>
         </div>
       </article>

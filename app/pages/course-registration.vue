@@ -11,5 +11,5 @@ useHead({
 </script>
 
 <template>
-  <StaticToolSurface shell="/shells/course-registration.html" controller="/course-registration/app.js" />
+  <StaticToolSurface shell="/shells/course-registration.html" controller="/course-registration/app.js" lang="vi" />
 </template>
