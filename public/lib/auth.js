@@ -12,31 +12,27 @@
    That is not a credential — it cannot authenticate anything, and the backend
    ignores it entirely (user_id always comes from the verified token's `sub`).
    It exists so a returning reader sees their own avatar on first paint instead
-   of a signed-out header, while `auto_select` fetches a real token in the
-   background. Never put `token` in here.
+   of a signed-out header while keeping the choice to start a new session with
+   the reader. Never put `token` in here.
 
-   Silent sign-in fails routinely — FedCM suppresses the prompt, third-party
-   cookies are blocked, no Google session in this profile. So every attempt is
-   BOUNDED: unbounded, the header spun forever and never offered a way in.
-   Ending empty means `stale`, which asks for a click. */
+   Prompts can be suppressed by FedCM or browser privacy rules, so every
+   explicit attempt is BOUNDED and ends back at a real sign-in button. */
 import { GOOGLE_CLIENT_ID, SCRIPT_URL } from '../config.js';
 
 const GIS_SRC = 'https://accounts.google.com/gsi/client?hl=en';
 const LEGACY_SESSION_KEY = 'gazl.session';
 const HINT_KEY = 'gazl.profile';
 const SKEW_MS = 90_000;      // expire early so an in-flight request cannot die mid-way
-const SILENT_MS = 8_000;     // hard ceiling on one silent attempt
-const RETRY_COOLDOWN = 60_000; // do not re-prompt on every tab focus
-
+const PROMPT_MS = 8_000;     // hard ceiling on one explicit prompt attempt
 const listeners = new Set();
 function emit() { for (const fn of listeners) { try { fn(Auth); } catch (e) {} } }
 
 let gisReady = null;
+let gisInit = null;
+let initPromise = null;
 let renewTimer = null;
-let silentTimer = null;
-let silentPending = false;
-let lastSilentAt = 0;
-let wiredWake = false;
+let promptTimer = null;
+let promptPending = false;
 
 export const Auth = {
   /** { sub, email, name, picture, role, token, exp } or null. */
@@ -57,8 +53,8 @@ export const Auth = {
   get avatar() { return this.identity?.picture || ''; },
   get email() { return this.identity?.email || ''; },
 
-  /** Known face, no usable token, and a silent attempt is genuinely running. */
-  get connecting() { return Boolean(this.hint) && !this.token && silentPending; },
+  /** No usable token, and an explicit Google prompt is genuinely running. */
+  get connecting() { return Boolean(!this.token && promptPending); },
 
   /** A usable token, or null. Checked before every request. */
   get token() {
@@ -83,63 +79,40 @@ export const Auth = {
 
   onChange(fn) { listeners.add(fn); return () => listeners.delete(fn); },
 
-  async init() {
-    // Versions before July 2026 persisted the full ID token. Remove that
-    // credential before rendering anything, even when sync is disabled.
-    clearLegacySession();
-    this.session = null;
-    if (!this.enabled) { this.ready = true; emit(); return; }
-
-    // Marked as attempting before GIS loads, so a returning reader sees their
-    // own face instead of a flash of "signed out".
-    this.hint = readHint();
-    this.ready = true;
-    if (this.hint) beginSilent();
-    emit();
-
-    try {
-      await loadGis();
-      google.accounts.id.initialize({
-        client_id: GOOGLE_CLIENT_ID,
-        callback: onCredential,
-        auto_select: true,             // returning users get signed back in silently
-        cancel_on_tap_outside: true,   // false traps clicks under FedCM's native prompt
-        use_fedcm_for_prompt: true
-      });
-      if (!this.token) promptSilently();
-      scheduleRenew();
-      wakeOnFocus();
-    } catch (e) {
-      this.error = 'Could not load Google sign-in.';
-      endSilent();
-      emit();
-    }
+  init() {
+    if (initPromise) return initPromise;
+    initPromise = initializeAuth();
+    return initPromise;
   },
 
-  /** Explicit, user-initiated. Unlike the silent path this may show UI. */
-  signIn() {
-    if (!this.enabled) return;
+  /** Explicit, user-initiated prompt; repeated calls are ignored while pending. */
+  async signIn() {
+    if (!this.enabled || promptPending) return;
     this.error = null;
     try {
-      beginSilent();
+      await initializeGis();
+      beginPrompt();
       google.accounts.id.prompt(handlePromptMoment);
       emit();
     } catch (e) {
-      endSilent();
+      endPrompt();
       this.error = 'Could not open Google sign-in.';
       emit();
     }
   },
 
+  /** Mount Google's own button when One Tap/FedCM is suppressed. */
+  renderButton(holder) { return renderSignInButton(holder); },
+
   signOut() {
     clearTimeout(renewTimer);
-    endSilent();
+    endPrompt();
     this.session = null;
     this.hint = null;
     this.error = null;
     clearLegacySession();
     clearHint();
-    // Without this, auto_select signs straight back in.
+    // Prevent a later explicit prompt from restoring the signed-out account.
     try { google.accounts.id.disableAutoSelect(); } catch (e) {}
     emit();
   },
@@ -155,36 +128,53 @@ export const Auth = {
   }
 };
 
-/* ---------- silent sign-in, always bounded ---------- */
+async function initializeAuth() {
+  // Versions before July 2026 persisted the full ID token. Remove that
+  // credential before rendering anything, even when sync is disabled.
+  clearLegacySession();
+  Auth.session = null;
+  if (!Auth.enabled) { Auth.ready = true; emit(); return; }
 
-function beginSilent() {
-  silentPending = true;
-  lastSilentAt = Date.now();
-  clearTimeout(silentTimer);
-  silentTimer = setTimeout(() => { if (silentPending) { endSilent(); emit(); } }, SILENT_MS);
+  // Show the remembered face, but never start a Google prompt without an
+  // explicit user action. This prevents One Tap/FedCM from re-authenticating
+  // in a loop after a dismissal, tab switch, or token expiry.
+  Auth.hint = readHint();
+  Auth.ready = true;
+  emit();
+
+  try {
+    await initializeGis();
+    scheduleRenew();
+  } catch (e) {
+    Auth.error = 'Could not load Google sign-in.';
+    endPrompt();
+    emit();
+  }
 }
 
-function endSilent() {
-  silentPending = false;
-  clearTimeout(silentTimer);
+/* ---------- explicit sign-in, always bounded ---------- */
+
+function beginPrompt() {
+  promptPending = true;
+  clearTimeout(promptTimer);
+  promptTimer = setTimeout(() => { if (promptPending) { endPrompt(); emit(); } }, PROMPT_MS);
 }
 
-function promptSilently() {
-  beginSilent();
-  try { google.accounts.id.prompt(handlePromptMoment); }
-  catch (e) { endSilent(); emit(); }
+function endPrompt() {
+  promptPending = false;
+  clearTimeout(promptTimer);
 }
 
 /** Under FedCM these predicates are deprecated and some throw, so probe each
-    one; if none answers, SILENT_MS still ends the attempt. */
+    one; if none answers, PROMPT_MS still ends the attempt. */
 function handlePromptMoment(notification) {
-  if (!notification || !silentPending) return;
+  if (!notification || !promptPending) return;
   const says = name => {
     try { return typeof notification[name] === 'function' && notification[name](); }
     catch (e) { return false; }
   };
   if (says('isNotDisplayed') || says('isSkippedMoment') || says('isDismissedMoment')) {
-    endSilent();
+    endPrompt();
     emit();
   }
 }
@@ -195,7 +185,9 @@ function onCredential(response) {
   const token = response?.credential;
   if (!token) return;
   const claims = decodeJwt(token);
-  if (!claims) return;
+  const exp = Number(claims?.exp) * 1000;
+  if (!claims?.sub || !Number.isFinite(exp)) return;
+  if (Auth.session?.token === token && Auth.token) return;
 
   const keepRole = Auth.session?.role;    // avoid the ADMIN badge blinking off
   Auth.session = {
@@ -205,11 +197,11 @@ function onCredential(response) {
     picture: claims.picture || '',
     role: keepRole || 'user',
     token,
-    exp: Number(claims.exp) * 1000
+    exp
   };
   Auth.hint = writeHint(Auth.session);
   Auth.error = null;
-  endSilent();
+  endPrompt();
   scheduleRenew();
   emit();
 }
@@ -218,25 +210,10 @@ function scheduleRenew() {
   clearTimeout(renewTimer);
   if (!Auth.session) return;
   const wait = Auth.session.exp - SKEW_MS - Date.now();
+  if (wait <= 0) { emit(); return; }
   renewTimer = setTimeout(() => {
-    promptSilently();
-    emit();   // token just lapsed; UI switches to the re-auth state
-  }, Math.max(5_000, wait));
-}
-
-/** Coming back to the tab is when Google is most likely to have a session
-    again. Rate-limited so tab-flicking cannot become a prompt loop. */
-function wakeOnFocus() {
-  if (wiredWake) return;
-  if (typeof document === 'undefined' || typeof document.addEventListener !== 'function') return;
-  wiredWake = true;
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState !== 'visible') return;
-    if (Auth.token || silentPending || !Auth.identity) return;
-    if (Date.now() - lastSilentAt < RETRY_COOLDOWN) return;
-    promptSilently();
-    emit();
-  });
+    if (Auth.session) emit(); // token is stale; the reader chooses when to re-auth
+  }, wait);
 }
 
 function clearLegacySession() {
@@ -293,8 +270,28 @@ function loadGis() {
     s.onload = () => resolve();
     s.onerror = () => reject(new Error('Could not load Google Identity Services.'));
     document.head.appendChild(s);
+  }).catch(error => {
+    gisReady = null;
+    throw error;
   });
   return gisReady;
+}
+
+function initializeGis() {
+  if (gisInit) return gisInit;
+  gisInit = loadGis().then(() => {
+    google.accounts.id.initialize({
+      client_id: GOOGLE_CLIENT_ID,
+      callback: onCredential,
+      auto_select: false,            // sign-in starts only after an explicit action
+      cancel_on_tap_outside: true,   // false traps clicks under FedCM's native prompt
+      use_fedcm_for_prompt: true
+    });
+  }).catch(error => {
+    gisInit = null;
+    throw error;
+  });
+  return gisInit;
 }
 
 function avatarFace() {
@@ -375,21 +372,20 @@ function menuHtml() {
 }
 
 /** Google's own button: more reliable than One Tap, which FedCM can suppress. */
-function renderSignInButton(holder) {
-  loadGis().then(() => {
-    try {
-      google.accounts.id.renderButton(holder, {
-        type: 'standard', theme: 'outline', size: 'large',
-        shape: 'pill', text: 'signin_with', logo_alignment: 'center',
-        locale: 'en', width: 240
-      });
-    } catch (e) {
-      holder.innerHTML = '<button class="am-action" id="btnRetry">Sign in with Google</button>';
-      holder.querySelector('button').addEventListener('click', () => Auth.signIn());
-    }
-  }).catch(() => {
-    holder.innerHTML = '<p class="am-note err">Could not load Google sign-in.</p>';
-  });
+async function renderSignInButton(holder) {
+  if (!holder) return false;
+  try {
+    await initializeGis();
+    holder.replaceChildren();
+    google.accounts.id.renderButton(holder, {
+      type: 'standard', theme: 'outline', size: 'large',
+      shape: 'pill', text: 'signin_with', logo_alignment: 'center',
+      locale: 'en', width: 240
+    });
+    return true;
+  } catch (e) {
+    return false;
+  }
 }
 function esc(s) {
   return String(s == null ? '' : s)

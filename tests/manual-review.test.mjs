@@ -33,3 +33,20 @@ test('System Design and Case Study review prompts get separate manual markers', 
   assert.match(marker, /aria-pressed="false"/);
   assert.match(marker, /Mark reviewed/);
 });
+
+test('manual review markers can be toggled off and synced as a deletion', async () => {
+  const [button, progress, store, backend] = await Promise.all([
+    read('app/components/study/ManualReviewButton.vue'),
+    read('app/composables/useStudyProgress.client.ts'),
+    read('public/lib/store.js'),
+    read('apps-script/Code.gs')
+  ]);
+
+  assert.match(button, /toggleReviewed/);
+  assert.match(button, /isReviewed \? 'Unmark reviewed' : 'Mark reviewed'/);
+  assert.match(progress, /function toggleReviewed/);
+  assert.match(store, /unmarkReviewed\(id\)/);
+  assert.match(store, /progress_remove/);
+  assert.match(backend, /progressRemove = asArray\(p\.progress_remove\)/);
+  assert.match(backend, /table\('progress'\)\.deleteWhere/);
+});

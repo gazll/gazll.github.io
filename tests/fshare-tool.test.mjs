@@ -61,3 +61,11 @@ test('tool bootstrap keeps FShare allowed after route navigation and exposes fai
   assert.match(page, /<ClientOnly>/);
   assert.match(page, /Loading Fshare tool/);
 });
+
+test('FShare sync does not auto-select or duplicate Google prompts', async () => {
+  const source = await readFile(path.join(root, 'public/fshare-tool/lib/sync.js'), 'utf8');
+
+  assert.match(source, /auto_select:\s*false/);
+  assert.match(source, /if \(Sync\.signingIn \|\| Sync\.on\) return/);
+  assert.match(source, /setTimeout\(\(\) => finishSignIn\(\), 8_000\)/);
+});

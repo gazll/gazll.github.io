@@ -1,5 +1,9 @@
 import { readFileSync } from 'node:fs';
 
+// Dev-only allowance so Impeccable live mode can load.
+const __impeccableLiveDev =
+  process.env.NODE_ENV === 'development' ? ' http://localhost:8400' : '';
+
 function json(path: string) {
   return JSON.parse(readFileSync(new URL(path, import.meta.url), 'utf8'));
 }
@@ -50,7 +54,7 @@ export default defineNuxtConfig({
       htmlAttrs: { lang: 'en' },
       meta: [
         { charset: 'utf-8' },
-        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1, viewport-fit=cover' },
         { name: 'referrer', content: 'no-referrer' },
         /* The site talks to Google Identity and Apps Script and nothing else;
            the ID token is a credential, so the allowed origins stay explicit.
@@ -60,11 +64,11 @@ export default defineNuxtConfig({
           "default-src 'self'",
           "base-uri 'self'",
           "object-src 'none'",
-          "script-src 'self' 'unsafe-inline' https://accounts.google.com/gsi/client",
+          `script-src 'self' 'unsafe-inline' https://accounts.google.com/gsi/client${__impeccableLiveDev}`,
           "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com/gsi/style",
           "font-src 'self' https://fonts.gstatic.com",
           "img-src 'self' data: https://*.googleusercontent.com",
-          "connect-src 'self' https://fshare.annnekkk.com https://accounts.google.com/gsi/ https://script.google.com https://script.googleusercontent.com",
+          `connect-src 'self' https://fshare.annnekkk.com https://accounts.google.com/gsi/ https://script.google.com https://script.googleusercontent.com${__impeccableLiveDev}`,
           "frame-src https://accounts.google.com/gsi/",
           "form-action 'none'",
           "worker-src 'none'",

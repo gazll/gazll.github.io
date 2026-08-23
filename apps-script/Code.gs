@@ -330,13 +330,24 @@ var ACTIONS = {
 
   /** Batched write. Idempotent per item_id, so a retry cannot duplicate. */
   'push': function (user, p) {
-    var progress = asArray(p.progress), notes = asArray(p.notes), log = asArray(p.log);
-    if (progress.length + notes.length + log.length > MAX_ROWS_PER_PUSH) {
+    var progress = asArray(p.progress), progressRemove = asArray(p.progress_remove), notes = asArray(p.notes), log = asArray(p.log);
+    if (progress.length + progressRemove.length + notes.length + log.length > MAX_ROWS_PER_PUSH) {
       throw publicError('Request quá lớn (giới hạn ' + MAX_ROWS_PER_PUSH + ' dòng).');
     }
 
     return withLock(function () {
-      var counts = { progress: 0, notes: 0, log: 0 };
+      var counts = { progress: 0, progress_removed: 0, notes: 0, log: 0 };
+
+      if (progressRemove.length) {
+        var removeIds = {};
+        progressRemove.forEach(function (r) {
+          var id = String(r && r.item_id || '');
+          if (id) removeIds[id] = true;
+        });
+        counts.progress_removed = table('progress').deleteWhere(function (r) {
+          return String(r.user_id) === String(user.sub) && removeIds[String(r.item_id)] === true;
+        });
+      }
 
       if (progress.length) {
         counts.progress = upsertByKey(table('progress'), user, progress, ['item_id'], function (r) {

@@ -16,7 +16,7 @@ if (error.value) throw error.value;
 const design = computed(() => data.value.design);
 const copy = computed(() => design.value[lang.value] || design.value.en || design.value.vi);
 const progress = import.meta.client ? useStudyProgress() : null;
-const reviewLabels = { pending: 'Mark reviewed', done: 'Reviewed' };
+const reviewLabels = { pending: 'Mark reviewed', done: 'Unmark reviewed' };
 const labels = computed(() => lang.value === 'vi' ? {
   back: 'Thư viện System Design', toc: 'Trong bài này', scope: 'Phạm vi và bài toán', requirements: 'Yêu cầu',
   functional: 'Yêu cầu chức năng', quality: 'Thuộc tính chất lượng', capacity: 'Capacity và constraint',
@@ -151,7 +151,7 @@ function onArticleBodyClick(event: MouseEvent) {
   event.preventDefault();
   const id = control.dataset.manualReviewId;
   if (!id) return;
-  progress?.markReviewed(id);
+  progress?.toggleReviewed(id);
   syncReviews();
 }
 async function copyNoteLink(id: string) {

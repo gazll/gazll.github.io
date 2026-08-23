@@ -43,7 +43,7 @@ const labels = computed(() => lang.value === 'vi' ? {
 });
 
 const progress = import.meta.client && props.collection === 'case-studies' ? useStudyProgress() : null;
-const reviewLabels = { pending: 'Mark reviewed', done: 'Reviewed' };
+const reviewLabels = { pending: 'Mark reviewed', done: 'Unmark reviewed' };
 
 function decorateReviewQuestions(html: string) {
   if (props.collection !== 'case-studies') return html;
@@ -117,7 +117,7 @@ function onArticleClick(event: MouseEvent) {
   if (reviewControl && articleBody.value?.contains(reviewControl)) {
     event.preventDefault();
     const id = reviewControl.dataset.manualReviewId;
-    if (id) progress?.markReviewed(id);
+    if (id) progress?.toggleReviewed(id);
     syncReviews();
     return;
   }

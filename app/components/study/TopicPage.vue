@@ -97,12 +97,24 @@ useHead(() => ({
             </div>
           </section>
 
-          <div class="toolbar">
-            <span class="sectioncount">{{ itemCount }} items · {{ sections.length }} sections</span>
-            <div class="tb-actions"><button class="btn-ghost" type="button" @click="setAll(!expandAll)">{{ expandAll ? 'Collapse all' : 'Expand all' }}</button></div>
+          <div class="toolbar" aria-label="Study controls">
+            <span class="sectioncount">
+              <span><b>{{ itemCount }}</b> items</span>
+              <span><b>{{ sections.length }}</b> sections</span>
+            </span>
+            <div class="tb-actions">
+              <button class="btn-ghost" type="button" :aria-pressed="expandAll" @click="setAll(!expandAll)">
+                <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                  <path v-if="expandAll" d="m5.5 12.5 4.5-4.5 4.5 4.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+                  <path v-else d="m5.5 7.5 4.5 4.5 4.5-4.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                <span>{{ expandAll ? 'Collapse all' : 'Expand all' }}</span>
+              </button>
+            </div>
           </div>
           <template v-for="(section, sectionIndex) in sections" :key="section.title">
             <div :id="`${data!.stem}-section-${sectionIndex + 1}`" class="section-h">
+              <span class="section-index" aria-hidden="true">{{ String(sectionIndex + 1).padStart(2, '0') }}</span>
               <a class="topic-heading-anchor" :href="`#${data!.stem}-section-${sectionIndex + 1}`">{{ section.title }}</a><span class="sline" />
             </div>
             <StudyQuestionCard v-for="item in section.items" :key="item.id" :item="item" :pair="itemPairs[item.id]" :lang="lang" :source-owners="data!.sourceOwners" :resolve-ref="resolveRef" :force-open="expandAll" :force-token="expandToken" />
@@ -110,11 +122,23 @@ useHead(() => ({
         </div>
 
         <nav class="pager" aria-label="Topic navigation">
-          <NuxtLink v-if="previous" class="pbtn prev" :to="`/topics/${rowSlug(previous)}?lang=${lang}`">← Previous topic</NuxtLink>
-          <span v-else class="pbtn prev" aria-disabled="true">← Previous topic</span>
+          <NuxtLink v-if="previous" class="pbtn prev" :to="`/topics/${rowSlug(previous)}?lang=${lang}`">
+            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m12.5 4.5-5.5 5.5 5.5 5.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+            <span>Previous topic</span>
+          </NuxtLink>
+          <span v-else class="pbtn prev" aria-disabled="true">
+            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m12.5 4.5-5.5 5.5 5.5 5.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+            <span>Previous topic</span>
+          </span>
           <div class="pcenter">Topic <b>{{ currentIndex + 1 }}</b> / {{ data!.rows.length }}</div>
-          <NuxtLink v-if="next" class="pbtn next" :to="`/topics/${rowSlug(next)}?lang=${lang}`">Next topic →</NuxtLink>
-          <span v-else class="pbtn next" aria-disabled="true">Finished ✓</span>
+          <NuxtLink v-if="next" class="pbtn next" :to="`/topics/${rowSlug(next)}?lang=${lang}`">
+            <span>Next topic</span>
+            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m7.5 4.5 5.5 5.5-5.5 5.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          </NuxtLink>
+          <span v-else class="pbtn next" aria-disabled="true">
+            <span>Finished</span>
+            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m4.5 10 3.3 3.3 7.7-7.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          </span>
         </nav>
       </section>
     </main>

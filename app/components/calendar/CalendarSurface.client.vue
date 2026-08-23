@@ -149,12 +149,14 @@ const ux = computed(() => vi.value ? {
   reminders: 'nhắc việc', records: 'mục', privateLabel: 'Lịch riêng',
   show: 'Hiện', hide: 'Ẩn', opening: 'Đang mở…', selectedDay: 'Ngày đã chọn',
   holidayLegend: 'Ngày lễ', reminderLegend: 'Nhắc việc', lunarLegend: 'Mùng 1 / Rằm',
-  openPrivate: 'Mở lịch riêng để xem nội dung này', twelveMonths: '12 tháng'
+  openPrivate: 'Mở lịch riêng để xem nội dung này', twelveMonths: '12 tháng',
+  calendarViews: 'Chế độ xem lịch'
 } : {
   reminders: 'reminders', records: 'records', privateLabel: 'Private schedule',
   show: 'Show', hide: 'Hide', opening: 'Opening…', selectedDay: 'Selected day',
   holidayLegend: 'Public holiday', reminderLegend: 'Reminder', lunarLegend: 'New / full moon',
-  openPrivate: 'Open the private schedule to see this content', twelveMonths: '12 months'
+  openPrivate: 'Open the private schedule to see this content', twelveMonths: '12 months',
+  calendarViews: 'Calendar views'
 });
 
 /* One holidayMap per year, kept because the year view asks for the same year
@@ -657,7 +659,7 @@ onBeforeUnmount(() => stopAuth?.());
         <button v-if="view === 'month' || view === 'year'" type="button" class="cal-today" @click="goToday">{{ t.todayLabel }}</button>
       </div>
 
-      <div class="cal-views" role="tablist" :aria-label="t.month">
+      <div class="cal-views" role="tablist" :aria-label="ux.calendarViews">
         <button v-for="tab in VIEW_TABS" :id="`cal-tab-${tab}`" :key="tab" type="button" role="tab"
                 class="cal-tab" :aria-selected="view === tab" aria-controls="cal-view-panel"
                 :tabindex="view === tab ? 0 : -1" @click="setView(tab)" @keydown="moveView($event, tab)">

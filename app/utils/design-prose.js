@@ -172,7 +172,7 @@ export function tradeoffCards(rows) {
 
 /** One failure-review card per lens, question emphasised over structured prose. */
 export function failureCards(entries, options = {}) {
-  const reviewLabels = options.labels || { pending: 'Mark reviewed', done: 'Reviewed' };
+  const reviewLabels = options.labels || { pending: 'Mark reviewed', done: 'Unmark reviewed' };
   return (entries || []).map((entry, index) => {
     const reviewId = options.idFor ? options.idFor(entry, index) : '';
     const marker = reviewId ? manualReviewMarkup(reviewId, reviewLabels) : '';

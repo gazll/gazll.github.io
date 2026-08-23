@@ -20,11 +20,14 @@ export const Sync = {
   ready: false, enabled: false, on: false,
   clientId: '', scriptUrl: '', email: '',
   token: null,          // MEMORY ONLY
-  busy: false
+  busy: false,
+  signingIn: false
 };
 
 /** Set by app.js so a pull can re-apply settings to the live UI. */
 let applyConfig = () => {};
+let gisReady = null;
+let signInTimer = null;
 export function setConfigApplier(fn) { applyConfig = fn; }
 
 export function syncInit() {
@@ -44,7 +47,8 @@ export function syncInit() {
 }
 
 function loadGis() {
-  return new Promise((resolve, reject) => {
+  if (gisReady) return gisReady;
+  gisReady = new Promise((resolve, reject) => {
     if (window.google && google.accounts && google.accounts.id) return resolve();
     const s = document.createElement('script');
     s.src = GIS_SRC;
@@ -52,7 +56,11 @@ function loadGis() {
     s.onload = resolve;
     s.onerror = () => reject(new Error('Could not load Google sign-in'));
     document.head.appendChild(s);
+  }).catch((error) => {
+    gisReady = null;
+    throw error;
   });
+  return gisReady;
 }
 
 /** Display claims only; the backend re-verifies the token itself. */
@@ -65,19 +73,28 @@ function peekClaims(tok) {
 
 export function syncSignIn() {
   if (!Sync.enabled) { toast('Sync is not configured on this build', true); return; }
+  if (Sync.signingIn || Sync.on) return;
+  Sync.signingIn = true;
+  renderSyncBtn();
   loadGis().then(() => {
     google.accounts.id.initialize({
       client_id: Sync.clientId,
       callback: onCredential,
-      auto_select: true,
+      auto_select: false,
       cancel_on_tap_outside: true,   // false traps clicks under FedCM's native prompt
       use_fedcm_for_prompt: true
     });
-    google.accounts.id.prompt();
-  }).catch((e) => toast(e.message, true));
+    clearTimeout(signInTimer);
+    signInTimer = setTimeout(() => finishSignIn(), 8_000);
+    google.accounts.id.prompt(handlePromptMoment);
+  }).catch((e) => {
+    finishSignIn();
+    toast(e.message, true);
+  });
 }
 
 export function syncSignOut() {
+  finishSignIn();
   Sync.token = null;
   Sync.on = false;
   Sync.email = '';
@@ -89,6 +106,7 @@ export function syncSignOut() {
 function onCredential(resp) {
   const tok = resp && resp.credential;
   if (!tok) return;
+  finishSignIn();
   const claims = peekClaims(tok);
   Sync.token = tok;
   Sync.on = true;
@@ -102,6 +120,23 @@ function onCredential(resp) {
     if (msg) { toast(msg, true); return; }
     syncPull();
   });
+}
+
+function finishSignIn() {
+  clearTimeout(signInTimer);
+  signInTimer = null;
+  if (!Sync.signingIn) return;
+  Sync.signingIn = false;
+  renderSyncBtn();
+}
+
+function handlePromptMoment(notification) {
+  if (!notification) return;
+  const says = (name) => {
+    try { return typeof notification[name] === 'function' && notification[name](); }
+    catch (e) { return false; }
+  };
+  if (says('isNotDisplayed') || says('isSkippedMoment') || says('isDismissedMoment')) finishSignIn();
 }
 
 /* Actions this build of the tool needs the backend to understand. */
@@ -225,6 +260,8 @@ export function renderSyncBtn() {
   if (!Sync.ready) { b.textContent = '…'; b.title = ''; return; }
   if (!Sync.enabled) { b.style.display = 'none'; return; }
   b.style.display = '';
+  b.disabled = Sync.signingIn;
+  if (Sync.signingIn) { b.textContent = 'Opening Google…'; b.title = 'Waiting for Google sign-in'; return; }
   if (Sync.busy) { b.textContent = '⏳ Syncing'; return; }
   b.textContent = Sync.on ? '✅ ' + (Sync.email || 'Synced') : '☁️ Sign in to sync';
   b.title = Sync.on ? 'Click to sign out — data stays saved locally'

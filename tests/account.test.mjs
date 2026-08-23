@@ -18,13 +18,10 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 {
   /* The sign-in state machine in lib/auth.js.
 
-     The bug these pin: `connecting` used to mean nothing more than "there is a
-     stored profile and no token", so whenever silent sign-in quietly failed —
-     FedCM suppressing the prompt, third-party cookies blocked, no Google
-     session in this browser — the header span spun forever and never offered a
-     way in. A silent attempt must always END: with a token, with a prompt
-     notification, or with the timeout. When it ends empty the state is `stale`,
-     which is a still badge and a real sign-in button.
+     The current contract keeps a remembered profile visible without opening a
+     Google prompt on startup, tab focus, or token expiry. Sign-in begins only
+     after an explicit action; a bounded prompt may end in `stale`, leaving the
+     reader a real sign-in button.
 
      The credential itself is covered in security.test.mjs; this file is only
      about which state the UI is told to render. */
@@ -52,6 +49,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
     const timers = [];
     let promptCallback = null;
     let promptCalls = 0;
+    let renderCalls = 0;
     let credentialCallback = null;
     const listeners = {};
 
@@ -61,7 +59,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
           initialize(options) { credentialCallback = options.callback; },
           prompt(cb) { promptCalls++; promptCallback = cb || null; },
           disableAutoSelect() {},
-          renderButton() {}
+          renderButton(holder) { renderCalls++; holder.rendered = true; }
         }
       }
     };
@@ -115,7 +113,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
     return {
       Auth: mod.namespace.Auth,
-      /** Run the longest pending timer — stands in for SILENT_MS elapsing. */
+      /** Run the longest pending timer — stands in for PROMPT_MS elapsing. */
       fireTimers() {
         const live = timers.filter(t => !t.cancelled && !t.done);
         for (const t of live) { t.done = true; t.fn(); }
@@ -127,7 +125,8 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
         for (const fn of listeners.visibilitychange || []) fn();
       },
       advance(ms) { skew += ms; },
-      get promptCalls() { return promptCalls; }
+      get promptCalls() { return promptCalls; },
+      get renderCalls() { return renderCalls; }
     };
   }
 
@@ -135,51 +134,22 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
   const validClaims = { sub: 'u1', email: 'u@example.com', name: 'Returning Reader',
     exp: Math.floor(Date.now() / 1000) + 3600 };
 
-  test('a returning reader starts in connecting, not signed out', async () => {
+  test('a returning reader keeps the remembered face without auto-signing in', async () => {
     const b = await loadAuth({ storedProfile: HINT });
     await b.Auth.init();
 
-    assert.equal(b.Auth.state, 'connecting');
+    assert.equal(b.Auth.state, 'stale');
     assert.equal(b.Auth.displayName, 'Returning Reader', 'the known face shows immediately');
     assert.equal(b.Auth.token, null);
+    assert.equal(b.Auth.connecting, false);
+    assert.equal(b.promptCalls, 0, 'startup must not open Google sign-in');
   });
 
-  test('a silent attempt that produces nothing ends as stale, never stuck connecting', async () => {
+  test('a credential arriving after an explicit prompt resolves into signed', async () => {
     const b = await loadAuth({ storedProfile: HINT });
     await b.Auth.init();
+    await b.Auth.signIn();
     assert.equal(b.Auth.state, 'connecting');
-
-    b.fireTimers();   // SILENT_MS elapses with no credential
-
-    assert.equal(b.Auth.state, 'stale');
-    assert.equal(b.Auth.connecting, false, 'the spinner must stop');
-    assert.equal(b.Auth.identity.name, 'Returning Reader', 'we still know who they are');
-  });
-
-  test('GIS reporting a dead prompt ends the attempt without waiting for the timeout', async () => {
-    const b = await loadAuth({ storedProfile: HINT });
-    await b.Auth.init();
-
-    b.tellPrompt({ isNotDisplayed: () => true, isSkippedMoment: () => false });
-
-    assert.equal(b.Auth.state, 'stale');
-  });
-
-  test('a prompt predicate that throws does not wedge the state', async () => {
-    // Under FedCM several of these are deprecated and can throw on access.
-    const b = await loadAuth({ storedProfile: HINT });
-    await b.Auth.init();
-
-    b.tellPrompt({ isNotDisplayed() { throw new Error('deprecated under FedCM'); } });
-    assert.equal(b.Auth.state, 'connecting', 'an unusable notification tells us nothing');
-
-    b.fireTimers();
-    assert.equal(b.Auth.state, 'stale', 'the timeout is still the backstop');
-  });
-
-  test('a credential arriving resolves connecting into signed', async () => {
-    const b = await loadAuth({ storedProfile: HINT });
-    await b.Auth.init();
 
     b.signInWith(validClaims);
 
@@ -196,35 +166,15 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
     assert.equal(b.Auth.connecting, false);
   });
 
-  test('returning to the tab does not re-prompt inside the cooldown', async () => {
-    // Silent sign-in that just failed will fail again for the same reason, so
-    // flicking between tabs must not turn into a prompt storm.
+  test('returning to the tab never starts an automatic sign-in', async () => {
     const b = await loadAuth({ storedProfile: HINT });
     await b.Auth.init();
-    b.fireTimers();
-    const after = b.promptCalls;
 
     b.fireVisibility('visible');
     b.fireVisibility('visible');
 
-    assert.equal(b.promptCalls, after);
+    assert.equal(b.promptCalls, 0);
     assert.equal(b.Auth.state, 'stale');
-  });
-
-  test('once the cooldown passes, returning to the tab retries exactly once', async () => {
-    const b = await loadAuth({ storedProfile: HINT });
-    await b.Auth.init();
-    b.fireTimers();
-    const after = b.promptCalls;
-
-    b.advance(61_000);
-    b.fireVisibility('visible');
-    assert.equal(b.promptCalls, after + 1, 'one fresh attempt');
-    assert.equal(b.Auth.state, 'connecting');
-
-    // The new attempt is already in flight; a second return adds nothing.
-    b.fireVisibility('visible');
-    assert.equal(b.promptCalls, after + 1);
   });
 
   test('a signed-in reader is never re-prompted on tab focus', async () => {
@@ -238,6 +188,37 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
     assert.equal(b.promptCalls, after);
     assert.equal(b.Auth.state, 'signed');
+  });
+
+  test('an explicit sign-in waits for GIS before opening its prompt', async () => {
+    const b = await loadAuth();
+
+    await b.Auth.signIn();
+    await b.Auth.signIn();
+
+    assert.equal(b.promptCalls, 1);
+  });
+
+  test('a dismissed explicit prompt ends cleanly and can be retried once', async () => {
+    const b = await loadAuth({ storedProfile: HINT });
+    await b.Auth.init();
+    await b.Auth.signIn();
+
+    assert.equal(b.Auth.state, 'connecting');
+    b.tellPrompt({ isDismissedMoment: () => true });
+    assert.equal(b.Auth.state, 'stale');
+
+    await b.Auth.signIn();
+    assert.equal(b.promptCalls, 2);
+  });
+
+  test('the official Google button can be mounted for an explicit mobile path', async () => {
+    const b = await loadAuth();
+    const holder = { rendered: false, replaceChildren() { this.rendered = false; } };
+
+    assert.equal(await b.Auth.renderButton(holder), true);
+    assert.equal(b.renderCalls, 1);
+    assert.equal(holder.rendered, true);
   });
 
   test('a hidden tab does not trigger a retry', async () => {
@@ -504,7 +485,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
     assert.equal(browser.Auth.session, null);
     assert.equal(browser.Auth.token, null);
     assert.equal(browser.Auth.isAdmin, false);
-    assert.equal(browser.Auth.connecting, true);
+    assert.equal(browser.Auth.connecting, false);
     assert.equal(browser.Auth.hint.token, undefined);
     assert.equal(browser.Auth.hint.role, undefined);
     assert.equal(browser.Auth.hint.exp, undefined);

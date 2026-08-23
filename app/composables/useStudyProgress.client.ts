@@ -22,6 +22,17 @@ export function useStudyProgress() {
     reviewed.value = [...$studyStore.reviewed];
   }
 
+  function unmarkReviewed(id: string) {
+    if (!reviewed.value.includes(id)) return;
+    $studyStore.unmarkReviewed(id);
+    reviewed.value = [...$studyStore.reviewed];
+  }
+
+  function toggleReviewed(id: string) {
+    if (reviewed.value.includes(id)) unmarkReviewed(id);
+    else markReviewed(id);
+  }
+
   function note(id: string) {
     return notes.value[id]?.body || '';
   }
@@ -31,5 +42,5 @@ export function useStudyProgress() {
     notes.value = { ...$studyStore.notes };
   }
 
-  return { reviewed, notes, markReviewed, note, saveNote };
+  return { reviewed, notes, markReviewed, unmarkReviewed, toggleReviewed, note, saveNote };
 }

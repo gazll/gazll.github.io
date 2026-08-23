@@ -988,13 +988,15 @@
   .qcard.done .qid::after{content:"✓";display:block;font-size:11px;color:var(--emerald);font-weight:600;margin-top:1px;line-height:1}
   .qtext{flex:1;font-weight:500;font-size:15.5px;line-height:1.45}
   .qmeta{display:flex;align-items:center;gap:10px;flex:none;padding-right:18px}
-  .manual-review{display:inline-flex;align-items:center;justify-content:center;gap:5px;flex:none;min-height:27px;padding:4px 8px;border:1px solid var(--line);
-    border-radius:7px;background:var(--surface);color:var(--muted);font-family:"IBM Plex Mono",monospace;font-size:10px;font-weight:600;
+  .manual-review{display:inline-flex;align-items:center;justify-content:center;gap:4px;flex:none;min-height:24px;padding:3px 6px;border:1px solid var(--line);
+    border-radius:7px;background:var(--surface);color:var(--muted);font-family:"IBM Plex Mono",monospace;font-size:10.5px;font-weight:600;
     line-height:1;white-space:nowrap;cursor:pointer;transition:.15s ease}
   .manual-review:hover{border-color:var(--emerald);background:var(--emerald-soft);color:var(--emerald-deep)}
   .manual-review:focus-visible{outline:2px solid var(--emerald);outline-offset:2px}
-  .manual-review.is-reviewed{border-color:#9bcdb5;background:var(--emerald-soft);color:var(--emerald-deep)}
-  .manual-review-box{font-size:14px;line-height:1}
+  .manual-review.is-reviewed{border-color:var(--line-strong);background:var(--emerald-soft);color:var(--emerald-deep)}
+  .manual-review-glyph{width:13px;height:13px;flex:none}
+  .manual-review-checkmark{opacity:0;transition:opacity .14s ease}
+  .manual-review.is-reviewed .manual-review-checkmark{opacity:1}
   .qmeta>.manual-review{flex:none}
 /* Copy-link and the language toggle are per-card CONTROLS, not information, and
    a track prints 26 cards down one screen — at rest all three rows of chrome
@@ -1192,7 +1194,7 @@
     .qtext{font-size:15px}
     .qcopy{padding:4px;min-width:30px;min-height:30px}
     .qcopy-label,.qmeta>.manual-review .manual-review-label{display:none}   /* the icon carries it; never leave the button empty */
-    .qmeta>.manual-review{padding:4px;min-width:30px;min-height:30px}
+    .qmeta>.manual-review{padding:0;min-width:26px;min-height:26px}
     .answer{padding:2px 14px 16px 14px}
     .iv-diagram>figcaption{align-items:flex-start;flex-direction:column;gap:4px}
     .iv-diagram-review{grid-template-columns:1fr;padding:10px}
@@ -1358,11 +1360,11 @@
   .syncstate::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--line-strong);flex:none}
   .syncstate.s-error{color:var(--clay)}
   .syncstate.s-error::before{background:var(--clay)}
-  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}/* ---------- account: the avatar IS the sign-in control ---------- */
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}/* ---------- account: the avatar opens the account/sign-in control ---------- */
 
   .authbar{position:relative;display:flex;align-items:center;flex:none}
-  .authbtn{position:relative;width:36px;height:36px;padding:0;border-radius:50%;cursor:pointer;
-    border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;transition:.16s ease}
+  .authbtn{position:relative;width:44px;height:44px;padding:0;border-radius:50%;cursor:pointer;touch-action:manipulation;
+    -webkit-tap-highlight-color:transparent;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;transition:.16s ease}
   .authbtn:hover{border-color:var(--emerald);transform:translateY(-1px)}
   .authbtn:focus-visible{outline:2px solid var(--emerald);outline-offset:2px}
 
@@ -1410,6 +1412,7 @@
     border:1px solid var(--line);border-radius:9px;padding:8px 12px;background:var(--surface);
     color:var(--ink-soft);transition:.16s ease;width:100%}
   .am-action:hover{border-color:var(--emerald);color:var(--emerald)}
+  .am-action:disabled{opacity:.55;cursor:wait}
   .am-action.danger:hover{border-color:var(--clay);color:var(--clay);background:var(--clay-soft)}
   .am-action:focus-visible{outline:2px solid var(--emerald);outline-offset:2px}
 
@@ -1534,7 +1537,8 @@
   @media (max-width:760px){
     .headright{gap:8px}
     /* anchor the menu to the viewport so it cannot overflow a narrow screen */
-    .authmenu{position:fixed;top:auto;right:10px;left:10px;width:auto}
+    .authmenu{position:fixed;top:calc(var(--hdr-h,64px) + 8px);right:10px;left:10px;width:auto;
+      max-height:calc(100dvh - var(--hdr-h,64px) - 20px);overflow:auto}
     .fgrid{grid-template-columns:1fr}
     .modal-form{padding:18px 16px;max-height:92vh}
     .heatmap-wrap{padding:14px 12px}
@@ -1725,8 +1729,8 @@
      controls away mid-read. --hdr-h is published by useHeadroom(). */
   .cal-bar{position:sticky;top:var(--hdr-h,64px);z-index:20;display:grid;
     grid-template-columns:minmax(260px,1fr) auto auto;align-items:center;gap:12px;
-    padding:10px 0 12px;margin-bottom:14px;background:linear-gradient(var(--paper) 82%,transparent);
-    border-bottom:1px solid var(--line);backdrop-filter:blur(8px)}
+    padding:9px 10px;margin:0 -10px 16px;background:rgba(247,246,241,.94);
+    border:1px solid var(--line);border-radius:10px;backdrop-filter:blur(10px)}
   .cal-nav{display:flex;align-items:center;gap:8px}
   .cal-step{width:32px;height:32px;flex:none;border-radius:9px;border:1px solid var(--line);
     background:var(--surface);color:var(--ink-soft);cursor:pointer;display:grid;place-items:center;
@@ -1736,7 +1740,7 @@
   .cal-step:disabled{opacity:.35;cursor:default}
   .cal-step:focus-visible{outline:2px solid var(--emerald);outline-offset:2px}
   .cal-title{min-width:0;display:flex;flex-direction:column;line-height:1.25}
-  .cal-title b{font-family:"Space Grotesk",sans-serif;font-size:17px;color:var(--ink)}
+  .cal-title b{font-family:"Space Grotesk",sans-serif;font-size:17px;color:var(--ink);font-variant-numeric:tabular-nums}
   .cal-title span{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.4px;
     text-transform:uppercase;color:var(--muted)}
   .cal-today,.cal-lock,.cal-ghost{border:1px solid var(--line);background:var(--surface);
@@ -1773,16 +1777,17 @@
   .cal-weeks{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));
     grid-template-rows:repeat(6,minmax(96px,auto));gap:6px}
   .cal-cell{position:relative;display:flex;flex-direction:column;gap:2px;text-align:left;
-    padding:7px 8px;border:1px solid var(--line);border-radius:11px;background:var(--surface);
+    padding:7px 8px;border:1px solid var(--line);border-radius:10px;background:var(--surface);
     font:inherit;cursor:pointer;overflow:hidden;transition:border-color .15s ease, background .15s ease}
-  .cal-cell:hover{border-color:var(--line-strong)}
+  .cal-cell:hover{border-color:var(--line-strong);background:#FBFCFA}
   .cal-cell:focus-visible{outline:2px solid var(--emerald);outline-offset:-2px}
   .cal-cell.is-weekend{background:var(--paper)}
   .cal-cell.is-out{opacity:.4}
   .cal-cell.is-off{background:var(--clay-soft);border-color:#E6C6C0}
   .cal-cell.is-off .cal-solar{color:var(--clay)}
-  .cal-cell.is-today{border-color:var(--emerald);box-shadow:inset 0 0 0 1px var(--emerald)}
-  .cal-cell.is-today .cal-solar{color:var(--emerald-deep);font-weight:700}
+  .cal-cell.is-today{border-color:#CFE6DA}
+  .cal-cell.is-today .cal-solar{display:grid;place-items:center;width:24px;height:24px;margin:-3px 0 0 -3px;
+    border-radius:7px;background:var(--emerald-deep);color:#fff;font-size:14px;font-weight:700}
   .cal-cell.is-selected{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
   .cal-solar{font-family:"Space Grotesk",sans-serif;font-size:16px;font-weight:600;color:var(--ink);line-height:1.1}
   .cal-lunar{position:absolute;top:7px;right:8px;font-family:"IBM Plex Mono",monospace;
@@ -1871,8 +1876,8 @@
 
   /* ---------- rail ---------- */
 
-  .cal-rail{display:flex;flex-direction:column;gap:12px;position:sticky;top:calc(var(--hdr-h,64px) + 62px)}
-  .cal-card{border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:14px 15px}
+  .cal-rail{display:flex;flex-direction:column;gap:10px;position:sticky;top:calc(var(--hdr-h,64px) + 68px)}
+  .cal-card{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:14px 15px}
   .cal-kicker{margin:0 0 8px;font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.8px;
     text-transform:uppercase;color:var(--muted)}
   .cal-today-card{background:linear-gradient(160deg,var(--emerald-soft),var(--surface) 62%);
@@ -2042,6 +2047,10 @@
   .cal-ghost{margin-top:12px}
 
   @media (max-width:1040px){
+    .cal-bar{grid-template-columns:minmax(260px,1fr) auto;grid-template-areas:"nav lock" "views views"}
+    .cal-nav{grid-area:nav}
+    .cal-views{grid-area:views;justify-self:start}
+    .cal-lock{grid-area:lock}
     .cal-body{grid-template-columns:minmax(0,1fr)}
     .cal-rail{position:static;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
     .cal-selected-inline{display:block}
@@ -2054,22 +2063,24 @@
   }
   @media (max-width:720px){
     .cal{margin-top:18px}
-    .cal-bar{grid-template-columns:minmax(0,1fr);gap:8px;padding-top:8px}
+    .cal-bar{position:static;grid-template-columns:minmax(0,1fr);grid-template-areas:"nav" "views" "lock";
+      gap:8px;padding:9px;margin-inline:0}
     .cal-nav{width:100%;gap:6px}
     .cal-title{flex:1;text-align:center}
     .cal-title b{font-size:16px}
     .cal-title span{font-size:9.5px}
     .cal-views{width:100%;box-sizing:border-box}
     .cal-tab{flex:1;justify-content:center;padding-inline:7px}
-    .cal-lock{justify-self:start}
+    .cal-lock{justify-self:start;min-height:32px}
     .cal-members{flex-wrap:nowrap;overflow-x:auto;padding:2px 1px 5px;margin-bottom:11px;scrollbar-width:thin}
     .cal-mchip{flex:none}
     .cal-weeks{grid-template-rows:repeat(6,minmax(58px,auto));gap:3px}
-    .cal-cell{padding:5px}
+    .cal-cell{padding:5px;border-radius:7px}
     /* Below this width a holiday name cannot be read inside a 44px cell, so the
        day keeps its tint and the name moves to the rail's day detail. */
     .cal-label{display:none}
     .cal-solar{font-size:13px}
+    .cal-cell.is-today .cal-solar{width:20px;height:20px;margin:-2px 0 0 -2px;border-radius:6px;font-size:12px}
     .cal-lunar{top:4px;right:5px;font-size:9px}
     .cal-item{flex-direction:column;gap:8px}
     .cal-item-when{text-align:left;flex-direction:row;gap:10px;align-items:baseline}
@@ -2082,8 +2093,165 @@
     .cal-today{padding-inline:10px}
     .cal-tab{font-size:11.5px}
     .cal-tab b{display:none}
+    .cal-title span{display:none}
+    .cal-legend{justify-content:flex-start}
     .cal-rail{grid-template-columns:minmax(0,1fr)}
   }
   @media (prefers-reduced-motion:reduce){
     .cal-step,.cal-tab,.cal-today,.cal-lock,.cal-ghost,.cal-mchip,.cal-primary{transition:none}
+  }
+
+  /* ---------- study track refinement ---------- */
+
+  .view-track main{padding-top:26px}
+  .view-track .day-panel{max-width:1120px;margin-inline:auto}
+  .view-track .hero{margin-bottom:14px;padding:28px 30px;border-color:var(--line-strong);box-shadow:none}
+  .view-track .hero::before{width:min(36%,420px);background:linear-gradient(90deg,transparent,var(--emerald-soft));opacity:.55}
+  .view-track .hero-head{display:grid;grid-template-columns:72px minmax(0,1fr);gap:22px}
+  .view-track .daynum{align-self:start;padding:4px 0 9px;border-bottom:2px solid var(--g,var(--emerald));font-size:48px;line-height:.9}
+  .view-track .daynum small{font-size:9.5px;letter-spacing:1.35px;margin-bottom:7px}
+  .view-track .hero h1{max-width:24ch;margin-top:0;font-size:clamp(26px,3.2vw,36px);line-height:1.1;letter-spacing:-.7px;text-wrap:balance}
+  .view-track .hero .intro{max-width:72ch;font-size:15.5px;line-height:1.68}
+  .view-track .hero .content-dates{margin:12px 0 10px}
+  .view-track .tags{gap:6px;margin-top:12px}
+  .view-track .tag{padding:3px 9px;background:var(--emerald-soft);font-size:10.5px}
+
+  .view-track .toolbar{min-height:44px;margin:0 0 18px;padding:7px 8px 7px 12px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.64)}
+  .view-track .sectioncount{display:flex;align-items:center;gap:0;font-size:10.5px;letter-spacing:.2px;text-transform:uppercase}
+  .view-track .sectioncount>span{display:inline-flex;align-items:baseline;gap:4px}
+  .view-track .sectioncount>span+span::before{content:"";width:1px;height:12px;margin:0 10px;background:var(--line-strong)}
+  .view-track .sectioncount b{color:var(--ink);font-size:12px;font-variant-numeric:tabular-nums}
+  .view-track .toolbar .btn-ghost{display:inline-flex;align-items:center;gap:6px;min-height:30px;padding:5px 9px;border-color:transparent;background:transparent;font-size:10.5px;text-transform:uppercase;letter-spacing:.25px}
+  .view-track .toolbar .btn-ghost:hover{border-color:var(--line-strong);background:var(--surface);color:var(--emerald-deep)}
+  .view-track .toolbar .btn-ghost[aria-pressed="true"]{border-color:var(--line-strong);background:var(--emerald-soft);color:var(--emerald-deep)}
+  .view-track .toolbar .btn-ghost svg{width:16px;height:16px}
+
+  .view-track .section-h{gap:9px;margin:26px 2px 11px;font-size:15px;line-height:1.3;letter-spacing:.05px;text-transform:none}
+  .view-track .section-h::before{display:none}
+  .view-track .section-index{flex:none;color:var(--emerald-deep);font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.4px}
+  .view-track .section-h .topic-heading-anchor{border-radius:5px;text-underline-offset:4px}
+  .view-track .section-h .topic-heading-anchor:hover{text-decoration:underline;text-decoration-thickness:1px}
+  .view-track .section-h .topic-heading-anchor:focus-visible{outline:2px solid var(--emerald);outline-offset:3px}
+
+  .view-track .qcard{margin-bottom:8px;border-left-width:2px;box-shadow:none;transition:border-color 140ms ease,background 140ms ease,box-shadow 140ms ease}
+  .view-track .qcard:hover{border-color:var(--line-strong);border-left-color:var(--g,var(--line-strong))}
+  .view-track .qcard.open{border-color:var(--line-strong);border-left-color:var(--emerald);box-shadow:0 1px 2px rgba(20,35,58,.04),0 16px 34px -26px rgba(20,35,58,.38)}
+  .view-track .qhead{gap:12px;padding:14px 16px}
+  .view-track .qid{min-width:35px;padding-top:3px;font-size:11px;font-variant-numeric:tabular-nums}
+  .view-track .qtext{max-width:78ch;font-size:15px;line-height:1.5}
+  .view-track .qmeta{gap:7px;padding-right:14px}
+  .view-track .chev{width:18px;height:18px}
+  .view-track .answer{padding-right:20px;padding-bottom:22px;padding-left:63px}
+  .view-track .answer-body{max-width:78ch;padding-top:17px;color:var(--ink-soft);line-height:1.7}
+  .view-track .answer-body> :last-child{margin-bottom:0}
+  .view-track .notebox{max-width:78ch;margin-top:18px;padding-top:14px}
+  .view-track .note-input{min-height:104px;border-color:var(--line-strong)}
+
+  .view-track .pager{max-width:1120px;margin:32px auto 0;padding:10px 12px;border-color:var(--line-strong);box-shadow:0 8px 24px -22px rgba(20,35,58,.45)}
+  .view-track .pbtn{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:40px;padding:8px 14px;font-size:13px;text-decoration:none}
+  .view-track .pbtn svg{width:17px;height:17px;flex:none}
+  .view-track .pcenter{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+
+  @media (max-width:760px){
+    .view-track main{padding-top:18px}
+    .view-track .hero{padding:20px;margin-bottom:10px}
+    .view-track .hero-head{grid-template-columns:54px minmax(0,1fr);gap:14px}
+    .view-track .daynum{font-size:36px}
+    .view-track .hero h1{font-size:clamp(22px,6vw,28px)}
+    .view-track .hero .intro{font-size:14px;line-height:1.62}
+    .view-track .toolbar{margin-bottom:15px}
+    .view-track .qhead{padding:12px 13px}
+    .view-track .qmeta{padding-right:11px}
+    .view-track .answer{padding:0 14px 18px}
+    .view-track .answer-body{padding-top:15px}
+    .view-track .pager{padding:8px}
+  }
+  @media (max-width:600px){
+    .view-track .hero-head{display:grid;grid-template-columns:46px minmax(0,1fr);gap:12px}
+    .view-track .daynum{margin-bottom:0;padding-top:2px;font-size:31px}
+    .view-track .daynum small{font-size:8px;letter-spacing:.8px}
+    .view-track .hero .content-dates{gap:5px 12px}
+    .view-track .tag{padding:3px 7px}
+    .view-track .toolbar{min-height:40px;padding:5px 6px 5px 10px}
+    .view-track .toolbar .btn-ghost span{display:none}
+    .view-track .toolbar .btn-ghost{width:30px;min-height:30px;justify-content:center;padding:4px}
+    .view-track .section-h{margin-top:23px}
+    .view-track .qcard[data-qid] .qhead{grid-template-columns:48px minmax(0,1fr) auto;column-gap:8px}
+    .view-track .qcard[data-qid] .qmeta{gap:5px}
+    .view-track .pbtn{padding:8px 10px}
+  }
+  @media (max-width:420px){
+    .view-track .hero{padding:16px 14px}
+    .view-track .hero-head{grid-template-columns:40px minmax(0,1fr);gap:10px}
+    .view-track .daynum{font-size:27px}
+    .view-track .hero h1{font-size:21px;letter-spacing:-.35px}
+    .view-track .sectioncount>span+span::before{margin-inline:7px}
+    .view-track .qcard[data-qid] .qhead{grid-template-columns:42px minmax(0,1fr) auto;padding:11px 10px}
+    .view-track .qcard[data-qid] .qmeta{padding-right:8px}
+    .view-track .pbtn span{display:none}
+    .view-track .pbtn{width:38px;padding:8px}
+  }
+
+  /* ---------- smartphone reading mode ----------
+
+     The track is opened on a phone as a study surface, not as a shrunken
+     desktop. Keep the topic and answer readable, put every frequent control
+     inside a thumb-sized target, and leave the calendar's dense grid intact. */
+
+  @media (max-width:760px){
+    .top-inner{min-height:64px;padding-top:max(10px,env(safe-area-inset-top));
+      padding-bottom:10px;padding-left:max(var(--gutter),env(safe-area-inset-left));
+      padding-right:max(var(--gutter),env(safe-area-inset-right))}
+    .navtoggle,.authbtn{width:44px;height:44px;min-width:44px}
+    .topicpick{flex:1 1 auto;max-width:none;min-width:0;min-height:44px}
+    .headright{gap:4px}
+    .searchtrigger{width:44px;height:44px;min-width:44px;padding:0;justify-content:center;border-radius:11px}
+    .hdr-lang{min-width:44px;min-height:44px;justify-content:center;gap:0}
+
+    main{padding-bottom:max(84px,calc(84px + env(safe-area-inset-bottom)))}
+
+    /* A question is the primary touch target; its adjacent actions stay
+       separate so tapping copy or language never toggles the answer. */
+    .view-track .qmeta{gap:2px;padding-right:5px;align-items:center}
+    .view-track .qmeta>.manual-review,.view-track .qmeta>.qcopy{
+      width:40px;min-width:40px;height:40px;min-height:40px;padding:0;border-radius:9px;
+      touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+    .view-track .qmeta>.manual-review .manual-review-glyph{width:15px;height:15px}
+    .view-track .qmeta>.qcopy .qcopy-icon{width:17px;height:17px}
+    .view-track .qmeta>.qlangbtn{min-width:46px;min-height:40px;justify-content:center;gap:0;
+      touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+    .view-track .qhead{min-height:44px;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+    .view-track .answer-body{font-size:15.5px;line-height:1.72}
+    .view-track .answer a.extlink{min-height:44px;padding:10px 13px}
+    .view-track .note-input{font-size:15.5px;line-height:1.65;min-height:116px}
+    .view-track .toolbar .btn-ghost{min-height:44px;touch-action:manipulation}
+    .view-track .pbtn{min-height:44px;touch-action:manipulation}
+
+    /* Calendar controls are used with the same thumb, while each day cell
+       remains a large, direct target for selecting a date. */
+    .cal-step{width:44px;height:44px}
+    .cal-today,.cal-lock{min-height:44px}
+    .cal-tab{min-height:44px;touch-action:manipulation}
+    .cal-mchip{min-height:44px;touch-action:manipulation}
+    .cal-primary,.cal-ghost{min-height:44px;touch-action:manipulation}
+  }
+
+  @media (max-width:600px){
+    .view-track .qmeta>.manual-review,.view-track .qmeta>.qcopy{flex:none}
+    .view-track .toolbar .btn-ghost{width:44px;min-width:44px;justify-content:center;padding:4px}
+    .view-track .toolbar .btn-ghost svg{width:18px;height:18px}
+    .cal-views{overflow-x:auto;scrollbar-width:none;touch-action:pan-x}
+    .cal-views::-webkit-scrollbar{display:none}
+    .cal-tab{flex:1 0 auto;min-width:68px;padding-inline:9px}
+  }
+
+  @media (max-width:420px){
+    /* The hero already carries the topic number, so reclaim the header width
+       for the title users are actually trying to identify. */
+    .topicpick{gap:6px;padding-left:10px;padding-right:8px}
+    .topicpick .tp-n{display:none}
+    .topicpick .tp-chev{width:15px;height:15px;margin-left:0}
+    .view-track .answer-body,.view-track .note-input{font-size:16px}
+    .view-track .pbtn{width:44px;min-width:44px;padding:8px}
+    .cal-tab{min-width:64px;padding-inline:7px}
   }

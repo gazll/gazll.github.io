@@ -95,6 +95,15 @@ export const Store = {
     return true;
   },
 
+  /** Remove a review locally and queue the deletion for the account sync. */
+  unmarkReviewed(id) {
+    if (!this.reviewed.has(id)) return false;
+    this.reviewed.delete(id);
+    this._persist('progress');
+    this._enqueue({ t: 'progress-remove', id });
+    return true;
+  },
+
   getNote(id) { return (this.notes[id] && this.notes[id].body) || ''; },
 
   setNote(id, body) {
@@ -167,19 +176,36 @@ export const Store = {
 
     // Snapshot what we send; ops added while in flight stay in the queue.
     const batch = this.queue.slice();
-    const payload = { progress: [], notes: [], log: [] };
+    const payload = { progress: [], progress_remove: [], notes: [], log: [] };
+    const progressChanges = new Map();
     const noteByItem = new Map();
     for (const op of batch) {
-      if (op.t === 'progress') payload.progress.push({ item_id: op.id, reviewed_at: op.at });
+      if (op.t === 'progress') progressChanges.set(op.id, { item_id: op.id, reviewed_at: op.at });
+      else if (op.t === 'progress-remove') progressChanges.set(op.id, null);
       else if (op.t === 'note') noteByItem.set(op.id, { item_id: op.id, body: op.body, updated_at: op.at });
       else if (op.t === 'log') payload.log.push({ item_id: op.id, opened_at: op.at });
+    }
+    for (const [id, row] of progressChanges) {
+      if (row) payload.progress.push(row);
+      else payload.progress_remove.push({ item_id: id });
     }
     payload.notes = [...noteByItem.values()];   // only the last edit per item matters
 
     this.status = 'syncing';
     this._emit();
     try {
-      await call('push', payload, token);
+      const result = await call('push', payload, token);
+      // An older Apps Script deployment silently ignores unknown fields. Keep
+      // the removal queued instead of reporting success and resurrecting it on
+      // the next pull; the local toggle remains correct while it is upgraded.
+      if (payload.progress_remove.length && !Object.prototype.hasOwnProperty.call(result || {}, 'progress_removed')) {
+        // The older endpoint may already have accepted notes/log rows from
+        // this batch. Drop those acknowledged operations, but retain every
+        // removal (and anything enqueued while the request was in flight).
+        this.queue = this.queue.filter((op, index) => index >= batch.length || op.t === 'progress-remove');
+        this._persist('queue');
+        throw new Error('The backend must be updated before review removals can sync.');
+      }
       this.queue = this.queue.slice(batch.length);
       this._persist('queue');
       this.status = this.queue.length ? 'syncing' : 'synced';
@@ -260,10 +286,21 @@ export const Store = {
     Auth.applyProfile(data.profile);
 
     const remoteIds = new Set((data.progress || []).map(r => r.item_id));
-    const localOnly = [...this.reviewed].filter(id => !remoteIds.has(id));
-    for (const id of remoteIds) this.reviewed.add(id);
+    const pendingProgress = new Map();
+    for (const op of this.queue) {
+      if (op.t === 'progress') pendingProgress.set(op.id, true);
+      else if (op.t === 'progress-remove') pendingProgress.set(op.id, false);
+    }
+    for (const [id, state] of pendingProgress) {
+      if (!state) this.reviewed.delete(id);
+    }
+    const localOnly = [...this.reviewed].filter(id => !remoteIds.has(id) && pendingProgress.get(id) !== true);
+    for (const id of remoteIds) {
+      if (pendingProgress.get(id) !== false) this.reviewed.add(id);
+    }
 
-    // Notes are last-write-wins on timestamp; progress is a plain union.
+    // Notes are last-write-wins on timestamp; progress is a union unless a
+    // queued local removal is still waiting for the backend.
     const pushNoteIds = [];
     const remoteNoteIds = new Set();
     for (const r of data.notes || []) {

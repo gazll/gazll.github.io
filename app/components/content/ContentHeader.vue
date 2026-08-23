@@ -33,19 +33,19 @@ const localize = (value: string) => props.lang === 'vi' ? viLabels[value] || val
 const navGroups = [
   { label: 'Technical', links: [
     { to: '/', label: 'Study Track', desc: 'Interview preparation topics', icon: ['M4 6h16M4 12h16M4 18h10'] },
-    { to: '/gazl-try', label: 'Gazl Try', desc: 'Interview journal and notes', icon: ['M5 4h11l3 3v13H5z', 'M8 10h8M8 14h5'] },
-    { to: '/stats', label: 'Stats', desc: 'Progress and study activity', icon: ['M5 19V10M12 19V5M19 19v-6'] },
-    { to: '/admin', label: 'Admin', desc: 'All-user overview', icon: ['M12 3l7 3v5c0 4.2-2.8 7.6-7 10-4.2-2.4-7-5.8-7-10V6z'] },
     { to: '/system-design', label: 'System Design', desc: 'Architecture blueprints', icon: ['M4 5h6v5H4zM14 5h6v5h-6zM9 15h6v5H9z', 'M7 10v2.5h10V10M12 12.5V15'] },
-    { to: '/case-studies', label: 'Case Studies', desc: 'Engineering deep dives', icon: ['M5 5h14v14H5z', 'M8 9h8M8 13h5M9 5V3h6v2'] }
+    { to: '/case-studies', label: 'Case Studies', desc: 'Engineering deep dives', icon: ['M5 5h14v14H5z', 'M8 9h8M8 13h5M9 5V3h6v2'] },
+    { to: '/admin', label: 'Admin', desc: 'All-user overview', icon: ['M12 3l7 3v5c0 4.2-2.8 7.6-7 10-4.2-2.4-7-5.8-7-10V6z'] },
+    { to: '/gazl-try', label: 'Gazl Try', desc: 'Interview journal and notes', icon: ['M5 4h11l3 3v13H5z', 'M8 10h8M8 14h5'] },
+    { to: '/stats', label: 'Stats', desc: 'Progress and study activity', icon: ['M5 19V10M12 19V5M19 19v-6'] }
   ] },
   { label: 'Experience', links: [
     { to: '/project', label: 'Project', desc: 'Selected work and experience', icon: ['M4 6.5h6l2 2h8V18H4z', 'M4 6.5V5h6l2 3.5'] },
     { to: '/photography', label: 'Photography', desc: 'Field notes and visual stories', icon: ['M3 8.5h4L8.5 6h7L17 8.5h4V19H3z', 'M8.5 13a3.5 3.5 0 1 0 7 0 3.5 3.5 0 1 0-7 0'] },
-    { to: '/homelab', label: 'NAS / Home Server', desc: 'Self-hosting and infrastructure', icon: ['M4 5h16v5H4zM4 14h16v5H4z', 'M7.5 7.5h.01M7.5 16.5h.01'] }
+    { to: '/homelab', label: 'NAS / Home Server', desc: 'Self-hosting and infrastructure', icon: ['M4 5h16v5H4zM4 14h16v5H4z', 'M7.5 7.5h.01M7.5 16.5h.01'] },
+    { to: '/calendar', label: 'Calendar', desc: 'Lunar dates, holidays and reminders', icon: ['M4 6h16v14H4z', 'M4 10h16M8 3.5v4M16 3.5v4'] }
   ] },
   { label: 'Tools', links: [
-    { to: '/calendar', label: 'Calendar', desc: 'Lunar dates, holidays and reminders', icon: ['M4 6h16v14H4z', 'M4 10h16M8 3.5v4M16 3.5v4'] },
     { to: '/fshare-tool', label: 'Fshare Bulk Copy', desc: 'Copy many Fshare links at once', icon: ['M14.5 3.5a5 5 0 0 0-6.1 6.7L3.5 15v5.5H9l4.8-4.9a5 5 0 0 0 6.7-6.1L17 12l-2.5-.5L14 9z'] },
     { to: '/course-registration', label: 'Course Registration', desc: 'Plan and register course sets', icon: ['M14.5 3.5a5 5 0 0 0-6.1 6.7L3.5 15v5.5H9l4.8-4.9a5 5 0 0 0 6.7-6.1L17 12l-2.5-.5L14 9z'] }
   ] }
