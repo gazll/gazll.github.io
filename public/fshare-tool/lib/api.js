@@ -14,6 +14,22 @@ export const currentSort = () => S.sortValue;
 
 const RETRIES = 3;
 
+export const API_ORIGIN = new URL(API).origin;
+
+/* A rejected fetch is a TypeError whose message is "Failed to fetch" in every
+   browser, and it means four unrelated things: the page's CSP blocked the
+   request, the host did not resolve, the connection failed, or the response
+   carried no CORS header. Forwarding that string put "Error: Failed to fetch"
+   on screen and sent the last two debugging sessions after the wrong one —
+   a CSP hole and an unreachable proxy read identically. Nothing in the browser
+   distinguishes them (the CSP violation is reported to the console, not to the
+   caller), so the message names the possibilities and the origin to test. */
+const UNREACHABLE = 'Could not reach ' + API_ORIGIN +
+  ' — it is blocked, offline, or unreachable from this network. ' +
+  'Open ' + API_ORIGIN + ' in a tab to tell which.';
+
+const isNetworkFailure = (e) => e instanceof TypeError;
+
 /* The upstream drops connections under load — an ECONNRESET showed up while
    benchmarking. Without a retry the crawl just counts the folder as failed and
    moves on, silently losing every file inside it, which is far worse than
@@ -30,7 +46,9 @@ export function apiFolder(linkcode, page, sort) {
     }).catch((e) => {
       // A 4xx is a real answer; retrying it only wastes time.
       const permanent = /HTTP 4\d\d/.test(e.message);
-      if (permanent || n >= RETRIES) throw e;
+      if (permanent || n >= RETRIES) {
+        throw isNetworkFailure(e) ? new Error(UNREACHABLE) : e;
+      }
       return new Promise((r) => setTimeout(r, 400 * n)).then(() => attempt(n + 1));
     });
 
