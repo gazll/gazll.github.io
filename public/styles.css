@@ -251,7 +251,7 @@
   .np-foot{margin:0;padding:12px 18px max(16px,calc(16px + env(safe-area-inset-bottom)));border-top:1px solid var(--line);
     display:flex;flex-direction:column;gap:8px;font-size:11.5px;line-height:1.5;color:var(--muted)}
   .np-foot-action{width:100%;justify-content:flex-start}
-  .np-foot-note,.np-foot-release{margin:0}
+  .np-foot-release{margin:0}
   .np-foot-release{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;font-family:"IBM Plex Mono",monospace;font-size:10.5px}
   .np-foot-release-label{font-weight:600;color:var(--ink-soft)}
   .np-foot-release time{white-space:nowrap}

@@ -47,9 +47,10 @@ const releaseTime = computed(() => {
   if (Number.isNaN(date.getTime())) return '';
   return new Intl.DateTimeFormat(props.lang === 'vi' ? 'vi-VN' : 'en-GB', {
     day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
-    timeZone: 'Asia/Bangkok', timeZoneName: 'short'
+    timeZone: 'Asia/Bangkok', hour12: false
   }).format(date);
 });
+const releaseCommit = computed(() => releaseMetadata.value?.revision.slice(0, 7) || '');
 const releaseStatus = computed(() => {
   if (!releaseChecked.value) return localize('Checking release…');
   if (!releaseMetadata.value) return localize('Release not stamped');
@@ -363,12 +364,11 @@ onBeforeUnmount(() => {
       <NuxtLink class="np-action np-foot-action" :aria-current="route.path === '/release-notes' ? 'page' : undefined" :to="withLang('/release-notes')">
         <svg class="nv-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 3h9l3 3v15H6zM9 11h6M9 15h6" /></svg><span>Release Notes</span>
       </NuxtLink>
-      <p class="np-foot-note">{{ localize('Everything works signed out — progress is saved on this device.') }}</p>
       <p class="np-foot-release" aria-live="polite">
         <span class="np-foot-release-label">{{ localize('Last release') }}</span>
         <template v-if="releaseMetadata && releaseTime">
           <time :datetime="releaseMetadata.deployed_at">{{ releaseTime }}</time>
-          <code :title="releaseMetadata.revision">{{ releaseMetadata.version }}</code>
+          <code :title="releaseMetadata.revision">{{ releaseCommit }}</code>
         </template>
         <span v-else>{{ releaseStatus }}</span>
       </p>

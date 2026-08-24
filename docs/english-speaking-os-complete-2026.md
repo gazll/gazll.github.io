@@ -3993,7 +3993,7 @@ Product features change, so re-check before paying.
 ## Speak
 
 - [Speak — Vietnam English](https://app.usespeak.com/vn-en)
-- [Speak Help — Premium vs Premium Plus](https://help.speak.com/vi/articles/5358417-s%E1%BB%B1-khac-bi%E1%BB%87t-gi%E1%BB%AFa-goi-premium-va-goi-premium-plus-la-gi)
+- [Speak Help — Premium vs Premium Plus](https://help.speak.com/vi/articles/5358417-su-khac-biet-giua-goi-premium-va-goi-premium-plus-la-gi)
 
 ## Learning science
 

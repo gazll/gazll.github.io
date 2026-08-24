@@ -8,6 +8,9 @@ test('navigation footer reports the stamped release and has no close button', as
   assert.match(source, /deployed_at/);
   assert.match(source, /class="np-action np-foot-action"/);
   assert.match(source, /Last release/);
+  assert.doesNotMatch(source, /class="np-foot-note"/);
+  assert.match(source, /timeZone: 'Asia\/Bangkok', hour12: false/);
+  assert.match(source, /releaseMetadata\.value\?\.revision\.slice\(0, 7\)/);
   assert.doesNotMatch(source, /class="np-close"/);
   assert.ok(source.indexOf("  { label: 'Experience'") < source.indexOf("{ to: '/english-study'"));
 
