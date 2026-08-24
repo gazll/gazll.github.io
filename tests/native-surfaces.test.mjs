@@ -204,10 +204,10 @@ import { pathToFileURL } from 'node:url';
     assert.ok(styles.includes('.toc-current{min-width:0;max-width:58%'));
   });
 
-  test('system-design prose keeps a natural rag, indentation and opening drop cap', async () => {
+  test('case-study and system-design prose uses justified paragraphs with indentation and opening drop cap', async () => {
     const styles = await read('public/styles.css');
 
-    assert.ok(styles.includes('.sd-article-body,.sd-article-body p{text-align:left;text-align-last:auto}'));
+    assert.ok(styles.includes('.cs-article-body p,.sd-article-body p{text-align:justify;text-align-last:auto}'));
     assert.ok(styles.includes('.sd-article-body .sd-prose,.sd-article-body .sd-part>p,'));
     assert.ok(styles.includes('.sd-article-body .sd-scope .sd-prose:first-of-type::first-letter'));
   });

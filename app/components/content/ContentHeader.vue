@@ -1,5 +1,6 @@
 <script setup lang="ts">
 type TopicRow = { n: number; file: string; topic_type: string; label: string };
+type ReleaseMetadata = { version: string; revision: string; deployed_at: string };
 
 const props = defineProps<{ lang: 'en' | 'vi'; topic?: TopicRow; topics?: TopicRow[]; progressIndex?: any }>();
 const route = useRoute();
@@ -13,6 +14,8 @@ const topicMenu = ref<HTMLElement | null>(null);
 const searchOverlay = ref<{ open: (query?: string) => void }>();
 const nuxtApp = useNuxtApp() as any;
 const isAdmin = ref(false);
+const releaseMetadata = ref<ReleaseMetadata | null>(null);
+const releaseChecked = ref(false);
 const LANGUAGE_SCROLL_KEY = 'gazll:language-scroll';
 let stopAuth: (() => void) | null = null;
 
@@ -27,6 +30,8 @@ const viLabels: Record<string, string> = {
   'Plan and register course sets': 'Lập kế hoạch và đăng ký nhóm môn', Calendar: 'Lịch',
   'Lunar dates, holidays and reminders': 'Lịch âm, ngày lễ và nhắc việc', 'Release Notes': 'Ghi chú phát hành', Search: 'Tìm kiếm',
   'English speaking system and 26-week roadmap': 'Hệ thống luyện nói và lộ trình 26 tuần',
+  'Last release': 'Bản phát hành gần nhất', 'Checking release…': 'Đang kiểm tra release…',
+  'Release not stamped': 'Chưa có dấu phát hành', 'Release time unavailable': 'Không có thời gian phát hành',
   'Knowledge Base': 'Kho kiến thức', topic: 'chủ đề', 'Open navigation menu': 'Mở menu điều hướng', 'Previous topic': 'Chủ đề trước',
   'Next topic': 'Chủ đề tiếp theo', 'Search all material': 'Tìm kiếm toàn bộ nội dung', 'Search (Ctrl+K)': 'Tìm kiếm (Ctrl+K)',
   'Content language': 'Ngôn ngữ nội dung', 'Close menu': 'Đóng menu', 'Filter topics…': 'Lọc chủ đề…', 'Filter topics': 'Lọc chủ đề',
@@ -35,6 +40,21 @@ const viLabels: Record<string, string> = {
   'Skip to content': 'Tới nội dung chính', 'Toggle contents': 'Bật/tắt mục lục', 'Everything works signed out — progress is saved on this device.': 'Mọi thứ đều dùng được khi đăng xuất — tiến độ được lưu trên thiết bị này.'
 };
 const localize = (value: string) => props.lang === 'vi' ? viLabels[value] || value : value;
+const releaseTime = computed(() => {
+  const deployedAt = releaseMetadata.value?.deployed_at;
+  if (!deployedAt) return '';
+  const date = new Date(deployedAt);
+  if (Number.isNaN(date.getTime())) return '';
+  return new Intl.DateTimeFormat(props.lang === 'vi' ? 'vi-VN' : 'en-GB', {
+    day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
+    timeZone: 'Asia/Bangkok', timeZoneName: 'short'
+  }).format(date);
+});
+const releaseStatus = computed(() => {
+  if (!releaseChecked.value) return localize('Checking release…');
+  if (!releaseMetadata.value) return localize('Release not stamped');
+  return releaseTime.value || localize('Release time unavailable');
+});
 const languageActionLabel = computed(() => props.lang === 'vi'
   ? 'Chuyển nội dung sang tiếng Anh'
   : 'Switch content to Vietnamese');
@@ -42,7 +62,6 @@ const languageActionLabel = computed(() => props.lang === 'vi'
 const navGroups = [
   { label: 'Technical', links: [
     { to: '/', label: 'Study Track', desc: 'Interview preparation topics', icon: ['M4 6h16M4 12h16M4 18h10'] },
-    { to: '/english-study', label: 'English Study', desc: 'English speaking system and 26-week roadmap', icon: ['M4 5h16v14H4z', 'M8 9h8M8 13h5', 'M8 17h3'] },
     { to: '/system-design', label: 'System Design', desc: 'Architecture blueprints', icon: ['M4 5h6v5H4zM14 5h6v5h-6zM9 15h6v5H9z', 'M7 10v2.5h10V10M12 12.5V15'] },
     { to: '/case-studies', label: 'Case Studies', desc: 'Engineering deep dives', icon: ['M5 5h14v14H5z', 'M8 9h8M8 13h5M9 5V3h6v2'] },
     { to: '/admin', label: 'Admin', desc: 'All-user overview', icon: ['M12 3l7 3v5c0 4.2-2.8 7.6-7 10-4.2-2.4-7-5.8-7-10V6z'] },
@@ -50,6 +69,7 @@ const navGroups = [
     { to: '/stats', label: 'Stats', desc: 'Progress and study activity', icon: ['M5 19V10M12 19V5M19 19v-6'] }
   ] },
   { label: 'Experience', links: [
+    { to: '/english-study', label: 'English Study', desc: 'English speaking system and 26-week roadmap', icon: ['M4 5h16v14H4z', 'M8 9h8M8 13h5', 'M8 17h3'] },
     { to: '/project', label: 'Project', desc: 'Selected work and experience', icon: ['M4 6.5h6l2 2h8V18H4z', 'M4 6.5V5h6l2 3.5'] },
     { to: '/photography', label: 'Photography', desc: 'Field notes and visual stories', icon: ['M3 8.5h4L8.5 6h7L17 8.5h4V19H3z', 'M8.5 13a3.5 3.5 0 1 0 7 0 3.5 3.5 0 1 0-7 0'] },
     { to: '/homelab', label: 'NAS / Home Server', desc: 'Self-hosting and infrastructure', icon: ['M4 5h16v5H4zM4 14h16v5H4z', 'M7.5 7.5h.01M7.5 16.5h.01'] },
@@ -98,7 +118,7 @@ function setDrawer(open: boolean) {
   const wasOpen = drawerOpen.value;
   drawerOpen.value = open;
   if (import.meta.client) document.body.classList.toggle('nav-open', open);
-  if (open) nextTick(() => document.querySelector<HTMLButtonElement>('.np-close')?.focus());
+  if (open) nextTick(() => document.querySelector<HTMLElement>('.np-body .navlink')?.focus());
   else if (wasOpen) nextTick(() => {
     if (drawerReturnFocus.value?.isConnected) drawerReturnFocus.value.focus();
     drawerReturnFocus.value = null;
@@ -198,6 +218,28 @@ function trapMenuFocus(event: KeyboardEvent) {
   }
 }
 
+async function loadReleaseMetadata() {
+  if (!import.meta.client) return;
+  try {
+    const url = new URL('/version.json', window.location.origin);
+    url.searchParams.set('_', String(Date.now()));
+    const response = await fetch(url, { cache: 'no-store' });
+    if (!response.ok) return;
+    const payload = await response.json();
+    const version = typeof payload?.version === 'string' ? payload.version : '';
+    const revision = typeof payload?.revision === 'string' ? payload.revision : '';
+    const deployedAt = typeof payload?.deployed_at === 'string' ? payload.deployed_at : '';
+    if (!/^[A-Za-z0-9._-]{7,64}$/.test(version)
+      || !/^[A-Za-z0-9._-]{7,64}$/.test(revision)
+      || !deployedAt || Number.isNaN(Date.parse(deployedAt))) return;
+    releaseMetadata.value = { version, revision, deployed_at: deployedAt };
+  } catch {
+    // A missing version file means the artifact was not stamped or is unavailable.
+  } finally {
+    releaseChecked.value = true;
+  }
+}
+
 watch(() => route.fullPath, () => {
   setDrawer(false);
   setTopic(false);
@@ -221,6 +263,7 @@ onMounted(() => {
   const updateAdmin = () => { isAdmin.value = Boolean(nuxtApp.$auth?.isAdmin); };
   updateAdmin();
   stopAuth = nuxtApp.$auth?.onChange(updateAdmin) || null;
+  void loadReleaseMetadata();
 });
 onBeforeUnmount(() => {
   document.removeEventListener('keydown', onKeydown);
@@ -301,14 +344,6 @@ onBeforeUnmount(() => {
   <aside id="navPanel" ref="drawer" class="navpanel" data-ui="navigation-panel" :aria-label="localize('Main navigation')" :aria-hidden="!drawerOpen" :inert="!drawerOpen">
     <div class="np-head">
       <div class="np-brand"><span class="seal">&lt;/&gt;</span><b>GAZLL</b></div>
-      <div class="np-actions">
-        <NuxtLink class="np-action" :aria-current="route.path === '/release-notes' ? 'page' : undefined" :to="withLang('/release-notes')">
-          <svg class="nv-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h9l3 3v15H6zM9 11h6M9 15h6" /></svg><span>Release Notes</span>
-        </NuxtLink>
-        <button class="np-close" type="button" :aria-label="localize('Close menu')" @click="setDrawer(false)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
-        </button>
-      </div>
     </div>
     <nav class="np-body">
       <button class="navlink nv-lead" type="button" @click="openSearch">
@@ -324,7 +359,20 @@ onBeforeUnmount(() => {
         </NuxtLink>
       </section>
     </nav>
-    <p class="np-foot">{{ localize('Everything works signed out — progress is saved on this device.') }}</p>
+    <div class="np-foot">
+      <NuxtLink class="np-action np-foot-action" :aria-current="route.path === '/release-notes' ? 'page' : undefined" :to="withLang('/release-notes')">
+        <svg class="nv-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 3h9l3 3v15H6zM9 11h6M9 15h6" /></svg><span>Release Notes</span>
+      </NuxtLink>
+      <p class="np-foot-note">{{ localize('Everything works signed out — progress is saved on this device.') }}</p>
+      <p class="np-foot-release" aria-live="polite">
+        <span class="np-foot-release-label">{{ localize('Last release') }}</span>
+        <template v-if="releaseMetadata && releaseTime">
+          <time :datetime="releaseMetadata.deployed_at">{{ releaseTime }}</time>
+          <code :title="releaseMetadata.revision">{{ releaseMetadata.version }}</code>
+        </template>
+        <span v-else>{{ releaseStatus }}</span>
+      </p>
+    </div>
   </aside>
   <ClientOnly><SearchOverlay ref="searchOverlay" :lang="lang" /></ClientOnly>
 </template>

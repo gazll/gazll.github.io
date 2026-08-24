@@ -78,7 +78,8 @@ useHead(() => ({ htmlAttrs: { lang: lang.value }, title: `${labels.value.title} 
   <div>
     <ContentHeader :lang="lang" />
     <main id="view-host" tabindex="-1" class="view"><div id="release-notes-page" data-ui="release-notes-page" class="page rn-page">
-      <header id="release-notes-header" data-ui="release-notes-header" class="rn-head"><p class="eyebrow">{{ labels.eyebrow }}</p><h1>{{ labels.title }}</h1><p class="rn-intro">{{ labels.intro }}</p>
+      <header id="release-notes-header" data-ui="release-notes-header" class="rn-head">
+        <div class="rn-head-copy"><p class="eyebrow">{{ labels.eyebrow }}</p><h1>{{ labels.title }}</h1><p class="rn-intro">{{ labels.intro }}</p></div>
         <div id="release-notes-summary" data-ui="release-summary" class="rn-summary" :aria-label="labels.summary">
           <span><b>{{ totals.releases }}</b> {{ totals.releases === 1 ? labels.release : labels.releases }}</span>
           <span><b>{{ totals.changes }}</b> {{ totals.changes === 1 ? labels.change : labels.changes }}</span>
@@ -86,9 +87,11 @@ useHead(() => ({ htmlAttrs: { lang: lang.value }, title: `${labels.value.title} 
         </div>
         <div id="release-notes-filters" data-ui="release-filters" class="rn-filters" :aria-label="labels.filterBy">
           <span class="rn-filter-title">{{ labels.filterBy }}</span>
-          <label class="rn-filter-field" for="release-year-filter"><span>{{ labels.year }}</span><select id="release-year-filter" v-model="yearFilter"><option value="all">{{ labels.allYears }}</option><option v-for="year in yearOptions" :key="year" :value="year">{{ year }}</option></select></label>
-          <label class="rn-filter-field" for="release-kind-filter"><span>{{ labels.kind }}</span><select id="release-kind-filter" v-model="kindFilter"><option value="all">{{ labels.allKinds }}</option><option v-for="kind in kindOptions" :key="kind" :value="kind">{{ labels.kinds[kind] || kind }}</option></select></label>
-          <button class="rn-filter-clear" type="button" :disabled="!hasReleaseFilters" @click="clearReleaseFilters">{{ labels.clearFilters }}</button>
+          <div class="rn-filter-controls">
+            <label class="rn-filter-field" for="release-year-filter"><span>{{ labels.year }}</span><select id="release-year-filter" v-model="yearFilter"><option value="all">{{ labels.allYears }}</option><option v-for="year in yearOptions" :key="year" :value="year">{{ year }}</option></select></label>
+            <label class="rn-filter-field" for="release-kind-filter"><span>{{ labels.kind }}</span><select id="release-kind-filter" v-model="kindFilter"><option value="all">{{ labels.allKinds }}</option><option v-for="kind in kindOptions" :key="kind" :value="kind">{{ labels.kinds[kind] || kind }}</option></select></label>
+            <button class="rn-filter-clear" type="button" :disabled="!hasReleaseFilters" @click="clearReleaseFilters">{{ labels.clearFilters }}</button>
+          </div>
         </div>
       </header>
       <p id="release-notes-filter-summary" data-ui="release-filter-summary" class="rn-filter-summary"><span>{{ labels.showing }}</span> <b>{{ filteredSummary.days }}</b> {{ filteredSummary.days === 1 ? labels.day : labels.days }} · <b>{{ filteredSummary.releases }}</b> {{ filteredSummary.releases === 1 ? labels.release : labels.releases }} · <b>{{ filteredSummary.changes }}</b> {{ filteredSummary.changes === 1 ? labels.change : labels.changes }}</p>
@@ -97,8 +100,11 @@ useHead(() => ({ htmlAttrs: { lang: lang.value }, title: `${labels.value.title} 
         <span>{{ labels.noMatches }}</span>
         <button v-if="hasReleaseFilters" class="rn-empty-clear" type="button" @click="clearReleaseFilters">{{ labels.clearFilters }}</button>
       </p>
-      <div v-else id="release-notes-list" data-ui="release-list" class="rn-body"><section v-for="day in filteredDays" :id="`release-day-${day.date}`" :key="day.date" data-ui="release-day" :data-date="day.date" class="rn-day"><header class="rn-dayhead"><time class="rn-date" :datetime="day.date">{{ dateLabel(day.date) }}</time><span v-if="day.releases.length > 1" class="rn-daymeta">{{ day.releases.length }} {{ day.releases.length === 1 ? labels.release : labels.releases }} · {{ day.changeCount }} {{ day.changeCount === 1 ? labels.change : labels.changes }}</span><span v-if="day.itemsAdded && kindFilter === 'all'" class="rn-added">{{ day.itemsAdded }} {{ labels.questions }}</span></header>
-        <section v-for="(release, releaseIndex) in day.releases" :id="`release-${day.date}-${releaseIndex + 1}`" :key="release.en.title" data-ui="release-item" class="rn-rel"><header class="rn-relhead"><h2 class="rn-title">{{ release[lang]?.title || release.en.title }}</h2><span v-if="release.items_added && kindFilter === 'all'" class="rn-added">{{ release.items_added }} {{ labels.questions }}</span></header><ul class="rn-changes"><li v-for="change in release.changes" :key="change[lang]?.text || change.en.text" data-ui="release-change" class="rn-change" :class="`rn-k-${change.kind}`"><div class="rn-cmeta"><span class="rn-kind" :data-kind="change.kind">{{ labels.kinds[change.kind] || change.kind }}</span><span v-if="change.target" class="rn-target">{{ change.target }}</span></div><div class="rn-text" v-html="renderMarkdown(change[lang]?.text || change.en.text)" /></li></ul></section>
+      <div v-else id="release-notes-list" data-ui="release-list" class="rn-body"><section v-for="day in filteredDays" :id="`release-day-${day.date}`" :key="day.date" data-ui="release-day" :data-date="day.date" class="rn-day">
+        <header class="rn-dayhead"><time class="rn-date" :datetime="day.date">{{ dateLabel(day.date) }}</time><span v-if="day.releases.length > 1" class="rn-daymeta">{{ day.releases.length }} {{ day.releases.length === 1 ? labels.release : labels.releases }} · {{ day.changeCount }} {{ day.changeCount === 1 ? labels.change : labels.changes }}</span><span v-if="day.itemsAdded && kindFilter === 'all'" class="rn-added">{{ day.itemsAdded }} {{ labels.questions }}</span></header>
+        <div class="rn-day-releases">
+          <section v-for="(release, releaseIndex) in day.releases" :id="`release-${day.date}-${releaseIndex + 1}`" :key="release.en.title" data-ui="release-item" class="rn-rel"><header class="rn-relhead"><h2 class="rn-title">{{ release[lang]?.title || release.en.title }}</h2><span v-if="release.items_added && kindFilter === 'all'" class="rn-added">{{ release.items_added }} {{ labels.questions }}</span></header><ul class="rn-changes"><li v-for="change in release.changes" :key="change[lang]?.text || change.en.text" data-ui="release-change" class="rn-change" :class="`rn-k-${change.kind}`"><div class="rn-cmeta"><span class="rn-kind" :data-kind="change.kind">{{ labels.kinds[change.kind] || change.kind }}</span><span v-if="change.target" class="rn-target">{{ change.target }}</span></div><div class="rn-text" v-html="renderMarkdown(change[lang]?.text || change.en.text)" /></li></ul></section>
+        </div>
       </section></div>
     </div></main>
   </div>
