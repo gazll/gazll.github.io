@@ -26,6 +26,7 @@ const viLabels: Record<string, string> = {
   'Copy many Fshare links at once': 'Sao chép nhiều link Fshare cùng lúc', 'Course Registration': 'Đăng ký môn học',
   'Plan and register course sets': 'Lập kế hoạch và đăng ký nhóm môn', Calendar: 'Lịch',
   'Lunar dates, holidays and reminders': 'Lịch âm, ngày lễ và nhắc việc', 'Release Notes': 'Ghi chú phát hành', Search: 'Tìm kiếm',
+  'English speaking system and 26-week roadmap': 'Hệ thống luyện nói và lộ trình 26 tuần',
   'Knowledge Base': 'Kho kiến thức', topic: 'chủ đề', 'Open navigation menu': 'Mở menu điều hướng', 'Previous topic': 'Chủ đề trước',
   'Next topic': 'Chủ đề tiếp theo', 'Search all material': 'Tìm kiếm toàn bộ nội dung', 'Search (Ctrl+K)': 'Tìm kiếm (Ctrl+K)',
   'Content language': 'Ngôn ngữ nội dung', 'Close menu': 'Đóng menu', 'Filter topics…': 'Lọc chủ đề…', 'Filter topics': 'Lọc chủ đề',
@@ -41,6 +42,7 @@ const languageActionLabel = computed(() => props.lang === 'vi'
 const navGroups = [
   { label: 'Technical', links: [
     { to: '/', label: 'Study Track', desc: 'Interview preparation topics', icon: ['M4 6h16M4 12h16M4 18h10'] },
+    { to: '/english-study', label: 'English Study', desc: 'English speaking system and 26-week roadmap', icon: ['M4 5h16v14H4z', 'M8 9h8M8 13h5', 'M8 17h3'] },
     { to: '/system-design', label: 'System Design', desc: 'Architecture blueprints', icon: ['M4 5h6v5H4zM14 5h6v5h-6zM9 15h6v5H9z', 'M7 10v2.5h10V10M12 12.5V15'] },
     { to: '/case-studies', label: 'Case Studies', desc: 'Engineering deep dives', icon: ['M5 5h14v14H5z', 'M8 9h8M8 13h5M9 5V3h6v2'] },
     { to: '/admin', label: 'Admin', desc: 'All-user overview', icon: ['M12 3l7 3v5c0 4.2-2.8 7.6-7 10-4.2-2.4-7-5.8-7-10V6z'] },
@@ -60,7 +62,7 @@ const navGroups = [
 ];
 
 const routeLabels: Record<string, string> = {
-  '/': 'Study Track', '/gazl-try': 'Gazl Try', '/stats': 'Stats', '/admin': 'Admin',
+  '/': 'Study Track', '/english-study': 'English Study', '/gazl-try': 'Gazl Try', '/stats': 'Stats', '/admin': 'Admin',
   '/system-design': 'System Design', '/case-studies': 'Case Studies', '/project': 'Project',
   '/photography': 'Photography', '/homelab': 'NAS / Home Server', '/fshare-tool': 'Fshare Bulk Copy',
   '/course-registration': 'Course Registration', '/calendar': 'Calendar',
@@ -301,7 +303,7 @@ onBeforeUnmount(() => {
       <div class="np-brand"><span class="seal">&lt;/&gt;</span><b>GAZLL</b></div>
       <div class="np-actions">
         <NuxtLink class="np-action" :aria-current="route.path === '/release-notes' ? 'page' : undefined" :to="withLang('/release-notes')">
-          <svg class="nv-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h9l3 3v15H6zM9 11h6M9 15h6" /></svg><span>{{ localize('Release Notes') }}</span>
+          <svg class="nv-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h9l3 3v15H6zM9 11h6M9 15h6" /></svg><span>Release Notes</span>
         </NuxtLink>
         <button class="np-close" type="button" :aria-label="localize('Close menu')" @click="setDrawer(false)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
@@ -311,14 +313,14 @@ onBeforeUnmount(() => {
     <nav class="np-body">
       <button class="navlink nv-lead" type="button" @click="openSearch">
         <svg class="nv-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="6.5" /><path d="M16 16l4 4" /></svg>
-        <span class="nv-text"><span class="nv-label">{{ localize('Search') }}</span><span class="nv-desc">{{ localize('One query across every surface') }}</span></span>
+        <span class="nv-text"><span class="nv-label">Search</span><span class="nv-desc">{{ localize('One query across every surface') }}</span></span>
         <span class="nv-shortcut">{{ localize('Ctrl K') }}</span>
       </button>
       <section v-for="group in visibleNavGroups" :key="group.label" class="nv-sec">
-        <h2 class="nv-sectitle">{{ localize(group.label) }}</h2>
+        <h2 class="nv-sectitle">{{ group.label }}</h2>
         <NuxtLink v-for="link in group.links" :key="link.to" class="navlink" :aria-current="isCurrent(link.to) ? 'page' : undefined" :to="withLang(link.to)">
           <svg class="nv-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path v-for="path in link.icon" :key="path" :d="path" /></svg>
-          <span class="nv-text"><span class="nv-label">{{ localize(link.label) }}</span><span class="nv-desc">{{ localize(link.desc) }}</span></span>
+          <span class="nv-text"><span class="nv-label">{{ link.label }}</span><span class="nv-desc">{{ localize(link.desc) }}</span></span>
         </NuxtLink>
       </section>
     </nav>
