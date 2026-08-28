@@ -2055,5 +2055,15 @@
       "https://kubernetes.io/docs/tasks/run-application/update-deployment-rolling/",
       "https://sre.google/sre-book/testing-reliability/"
     ]
+  },
+  "16-project-concurrency-whiteboard.whiteboard-dsa.q5": {
+    "reviewed_at": "2026-08-28",
+    "target_versions": [
+      "Crowther et al., Nature 525 (2015)"
+    ],
+    "claim_type": "example",
+    "sources": [
+      "https://www.nature.com/articles/nature14967"
+    ]
   }
 }

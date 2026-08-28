@@ -641,7 +641,8 @@
         "16-project-concurrency-whiteboard.whiteboard-dsa.q1",
         "16-project-concurrency-whiteboard.whiteboard-dsa.q2",
         "16-project-concurrency-whiteboard.whiteboard-dsa.q3",
-        "16-project-concurrency-whiteboard.whiteboard-dsa.q4"
+        "16-project-concurrency-whiteboard.whiteboard-dsa.q4",
+        "16-project-concurrency-whiteboard.whiteboard-dsa.q5"
       ],
       "track_item_ids": [
         "16-project-concurrency-whiteboard.technical-storytelling-fundamentals.q1",
@@ -653,7 +654,8 @@
         "16-project-concurrency-whiteboard.technical-storytelling-fundamentals.q7",
         "16-project-concurrency-whiteboard.whiteboard-dsa.q2",
         "16-project-concurrency-whiteboard.whiteboard-dsa.q3",
-        "16-project-concurrency-whiteboard.whiteboard-dsa.q4"
+        "16-project-concurrency-whiteboard.whiteboard-dsa.q4",
+        "16-project-concurrency-whiteboard.whiteboard-dsa.q5"
       ]
     },
     {
@@ -2309,6 +2311,10 @@
     "16-project-concurrency-whiteboard.whiteboard-dsa.q4": {
       "en": "Which questions can you ask the interviewer to demonstrate depth, particularly in an OTA or fintech domain?",
       "vi": "Các câu hỏi ngược thể hiện chiều sâu (phù hợp domain OTA/fintech)?"
+    },
+    "16-project-concurrency-whiteboard.whiteboard-dsa.q5": {
+      "en": "Your boss asks you to count the number of trees on Earth. How would you do it?",
+      "vi": "Sếp giao đếm số cây trên Trái Đất. Bạn sẽ làm thế nào?"
     },
     "17-rest-api-design.modelling-resources-uris.q1": {
       "en": "How should resources and URIs be modelled when moving from a use case to an API?",
