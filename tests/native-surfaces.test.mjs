@@ -80,11 +80,16 @@ import { pathToFileURL } from 'node:url';
       'id="calendar-date-nav" data-ui="calendar-date-nav"',
       'id="calendar-views" data-ui="calendar-views"',
       'id="cal-view-panel" data-ui="calendar-view-panel"',
+      'id="calendar-overview" data-ui="calendar-overview"',
+      'id="calendar-dashboard-cashflow" data-ui="calendar-dashboard-cashflow"',
+      'id="calendar-dashboard-tasks" data-ui="calendar-dashboard-tasks"',
       'id="calendar-month-grid" data-ui="calendar-month-grid"',
       'id="calendar-today-strip" data-ui="calendar-today-strip"',
       'id="calendar-rail" data-ui="calendar-rail"',
       'id="calendar-unlock" data-ui="calendar-unlock"'
     ]) assert.ok(calendar.includes(hook), `calendar hook missing: ${hook}`);
+    assert.match(calendar, /VIEW_TABS = \['overview', 'tasks', 'cashflow', 'month', 'year', 'items'\]/,
+      'calendar should lead with action-oriented views');
     assert.match(calendar, /openDay\(row\.date, true\)/, 'calendar holiday links should reveal the selected day');
     assert.match(calendar, /:aria-busy="inboxBusy"/, 'calendar inbox should expose its pending state');
     assert.match(calendar, /:disabled="inboxBusy"/, 'calendar inbox actions should lock while syncing');

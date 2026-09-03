@@ -24,3 +24,11 @@ public/fshare-tool/*.txt
 # filenames carry internal ticket numbers. This repo is public and Pages serves
 # from it, so they must never be committed; only the anonymised article is.
 docs/case-study-drafts/
+
+# Impeccable's own working state, not repo content. roots.json stores absolute
+# paths from whichever machine last ran it (it currently pins a Windows path
+# from another checkout), so committing it makes every machine fight over the
+# file. Nothing in the repo reads this directory — the dev-only CSP allowance in
+# nuxt.config.ts is an env check, not a file read. The durable outputs are
+# DESIGN.md and PRODUCT.md at the root, which stay committed.
+.impeccable/

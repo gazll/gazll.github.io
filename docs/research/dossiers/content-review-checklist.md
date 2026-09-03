@@ -9,7 +9,7 @@ Legend: `[ ]` not started · `[-]` in progress · `[x]` complete · `[!]` blocke
 - [x] Confirm this session is data/content-only.
 - [x] Leave UI/component/CSS changes from the other session untouched.
 - [x] Record the current dirty worktree before editing.
-- [x] Keep every research artifact under `docs/markdown/`.
+- [x] Keep every research artifact under `docs/research/dossiers/`.
 
 ## 1. Inventory
 
@@ -82,7 +82,7 @@ The batch list is only a coordination order. Completion is tracked per topic/cas
 - [x] Update EN and VI together for every integrated unit.
 - [x] Update metadata/catalog/manifest only when necessary; `content-index.json` was synchronized after Topic 09 question edits.
 - [x] Preserve existing persistent IDs in the integrated units.
-- [x] Review `git diff -- public/data docs/markdown`.
+- [x] Review `git diff -- public/data docs/research`.
 - [x] Confirm the Batch A patch did not edit UI files; pre-existing UI-session changes remain untouched.
 - [x] Integrate Batch C ownership: Topic 17 upload/job resources, Topic 15 transport budgets, Topic 27 edge enforcement, Topic 10 overload policy, and source-scoped Case 09/13 evidence.
 - [x] Add ten bilingual Batch C topic items and preserve every existing item ID, case anchor, figure, and source-specific measurement.

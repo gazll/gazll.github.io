@@ -18,7 +18,7 @@
 
 import { canChiDay, canChiMonth, canChiYear, lunarMonthName, solarToLunar } from '../../../public/lib/lunar.js';
 import { holidayMap, isDayOff, lunarMarker, shiftDays } from '../../../public/lib/vn-holidays.js';
-import { agenda, agendaGroups, diffDays, localized, occurrenceMap, todayISO } from '../../../public/lib/schedule.js';
+import { agenda, diffDays, localized, occurrenceMap, todayISO } from '../../../public/lib/schedule.js';
 import { isEnvelope, MAX_ENVELOPE_JSON_CHARS, unseal } from '../../../public/lib/schedule-crypto.js';
 import { checklistRows, endingSoon, groupedItems, itemRows } from '../../../public/lib/inventory.js';
 import { copyText } from '../../../public/lib/clipboard.js';
@@ -28,15 +28,15 @@ const nuxtApp = useNuxtApp() as any;
 
 const SEALED_URL = '/data/schedule/private.enc.json';
 const OVERRIDES_URL = '/data/calendar/holidays.json';
-const VIEW_KEY = 'gazll:calendar-view';
+const VIEW_KEY = 'gazll:calendar-view-v2';
 const KEY_STORE = 'gazll:schedule-key';
 const CHECKS_KEY = 'gazll:calendar-checks';
-const VIEW_TABS = ['month', 'year', 'agenda', 'items'] as const;
+const VIEW_TABS = ['overview', 'tasks', 'cashflow', 'month', 'year', 'items'] as const;
 type CalendarView = typeof VIEW_TABS[number];
 const CATEGORY_OPTIONS = ['finance', 'vehicle', 'health', 'pet', 'home', 'document', 'family', 'subscription'] as const;
 
 const today = ref(todayISO());
-const view = ref<CalendarView>('month');
+const view = ref<CalendarView>('overview');
 const cursor = ref(today.value.slice(0, 7));
 const cursorYear = ref(Number(today.value.slice(0, 4)));
 const selected = ref<string | null>(null);
@@ -83,7 +83,7 @@ const maxYear = computed(() => Number(today.value.slice(0, 4)) + 4);
 
 const vi = computed(() => props.lang === 'vi');
 const t = computed(() => vi.value ? {
-  month: 'Tháng', year: 'Năm', agenda: 'Sắp tới', todayLabel: 'Hôm nay',
+  overview: 'Tổng quan', tasks: 'Việc cần làm', cashflow: 'Dòng tiền', month: 'Tháng', year: 'Năm', todayLabel: 'Hôm nay',
   prev: 'Trước', next: 'Sau', dayOff: 'Nghỉ lễ', workday: 'Đi làm bù',
   lunarShort: 'ÂL', unlock: 'Mở lịch riêng', lock: 'Khoá lại', forgot: 'Quên passphrase?', hintLabel: 'Gợi ý',
   passphrase: 'Passphrase', rememberDevice: 'Nhớ trên thiết bị này',
@@ -93,6 +93,13 @@ const t = computed(() => vi.value ? {
   lockedBody: 'Danh sách nhắc việc được mã hoá trong repo. Nhập passphrase để mở ngay trên trình duyệt.',
   grantedHint: 'Hoặc đăng nhập bằng tài khoản đã được cấp quyền — trang sẽ tự mở.',
   upcomingHolidays: 'Ngày lễ sắp tới', noPrivate: 'Chưa có mục nào trong lịch riêng.', category: 'Nhóm nhắc việc',
+  dashboardTitle: 'Việc và tiền sắp tới', dashboardIntro: 'Mở trang này để biết tháng này phải xử lý gì trước, rồi mới đi vào lịch chi tiết.',
+  cashflowTitle: 'Các khoản cần đóng', cashflowIntro: 'Khoản định kỳ được tách khỏi lịch để dễ kiểm tra số tiền và kỳ kế tiếp.',
+  tasksTitle: 'Việc theo mốc thời gian', tasksIntro: 'Những việc cần làm được xếp theo 1 tháng, 3 tháng và xa hơn.',
+  monthlyPayments: 'Hằng tháng', yearlyPayments: 'Hằng năm', oneOffPayments: 'Một lần',
+  nextMonth: 'Trong 1 tháng tới', nextQuarter: 'Trong 2–3 tháng tới', nextThreeMonths: 'Trong 3 tháng tới',
+  knownTotal: 'Tổng số tiền đã ghi', viewAll: 'Xem tất cả',
+  noCashflow: 'Chưa có khoản đóng nào.', noTasks: 'Chưa có việc nào trong các mốc này.',
   overdue: 'Quá hạn', due: 'Cần làm ngay', monthGroup: 'Trong tháng này',
   ninety: '90 ngày tới', later: 'Xa hơn', daysLeft: 'còn', daysOver: 'trễ', days: 'ngày',
   lastDone: 'lần cuối', estimate: 'ước tính theo số km', every: 'Mỗi', once: 'Một lần',
@@ -115,7 +122,7 @@ const t = computed(() => vi.value ? {
   monthNames: Array.from({ length: 12 }, (_, i) => `Tháng ${i + 1}`),
   dayPillar: 'Ngày', monthPillar: 'Tháng', yearPillar: 'Năm'
 } : {
-  month: 'Month', year: 'Year', agenda: 'Upcoming', todayLabel: 'Today',
+  overview: 'Overview', tasks: 'Tasks', cashflow: 'Cash flow', month: 'Month', year: 'Year', todayLabel: 'Today',
   prev: 'Previous', next: 'Next', dayOff: 'Public holiday', workday: 'Make-up workday',
   lunarShort: 'Lunar', unlock: 'Open private schedule', lock: 'Lock again', forgot: 'Forgot the passphrase?', hintLabel: 'Hint',
   passphrase: 'Passphrase', rememberDevice: 'Remember on this device',
@@ -125,6 +132,13 @@ const t = computed(() => vi.value ? {
   lockedBody: 'The reminder list ships encrypted. Enter the passphrase to open it in this browser.',
   grantedHint: 'Or sign in with an account that has been granted access — the page opens itself.',
   upcomingHolidays: 'Upcoming holidays', noPrivate: 'Nothing in the private schedule yet.', category: 'Reminder category',
+  dashboardTitle: 'What needs attention next', dashboardIntro: 'Start here to see what needs attention this month before opening the detailed calendar.',
+  cashflowTitle: 'Payments to make', cashflowIntro: 'Recurring payments are separated from reminders so the amount and next due date stay visible.',
+  tasksTitle: 'Tasks by horizon', tasksIntro: 'Tasks are grouped into the next month, months two to three, and later.',
+  monthlyPayments: 'Monthly', yearlyPayments: 'Yearly', oneOffPayments: 'One-off',
+  nextMonth: 'Within 1 month', nextQuarter: 'In months 2–3', nextThreeMonths: 'Within 3 months',
+  knownTotal: 'Known amount total', viewAll: 'View all',
+  noCashflow: 'No payments recorded yet.', noTasks: 'No tasks in these horizons yet.',
   overdue: 'Overdue', due: 'Due now', monthGroup: 'Later this month',
   ninety: 'Next 90 days', later: 'Further out', daysLeft: 'in', daysOver: 'late by', days: 'days',
   lastDone: 'last done', estimate: 'estimated from distance', every: 'Every', once: 'One-off',
@@ -149,13 +163,13 @@ const t = computed(() => vi.value ? {
 });
 
 const ux = computed(() => vi.value ? {
-  reminders: 'nhắc việc', records: 'mục', privateLabel: 'Lịch riêng',
+  reminders: 'nhắc việc', records: 'mục', payments: 'khoản', privateLabel: 'Lịch riêng',
   show: 'Hiện', hide: 'Ẩn', opening: 'Đang mở…', selectedDay: 'Ngày đã chọn',
   holidayLegend: 'Ngày lễ', reminderLegend: 'Nhắc việc', lunarLegend: 'Mùng 1 / Rằm',
   openPrivate: 'Mở lịch riêng để xem nội dung này', twelveMonths: '12 tháng',
   calendarViews: 'Chế độ xem lịch'
 } : {
-  reminders: 'reminders', records: 'records', privateLabel: 'Private schedule',
+  reminders: 'reminders', records: 'records', payments: 'payments', privateLabel: 'Private schedule',
   show: 'Show', hide: 'Hide', opening: 'Opening…', selectedDay: 'Selected day',
   holidayLegend: 'Public holiday', reminderLegend: 'Reminder', lunarLegend: 'New / full moon',
   openPrivate: 'Open the private schedule to see this content', twelveMonths: '12 months',
@@ -203,7 +217,7 @@ const dayMonth = (date: string) => {
 const lunarText = (lunar: any) =>
   `${lunar.day}/${lunar.month}${lunar.leap ? (vi.value ? 'N' : 'L') : ''} ${t.value.lunarShort}`;
 
-/* One filter drives the dots, the agenda and the notes together, so picking a
+/* One filter drives the dots, the task and cash-flow lists, and the notes together, so picking a
    member narrows the whole page rather than just the list under it. */
 const memberName = (id: string) => {
   const row = members.value.find(member => member.id === id);
@@ -393,26 +407,78 @@ const nextHolidays = computed(() => {
 
 const agendaRows = computed(() =>
   locked.value ? [] : agenda(visibleEvents.value, { today: today.value, lang: props.lang }));
-const agendaBuckets = computed(() => agendaGroups(agendaRows.value, today.value));
+/* A payment is still a reminder in the data model, but it deserves its own
+   surface: mixing it into a long to-do list makes recurring charges easy to
+   miss. Keep the split derived so the sealed schedule needs no migration. */
+const isCashflow = (event: any) => Boolean(event?.cost) || event?.category === 'subscription';
+const cashflowRows = computed(() => agendaRows.value.filter(row => isCashflow(row.event)));
+const taskRows = computed(() => agendaRows.value.filter(row => !isCashflow(row.event)));
+const taskBuckets = computed(() => [
+  { id: 'overdue', rows: taskRows.value.filter(row => row.daysAway < 0) },
+  { id: 'month', rows: taskRows.value.filter(row => row.daysAway >= 0 && row.daysAway <= 30) },
+  { id: 'quarter', rows: taskRows.value.filter(row => row.daysAway > 30 && row.daysAway <= 90) },
+  { id: 'later', rows: taskRows.value.filter(row => row.daysAway > 90) }
+].filter(group => group.rows.length));
+const cashflowBuckets = computed(() => [
+  { id: 'monthly', rows: cashflowRows.value.filter(row => row.event.repeat?.kind === 'monthly') },
+  { id: 'yearly', rows: cashflowRows.value.filter(row => ['yearly', 'lunar-yearly'].includes(row.event.repeat?.kind)) },
+  { id: 'oneoff', rows: cashflowRows.value.filter(row => !['monthly', 'yearly', 'lunar-yearly'].includes(row.event.repeat?.kind)) }
+].filter(group => group.rows.length));
+
+function costAmount(value: unknown) {
+  const match = String(value || '').match(/(\d[\d.]*)\s*(?:đ|d)(?!\w)/i);
+  if (!match) return null;
+  const amount = Number(match[1].replace(/\./g, ''));
+  return Number.isFinite(amount) ? amount : null;
+}
+function totalCostText(rows: any[]) {
+  const total = rows.reduce((sum, row) => sum + (costAmount(row.event?.cost) || 0), 0);
+  if (!total) return '';
+  const amount = new Intl.NumberFormat(vi.value ? 'vi-VN' : 'en-US').format(total);
+  return vi.value ? `~${amount}đ` : `~₫${amount}`;
+}
+const monthlyCashflow = computed(() => cashflowRows.value.filter(row => row.event.repeat?.kind === 'monthly'));
+const yearlyCashflow = computed(() => cashflowRows.value.filter(row => ['yearly', 'lunar-yearly'].includes(row.event.repeat?.kind)));
+const overviewStats = computed(() => ({
+  overdue: taskRows.value.filter(row => row.daysAway < 0).length,
+  monthTasks: taskRows.value.filter(row => row.daysAway >= 0 && row.daysAway <= 30).length,
+  quarterTasks: taskRows.value.filter(row => row.daysAway >= 0 && row.daysAway <= 90).length,
+  monthlyCount: monthlyCashflow.value.length,
+  yearlyCount: yearlyCashflow.value.length,
+  monthlyTotal: totalCostText(monthlyCashflow.value),
+  yearlyTotal: totalCostText(yearlyCashflow.value)
+}));
 const viewSubtitle = computed(() => {
   if (view.value === 'month') return monthTitle.value.lunar;
   if (view.value === 'year') return ux.value.twelveMonths;
   if (locked.value) return ux.value.privateLabel;
-  const count = view.value === 'agenda' ? agendaRows.value.length : itemList.value.length;
-  return `${count} ${view.value === 'agenda' ? ux.value.reminders : ux.value.records}`;
+  if (view.value === 'overview') return `${taskRows.value.length} ${ux.value.reminders} · ${cashflowRows.value.length} ${ux.value.payments}`;
+  if (view.value === 'tasks') return `${taskRows.value.length} ${ux.value.reminders}`;
+  if (view.value === 'cashflow') return `${cashflowRows.value.length} ${ux.value.payments}`;
+  return `${itemList.value.length} ${ux.value.records}`;
 });
 const viewTitle = computed(() => {
   if (view.value === 'month') return monthTitle.value.solar;
   if (view.value === 'year') return String(cursorYear.value);
-  return t.value[view.value];
+  if (view.value === 'overview') return t.value.overview;
+  if (view.value === 'tasks') return t.value.tasks;
+  if (view.value === 'cashflow') return t.value.cashflow;
+  return t.value.items;
 });
 const tabCount = (tab: CalendarView) => {
-  if (locked.value || (tab !== 'agenda' && tab !== 'items')) return null;
-  return tab === 'agenda' ? agendaRows.value.length : itemList.value.length;
+  if (locked.value) return null;
+  if (tab === 'tasks') return taskRows.value.length;
+  if (tab === 'cashflow') return cashflowRows.value.length;
+  if (tab === 'items') return itemList.value.length;
+  return null;
 };
-const groupLabel = (id: string) => ({
-  overdue: t.value.overdue, due: t.value.due, month: t.value.monthGroup,
-  ninety: t.value.ninety, later: t.value.later
+const taskGroupLabel = (id: string) => ({
+  overdue: t.value.overdue, month: t.value.nextMonth,
+  quarter: t.value.nextQuarter, later: t.value.later
+} as Record<string, string>)[id] || id;
+const cashflowGroupLabel = (id: string) => ({
+  monthly: t.value.monthlyPayments, yearly: t.value.yearlyPayments,
+  oneoff: t.value.oneOffPayments
 } as Record<string, string>)[id] || id;
 
 /** How an event repeats, in one line, so a row explains its own date. */
@@ -719,7 +785,7 @@ onMounted(async () => {
   checks.value = readLocalChecks();
   try {
     const stored = localStorage.getItem(VIEW_KEY);
-    if (['month', 'year', 'agenda', 'items'].includes(stored || '')) view.value = stored as typeof view.value;
+    if (VIEW_TABS.includes(stored as CalendarView)) view.value = stored as CalendarView;
   } catch (error) { /* private mode */ }
 
   try {
@@ -775,7 +841,7 @@ onBeforeUnmount(() => stopAuth?.());
     </div>
 
     <!-- One filter for the whole page: it narrows the dots on the grid, the
-         agenda and the standing notes together. -->
+         task/cash-flow lists and the standing notes together. -->
     <div v-if="!locked && view === 'items' && households.length" id="calendar-household-filter" data-ui="calendar-household-filter"
          class="cal-members" role="group" :aria-label="vi ? 'Lọc theo hộ gia đình' : 'Filter by household'">
       <button type="button" class="cal-mchip" :aria-pressed="householdFilter === 'all'" @click="householdFilter = 'all'">{{ t.allMembers }}</button>
@@ -806,8 +872,122 @@ onBeforeUnmount(() => stopAuth?.());
 
     <div class="cal-body">
       <div id="cal-view-panel" data-ui="calendar-view-panel" class="cal-main" role="tabpanel" :aria-labelledby="`cal-tab-${view}`">
+        <!-- Overview: the action surface. Calendar grids are useful for
+             answering "when?"; this first screen answers "what next?" and
+             keeps payments visible without forcing a month-by-month scan. -->
+        <div v-if="view === 'overview'" id="calendar-overview" data-ui="calendar-overview" class="cal-dashboard">
+          <header class="cal-dashboard-head">
+            <div>
+              <p class="cal-kicker">{{ t.todayLabel }} · {{ todayCard.solar }}</p>
+              <h2>{{ t.dashboardTitle }}</h2>
+              <p>{{ t.dashboardIntro }}</p>
+            </div>
+            <div class="cal-dashboard-actions">
+              <button type="button" class="cal-dashboard-action" @click="setView('tasks')">{{ t.tasks }}</button>
+              <button type="button" class="cal-dashboard-action is-primary" @click="setView('cashflow')">{{ t.cashflow }}</button>
+            </div>
+          </header>
+
+          <div v-if="locked" class="cal-locked cal-dashboard-locked">
+            <h3>{{ t.lockedTitle }}</h3>
+            <p>{{ t.lockedBody }}</p>
+            <button type="button" class="cal-primary" @click="focusUnlock">{{ ux.openPrivate }}</button>
+          </div>
+          <template v-else>
+            <div class="cal-stat-grid" :aria-label="t.overview">
+              <button type="button" class="cal-stat" data-tone="overdue" @click="setView('tasks')">
+                <strong>{{ overviewStats.overdue }}</strong><span>{{ t.overdue }}</span>
+              </button>
+              <button type="button" class="cal-stat" data-tone="tasks" @click="setView('tasks')">
+                <strong>{{ overviewStats.monthTasks }}</strong><span>{{ t.nextMonth }}</span>
+              </button>
+              <button type="button" class="cal-stat" data-tone="tasks" @click="setView('tasks')">
+                <strong>{{ overviewStats.quarterTasks }}</strong><span>{{ t.nextThreeMonths }}</span>
+              </button>
+              <button type="button" class="cal-stat" data-tone="cash" @click="setView('cashflow')">
+                <strong>{{ overviewStats.monthlyTotal || overviewStats.monthlyCount }}</strong><span>{{ t.monthlyPayments }}</span>
+              </button>
+            </div>
+
+            <div class="cal-dashboard-grid">
+              <section id="calendar-dashboard-cashflow" data-ui="calendar-dashboard-cashflow" class="cal-dashboard-panel">
+                <header class="cal-panel-head">
+                  <div>
+                    <p class="cal-kicker">{{ t.cashflow }}</p>
+                    <h3>{{ t.cashflowTitle }}</h3>
+                  </div>
+                  <button type="button" class="cal-panel-link" @click="setView('cashflow')">{{ t.viewAll }}</button>
+                </header>
+                <p class="cal-panel-intro">{{ t.cashflowIntro }}</p>
+                <div class="cal-cash-summary">
+                  <div>
+                    <span>{{ t.monthlyPayments }}</span>
+                    <strong>{{ overviewStats.monthlyTotal || '—' }}</strong>
+                    <small>{{ overviewStats.monthlyCount }} {{ ux.payments }}</small>
+                  </div>
+                  <div>
+                    <span>{{ t.yearlyPayments }}</span>
+                    <strong>{{ overviewStats.yearlyTotal || '—' }}</strong>
+                    <small>{{ overviewStats.yearlyCount }} {{ ux.payments }}</small>
+                  </div>
+                </div>
+                <div v-if="cashflowRows.length" class="cal-focus-list">
+                  <article v-for="row in cashflowRows.slice(0, 5)" :key="row.id" class="cal-focus-row"
+                           :data-cal-cat="row.event.category" :data-status="row.status">
+                    <div class="cal-focus-main">
+                      <h4>{{ row.title }}</h4>
+                      <p class="cal-focus-meta">
+                        <span v-if="row.member" class="cal-owner">{{ memberName(row.member) }}</span>
+                        <span class="cal-cat">{{ categoryLabel(row.event.category) }}</span>
+                        <span>{{ cadence(row.event) }}</span>
+                      </p>
+                    </div>
+                    <div class="cal-focus-when">
+                      <b>{{ shortDate(row.date) }}<i v-if="row.estimated" aria-hidden="true">≈</i></b>
+                      <strong v-if="row.event.cost">{{ row.event.cost }}</strong>
+                      <span class="cal-away" :data-status="row.status">{{ awayText(row) }}</span>
+                    </div>
+                  </article>
+                </div>
+                <p v-else class="cal-dashboard-empty">{{ t.noCashflow }}</p>
+              </section>
+
+              <section id="calendar-dashboard-tasks" data-ui="calendar-dashboard-tasks" class="cal-dashboard-panel">
+                <header class="cal-panel-head">
+                  <div>
+                    <p class="cal-kicker">{{ t.tasks }}</p>
+                    <h3>{{ t.tasksTitle }}</h3>
+                  </div>
+                  <button type="button" class="cal-panel-link" @click="setView('tasks')">{{ t.viewAll }}</button>
+                </header>
+                <p class="cal-panel-intro">{{ t.tasksIntro }}</p>
+                <div v-if="taskRows.length" class="cal-focus-groups">
+                  <section v-for="bucket in taskBuckets.slice(0, 3)" :key="bucket.id" class="cal-focus-group">
+                    <h4 :data-status="bucket.id">{{ taskGroupLabel(bucket.id) }}<span>{{ bucket.rows.length }}</span></h4>
+                    <article v-for="row in bucket.rows.slice(0, 3)" :key="row.id" class="cal-focus-row"
+                             :data-cal-cat="row.event.category" :data-status="row.status">
+                      <div class="cal-focus-main">
+                        <h4>{{ row.title }}</h4>
+                        <p class="cal-focus-meta">
+                          <span v-if="row.member" class="cal-owner">{{ memberName(row.member) }}</span>
+                          <span class="cal-cat">{{ categoryLabel(row.event.category) }}</span>
+                        </p>
+                      </div>
+                      <div class="cal-focus-when">
+                        <b>{{ shortDate(row.date) }}<i v-if="row.estimated" aria-hidden="true">≈</i></b>
+                        <span class="cal-away" :data-status="row.status">{{ awayText(row) }}</span>
+                      </div>
+                    </article>
+                  </section>
+                </div>
+                <p v-else class="cal-dashboard-empty">{{ t.noTasks }}</p>
+              </section>
+            </div>
+          </template>
+        </div>
+
         <!-- Month grid -->
-        <div v-if="view === 'month'" id="calendar-month-grid" data-ui="calendar-month-grid" class="cal-grid">
+        <div v-else-if="view === 'month'" id="calendar-month-grid" data-ui="calendar-month-grid" class="cal-grid">
           <div class="cal-head">
             <div v-for="(name, index) in t.weekdays" :key="name"
                  class="cal-dow" :class="{ 'is-weekend': index > 4 }">{{ name }}</div>
@@ -870,16 +1050,17 @@ onBeforeUnmount(() => stopAuth?.());
           </section>
         </div>
 
-        <!-- Agenda -->
-        <div v-else-if="view === 'agenda'" class="cal-agenda">
+        <!-- Tasks: payments have their own cash-flow view, so this list can
+             answer the practical question "what do I need to do?". -->
+        <div v-else-if="view === 'tasks'" class="cal-agenda">
           <div v-if="locked" class="cal-locked">
             <h3>{{ t.lockedTitle }}</h3>
             <p>{{ t.lockedBody }}</p>
             <button type="button" class="cal-primary" @click="focusUnlock">{{ ux.openPrivate }}</button>
           </div>
-          <p v-else-if="!agendaRows.length" class="cal-empty">{{ t.noPrivate }}</p>
-          <section v-for="group in agendaBuckets" :key="group.id" class="cal-group">
-            <h3 class="cal-group-head" :data-status="group.id">{{ groupLabel(group.id) }}<span>{{ group.rows.length }}</span></h3>
+          <p v-else-if="!taskRows.length" class="cal-empty">{{ t.noTasks }}</p>
+          <section v-for="group in taskBuckets" :key="group.id" class="cal-group">
+            <h3 class="cal-group-head" :data-status="group.id">{{ taskGroupLabel(group.id) }}<span>{{ group.rows.length }}</span></h3>
             <article v-for="row in group.rows" :key="row.id" class="cal-item" :data-cal-cat="row.event.category" :data-status="row.status">
               <div class="cal-item-main">
                 <h4>{{ row.title }}</h4>
@@ -901,7 +1082,56 @@ onBeforeUnmount(() => stopAuth?.());
             </article>
           </section>
         </div>
-        <!-- Things owned. Not the agenda: a receipt is not a to-do, and 80 of
+
+        <!-- Cash flow: monthly, yearly and one-off payments are deliberately
+             grouped by cadence, while each row keeps its next due date. -->
+        <div v-else-if="view === 'cashflow'" class="cal-cashflow">
+          <div v-if="locked" class="cal-locked">
+            <h3>{{ t.lockedTitle }}</h3>
+            <p>{{ t.lockedBody }}</p>
+            <button type="button" class="cal-primary" @click="focusUnlock">{{ ux.openPrivate }}</button>
+          </div>
+          <p v-else-if="!cashflowRows.length" class="cal-empty">{{ t.noCashflow }}</p>
+          <template v-else>
+            <div class="cal-cash-summary cal-cash-summary-wide">
+              <div>
+                <span>{{ t.monthlyPayments }}</span>
+                <strong>{{ overviewStats.monthlyTotal || '—' }}</strong>
+                <small>{{ overviewStats.monthlyCount }} {{ ux.payments }}</small>
+              </div>
+              <div>
+                <span>{{ t.yearlyPayments }}</span>
+                <strong>{{ overviewStats.yearlyTotal || '—' }}</strong>
+                <small>{{ overviewStats.yearlyCount }} {{ ux.payments }}</small>
+              </div>
+              <p>{{ t.knownTotal }}</p>
+            </div>
+            <div class="cal-agenda">
+              <section v-for="group in cashflowBuckets" :key="group.id" class="cal-group">
+                <h3 class="cal-group-head" :data-status="group.id">{{ cashflowGroupLabel(group.id) }}<span>{{ group.rows.length }}</span></h3>
+                <article v-for="row in group.rows" :key="row.id" class="cal-item" :data-cal-cat="row.event.category" :data-status="row.status">
+                  <div class="cal-item-main">
+                    <h4>{{ row.title }}</h4>
+                    <p class="cal-item-meta">
+                      <span v-if="row.member" class="cal-owner">{{ memberName(row.member) }}</span>
+                      <span class="cal-cat">{{ categoryLabel(row.event.category) }}</span>
+                      <span>{{ cadence(row.event) }}</span>
+                      <span v-if="row.lastDone">{{ t.lastDone }} {{ shortDate(row.lastDone) }}</span>
+                    </p>
+                    <p v-if="row.note" class="cal-item-note">{{ row.note }}</p>
+                  </div>
+                  <div class="cal-item-when">
+                    <b>{{ shortDate(row.date) }}<i v-if="row.estimated" aria-hidden="true">≈</i></b>
+                    <strong v-if="row.event.cost" class="cal-item-cost">{{ row.event.cost }}</strong>
+                    <span>{{ lunarText(row.lunar) }}</span>
+                    <span class="cal-away" :data-status="row.status">{{ awayText(row) }}</span>
+                  </div>
+                </article>
+              </section>
+            </div>
+          </template>
+        </div>
+        <!-- Things owned. Not the task list: a receipt is not a to-do, and 80 of
              them would bury the six things actually due this quarter. -->
         <div v-else class="cal-items">
           <div v-if="locked" class="cal-locked">
@@ -1018,7 +1248,7 @@ onBeforeUnmount(() => stopAuth?.());
         </section>
 
         <!-- Standing notes: true, but not dated. What is in the cupboard, why
-             a schedule is on hold. They never enter the agenda. -->
+             a schedule is on hold. They never enter the task list. -->
         <section v-if="visibleNotes.length" class="cal-card">
           <p class="cal-kicker">{{ t.standing }}</p>
           <ul class="cal-standing">

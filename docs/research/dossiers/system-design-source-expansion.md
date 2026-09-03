@@ -6,7 +6,7 @@ Reviewed: `2026-08-23`
 
 Scope: the complete local corpus — `28` topics, `18` case studies, and `20` System Design blueprints.
 
-This dossier is the evidence layer for the durable checklist in [`research-source-expansion.todo.md`](research-source-expansion.todo.md). It is deliberately separate from `public/data/`: research can be reviewed, challenged, and corrected before it becomes teaching content.
+This dossier is the evidence layer for the durable checklist in [`source-expansion-closeout.md`](source-expansion-closeout.md). It is deliberately separate from `public/data/`: research can be reviewed, challenged, and corrected before it becomes teaching content.
 
 ## Audit result
 

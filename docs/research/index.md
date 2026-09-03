@@ -2,7 +2,7 @@
 
 Status: `FINAL SOURCE AUDIT COMPLETE · DEPLOYMENT INPUTS OPEN`
 
-This is the durable per-unit checklist. Each row must eventually link to one research file under `docs/markdown/research/`. The synthesis dossiers help compare units; they do not replace these records.
+This is the durable per-unit checklist. Each row must eventually link to one research file under `docs/research/units/`. The synthesis dossiers help compare units; they do not replace these records.
 
 ## Research record contract
 
@@ -96,11 +96,11 @@ Status values: `TODO`, `RESEARCHING`, `REVIEW`, `READY`, `INTEGRATED`.
 
 ## Current progress
 
-- Baseline source audit: `46/46` records, `1,359` URL references, and `1,003` distinct URLs after local deduplication. The durable follow-up is `research-source-expansion.todo.md`; the initial canonical expansion ledger is `research-system-design-source-expansion.md`.
+- Baseline source audit: `46/46` records, `1,359` URL references, and `1,003` distinct URLs after local deduplication. The durable follow-up is `dossiers/source-expansion-closeout.md`; the initial canonical expansion ledger is `dossiers/system-design-source-expansion.md`.
 - Source expansion is deliberately blueprint-first: `source_items` in `public/data/system-design/catalog.json` are deep-dive question references, not bibliography counts. The new ledger maps all 20 blueprints to canonical topic owners and evidence gaps before any further public-data edit.
 - Targeted expansion checkpoint (2026-08-23): EN/VI data and provenance were integrated for overload/rate policy (`10...q2/q5`), RabbitMQ queue-type semantics (`08...q2`), notification provider limits (`11...q2`), and upload bearer/checksum controls (`11...q10`). The final source audit below closes the remaining blueprint evidence rows without inventing deployment contracts.
 - Payment/booking checkpoint (2026-08-23): Topic 09 q1/q2 and Blueprint 5 q1/q11 now carry provider-contract scope, unknown-age recovery and settlement limits; Blueprint 14 q14 now separates local hold expiry from supplier/GDS release. The chosen PSP/GDS contract remains an explicit TODO.
-- Final expansion closeout (2026-08-23): PCI DSS v4.0.1, OAuth 2.1 draft status versus RFC 9700, RabbitMQ fairness/backpressure, Amadeus booking authority, feed fan-out, leaderboard rebuild, version dates, and duplicate/semantic ownership were rechecked in [`research-system-design-source-expansion.md`](research-system-design-source-expansion.md) and [`research-source-expansion.todo.md`](research-source-expansion.todo.md). All 46 unit rows and all 20 blueprint rows have an evidence decision; provider/version/traffic/SLO/compliance inputs remain intentionally open.
+- Final expansion closeout (2026-08-23): PCI DSS v4.0.1, OAuth 2.1 draft status versus RFC 9700, RabbitMQ fairness/backpressure, Amadeus booking authority, feed fan-out, leaderboard rebuild, version dates, and duplicate/semantic ownership were rechecked in [`dossiers/system-design-source-expansion.md`](dossiers/system-design-source-expansion.md) and [`dossiers/source-expansion-closeout.md`](dossiers/source-expansion-closeout.md). All 46 unit rows and all 20 blueprint rows have an evidence decision; provider/version/traffic/SLO/compliance inputs remain intentionally open.
 - Cross-topic synthesis dossier: `../research-distributed-workflow-correctness.md` — integrated; deployment-specific unknowns remain explicit.
 - Cross-unit synthesis dossiers: `research-data-topology-projections.md` and `research-reliability-operations-recovery-testing.md` — integrated; their scoped EN/VI items and case qualifiers are present without duplicate IDs.
 - Duplicate matrix: `../system-design-content-duplicate-matrix.md` — final ownership audit applied.

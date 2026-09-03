@@ -4,7 +4,7 @@ const lang = computed<'en' | 'vi'>(() => route.query.lang === 'vi' ? 'vi' : 'en'
 
 useHead({ title: 'Calendar — GAZLL' });
 useSeoMeta({
-  description: 'Vietnamese solar and lunar calendar with public holidays, five years ahead.'
+  description: 'Vietnamese solar and lunar calendar with public holidays, private cash flow and task horizons.'
 });
 </script>
 
@@ -17,8 +17,8 @@ useSeoMeta({
           <h1>{{ lang === 'vi' ? 'Lịch' : 'Calendar' }}</h1>
           <p class="intro">
             {{ lang === 'vi'
-              ? 'Lịch dương và âm, ngày lễ Việt Nam, xem trước năm năm — và những mốc riêng cần để ý, mở bằng passphrase.'
-              : 'Solar and lunar dates, Vietnamese public holidays, five years ahead — plus the private reminders, opened with a passphrase.' }}
+              ? 'Lịch dương và âm, ngày lễ Việt Nam, dòng tiền và việc cần làm theo mốc 1–3 tháng — mở bằng passphrase.'
+              : 'Solar and lunar dates, Vietnamese public holidays, private cash flow and tasks across 1–3 month horizons — opened with a passphrase.' }}
           </p>
         </section>
         <!-- Client-only: a prerendered page would freeze "today" at build time

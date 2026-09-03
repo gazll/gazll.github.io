@@ -2,7 +2,7 @@
 
 This folder contains one research record per System Design topic and Case Study.
 
-Use `../system-design-research-index.md` as the durable status source. A synthesis note such as `../research-distributed-workflow-correctness.md` does not mark an individual unit complete.
+Use `../index.md` as the durable status source. A synthesis note such as `../dossiers/distributed-workflow-correctness.md` does not mark an individual unit complete.
 
 ## Record template
 

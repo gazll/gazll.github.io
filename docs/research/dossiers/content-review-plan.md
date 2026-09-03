@@ -32,7 +32,7 @@ The same word appearing in several articles is acceptable only when the decision
 - Do not use a vendor case study as a universal rule. Record what the source actually says and what is inferred for this library.
 - Preserve persistent IDs and existing cross-reference IDs unless a migration plan explicitly maps old IDs to new canonical IDs.
 - EN and VI must remain structurally equivalent. Research may be written in English first, but integration requires an EN/VI content plan.
-- Keep all research notes and TODO state under `docs/markdown/` so the work survives session changes.
+- Keep all research notes and TODO state under `docs/research/dossiers/` so the work survives session changes.
 
 ## Working phases
 
@@ -40,7 +40,7 @@ The same word appearing in several articles is acceptable only when the decision
 
 Every topic JSON pair and every case-study article pair is a separate research unit. A batch dossier may compare units and expose duplication, but it does not count as completing the units inside it.
 
-Each unit must have a research record under `docs/markdown/research/` (one file per unit) containing:
+Each unit must have a research record under `docs/research/units/` (one file per unit) containing:
 
 - local content map and exact IDs/headings;
 - source list with source type and reviewed date;
@@ -86,7 +86,7 @@ The word “Saga” should not automatically make a page a Saga tutorial. The ca
 
 ### Phase 2 — Deep research batches
 
-Research one batch at a time. Each batch gets a dossier in `docs/markdown/` using the template below.
+Research one batch at a time. Each batch gets a dossier in `docs/research/dossiers/` using the template below.
 
 #### Batch A — Distributed workflow correctness
 

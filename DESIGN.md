@@ -204,7 +204,10 @@ Navigation items have generous hit targets, rounded rectangular geometry, and a 
 
 **The Control Is a Control Rule:** clickable behavior must use a real button, link, input, or appropriate interactive element. Preserve keyboard order, visible focus, at least `44px` touch targets where feasible, and explicit accessible names for icon-only actions.
 
-Component implementation examples and state recipes live in `.impeccable/design.json`; they are illustrative building blocks, while the tokens above remain normative.
+The tokens above are normative, and `public/styles.css` is where they are actually
+declared — the two must agree. Illustrative component recipes were generated into
+`.impeccable/design.json`, which is gitignored tooling state rather than repo
+content, so treat this file and `styles.css` as the pair that matters.
 
 ## Do's and Don'ts
 

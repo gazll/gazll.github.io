@@ -2,6 +2,64 @@
   "version": 1,
   "companies": [
     {
+      "slug": "hsc-senior-backend-java",
+      "name": "HSC · Công ty Cổ phần Chứng khoán TP.HCM",
+      "role": "Senior Backend Developer (Java) · Ho Chi Minh",
+      "date": "2026-09",
+      "result": "pending",
+      "stack": [
+        "Java",
+        "Python",
+        "Node.js",
+        "C#/.NET",
+        "Microservices",
+        "REST",
+        "SQL",
+        "Git",
+        "CI/CD",
+        "Agile"
+      ],
+      "source": {
+        "label": "HSC careers — Senior Backend Developer (Java)",
+        "url": "https://career.hsc.com.vn/recruitments/6a42cc5f6aa748a3df0de603?type_child=type4"
+      },
+      "jd": "**Senior Backend Developer (Java)** · HSC (Ho Chi Minh City Securities Corporation) · securities sector.\n\n**Responsibilities**\n\n- Turn designs and product specifications into functional, scalable backend components — micro-services, DB, integration between systems.\n- Communicate with Product Owner, BA, UI/UX Designer, front-end and other backend developers to clarify requirements and propose solutions.\n- Develop high quality code following industry standard best practices for accessibility, performance and code standard.\n- Build reusable code for future use.\n- Work with the team leader and project manager to keep projects on track; carry the day-to-day — stand-ups, meetings, deployments.\n- Self-perform QA before asking the team leader for code review and integration tests.\n- Maintain the platform: upgrade and fix technical issues, including efficiency and performance of current applications.\n- Compile and analyze data, processes and code to troubleshoot and identify areas for improvement.\n- Work with technical leads to research new technologies and develop best practice.\n\n**Education**\n\n- Bachelor's degree in computer science, information technology, engineering or a related study, or equivalent experience.\n\n**Knowledge &amp; experience**\n\n- Strong understanding of the web development cycle, programming techniques and tools.\n- Fluency or understanding of specific languages — Java, Python, JS (node), C#/.NET — and operating systems may be required.\n- Understanding of key design patterns.\n- Basic knowledge of server-side optimization tools and techniques.\n- Knowledge of DevOps, CI/CD and Agile software development processes.\n- Experience in banking, finance or securities sectors is a big plus.\n\n**Technical skills**\n\n- Code versioning tools such as Git with GitHub, GitLab or BitBucket.\n- Excellent project and time management skills.\n- Writing maintainable code that is well thought out and reusable across multiple projects.\n- Focus on efficiency, user experience and process improvement.\n\n**Soft skills**\n\n- Basic English reading comprehension.\n- Strong problem-solving skills.\n- Good verbal and written communication skills.\n- Ability to meet deadlines and deliver in a high-demand environment.\n- High responsibility and teamwork; team player, highly motivated, customer-satisfaction and results driven.",
+      "brief": "The posting publishes no loop structure — no round count, no take-home, no panel — so the rounds below stay empty until an actual interview is recorded.\n\n\n\nWhat the JD does commit to is worth reading twice, because it is unusually explicit about *where the seniority sits*. The engineering asks are mid-level in wording (design patterns, \"basic knowledge of server-side optimization\", Git) while the responsibilities are senior in shape: you turn specs into micro-services and cross-system integrations, you run your own QA pass before asking for review, and you are the one analysing data and code to find what to improve. Read together, this is a role that trusts you to close a slice end to end rather than one that hands you tickets.\n\n\n\nTwo lines decide how to prepare. **\"Integration between systems\"** sits in the very first bullet, and at a brokerage that means order flow, market data and settlement talking to core systems that predate the service you are writing — so expect questions about idempotency, retries and reconciliation rather than about a greenfield schema. And **\"experience in banking, finance or securities sectors is a big plus\"** is the one differentiator a generic backend CV cannot fake: knowing what a T+ settlement cycle, an order book or an end-of-day batch actually is buys more here than another framework.\n\n\n\nThe language bar is stated as *basic English reading comprehension* — noticeably lower than the fluency an offshore outsourcing shop asks for. This is a domestic Vietnamese brokerage building for its own market; the working language is Vietnamese and English is for documentation.",
+      "rounds": [],
+      "questions": [],
+      "created_at": "2026-09-03",
+      "updated_at": "2026-09-03"
+    },
+    {
+      "slug": "hsc-technical-architect",
+      "name": "HSC · Công ty Cổ phần Chứng khoán TP.HCM",
+      "role": "Technical Architect · Digital Technology · Ho Chi Minh",
+      "date": "2026-09",
+      "result": "pending",
+      "stack": [
+        "Microservices",
+        "SOA",
+        "API design",
+        "ESB",
+        "Messaging",
+        "12-factor",
+        "Kubernetes",
+        "Docker",
+        "AWS/Azure/GCP",
+        "CI/CD"
+      ],
+      "source": {
+        "label": "HSC careers — Technical Architect",
+        "url": "https://career.hsc.com.vn/recruitments/6a42cc5f6aa748a3df0de603?type_child=type4"
+      },
+      "jd": "**Technical Architect** · HSC (Ho Chi Minh City Securities Corporation) · reports into the Digital Technology team, under the Digital Transformation Project Director.\n\n**Responsibilities**\n\n- Evaluate business needs and provide scalable technology solutions focused on performance and resiliency, as software/application specifications and design documents based on architectural blueprints designed by the Digital Transformation Project Director.\n- Analyze current technologies in use and determine ways to improve; present and defend architectural, design and technical choices.\n- Provide the development team with architectural blueprints to follow.\n- Guide and assist the team through technical issues so delivery stays consistent with the initial design and meets quality, availability, performance and security requirements — via Technical Design and Code Reviews, refactoring of application state.\n- Troubleshoot and resolve issues with coding or design.\n- Develop high quality code following industry standard best practices, considering performance and resiliency.\n- Ensure work plans are properly assigned, major timelines cascaded with the Digital Technology team, and documentation in place and communicated regularly.\n- Carry the day-to-day: stand-up calls, meetings, deployments and relevant activities.\n- Support leading and mentoring engineers to a greater level of programming skill.\n- Ensure corrective and preventive maintenance and service requests are prioritized and properly delivered.\n- Ensure service, operational and support requirements are considered and solutions are ready to transition to live.\n- Ensure sufficient testing has taken place to minimize disruption during transition to live.\n- Ensure the right levels of communication, develop relationships around the business and manage stakeholder expectations.\n- Improve product quality and productivity over time; work with cross-functional teams to monitor progress of initiatives.\n\n**Education**\n\n- Bachelor's degree in computer science, information technology, engineering or a related study, or equivalent experience.\n\n**Knowledge &amp; experience**\n\n- Minimum 10 years in software development, and at least 5 years as Technical Leader, with proven experience designing scalable and large systems and making high-level technology decisions.\n- Good knowledge of software and service design — SOA, micro-services, messaging, 12-factor methodology.\n- Experience designing different types of APIs and articulating their value proposition.\n- Good knowledge of Cloud, Containers and PaaS platforms; formal GCP, Azure or AWS certification is a plus.\n- Experience delivering solutions on AWS, Azure or GCP is a big advantage.\n- DevOps and container management platforms — Kubernetes, Docker — plus CI/CD and Agile processes.\n- Experience in banking, finance or securities sectors is a big plus.\n\n**Technical skills**\n\n- Strategically evaluate and practically apply emerging technology trends to drive innovation and optimize evolving business and operating models.\n- Proficient in cloud systems administration fundamentals — manage, monitor and optimize cloud infrastructure.\n- Expertise architecting complex enterprise systems using micro-services, API development, Enterprise Service Bus (ESB) and messaging technologies.\n\n**Soft skills**\n\n- Present complex concepts and solutions in a way non-technical audiences understand.\n- Excellent troubleshooting and communication skills.\n- Verbal and written English.\n- High responsibility and teamwork; able to meet deadlines in a high-demand environment.\n- Team player, highly motivated, customer-satisfaction and results driven.",
+      "brief": "Same posting portal as the Senior Backend role above, and again no loop is published — rounds stay empty until an interview is actually recorded.\n\n\n\nThe gate is explicit and it is the first thing to check against your own CV: **10 years in software development and at least 5 of them as Technical Leader.** Everything after that is the shape of the job rather than the bar.\n\n\n\nAnd the shape is the part worth reading carefully, because this is **not** the architect role that owns the architecture. The first bullet says the specifications and design documents are produced *\"based on architectural blueprints designed by the Digital Transformation Project Director\"* — the blueprint comes from above, and this role turns it into buildable design, defends it in review, and carries it to production. The centre of gravity is therefore governance and delivery: Technical Design and Code Reviews, refactoring application state, transition-to-live readiness, stakeholder communication. Two full bullets are about mentoring and one about managing expectations around the business. Prepare stories about *bringing a design through a team and into live*, not about choosing a stack from scratch.\n\n\n\nThe technical vocabulary tells you the estate: SOA, micro-services, ESB, messaging, 12-factor, Kubernetes and Docker, with a cloud certification listed as a plus. ESB beside micro-services is the honest signal — a brokerage this size has an integration layer already, and the work is evolving around it rather than replacing it. Come with an answer for strangler-fig migration, for where a bus is still the right answer versus point-to-point or event streaming, and for how you keep an integration boundary testable while both sides move.\n\n\n\nEnglish is a step up from the backend posting — *\"can communicate verbal and written English\"*, plus a soft-skill requirement to explain complex solutions to non-technical audiences. In a role that presents and defends choices to a transformation director, that pairing is the real interview: expect to be asked to explain an architecture decision in plain language, and treat that as a scored round rather than small talk.",
+      "rounds": [],
+      "questions": [],
+      "created_at": "2026-09-03",
+      "updated_at": "2026-09-03"
+    },
+    {
       "slug": "rakuten-senior-backend",
       "name": "Rakuten",
       "role": "Senior Backend Engineer",

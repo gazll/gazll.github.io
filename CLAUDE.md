@@ -120,8 +120,24 @@ tools/               check.mjs (the one entrypoint) · validate-content.mjs · a
                      check-diagrams.mjs (run by check.mjs, needs jsdom)
                      schedule-seal.mjs (seal/unseal the private schedule; NOT a
                      check.mjs stage — CI has no passphrase and no secret/)
+DESIGN.md            the visual tokens, and they must agree with public/styles.css
+                     (25/25 colours currently match). The contrast FLOOR is owned
+                     by tests/a11y.contrast.test.mjs, not by this file
+PRODUCT.md           who the product serves and what it commits to — the one
+                     document that is about the product rather than the code
+.impeccable/         GITIGNORED. Tooling state for whatever generated DESIGN.md /
+                     PRODUCT.md; it stores absolute paths from the last machine
+                     that ran it. Nothing in the repo reads it
+docs/README.md       what each group under docs/ is for, and its lifecycle
 docs/content-playbook.md  how to add/update study content end to end
 docs/schedule-playbook.md  the calendar, the sealed schedule, and how to recover it
+docs/english-speaking-os-complete-2026.md  NOT documentation — shipped data.
+                     server/api/content/english-study.get.ts reads this exact
+                     path, so moving or renaming it breaks /english-study
+docs/todo/           open work, one file per effort; delete the file when closed
+docs/research/       the evidence behind live content. index.md is the status
+                     source; units/ holds one record per topic/case study (46,
+                     all INTEGRATED), dossiers/ compares across them
 secret/schedule.json  GITIGNORED. The real reminder list; the repo holds only its envelope
 secret/              GITIGNORED. Personal setup notes and credentials
 ```
