@@ -29,9 +29,9 @@ import { fileURLToPath } from 'node:url';
 
 import { isEnvelope, seal, unseal } from '../public/lib/schedule-crypto.js';
 import {
-  CATALOG_VERSION, STATUSES, extractFshareLinks, linkId, linkUrl, titleKey
+  CATALOG_VERSION, STATUSES, extractFshareLinks, keywordTokens, linkId, linkUrl, queryTokens, titleKey
 } from '../public/fshare-tool/lib/movie-db.js';
-import { crawlMovieFolder } from '../public/fshare-tool/lib/movie-check.js';
+import { crawlMovieFolder, remoteMetadata } from '../public/fshare-tool/lib/movie-check.js';
 import { passphrase } from './passphrase.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
@@ -47,11 +47,22 @@ const PAGE_SIZE = 50;
 const RETRIES = 3;
 const SORT = 'type,name';
 const CHECKPOINT_EVERY = 25;
+const REQUEST_TIMEOUT_MS = 20000;
+const LISTING_PAGE_CONCURRENCY = 4;
+const FOLDER_CONCURRENCY = 8;
 const RAW_EXTENSIONS = new Set(['.csv', '.txt', '.md', '.json']);
 
 const out = (line) => process.stdout.write(`${line}\n`);
 const die = (line) => { process.stderr.write(`${line}\n`); process.exit(1); };
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+async function withTimeout(promise, label) {
+  let timer;
+  const timeout = new Promise((resolve, reject) => {
+    timer = setTimeout(() => reject(new Error(`${label} timed out after ${REQUEST_TIMEOUT_MS}ms`)), REQUEST_TIMEOUT_MS);
+  });
+  try { return await Promise.race([promise, timeout]); }
+  finally { clearTimeout(timer); }
+}
 const unique = (values) => [...new Set(values.filter(Boolean))];
 const rel = (file) => path.relative(ROOT, file).replaceAll(path.sep, '/');
 
@@ -175,13 +186,14 @@ export function emptyCatalog(now = new Date().toISOString()) {
 }
 
 function newLink(link, origin, now) {
-  return {
+  const row = {
     id: link.id,
     kind: link.kind,
     code: link.code,
     link: link.link || linkUrl(link.kind, link.code),
     name: link.name || link.code,
     aliases: [],
+    keywords: keywordTokens(link.name || link.code),
     titleKey: titleKey(link.name || link.code),
     origin,
     sourceIds: [],
@@ -197,14 +209,29 @@ function newLink(link, origin, now) {
     error: '',
     ...(link.kind === 'folder' ? { children: null } : {})
   };
+  if (link.remote && Object.keys(link.remote).length) row.remote = remoteMetadata(link.remote);
+  return row;
 }
 
 function addName(row, name) {
   const clean = cleanText(name);
   if (!clean || clean === row.name || row.aliases.includes(clean)) return;
   // A raw title beats a bare code that a link-only line left behind.
-  if (row.name === row.code) { row.name = clean; row.titleKey = titleKey(clean); return; }
+  if (row.name === row.code) {
+    row.name = clean;
+    row.titleKey = titleKey(clean);
+    row.keywords = [...new Set([...(row.keywords || []), ...keywordTokens(clean)])];
+    return;
+  }
   row.aliases.push(clean);
+  row.keywords = [...new Set([...(row.keywords || []), ...keywordTokens(clean)])];
+}
+
+function refreshKeywords(row) {
+  row.keywords = [...new Set([
+    ...(row.keywords || []),
+    ...keywordTokens([row.name, ...(row.aliases || []), row.code, row.path || ''])
+  ])];
 }
 
 /** Every folder's child counts, from the rows that name it as a parent. */
@@ -283,6 +310,7 @@ export function buildCatalog(sources, manifest = {}, previous = null, now = new 
   });
 
   catalog.sources = [...sourceRows.values()].sort((a, b) => a.file.localeCompare(b.file, 'vi'));
+  catalog.links.forEach(refreshKeywords);
   sortLinks(catalog);
   recountChildren(catalog);
   summarize(catalog);
@@ -290,24 +318,24 @@ export function buildCatalog(sources, manifest = {}, previous = null, now = new 
   return catalog;
 }
 
-/** What ships: checked rows only, trimmed to what the tab renders. */
+/** What ships: checked rows only, trimmed to what the tab renders. Nothing
+    derivable rides along — id, titleKey and keywords are rebuilt on load,
+    and a file's place is its `parents` (names resolve in the same file), not
+    the full path string, which alone was 9MB across 60k rows. */
 export function projectCatalog(catalog, sealedAt = new Date().toISOString()) {
   const validation = summarize(structuredClone(catalog));
   const links = catalog.links
     .filter((row) => row.status !== 'pending')
     .map((row) => ({
-      id: row.id,
       kind: row.kind,
       code: row.code,
       name: row.name,
       ...(row.aliases.length ? { aliases: row.aliases } : {}),
-      titleKey: row.titleKey,
       status: row.status,
       checkedAt: row.checkedAt,
-      ...(row.lastLiveAt ? { lastLiveAt: row.lastLiveAt } : {}),
+      ...(row.status !== 'live' && row.lastLiveAt ? { lastLiveAt: row.lastLiveAt } : {}),
       ...(row.deadSince ? { deadSince: row.deadSince } : {}),
       ...(row.size ? { size: row.size } : {}),
-      ...(row.path ? { path: row.path } : {}),
       ...(row.parents.length ? { parents: row.parents } : {}),
       ...(row.sourceIds.length ? { sourceIds: row.sourceIds } : {}),
       ...(row.children ? { children: row.children } : {})
@@ -341,9 +369,15 @@ export async function requestPage(code, page = 1, fetcher = fetch) {
   let lastError;
   for (let attempt = 1; attempt <= RETRIES; attempt++) {
     try {
-      const response = await fetcher(url, { cache: 'no-store' });
+      const signal = typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function'
+        ? AbortSignal.timeout(REQUEST_TIMEOUT_MS)
+        : undefined;
+      const response = await withTimeout(
+        fetcher(url, { cache: 'no-store', ...(signal ? { signal } : {}) }),
+        `Fshare request ${code} page ${page}`
+      );
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      return validatePayload(await response.json());
+      return validatePayload(await withTimeout(response.json(), `Fshare response ${code} page ${page}`));
     } catch (error) {
       lastError = error;
       if (/HTTP 4\d\d/.test(String(error.message)) || attempt === RETRIES) throw error;
@@ -371,10 +405,14 @@ export function createListingFetcher(fetcher = fetch, cache = new Map()) {
         const first = await requestPage(code, 1, fetcher);
         let items = (first.items || []).slice();
         const pages = lastPage(first, items.length);
-        for (let page = 2; page <= pages; page++) {
+        for (let start = 2; start <= pages; start += LISTING_PAGE_CONCURRENCY) {
           if (shouldStop && shouldStop()) throw new Error('Validation stopped');
-          const current = await requestPage(code, page, fetcher);
-          items = items.concat(current.items || []);
+          const batch = [];
+          for (let page = start; page < start + LISTING_PAGE_CONCURRENCY && page <= pages; page++) {
+            batch.push(requestPage(code, page, fetcher));
+          }
+          const currentPages = await Promise.all(batch);
+          currentPages.forEach((current) => { items = items.concat(current.items || []); });
         }
         return { items, meta: first, cached: false };
       })().catch((error) => { cache.delete(code); throw error; }));
@@ -392,7 +430,14 @@ export async function probeFile(code, fetcher = fetch) {
     const current = data.current || data.item || (data.items || []).find((item) => String(item.linkcode).toUpperCase() === code);
     if (!current) return { status: 'unknown', error: 'Fshare returned no file metadata' };
     if (Number(current.type) === 0) return { status: 'unknown', error: 'Link is a folder, not a file' };
-    return { status: 'live', name: current.name || '', size: Number(current.size) || 0, path: current.path || '', via: 'probe' };
+    return {
+      status: 'live',
+      name: current.name || '',
+      size: Number(current.size) || 0,
+      path: current.path || '',
+      remote: remoteMetadata(current),
+      via: 'probe'
+    };
   } catch (error) {
     const message = String(error?.message || error);
     return { status: isDeadMessage(message) ? 'dead' : 'unknown', error: message, via: 'probe' };
@@ -407,11 +452,27 @@ export async function probeFile(code, fetcher = fetch) {
  */
 export async function probeFileOnWeb(code, fetcher = fetch) {
   try {
-    const response = await fetcher(`${FSHARE_WEB}/file/${code}`, { redirect: 'follow', headers: { 'user-agent': 'Mozilla/5.0' } });
-    const html = await response.text();
+    const signal = typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function'
+      ? AbortSignal.timeout(REQUEST_TIMEOUT_MS)
+      : undefined;
+    const response = await withTimeout(fetcher(`${FSHARE_WEB}/file/${code}`, {
+      redirect: 'follow',
+      headers: { 'user-agent': 'Mozilla/5.0' },
+      ...(signal ? { signal } : {})
+    }), `Fshare web request ${code}`);
+    const html = await withTimeout(response.text(), `Fshare web response ${code}`);
     const title = (html.match(/<title>([^<]*)<\/title>/i)?.[1] || '').trim();
+    /* Only the file's own page, answered 200, can vouch for it. A 503 page, an
+       "Đã có lỗi xảy ra" page and the homepage (where a folder-shaped code
+       lands) all carry a <title> too — 38 dead links were once recorded live
+       with "503 Service Temporarily Unavailable" as their name. */
+    if (!response.ok) return { status: 'unknown', error: `fshare.vn answered HTTP ${response.status}`, via: 'web' };
     if (!title) return { status: 'unknown', error: `fshare.vn answered without a title (HTTP ${response.status})`, via: 'web' };
     if (/không tìm thấy|not found/i.test(title)) return { status: 'dead', error: title, via: 'web' };
+    const finalUrl = String(response.url || '');
+    if ((finalUrl && !finalUrl.toUpperCase().includes(`/FILE/${code}`)) || /lỗi|error|unavailable|dịch vụ lưu trữ/i.test(title)) {
+      return { status: 'unknown', error: `fshare.vn did not show the file page: ${title}`, via: 'web' };
+    }
     return { status: 'live', name: title.replace(/\s*-\s*Fshare\s*$/i, ''), via: 'web' };
   } catch (error) {
     return { status: 'unknown', error: String(error?.message || error), via: 'web' };
@@ -425,15 +486,46 @@ function applyResult(row, result, now) {
   row.checkedAt = now;
   row.via = result.via || row.via;
   row.error = result.status === 'live' ? '' : (result.error || '');
+  if (result.probe && typeof result.probe === 'object') row.probe = remoteMetadata(result.probe);
+  if (result.remote && Object.keys(result.remote).length) {
+    row.remote = { ...(row.remote || {}), ...remoteMetadata(result.remote) };
+  }
   if (result.status === 'live') {
     row.lastLiveAt = now;
     row.deadSince = null;
     if (result.name) addName(row, result.name);
     if (result.size) row.size = result.size;
-    if (result.path) row.path = result.path;
+    if (result.path) {
+      row.path = result.path;
+      row.keywords = [...new Set([...(row.keywords || []), ...queryTokens(result.path)])];
+    }
+    refreshKeywords(row);
   } else if (result.status === 'dead' && !row.deadSince) {
     row.deadSince = now;
   }
+}
+
+/** Merge a shard output only after its caller has verified the catalog hash. */
+export function mergeShardResults(catalog, payload, now = new Date().toISOString()) {
+  if (!payload || payload.kind !== 'fshare-movie-shard-results' || !Array.isArray(payload.rows)) {
+    throw new Error('That file is not a valid Fshare movie shard result.');
+  }
+  const rows = new Map(catalog.links.map((row) => [row.id, row]));
+  const updates = payload.rows.map((result) => {
+    const target = rows.get(result.id);
+    if (!target || target.kind !== result.kind || target.code !== result.code) {
+      throw new Error(`Shard row does not match catalog: ${result.id || '(missing id)'}`);
+    }
+    if (!STATUSES.includes(result.status) || result.status === 'pending') {
+      throw new Error(`Shard row has an invalid result status: ${result.id || '(missing id)'}`);
+    }
+    return { target, result };
+  });
+  updates.forEach(({ target, result }) => {
+    applyResult(target, result, result.checkedAt || now);
+    if (result.probe && typeof result.probe === 'object') target.probe = remoteMetadata(result.probe);
+  });
+  return { merged: updates.length };
 }
 
 const parseDuration = (value) => {
@@ -501,7 +593,8 @@ async function validate(catalog, options) {
       shouldStop: () => stopping,
       fetchPages,
       maxDepth: 40,
-      maxFolders: 200000
+      maxFolders: 200000,
+      concurrency: FOLDER_CONCURRENCY
     });
     const seenChildren = new Set();
     result.folders.forEach((folder) => {
@@ -516,7 +609,7 @@ async function validate(catalog, options) {
         if (!target.parents.includes(parentId)) target.parents.push(parentId);
         seenChildren.add(target.id);
       }
-      applyResult(target, { status: folder.status, error: folder.error, via: 'crawl' }, now);
+      applyResult(target, { status: folder.status, error: folder.error, remote: folder.remote, via: 'crawl' }, now);
       target.children = { ...(target.children || {}), crawledAt: now, truncated: result.truncated && folder.linkcode === row.code };
     });
     result.files.forEach((file) => {
@@ -529,7 +622,14 @@ async function validate(catalog, options) {
       // A file in a live listing is live by that listing; Fshare does not
       // list what it has deleted. A direct probe is spent only on rows the
       // listing no longer names.
-      applyResult(target, { status: 'live', name: file.name, size: file.size, path: file.parentPath, via: 'listing' }, now);
+      applyResult(target, {
+        status: 'live',
+        name: file.name,
+        size: file.size,
+        path: file.parentPath,
+        remote: file.remote,
+        via: 'listing'
+      }, now);
     });
     // Children known from an earlier crawl and absent now: ask about them
     // directly instead of guessing — a file moved out of a folder can still
@@ -652,10 +752,41 @@ async function loadCatalog() {
 }
 
 async function saveCatalog(catalog) {
+  catalog.links.forEach(refreshKeywords);
   recountChildren(catalog);
   summarize(catalog);
   catalog.updatedAt = new Date().toISOString();
   await writeJson(CATALOG_FILE, catalog);
+}
+
+async function mergeShards(files) {
+  const payloads = [];
+  for (const file of files) {
+    const payload = await readJson(file, null);
+    if (!payload || payload.kind !== 'fshare-movie-shard-results' || !payload.catalog?.sha256) {
+      die(`${file} is not a shard result with a catalog snapshot hash.`);
+    }
+    payloads.push({ file, payload });
+  }
+  const snapshotHashes = new Set(payloads.map(({ payload }) => payload.catalog.sha256));
+  if (snapshotHashes.size !== 1) die('Shard results were created from different catalog snapshots.');
+  const catalogText = await readFile(CATALOG_FILE, 'utf8');
+  if (createHash('sha256').update(catalogText).digest('hex') !== payloads[0].payload.catalog.sha256) {
+    die('Catalog changed since this shard was created - rerun the shard instead of merging stale results.');
+  }
+  const catalog = JSON.parse(catalogText);
+  const resultIds = new Set();
+  let merged = 0;
+  for (const { payload } of payloads) {
+    for (const row of payload.rows || []) {
+      if (resultIds.has(row.id)) die(`The same row appears in more than one shard: ${row.id || '(missing id)'}`);
+      resultIds.add(row.id);
+    }
+    merged += mergeShardResults(catalog, payload).merged;
+  }
+  await saveCatalog(catalog);
+  out(`Merged ${merged} shard result(s) from ${files.length} file(s) into ${rel(CATALOG_FILE)}.`);
+  return out(statusLine(catalog));
 }
 
 function statusLine(catalog) {
@@ -667,7 +798,7 @@ function statusLine(catalog) {
 
 async function main() {
   const args = process.argv.slice(2);
-  const command = ['ingest', 'build', 'status', 'validate', 'seal', 'unseal'].find((name) => args.includes(name))
+  const command = ['ingest', 'build', 'status', 'validate', 'merge', 'seal', 'unseal'].find((name) => args.includes(name))
     || (args.includes('--check') ? 'check' : null);
   if (!command) die('Usage: fshare-movie.mjs ingest <…> | build | status | validate [--only …] [--stale 30d] [--limit N] [--concurrency 4] [--no-web] [--dry-run] | seal | unseal | --check');
 
@@ -694,6 +825,12 @@ async function main() {
   }
 
   if (command === 'status') return out(statusLine(await loadCatalog()));
+
+  if (command === 'merge') {
+    const files = args.filter((arg) => arg !== 'merge' && !arg.startsWith('--'));
+    if (!files.length) die('merge needs one or more shard result JSON paths.');
+    return mergeShards(files.map((file) => path.resolve(file)));
+  }
 
   if (command === 'validate') {
     const catalog = await loadCatalog();

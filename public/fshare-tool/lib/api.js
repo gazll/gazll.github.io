@@ -13,6 +13,7 @@ export const API = 'https://fshare.annnekkk.com/api/folder';
 export const currentSort = () => S.sortValue;
 
 const RETRIES = 3;
+const REQUEST_TIMEOUT_MS = 20000;
 const inFlight = new Map();
 
 export const API_ORIGIN = new URL(API).origin;
@@ -63,7 +64,12 @@ export function apiFolder(linkcode, page, sort) {
               '&page=' + usePage;
 
   const attempt = (n) =>
-    fetch(url, { cache: 'no-store' }).then((res) => {
+    fetch(url, {
+      cache: 'no-store',
+      ...(typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function'
+        ? { signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) }
+        : {})
+    }).then((res) => {
       if (!res.ok) throw new Error('HTTP ' + res.status);
       return res.json().then(validatePayload);
     }).catch((e) => {

@@ -69,6 +69,12 @@ export function queryTokens(value) {
   return fold(value).replace(/[^\p{L}\p{N}]+/gu, ' ').split(/\s+/).filter(Boolean);
 }
 
+/** Stable, deduplicated tokens stored with a row for fast client-side search. */
+export function keywordTokens(values) {
+  const value = Array.isArray(values) ? values.join(' ') : values;
+  return [...new Set(queryTokens(value))];
+}
+
 /** Bring a sealed projection into the shape the view renders. */
 export function normalizeMovieDatabase(value) {
   if (!value || value.version !== CATALOG_VERSION || !Array.isArray(value.links)) {
@@ -81,12 +87,16 @@ export function normalizeMovieDatabase(value) {
     counts: value.counts || {},
     sources: Array.isArray(value.sources) ? value.sources : [],
     links: value.links
-      .filter((row) => row && row.id && row.kind && row.code)
+      .filter((row) => row && row.kind && row.code)
       .map((row) => ({
         ...row,
+        id: row.id || linkId(row.kind, row.code),
         link: row.link || linkUrl(row.kind, row.code),
         status: STATUSES.includes(row.status) ? row.status : 'pending',
         aliases: Array.isArray(row.aliases) ? row.aliases : [],
+        keywords: Array.isArray(row.keywords)
+          ? row.keywords
+          : keywordTokens([row.name, ...(Array.isArray(row.aliases) ? row.aliases : []), row.path || '']),
         parents: Array.isArray(row.parents) ? row.parents : [],
         sourceIds: Array.isArray(row.sourceIds) ? row.sourceIds : [],
         titleKey: row.titleKey || titleKey(row.name)
@@ -101,7 +111,7 @@ export function searchMovieLinks(links, query, { kind = 'all', status = 'all', s
     if (status !== 'all' && row.status !== status) return false;
     if (sourceId !== 'all' && !(row.sourceIds || []).includes(sourceId)) return false;
     if (!tokens.length) return true;
-    const haystack = fold([row.name, ...(row.aliases || []), row.code, row.path || ''].join(' '));
+    const haystack = fold([row.name, ...(row.aliases || []), ...(row.keywords || []), row.code, row.path || ''].join(' '));
     return tokens.every((token) => haystack.includes(token));
   });
 }

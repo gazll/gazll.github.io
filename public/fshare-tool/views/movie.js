@@ -36,7 +36,8 @@ const movie = {
   activeRun: null,
   wired: false,
   unlocking: false,
-  sourceMap: new Map()
+  sourceMap: new Map(),
+  nameById: new Map()
 };
 
 const number = (value) => Number(value || 0).toLocaleString('en-US');
@@ -59,6 +60,8 @@ async function openSealed(secret) {
   if (!isEnvelope(envelope)) throw new Error('The published file is not a sealed envelope.');
   movie.database = normalizeMovieDatabase(await unseal(envelope, secret));
   movie.sourceMap = new Map(movie.database.sources.map((source) => [source.id, source]));
+  // The envelope ships no path strings; a file's place is its parents' names.
+  movie.nameById = new Map(movie.database.links.map((row) => [row.id, row.name]));
   const select = $('movieSourceSelect');
   select.replaceChildren(new Option('All sources', 'all'));
   movie.database.sources.forEach((source) => select.appendChild(new Option(source.name, source.id)));
@@ -162,8 +165,10 @@ function currentStatus(row) {
 function rowMeta(row) {
   const parts = [row.code];
   if (row.kind === 'file' && row.size) parts.push(fmtSize(row.size));
-  if (row.path) parts.push(row.path);
-  else if (row.parents && row.parents.length) parts.push(`in ${row.parents.length} folder${row.parents.length > 1 ? 's' : ''}`);
+  if (row.parents && row.parents.length) {
+    const first = movie.nameById.get(row.parents[0]) || row.parents[0].replace('fshare-folder-', '');
+    parts.push(`in ${first}${row.parents.length > 1 ? ` +${row.parents.length - 1}` : ''}`);
+  }
   if (row.sourceIds && row.sourceIds.length) parts.push(sourceName(movie.sourceMap, row.sourceIds[0]) + (row.sourceIds.length > 1 ? ` +${row.sourceIds.length - 1}` : ''));
   if (row.checkedAt) parts.push(`checked ${fmtDay(row.checkedAt)}`);
   if (row.status === 'dead' && row.deadSince) parts.push(`dead since ${fmtDay(row.deadSince)}`);
@@ -172,7 +177,11 @@ function rowMeta(row) {
 
 function childrenSummary(row) {
   const c = row.children;
-  if (!c || (!c.files && !c.folders)) return '';
+  if (!c) return '';
+  // Fshare answers an empty listing for a folder the owner has not made
+  // public (its own web page shows the same nothing), so say so rather than
+  // print no summary — a reader would otherwise assume the crawl skipped it.
+  if (!c.files && !c.folders) return c.crawledAt ? 'nothing listed' : '';
   const bits = [];
   if (c.folders) bits.push(`${number(c.folders)} folder${c.folders > 1 ? 's' : ''}`);
   if (c.files) bits.push(`${number(c.files)} file${c.files > 1 ? 's' : ''}`);

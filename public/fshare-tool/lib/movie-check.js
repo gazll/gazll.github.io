@@ -25,6 +25,19 @@ function codeOf(item) {
   return String(item && (item.linkcode || item.code) || '').toUpperCase();
 }
 
+/** Keep the complete JSON metadata returned by Fshare for filtering, auditing,
+ * and exports. The API currently returns a flat object; copying every JSON-safe
+ * value also keeps this forward-compatible when Fshare adds a field. */
+export function remoteMetadata(item) {
+  if (!item || typeof item !== 'object' || Array.isArray(item)) return {};
+  try {
+    const copy = JSON.parse(JSON.stringify(item));
+    return copy && typeof copy === 'object' && !Array.isArray(copy) ? copy : {};
+  } catch (error) {
+    return {};
+  }
+}
+
 function remoteItem(data, linkcode) {
   const candidates = [];
   if (data && data.current) candidates.push(data.current);
@@ -44,6 +57,7 @@ export function movieFileFromPayload(item, data) {
     size: Number(remote.size) || Number(item.size) || 0,
     linkcode,
     link: fileUrl(linkcode),
+    remote: remoteMetadata(remote),
     data
   };
 }
@@ -66,7 +80,8 @@ function asFile(item, root, folderPath) {
     size: Number(item.size) || 0,
     parentTitle: root.name || '',
     parentPath: item.path || folderPath || '',
-    sourceIds: root.sourceIds || []
+    sourceIds: root.sourceIds || [],
+    remote: remoteMetadata(item)
   };
 }
 
@@ -82,9 +97,17 @@ export async function crawlMovieFolder(root, {
   onFolder = () => {},
   fetchPages = fetchAllPages,
   maxDepth = MAX_DEPTH,
-  maxFolders = MAX_FOLDERS
+  maxFolders = MAX_FOLDERS,
+  concurrency = 1
 } = {}) {
-  const queue = [{ linkcode: codeOf(root), depth: 0, path: root.name || '', parent: '' }];
+  const queue = [{
+    linkcode: codeOf(root),
+    name: root.name || '',
+    depth: 0,
+    path: root.name || '',
+    parent: '',
+    remote: remoteMetadata(root.remote)
+  }];
   const seen = new Set();
   const files = [];
   const folders = [];
@@ -92,12 +115,7 @@ export async function crawlMovieFolder(root, {
   let rootName = root.name || '';
   let truncated = false;
 
-  while (queue.length) {
-    if (shouldStop()) throw new MovieAbortError();
-    const node = queue.shift();
-    if (seen.has(node.linkcode)) continue;
-    seen.add(node.linkcode);
-    onFolder({ ...node, index: seen.size });
+  const fetchNode = async (node) => {
     const record = {
       linkcode: node.linkcode,
       name: node.name || '',
@@ -107,10 +125,9 @@ export async function crawlMovieFolder(root, {
       files: 0,
       subfolders: 0,
       status: 'live',
-      error: ''
+      error: '',
+      remote: remoteMetadata(node.remote)
     };
-    folders.push(record);
-
     try {
       const result = await fetchPages(
         node.linkcode,
@@ -120,10 +137,38 @@ export async function crawlMovieFolder(root, {
         { fresh: true }
       );
       const current = result.meta && result.meta.current || {};
+      record.remote = remoteMetadata(current);
       if (current.name) record.name = current.name;
-      if (!rootName && current.name) rootName = current.name;
-      const items = Array.isArray(result.items) ? result.items : [];
+      return { node, record, items: Array.isArray(result.items) ? result.items : [] };
+    } catch (error) {
+      if (error instanceof MovieAbortError) throw error;
+      const failure = classifyMovieError(error);
+      record.status = failure.status;
+      record.error = failure.error;
+      return { node, record, items: [], failure };
+    }
+  };
 
+  while (queue.length) {
+    if (shouldStop()) throw new MovieAbortError();
+    const batch = [];
+    while (queue.length && batch.length < Math.max(1, Number(concurrency) || 1)) {
+      if (seen.size >= maxFolders) { truncated = true; break; }
+      const node = queue.shift();
+      if (seen.has(node.linkcode)) continue;
+      seen.add(node.linkcode);
+      onFolder({ ...node, index: seen.size });
+      batch.push(node);
+    }
+    if (!batch.length) break;
+    const results = await Promise.all(batch.map(fetchNode));
+    results.forEach(({ node, record, items, failure }) => {
+      folders.push(record);
+      if (failure) {
+        errors.push({ node, ...failure });
+        return;
+      }
+      if (!rootName && record.name) rootName = record.name;
       for (const item of items) {
         if (shouldStop()) throw new MovieAbortError();
         const linkcode = codeOf(item);
@@ -140,7 +185,8 @@ export async function crawlMovieFolder(root, {
               name: item.name || '',
               depth: node.depth + 1,
               path: item.path || `${node.path}/${item.name || linkcode}`,
-              parent: node.linkcode
+              parent: node.linkcode,
+              remote: remoteMetadata(item)
             });
           }
         } else {
@@ -148,13 +194,7 @@ export async function crawlMovieFolder(root, {
           files.push({ ...asFile(item, root, node.path), parent: node.linkcode });
         }
       }
-    } catch (error) {
-      if (error instanceof MovieAbortError) throw error;
-      const failure = classifyMovieError(error);
-      record.status = failure.status;
-      record.error = failure.error;
-      errors.push({ node, ...failure });
-    }
+    });
   }
 
   return { files, folders, errors, folderCount: seen.size, rootName, truncated };
@@ -177,6 +217,9 @@ function mergeFile(target, file) {
     current.parentPaths.push(file.parentPath);
   }
   if (!current.size && file.size) current.size = file.size;
+  if (file.remote && Object.keys(file.remote).length) {
+    current.remote = { ...(current.remote || {}), ...file.remote };
+  }
 }
 
 function reportStatus(counts, folderError, truncated) {

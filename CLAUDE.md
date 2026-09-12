@@ -506,8 +506,15 @@ secret/              GITIGNORED. Personal setup notes and credentials
 
   It shares the schedule's envelope AND passphrase on purpose (one key in the
   password manager, one `schedule_access` grant), and the corollary is stated
-  in the playbook: a calendar grant is a catalog grant. The plaintext ceiling
-  is 2MB **after gzip**; trim `projectCatalog` rather than raising it.
+  in the playbook: a calendar grant is a catalog grant. The ciphertext ceiling
+  in `lib/schedule-crypto.js` is 8MB, raised from 2MB once — a real run is
+  74k rows, and trimmed to what the tab renders (no `remote`, `path`,
+  `keywords`, `id` or `titleKey`; the first three alone were 39MB of a 70MB
+  projection) it still gzips to ~2.4MB. Trim `projectCatalog` first; the
+  ceiling bounds memory, the KDF pin bounds CPU, so it is not the security
+  margin it looks like. A second-opinion probe on `fshare.vn` must require
+  `response.ok`, the file's own URL and a non-error title: 38 dead links were
+  recorded live with "503 Service Temporarily Unavailable" as their name.
 
 - **Fixed and rolling reminders are not the same recurrence, and confusing them
   is silent.** A *fixed* event (`once`, `yearly`, `lunar-yearly`, `monthly`)

@@ -139,9 +139,14 @@ node tools/fshare-movie.mjs seal && git commit -am "reseal movie catalog"
   `status` báo `validated: OK`.
 - **Đừng chạy `tools/fshare-movie.mjs --check` trong `check.mjs`.** CI không
   có passphrase, giống `schedule-seal.mjs`.
-- **Trần ciphertext là 2MB sau gzip** (`lib/schedule-crypto.js`). Catalog
-  11k dòng nén còn ~300KB; tới vài trăm nghìn dòng thì `seal` từ chối và báo
-  kích thước — lúc đó cắt bớt field trong `projectCatalog`, không nới trần.
+- **Trần ciphertext là 8MB sau gzip** (`lib/schedule-crypto.js`), đã nới
+  từ 2MB một lần vì lần chạy thật ra 74k dòng (~2,4MB gzip sau khi đã cắt
+  `remote`, `path`, `keywords`, `id`, `titleKey` khỏi projection — ba field
+  đầu chiếm 39MB trong 70MB). Vượt trần thì cắt field trong `projectCatalog`
+  trước; `normalizeMovieDatabase` dựng lại id/titleKey/keywords khi load.
+- **Folder `public: 0` trả listing rỗng** — cả proxy lẫn API của chính
+  fshare.vn. Không phân biệt được "trống" với "chủ không public", nên tab hiện
+  "nothing listed" thay vì không hiện gì. Lần chạy đầu có 5.368 folder như vậy.
 - **`titleKey` không gộp chất lượng.** `Dune.2021.1080p` và `Dune.2021.2160p`
   là hai key gần nhau, không phải một; gộp thêm là đoán, và đoán sai thì hai
   phim khác nhau dính vào nhau.

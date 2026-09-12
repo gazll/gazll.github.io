@@ -25,10 +25,13 @@ const IV_BYTES = 12;
    hostile input: without a ceiling, a tampered `iterations` field could make
    every visitor spend an unbounded amount of CPU before the passphrase is
    even checked. Ciphertext is also bounded so a compromised static artifact
-   cannot turn an unlock attempt into an allocation bomb. */
-const MAX_CIPHERTEXT_BYTES = 2 * 1024 * 1024;
+   cannot turn an unlock attempt into an allocation bomb. 8MB is sized by
+   the movie catalog: 74k checked links trimmed to what the tab renders still
+   gzip to ~2.4MB, so the old 2MB ceiling could not hold a real run. The
+   KDF iteration pin above is what bounds CPU; this only bounds memory. */
+const MAX_CIPHERTEXT_BYTES = 8 * 1024 * 1024;
 const MIN_CIPHERTEXT_BYTES = 16; // AES-GCM authentication tag
-export const MAX_ENVELOPE_JSON_CHARS = 3 * 1024 * 1024;
+export const MAX_ENVELOPE_JSON_CHARS = 12 * 1024 * 1024;
 const MAX_HINT_CHARS = 2000;
 /* Optional content encoding, applied before encryption. The movie catalog is
    text that gzips ~5x, and the ciphertext ceiling above is what keeps the file
