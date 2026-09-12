@@ -2,6 +2,41 @@
   "version": 1,
   "releases": [
     {
+      "date": "2026-09-12",
+      "en": {
+        "title": "B+Tree and LSM now show their physical work"
+      },
+      "vi": {
+        "title": "B+Tree và LSM được giải thích từ tầng vật lý"
+      },
+      "changes": [
+        {
+          "kind": "content",
+          "target": "05-db-core-index-lock",
+          "en": {
+            "section": "Transactions, MVCC, locking",
+            "text": "Expanded the B+Tree versus LSM card with physical CRUD paths: page traversal and splits, WAL/undo, memtable/SSTable flush, compaction, tombstones, amplification and backpressure. Added an attributed ByteByteGo diagram and a local read/write schematic."
+          },
+          "vi": {
+            "section": "Transaction, MVCC, locking",
+            "text": "Mở rộng thẻ B+Tree và LSM với luồng CRUD ở tầng vật lý: duyệt page và page split, WAL/undo, memtable/SSTable, compaction, tombstone, amplification và backpressure. Thêm diagram ByteByteGo có attribution cùng sơ đồ read/write nội bộ."
+          }
+        },
+        {
+          "kind": "content",
+          "target": "07-sql-nosql-db-engines",
+          "en": {
+            "section": "The big picture",
+            "text": "Clarified that SQL/NoSQL is a logical model boundary, while B+Tree/LSM is a storage-engine choice, with a link to the deeper physical walkthrough."
+          },
+          "vi": {
+            "section": "Bức tranh chung",
+            "text": "Làm rõ SQL/NoSQL là ranh giới về model logic, còn B+Tree/LSM là lựa chọn của storage engine, kèm liên kết tới phần walkthrough vật lý chi tiết."
+          }
+        }
+      ]
+    },
+    {
       "date": "2026-08-22",
       "en": {
         "title": "A calendar, and the reminders behind it"
