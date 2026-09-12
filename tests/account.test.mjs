@@ -294,11 +294,12 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
     return `header.${encoded}.signature`;
   }
 
-  async function loadAuth({ storedSession, storedProfile } = {}) {
+  async function loadAuth({ storedSession, storedProfile, storedAppSession } = {}) {
     const source = await readFile(path.join(root, 'public/lib/auth.js'), 'utf8');
     const seed = {};
     if (storedSession) seed['gazl.session'] = JSON.stringify(storedSession);
     if (storedProfile) seed['gazl.profile'] = JSON.stringify(storedProfile);
+    if (storedAppSession) seed['gazl.auth'] = JSON.stringify(storedAppSession);
     const storage = memoryStorage(seed);
     const consoleCalls = [];
     let credentialCallback = null;
@@ -481,6 +482,59 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
     const hint = JSON.parse(browser.storage.get('gazl.profile'));
     assert.deepEqual(Object.keys(hint).sort(), ['email', 'name', 'picture', 'sub']);
     assert.equal(JSON.stringify(hint).includes(newToken), false);
+  });
+
+  test('an app session is the one credential that persists, and only a gs1. token can', async () => {
+    const hint = { sub: 'u1', email: 'u@example.com', name: 'Reader', picture: '' };
+    const googleToken = jwt({ sub: 'u1', email: 'u@example.com', name: 'Reader', exp: Math.floor(Date.now() / 1000) + 3600 });
+    const b = await loadAuth({ storedProfile: hint });
+    await b.Auth.init();
+    b.credential({ credential: googleToken });
+    assert.equal(b.storage.has('gazl.auth'), false, 'a Google token is never written to storage');
+
+    // The backend's envelope trades it for an app session — that one is stored.
+    const exp = Date.now() + 30 * 86_400_000;
+    b.Auth.adoptSession({ token: 'gs1.' + 'a'.repeat(64), exp }, googleToken);
+    assert.equal(b.Auth.token, 'gs1.' + 'a'.repeat(64));
+    assert.equal(b.Auth.state, 'signed');
+    const stored = JSON.parse(b.storage.get('gazl.auth'));
+    assert.deepEqual(Object.keys(stored).sort(), ['exp', 'sub', 'token']);
+    assert.equal(stored.token.startsWith('gs1.'), true);
+    assert.equal(JSON.stringify(stored).includes(googleToken), false);
+
+    // An envelope that tries to plant a non-session token is ignored.
+    b.Auth.adoptSession({ token: googleToken, exp }, b.Auth.token);
+    assert.equal(b.Auth.token, 'gs1.' + 'a'.repeat(64));
+
+    // A stale envelope (from a request made with an older token) is ignored too.
+    b.Auth.adoptSession({ exp: exp + 1 }, 'gs1.old');
+    assert.equal(b.Auth.session.exp, exp);
+  });
+
+  test('a stored app session restores signed with no prompt, and a Google token planted there does not', async () => {
+    const hint = { sub: 'u1', email: 'u@example.com', name: 'Reader', picture: '' };
+    const good = await loadAuth({ storedProfile: hint, storedAppSession: { token: 'gs1.' + 'b'.repeat(64), exp: Date.now() + 86_400_000, sub: 'u1' } });
+    await good.Auth.init();
+    assert.equal(good.Auth.state, 'signed');
+    assert.equal(good.Auth.token, 'gs1.' + 'b'.repeat(64));
+
+    // The backend is the judge: once it refuses the session, the face stays and the token goes.
+    good.Auth.dropSession('gs1.' + 'b'.repeat(64));
+    assert.equal(good.Auth.state, 'stale');
+    assert.equal(good.storage.has('gazl.auth'), false);
+
+    const planted = await loadAuth({ storedProfile: hint, storedAppSession: { token: jwt({ sub: 'u1', exp: 9e9 }), exp: Date.now() + 86_400_000, sub: 'u1' } });
+    await planted.Auth.init();
+    assert.equal(planted.Auth.state, 'stale', 'a JWT in gazl.auth is not a session');
+    assert.equal(planted.storage.has('gazl.auth'), false, 'and is discarded');
+
+    const expired = await loadAuth({ storedProfile: hint, storedAppSession: { token: 'gs1.' + 'c'.repeat(64), exp: Date.now() - 1, sub: 'u1' } });
+    await expired.Auth.init();
+    assert.equal(expired.Auth.state, 'stale');
+
+    const otherUser = await loadAuth({ storedProfile: hint, storedAppSession: { token: 'gs1.' + 'd'.repeat(64), exp: Date.now() + 86_400_000, sub: 'someone-else' } });
+    await otherUser.Auth.init();
+    assert.equal(otherUser.Auth.state, 'stale', 'a session for another subject than the hint is dropped');
   });
 
   test('the stored profile hint cannot smuggle a credential back into a session', async () => {

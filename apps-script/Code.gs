@@ -34,6 +34,18 @@ var MAX_ROWS_PER_PUSH = 2000;
 var MAX_REQUEST_CHARS = 1000000;
 var MAX_ID_TOKEN_CHARS = 4096;
 
+/** App sessions. A Google ID token lives one hour and GIS will not renew it
+ *  quietly, so a reader was signing in every visit. The first request that
+ *  carries a verified ID token and `wantSession` gets a session token back;
+ *  the browser keeps that one instead. It is revoked by deleting its row.
+ *  The sheet stores only the SHA-256 of the token, so the Sheet itself is not
+ *  a credential store. Expiry slides with use, never past SESSION_MAX_DAYS. */
+var SESSION_PREFIX = 'gs1.';
+var SESSION_SLIDE_DAYS = 30;
+var SESSION_MAX_DAYS = 90;
+var SESSION_TOUCH_MS = 6 * 3600 * 1000;   // how often a use rewrites the row
+var SESSION_CACHE_S = 600;
+
 /** Calendar checklist ticks share the generic app_config sheet. The prefix
  *  keeps them apart from any other setting that app may come to store. */
 var CALENDAR_APP = 'calendar';
@@ -62,6 +74,8 @@ function scheduleBucket() { return 'schedule:' + SCHEDULE_CLUSTER; }
 
 var SHEETS = {
   profiles:            ['user_id', 'email', 'name', 'picture', 'role', 'created_at', 'last_seen_at'],
+  /** App sessions: the hash of a session token, never the token. */
+  sessions:            ['session_hash', 'user_id', 'created_at', 'expires_at', 'last_seen_at'],
   progress:            ['user_id', 'item_id', 'reviewed_at'],
   notes:               ['user_id', 'item_id', 'body', 'updated_at'],
   study_log:           ['user_id', 'item_id', 'opened_at'],
@@ -188,11 +202,19 @@ function doPost(e) {
     var payload = req.payload;
     if (!payload || typeof payload !== 'object' || Array.isArray(payload)) payload = {};
 
-    var user = requireUser(req.idToken);       // always first
+    var auth = authenticate(req.idToken);      // always first
+    var user = auth.user;
     var handler = ACTIONS[action];
     if (!handler) return json({ ok: false, error: 'Action không hợp lệ.' });
 
-    return json({ ok: true, data: handler(user, payload) });
+    var out = { ok: true, data: handler(user, payload) };
+    // The envelope carries the session: its expiry when one was used (the
+    // client mirrors the sliding window), or a fresh token when an ID-token
+    // request asked for one. Old clients never send wantSession and never
+    // get a row created for them.
+    if (auth.session) out.session = { exp: auth.session.exp };
+    else if (req.wantSession === true) out.session = issueSession(user);
+    return json(out);
   } catch (err) {
     return json({
       ok: false,
@@ -223,6 +245,92 @@ function publicError(message) {
 /* ------------------------------------------------------------------ */
 /* Auth                                                                */
 /* ------------------------------------------------------------------ */
+
+/** Either credential form → { user, session|null }. */
+function authenticate(credential) {
+  var token = String(credential || '');
+  if (token.indexOf(SESSION_PREFIX) === 0) return sessionUser(token);
+  return { user: requireUser(token), session: null };
+}
+
+function sessionDigest(token) {
+  return Utilities.base64EncodeWebSafe(
+    Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, token, Utilities.Charset.UTF_8));
+}
+
+function sessionExpiredError() {
+  // Wording must match api.js's authExpired regex ("đăng nhập").
+  return publicError('Phiên đăng nhập đã hết hạn — cần đăng nhập lại.');
+}
+
+/** A session token → the profile it belongs to; slides the expiry on use. */
+function sessionUser(token) {
+  if (token.length > 128) throw sessionExpiredError();
+  var hash = sessionDigest(token);
+  var now = Date.now();
+  var cache = CacheService.getScriptCache();
+  var hit = cache.get('ses_' + hash);
+  if (hit) {
+    var cached = JSON.parse(hit);
+    if (cached.exp > now) {
+      cached.user.sessionHash = hash;
+      return { user: cached.user, session: { exp: cached.exp } };
+    }
+  }
+
+  var t = table('sessions');
+  var row = findBy(t.read(), 'session_hash', hash);
+  if (!row) throw sessionExpiredError();
+  var created = Date.parse(iso(row.created_at)) || 0;
+  var exp = Date.parse(iso(row.expires_at)) || 0;
+  var hardStop = created + SESSION_MAX_DAYS * 86400000;
+  if (!(exp > now) || !(hardStop > now)) {
+    t.deleteWhere(function (r) { return r.session_hash === hash; });
+    throw sessionExpiredError();
+  }
+  var lastSeen = Date.parse(iso(row.last_seen_at)) || 0;
+  if (now - lastSeen > SESSION_TOUCH_MS) {
+    exp = Math.min(now + SESSION_SLIDE_DAYS * 86400000, hardStop);
+    t.update(row._row, { last_seen_at: new Date(now).toISOString(), expires_at: new Date(exp).toISOString() });
+  }
+
+  var profile = findBy(table('profiles').read(), 'user_id', String(row.user_id));
+  if (!profile) throw sessionExpiredError();
+  var email = String(profile.email || '').toLowerCase();
+  if (ALLOWED_EMAILS.length && ALLOWED_EMAILS.indexOf(email) === -1) {
+    throw publicError('Không được phép: email này chưa nằm trong ALLOWED_EMAILS.');
+  }
+  var user = {
+    sub: String(profile.user_id),
+    email: email,
+    name: String(profile.name || ''),
+    picture: String(profile.picture || ''),
+    role: profile.role || 'user'
+  };
+  cache.put('ses_' + hash, JSON.stringify({ user: user, exp: exp }), SESSION_CACHE_S);
+  user.sessionHash = hash;
+  return { user: user, session: { exp: exp } };
+}
+
+/** A new session row for a user who just proved themselves with an ID token. */
+function issueSession(user) {
+  var token = SESSION_PREFIX + (uuid() + uuid()).replace(/-/g, '');
+  var now = Date.now();
+  var exp = now + SESSION_SLIDE_DAYS * 86400000;
+  var t = table('sessions');
+  // Expired rows are only ever removed here; there is no other sweeper.
+  t.deleteWhere(function (r) {
+    var e = Date.parse(iso(r.expires_at)) || 0;
+    var c = Date.parse(iso(r.created_at)) || 0;
+    return !(e > now) || !(c + SESSION_MAX_DAYS * 86400000 > now);
+  });
+  t.appendAll([{
+    session_hash: sessionDigest(token), user_id: user.sub,
+    created_at: new Date(now).toISOString(), expires_at: new Date(exp).toISOString(),
+    last_seen_at: new Date(now).toISOString()
+  }]);
+  return { token: token, exp: exp };
+}
 
 /** Verified identity { sub, email, name, picture, role }, or throws. */
 function requireUser(idToken) {
@@ -340,6 +448,14 @@ function upsertProfile(identity) {
 /* Null-prototype dispatch prevents names such as `constructor` or `toString`
  * from resolving to Object.prototype methods when the action comes from JSON. */
 var ACTIONS = Object.assign(Object.create(null), {
+
+  /** Ends the app session that made this request; an ID-token request is a no-op. */
+  'auth.logout': function (user) {
+    if (!user.sessionHash) return { ended: 0 };
+    var hash = user.sessionHash;
+    CacheService.getScriptCache().remove('ses_' + hash);
+    return { ended: table('sessions').deleteWhere(function (r) { return r.session_hash === hash; }) };
+  },
 
   /** Everything the client needs to merge against its localStorage copy. */
   'pull': function (user) {

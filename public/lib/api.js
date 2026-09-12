@@ -7,6 +7,15 @@ import { SCRIPT_URL } from '../config.js';
 
 export const MAX_RESPONSE_CHARS = 2 * 1024 * 1024;
 const REQUEST_TIMEOUT_MS = 20_000;
+const APP_SESSION_PREFIX = 'gs1.';
+
+/* The backend answers every request with a session envelope — a fresh app
+   session when a Google token asked for one, or the slid expiry of the
+   session that was used. auth.js owns what happens with it but never
+   imports this module, so the app wires the two here. */
+let sessionHooks = { adopt: null, drop: null };
+export function setSessionHooks(hooks) { sessionHooks = { ...sessionHooks, ...(hooks || {}) }; }
+const isAppSession = value => typeof value === 'string' && value.startsWith(APP_SESSION_PREFIX);
 
 const isHttpsUrl = value => typeof value === 'string' && /^https:\/\//i.test(value);
 export const isConfigured = () => isHttpsUrl(SCRIPT_URL);
@@ -36,7 +45,8 @@ export async function call(action, payload = {}, idToken = null) {
     res = await fetch(SCRIPT_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },   // see note above
-      body: JSON.stringify({ action, payload, idToken }),
+      // wantSession: a Google token asks to be traded for an app session.
+      body: JSON.stringify({ action, payload, idToken, ...(isAppSession(idToken) ? {} : { wantSession: true }) }),
       cache: 'no-store',
       credentials: 'omit',
       referrerPolicy: 'no-referrer',
@@ -74,7 +84,14 @@ export async function call(action, payload = {}, idToken = null) {
   if (!body.ok) {
     const msg = body.error || 'The backend reported an unspecified error.';
     // Code.gs still answers in Vietnamese, so both wordings must match here.
-    throw new ApiError(msg, { authExpired: /token|idToken|hết hạn|đăng nhập|expired|sign ?in/i.test(msg) });
+    const authExpired = /token|idToken|hết hạn|đăng nhập|expired|sign ?in/i.test(msg);
+    if (authExpired && isAppSession(idToken) && typeof sessionHooks.drop === 'function') {
+      try { sessionHooks.drop(idToken); } catch (e) {}
+    }
+    throw new ApiError(msg, { authExpired });
+  }
+  if (body.session && typeof sessionHooks.adopt === 'function') {
+    try { sessionHooks.adopt(body.session, idToken); } catch (e) {}
   }
   return body.data;
 }

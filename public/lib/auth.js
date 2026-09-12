@@ -3,10 +3,15 @@
    GIS hands back an ID token in-page (no redirect), which then rides along
    with every Apps Script request for the backend to verify.
 
-   The token lives one hour and GIS does not refresh it. We schedule a silent
-   renewal before expiry; if that cannot happen quietly the sign-in button
-   comes back. The credential exists in JavaScript memory only — never in
-   localStorage/sessionStorage — while study data keeps its own offline queue.
+   The Google token lives one hour and GIS does not refresh it, and a prompt
+   cannot be started without a click — so on its own it meant signing in on
+   every visit. The backend therefore trades the first verified ID token for
+   an APP SESSION token (`gs1.…`, thirty days sliding, ninety at most), which
+   is what persists: `gazl.auth` in localStorage holds { token, exp, sub }.
+   That is a credential for this app only — never the Google token, which
+   stays in memory — and the backend keeps only its hash, so deleting the
+   row revokes it. The transport hands each session envelope back through
+   Auth.adoptSession(); this module itself never talks to the backend.
 
    What IS persisted is the profile *hint*: display name, email and avatar URL.
    That is not a credential — it cannot authenticate anything, and the backend
@@ -22,6 +27,9 @@ import { GOOGLE_CLIENT_ID, SCRIPT_URL } from '../config.js';
 const GIS_SRC = 'https://accounts.google.com/gsi/client?hl=en';
 const LEGACY_SESSION_KEY = 'gazl.session';
 const HINT_KEY = 'gazl.profile';
+const APP_SESSION_KEY = 'gazl.auth';
+const APP_SESSION_PREFIX = 'gs1.';
+const MAX_TIMER_MS = 2_147_483_647;   // setTimeout overflows past this and fires at once
 const SKEW_MS = 90_000;      // expire early so an in-flight request cannot die mid-way
 const PROMPT_MS = 8_000;     // hard ceiling on one explicit prompt attempt
 const listeners = new Set();
@@ -62,6 +70,12 @@ export const Auth = {
     if (!s) return null;
     return Date.now() < s.exp - SKEW_MS ? s.token : null;
   },
+
+  /** True while the live credential is an app session rather than a Google token. */
+  get hasAppSession() { return isAppSession(this.session?.token); },
+
+  /** Wired by the app: called with the app-session token on sign-out. */
+  hooks: { logout: null },
 
   /** Signed in but the token lapsed — needs a fresh one. */
   get expired() { return Boolean(this.session) && !this.token; },
@@ -105,8 +119,13 @@ export const Auth = {
   renderButton(holder) { return renderSignInButton(holder); },
 
   signOut() {
+    const token = this.session?.token;
+    if (isAppSession(token) && typeof this.hooks.logout === 'function') {
+      try { this.hooks.logout(token); } catch (e) {}
+    }
     clearTimeout(renewTimer);
     endPrompt();
+    clearAppSession();
     this.session = null;
     this.hint = null;
     this.error = null;
@@ -114,6 +133,38 @@ export const Auth = {
     clearHint();
     // Prevent a later explicit prompt from restoring the signed-out account.
     try { google.accounts.id.disableAutoSelect(); } catch (e) {}
+    emit();
+  },
+
+  /**
+   * The backend's session envelope. `{ token, exp }` replaces a Google token
+   * with the app session; `{ exp }` mirrors the sliding window. Only a
+   * `gs1.` token is ever written to storage.
+   */
+  adoptSession(session, usedToken) {
+    if (!this.session || !session || typeof session !== 'object') return;
+    if (usedToken && usedToken !== this.session.token) return;   // a stale response
+    const exp = Number(session.exp);
+    if (!Number.isFinite(exp) || exp <= Date.now()) return;
+    if (typeof session.token === 'string') {
+      if (!isAppSession(session.token) || session.token.length > 128) return;
+      this.session.token = session.token;
+    } else if (!isAppSession(this.session.token)) {
+      return;
+    }
+    this.session.exp = exp;
+    writeAppSession(this.session);
+    scheduleRenew();
+    emit();
+  },
+
+  /** The backend refused the app session: forget it, keep the face. */
+  dropSession(usedToken) {
+    if (!this.session || !isAppSession(this.session.token)) return;
+    if (usedToken && usedToken !== this.session.token) return;
+    clearTimeout(renewTimer);
+    clearAppSession();
+    this.session = null;
     emit();
   },
 
@@ -139,6 +190,14 @@ async function initializeAuth() {
   // explicit user action. This prevents One Tap/FedCM from re-authenticating
   // in a loop after a dismissal, tab switch, or token expiry.
   Auth.hint = readHint();
+  // A stored app session restores 'signed' with no prompt at all; the backend
+  // is what decides whether it still stands, on the first request.
+  const stored = readAppSession();
+  if (stored && Auth.hint && stored.sub === Auth.hint.sub) {
+    Auth.session = { ...Auth.hint, role: 'user', token: stored.token, exp: stored.exp };
+  } else if (stored) {
+    clearAppSession();
+  }
   Auth.ready = true;
   emit();
 
@@ -211,6 +270,7 @@ function scheduleRenew() {
   if (!Auth.session) return;
   const wait = Auth.session.exp - SKEW_MS - Date.now();
   if (wait <= 0) { emit(); return; }
+  if (wait > MAX_TIMER_MS) return;   // weeks away: the next visit re-arms it
   renewTimer = setTimeout(() => {
     if (Auth.session) emit(); // token is stale; the reader chooses when to re-auth
   }, wait);
@@ -218,6 +278,37 @@ function scheduleRenew() {
 
 function clearLegacySession() {
   try { localStorage.removeItem(LEGACY_SESSION_KEY); } catch (e) {}
+}
+
+/* ---------- app session (the one credential that persists) ---------- */
+
+const isAppSession = value => typeof value === 'string' && value.startsWith(APP_SESSION_PREFIX);
+
+function writeAppSession(s) {
+  if (!isAppSession(s.token)) return;
+  try { localStorage.setItem(APP_SESSION_KEY, JSON.stringify({ token: s.token, exp: s.exp, sub: s.sub })); } catch (e) {}
+}
+
+function readAppSession() {
+  let raw = null;
+  try { raw = localStorage.getItem(APP_SESSION_KEY); } catch (e) { return null; }
+  if (!raw) return null;
+  try {
+    const v = JSON.parse(raw);
+    const exp = Number(v?.exp);
+    // Anything that is not a gs1. token is not ours — a Google token planted
+    // here must never come back to life as a credential. Whatever fails the
+    // shape or the clock is removed, not merely ignored.
+    if (isAppSession(v?.token) && v.token.length <= 128 && v.sub && Number.isFinite(exp) && Date.now() < exp - SKEW_MS) {
+      return { token: v.token, exp, sub: String(v.sub) };
+    }
+  } catch (e) { /* fall through */ }
+  clearAppSession();
+  return null;
+}
+
+function clearAppSession() {
+  try { localStorage.removeItem(APP_SESSION_KEY); } catch (e) {}
 }
 
 /* ---------- profile hint (display only — never the token) ---------- */

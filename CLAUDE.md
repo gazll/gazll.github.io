@@ -1203,7 +1203,18 @@ variables only avoids GitHub scraping. This flow uses no client secret at all.
 
 The Google ID token is a credential. It stays in JavaScript memory only:
 never persist it to `localStorage`/`sessionStorage`, include it in an error, or
-write it to any browser/server log. The Sheet itself must keep **General
+write it to any browser/server log. What *does* persist is the **app session**:
+the first request that carries a verified ID token and `wantSession` gets a
+`gs1.…` token back in the response envelope (`session: { token, exp }`), and
+`auth.js` keeps that one in `localStorage` as `gazl.auth` — thirty days sliding
+with use, ninety at most, revoked by deleting its row in the `sessions` sheet
+(which stores only the SHA-256 of the token). It is a credential for this app
+alone, so `readAppSession()` refuses anything that is not a `gs1.` token and
+discards it; a Google token planted there never comes back to life. Every
+later response carries `session: { exp }` so the browser mirrors the slide,
+and an "đăng nhập" error on a session request makes `api.js` drop it. Without
+this a reader signed in on every visit: a Google token lives one hour and GIS
+will not renew it without a click. The Sheet itself must keep **General
 access: Restricted** and must not be shared with app users; they access only
 their own rows through the verified Apps Script API.
 
@@ -1275,7 +1286,11 @@ Anything under `public/vendor/` is skipped everywhere: it is upstream code,
 pinned by directory name.
 
 Editing `apps-script/Code.gs` requires Deploy → Manage deployments → New
-version, otherwise the Web App keeps serving the old code. The `search.pull` /
+version, otherwise the Web App keeps serving the old code. Until the
+deployment that added `authenticate()`/`sessions` is live, a `gs1.` token is
+rejected as a bad ID token — which the client treats as "session ended" and
+falls back to the sign-in button, so an old deployment degrades to the
+sign-in-every-visit behaviour rather than breaking. The `search.pull` /
 `search.push` / `search.delete` actions and the `search_history` sheet were
 added there — until that redeploy, signed-in search history stays on the
 device and the site behaves exactly as it did before.
