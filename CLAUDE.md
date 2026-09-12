@@ -150,9 +150,10 @@ docs/research/       the evidence behind live content. index.md is the status
                      source; units/ holds one record per topic/case study (46,
                      all INTEGRATED), dossiers/ compares across them
 secret/schedule.json  GITIGNORED. The real reminder list; the repo holds only its envelope
-secret/fshare-movie/  GITIGNORED. raw/ exports, sources.json, catalog.json — the movie
-                     link database with every link's check state; the repo holds only
-                     the sealed projection of its checked rows
+secret/fshare-movie/  GITIGNORED. catalog.json — the movie link database with every
+                     link's check state — plus sources.json (the Sheet URLs to re-ingest
+                     from); raw exports are deleted after build. The repo holds only the
+                     sealed projection of the checked rows
 secret/              GITIGNORED. Personal setup notes and credentials
 ```
 

@@ -27,7 +27,9 @@ hỏi trên terminal. Hệ quả cần biết: ai được cấp `schedule_acces
 thì cũng mở được catalog phim.
 
 Raw và catalog tách nhau vì chúng khác vòng đời. Raw là thứ cộng đồng chia sẻ,
-không bao giờ sửa, có thể xoá sau khi import. Catalog là thứ tool ghi: một
+không bao giờ sửa, và **xoá được sau khi `build`** — catalog đã giữ mọi link,
+còn `sources.json` giữ URL Sheet để `ingest` lại khi có tab mới (lần đầu đã
+xoá 3 CSV sau khi seal). Catalog là thứ tool ghi: một
 dòng cho **mỗi link** (không phải mỗi phim), `build` chỉ thêm, `validate` chỉ
 cập nhật tại chỗ. Một link chết vẫn ở lại với `deadSince` — đó là dữ liệu,
 không phải rác. Sợ "dư data" là đúng nếu lưu nhiều bản; ở đây catalog là bản
@@ -121,6 +123,38 @@ node tools/fshare-movie.mjs seal && git commit -am "reseal movie catalog"
 5. **`--concurrency N`** (mặc định 4) chạy N dòng song song, chia sẻ cache.
    Proxy đo được 6 là sạch với tab Browse; cao hơn thì `unknown` tăng vì bị
    reset, và những dòng đó phải chạy lại.
+
+## Chạy song song bằng shard
+
+`validate` ghi `catalog.json` tại chỗ nên chỉ được **một tiến trình**. Muốn
+chia việc ra nhiều tiến trình/máy thì dùng `tools/fshare-movie-shard.mjs`: nó
+đọc một snapshot catalog, probe một tập con **rời nhau và xác định** theo
+`--shard-index/--shard-count`, ghi kết quả ra file riêng và **không bao giờ
+ghi `catalog.json`**. Ghi vào catalog chỉ xảy ra một lần, ở `merge`.
+
+```bash
+# thử nhỏ trước
+node tools/fshare-movie-shard.mjs --catalog secret/fshare-movie/catalog.json   --output secret/fshare-movie/shards/smoke.json --kind file --status live --limit 20 --concurrency 4
+
+# bốn shard song song, cùng MỘT snapshot catalog, concurrency mỗi tiến trình thấp
+for i in 0 1 2 3; do
+  node tools/fshare-movie-shard.mjs --catalog secret/fshare-movie/catalog.json     --output secret/fshare-movie/shards/files-$i.json     --kind file --status live --shard-index $i --shard-count 4 --concurrency 2 &
+done; wait
+
+# gộp một lần, sau khi mọi tiến trình xong
+node tools/fshare-movie.mjs merge secret/fshare-movie/shards/files-{0,1,2,3}.json
+```
+
+`merge` kiểm tra mọi shard cùng một SHA-256 snapshot, id/code bất biến, không
+trùng dòng, rồi ghi catalog **một lần**. Nếu `build` hay `validate` đã đổi
+catalog trong lúc shard chạy, `merge` dừng và phải chạy lại shard. Không chạy
+`build`/`validate`/`merge` khi lệnh khác đang ghi catalog. Timeout/retry kết
+thúc là `unknown`, không bị gọi là `dead`. Output shard nằm dưới `secret/`,
+xoá sau khi merge.
+
+Mỗi response API thành công cũng lưu snapshot `remote` (size, path, mimetype,
+created/modified, downloadcount, cờ truy cập) và `keywords` đã chuẩn hoá trên
+dòng — chỉ trong catalog, không vào envelope (xem "Những thứ dễ hỏng").
 
 ## Làm trên máy khác (NAS)
 
