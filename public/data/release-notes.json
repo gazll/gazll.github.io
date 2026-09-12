@@ -4,6 +4,53 @@
     {
       "date": "2026-09-12",
       "en": {
+        "title": "Gateway versions re-verified, flash-sale diagram carries its mechanism"
+      },
+      "vi": {
+        "title": "Kiểm lại version gateway, sơ đồ flash-sale mang cơ chế lên cạnh"
+      },
+      "changes": [
+        {
+          "kind": "content",
+          "target": "27-api-gateway-identity-edge",
+          "en": {
+            "section": "Gateway configuration that matters",
+            "text": "Spring Cloud Gateway pinned to 5.0.3 on the 2025.1.3 train and Resilience4j 2.4.0 confirmed current against Maven Central; the four version-bound claims and the blueprint carry a fresh review date."
+          },
+          "vi": {
+            "section": "Gateway configuration that matters",
+            "text": "Spring Cloud Gateway ghim 5.0.3 trên release train 2025.1.3, Resilience4j 2.4.0 xác nhận còn hiện hành theo Maven Central; bốn claim ghim version và blueprint có ngày kiểm chứng mới."
+          }
+        },
+        {
+          "kind": "content",
+          "target": "system-design",
+          "en": {
+            "section": "Flash-sale booking inventory bottleneck",
+            "text": "The diagram now names the mechanism on its edges — conditional UPDATE, admission rate, hold TTL, outbox partitioning, the no-lock-while-PSP-answers rule — and capacity opens with the 250 rps peak (1M req/day) baseline the launch window jumps from."
+          },
+          "vi": {
+            "section": "Flash-sale booking inventory bottleneck",
+            "text": "Sơ đồ nay ghi cơ chế lên cạnh — UPDATE có điều kiện, admission rate, TTL của hold, partition outbox, quy tắc không giữ lock khi chờ PSP — và capacity mở đầu bằng baseline 250 rps peak (1M req/day) mà launch window nhảy lên từ đó."
+          }
+        },
+        {
+          "kind": "change",
+          "target": "system-design",
+          "en": {
+            "section": "Technically reviewed",
+            "text": "The three foundations blueprints — design review framework, traffic and caching building blocks, surviving high load — were re-read end to end and carry a review date; a review stamp no longer moves the updated date."
+          },
+          "vi": {
+            "section": "Đã kiểm chứng kỹ thuật",
+            "text": "Ba blueprint foundations — design review framework, traffic and caching building blocks, surviving high load — được đọc lại toàn bộ và có ngày kiểm chứng; ngày kiểm chứng không còn làm đổi ngày cập nhật."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-09-12",
+      "en": {
         "title": "From blocking Spring to event-driven Java"
       },
       "vi": {

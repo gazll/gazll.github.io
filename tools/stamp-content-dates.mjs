@@ -68,6 +68,9 @@ function withoutDates(value) {
   const copy = structuredClone(value);
   delete copy.created_at;
   delete copy.updated_at;
+  // A review stamp is not an edit: re-reading a blueprint and confirming it
+  // must not move its "updated" date, or the two labels collapse into one.
+  delete copy.reviewed_at;
   return copy;
 }
 

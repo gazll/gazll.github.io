@@ -207,6 +207,19 @@ Chỉ dùng nguồn chính thức/primary cho claim normative. `reviewed_at` cho
 lần kiểm chứng cuối, không phải lời hứa nội dung đúng mãi. Review lại khi có
 release/standard/advisory mới, không chỉ đợi lịch sáu tháng.
 
+**Blueprint và case study không đi qua file này.** Hai surface đó đặt
+`reviewed_at` thẳng trên row (`system-design/catalog.json`,
+`case-studies/manifest.json`); `lib/content-dates.js` in nhãn *Đã kiểm chứng
+kỹ thuật* từ đó và `CollectionIndex` xếp "Latest updates" theo nó. Nhãn chỉ có
+nghĩa khi **đã đọc lại thật** — đối chiếu số, đối chiếu nguồn của claim ghim
+version — nên điền từng row sau mỗi lần rà, không điền hàng loạt. Tình trạng
+2026-09-12: blueprint 5/20 (`api-gateway-identity-edge`, ba `foundations`
+core, `multi-tenant-rabbitmq-fairness`), case study 3/18. Phần còn lại rà
+cuốn chiếu theo mục 6; blueprint duy nhất ghim version là `api-gateway`
+(Spring Cloud Gateway / release train / Resilience4j — kiểm bằng
+`maven-metadata.xml` trên repo1.maven.org, không tin `search.maven.org`, index
+đó trả `latestVersion` cũ).
+
 ### 2.6 Đừng để dính đoạn — đơn vị đọc là "run"
 
 Người đọc gặp nội dung theo từng **run**: một đoạn văn, một gạch đầu dòng,
@@ -428,6 +441,29 @@ grep -RInE 'console\.(log|info|warn|error|debug)|Logger\.log' public apps-script
 cd public && python -m http.server 8080     # hoặc: npx serve public
 ```
 
+### Quét link ngoài trong body case study
+
+Body lưu trữ giữ citation của bài gốc; link chết thì bỏ `<a>`, giữ URL dạng
+`<code>`, sửa **cả hai** bản EN/VI cùng dòng. Quét (17 link, vài giây):
+
+```bash
+node -e "
+const fs=require('fs'); const dir='public/data/case-studies/articles/'; const set=new Set();
+for(const f of fs.readdirSync(dir).filter(f=>f.endsWith('.html'))){
+  const t=fs.readFileSync(dir+f,'utf8');
+  for(const m of t.matchAll(/href=\"(https://[^\"]+)\"/g)) if(!m[1].includes('gazll.github.io')) set.add(m[1]);
+}
+console.log([...set].join('
+'));" | while read -r u; do
+  code=$(curl -s -o /dev/null -w '%{http_code}' -L --max-time 12 -A 'Mozilla/5.0' "$u")
+  [ "$code" = "200" ] || echo "$code  $u"
+done
+```
+
+`202`/`403`/`000` là WAF hoặc bot-check chặn `curl`, không phải link chết —
+`towardsdatascience.com` trả `202` cho mọi thứ không phải trình duyệt. Chỉ
+chuyển sang `<code>` sau khi mở bằng trình duyệt thật.
+
 ### Kiểm render khi đã thêm HTML thô
 
 Validator bắt lỗi cấu trúc, nhưng muốn chắc block hiển thị đúng thì render
@@ -465,7 +501,8 @@ arrowhead của nhau.
 | Có bản Java/Spring LTS mới | `--stale`, rà nhóm `core` + topic 2, 23 |
 | Có RFC/draft, OWASP, OTel semantic convention hoặc security advisory mới | rà topic 13, 20 và metadata nguồn liên quan |
 | Có release DB/Kafka/Kubernetes/library vận hành mới | `--stale`, rà claim normative và migration note |
-| Mỗi ~6 tháng | `--stale` toàn bộ, soát benchmark, heuristic và link nguồn |
+| Mỗi ~6 tháng | `--stale` toàn bộ, soát benchmark, heuristic và link nguồn; rà thêm 2–3 blueprint/case study chưa có `reviewed_at` (mục 2.5) |
+| Link ngoài trong body case study | quét 17 link (lệnh ở mục 5); `curl` bị WAF chặn (`202`/`403`) chưa phải chết — mở bằng trình duyệt thật trước khi chuyển sang `<code>` |
 | Sau phỏng vấn thật | ghi câu hỏi chưa trả lời tốt → thành mục mới hoặc bồi mục cũ |
 
 Khi cập nhật một sự thật đã đổi: **sửa nội dung, giữ nguyên `id`**. Nếu
