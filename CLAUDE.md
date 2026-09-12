@@ -944,6 +944,32 @@ secret/              GITIGNORED. Personal setup notes and credentials
   full-bleed, so anchoring there parks the panel on the window edge while the
   rest of the page stays centred.
 
+- **A standalone tool's tokens live on its mount surface, not only on
+  `:root`.** Inside the Nuxt shell the tool is a `div`; the site's own
+  `:root` is later in the cascade and wins for every name both sheets
+  define — `--surface`, `--muted`, `--radius`, `--shadow` — so the Fshare
+  tool ran with a dark `--bg` beside a white `--surface`, and a heading set in
+  `var(--text)` was invisible. Both tools now declare their tokens on
+  `:root, .static-tool-surface` (and the light variant on
+  `body.light .static-tool-surface`) and paint `background`/`color` on the
+  surface, because `body` is the site's. `:root` stays for the shell opened
+  directly.
+
+- **`.headright` is sized by its content, never by a flex basis.** A basis of
+  470px fit the library pages and was 120px short on every topic page, where
+  the progress ring joins the row — the EN/VI switch and the avatar then sat
+  past the viewport edge (scrollWidth 1415 at 1280) with no visible sign
+  except a cut avatar. The search field is the element that gives way, and
+  `.view-track .searchtrigger` gives more. `tests/native-surfaces.test.mjs`
+  pins both rules.
+
+- **The desktop blueprint TOC is a floating panel and opens on demand.** The
+  "alignment pass" replaced the 44px rail with a compact control whose links
+  float over the prose; the persisted state is `gazll:system-design-toc`
+  and the default is **collapsed** — a first visit used to land with the
+  panel covering the first heading. Article prose is never justified: on a
+  390px column it opened rivers between words, worse in Vietnamese.
+
 - **The header stays one row at every width, so it sheds instead of wrapping.**
   `ContentHeader.vue` owns the route links, topic picker and language switch;
   the picker is the only flexible item in `.top-inner` and lower-priority

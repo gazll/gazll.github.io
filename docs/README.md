@@ -34,8 +34,10 @@ cố ý để mở thay vì bịa một con số cho có.
 
 Một file cho một đợt việc. **Đóng xong thì xoá file**, đừng để lại file toàn
 `[x]` — trạng thái đã đóng thuộc về `research/` hoặc git history, không phải ở
-đây. File dài hạn (như `ui-improvement.md`) không có ngày; file theo đợt thì đặt
-kèm tháng (`content-review-2026-09.md`).
+đây. File dài hạn không có ngày; file theo đợt thì đặt kèm tháng
+(`content-review-2026-09.md`). Thư mục trống là trạng thái bình thường —
+2026-09-12 cả ba file đều đã đóng và xoá; quyết định rút ra nằm trong
+CLAUDE.md ("Things that break easily") và các playbook.
 
 Không đặt file `.todo.md` bên ngoài thư mục này nữa — hậu tố đó đã từng làm
 hồ sơ nghiên cứu đã đóng trông như việc đang treo.
@@ -64,8 +66,9 @@ dẫn tuyệt đối của máy chạy gần nhất), nhưng **hai file kết qu
 
 ## Không nằm ở đây
 
-- `case-study-drafts/` — **gitignored**, chứa dữ liệu nội bộ chưa ẩn danh và
-  9,5MB workbook. Xem `todo/case-study-drafts-disposition.md`.
+- `case-study-drafts/` — **gitignored**; từng chứa dữ liệu nội bộ chưa ẩn
+  danh và 9,5MB workbook, đã xoá sau khi bài 12 publish. Dòng `.gitignore`
+  giữ lại để bản nháp mới không bao giờ lọt vào repo.
 - `public/data/projects/calebzone/docs/` — snapshot tài liệu được **ship** cho
   Project SRS, không phải tài liệu của repo.
 - `public/vendor/` — code upstream, không đụng vào.

@@ -209,10 +209,11 @@ import { pathToFileURL } from 'node:url';
     assert.ok(styles.includes('.toc-current{min-width:0;max-width:58%'));
   });
 
-  test('case-study and system-design prose uses justified paragraphs with indentation and opening drop cap', async () => {
+  test('case-study and system-design prose keeps a natural rag with indentation and opening drop cap', async () => {
     const styles = await read('public/styles.css');
 
-    assert.ok(styles.includes('.cs-article-body p,.sd-article-body p{text-align:justify;text-align-last:auto}'));
+    // Justification opened rivers on a 390px column; the rag is the decision.
+    assert.ok(!styles.includes('text-align:justify'));
     assert.ok(styles.includes('.sd-article-body .sd-prose,.sd-article-body .sd-part>p,'));
     assert.ok(styles.includes('.sd-article-body .sd-scope .sd-prose:first-of-type::first-letter'));
   });
@@ -277,7 +278,10 @@ import { pathToFileURL } from 'node:url';
 
     assert.ok(styles.includes('.topicpick .tp-text{flex:1 1 auto}'));
     assert.ok(styles.includes('.topicpick{flex:1 1 680px;max-width:none}'));
-    assert.ok(styles.includes('.searchtrigger{flex:1 1 300px;min-width:270px;width:auto;justify-content:flex-start}'));
+    // The right cluster is sized by its content: a fixed basis pushed the
+    // switch and avatar past the viewport on every topic page at 1280.
+    assert.ok(styles.includes('.headright{flex:0 0 auto;min-width:0;margin-left:0;gap:10px}'));
+    assert.ok(styles.includes('.view-track .searchtrigger{flex-basis:220px;min-width:220px}'));
     assert.ok(styles.includes('.top-inner{gap:8px;padding-left:max(12px,env(safe-area-inset-left));'));
     assert.ok(styles.includes('.searchtrigger{flex:0 0 44px;width:44px;min-width:44px;padding:0;justify-content:center}'));
   });

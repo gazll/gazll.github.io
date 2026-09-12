@@ -1,4 +1,6 @@
-:root {
+/* Also on the mount surface: the site's :root defines --line, --muted and
+   --shadow too and wins inside the Nuxt shell. */
+:root, .static-tool-surface {
   color-scheme: light;
   --bg: #f6f8fc;
   --panel: #ffffff;
@@ -20,7 +22,7 @@
 
 * { box-sizing: border-box; }
 
-body {
+body, .static-tool-surface {
   margin: 0;
   min-height: 100vh;
   background:

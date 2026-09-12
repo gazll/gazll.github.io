@@ -215,7 +215,9 @@ function revealHash() {
   });
 }
 onMounted(() => {
-  tocCollapsed.value = localStorage.getItem('gazll:system-design-toc') === 'collapsed';
+  // The contents list is a floating panel over the prose, so it opens on
+  // demand: a first visit used to land with it covering the first heading.
+  tocCollapsed.value = localStorage.getItem('gazll:system-design-toc') !== 'open';
   void nextTick(() => {
     syncActiveSection();
     revealHash();

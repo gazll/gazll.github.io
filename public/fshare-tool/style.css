@@ -1,4 +1,9 @@
-:root{
+/* Tokens are declared on the mount surface as well as :root. Inside the
+   Nuxt shell the site's own :root wins for every name both sheets define —
+   --surface, --muted, --radius, --shadow — which left dark --bg and --surface2
+   beside a white --surface. Standalone (the shell opened directly) :root
+   alone still covers everything. */
+:root,.static-tool-surface{
   --bg:#0b0d12;--surface:#13161f;--surface2:#191d29;--surface3:#1e2333;
   --border:#242a3a;--border2:#2e3650;
   --text:#e2e8f5;--text2:#a8b4cc;--muted:#566078;
@@ -8,7 +13,7 @@
   --radius:12px;--radius-sm:8px;
   --shadow:0 4px 24px rgba(0,0,0,.4);
 }
-body.light{
+body.light,body.light .static-tool-surface{
   --bg:#f0f2f7;--surface:#fff;--surface2:#f6f8fc;--surface3:#eef1f8;
   --border:#dde2ee;--border2:#c8d0e0;
   --text:#0f1623;--text2:#4a5568;--muted:#8896b0;
@@ -19,7 +24,11 @@ body.light{
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif;font-size:14px;min-height:100vh;padding-bottom:96px}
-.static-tool-surface{min-height:100vh}
+/* Inside the Nuxt shell the tool is a div, not the document: the site's own
+   body/html paint wins, so the dark tokens were being read against the
+   site's light paper — headings set in var(--text) vanished. The surface
+   paints its own ground and ink, so the theme is whole either way. */
+.static-tool-surface{min-height:100vh;background:var(--bg);color:var(--text)}
 .static-tool-status{margin:0;padding:48px 20px;text-align:center;color:var(--text2);font-size:.95rem}
 .static-tool-error{color:var(--red)}
 
