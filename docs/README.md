@@ -6,7 +6,6 @@ Bốn nhóm, và chúng khác nhau về vòng đời — đó là lý do tách t
 |---|---|---|
 | `content-playbook.md` · `schedule-playbook.md` · `fshare-movie-playbook.md` · `course-registration.md` | **Playbook** — quy trình đang dùng, đọc trước khi sửa nội dung tương ứng | sống, cập nhật khi quy trình đổi |
 | `todo/` | **Việc còn phải làm** — mỗi file một đợt, xoá khi đóng | tạm |
-| `research/` | **Hồ sơ dẫn chứng** cho nội dung đang live | lưu trữ, chỉ đọc |
 | `english-speaking-os-complete-2026.md` | ⚠️ **không phải tài liệu — đây là dữ liệu được ship** | xem cảnh báo dưới |
 
 ## ⚠️ `english-speaking-os-complete-2026.md` không được di chuyển
@@ -16,24 +15,19 @@ Bốn nhóm, và chúng khác nhau về vòng đời — đó là lý do tách t
 dung của site**, không phải tài liệu nội bộ. Đổi tên hoặc chuyển chỗ là gãy
 route `/english-study`.
 
-## `research/` — hồ sơ đã đóng, giữ để tra cứu
+## `research/` — đã gỡ (2026-09-12)
 
-Toàn bộ **46/46** record đơn vị ở trạng thái `INTEGRATED`: nội dung đã vào
-`public/data/` rồi. Giữ lại vì đây là dẫn chứng đằng sau các claim đang hiển thị
-— khi cần biết "câu này dựa vào nguồn nào" thì tra ở đây.
-
-- `index.md` — bảng trạng thái từng đơn vị, là nguồn trạng thái chuẩn
-- `units/topics/` (28) · `units/case-studies/` (18) — một record cho mỗi đơn vị
-- `dossiers/` — tổng hợp theo chủ đề, so sánh chéo nhiều đơn vị
-
-Nhãn `DEPLOYMENT INPUTS OPEN` trên vài file **không phải việc chưa xong**: đó là
-các tham số phụ thuộc môi trường triển khai (provider, version, traffic, SLO),
-cố ý để mở thay vì bịa một con số cho có.
+Từng có 46 record đơn vị + 16 dossier, là dẫn chứng đằng sau nội dung. Đợt rà
+tháng 9/2026 đã áp 226/235 đề xuất sửa vào `public/data/`, chuyển 120 claim
+kèm nguồn vào `public/data/content-reviews.json`, rồi gỡ thư mục. Ledger nguồn
+đầy đủ (605 dòng, ~1.000 URL, ngày review từng nguồn) vẫn nằm trong git:
+lấy commit gỡ bằng `git log -1 --format=%h --diff-filter=D -- docs/research/index.md`, rồi `git show <commit>^:docs/research/units/topics/01-java-core-jvm.md` cho từng unit. Chín mục
+còn mở nằm ở `todo/content-followups.md`.
 
 ## `todo/` — xoá khi xong
 
 Một file cho một đợt việc. **Đóng xong thì xoá file**, đừng để lại file toàn
-`[x]` — trạng thái đã đóng thuộc về `research/` hoặc git history, không phải ở
+`[x]` — trạng thái đã đóng thuộc về git history, không phải ở
 đây. File dài hạn không có ngày; file theo đợt thì đặt kèm tháng
 (`content-review-2026-09.md`). Thư mục trống là trạng thái bình thường —
 2026-09-12 cả ba file đều đã đóng và xoá; quyết định rút ra nằm trong

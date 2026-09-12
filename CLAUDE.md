@@ -167,9 +167,10 @@ docs/english-speaking-os-complete-2026.md  NOT documentation — shipped data.
                      server/api/content/english-study.get.ts reads this exact
                      path, so moving or renaming it breaks /english-study
 docs/todo/           open work, one file per effort; delete the file when closed
-docs/research/       the evidence behind live content. index.md is the status
-                     source; units/ holds one record per topic/case study (46,
-                     all INTEGRATED), dossiers/ compares across them
+                     (docs/research/ — 46 unit records + 16 dossiers — was folded
+                     into public/data and content-reviews.json and removed on
+                     2026-09-12; `git show "$(git log -1 --format=%h --diff-filter=D -- docs/research/index.md)^:docs/research/index.md"`
+                     is the way back to any source ledger)
 secret/schedule.json  GITIGNORED. The real reminder list; the repo holds only its envelope
 secret/fshare-movie/  GITIGNORED. catalog.json — the movie link database with every
                      link's check state — plus sources.json (the Sheet URLs to re-ingest
