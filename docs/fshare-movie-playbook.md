@@ -122,6 +122,37 @@ node tools/fshare-movie.mjs seal && git commit -am "reseal movie catalog"
    Proxy đo được 6 là sạch với tab Browse; cao hơn thì `unknown` tăng vì bị
    reset, và những dòng đó phải chạy lại.
 
+## Làm trên máy khác (NAS)
+
+Job validate dài giờ nên chạy trên NAS hợp lý hơn laptop. Repo clone được từ
+git; những gì **không** nằm trong git phải copy tay, và `catalog.json` là
+**bản duy nhất** — bên nào chạy tiếp thì bên đó giữ, xong thì copy ngược lại
+trước khi `seal`, không được seal từ bản cũ.
+
+```bash
+scp -r secret public/config.js nas@nas:/volume2/99_Drives/Project/gazll.github.io/
+ssh nas@nas 'cd /volume2/99_Drives/Project/gazll.github.io   && git pull && mv config.js public/config.js   && npm ci --legacy-peer-deps --no-audit --no-fund   && node -v && node tools/fshare-movie.mjs status'
+```
+
+| File | Vì sao cần |
+|---|---|
+| `secret/app.key` | passphrase — thiếu là không `seal` được |
+| `secret/fshare-movie/catalog.json` | state đang validate |
+| `secret/fshare-movie/raw/` + `sources.json` | để `build` lại khi Sheet có tab mới |
+| `public/config.js` | `GOOGLE_CLIENT_ID` + `SCRIPT_URL` cho dev local |
+
+`secret/schedule.json` không cần copy (`schedule-seal.mjs unseal` lấy lại từ
+envelope). Node phải ≥ 18 (`CompressionStream`, `structuredClone`).
+
+## Trước khi push
+
+Ba lệnh CI như thường lệ. Hai thứ đã làm CI đỏ mà không liên quan code:
+`stamp-content-dates --check` lệch (chạy không `--check` rồi commit), và bước
+`Audit production dependencies` (`npm audit --omit=dev --audit-level=high`)
+khi có advisory mới trên dependency transitive — `npm audit fix` rồi commit
+`package-lock.json`. Sau push, xác nhận deploy bằng
+`https://gazll.github.io/version.json` mang đúng commit.
+
 ## Khôi phục
 
 - Mất `secret/`: `node tools/fshare-movie.mjs unseal` lấy lại **projection**
