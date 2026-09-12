@@ -12,13 +12,35 @@ import { copyText, debounce, downloadTxt, fmtSize, toast } from '../lib/util.js'
 import {
   MOVIE_DB_URL, folderChain, groupByFolder, indexById, normalizeMovieDatabase, searchMovieLinks, sourceName
 } from '../lib/movie-db.js';
+import { X_DB_URL, normalizeXDatabase, searchXLinks } from '../lib/x-db.js';
 import { validateMovieEntries } from '../lib/movie-check.js';
 import { isEnvelope, MAX_ENVELOPE_JSON_CHARS, unseal } from '../../lib/schedule-crypto.js';
 
 const KEY_STORE = 'gazll:schedule-key';
 const ROW_LIMIT = 150;
+const CATALOG_TYPES = Object.freeze({
+  movie: {
+    label: 'Movie',
+    url: MOVIE_DB_URL,
+    raw: false,
+    description: 'Validated movie files',
+    unlockNote: 'The movie database is sealed in the repository. Enter the passphrase to open it in this browser.',
+    empty: 'Nothing matches these filters. Try an alias, a year, a link code — or show dead links.',
+    placeholder: 'Try: Dune 2021, anime, 4K...'
+  },
+  x: {
+    label: 'X',
+    url: X_DB_URL,
+    raw: true,
+    description: 'Separate X index · root checks only',
+    unlockNote: 'The X index is imported separately from x.csv. Root links have a status check; folder children are not crawled here.',
+    empty: 'Nothing matches this X dataset. Try a name, folder, or link code.',
+    placeholder: 'Try: a name, folder, or link code...'
+  }
+});
 const STATUS_TEXT = {
   pending: 'not checked',
+  raw: 'raw input',
   checking: 'checking',
   live: 'live',
   partial: 'partial',
@@ -28,7 +50,9 @@ const STATUS_TEXT = {
 };
 
 const movie = {
+  catalogType: 'movie',
   database: null,
+  databases: new Map(),
   shown: [],
   selected: new Set(),
   statuses: new Map(),
@@ -48,26 +72,86 @@ function setText(id, value) {
   if (element) element.textContent = value;
 }
 
+function catalogConfig(type = movie.catalogType) {
+  return CATALOG_TYPES[type] || CATALOG_TYPES.movie;
+}
+
+function setCurrentDatabase(type, database) {
+  movie.catalogType = type;
+  movie.database = database || null;
+  movie.sourceMap = database ? new Map(database.sources.map((source) => [source.id, source])) : new Map();
+  movie.byId = database ? indexById(database.links) : new Map();
+}
+
+function clearWorkingState() {
+  movie.shown = [];
+  movie.selected.clear();
+  movie.statuses.clear();
+  movie.output.clear();
+}
+
+function storedSecret() {
+  try { return sessionStorage.getItem(KEY_STORE) || localStorage.getItem(KEY_STORE) || ''; } catch (error) { return ''; }
+}
+
+function paintTypeSwitch() {
+  const config = catalogConfig();
+  document.querySelectorAll('[data-movie-type]').forEach((button) => {
+    const active = button.getAttribute('data-movie-type') === movie.catalogType;
+    button.classList.toggle('on', active);
+    button.setAttribute('aria-pressed', active ? 'true' : 'false');
+    button.disabled = movie.unlocking;
+  });
+  setText('movieUnlockType', config.label);
+  setText('movieUnlockNote', config.unlockNote);
+  setText('movieTypeDescription', config.description);
+  setText('movieResultsTitle', config.raw ? 'X links' : 'Files, by folder');
+  setText('movieStatusLabel', config.raw ? 'Raw links are not validated' : 'Show dead & unknown');
+  setText('movieSearchLabel', config.raw ? 'Search X links by name or link code' : 'Search files by name, folder, alias, or link code');
+  const panel = $('movieSearchPanel');
+  if (panel) panel.setAttribute('aria-label', config.raw ? 'X link filters' : 'Movie catalog filters');
+  const input = $('movieSearchInput');
+  if (input) input.placeholder = config.placeholder;
+  const statusFilter = $('movieStatusFilter');
+  if (statusFilter) statusFilter.hidden = config.raw;
+  const outputNote = $('movieOutputNote');
+  if (outputNote) {
+    outputNote.textContent = config.raw
+      ? 'Selected X links can be re-checked here. This browser check is temporary and does not change the separate raw X catalog.'
+      : 'Files confirmed live by a re-check in this browser. Folders are crawled, never listed. A re-check here does not update the catalog — run the tool to persist it.';
+  }
+}
+
+function populateSourceSelect() {
+  const select = $('movieSourceSelect');
+  if (!select || !movie.database) return;
+  select.replaceChildren(new Option('All sources', 'all'));
+  movie.database.sources.forEach((source) => select.appendChild(new Option(source.name, source.id)));
+}
+
 /* ---------- unlock ---------- */
 
-async function openSealed(secret) {
-  const response = await fetch(MOVIE_DB_URL, { cache: 'no-cache' });
-  if (!response.ok) throw new Error('No sealed catalog is published yet — run `node tools/fshare-movie.mjs seal` and deploy.');
+async function openSealed(secret, type = movie.catalogType) {
+  const config = catalogConfig(type);
+  const response = await fetch(config.url, { cache: 'no-cache' });
+  if (!response.ok) throw new Error(`No sealed ${config.label} catalog is published yet — run \`node tools/fshare-${type}.mjs seal\` and deploy.`);
   const text = await response.text();
   if (text.length > MAX_ENVELOPE_JSON_CHARS) throw new Error('The sealed catalog is larger than this page will read.');
   let envelope;
   try { envelope = JSON.parse(text); } catch (error) { throw new Error('The sealed catalog is not valid JSON.'); }
   if (!isEnvelope(envelope)) throw new Error('The published file is not a sealed envelope.');
-  movie.database = normalizeMovieDatabase(await unseal(envelope, secret));
-  movie.sourceMap = new Map(movie.database.sources.map((source) => [source.id, source]));
-  // The envelope ships no path strings; a file's place is walked through its parents.
-  movie.byId = indexById(movie.database.links);
-  const select = $('movieSourceSelect');
-  select.replaceChildren(new Option('All sources', 'all'));
-  movie.database.sources.forEach((source) => select.appendChild(new Option(source.name, source.id)));
+  const opened = await unseal(envelope, secret);
+  const database = config.raw ? normalizeXDatabase(opened) : normalizeMovieDatabase(opened);
+  movie.databases.set(type, database);
+  if (type === movie.catalogType) {
+    setCurrentDatabase(type, database);
+    populateSourceSelect();
+  }
+  return database;
 }
 
 function paintLockState() {
+  paintTypeSwitch();
   const locked = !movie.database;
   $('movieUnlock').hidden = !locked;
   $('movieBody').hidden = locked;
@@ -75,12 +159,21 @@ function paintLockState() {
   if (locked) { meta.textContent = 'Locked'; return; }
   const { counts, validated, sealedAt } = movie.database;
   meta.textContent = '';
-  meta.append(`${number(counts.live)} live · ${number(counts.dead)} dead · ${number(counts.unknown)} unknown`
-    + (counts.pending ? ` · ${number(counts.pending)} pending` : '') + ` · sealed ${fmtDay(sealedAt) || '?'}`);
+  const config = catalogConfig();
+  if (config.raw) {
+    meta.append(`${number(counts.live)} live · ${number(counts.dead)} dead · ${number(counts.unknown)} unknown`
+      + (counts.raw ? ` · ${number(counts.raw)} unchecked` : '') + ' · root checks only'
+      + ` · sealed ${fmtDay(sealedAt) || '?'}`);
+  } else {
+    meta.append(`${number(counts.live)} live · ${number(counts.dead)} dead · ${number(counts.unknown)} unknown`
+      + (counts.pending ? ` · ${number(counts.pending)} pending` : '') + ` · sealed ${fmtDay(sealedAt) || '?'}`);
+  }
   const badge = document.createElement('span');
   badge.className = 'movie-validated ' + (validated ? 'ok' : 'no');
-  badge.textContent = validated ? 'VALIDATED' : 'NOT VALIDATED';
-  badge.title = validated ? 'Every catalog link has been checked' : 'Links are still pending in the catalog — the tool has not finished a full run';
+  badge.textContent = config.raw ? 'X ROOT CHECKS' : (validated ? 'VALIDATED' : 'NOT VALIDATED');
+  badge.title = config.raw
+    ? 'Imported from x.csv; only the root links were checked, with no folder traversal'
+    : (validated ? 'Every catalog link has been checked' : 'Links are still pending in the catalog — the tool has not finished a full run');
   meta.appendChild(badge);
 }
 
@@ -90,10 +183,11 @@ async function unlock(event) {
   const secret = input.value;
   if (!secret || movie.unlocking) return;
   movie.unlocking = true;
+  paintTypeSwitch();
   $('movieUnlockBtn').disabled = true;
   setText('movieUnlockErr', '');
   try {
-    await openSealed(secret);
+    await openSealed(secret, movie.catalogType);
     /* Session by default, device only when asked — the same promise the
        calendar makes, and the same key, so one unlock serves both pages. */
     const store = $('movieRemember').checked ? localStorage : sessionStorage;
@@ -107,16 +201,15 @@ async function unlock(event) {
   } finally {
     movie.unlocking = false;
     $('movieUnlockBtn').disabled = false;
+    paintTypeSwitch();
   }
 }
 
 function lock() {
   stopValidation();
-  movie.database = null;
-  movie.shown = [];
-  movie.selected.clear();
-  movie.statuses.clear();
-  movie.output.clear();
+  movie.databases.clear();
+  setCurrentDatabase('movie', null);
+  clearWorkingState();
   try { sessionStorage.removeItem(KEY_STORE); localStorage.removeItem(KEY_STORE); } catch (error) { /* private mode */ }
   paintLockState();
   renderControls();
@@ -124,15 +217,45 @@ function lock() {
 
 async function restore() {
   if (movie.database) return;
-  let stored = '';
-  try { stored = sessionStorage.getItem(KEY_STORE) || localStorage.getItem(KEY_STORE) || ''; } catch (error) { return; }
+  const stored = storedSecret();
   if (!stored) return;
   try {
-    await openSealed(stored);
+    await openSealed(stored, movie.catalogType);
     paintLockState();
     renderResults();
     renderOutput();
   } catch (error) { /* stale key or no file yet: stay locked */ }
+}
+
+async function switchCatalogType(type) {
+  if (!CATALOG_TYPES[type] || type === movie.catalogType || movie.unlocking) return;
+  stopValidation();
+  movie.catalogType = type;
+  setCurrentDatabase(type, movie.databases.get(type) || null);
+  clearWorkingState();
+  $('movieSearchInput').value = '';
+  $('movieSourceSelect').value = 'all';
+  $('movieShowDead').checked = false;
+  paintLockState();
+  renderControls();
+  renderOutput();
+  if (movie.database) { renderResults(); return; }
+
+  const secret = storedSecret();
+  if (!secret) return;
+  movie.unlocking = true;
+  paintLockState();
+  try {
+    await openSealed(secret, type);
+    paintLockState();
+    renderResults();
+    renderOutput();
+  } catch (error) {
+    setText('movieUnlockErr', error.message || String(error));
+  } finally {
+    movie.unlocking = false;
+    paintLockState();
+  }
 }
 
 /* ---------- catalog list ---------- */
@@ -163,7 +286,7 @@ function currentStatus(row) {
 }
 
 function rowMeta(row) {
-  const parts = [row.code];
+  const parts = catalogConfig().raw ? [row.kind, row.code] : [row.code];
   if (row.kind === 'file' && row.size) parts.push(fmtSize(row.size));
   if (row.parents && row.parents.length > 1) parts.push(`also in ${row.parents.length - 1} other folder${row.parents.length > 2 ? 's' : ''}`);
   if (row.sourceIds && row.sourceIds.length) parts.push(sourceName(movie.sourceMap, row.sourceIds[0]) + (row.sourceIds.length > 1 ? ` +${row.sourceIds.length - 1}` : ''));
@@ -310,44 +433,75 @@ function makeGroupHead(group) {
   return head;
 }
 
+function makeRawHead(count) {
+  const head = document.createElement('div');
+  head.className = 'movie-group-head movie-folder-head movie-raw-head';
+  const title = document.createElement('strong');
+  title.className = 'movie-crumb is-leaf';
+  title.textContent = 'X links';
+  head.appendChild(title);
+  const meta = document.createElement('span');
+  meta.className = 'movie-folder-meta';
+  meta.textContent = `${number(count)} raw link${count === 1 ? '' : 's'}`;
+  head.appendChild(meta);
+  return head;
+}
+
 function renderResults() {
   const list = $('movieResults');
   if (!list || !movie.database) return;
+  const config = catalogConfig();
   const query = $('movieSearchInput').value || '';
   const sourceId = $('movieSourceSelect').value || 'all';
   const showDead = $('movieShowDead').checked;
-  // Files only: a folder is where a file lives, not a result of its own.
-  // Its name still matches, through the file's folder chain.
-  const matches = searchMovieLinks(movie.database.links, query, { kind: 'file', sourceId, byId: movie.byId })
-    .filter((row) => showDead || currentStatus(row).status === 'live');
-  const groups = groupByFolder(matches, movie.byId);
+  // Movie is a file-only projection grouped by its holding folder. X is an
+  // independent raw index, so folders and files remain searchable as links.
+  const matches = config.raw
+    ? searchXLinks(movie.database.links, query, { sourceId })
+    : searchMovieLinks(movie.database.links, query, { kind: 'file', sourceId, byId: movie.byId })
+      .filter((row) => showDead || currentStatus(row).status === 'live');
+  const groups = config.raw ? [] : groupByFolder(matches, movie.byId);
 
   movie.shown = [];
   list.innerHTML = '';
-  if (!groups.length) {
-    const empty = movie.database.links.length
-      ? 'Nothing matches these filters. Try an alias, a year, a link code — or show dead links.'
-      : 'The sealed catalog holds no checked links yet. Run the validator, then seal and deploy.';
+  if (!matches.length) {
+    const empty = movie.database.links.length ? config.empty : 'This sealed catalog holds no links yet.';
     list.innerHTML = `<div class="movie-empty">${empty}</div>`;
-    setText('movieResultCount', `0 of ${number(movie.database.links.filter((row) => row.kind === 'file').length)} files`);
+    setText('movieResultCount', config.raw
+      ? `0 of ${number(movie.database.links.length)} raw links`
+      : `0 of ${number(movie.database.links.filter((row) => row.kind === 'file').length)} files`);
     renderControls();
     return;
   }
   const fragment = document.createDocumentFragment();
   let rows = 0;
-  for (const group of groups) {
-    if (rows >= ROW_LIMIT) break;
-    fragment.appendChild(makeGroupHead(group));
-    for (const row of group.links) {
+  if (config.raw) {
+    fragment.appendChild(makeRawHead(matches.length));
+    for (const row of matches) {
       if (rows >= ROW_LIMIT) break;
       fragment.appendChild(makeRow(row));
       movie.shown.push(row);
       rows++;
     }
+  } else {
+    for (const group of groups) {
+      if (rows >= ROW_LIMIT) break;
+      fragment.appendChild(makeGroupHead(group));
+      for (const row of group.links) {
+        if (rows >= ROW_LIMIT) break;
+        fragment.appendChild(makeRow(row));
+        movie.shown.push(row);
+        rows++;
+      }
+    }
   }
   list.appendChild(fragment);
   const suffix = matches.length > ROW_LIMIT ? ` · showing first ${number(ROW_LIMIT)}` : '';
-  setText('movieResultCount', `${number(matches.length)} file${matches.length === 1 ? '' : 's'} in ${number(groups.length)} folder${groups.length === 1 ? '' : 's'}${suffix} · ${number(movie.selected.size)} selected`);
+  if (config.raw) {
+    setText('movieResultCount', `${number(matches.length)} raw X link${matches.length === 1 ? '' : 's'}${suffix} · ${number(movie.selected.size)} selected`);
+  } else {
+    setText('movieResultCount', `${number(matches.length)} file${matches.length === 1 ? '' : 's'} in ${number(groups.length)} folder${groups.length === 1 ? '' : 's'}${suffix} · ${number(movie.selected.size)} selected`);
+  }
   renderControls();
 }
 
@@ -506,6 +660,9 @@ function wireMovieEvents() {
   if (movie.wired) return;
   movie.wired = true;
   const rerender = debounce(renderResults, 120);
+  document.querySelectorAll('[data-movie-type]').forEach((button) => {
+    button.addEventListener('click', () => { void switchCatalogType(button.getAttribute('data-movie-type')); });
+  });
   $('movieUnlock').addEventListener('submit', unlock);
   $('movieLockBtn').addEventListener('click', lock);
   $('movieSearchInput').addEventListener('input', rerender);
@@ -529,7 +686,7 @@ function wireMovieEvents() {
       .catch(() => toast('Clipboard blocked', true));
   });
   $('movieDownloadOutput').addEventListener('click', () => {
-    downloadTxt(JSON.stringify(outputRows(), null, 2), 'fshare-movie-working-files.json');
+    downloadTxt(JSON.stringify(outputRows(), null, 2), `fshare-${movie.catalogType}-working-files.json`);
   });
 }
 

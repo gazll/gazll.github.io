@@ -83,6 +83,11 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .movie-check{display:inline-flex;align-items:center;gap:7px;min-height:38px;color:var(--text2);font-size:.78rem;white-space:nowrap;cursor:pointer}
 .movie-check input{width:15px;height:15px;margin:0;accent-color:var(--accent)}
 .movie-search-panel{display:grid;grid-template-columns:minmax(240px,1fr) 200px auto auto;align-items:end;gap:10px;margin:20px 0 14px;padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)}
+.movie-type-switch{grid-column:1 / -1;display:flex;align-items:center;flex-wrap:wrap;gap:7px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.movie-type-label{margin-right:3px;color:var(--muted);font-family:ui-monospace,Consolas,monospace;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.movie-type-switch .btn2{min-height:32px;padding:5px 12px}
+.movie-type-switch .btn2.on{color:var(--accent);border-color:var(--accent);background:var(--accent-dim)}
+.movie-type-description{flex:1 1 180px;margin-left:4px;color:var(--muted);font-size:.74rem}
 .movie-search-field,.movie-filter-field{display:flex;flex-direction:column;gap:6px;min-width:0}
 .movie-search-field>span,.movie-filter-field>span{color:var(--muted);font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
 .movie-search-panel input,.movie-search-panel select{width:100%;min-height:38px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);padding:8px 11px;font-size:.84rem;outline:none}
@@ -134,6 +139,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .status-unknown{color:var(--blue);border-color:rgba(74,158,255,.35);background:var(--blue-dim)}
 .status-checking{color:var(--accent);border-color:rgba(245,166,35,.35);background:var(--accent-dim)}
 .status-empty,.status-pending{color:var(--muted);border-color:var(--border2);background:var(--surface2)}
+.status-raw{color:var(--accent);border-color:rgba(245,166,35,.35);background:var(--accent-dim)}
 .movie-validated{display:inline-block;margin-left:6px;padding:2px 6px;border-radius:4px;font-weight:700;letter-spacing:.04em}
 .movie-validated.ok{color:var(--green);background:rgba(34,197,94,.1)}
 .movie-validated.no{color:var(--red);background:rgba(239,68,68,.1)}

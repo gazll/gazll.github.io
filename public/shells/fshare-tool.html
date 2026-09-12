@@ -75,8 +75,8 @@
          it is for the private schedule, and it is the same passphrase. -->
     <form class="movie-unlock" id="movieUnlock" aria-labelledby="movieUnlockTitle">
       <div>
-        <h2 id="movieUnlockTitle">Open the catalog</h2>
-        <p>The link database is sealed in the repository. Enter the passphrase to open it in this browser.</p>
+        <h2 id="movieUnlockTitle">Open the <span id="movieUnlockType">Movie</span> catalog</h2>
+        <p id="movieUnlockNote">The link database is sealed in the repository. Enter the passphrase to open it in this browser.</p>
       </div>
       <label class="movie-search-field" for="moviePassphrase">
         <span>Passphrase</span>
@@ -88,16 +88,22 @@
     </form>
 
     <div class="movie-body" id="movieBody" hidden>
-      <section class="movie-search-panel" aria-label="Movie catalog filters">
+      <section class="movie-search-panel" id="movieSearchPanel" aria-label="Movie catalog filters">
+        <div class="movie-type-switch" id="movieTypeSwitch" role="group" aria-label="Search dataset">
+          <span class="movie-type-label">Dataset</span>
+          <button class="btn2 on" id="movieTypeMovie" data-movie-type="movie" type="button" aria-pressed="true">Movie</button>
+          <button class="btn2" id="movieTypeX" data-movie-type="x" type="button" aria-pressed="false">X</button>
+          <span class="movie-type-description" id="movieTypeDescription">Validated movie files</span>
+        </div>
         <label class="movie-search-field" for="movieSearchInput">
-          <span>Search files by name, folder, alias, or link code</span>
+          <span id="movieSearchLabel">Search files by name, folder, alias, or link code</span>
           <input id="movieSearchInput" type="search" autocomplete="off" placeholder="Try: Dune 2021, anime, 4K..."/>
         </label>
         <label class="movie-filter-field" for="movieSourceSelect">
           <span>Source</span>
           <select id="movieSourceSelect"><option value="all">All sources</option></select>
         </label>
-        <label class="movie-check movie-show-dead"><input type="checkbox" id="movieShowDead"/> Show dead &amp; unknown</label>
+        <label class="movie-check movie-show-dead" id="movieStatusFilter"><input type="checkbox" id="movieShowDead"/> <span id="movieStatusLabel">Show dead &amp; unknown</span></label>
         <button class="btn2" id="movieClearSearch" type="button">Clear</button>
       </section>
 
@@ -135,7 +141,7 @@
             </div>
             <span class="movie-output-badge">files only</span>
           </div>
-          <div class="movie-output-note">Files confirmed live by a re-check in this browser. Folders are crawled, never listed. A re-check here does not update the catalog — run the tool to persist it.</div>
+          <div class="movie-output-note" id="movieOutputNote">Files confirmed live by a re-check in this browser. Folders are crawled, never listed. A re-check here does not update the catalog — run the tool to persist it.</div>
           <div class="movie-output-list" id="movieOutputList"></div>
           <div class="movie-output-actions">
             <button class="btn2" id="movieCopyOutput" type="button" disabled>Copy links</button>
