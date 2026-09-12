@@ -16,7 +16,7 @@
       "Phân tích race: Liệt kê các interleaving giữa lúc deal bắt đầu, giá được cập nhật, reservation cuối cùng thành công và event sold-out được phát đi.",
       "Idempotency: Reservation checkout lặp lại và event cập nhật quota trùng lặp được nhận diện, trả kết quả consistent và không trừ hàng hai lần như thế nào?",
       "Chính sách staleness: Phiên bản giá nào còn được chấp nhận trong thời gian sync, trong bao lâu, và service nào có quyền từ chối version cũ?",
-      "Giảm tải: Làm thế nào vẫn bảo vệ bất biến inventory khi các consumer phía price hoặc deal tụt lại trong lúc traffic sale tăng vọt?"
+      "Giảm tải: Làm thế nào vẫn bảo vệ bất biến inventory khi các consumer phía price hoặc deal tụt lại trong lúc traffic sale tăng vọt? Thiết kế bị bác bỏ cho hệ thống của bạn khi: kho inventory/quota không có conditional write nguyên tử (chặn oversell sụp đổ), chưa biết RPS đỉnh, hot-key skew, TTL giữ chỗ và capacity origin (không kích thước queue, pool hay số replica nào được biện minh), giá hiển thị thiếu thuế, phí, tiền tệ hay làm tròn (predicate so giá chưa đủ), một actor có thể chiếm hết admission token (phòng chờ FIFO thuần không đủ), hoặc timeout sau một lần admission có thể đã thành công mà không có đường query hay reconciliation."
     ]
   }
 }

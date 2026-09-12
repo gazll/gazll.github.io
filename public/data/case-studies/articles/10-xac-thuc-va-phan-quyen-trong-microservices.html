@@ -46,11 +46,11 @@
 <p>So with HMAC, both sides must share the secret code with each other, and the JWT recipient can completely create another valid JWT code based on that secret code. As for RSA, the receiver uses the Public Key to check but cannot create a new JWT based on that key. Therefore, encryption using RSA helps secure signatures better when needing to share JWTs with many different objects.</p>
 <h3 id="su-dung-opaque-token-khi-muon-de-kiem-soat-phien-lam-viec-tot-hon">Use Opaque Token when desired for better session control</h3>
 <p>Opaque Token (also known as stateful token) is a form of token that does not contain information, usually a random string and requires an intermediary service to check and retrieve information. For example:</p>
-<pre><code>{</code></pre>
-<pre><code>&quot;access_token&quot;: &quot;c2hr8Jgp5jBn-TY7E14HRuO37hEK1o_IOfDzbnZEO-o.zwh2f8SPiLKbcMbrD_DSgOTd3FIfQ8ch2bYSFi8NwbY&quot;,</code></pre>
-<pre><code>&quot;expires_in&quot;: 3599,</code></pre>
-<pre><code>&quot;token_type&quot;: &quot;bearer&quot;</code></pre>
-<pre><code>}</code></pre>
+<pre><code>{
+&quot;access_token&quot;: &quot;c2hr8Jgp5jBn-TY7E14HRuO37hEK1o_IOfDzbnZEO-o.zwh2f8SPiLKbcMbrD_DSgOTd3FIfQ8ch2bYSFi8NwbY&quot;,
+&quot;expires_in&quot;: 3599,
+&quot;token_type&quot;: &quot;bearer&quot;
+}</code></pre>
 <p>Transparent Token (also known as stateless token) is usually in the form of JWT, this token itself contains information and does not need an intermediary service to check. Let's compare these two types of tokens.</p>
 <figure class="cs-figure cs-figure-wide">
   <button type="button" data-zoom-image aria-label="Open figure 4 at full size">
@@ -126,19 +126,19 @@
   <figcaption>Figure 10 · Policy-Based Access Control (PBAC)</figcaption>
 </figure>
 <p>PABC is defined through policies written in a common language XACML (eXtensible Access Control Markup Language). A policy defines 4 objects subject, effect, action and resource. For example <strong>john </strong>(subject) okay <strong>allowed</strong>(effect) so that <strong>delete</strong>(action) product with ID <strong>john-leman</strong>(resource). At first glance, it is similar to how an ACL is defined</p>
-<pre><code>{</code></pre>
-<pre><code>&quot;subjects&quot;: [&quot;user:john&quot;],</code></pre>
-<pre><code>&quot;effect&quot;: &quot;allow&quot;,</code></pre>
-<pre><code>&quot;actions&quot;: [&quot;catalog:delete&quot;]</code></pre>
-<pre><code>&quot;resources&quot;: [&quot;product:john-leman&quot;],</code></pre>
-<pre><code>}</code></pre>
+<pre><code>{
+&quot;subjects&quot;: [&quot;user:john&quot;],
+&quot;effect&quot;: &quot;allow&quot;,
+&quot;actions&quot;: [&quot;catalog:delete&quot;]
+&quot;resources&quot;: [&quot;product:john-leman&quot;],
+}</code></pre>
 <p>We can add subjects, actions as well as resources to the policy if we want.</p>
-<pre><code>{</code></pre>
-<pre><code>&quot;subjects&quot;: [&quot;user:john&quot;, &quot;user:katy&quot;, &quot;user:perry&quot;],</code></pre>
-<pre><code>&quot;effect&quot;: &quot;allow&quot;,</code></pre>
-<pre><code>&quot;actions&quot;: [&quot;catalog:delete&quot;, &quot;catalog:update&quot;, &quot;catalog:publish&quot;]</code></pre>
-<pre><code>&quot;resources&quot;: [&quot;product:john-leman&quot;, &quot;product:john-doe&quot;]</code></pre>
-<pre><code>}</code></pre>
+<pre><code>{
+&quot;subjects&quot;: [&quot;user:john&quot;, &quot;user:katy&quot;, &quot;user:perry&quot;],
+&quot;effect&quot;: &quot;allow&quot;,
+&quot;actions&quot;: [&quot;catalog:delete&quot;, &quot;catalog:update&quot;, &quot;catalog:publish&quot;]
+&quot;resources&quot;: [&quot;product:john-leman&quot;, &quot;product:john-doe&quot;]
+}</code></pre>
 <p>You may wonder how PBAC is different from ACL, and here is the difference</p>
 <p><strong>Law of priority</strong></p>
 <ul>
@@ -148,26 +148,26 @@
 </ul>
 <p><strong>Regular Expressions</strong></p>
 <p>Policies allow declaring the use of regular expressions, as in this example allowing all users to view product information.</p>
-<pre><code>{</code></pre>
-<pre><code>&quot;subjects&quot;: [&quot;user:&lt;.*&gt;&quot;],</code></pre>
-<pre><code>&quot;effect&quot;: &quot;allow&quot;,</code></pre>
-<pre><code>&quot;actions&quot;: [&quot;catalog:read],</code></pre>
-<pre><code>&quot;resources&quot;: [&quot;product:&lt;.*&gt;&quot;]</code></pre>
-<pre><code>}</code></pre>
+<pre><code>{
+&quot;subjects&quot;: [&quot;user:&lt;.*&gt;&quot;],
+&quot;effect&quot;: &quot;allow&quot;,
+&quot;actions&quot;: [&quot;catalog:read],
+&quot;resources&quot;: [&quot;product:&lt;.*&gt;&quot;]
+}</code></pre>
 <p><strong>Conditions</strong></p>
 <p>Policies can add conditions to narrow the scope of rights, for example only applying to a certain IP range, or only allowing the product creator to edit that product.</p>
-<pre><code>{</code></pre>
-<pre><code>&quot;subjects&quot;: [&quot;user:ken&quot;],</code></pre>
-<pre><code>&quot;actions&quot; : [&quot;catalog:delete&quot;, &quot;catalog:create&quot;, &quot;catalog:update&quot;],</code></pre>
-<pre><code>&quot;effect&quot;: &quot;allow&quot;,</code></pre>
-<pre><code>&quot;resources&quot;: [&quot;products:&lt;.*&gt;&quot;],</code></pre>
-<pre><code>&quot;conditions&quot;: {</code></pre>
-<pre><code>&quot;IpAddress&quot;: {</code></pre>
-<pre><code>&quot;addresses&quot;: [</code></pre>
-<pre><code>&quot;192.168.0.0/16&quot;</code></pre>
-<pre><code>]</code></pre>
-<pre><code>}</code></pre>
-<pre><code>}</code></pre>
-<pre><code>}</code></pre>
+<pre><code>{
+&quot;subjects&quot;: [&quot;user:ken&quot;],
+&quot;actions&quot; : [&quot;catalog:delete&quot;, &quot;catalog:create&quot;, &quot;catalog:update&quot;],
+&quot;effect&quot;: &quot;allow&quot;,
+&quot;resources&quot;: [&quot;products:&lt;.*&gt;&quot;],
+&quot;conditions&quot;: {
+&quot;IpAddress&quot;: {
+&quot;addresses&quot;: [
+&quot;192.168.0.0/16&quot;
+]
+}
+}
+}</code></pre>
 <h2 id="tong-ket">Summary</h2>
 <p>Continuous expansion of business and systems requires services to authenticate themselves, thereby regardless of whether the service is internal or external, helping teams easily expand and integrate with each other. This requires a common authentication model to operate stably, optimally and meet high performance. There are many challenges ahead.</p>

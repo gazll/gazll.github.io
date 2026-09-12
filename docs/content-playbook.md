@@ -92,6 +92,23 @@ không được validator kiểm target, dễ sai sau khi sắp xếp tài liệ
 bằng `item_id` bất biến. Mỗi khái niệm nên có **một topic sở hữu phần giải
 thích sâu**, các topic khác tóm tắt theo ngữ cảnh rồi cross-ref sang đó.
 
+Chủ sở hữu của các cơ chế hay bị viết trùng nhất đã được chốt trong đợt rà
+2026-08/09 (từ `duplicate-ownership-matrix` của hồ sơ nghiên cứu, nay đã gỡ);
+viết về một cơ chế dưới đây ở topic khác thì tóm tắt rồi trỏ về đây:
+
+| Cơ chế | Chủ sở hữu (giải thích sâu) | Nơi khác chỉ giữ bằng chứng domain / implementation |
+|---|---|---|
+| 2PC và ranh giới consistency cục bộ | `09-distributed-tx-fintech.distributed-transaction-patterns.q1` | `25-microservice` (data consistency q1), case 15 phần problem |
+| Saga: choreography / orchestration / compensation | `09-distributed-tx-fintech.distributed-transaction-patterns.q2` | OTA q5, e-commerce q14–q16, case 15 §6 — state machine và pivot không đảo ngược ở case |
+| Transactional Outbox | `09-distributed-tx-fintech.distributed-transaction-patterns.q3` (+ `25-microservice` so sánh relay) | case 15 §1–5, e-commerce q15/q16 — bằng chứng crash, lựa chọn vận hành |
+| Idempotent command / API | `09-….correctness-where-money-is-involved.q2` và `17-rest-api-design` | payment q1/q11, OTA q2/q5, flash-sale q20 — tách contract API / provider / consumer, không lặp một công thức |
+| Idempotent consumer / inbox | `25-microservice` (idempotent consumer q2) | case 15 §5, e-commerce q16/q18/q20 |
+| Kết quả bên ngoài chưa rõ và reconciliation | `09-….correctness-where-money-is-involved.q1` | payment q1/q11, OTA q5, booking q14/q20 — viết quanh authority của provider và expiry |
+| Delivery semantics và ordering | `08-message-queue` | `25-microservice` (messaging q4), case 15 §4 — case chỉ nói vì sao chọn command queue hay replayable log |
+| Lock và constraint trong DB cục bộ | `05-db-core-index-lock` | `28-distributed-lock-lease`, các case booking/inventory — lock phân tán không thay được domain constraint |
+| Lease / fencing phân tán | `28-distributed-lock-lease` | flash-sale q20, scheduled worker — case nói rõ lock có thật sự là authority không |
+| Giữ chỗ inventory / seat | cụm blueprint booking/inventory | Arcturus, hot deals, OTA, duplicate booking, Shopify — là cụm domain, không phải thêm một bài Saga |
+
 ### 1.4 Phân loại claim trước khi viết
 
 Mỗi khẳng định quan trọng thuộc một trong ba loại:

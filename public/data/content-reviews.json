@@ -2386,7 +2386,8 @@
       "https://docs.kernel.org/accounting/psi.html",
       "https://docs.kernel.org/admin-guide/cgroup-v2.html",
       "https://docs.kernel.org/filesystems/proc.html",
-      "https://docs.oracle.com/en/java/javase/21/troubleshoot/diagnostic-tools.html"
+      "https://docs.oracle.com/en/java/javase/21/troubleshoot/diagnostic-tools.html",
+      "https://netflixtechblog.com/linux-performance-analysis-in-60-000-milliseconds-accc10403c55"
     ]
   },
   "21-linux-production-debug.diagnosing-the-system.q2": {
@@ -2705,482 +2706,1027 @@
   },
   "19-dsa-leetcode.the-solving-framework-core-patterns.q1": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["MIT 6.006 Spring 2020", "Interview framework heuristic"],
+    "target_versions": [
+      "MIT 6.006 Spring 2020",
+      "Interview framework heuristic"
+    ],
     "claim_type": "heuristic",
-    "sources": ["https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/pages/lecture-notes/", "https://live.ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/d9265b3b33d238ff914b0223ac8e7628_MIT6_006S20_r10.pdf"]
+    "sources": [
+      "https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/pages/lecture-notes/",
+      "https://live.ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/d9265b3b33d238ff914b0223ac8e7628_MIT6_006S20_r10.pdf"
+    ]
   },
   "19-dsa-leetcode.the-solving-framework-core-patterns.q2": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["LeetCode current problem statements", "MIT 6.006 Spring 2020"],
+    "target_versions": [
+      "LeetCode current problem statements",
+      "MIT 6.006 Spring 2020"
+    ],
     "claim_type": "heuristic",
-    "sources": ["https://leetcode.com/problems/longest-substring-without-repeating-characters/", "https://leetcode.com/problems/minimum-window-substring/", "https://leetcode.com/problems/sliding-window-maximum/"]
+    "sources": [
+      "https://leetcode.com/problems/longest-substring-without-repeating-characters/",
+      "https://leetcode.com/problems/minimum-window-substring/",
+      "https://leetcode.com/problems/sliding-window-maximum/"
+    ]
   },
   "19-dsa-leetcode.the-solving-framework-core-patterns.q3": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["LeetCode 30 current problem statement"],
+    "target_versions": [
+      "LeetCode 30 current problem statement"
+    ],
     "claim_type": "normative",
-    "sources": ["https://leetcode.com/problems/substring-with-concatenation-of-all-words/"]
+    "sources": [
+      "https://leetcode.com/problems/substring-with-concatenation-of-all-words/"
+    ]
   },
   "19-dsa-leetcode.the-solving-framework-core-patterns.q4": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["MIT 6.006 Spring 2020", "Princeton Algorithms course material"],
+    "target_versions": [
+      "MIT 6.006 Spring 2020",
+      "Princeton Algorithms course material"
+    ],
     "claim_type": "heuristic",
-    "sources": ["https://live.ocw.mit.edu/courses/6-006-introduction-to-algorithms-fall-2011/8f89fd0ad2e9af6dbe075dd503e81d18_MIT6_006F11_lec13_orig.pdf", "https://algs4.cs.princeton.edu/lectures/keynote/41UndirectedGraphs.pdf", "https://algs4.cs.princeton.edu/lectures/keynote/44ShortestPaths-2x2.pdf"]
+    "sources": [
+      "https://live.ocw.mit.edu/courses/6-006-introduction-to-algorithms-fall-2011/8f89fd0ad2e9af6dbe075dd503e81d18_MIT6_006F11_lec13_orig.pdf",
+      "https://algs4.cs.princeton.edu/lectures/keynote/41UndirectedGraphs.pdf",
+      "https://algs4.cs.princeton.edu/lectures/keynote/44ShortestPaths-2x2.pdf"
+    ]
   },
   "19-dsa-leetcode.the-patterns-that-keep-coming-up.q1": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["LeetCode current problem statements"],
+    "target_versions": [
+      "LeetCode current problem statements"
+    ],
     "claim_type": "heuristic",
-    "sources": ["https://leetcode.com/problems/subarray-sum-equals-k/", "https://leetcode.com/problems/longest-substring-without-repeating-characters/", "https://leetcode.com/problems/minimum-window-substring/"]
+    "sources": [
+      "https://leetcode.com/problems/subarray-sum-equals-k/",
+      "https://leetcode.com/problems/longest-substring-without-repeating-characters/",
+      "https://leetcode.com/problems/minimum-window-substring/"
+    ]
   },
   "19-dsa-leetcode.the-patterns-that-keep-coming-up.q2": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["LeetCode 347", "Java SE 25 PriorityQueue API", "Selection research"],
+    "target_versions": [
+      "LeetCode 347",
+      "Java SE 25 PriorityQueue API",
+      "Selection research"
+    ],
     "claim_type": "heuristic",
-    "sources": ["https://leetcode.com/problems/top-k-frequent-elements/", "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/PriorityQueue.html", "https://doi.org/10.1145/366622.366647", "https://www.sciencedirect.com/science/article/pii/S0022000073800339"]
+    "sources": [
+      "https://leetcode.com/problems/top-k-frequent-elements/",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/PriorityQueue.html",
+      "https://doi.org/10.1145/366622.366647",
+      "https://www.sciencedirect.com/science/article/pii/S0022000073800339"
+    ]
   },
   "19-dsa-leetcode.the-patterns-that-keep-coming-up.q3": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["LeetCode 410 current problem statement", "MIT 6.006 Spring 2020"],
+    "target_versions": [
+      "LeetCode 410 current problem statement",
+      "MIT 6.006 Spring 2020"
+    ],
     "claim_type": "heuristic",
-    "sources": ["https://leetcode.com/problems/split-array-largest-sum/", "https://live.ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/d9265b3b33d238ff914b0223ac8e7628_MIT6_006S20_r10.pdf"]
+    "sources": [
+      "https://leetcode.com/problems/split-array-largest-sum/",
+      "https://live.ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/d9265b3b33d238ff914b0223ac8e7628_MIT6_006S20_r10.pdf"
+    ]
   },
   "19-dsa-leetcode.the-patterns-that-keep-coming-up.q4": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["Princeton Algorithms course material", "MIT 6.006 Spring 2020"],
+    "target_versions": [
+      "Princeton Algorithms course material",
+      "MIT 6.006 Spring 2020"
+    ],
     "claim_type": "heuristic",
-    "sources": ["https://algs4.cs.princeton.edu/lectures/keynote/41UndirectedGraphs.pdf", "https://algs4.cs.princeton.edu/lectures/keynote/44ShortestPaths-2x2.pdf", "https://live.ocw.mit.edu/courses/6-006-introduction-to-algorithms-fall-2011/8f89fd0ad2e9af6dbe075dd503e81d18_MIT6_006F11_lec13_orig.pdf"]
+    "sources": [
+      "https://algs4.cs.princeton.edu/lectures/keynote/41UndirectedGraphs.pdf",
+      "https://algs4.cs.princeton.edu/lectures/keynote/44ShortestPaths-2x2.pdf",
+      "https://live.ocw.mit.edu/courses/6-006-introduction-to-algorithms-fall-2011/8f89fd0ad2e9af6dbe075dd503e81d18_MIT6_006F11_lec13_orig.pdf"
+    ]
   },
   "19-dsa-leetcode.the-patterns-that-keep-coming-up.q5": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["MIT 6.006 Spring 2020", "LeetCode current problem statements"],
+    "target_versions": [
+      "MIT 6.006 Spring 2020",
+      "LeetCode current problem statements"
+    ],
     "claim_type": "heuristic",
-    "sources": ["https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/pages/lecture-notes/", "https://leetcode.com/problems/coin-change/", "https://leetcode.com/problems/subsets/"]
+    "sources": [
+      "https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/pages/lecture-notes/",
+      "https://leetcode.com/problems/coin-change/",
+      "https://leetcode.com/problems/subsets/"
+    ]
   },
   "19-dsa-leetcode.the-patterns-that-keep-coming-up.q6": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["LeetCode current problem statements", "Java SE 25 Deque APIs"],
+    "target_versions": [
+      "LeetCode current problem statements",
+      "Java SE 25 Deque APIs"
+    ],
     "claim_type": "heuristic",
-    "sources": ["https://leetcode.com/problems/daily-temperatures/", "https://leetcode.com/problems/merge-intervals/", "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Deque.html", "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/ArrayDeque.html"]
+    "sources": [
+      "https://leetcode.com/problems/daily-temperatures/",
+      "https://leetcode.com/problems/merge-intervals/",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Deque.html",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/ArrayDeque.html"
+    ]
   },
   "19-dsa-leetcode.the-patterns-that-keep-coming-up.q7": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["LeetCode current problem statements", "Java SE 25 String/Character APIs"],
+    "target_versions": [
+      "LeetCode current problem statements",
+      "Java SE 25 String/Character APIs"
+    ],
     "claim_type": "heuristic",
-    "sources": ["https://leetcode.com/problems/validate-binary-search-tree/", "https://leetcode.com/problems/number-of-islands/", "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html", "https://unicode.org/reports/tr29/"]
+    "sources": [
+      "https://leetcode.com/problems/validate-binary-search-tree/",
+      "https://leetcode.com/problems/number-of-islands/",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html",
+      "https://unicode.org/reports/tr29/"
+    ]
   },
   "19-dsa-leetcode.the-patterns-that-keep-coming-up.q8": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["Java SE 25 JLS and collection APIs"],
+    "target_versions": [
+      "Java SE 25 JLS and collection APIs"
+    ],
     "claim_type": "heuristic",
-    "sources": ["https://docs.oracle.com/javase/specs/jls/se25/jls25.pdf", "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/math/BigInteger.html", "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/BitSet.html"]
+    "sources": [
+      "https://docs.oracle.com/javase/specs/jls/se25/jls25.pdf",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/math/BigInteger.html",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/BitSet.html"
+    ]
   },
   "19-dsa-leetcode.fifteen-patterns-visualized.q1": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["MIT 6.006 Spring 2020"],
+    "target_versions": [
+      "MIT 6.006 Spring 2020"
+    ],
     "claim_type": "example",
-    "sources": ["https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/pages/lecture-notes/"]
+    "sources": [
+      "https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/pages/lecture-notes/"
+    ]
   },
   "19-dsa-leetcode.fifteen-patterns-visualized.q3": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["Java SE 25 Arrays API", "MIT 6.006 Spring 2020"],
+    "target_versions": [
+      "Java SE 25 Arrays API",
+      "MIT 6.006 Spring 2020"
+    ],
     "claim_type": "example",
-    "sources": ["https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Arrays.html", "https://leetcode.com/problems/split-array-largest-sum/"]
+    "sources": [
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Arrays.html",
+      "https://leetcode.com/problems/split-array-largest-sum/"
+    ]
   },
   "19-dsa-leetcode.fifteen-patterns-visualized.q4": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["Java SE 25 String/Character APIs"],
+    "target_versions": [
+      "Java SE 25 String/Character APIs"
+    ],
     "claim_type": "example",
-    "sources": ["https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html", "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Character.html"]
+    "sources": [
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Character.html"
+    ]
   },
   "19-dsa-leetcode.fifteen-patterns-visualized.q5": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["MIT 6.006 Spring 2020"],
+    "target_versions": [
+      "MIT 6.006 Spring 2020"
+    ],
     "claim_type": "example",
-    "sources": ["https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/pages/lecture-notes/"]
+    "sources": [
+      "https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/pages/lecture-notes/"
+    ]
   },
   "19-dsa-leetcode.fifteen-patterns-visualized.q6": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["LeetCode 739", "Java SE 25 Deque APIs"],
+    "target_versions": [
+      "LeetCode 739",
+      "Java SE 25 Deque APIs"
+    ],
     "claim_type": "example",
-    "sources": ["https://leetcode.com/problems/daily-temperatures/", "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Deque.html"]
+    "sources": [
+      "https://leetcode.com/problems/daily-temperatures/",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Deque.html"
+    ]
   },
   "19-dsa-leetcode.fifteen-patterns-visualized.q7": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["LeetCode 560 current problem statement"],
+    "target_versions": [
+      "LeetCode 560 current problem statement"
+    ],
     "claim_type": "example",
-    "sources": ["https://leetcode.com/problems/subarray-sum-equals-k/"]
+    "sources": [
+      "https://leetcode.com/problems/subarray-sum-equals-k/"
+    ]
   },
   "19-dsa-leetcode.fifteen-patterns-visualized.q8": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["LeetCode 56 current problem statement"],
+    "target_versions": [
+      "LeetCode 56 current problem statement"
+    ],
     "claim_type": "example",
-    "sources": ["https://leetcode.com/problems/merge-intervals/"]
+    "sources": [
+      "https://leetcode.com/problems/merge-intervals/"
+    ]
   },
   "19-dsa-leetcode.fifteen-patterns-visualized.q10": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["LeetCode 347", "Java SE 25 PriorityQueue API"],
+    "target_versions": [
+      "LeetCode 347",
+      "Java SE 25 PriorityQueue API"
+    ],
     "claim_type": "example",
-    "sources": ["https://leetcode.com/problems/top-k-frequent-elements/", "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/PriorityQueue.html"]
+    "sources": [
+      "https://leetcode.com/problems/top-k-frequent-elements/",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/PriorityQueue.html"
+    ]
   },
   "19-dsa-leetcode.fifteen-patterns-visualized.q11": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["LeetCode 78 current problem statement"],
+    "target_versions": [
+      "LeetCode 78 current problem statement"
+    ],
     "claim_type": "example",
-    "sources": ["https://leetcode.com/problems/subsets/", "https://leetcode.com/problems/coin-change/"]
+    "sources": [
+      "https://leetcode.com/problems/subsets/",
+      "https://leetcode.com/problems/coin-change/"
+    ]
   },
   "19-dsa-leetcode.fifteen-patterns-visualized.q12": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["LeetCode 98 current problem statement", "Princeton Algorithms course material"],
+    "target_versions": [
+      "LeetCode 98 current problem statement",
+      "Princeton Algorithms course material"
+    ],
     "claim_type": "example",
-    "sources": ["https://leetcode.com/problems/validate-binary-search-tree/", "https://algs4.cs.princeton.edu/lectures/keynote/41UndirectedGraphs.pdf"]
+    "sources": [
+      "https://leetcode.com/problems/validate-binary-search-tree/",
+      "https://algs4.cs.princeton.edu/lectures/keynote/41UndirectedGraphs.pdf"
+    ]
   },
   "19-dsa-leetcode.fifteen-patterns-visualized.q13": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["MIT 6.006 Spring 2020", "Princeton Algorithms course material"],
+    "target_versions": [
+      "MIT 6.006 Spring 2020",
+      "Princeton Algorithms course material"
+    ],
     "claim_type": "example",
-    "sources": ["https://live.ocw.mit.edu/courses/6-006-introduction-to-algorithms-fall-2011/8f89fd0ad2e9af6dbe075dd503e81d18_MIT6_006F11_lec13_orig.pdf", "https://algs4.cs.princeton.edu/lectures/keynote/41UndirectedGraphs.pdf"]
+    "sources": [
+      "https://live.ocw.mit.edu/courses/6-006-introduction-to-algorithms-fall-2011/8f89fd0ad2e9af6dbe075dd503e81d18_MIT6_006F11_lec13_orig.pdf",
+      "https://algs4.cs.princeton.edu/lectures/keynote/41UndirectedGraphs.pdf"
+    ]
   },
   "19-dsa-leetcode.fifteen-patterns-visualized.q14": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["MIT 6.006 BFS material"],
+    "target_versions": [
+      "MIT 6.006 BFS material"
+    ],
     "claim_type": "example",
-    "sources": ["https://live.ocw.mit.edu/courses/6-006-introduction-to-algorithms-fall-2011/8f89fd0ad2e9af6dbe075dd503e81d18_MIT6_006F11_lec13_orig.pdf", "https://algs4.cs.princeton.edu/lectures/keynote/41UndirectedGraphs.pdf"]
+    "sources": [
+      "https://live.ocw.mit.edu/courses/6-006-introduction-to-algorithms-fall-2011/8f89fd0ad2e9af6dbe075dd503e81d18_MIT6_006F11_lec13_orig.pdf",
+      "https://algs4.cs.princeton.edu/lectures/keynote/41UndirectedGraphs.pdf"
+    ]
   },
   "19-dsa-leetcode.fifteen-patterns-visualized.q15": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["MIT 6.006 Spring 2020 dynamic-programming material"],
+    "target_versions": [
+      "MIT 6.006 Spring 2020 dynamic-programming material"
+    ],
     "claim_type": "example",
-    "sources": ["https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/pages/lecture-notes/", "https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/28461a74f81101874a13d9679a40584d_MIT6_006S20_lec16.pdf"]
+    "sources": [
+      "https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/pages/lecture-notes/",
+      "https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/28461a74f81101874a13d9679a40584d_MIT6_006S20_lec16.pdf"
+    ]
   },
   "04-rest-grpc-webflux.protocols.q2": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["gRPC current guides", "Protocol Buffers current language and encoding guides"],
+    "target_versions": [
+      "gRPC current guides",
+      "Protocol Buffers current language and encoding guides"
+    ],
     "claim_type": "heuristic",
-    "sources": ["https://grpc.io/docs/guides/performance/", "https://grpc.io/docs/what-is-grpc/core-concepts/", "https://protobuf.dev/programming-guides/proto3/", "https://protobuf.dev/programming-guides/encoding/"]
+    "sources": [
+      "https://grpc.io/docs/guides/performance/",
+      "https://grpc.io/docs/what-is-grpc/core-concepts/",
+      "https://protobuf.dev/programming-guides/proto3/",
+      "https://protobuf.dev/programming-guides/encoding/"
+    ]
   },
   "04-rest-grpc-webflux.protocols.q3": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["gRPC current core concepts, deadlines, flow-control, and retry guides"],
+    "target_versions": [
+      "gRPC current core concepts, deadlines, flow-control, and retry guides"
+    ],
     "claim_type": "normative",
-    "sources": ["https://grpc.io/docs/what-is-grpc/core-concepts/", "https://grpc.io/docs/guides/deadlines/", "https://grpc.io/docs/guides/flow-control/", "https://grpc.io/docs/guides/retry/"]
+    "sources": [
+      "https://grpc.io/docs/what-is-grpc/core-concepts/",
+      "https://grpc.io/docs/guides/deadlines/",
+      "https://grpc.io/docs/guides/flow-control/",
+      "https://grpc.io/docs/guides/retry/"
+    ]
   },
   "04-rest-grpc-webflux.protocols.q4": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["RFC 9110", "WHATWG Server-sent events", "WebSocket Protocol RFC 6455"],
+    "target_versions": [
+      "RFC 9110",
+      "WHATWG Server-sent events",
+      "WebSocket Protocol RFC 6455"
+    ],
     "claim_type": "heuristic",
-    "sources": ["https://www.rfc-editor.org/rfc/rfc9110.html", "https://html.spec.whatwg.org/multipage/server-sent-events.html", "https://www.rfc-editor.org/rfc/rfc6455.html"]
+    "sources": [
+      "https://www.rfc-editor.org/rfc/rfc9110.html",
+      "https://html.spec.whatwg.org/multipage/server-sent-events.html",
+      "https://www.rfc-editor.org/rfc/rfc6455.html"
+    ]
   },
   "04-rest-grpc-webflux.protocols.q5": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["PostgreSQL current documentation", "Elasticsearch current pagination documentation"],
+    "target_versions": [
+      "PostgreSQL current documentation",
+      "Elasticsearch current pagination documentation"
+    ],
     "claim_type": "heuristic",
-    "sources": ["https://www.postgresql.org/docs/current/queries-limit.html", "https://www.elastic.co/guide/en/elasticsearch/reference/current/paginate-search-results.html"]
+    "sources": [
+      "https://www.postgresql.org/docs/current/queries-limit.html",
+      "https://www.elastic.co/guide/en/elasticsearch/reference/current/paginate-search-results.html"
+    ]
   },
   "04-rest-grpc-webflux.protocols.q6": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["GraphQL specification October 2021", "GraphQL specification release index", "DataLoader current reference"],
+    "target_versions": [
+      "GraphQL specification October 2021",
+      "GraphQL specification release index",
+      "DataLoader current reference"
+    ],
     "claim_type": "heuristic",
-    "sources": ["https://spec.graphql.org/October2021/", "https://spec.graphql.org/", "https://github.com/graphql/dataloader"]
+    "sources": [
+      "https://spec.graphql.org/October2021/",
+      "https://spec.graphql.org/",
+      "https://github.com/graphql/dataloader"
+    ]
   },
   "04-rest-grpc-webflux.reactive-webflux.q4": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["WHATWG Server-sent events", "WebSocket Protocol RFC 6455", "HTTP/2 RFC 9113"],
+    "target_versions": [
+      "WHATWG Server-sent events",
+      "WebSocket Protocol RFC 6455",
+      "HTTP/2 RFC 9113"
+    ],
     "claim_type": "normative",
-    "sources": ["https://html.spec.whatwg.org/multipage/server-sent-events.html", "https://www.rfc-editor.org/rfc/rfc6455.html", "https://www.rfc-editor.org/rfc/rfc9113.html"]
+    "sources": [
+      "https://html.spec.whatwg.org/multipage/server-sent-events.html",
+      "https://www.rfc-editor.org/rfc/rfc6455.html",
+      "https://www.rfc-editor.org/rfc/rfc9113.html"
+    ]
   },
   "04-rest-grpc-webflux.reactive-webflux.q5": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["OpenAPI Specification latest", "Protocol Buffers current guide", "Pact current documentation"],
+    "target_versions": [
+      "OpenAPI Specification latest",
+      "Protocol Buffers current guide",
+      "Pact current documentation"
+    ],
     "claim_type": "heuristic",
-    "sources": ["https://spec.openapis.org/oas/latest.html", "https://protobuf.dev/programming-guides/proto3/", "https://docs.pact.io/"]
+    "sources": [
+      "https://spec.openapis.org/oas/latest.html",
+      "https://protobuf.dev/programming-guides/proto3/",
+      "https://docs.pact.io/"
+    ]
   },
   "04-rest-grpc-webflux.protocols.q1": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["RFC 9110", "RFC 4918", "RFC 9457"],
+    "target_versions": [
+      "RFC 9110",
+      "RFC 4918",
+      "RFC 9457"
+    ],
     "claim_type": "normative",
-    "sources": ["https://www.rfc-editor.org/rfc/rfc9110.html", "https://www.rfc-editor.org/rfc/rfc4918.html", "https://www.rfc-editor.org/rfc/rfc9457.html"]
+    "sources": [
+      "https://www.rfc-editor.org/rfc/rfc9110.html",
+      "https://www.rfc-editor.org/rfc/rfc4918.html",
+      "https://www.rfc-editor.org/rfc/rfc9457.html"
+    ]
   },
   "22-low-level-design-ood.the-lld-framework-classic-problems.q1": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["GoF Design Patterns", "current LLD teaching scope"],
+    "target_versions": [
+      "GoF Design Patterns",
+      "current LLD teaching scope"
+    ],
     "claim_type": "heuristic",
-    "sources": ["https://www.oreilly.com/library/view/design-patterns-elements/0201633612/"]
+    "sources": [
+      "https://www.oreilly.com/library/view/design-patterns-elements/0201633612/"
+    ]
   },
   "22-low-level-design-ood.the-lld-framework-classic-problems.q2": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["Java SE 25 HashMap", "Java SE 25 LinkedHashMap", "Java SE 25 ConcurrentHashMap"],
+    "target_versions": [
+      "Java SE 25 HashMap",
+      "Java SE 25 LinkedHashMap",
+      "Java SE 25 ConcurrentHashMap"
+    ],
     "claim_type": "normative",
-    "sources": ["https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/HashMap.html", "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/LinkedHashMap.html", "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/ConcurrentHashMap.html"]
+    "sources": [
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/HashMap.html",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/LinkedHashMap.html",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/ConcurrentHashMap.html"
+    ]
   },
   "22-low-level-design-ood.the-lld-framework-classic-problems.q3": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["Java SE 25 Clock API", "Redis current rate-limiter guidance"],
+    "target_versions": [
+      "Java SE 25 Clock API",
+      "Redis current rate-limiter guidance"
+    ],
     "claim_type": "heuristic",
-    "sources": ["https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/Clock.html", "https://redis.io/docs/latest/develop/use-cases/rate-limiter/"]
+    "sources": [
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/Clock.html",
+      "https://redis.io/docs/latest/develop/use-cases/rate-limiter/"
+    ]
   },
   "22-low-level-design-ood.patterns-in-interview-code.q1": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["GoF Design Patterns", "YAGNI guidance"],
+    "target_versions": [
+      "GoF Design Patterns",
+      "YAGNI guidance"
+    ],
     "claim_type": "heuristic",
-    "sources": ["https://www.oreilly.com/library/view/design-patterns-elements/0201633612/", "https://martinfowler.com/bliki/Yagni.html"]
+    "sources": [
+      "https://www.oreilly.com/library/view/design-patterns-elements/0201633612/",
+      "https://martinfowler.com/bliki/Yagni.html"
+    ]
   },
   "22-low-level-design-ood.patterns-in-interview-code.q2": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["GoF Design Patterns", "YAGNI guidance"],
+    "target_versions": [
+      "GoF Design Patterns",
+      "YAGNI guidance"
+    ],
     "claim_type": "heuristic",
-    "sources": ["https://www.oreilly.com/library/view/design-patterns-elements/0201633612/", "https://martinfowler.com/bliki/Yagni.html"]
+    "sources": [
+      "https://www.oreilly.com/library/view/design-patterns-elements/0201633612/",
+      "https://martinfowler.com/bliki/Yagni.html"
+    ]
   },
   "22-low-level-design-ood.patterns-in-interview-code.q4": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["Redis current expiration documentation", "Caffeine current eviction documentation"],
+    "target_versions": [
+      "Redis current expiration documentation",
+      "Caffeine current eviction documentation"
+    ],
     "claim_type": "heuristic",
-    "sources": ["https://redis.io/docs/latest/commands/expire/", "https://github.com/ben-manes/caffeine/wiki/Eviction"]
+    "sources": [
+      "https://redis.io/docs/latest/commands/expire/",
+      "https://github.com/ben-manes/caffeine/wiki/Eviction"
+    ]
   },
   "15-network-i-o-models.web-protocols.q1": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["RFC 8446 TLS 1.3", "RFC 9001 QUIC-TLS"],
+    "target_versions": [
+      "RFC 8446 TLS 1.3",
+      "RFC 9001 QUIC-TLS"
+    ],
     "claim_type": "normative",
-    "sources": ["https://www.rfc-editor.org/rfc/rfc8446.html", "https://www.rfc-editor.org/rfc/rfc9001.html"]
+    "sources": [
+      "https://www.rfc-editor.org/rfc/rfc8446.html",
+      "https://www.rfc-editor.org/rfc/rfc9001.html"
+    ]
   },
   "15-network-i-o-models.web-protocols.q2": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["RFC 9112 HTTP/1.1", "RFC 9113 HTTP/2", "RFC 9114 HTTP/3", "RFC 9000 QUIC"],
+    "target_versions": [
+      "RFC 9112 HTTP/1.1",
+      "RFC 9113 HTTP/2",
+      "RFC 9114 HTTP/3",
+      "RFC 9000 QUIC"
+    ],
     "claim_type": "normative",
-    "sources": ["https://www.rfc-editor.org/rfc/rfc9112.html", "https://www.rfc-editor.org/rfc/rfc9113.html", "https://www.rfc-editor.org/rfc/rfc9114.html", "https://www.rfc-editor.org/rfc/rfc9000.html"]
+    "sources": [
+      "https://www.rfc-editor.org/rfc/rfc9112.html",
+      "https://www.rfc-editor.org/rfc/rfc9113.html",
+      "https://www.rfc-editor.org/rfc/rfc9114.html",
+      "https://www.rfc-editor.org/rfc/rfc9000.html"
+    ]
   },
   "15-network-i-o-models.realtime-event-driven.q1": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["WHATWG Server-sent events", "RFC 6455 WebSocket", "RFC 9113 HTTP/2"],
+    "target_versions": [
+      "WHATWG Server-sent events",
+      "RFC 6455 WebSocket",
+      "RFC 9113 HTTP/2"
+    ],
     "claim_type": "heuristic",
-    "sources": ["https://html.spec.whatwg.org/multipage/server-sent-events.html", "https://www.rfc-editor.org/rfc/rfc6455.html", "https://www.rfc-editor.org/rfc/rfc9113.html"]
+    "sources": [
+      "https://html.spec.whatwg.org/multipage/server-sent-events.html",
+      "https://www.rfc-editor.org/rfc/rfc6455.html",
+      "https://www.rfc-editor.org/rfc/rfc9113.html"
+    ]
   },
   "15-network-i-o-models.realtime-event-driven.q3": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["Java 21+", "Spring Boot current servlet/web references", "Spring WebFlux current reference", "Go current net/http/net references"],
+    "target_versions": [
+      "Java 21+",
+      "Spring Boot current servlet/web references",
+      "Spring WebFlux current reference",
+      "Go current net/http/net references"
+    ],
     "claim_type": "heuristic",
-    "sources": ["https://openjdk.org/jeps/444", "https://docs.spring.io/spring-boot/reference/web/servlet.html", "https://docs.spring.io/spring-framework/reference/web/webflux/new-framework.html", "https://pkg.go.dev/net/http", "https://pkg.go.dev/net"]
+    "sources": [
+      "https://openjdk.org/jeps/444",
+      "https://docs.spring.io/spring-boot/reference/web/servlet.html",
+      "https://docs.spring.io/spring-framework/reference/web/webflux/new-framework.html",
+      "https://pkg.go.dev/net/http",
+      "https://pkg.go.dev/net"
+    ]
   },
   "15-network-i-o-models.threading-network-programming.q2": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["Java SE 25 NIO", "Linux epoll current man-pages", "RFC 9293 TCP", "RFC 768 UDP"],
+    "target_versions": [
+      "Java SE 25 NIO",
+      "Linux epoll current man-pages",
+      "RFC 9293 TCP",
+      "RFC 768 UDP"
+    ],
     "claim_type": "normative",
-    "sources": ["https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/channels/package-summary.html", "https://man7.org/linux/man-pages/man7/epoll.7.html", "https://www.rfc-editor.org/rfc/rfc9293.html", "https://www.rfc-editor.org/rfc/rfc768.html"]
+    "sources": [
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/channels/package-summary.html",
+      "https://man7.org/linux/man-pages/man7/epoll.7.html",
+      "https://www.rfc-editor.org/rfc/rfc9293.html",
+      "https://www.rfc-editor.org/rfc/rfc768.html"
+    ]
   },
   "15-network-i-o-models.threading-network-programming.q3": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["RFC 9112 HTTP/1.1", "gRPC current keepalive guide", "Linux socket/tcp man-pages"],
+    "target_versions": [
+      "RFC 9112 HTTP/1.1",
+      "gRPC current keepalive guide",
+      "Linux socket/tcp man-pages"
+    ],
     "claim_type": "heuristic",
-    "sources": ["https://www.rfc-editor.org/rfc/rfc9112.html", "https://grpc.io/docs/guides/keepalive/", "https://man7.org/linux/man-pages/man7/socket.7.html", "https://man7.org/linux/man-pages/man7/tcp.7.html"]
+    "sources": [
+      "https://www.rfc-editor.org/rfc/rfc9112.html",
+      "https://grpc.io/docs/guides/keepalive/",
+      "https://man7.org/linux/man-pages/man7/socket.7.html",
+      "https://man7.org/linux/man-pages/man7/tcp.7.html"
+    ]
   },
   "15-network-i-o-models.threading-network-programming.q4": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["gRPC current core concepts", "gRPC current flow-control guide", "Protocol Buffers current proto3 guide"],
+    "target_versions": [
+      "gRPC current core concepts",
+      "gRPC current flow-control guide",
+      "Protocol Buffers current proto3 guide"
+    ],
     "claim_type": "heuristic",
-    "sources": ["https://grpc.io/docs/what-is-grpc/core-concepts/", "https://grpc.io/docs/guides/flow-control/", "https://protobuf.dev/programming-guides/proto3/"]
+    "sources": [
+      "https://grpc.io/docs/what-is-grpc/core-concepts/",
+      "https://grpc.io/docs/guides/flow-control/",
+      "https://protobuf.dev/programming-guides/proto3/"
+    ]
   },
   "15-network-i-o-models.threading-network-programming.q5": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["gRPC current deadlines/retry guides", "RFC 9457 Problem Details", "RFC 6585 429"],
+    "target_versions": [
+      "gRPC current deadlines/retry guides",
+      "RFC 9457 Problem Details",
+      "RFC 6585 429"
+    ],
     "claim_type": "heuristic",
-    "sources": ["https://grpc.io/docs/guides/deadlines/", "https://grpc.io/docs/guides/retry/", "https://www.rfc-editor.org/rfc/rfc9457.html", "https://www.rfc-editor.org/rfc/rfc6585.html"]
+    "sources": [
+      "https://grpc.io/docs/guides/deadlines/",
+      "https://grpc.io/docs/guides/retry/",
+      "https://www.rfc-editor.org/rfc/rfc9457.html",
+      "https://www.rfc-editor.org/rfc/rfc6585.html"
+    ]
   },
   "15-network-i-o-models.threading-network-programming.q6": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["Spring Boot current servlet reference", "Java SE 25 NIO", "Linux socket/epoll man-pages"],
+    "target_versions": [
+      "Spring Boot current servlet reference",
+      "Java SE 25 NIO",
+      "Linux socket/epoll man-pages"
+    ],
     "claim_type": "heuristic",
-    "sources": ["https://docs.spring.io/spring-boot/reference/web/servlet.html", "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/channels/package-summary.html", "https://man7.org/linux/man-pages/man7/epoll.7.html", "https://man7.org/linux/man-pages/man7/socket.7.html"]
+    "sources": [
+      "https://docs.spring.io/spring-boot/reference/web/servlet.html",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/channels/package-summary.html",
+      "https://man7.org/linux/man-pages/man7/epoll.7.html",
+      "https://man7.org/linux/man-pages/man7/socket.7.html"
+    ]
   },
   "23-java-concurrency-coding.classic-synchronisation-problems.q1": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["Java SE 25 BlockingQueue", "Java SE 25 wait/notify"],
+    "target_versions": [
+      "Java SE 25 BlockingQueue",
+      "Java SE 25 wait/notify"
+    ],
     "claim_type": "normative",
-    "sources": ["https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/BlockingQueue.html", "https://docs.oracle.com/javase/specs/jls/se25/html/jls-17.html"]
+    "sources": [
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/BlockingQueue.html",
+      "https://docs.oracle.com/javase/specs/jls/se25/html/jls-17.html"
+    ]
   },
   "23-java-concurrency-coding.classic-synchronisation-problems.q2": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["Java SE 25 locks and synchronizers"],
+    "target_versions": [
+      "Java SE 25 locks and synchronizers"
+    ],
     "claim_type": "heuristic",
-    "sources": ["https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/Semaphore.html", "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/locks/ReentrantLock.html"]
+    "sources": [
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/Semaphore.html",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/locks/ReentrantLock.html"
+    ]
   },
   "23-java-concurrency-coding.classic-synchronisation-problems.q3": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["Java SE 25 ReentrantLock", "Java SE 25 Semaphore"],
+    "target_versions": [
+      "Java SE 25 ReentrantLock",
+      "Java SE 25 Semaphore"
+    ],
     "claim_type": "heuristic",
-    "sources": ["https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/locks/ReentrantLock.html", "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/Semaphore.html"]
+    "sources": [
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/locks/ReentrantLock.html",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/Semaphore.html"
+    ]
   },
   "23-java-concurrency-coding.classic-synchronisation-problems.q4": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["Java SE 25 ReadWriteLock", "Java SE 25 StampedLock"],
+    "target_versions": [
+      "Java SE 25 ReadWriteLock",
+      "Java SE 25 StampedLock"
+    ],
     "claim_type": "normative",
-    "sources": ["https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/locks/ReadWriteLock.html", "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/locks/StampedLock.html"]
+    "sources": [
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/locks/ReadWriteLock.html",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/locks/StampedLock.html"
+    ]
   },
   "23-java-concurrency-coding.async-the-modern-toolkit.q1": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["Java SE 25 CompletableFuture", "Java SE 25 ExecutorService"],
+    "target_versions": [
+      "Java SE 25 CompletableFuture",
+      "Java SE 25 ExecutorService"
+    ],
     "claim_type": "normative",
-    "sources": ["https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/CompletableFuture.html", "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/ExecutorService.html"]
+    "sources": [
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/CompletableFuture.html",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/ExecutorService.html"
+    ]
   },
   "23-java-concurrency-coding.async-the-modern-toolkit.q2": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["Java SE 25 CountDownLatch", "Java SE 25 CyclicBarrier", "Java SE 25 Phaser", "Java SE 25 Semaphore"],
+    "target_versions": [
+      "Java SE 25 CountDownLatch",
+      "Java SE 25 CyclicBarrier",
+      "Java SE 25 Phaser",
+      "Java SE 25 Semaphore"
+    ],
     "claim_type": "normative",
-    "sources": ["https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/CountDownLatch.html", "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/CyclicBarrier.html", "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/Phaser.html", "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/Semaphore.html"]
+    "sources": [
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/CountDownLatch.html",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/CyclicBarrier.html",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/Phaser.html",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/Semaphore.html"
+    ]
   },
   "23-java-concurrency-coding.async-the-modern-toolkit.q3": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["Java SE 25 atomic package", "Java SE 25 AtomicStampedReference", "Java SE 25 LongAdder"],
+    "target_versions": [
+      "Java SE 25 atomic package",
+      "Java SE 25 AtomicStampedReference",
+      "Java SE 25 LongAdder"
+    ],
     "claim_type": "normative",
-    "sources": ["https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/atomic/package-summary.html", "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/atomic/AtomicStampedReference.html", "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/atomic/LongAdder.html"]
+    "sources": [
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/atomic/package-summary.html",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/atomic/AtomicStampedReference.html",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/atomic/LongAdder.html"
+    ]
   },
   "23-java-concurrency-coding.async-the-modern-toolkit.q4": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["JDK 21 virtual threads", "JDK 24 monitor pinning", "JDK 25 StructuredTaskScope preview"],
+    "target_versions": [
+      "JDK 21 virtual threads",
+      "JDK 24 monitor pinning",
+      "JDK 25 StructuredTaskScope preview"
+    ],
     "claim_type": "normative",
-    "sources": ["https://openjdk.org/jeps/444", "https://openjdk.org/jeps/491", "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/StructuredTaskScope.html"]
+    "sources": [
+      "https://openjdk.org/jeps/444",
+      "https://openjdk.org/jeps/491",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/StructuredTaskScope.html"
+    ]
   },
   "23-java-concurrency-coding.async-the-modern-toolkit.q5": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["Java SE 25 JLS volatile", "Java SE 25 LongAdder", "jcstress current project"],
+    "target_versions": [
+      "Java SE 25 JLS volatile",
+      "Java SE 25 LongAdder",
+      "jcstress current project"
+    ],
     "claim_type": "normative",
-    "sources": ["https://docs.oracle.com/javase/specs/jls/se25/html/jls-17.html", "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/atomic/LongAdder.html", "https://openjdk.org/projects/code-tools/jcstress/"]
+    "sources": [
+      "https://docs.oracle.com/javase/specs/jls/se25/html/jls-17.html",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/atomic/LongAdder.html",
+      "https://openjdk.org/projects/code-tools/jcstress/"
+    ]
   },
   "23-java-concurrency-coding.async-the-modern-toolkit.q6": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["Java SE 25 ExecutorService", "Java SE 25 CompletableFuture", "JDK 25 StructuredTaskScope preview"],
+    "target_versions": [
+      "Java SE 25 ExecutorService",
+      "Java SE 25 CompletableFuture",
+      "JDK 25 StructuredTaskScope preview"
+    ],
     "claim_type": "heuristic",
-    "sources": ["https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/ExecutorService.html", "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/CompletableFuture.html", "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/StructuredTaskScope.html"]
+    "sources": [
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/ExecutorService.html",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/CompletableFuture.html",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/StructuredTaskScope.html"
+    ]
   },
   "03-spring-boot-deep-build.ioc-container-transactions.q2": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["Spring Framework current transaction annotation reference", "Spring AOP proxying current reference"],
+    "target_versions": [
+      "Spring Framework current transaction annotation reference",
+      "Spring AOP proxying current reference"
+    ],
     "claim_type": "normative",
-    "sources": ["https://docs.spring.io/spring-framework/reference/data-access/transaction/declarative/annotations.html", "https://docs.spring.io/spring-framework/reference/core/aop/proxying.html"]
+    "sources": [
+      "https://docs.spring.io/spring-framework/reference/data-access/transaction/declarative/annotations.html",
+      "https://docs.spring.io/spring-framework/reference/core/aop/proxying.html"
+    ]
   },
   "03-spring-boot-deep-build.ioc-container-transactions.q3": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["Spring Framework current transaction propagation reference"],
+    "target_versions": [
+      "Spring Framework current transaction propagation reference"
+    ],
     "claim_type": "normative",
-    "sources": ["https://docs.spring.io/spring-framework/reference/data-access/transaction/declarative/tx-propagation.html"]
+    "sources": [
+      "https://docs.spring.io/spring-framework/reference/data-access/transaction/declarative/tx-propagation.html"
+    ]
   },
   "01-java-core-jvm.memory-execution-model.q4": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["JDK 25 collector-specific logging", "JDK 21 jcmd/JFR diagnostics"],
+    "target_versions": [
+      "JDK 25 collector-specific logging",
+      "JDK 21 jcmd/JFR diagnostics"
+    ],
     "claim_type": "heuristic",
-    "sources": ["https://docs.oracle.com/en/java/javase/25/gctuning/garbage-first-garbage-collector.html", "https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html", "https://docs.oracle.com/en/java/javase/21/docs/specs/man/jfr.html"]
+    "sources": [
+      "https://docs.oracle.com/en/java/javase/25/gctuning/garbage-first-garbage-collector.html",
+      "https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html",
+      "https://docs.oracle.com/en/java/javase/21/docs/specs/man/jfr.html"
+    ]
   },
   "01-java-core-jvm.concurrency.q3": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["Java SE 25 ConcurrentHashMap", "JDK 25 implementation"],
+    "target_versions": [
+      "Java SE 25 ConcurrentHashMap",
+      "JDK 25 implementation"
+    ],
     "claim_type": "heuristic",
-    "sources": ["https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/ConcurrentHashMap.html", "https://github.com/openjdk/jdk/blob/master/src/java.base/share/classes/java/util/concurrent/ConcurrentHashMap.java"]
+    "sources": [
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/ConcurrentHashMap.html",
+      "https://github.com/openjdk/jdk/blob/master/src/java.base/share/classes/java/util/concurrent/ConcurrentHashMap.java"
+    ]
   },
   "01-java-core-jvm.concurrency.q5": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["Java SE 25 CompletableFuture", "Topic 15/17 retry and timeout contracts"],
+    "target_versions": [
+      "Java SE 25 CompletableFuture",
+      "Topic 15/17 retry and timeout contracts"
+    ],
     "claim_type": "heuristic",
-    "sources": ["https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/CompletableFuture.html", "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/Future.html"]
+    "sources": [
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/CompletableFuture.html",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/Future.html"
+    ]
   },
   "01-java-core-jvm.language-fundamentals.q1": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["Java SE 25 Object contract"],
+    "target_versions": [
+      "Java SE 25 Object contract"
+    ],
     "claim_type": "normative",
-    "sources": ["https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html#equals(java.lang.Object)", "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html#hashCode()"]
+    "sources": [
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html#equals(java.lang.Object)",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html#hashCode()"
+    ]
   },
   "01-java-core-jvm.collections-data-structures.q1": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["Java SE 25 HashMap", "JDK 25 implementation"],
+    "target_versions": [
+      "Java SE 25 HashMap",
+      "JDK 25 implementation"
+    ],
     "claim_type": "heuristic",
-    "sources": ["https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/HashMap.html", "https://github.com/openjdk/jdk/blob/master/src/java.base/share/classes/java/util/HashMap.java"]
+    "sources": [
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/HashMap.html",
+      "https://github.com/openjdk/jdk/blob/master/src/java.base/share/classes/java/util/HashMap.java"
+    ]
   },
   "03-spring-boot-deep-build.auto-configuration-build.q4": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["Maven current build documentation", "Gradle current build-performance documentation"],
+    "target_versions": [
+      "Maven current build documentation",
+      "Gradle current build-performance documentation"
+    ],
     "claim_type": "heuristic",
-    "sources": ["https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html", "https://docs.gradle.org/current/userguide/performance.html", "https://docs.gradle.org/current/userguide/core_dependency_management.html"]
+    "sources": [
+      "https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html",
+      "https://docs.gradle.org/current/userguide/performance.html",
+      "https://docs.gradle.org/current/userguide/core_dependency_management.html"
+    ]
   },
   "11-system-design-cases.the-big-prompts.q3": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["RFC 9110 HTTP Semantics", "RFC 9111 HTTP Caching", "RFC 9457 Problem Details"],
+    "target_versions": [
+      "RFC 9110 HTTP Semantics",
+      "RFC 9111 HTTP Caching",
+      "RFC 9457 Problem Details"
+    ],
     "claim_type": "heuristic",
-    "sources": ["https://www.rfc-editor.org/rfc/rfc9110.html", "https://www.rfc-editor.org/rfc/rfc9111.html", "https://www.rfc-editor.org/rfc/rfc9457.html"]
+    "sources": [
+      "https://www.rfc-editor.org/rfc/rfc9110.html",
+      "https://www.rfc-editor.org/rfc/rfc9111.html",
+      "https://www.rfc-editor.org/rfc/rfc9457.html"
+    ]
   },
   "11-system-design-cases.the-big-prompts.q4": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["Apache Cassandra current data-modeling guidance", "Elasticsearch current pagination guidance"],
+    "target_versions": [
+      "Apache Cassandra current data-modeling guidance",
+      "Elasticsearch current pagination guidance"
+    ],
     "claim_type": "heuristic",
-    "sources": ["https://cassandra.apache.org/doc/latest/cassandra/developing/data-modeling/intro.html", "https://www.elastic.co/docs/reference/elasticsearch/rest-apis/paginate-search-results"]
+    "sources": [
+      "https://cassandra.apache.org/doc/latest/cassandra/developing/data-modeling/intro.html",
+      "https://www.elastic.co/docs/reference/elasticsearch/rest-apis/paginate-search-results"
+    ]
   },
   "11-system-design-cases.the-big-prompts.q5": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["Redis current rate-limit guidance", "Redis current replication and lock guidance", "RFC 6585"],
+    "target_versions": [
+      "Redis current rate-limit guidance",
+      "Redis current replication and lock guidance",
+      "RFC 6585"
+    ],
     "claim_type": "heuristic",
-    "sources": ["https://redis.io/learn/develop/java/spring/rate-limiting/fixed-window", "https://redis.io/docs/latest/operate/oss_and_stack/management/replication/", "https://redis.io/docs/latest/develop/clients/patterns/distributed-locks/", "https://www.rfc-editor.org/rfc/rfc6585.html"]
+    "sources": [
+      "https://redis.io/learn/develop/java/spring/rate-limiting/fixed-window",
+      "https://redis.io/docs/latest/operate/oss_and_stack/management/replication/",
+      "https://redis.io/docs/latest/develop/clients/patterns/distributed-locks/",
+      "https://www.rfc-editor.org/rfc/rfc6585.html"
+    ]
   },
   "11-system-design-cases.the-big-prompts.q6": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["Redis current sorted-set and replication documentation"],
+    "target_versions": [
+      "Redis current sorted-set and replication documentation"
+    ],
     "claim_type": "heuristic",
-    "sources": ["https://redis.io/docs/latest/develop/data-types/sorted-sets/", "https://redis.io/docs/latest/operate/oss_and_stack/management/replication/"]
+    "sources": [
+      "https://redis.io/docs/latest/develop/data-types/sorted-sets/",
+      "https://redis.io/docs/latest/operate/oss_and_stack/management/replication/"
+    ]
   },
   "11-system-design-cases.the-big-prompts.q7": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["Redis current cache-aside and eviction documentation"],
+    "target_versions": [
+      "Redis current cache-aside and eviction documentation"
+    ],
     "claim_type": "heuristic",
-    "sources": ["https://redis.io/docs/latest/develop/use-cases/cache-aside/", "https://redis.io/docs/latest/develop/reference/eviction/"]
+    "sources": [
+      "https://redis.io/docs/latest/develop/use-cases/cache-aside/",
+      "https://redis.io/docs/latest/develop/reference/eviction/"
+    ]
   },
   "11-system-design-cases.the-big-prompts.q8": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["Apache Kafka current design documentation", "RabbitMQ current reliability documentation"],
+    "target_versions": [
+      "Apache Kafka current design documentation",
+      "RabbitMQ current reliability documentation"
+    ],
     "claim_type": "heuristic",
-    "sources": ["https://kafka.apache.org/42/design/design/", "https://www.rabbitmq.com/docs/reliability", "https://www.rabbitmq.com/docs/confirms"]
+    "sources": [
+      "https://kafka.apache.org/42/design/design/",
+      "https://www.rabbitmq.com/docs/reliability",
+      "https://www.rabbitmq.com/docs/confirms"
+    ]
   },
   "11-system-design-cases.the-big-prompts.q9": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["OpenSearch current autocomplete documentation", "RFC 9457 Problem Details"],
+    "target_versions": [
+      "OpenSearch current autocomplete documentation",
+      "RFC 9457 Problem Details"
+    ],
     "claim_type": "heuristic",
-    "sources": ["https://docs.opensearch.org/latest/search-plugins/searching-data/autocomplete/", "https://www.rfc-editor.org/rfc/rfc9457.html"]
+    "sources": [
+      "https://docs.opensearch.org/latest/search-plugins/searching-data/autocomplete/",
+      "https://www.rfc-editor.org/rfc/rfc9457.html"
+    ]
   },
   "11-system-design-cases.the-big-prompts.q12": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["OpenAPI current specification", "Pact current contract-testing documentation", "Testcontainers current documentation"],
+    "target_versions": [
+      "OpenAPI current specification",
+      "Pact current contract-testing documentation",
+      "Testcontainers current documentation"
+    ],
     "claim_type": "heuristic",
-    "sources": ["https://spec.openapis.org/oas/", "https://docs.pact.io/", "https://testcontainers.com/guides/getting-started-with-testcontainers-for-java/"]
+    "sources": [
+      "https://spec.openapis.org/oas/",
+      "https://docs.pact.io/",
+      "https://testcontainers.com/guides/getting-started-with-testcontainers-for-java/"
+    ]
   },
   "11-system-design-cases.the-big-prompts.q13": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["PostgreSQL current transaction documentation", "Apache Kafka current design documentation", "AWS current Saga guidance"],
+    "target_versions": [
+      "PostgreSQL current transaction documentation",
+      "Apache Kafka current design documentation",
+      "AWS current Saga guidance"
+    ],
     "claim_type": "heuristic",
-    "sources": ["https://www.postgresql.org/docs/current/tutorial-transactions.html", "https://kafka.apache.org/42/design/design/", "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/saga-patterns.html"]
+    "sources": [
+      "https://www.postgresql.org/docs/current/tutorial-transactions.html",
+      "https://kafka.apache.org/42/design/design/",
+      "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/saga-patterns.html"
+    ]
   },
   "11-system-design-cases.the-big-prompts.q17": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["Google SRE current cascading-failure guidance", "OpenTelemetry current semantic conventions"],
+    "target_versions": [
+      "Google SRE current cascading-failure guidance",
+      "OpenTelemetry current semantic conventions"
+    ],
     "claim_type": "heuristic",
-    "sources": ["https://sre.google/sre-book/addressing-cascading-failures/", "https://opentelemetry.io/docs/specs/semconv/messaging/messaging-spans/"]
+    "sources": [
+      "https://sre.google/sre-book/addressing-cascading-failures/",
+      "https://opentelemetry.io/docs/specs/semconv/messaging/messaging-spans/"
+    ]
   },
   "11-system-design-cases.the-big-prompts.q18": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["Apache Kafka current design documentation", "RabbitMQ current reliability and confirms documentation", "Redis current cache-aside guidance"],
+    "target_versions": [
+      "Apache Kafka current design documentation",
+      "RabbitMQ current reliability and confirms documentation",
+      "Redis current cache-aside guidance"
+    ],
     "claim_type": "heuristic",
-    "sources": ["https://kafka.apache.org/42/design/design/", "https://www.rabbitmq.com/docs/reliability", "https://www.rabbitmq.com/docs/confirms", "https://redis.io/docs/latest/develop/use-cases/cache-aside/"]
+    "sources": [
+      "https://kafka.apache.org/42/design/design/",
+      "https://www.rabbitmq.com/docs/reliability",
+      "https://www.rabbitmq.com/docs/confirms",
+      "https://redis.io/docs/latest/develop/use-cases/cache-aside/"
+    ]
   },
   "11-system-design-cases.the-big-prompts.q19": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["Redis current rate-limit guidance", "PostgreSQL current transaction documentation", "Google SRE current cascading-failure guidance"],
+    "target_versions": [
+      "Redis current rate-limit guidance",
+      "PostgreSQL current transaction documentation",
+      "Google SRE current cascading-failure guidance"
+    ],
     "claim_type": "heuristic",
-    "sources": ["https://redis.io/learn/develop/java/spring/rate-limiting/fixed-window", "https://www.postgresql.org/docs/current/tutorial-transactions.html", "https://sre.google/sre-book/addressing-cascading-failures/"]
+    "sources": [
+      "https://redis.io/learn/develop/java/spring/rate-limiting/fixed-window",
+      "https://www.postgresql.org/docs/current/tutorial-transactions.html",
+      "https://sre.google/sre-book/addressing-cascading-failures/"
+    ]
   },
   "11-system-design-cases.the-big-prompts.q20": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["Redis current replication documentation", "Stripe current idempotency and webhook documentation", "AWS current transactional-outbox guidance"],
+    "target_versions": [
+      "Redis current replication documentation",
+      "Stripe current idempotency and webhook documentation",
+      "AWS current transactional-outbox guidance"
+    ],
     "claim_type": "heuristic",
-    "sources": ["https://redis.io/docs/latest/operate/oss_and_stack/management/replication/", "https://docs.stripe.com/api/idempotent_requests", "https://docs.stripe.com/webhooks?lang=node", "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html"]
+    "sources": [
+      "https://redis.io/docs/latest/operate/oss_and_stack/management/replication/",
+      "https://docs.stripe.com/api/idempotent_requests",
+      "https://docs.stripe.com/webhooks?lang=node",
+      "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html"
+    ]
   },
   "11-system-design-cases.the-big-prompts.q21": {
     "reviewed_at": "2026-09-12",
-    "target_versions": ["OpenAPI current specification", "RFC 9457 Problem Details", "OAuth 2.0 Security Best Current Practice RFC 9700"],
+    "target_versions": [
+      "OpenAPI current specification",
+      "RFC 9457 Problem Details",
+      "OAuth 2.0 Security Best Current Practice RFC 9700"
+    ],
     "claim_type": "heuristic",
-    "sources": ["https://spec.openapis.org/oas/", "https://www.rfc-editor.org/rfc/rfc9457.html", "https://www.rfc-editor.org/rfc/rfc9700.html"]
+    "sources": [
+      "https://spec.openapis.org/oas/",
+      "https://www.rfc-editor.org/rfc/rfc9457.html",
+      "https://www.rfc-editor.org/rfc/rfc9700.html"
+    ]
   }
 }

@@ -16,7 +16,7 @@
       "Invariant: which business effect must happen exactly once, and which shared row or unique key can adjudicate it atomically?",
       "Concurrency: where is the read/write gap, and can requests reach it through different processes, methods, retries or devices?",
       "Evidence: do quiet alerts prove the invariant, or only that one observed trigger has stopped producing the old signature?",
-      "Verification: can a barrier or injected delay reproduce the race deterministically and assert exactly one committed side effect?"
+      "Verification: can a barrier or injected delay reproduce the race deterministically and assert exactly one committed side effect? The fix is only a local race fix — not \"duplicate solved\" — until you can show: which framework version routed HEAD to the GET handler, which database isolation, index or predicate enforces the unique or conditional write, whether the GDS is idempotent or queryable by a stable booking reference, how long retries can outlive the intent key, that GET/HEAD are blocked at CDN, proxy, framework and service, and a two-instance test that forces both requests through one session with a crash after provider acceptance."
     ]
   }
 }

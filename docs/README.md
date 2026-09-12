@@ -21,8 +21,9 @@ Từng có 46 record đơn vị + 16 dossier, là dẫn chứng đằng sau nộ
 tháng 9/2026 đã áp 226/235 đề xuất sửa vào `public/data/`, chuyển 120 claim
 kèm nguồn vào `public/data/content-reviews.json`, rồi gỡ thư mục. Ledger nguồn
 đầy đủ (605 dòng, ~1.000 URL, ngày review từng nguồn) vẫn nằm trong git:
-lấy commit gỡ bằng `git log -1 --format=%h --diff-filter=D -- docs/research/index.md`, rồi `git show <commit>^:docs/research/units/topics/01-java-core-jvm.md` cho từng unit. Chín mục
-còn mở nằm ở `todo/content-followups.md`.
+lấy commit gỡ bằng `git log -1 --format=%h --diff-filter=D -- docs/research/index.md`, rồi `git show <commit>^:docs/research/units/topics/01-java-core-jvm.md` cho từng unit. 141 câu
+hỏi mở / falsifier của các unit đã thành khối *"What would change this answer"*
+ở item mở đầu của 14 topic và lens thứ tư của 6 case study — không còn todo.
 
 ## `todo/` — xoá khi xong
 

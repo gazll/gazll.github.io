@@ -4,6 +4,29 @@
     {
       "date": "2026-09-12",
       "en": {
+        "title": "Every design topic now says what would change its answer"
+      },
+      "vi": {
+        "title": "Mỗi topic thiết kế nay nói rõ điều gì làm câu trả lời đổi"
+      },
+      "changes": [
+        {
+          "kind": "content",
+          "target": "system-design",
+          "en": {
+            "section": "Study Track",
+            "text": "Fourteen topics open with a \"What would change this answer\" deep dive — the assumptions an interviewer can ask you to justify, and the measurement that would falsify each; six case-study guides close with the same test in their operations lens."
+          },
+          "vi": {
+            "section": "Study Track",
+            "text": "Mười bốn topic mở đầu bằng khối \"Điều gì làm câu trả lời này đổi\" — các giả định người phỏng vấn có thể bắt bạn biện minh và phép đo bác bỏ từng giả định; sáu guide case study khép lại bằng cùng phép thử ở lens vận hành."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-09-12",
+      "en": {
         "title": "Research follow-ups applied across seventeen topics"
       },
       "vi": {

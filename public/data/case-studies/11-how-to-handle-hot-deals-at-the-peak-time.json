@@ -16,7 +16,7 @@
       "Race analysis: enumerate deal start, price update, final reservation and sold-out event interleavings.",
       "Idempotency: protect repeated checkout reservations and duplicate quantity-update events.",
       "Staleness policy: define which price versions remain acceptable during propagation and for how long.",
-      "Load shedding: preserve inventory correctness when downstream price or deal consumers fall behind peak traffic."
+      "Load shedding: preserve inventory correctness when downstream price or deal consumers fall behind peak traffic. The design is falsified for your system when: the inventory or quota store has no atomic conditional write (oversell prevention collapses), peak RPS, hot-key skew, reservation TTL and origin capacity are unknown (no queue, pool or replica count is justified), the displayed price omits tax, fees, currency or rounding (the price predicate is incomplete), one actor can consume every admission token (a pure FIFO wait room is insufficient), or a timeout after a possibly successful admission has no query or reconciliation path."
     ]
   }
 }

@@ -16,7 +16,7 @@
       "Invariant: business effect nào phải xảy ra đúng một lần, và shared row hay unique key nào có thể atomic adjudicate nó?",
       "Concurrency: read/write gap nằm đâu, và request có thể tới đó qua process, method, retry hoặc device khác nhau không?",
       "Evidence: alert im có chứng minh invariant hay chỉ cho thấy một observed trigger không còn tạo signature cũ?",
-      "Verification: barrier hoặc injected delay có thể reproduce race tất định và assert đúng một committed side effect không?"
+      "Verification: barrier hoặc injected delay có thể reproduce race tất định và assert đúng một committed side effect không? Bản sửa chỉ là sửa một race cục bộ — chưa phải \"hết trùng\" — cho tới khi bạn chỉ ra được: framework version nào đã route HEAD sang handler GET, isolation, index hay predicate nào của database enforce unique hay conditional write, GDS có idempotent hay tra được theo booking reference ổn định không, retry có thể sống lâu hơn intent key bao lâu, GET/HEAD bị chặn ở CDN, proxy, framework và service, và một test hai instance ép cả hai request qua cùng session với crash sau khi provider đã chấp nhận."
     ]
   }
 }

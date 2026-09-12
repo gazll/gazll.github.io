@@ -46,11 +46,11 @@
 <p>Với HMAC, hai phía phải share secret, nên token verifier cũng có khả năng tạo JWT hợp lệ mới. Với RSA, verifier chỉ giữ Public Key để verify và không thể tạo JWT mới. Vì vậy RSA phù hợp hơn khi cần share JWT với nhiều verifier.</p>
 <h3 id="su-dung-opaque-token-khi-muon-de-kiem-soat-phien-lam-viec-tot-hon">Sử dụng Opaque Token khi muốn để kiểm soát session làm việc tốt hơn</h3>
 <p>Opaque Token (còn được gọi là stateful token) là dạng token không chứa thông tin trong nó, thông thường là 1 chuỗi ngẫu nhiên và yêu cầu 1 service trung gian để kiểm tra và lấy thông tin. Ví dụ:</p>
-<pre><code>{</code></pre>
-<pre><code>&quot;access_token&quot;: &quot;c2hr8Jgp5jBn-TY7E14HRuO37hEK1o_IOfDzbnZEO-o.zwh2f8SPiLKbcMbrD_DSgOTd3FIfQ8ch2bYSFi8NwbY&quot;,</code></pre>
-<pre><code>&quot;expires_in&quot;: 3599,</code></pre>
-<pre><code>&quot;token_type&quot;: &quot;bearer&quot;</code></pre>
-<pre><code>}</code></pre>
+<pre><code>{
+&quot;access_token&quot;: &quot;c2hr8Jgp5jBn-TY7E14HRuO37hEK1o_IOfDzbnZEO-o.zwh2f8SPiLKbcMbrD_DSgOTd3FIfQ8ch2bYSFi8NwbY&quot;,
+&quot;expires_in&quot;: 3599,
+&quot;token_type&quot;: &quot;bearer&quot;
+}</code></pre>
 <p>Transparent Token (còn được gọi là stateless token) thông thường chính là dạng JWT, token này bản thân chứa thông tin và không cần 1 service trung gian để kiểm tra. Hãy cùng so sánh 2 loại token này.</p>
 <figure class="cs-figure cs-figure-wide">
   <button type="button" data-zoom-image aria-label="Open figure 4 at full size">
@@ -126,19 +126,19 @@
   <figcaption>Figure 10 · Policy-Based Access Control (PBAC)</figcaption>
 </figure>
 <p>PBAC được định nghĩa qua các policy viết bằng một policy language như XACML (eXtensible Access Control Markup Language). Một policy có bốn thành phần: subject, effect, action và resource. Ví dụ <strong>john</strong> (subject) được <strong>allowed</strong> (effect) thực hiện <strong>delete</strong> (action) product có ID <strong>john-leman</strong> (resource). Cách này nhìn qua khá giống ACL.</p>
-<pre><code>{</code></pre>
-<pre><code>&quot;subjects&quot;: [&quot;user:john&quot;],</code></pre>
-<pre><code>&quot;effect&quot;: &quot;allow&quot;,</code></pre>
-<pre><code>&quot;actions&quot;: [&quot;catalog:delete&quot;]</code></pre>
-<pre><code>&quot;resources&quot;: [&quot;product:john-leman&quot;],</code></pre>
-<pre><code>}</code></pre>
+<pre><code>{
+&quot;subjects&quot;: [&quot;user:john&quot;],
+&quot;effect&quot;: &quot;allow&quot;,
+&quot;actions&quot;: [&quot;catalog:delete&quot;]
+&quot;resources&quot;: [&quot;product:john-leman&quot;],
+}</code></pre>
 <p>Chúng ta có thể bổ sung subject, action và resource vào policy nếu cần.</p>
-<pre><code>{</code></pre>
-<pre><code>&quot;subjects&quot;: [&quot;user:john&quot;, &quot;user:katy&quot;, &quot;user:perry&quot;],</code></pre>
-<pre><code>&quot;effect&quot;: &quot;allow&quot;,</code></pre>
-<pre><code>&quot;actions&quot;: [&quot;catalog:delete&quot;, &quot;catalog:update&quot;, &quot;catalog:publish&quot;]</code></pre>
-<pre><code>&quot;resources&quot;: [&quot;product:john-leman&quot;, &quot;product:john-doe&quot;]</code></pre>
-<pre><code>}</code></pre>
+<pre><code>{
+&quot;subjects&quot;: [&quot;user:john&quot;, &quot;user:katy&quot;, &quot;user:perry&quot;],
+&quot;effect&quot;: &quot;allow&quot;,
+&quot;actions&quot;: [&quot;catalog:delete&quot;, &quot;catalog:update&quot;, &quot;catalog:publish&quot;]
+&quot;resources&quot;: [&quot;product:john-leman&quot;, &quot;product:john-doe&quot;]
+}</code></pre>
 <p>Bạn có thể thắc mắc PBAC khác ACL thế nào; điểm khác biệt nằm ở policy precedence và cách diễn đạt rule.</p>
 <p><strong>Policy precedence</strong></p>
 <ul>
@@ -148,26 +148,26 @@
 </ul>
 <p><strong>Regular Expression</strong></p>
 <p>Các policy cho phép khai báo sử dụng regular expression, như ở ví dụ này cho phép tất cả người dùng được xem thông tin product.</p>
-<pre><code>{</code></pre>
-<pre><code>&quot;subjects&quot;: [&quot;user:&lt;.*&gt;&quot;],</code></pre>
-<pre><code>&quot;effect&quot;: &quot;allow&quot;,</code></pre>
-<pre><code>&quot;actions&quot;: [&quot;catalog:read],</code></pre>
-<pre><code>&quot;resources&quot;: [&quot;product:&lt;.*&gt;&quot;]</code></pre>
-<pre><code>}</code></pre>
+<pre><code>{
+&quot;subjects&quot;: [&quot;user:&lt;.*&gt;&quot;],
+&quot;effect&quot;: &quot;allow&quot;,
+&quot;actions&quot;: [&quot;catalog:read],
+&quot;resources&quot;: [&quot;product:&lt;.*&gt;&quot;]
+}</code></pre>
 <p><strong>Conditions</strong></p>
 <p>Policy có thể bổ sung condition để thu hẹp phạm vi permission, ví dụ chỉ áp dụng cho một IP range hoặc chỉ cho phép creator của product được sửa product đó.</p>
-<pre><code>{</code></pre>
-<pre><code>&quot;subjects&quot;: [&quot;user:ken&quot;],</code></pre>
-<pre><code>&quot;actions&quot; : [&quot;catalog:delete&quot;, &quot;catalog:create&quot;, &quot;catalog:update&quot;],</code></pre>
-<pre><code>&quot;effect&quot;: &quot;allow&quot;,</code></pre>
-<pre><code>&quot;resources&quot;: [&quot;products:&lt;.*&gt;&quot;],</code></pre>
-<pre><code>&quot;conditions&quot;: {</code></pre>
-<pre><code>&quot;IpAddress&quot;: {</code></pre>
-<pre><code>&quot;addresses&quot;: [</code></pre>
-<pre><code>&quot;192.168.0.0/16&quot;</code></pre>
-<pre><code>]</code></pre>
-<pre><code>}</code></pre>
-<pre><code>}</code></pre>
-<pre><code>}</code></pre>
+<pre><code>{
+&quot;subjects&quot;: [&quot;user:ken&quot;],
+&quot;actions&quot; : [&quot;catalog:delete&quot;, &quot;catalog:create&quot;, &quot;catalog:update&quot;],
+&quot;effect&quot;: &quot;allow&quot;,
+&quot;resources&quot;: [&quot;products:&lt;.*&gt;&quot;],
+&quot;conditions&quot;: {
+&quot;IpAddress&quot;: {
+&quot;addresses&quot;: [
+&quot;192.168.0.0/16&quot;
+]
+}
+}
+}</code></pre>
 <h2 id="tong-ket">Tổng kết</h2>
 <p>Việc liên tục mở rộng nghiệp vụ và hệ thống đòi hỏi mỗi service phải tự thực hiện authentication, không phân biệt service đó là internal hay external. Điều này giúp các team dễ dàng mở rộng và tích hợp với nhau, nhưng cũng đòi hỏi một authentication model chung hoạt động ổn định, tối ưu và đáp ứng throughput cao. Vẫn còn nhiều thách thức ở phía trước.</p>
