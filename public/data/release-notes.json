@@ -4,6 +4,41 @@
     {
       "date": "2026-09-12",
       "en": {
+        "title": "From blocking Spring to event-driven Java"
+      },
+      "vi": {
+        "title": "Từ Spring blocking đến Java event-driven"
+      },
+      "changes": [
+        {
+          "kind": "content",
+          "target": "15-network-i-o-models",
+          "en": {
+            "section": "Realtime & event-driven",
+            "text": "Added a sync/async versus blocking/non-blocking map, an outbox-to-broker-to-ack flow, and Kafka/RabbitMQ listener semantics."
+          },
+          "vi": {
+            "section": "Realtime & event-driven",
+            "text": "Thêm bản đồ sync/async và blocking/non-blocking, luồng outbox-to-broker-to-ack cùng semantics của listener Kafka/RabbitMQ."
+          }
+        },
+        {
+          "kind": "content",
+          "target": "04-rest-grpc-webflux",
+          "en": {
+            "section": "Reactive / WebFlux",
+            "text": "Refined the WebFlux, Vert.x and Virtual Threads matrix with Spring Boot 3.2+/Java 21+ MVC configuration, backpressure, and downstream-bound guidance."
+          },
+          "vi": {
+            "section": "Reactive / WebFlux",
+            "text": "Tinh chỉnh ma trận WebFlux, Vert.x và Virtual Threads với cấu hình MVC Spring Boot 3.2+/Java 21+, backpressure và giới hạn downstream."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-09-12",
+      "en": {
         "title": "B+Tree and LSM now show their physical work"
       },
       "vi": {

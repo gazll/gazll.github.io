@@ -96,6 +96,64 @@
       "https://projectreactor.io/docs/core/release/reference/faq.html#faq.wrap-blocking"
     ]
   },
+  "04-rest-grpc-webflux.reactive-webflux.q2": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Java 21+",
+      "Spring Boot 3.2+",
+      "Spring Framework 6.2+ / 7.0.x",
+      "Vert.x 5.1.x"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://docs.spring.io/spring-framework/reference/6.2/web/webflux/new-framework.html",
+      "https://docs.spring.io/spring-boot/reference/features/spring-application.html",
+      "https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-3.2-Release-Notes/89447cb70329ffb695302ee2726b723391df762f",
+      "https://openjdk.org/jeps/444",
+      "https://vertx.io/docs/vertx-core/java/"
+    ]
+  },
+  "15-network-i-o-models.realtime-event-driven.q2": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Java 21+",
+      "Spring Boot 3.2+",
+      "Vert.x 5.1.x",
+      "Apache Kafka 4.1",
+      "RabbitMQ 4.3"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://openjdk.org/jeps/444",
+      "https://vertx.io/docs/vertx-core/java/",
+      "https://kafka.apache.org/41/design/design/",
+      "https://www.rabbitmq.com/tutorials/amqp-concepts",
+      "https://www.rabbitmq.com/docs/confirms"
+    ]
+  },
+  "15-network-i-o-models.realtime-event-driven.q3": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Java 21+",
+      "Spring Boot 3.2+",
+      "Spring Framework 6.2+ / 7.0.x",
+      "Vert.x 5.1.x",
+      "Apache Kafka 4.1",
+      "RabbitMQ 4.3"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://docs.spring.io/spring-boot/reference/features/spring-application.html",
+      "https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-3.2-Release-Notes/89447cb70329ffb695302ee2726b723391df762f",
+      "https://docs.spring.io/spring-framework/reference/6.2/web/webflux/new-framework.html",
+      "https://openjdk.org/jeps/444",
+      "https://vertx.io/docs/vertx-core/java/",
+      "https://vertx.io/docs/vertx-kafka-client/java/",
+      "https://vertx.io/docs/vertx-rabbitmq-client/java/",
+      "https://kafka.apache.org/41/design/design/",
+      "https://www.rabbitmq.com/tutorials/amqp-concepts"
+    ]
+  },
   "05-db-core-index-lock.transactions-mvcc-locking.q4": {
     "reviewed_at": "2026-08-12",
     "target_versions": [
