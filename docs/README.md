@@ -42,13 +42,12 @@ hồ sơ nghiên cứu đã đóng trông như việc đang treo.
 
 ## Tài liệu ở root, không nằm trong `docs/`
 
-Bốn file markdown ở gốc repo, mỗi file trả lời một câu hỏi khác nhau. Chúng
+Ba file markdown ở gốc repo, mỗi file trả lời một câu hỏi khác nhau. Chúng
 không nằm ở đây vì công cụ và quy ước đều tìm chúng ở gốc.
 
 | File | Trả lời câu hỏi | Ghi chú |
 |---|---|---|
-| `CLAUDE.md` | *luật của repo là gì* — cái gì dễ vỡ, vì sao nó được quyết như vậy | dài nhất, nguồn chuẩn |
-| `AGENTS.md` | *lệnh nào chạy, code viết theo style nào* | ngắn, theo quy ước agent chung |
+| `CLAUDE.md` | *luật của repo là gì* — lệnh nào chạy, code viết theo style nào, cái gì dễ vỡ và vì sao | dài nhất, nguồn chuẩn (`AGENTS.md` cũ đã gộp vào mục Conventions) |
 | `DESIGN.md` | *token thị giác là gì* — màu, chữ, layout, elevation | xem ràng buộc dưới |
 | `PRODUCT.md` | *sản phẩm này phục vụ ai, cam kết gì* | thứ duy nhất nói về sản phẩm chứ không phải kỹ thuật |
 

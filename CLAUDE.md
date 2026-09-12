@@ -34,6 +34,27 @@ tools that Nuxt copies into the generated artifact.
 Code comments are English, and they answer **why**, not what: the code already
 says what it does. Keep them short.
 
+## Conventions
+
+Node 22 (`.nvmrc`, and what `deploy.yml` runs); `npm install
+--legacy-peer-deps`. `npm run dev` for the dev server, `npm run generate` to
+prerender into `.output/public/`, `npm run preview` to serve that output.
+
+JavaScript follows what is already there: two-space indent, single quotes,
+semicolons, `camelCase` for functions and variables, `UPPER_SNAKE_CASE` for
+constants, ES modules only. Runtime `console.*` and Apps Script `Logger.log`
+are banned outright (`check.mjs` enforces it). Tests are
+`tests/<subject>.test.mjs` on `node:test` with strict assertions. Content
+files are numbered kebab-case (`27-api-gateway-identity-edge.json`) and their
+EN/VI pairs stay structurally identical. Nothing under `public/vendor/` is
+edited.
+
+Commits: one change per commit, a short imperative summary, unrelated edits
+kept apart. Never commit `public/config.js`, `secret/`, credentials, tokens
+or personal exports. A PR says what a reader sees differently, names the routes
+or topics touched, and reports the `check.mjs` result; UI changes carry a
+screenshot.
+
 ## Layout
 
 ```
