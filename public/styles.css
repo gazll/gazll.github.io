@@ -3185,6 +3185,11 @@
 
   .view-track .answer-body hr,.cs-article-body hr{border:0;border-top:1px solid var(--line-strong);margin:2em 0}
   .view-track .answer-body img,.cs-article-body img{border-radius:var(--radius)}
+  .view-track .answer-body .db-figure{margin:1.35em 0 1.55em;padding:10px;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface-reading-soft);overflow:hidden}
+  .view-track .answer-body .db-figure a{display:block;border-radius:calc(var(--radius) - 2px);overflow:hidden;background:#fff}
+  .view-track .answer-body .db-figure img{display:block;width:100%;height:auto;background:#fff}
+  .view-track .answer-body .db-figure figcaption{margin:.7em .25em .1em;color:var(--text-label);font-family:"IBM Plex Mono",monospace;font-size:.72em;line-height:1.55}
+  .view-track .answer-body .db-figure .db-diagram{display:block;width:100%;height:auto;border-radius:calc(var(--radius) - 2px);background:#f0faf6}
   .view-track .answer-body :where(.takeaway,.warn),.cs-article-body :where(.cs-guide-brief,.cs-archive-note){
     overflow-wrap:anywhere}
 

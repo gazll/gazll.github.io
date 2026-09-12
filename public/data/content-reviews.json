@@ -107,6 +107,31 @@
       "https://dev.mysql.com/doc/refman/8.4/en/innodb-error-handling.html"
     ]
   },
+  "05-db-core-index-lock.transactions-mvcc-locking.q7": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "MySQL 8.4 / InnoDB",
+      "PostgreSQL 18 current documentation",
+      "RocksDB current documentation",
+      "Apache Cassandra current documentation",
+      "Google Cloud Bigtable overview",
+      "ByteByteGo visual (CC BY-NC-ND 4.0)"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://dev.mysql.com/doc/refman/8.4/en/innodb-physical-structure.html",
+      "https://www.postgresql.org/docs/current/btree.html",
+      "https://www.postgresql.org/docs/current/storage-page-layout.html",
+      "https://github.com/facebook/rocksdb/wiki/RocksDB-Overview",
+      "https://github.com/facebook/rocksdb/wiki/Indexing-SST-Files-for-Better-Lookup-Performance",
+      "https://cassandra.apache.org/doc/stable/cassandra/architecture/storage-engine.html",
+      "https://docs.cloud.google.com/bigtable/docs/overview",
+      "https://source.wiredtiger.com/develop/arch-btree.html",
+      "https://www.cockroachlabs.com/blog/value-separation-pebble-optimization/",
+      "https://github.com/ByteByteGoHq/system-design-101/blob/main/data/guides/b-tree-vs.md",
+      "https://creativecommons.org/licenses/by-nc-nd/4.0/"
+    ]
+  },
   "05-db-core-index-lock.indexes-what-they-really-are.q7": {
     "reviewed_at": "2026-08-17",
     "target_versions": [

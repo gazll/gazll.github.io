@@ -1,7 +1,7 @@
 # Research — SQL/NoSQL database engines and selection
 
 Status: `INTEGRATED`
-Reviewed: 2026-08-23
+Reviewed: 2026-09-12
 Local unit: `07-sql-nosql-db-engines`
 EN file: `public/data/topics/07-sql-nosql-db-engines.json`
 VI file: `public/data/topics/07-sql-nosql-db-engines.vi.json`
@@ -18,11 +18,11 @@ Evidence-policy note: a discovery ceiling of 200 candidates was available for th
 
 ## Local content map
 
-The complete EN and VI files were read. Structural parity check on 2026-08-23 found two sections and 13 matching item IDs in each language; every item has a non-empty answer.
+The complete EN and VI files were read. Structural parity check on 2026-09-12 found two sections and 13 matching item IDs in each language; every item has a non-empty answer.
 
 | Section | Exact item IDs | Local emphasis |
 | --- | --- | --- |
-| The big picture | `07-sql-nosql-db-engines.the-big-picture.q1` … `.q4` | SQL/NoSQL trade-offs, NoSQL families, ACID/BASE, CAP semantics. |
+| The big picture | `07-sql-nosql-db-engines.the-big-picture.q1` … `.q4` | SQL/NoSQL trade-offs, the logical-versus-physical boundary, NoSQL families, ACID/BASE, CAP semantics. |
 | Engine by engine | `07-sql-nosql-db-engines.engine-by-engine.q1` … `.q9` | Oracle, MySQL/InnoDB, PostgreSQL, MongoDB modeling/sharding, Redis, selection, Oracle/MySQL, and search engines. |
 
 The local content is strongest when it treats engine choice as access-pattern and invariant design. It needs changes where provider marketing, “linear scale,” “strong by default,” “in-memory means fast,” “Oracle for legacy banking,” and “search is always eventually consistent” become universal claims. It also needs a clear distinction between a database’s atomicity model and a system’s distributed consistency/freshness model.
@@ -37,6 +37,7 @@ The local content is strongest when it treats engine choice as access-pattern an
 - Cassandra is query-driven and partition-oriented; data modeling before queries, partition-size limits, consistency level, repair, and conflict semantics are essential.
 - Search engines provide inverted-index relevance and near-real-time search, not automatically transactional source-of-truth semantics.
 - Polyglot persistence can fit a system, but every additional engine adds data movement, schema/version, backup/restore, security, observability, and reconciliation ownership.
+- SQL versus NoSQL is not a storage-layout taxonomy: a relational product may sit on an LSM key-value layer, and a NoSQL product may use B-tree pages. The physical mechanics belong to [05-db-core-index-lock.md](05-db-core-index-lock.md), while this unit owns the selection boundary.
 
 ## Claims to verify or qualify
 
@@ -91,7 +92,7 @@ Score the candidate on these questions, in order: (1) what invariant must be ato
 
 | Required evidence area | Current local coverage | Evidence quality | Proposed treatment |
 | --- | --- | --- | --- |
-| Definitions | SQL/NoSQL families, ACID/BASE, CAP | Broad, but binary comparisons risk teaching errors | Add “model vs product vs operation” terminology. |
+| Definitions | SQL/NoSQL families, ACID/BASE, CAP, and a pointer to physical storage | Broad, but binary comparisons risk teaching errors | Keep “model vs product vs operation” terminology and link B+Tree/LSM mechanics to topic 05 instead of classifying products by tree. |
 | Invariants | Ledger/booking/cache/search examples | Good domain direction | Add authoritative owner, constraint, freshness, and reconciliation fields. |
 | Workload | OLTP, catalog, search, analytics, vector | Good breadth, few quantitative dimensions | Add cardinality, skew, read/write ratio, latency percentile, and freshness/RPO. |
 | Failure / crash windows | Some replication/search caveats | Partial | Add cache loss, document partial migration, index lag, reindex, compaction, and cross-engine crash windows. |
@@ -156,6 +157,7 @@ Score the candidate on these questions, in order: (1) what invariant must be ato
 7. Expand Cassandra/Scylla with partition growth, repair, compaction/tombstones, consistency level, and hot-key failure modes.
 8. Make search and vector indexes explicit derived/read models, including stale delete/reindex and embedding versioning.
 9. Add security, deletion propagation, restore tests, and benchmark acceptance criteria in both language versions.
+10. Keep the SQL/NoSQL introduction linked to the physical B+Tree/LSM walkthrough so the logical model is not mistaken for an engine implementation.
 
 ## EN/VI and cross-reference plan
 
@@ -165,6 +167,7 @@ Preserve all 13 item IDs and the two-section order. Translate “source of truth
 
 - [x] Added `07-sql-nosql-db-engines.engine-by-engine.q10` in EN/VI to make search/cache/OLAP projection freshness, event identity, deletes, replay, and rebuild explicit.
 - [x] Kept the existing search-engine boundary as the canonical introduction; the new item adds the operational proof required to rebuild a projection.
+- [x] Added a short physical-layer cross-reference to `07-sql-nosql-db-engines.the-big-picture.q1` in EN/VI; topic 05 remains the canonical B+Tree/LSM evidence record.
 - [ ] The broader comparison of every listed engine's current version and cost/performance fit remains a follow-up.
 
 ## Open questions and falsifiers
@@ -179,7 +182,7 @@ Preserve all 13 item IDs and the two-section order. Translate “source of truth
 
 ## Sources
 
-Source ledger. Tier `T1` = standard/original paper; `T2` = official product/project documentation; `T3` = first-party engineering/reference material. All entries reviewed on 2026-08-23. The selection favors primary sources and excludes SEO comparisons, copied “SQL versus NoSQL” charts, and unrepeatable vendor benchmarks.
+Source ledger. Tier `T1` = standard/original paper; `T2` = official product/project documentation; `T3` = first-party engineering/reference material. The pre-existing entries retain their recorded revision notes; the physical-layer cross-reference was checked on 2026-09-12. The selection favors primary sources and excludes SEO comparisons, copied “SQL versus NoSQL” charts, and unrepeatable vendor benchmarks.
 
 | ID | URL / title | Organization | Tier | Version / revision | Claims supported |
 | --- | --- | --- | --- | --- | --- |

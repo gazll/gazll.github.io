@@ -1,7 +1,7 @@
 # Research — DB core, indexes, locks, and transactions
 
 Status: `INTEGRATED`
-Reviewed: 2026-08-23
+Reviewed: 2026-09-12
 Local unit: `05-db-core-index-lock`
 EN file: `public/data/topics/05-db-core-index-lock.json`
 VI file: `public/data/topics/05-db-core-index-lock.vi.json`
@@ -18,12 +18,12 @@ Evidence-policy note: a discovery ceiling of 200 candidates was available for th
 
 ## Local content map
 
-The complete EN and VI files were read. Structural parity check on 2026-08-23 found three sections and 18 matching item IDs in each language; every item has a non-empty answer. The Vietnamese section titles are translations, not alternate units. The exact IDs are:
+The complete EN and VI files were read. Structural parity check on 2026-09-12 found three sections and 18 matching item IDs in each language; every item has a non-empty answer. The Vietnamese section titles are translations, not alternate units. The exact IDs are:
 
 | Section | Exact item IDs | Local emphasis |
 | --- | --- | --- |
 | Indexes: what they really are | `05-db-core-index-lock.indexes-what-they-really-are.q1` … `.q7` | Index families, B+Tree pages/splits, clustered and secondary indexes, composite/covering indexes, unused indexes, selectivity, UUID locality. |
-| Transactions, MVCC, locking | `05-db-core-index-lock.transactions-mvcc-locking.q1` … `.q9` | Isolation anomalies/defaults, InnoDB and PostgreSQL MVCC, record/gap/next-key locks, deadlocks, EXPLAIN, LSM, ACID internals, isolation selection. |
+| Transactions, MVCC, locking | `05-db-core-index-lock.transactions-mvcc-locking.q1` … `.q9` | Isolation anomalies/defaults, InnoDB and PostgreSQL MVCC, record/gap/next-key locks, deadlocks, EXPLAIN, LSM physical paths, ACID internals, isolation selection. |
 | Modelling the schema | `05-db-core-index-lock.modelling-the-schema.q1` … `.q2` | Constraints versus application checks and hard-to-reverse schema decisions. |
 
 The source text is strong as a teaching outline. It sometimes compresses implementation details into universal rules: B+Tree fan-out and page-fill numbers, MySQL/PostgreSQL default behavior, UUID recommendations, “fintech usually uses” isolation, and the relationship between an index type and a workload. Those are the main revision targets.
@@ -37,6 +37,9 @@ The source text is strong as a teaching outline. It sometimes compresses impleme
 - Deadlock detection/retry is a normal correctness path for transactional applications. A retry must repeat the complete idempotent transaction, not only the failed statement.
 - Database constraints are part of the invariant boundary. Application validation improves user feedback but cannot replace a unique, foreign-key, check, or exclusion constraint where the invariant must survive concurrency.
 - UUIDv4, UUIDv7, sequences, and natural keys have different locality, privacy, migration, and collision properties. The topic is right to ask for measurement rather than one universal key type.
+- SQL versus NoSQL is a logical/product-selection axis; B+Tree versus LSM is a physical storage-engine axis. A product label does not determine the on-disk structure.
+- B+Tree mechanics are page-oriented: internal pages route, leaf pages store index entries, and splits can propagate. InnoDB clustered/secondary indexes and PostgreSQL heap/index layout must not be conflated.
+- LSM mechanics are a WAL/commit-log, memtable, immutable SSTable, and compaction pipeline. Filters reduce unnecessary reads, but compaction creates read/write/space amplification and can apply backpressure.
 
 ## Claims to verify or qualify
 
@@ -44,6 +47,9 @@ The source text is strong as a teaching outline. It sometimes compresses impleme
 | --- | --- | --- | --- | --- |
 | B+Tree supports equality, range, and ordered access; hash indexes are equality-oriented. | Verified fact | [S01], [S12], [S13] | Exact capabilities and optimizer use vary by engine/version. “O(1)” for a hash index should not be used as a latency guarantee. | High |
 | LSM trees trade compaction and read/space amplification for write-oriented behavior. | Verified fact | [S21], [S22], [S23] | Actual performance depends on compaction policy, workload, media, cache, and configuration. | High |
+| SQL/NoSQL labels do not determine whether the physical engine uses B+Tree or LSM-shaped storage. | Verified framing | [S26], [S28], [S31], [S32], [S33] | The product, storage engine, version, and deployment mode must be named; a high-level diagram is not a universal taxonomy. | High |
+| A B+Tree lookup is a page path, while an LSM read checks newer in-memory/file runs and may merge results. | Verified implementation model | [S26], [S27], [S29], [S30] | Exact page size, cache residency, level layout, filter, and transaction visibility vary by engine. | High |
+| LSM foreground writes are cheaper only relative to the workload; WAL, flush, and compaction still consume I/O. | Verified trade-off | [S21], [S22], [S26], [S27], [S28] | “Sequential writes” is a useful approximation for the flush path, not a guarantee for all physical writes or all media. | High |
 | InnoDB clusters table rows by the primary key and stores the PK in secondary entries. | Verified fact | [S01], [S08] | MySQL/InnoDB 8.4 documentation; not a generic SQL rule. | High |
 | Every additional index increases write/storage/maintenance work. | Verified fact | [S03], [S12] | Magnitude depends on index width, write mix, page density, vacuum/compaction, and cache. | High |
 | “Three B+Tree levels can hold about one billion rows” and specific fan-out/page-fill percentages. | Unresolved / over-absolute | [S24] explains B-tree organization, but does not verify the local numeric example. | Fan-out is a function of page size, key/pointer width, fill factor, row format, compression, and engine. Remove exact numbers or label them as a reproducible toy model. | High that the local number is not portable |
@@ -78,7 +84,7 @@ Before selecting an isolation level or index, name the invariant, its owner, and
 
 | Decision | InnoDB / MySQL 8.4 | PostgreSQL 18 docs | LSM implementation such as RocksDB | Research conclusion |
 | --- | --- | --- | --- | --- |
-| Primary storage layout | Clustered PK; secondary entries carry PK. | Heap plus separate indexes; index-only scans need visibility information. | Sorted immutable files plus memtables and compaction. | Explain the physical consequence of the chosen engine; do not transfer InnoDB advice to PostgreSQL unchanged. |
+| Primary storage layout | Clustered PK; secondary entries carry PK. | Heap plus separate indexes; index-only scans need visibility information. | WAL/commit log, sorted memtables, immutable SSTables, and compaction. | Explain the physical consequence of the chosen engine; do not transfer InnoDB advice to PostgreSQL or LSM advice to every NoSQL product. |
 | Default transaction behavior | `REPEATABLE READ` by default; consistent reads use read views; locking reads have lock semantics. | `READ COMMITTED` by default; each statement normally gets a snapshot. | Not a relational transaction/isolation substitute; API guarantees are implementation-specific. | Choose based on invariant and provider contract, then verify with concurrency tests. |
 | Composite index | Ordered key parts and included PK; descending/covering features are version-specific. | Multicolumn indexes, `INCLUDE`, partial/expression indexes; skip-scan may apply. | Key/prefix design and bloom/filter/compaction settings, not a SQL composite-index analogue. | Keep “leftmost prefix” as a useful heuristic with a provider caveat and a plan example. |
 | Random versus time-ordered IDs | Random clustered PKs can cause page churn; short PKs reduce secondary width. | Random UUIDs do not cluster heap rows; indexes still have locality and bloat effects. | Key distribution affects memtable/SSTable behavior and compaction. | UUIDv7 is a candidate, not a default; check privacy, clock, migration, and observed write amplification. |
@@ -89,6 +95,7 @@ Before selecting an isolation level or index, name the invariant, its owner, and
 | Required evidence area | Current local coverage | Evidence quality | Proposed treatment |
 | --- | --- | --- | --- |
 | Definitions | Index families, MVCC, ACID, locks, constraints | Good teaching coverage; some “default” language is broad | Add provider/version labels and distinguish physical index from search-engine index. |
+| Physical storage | B+Tree pages/splits and a short LSM comparison | Expanded with engine-crossing examples, page/run comparison, local diagram, and primary references | Keep SQL/NoSQL separate from B+Tree/LSM; teach WAL, memtable, SSTable, compaction, amplification, and backpressure as a pipeline. |
 | Invariants | Constraint examples and account/booking examples | Good intent, but examples are not formal proofs | Add invariant → constraint/lock/version mechanism table. |
 | Workload model | OLTP, OTA, write-heavy LSM, warehouse bitmap | Useful but mostly qualitative | Add read/write ratio, hot-key, range, skew, and freshness dimensions. |
 | Failure / crash windows | Deadlocks, long transactions, replica durability mention | Partial | Add crash-after-commit, stale snapshot, DDL lock, and retry-storm windows. |
@@ -154,15 +161,18 @@ The repeated Saga/Outbox references should be one-sentence cross-links, not rede
 7. Add schema migration safety: expand/contract, online/concurrent index behavior, rollback, and long-running transaction interaction.
 8. Add negative examples for missing natural uniqueness, long transactions, network calls inside transactions, and non-idempotent retries.
 9. Add explicit security and test questions to both language files; preserve all item IDs and section order.
+10. Keep the B+Tree versus LSM walkthrough evidence-backed: use the attributed ByteByteGo visual for orientation and the local LSM schematic for WAL, memtable, SSTable, read path, and compaction.
 
 ## EN/VI and cross-reference plan
 
-Keep the exact 18 IDs and answer structure in both languages. Translate the qualification words consistently: `fact`/`verified fact`, `recommendation`, `inference`, and `unknown`; do not turn a qualified English claim into a categorical Vietnamese sentence. Preserve code tokens, SQLSTATE/error codes, provider names, and links. Use the same comparison and invariant tables in both languages, with examples localized only in prose.
+Keep the exact 18 IDs and answer structure in both languages. Translate the qualification words consistently: `fact`/`verified fact`, `recommendation`, `inference`, and `unknown`; do not turn a qualified English claim into a categorical Vietnamese sentence. Preserve code tokens, SQLSTATE/error codes, provider names, and links. Use the same comparison tables and diagram count in both languages, with examples localized only in prose.
 
 ## Integration record (Batch D scope)
 
 - [x] Added `05-db-core-index-lock.modelling-the-schema.q3` in EN/VI to define transactional authority, derived projections, CDC/outbox input, freshness, and rebuild boundaries.
 - [x] Preserved all existing IDs, section order, and provider-specific index/MVCC evidence.
+- [x] Expanded `05-db-core-index-lock.transactions-mvcc-locking.q7` in EN/VI with the logical-versus-physical distinction, B+Tree/LSM mechanics, amplification, compaction backpressure, and measurement guidance.
+- [x] Added the unchanged, attributed ByteByteGo B-Tree versus LSM visual plus a local SVG schematic; both language files keep the same visual structure.
 - [ ] The broader local audit of every schema/lock recommendation remains a follow-up; Topic 06 owns distributed topology and Topic 18 owns plan-level optimization.
 
 ## Open questions and falsifiers
@@ -176,7 +186,7 @@ Keep the exact 18 IDs and answer structure in both languages. Translate the qual
 
 ## Sources
 
-Source ledger. Tier `T1` = standard/original paper; `T2` = official implementation/reference documentation; `T3` = first-party engineering guidance. All entries were reviewed on 2026-08-23. The discovery pool intentionally excluded SEO explainers, reposts, duplicate language/version pages, and vendor marketing claims that did not add a guarantee or failure detail.
+Source ledger. Tier `T1` = standard/original paper; `T2` = official implementation/reference documentation; `T3` = first-party engineering guidance. The pre-existing entries retain their recorded revision notes; the B+Tree/LSM additions and attributed visual were reviewed on 2026-09-12. The discovery pool intentionally excluded SEO explainers, reposts, duplicate language/version pages, and vendor marketing claims that did not add a guarantee or failure detail.
 
 | ID | URL / title | Organization | Tier | Version / revision | Claims supported |
 | --- | --- | --- | --- | --- | --- |
@@ -205,9 +215,18 @@ Source ledger. Tier `T1` = standard/original paper; `T2` = official implementati
 | S23 | [RocksDB: Evolution of LSM-tree based storage](https://www.usenix.org/sites/default/files/fast21_full-proceedings-interior.pdf) | USENIX / RocksDB authors | T1/T3 | FAST 2021 proceedings | Research evidence for LSM design trade-offs. |
 | S24 | [Organization and Maintenance of Large Ordered Indexes](https://rtheunissen.github.io/bst/docs/references/1972_bayer_mccreight.pdf) | Bayer and McCreight | T1 | Original B-tree paper, 1972 | B-tree page/height organization; does not verify local capacity figures. |
 | S25 | [PostgreSQL Data Definition](https://www.postgresql.org/docs/current/ddl.html) | PostgreSQL Global Development Group | T2 | PostgreSQL 18 current docs | Declarative constraints and schema-level enforcement. |
+| S26 | [RocksDB Overview](https://github.com/facebook/rocksdb/wiki/RocksDB-Overview) | Meta / RocksDB project | T2 | Current project wiki | Memtable, SSTable, WAL, levels, compaction, and write-stall behavior. |
+| S27 | [Indexing SST Files for Better Lookup Performance](https://github.com/facebook/rocksdb/wiki/Indexing-SST-Files-for-Better-Lookup-Performance) | Meta / RocksDB project | T2 | Current project wiki | Read order, overlapping L0 files, non-overlapping lower levels, index/filter pruning. |
+| S28 | [Storage Engine](https://cassandra.apache.org/doc/stable/cassandra/architecture/storage-engine.html) | Apache Cassandra | T2 | Current project docs | Commit log, sorted memtable, immutable SSTables, indexes/filters, and compaction. |
+| S29 | [B-Tree Indexes](https://www.postgresql.org/docs/current/btree.html) | PostgreSQL Global Development Group | T2 | PostgreSQL 18 current docs | Multi-level page structure, leaf links, page splits, and range scans. |
+| S30 | [Database Page Layout](https://www.postgresql.org/docs/current/storage-page-layout.html) | PostgreSQL Global Development Group | T2 | PostgreSQL 18 current docs | Fixed-size pages, item pointers, free space, and index-page special data. |
+| S31 | [Cloud Bigtable Overview](https://docs.cloud.google.com/bigtable/docs/overview) | Google Cloud | T2 | Current product docs | Tablets stored in SSTable format and ordered immutable-map model. |
+| S32 | [B-tree Architecture](https://source.wiredtiger.com/develop/arch-btree.html) | WiredTiger | T2 | Current project docs | Root/internal/leaf page roles and B-tree page splits. |
+| S33 | [Value Separation: Pebble Optimization](https://www.cockroachlabs.com/blog/value-separation-pebble-optimization/) | Cockroach Labs | T3 | Updated 2026-01-13 | CockroachDB/Pebble LSM relationship and compaction resource costs. |
+| S34 | [B-Tree versus LSM-Tree](https://github.com/ByteByteGoHq/system-design-101/blob/main/data/guides/b-tree-vs.md) and [license](https://creativecommons.org/licenses/by-nc-nd/4.0/) | ByteByteGo | T3 / license | Visual kept unchanged; accessed 2026-09-12 | Orientation diagram and redistribution terms; not used as normative engine evidence. |
 
 The duplicate PostgreSQL UUID page was screened out of the selected ledger because S19 already covers the same document and claim.
 
 ## Discovery exclusions
 
-Excluded candidates were generic “indexing tips” pages, copied CAP/ACID summaries, benchmark posts without reproducible schema/workload, duplicate MySQL/PostgreSQL language mirrors, and pages that asserted UUID or isolation superiority without provider/version details. They were not used as evidence.
+Excluded candidates were generic “indexing tips” pages, copied CAP/ACID summaries, benchmark posts without reproducible schema/workload, duplicate MySQL/PostgreSQL language mirrors, and pages that asserted UUID or isolation superiority without provider/version details. They were not used as evidence. The ByteByteGo page was retained only as an attributed orientation visual; the storage claims in the walkthrough are anchored in the official engine documentation and papers above.
