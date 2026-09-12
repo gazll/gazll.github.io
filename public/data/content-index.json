@@ -1165,8 +1165,8 @@
       "vi": "Structured concurrency và ScopedValue (Java 21/25) giải quyết gì so với ThreadLocal?"
     },
     "01-java-core-jvm.concurrency.q3": {
-      "en": "How does ConcurrentHashMap work? Why is it faster than Hashtable/synchronizedMap?",
-      "vi": "ConcurrentHashMap hoạt động thế nào? Vì sao nhanh hơn Hashtable/synchronizedMap?"
+      "en": "How does ConcurrentHashMap work, and is it really faster than Hashtable/synchronizedMap?",
+      "vi": "ConcurrentHashMap hoạt động thế nào, và có thật sự nhanh hơn Hashtable/synchronizedMap không?"
     },
     "01-java-core-jvm.concurrency.q4": {
       "en": "synchronized vs ReentrantLock vs StampedLock — when do you pick which?",
