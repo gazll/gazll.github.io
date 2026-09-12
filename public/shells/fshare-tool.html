@@ -66,7 +66,7 @@
       </div>
       <div>
         <h1>Movie catalog</h1>
-        <p>Every link the community shared, checked against Fshare and kept with its history. Two copies of one film sit together; a folder remembers what was inside it.</p>
+        <p>Every file the community shared, checked against Fshare and kept with its history. Results are files, grouped under the folder that holds them — search by the film, the folder, or the release name.</p>
       </div>
       <div class="movie-db-meta" id="movieDbMeta" role="status" aria-live="polite">Locked</div>
     </header>
@@ -90,16 +90,8 @@
     <div class="movie-body" id="movieBody" hidden>
       <section class="movie-search-panel" aria-label="Movie catalog filters">
         <label class="movie-search-field" for="movieSearchInput">
-          <span>Search titles, aliases, folder path, or link code</span>
+          <span>Search files by name, folder, alias, or link code</span>
           <input id="movieSearchInput" type="search" autocomplete="off" placeholder="Try: Dune 2021, anime, 4K..."/>
-        </label>
-        <label class="movie-filter-field" for="movieKindSelect">
-          <span>Link type</span>
-          <select id="movieKindSelect">
-            <option value="all">Files + folders</option>
-            <option value="folder">Folders only</option>
-            <option value="file">Files only</option>
-          </select>
         </label>
         <label class="movie-filter-field" for="movieSourceSelect">
           <span>Source</span>
@@ -122,7 +114,7 @@
         <section class="movie-results-panel" aria-labelledby="movieResultsTitle">
           <div class="movie-panel-head">
             <div>
-              <h2 id="movieResultsTitle">Catalog</h2>
+              <h2 id="movieResultsTitle">Files, by folder</h2>
               <p id="movieResultCount">Locked</p>
             </div>
             <div class="movie-panel-actions">

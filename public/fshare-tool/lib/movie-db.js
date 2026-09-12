@@ -104,16 +104,64 @@ export function normalizeMovieDatabase(value) {
   };
 }
 
-export function searchMovieLinks(links, query, { kind = 'all', status = 'all', sourceId = 'all' } = {}) {
+/** id → row, for walking parents. */
+export function indexById(links) {
+  return new Map((links || []).map((row) => [row.id, row]));
+}
+
+/**
+ * The folder chain above a row, root first, as names. A file's place is its
+ * `parents`; each parent is itself a row with parents, so the chain is walked
+ * through the same map. Only the first parent is followed when a file was
+ * seen in several folders — the others are counted, not drawn.
+ */
+export function folderChain(row, byId, limit = 8) {
+  const names = [];
+  const seen = new Set([row.id]);
+  let cursor = row;
+  while (cursor && cursor.parents && cursor.parents.length && names.length < limit) {
+    const parent = byId.get(cursor.parents[0]);
+    if (!parent || seen.has(parent.id)) break;
+    seen.add(parent.id);
+    names.unshift(parent.name);
+    cursor = parent;
+  }
+  return names;
+}
+
+export function searchMovieLinks(links, query, { kind = 'all', status = 'all', sourceId = 'all', byId = null } = {}) {
   const tokens = queryTokens(query);
   return (links || []).filter((row) => {
     if (kind !== 'all' && row.kind !== kind) return false;
     if (status !== 'all' && row.status !== status) return false;
     if (sourceId !== 'all' && !(row.sourceIds || []).includes(sourceId)) return false;
     if (!tokens.length) return true;
-    const haystack = fold([row.name, ...(row.aliases || []), ...(row.keywords || []), row.code, row.path || ''].join(' '));
+    // The folder names above a file are part of what it is called — a reader
+    // searching "dune" expects Dune.2021.mkv inside "Dune (2021)" to match
+    // even when the file itself is named for its release group.
+    const chain = byId ? folderChain(row, byId) : [];
+    const haystack = fold([row.name, ...(row.aliases || []), ...(row.keywords || []), row.code, row.path || '', ...chain].join(' '));
     return tokens.every((token) => haystack.includes(token));
   });
+}
+
+/** Files grouped by the folder they sit in, so a result reads as a place, not a list. */
+export function groupByFolder(links, byId) {
+  const groups = new Map();
+  (links || []).forEach((row) => {
+    const chain = folderChain(row, byId);
+    const parentId = row.parents && row.parents.length ? row.parents[0] : '';
+    const key = parentId || '(standalone)';
+    let group = groups.get(key);
+    if (!group) {
+      group = { key, folder: parentId ? byId.get(parentId) || null : null, chain, links: [] };
+      groups.set(key, group);
+    }
+    group.links.push(row);
+  });
+  return [...groups.values()]
+    .sort((a, b) => fold(a.chain.join(' / ')).localeCompare(fold(b.chain.join(' / ')), 'vi'))
+    .map((group) => ({ ...group, links: group.links.slice().sort((a, b) => fold(a.name).localeCompare(fold(b.name), 'vi')) }));
 }
 
 /** Rows that share a titleKey become one group, so two copies of one film sit together. */

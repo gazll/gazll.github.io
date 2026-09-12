@@ -7,7 +7,7 @@ import {
 } from '../tools/fshare-movie.mjs';
 import { probeRow, selectRows } from '../tools/fshare-movie-shard.mjs';
 import {
-  extractFshareLinks, groupByTitle, keywordTokens, normalizeMovieDatabase, searchMovieLinks, titleKey
+  extractFshareLinks, folderChain, groupByFolder, indexById, keywordTokens, normalizeMovieDatabase, searchMovieLinks, titleKey
 } from '../public/fshare-tool/lib/movie-db.js';
 import { crawlMovieFolder } from '../public/fshare-tool/lib/movie-check.js';
 import { seal, unseal } from '../public/lib/schedule-crypto.js';
@@ -173,20 +173,33 @@ test('a file probe says dead only on 404 and asks fshare.vn for the second opini
   assert.equal((await probeFileOnWeb('X', web('Dịch vụ lưu trữ và chia sẻ trực tuyến', { url: 'https://www.fshare.vn/' }))).status, 'unknown');
 });
 
-test('search and grouping put two copies of one film under one heading, dead rows included', () => {
-  const links = normalizeMovieDatabase({
+test('search finds a file by the folders above it, and results group under the holding folder', () => {
+  const db = normalizeMovieDatabase({
     version: 1,
     links: [
-      { id: 'fshare-folder-A', kind: 'folder', code: 'A', name: 'Dune (2021)', status: 'live', titleKey: 'dune 2021' },
-      { id: 'fshare-file-B', kind: 'file', code: 'B', name: 'Dune.2021.mkv', status: 'dead', titleKey: 'dune 2021' },
-      { id: 'fshare-folder-C', kind: 'folder', code: 'C', name: 'Dune (1984)', status: 'live', titleKey: 'dune 1984', aliases: ['Xứ Cát'] }
+      { id: 'fshare-folder-ROOT', kind: 'folder', code: 'ROOT', name: 'KHO PHIM', status: 'live' },
+      { id: 'fshare-folder-A', kind: 'folder', code: 'A', name: 'Dune (2021)', status: 'live', parents: ['fshare-folder-ROOT'], children: { files: 3 } },
+      { id: 'fshare-file-B', kind: 'file', code: 'B', name: 'Dune.2021.2160p.mkv', status: 'live', parents: ['fshare-folder-A'] },
+      { id: 'fshare-file-B2', kind: 'file', code: 'B2', name: 'Dune.2021.1080p.mkv', status: 'dead', parents: ['fshare-folder-A'] },
+      { id: 'fshare-folder-C', kind: 'folder', code: 'C', name: 'Dune (1984)', status: 'live', aliases: ['Xứ Cát'], parents: ['fshare-folder-ROOT'] },
+      { id: 'fshare-file-D', kind: 'file', code: 'D', name: 'Some.Release.Group.mkv', status: 'live', parents: ['fshare-folder-C'] },
+      { id: 'fshare-file-E', kind: 'file', code: 'E', name: 'Standalone.Dune.mkv', status: 'live' }
     ]
-  }).links;
-  const groups = groupByTitle(searchMovieLinks(links, 'dune'));
-  assert.deepEqual(groups.map((g) => [g.key, g.links.length]), [['dune 1984', 1], ['dune 2021', 2]]);
-  assert.deepEqual(groups[1].links.map((row) => row.kind), ['folder', 'file'], 'folder before its file');
-  assert.equal(searchMovieLinks(links, 'xu cat').length, 1, 'aliases and accents fold');
-  assert.equal(searchMovieLinks(links, '', { status: 'dead' }).length, 1);
+  });
+  const byId = indexById(db.links);
+  assert.deepEqual(folderChain(byId.get('fshare-file-D'), byId), ['KHO PHIM', 'Dune (1984)']);
+  // A file named for its release group is found through its folder's name.
+  const hits = searchMovieLinks(db.links, 'dune 1984', { kind: 'file', byId });
+  assert.deepEqual(hits.map((r) => r.code), ['D']);
+  assert.equal(searchMovieLinks(db.links, 'dune', { kind: 'file' }).length, 3, 'without the map only file names match');
+  assert.equal(searchMovieLinks(db.links, 'dune', { kind: 'file', byId }).length, 4);
+
+  const groups = groupByFolder(searchMovieLinks(db.links, 'dune', { kind: 'file', byId }), byId);
+  assert.deepEqual(groups.map((g) => [g.chain.join(' › ') || '(standalone)', g.links.length]), [
+    ['(standalone)', 1], ['KHO PHIM › Dune (1984)', 1], ['KHO PHIM › Dune (2021)', 2]
+  ]);
+  assert.equal(groups[2].folder.children.files, 3, 'the group carries its folder row');
+  assert.equal(searchMovieLinks(db.links, '', { status: 'dead' }).length, 1);
 });
 
 test('a gzip envelope round-trips and a plain one still opens', async () => {
