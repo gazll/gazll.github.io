@@ -64,6 +64,12 @@ test('tool bootstrap keeps FShare allowed after route navigation and exposes fai
   const page = await readFile(path.join(root, 'app/pages/fshare-tool.vue'), 'utf8');
   assert.match(page, /<ClientOnly>/);
   assert.match(page, /Loading Fshare tool/);
+
+  const shell = await readFile(path.join(root, 'public/shells/fshare-tool.html'), 'utf8');
+  assert.match(shell, /id="movieTab"/);
+  assert.match(shell, /id="movieView"/);
+  assert.match(shell, /id="movieSearchInput"/);
+  assert.match(shell, /id="movieOutputList"/);
 });
 
 test('FShare sync does not auto-select or duplicate Google prompts', async () => {

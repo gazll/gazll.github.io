@@ -4,7 +4,7 @@ Bốn nhóm, và chúng khác nhau về vòng đời — đó là lý do tách t
 
 | Đường dẫn | Là gì | Vòng đời |
 |---|---|---|
-| `content-playbook.md` · `schedule-playbook.md` · `course-registration.md` | **Playbook** — quy trình đang dùng, đọc trước khi sửa nội dung tương ứng | sống, cập nhật khi quy trình đổi |
+| `content-playbook.md` · `schedule-playbook.md` · `fshare-movie-playbook.md` · `course-registration.md` | **Playbook** — quy trình đang dùng, đọc trước khi sửa nội dung tương ứng | sống, cập nhật khi quy trình đổi |
 | `todo/` | **Việc còn phải làm** — mỗi file một đợt, xoá khi đóng | tạm |
 | `research/` | **Hồ sơ dẫn chứng** cho nội dung đang live | lưu trữ, chỉ đọc |
 | `english-speaking-os-complete-2026.md` | ⚠️ **không phải tài liệu — đây là dữ liệu được ship** | xem cảnh báo dưới |

@@ -11,7 +11,7 @@ import {
 } from './lib/store.js';
 import {
   registerView, startFolder, showHome, showFolder, showBatch,
-  currentLc, loadFolder
+  showMovie, currentLc, loadFolder
 } from './lib/nav.js';
 import { filterTerms } from './lib/filter.js';
 import { scan } from './lib/scan.js';
@@ -32,6 +32,7 @@ import {
   buildText, exportChunks, exportName, forceTextMode
 } from './views/basket.js';
 import { runBatch, stopBatch } from './views/batch.js';
+import { initMovieView } from './views/movie.js';
 
 /* ---------- view registry ---------- */
 
@@ -60,6 +61,45 @@ $('themeBtn').addEventListener('click', () => {
   theme = theme === 'dark' ? 'light' : 'dark';
   localStorage.setItem('fsbc-theme', theme);
   applyTheme();
+});
+
+/* The folder browser, movie index, and bulk crawler are separate working modes
+   inside one tool. Keep the tab state explicit so a folder hash never gets
+   confused with the movie search state. */
+function setToolTab(tab) {
+  const tabs = [
+    ['folderTab', 'folder'],
+    ['movieTab', 'movie'],
+    ['batchTab', 'batch']
+  ];
+  tabs.forEach(([id, name]) => {
+    const button = $(id);
+    const active = name === tab;
+    button.classList.toggle('on', active);
+    button.setAttribute('aria-selected', active ? 'true' : 'false');
+  });
+  $('navFolderSearch').style.display = tab === 'folder' ? '' : 'none';
+}
+
+function clearFolderHash() {
+  if (location.hash) history.replaceState(null, '', location.pathname + location.search);
+}
+
+$('folderTab').addEventListener('click', () => {
+  clearFolderHash();
+  setToolTab('folder');
+  showHome();
+});
+$('movieTab').addEventListener('click', () => {
+  clearFolderHash();
+  setToolTab('movie');
+  showMovie();
+  initMovieView();
+});
+$('batchTab').addEventListener('click', () => {
+  clearFolderHash();
+  setToolTab('batch');
+  showBatch();
 });
 
 /* ---------- sticky offsets ---------- */
@@ -401,8 +441,13 @@ wireLoadBar();
 
 /* ---------- batch + scan ---------- */
 
-$('goBatchBtn').addEventListener('click', showBatch);
-$('batchBack').addEventListener('click', () => { stopBatch(); showHome(); renderHistory(); });
+$('goBatchBtn').addEventListener('click', () => { setToolTab('batch'); showBatch(); });
+$('batchBack').addEventListener('click', () => {
+  stopBatch();
+  setToolTab('folder');
+  showHome();
+  renderHistory();
+});
 $('batchRun').addEventListener('click', runBatch);
 $('scanCancel').addEventListener('click', () => {
   scan.abort = true;
@@ -497,7 +542,8 @@ document.addEventListener('keydown', (e) => {
 
 function route() {
   const lc = extractLinkcode(location.hash.replace(/^#/, ''));
-  if (!lc) { showHome(); renderHistory(); return; }
+  if (!lc) { setToolTab('folder'); showHome(); renderHistory(); return; }
+  setToolTab('folder');
   if (currentLc() !== lc) startFolder(lc);
   else showFolder();
 }
@@ -515,6 +561,7 @@ $('sortSelect').value = S.sortValue;
 
 applyTheme();
 applyDensity();
+setToolTab('folder');
 setView(S.viewMode);          // booted is still false, so this only paints chrome
 booted = true;
 

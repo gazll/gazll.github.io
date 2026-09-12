@@ -66,9 +66,12 @@ public/
     vn-holidays.js   the eleven statutory days off as RULES; the yearly notice is data
     schedule.js      recurrence -> dated occurrences; fixed vs rolling is the whole file
     inventory.js     things owned: warranty from purchase, part age from its service log
-    schedule-crypto.js  AES-GCM envelope, one module for both the seal tool and the page
+    schedule-crypto.js  AES-GCM envelope, one module for both the seal tool and the page;
+                        `enc: gzip` compresses before sealing (the movie catalog needs it)
   dsa-player.js       play/pause/step control for DSA animations, loaded by QuestionCard
-  fshare-tool/        standalone FShare browser tool
+  fshare-tool/        standalone FShare browser tool. lib/movie-db.js is the movie
+                      catalog's data model (pure, shared with tools/fshare-movie.mjs);
+                      lib/movie-check.js the crawler/probe; views/movie.js the tab
   course-registration/ standalone course-registration browser tool
 vendor/mermaid-11.16.1/  pinned upstream build; version lives in the directory name
   data/
@@ -107,6 +110,10 @@ vendor/mermaid-11.16.1/  pinned upstream build; version lives in the directory n
     schedule/private.enc.json  the private reminder list, AES-256-GCM. The plaintext
                          is secret/schedule.json and is gitignored; see the sealed-
                          schedule rule below and docs/schedule-playbook.md
+    fshare-movie/catalog.enc.json  the movie link catalog, same envelope and same
+                         passphrase; only CHECKED rows, gzipped. The working catalog
+                         and the raw exports are secret/fshare-movie/ — see the
+                         movie-catalog rule below and docs/fshare-movie-playbook.md
   assets/case-studies/  local article figures; never hotlinked from a publisher
   assets/covers/     GENERATED card thumbnails (tools/optimize-images.mjs). A separate
                      tree because assets/case-studies is asserted to hold exactly the
@@ -120,6 +127,9 @@ tools/               check.mjs (the one entrypoint) · validate-content.mjs · a
                      check-diagrams.mjs (run by check.mjs, needs jsdom)
                      schedule-seal.mjs (seal/unseal the private schedule; NOT a
                      check.mjs stage — CI has no passphrase and no secret/)
+                     fshare-movie.mjs (ingest · build · validate · seal · unseal the
+                     movie catalog; same rule, never a check.mjs stage)
+                     passphrase.mjs — the one resolver both seal tools share
 DESIGN.md            the visual tokens, and they must agree with public/styles.css
                      (25/25 colours currently match). The contrast FLOOR is owned
                      by tests/a11y.contrast.test.mjs, not by this file
@@ -131,6 +141,7 @@ PRODUCT.md           who the product serves and what it commits to — the one
 docs/README.md       what each group under docs/ is for, and its lifecycle
 docs/content-playbook.md  how to add/update study content end to end
 docs/schedule-playbook.md  the calendar, the sealed schedule, and how to recover it
+docs/fshare-movie-playbook.md  the movie link catalog: raw → catalog → validate → seal
 docs/english-speaking-os-complete-2026.md  NOT documentation — shipped data.
                      server/api/content/english-study.get.ts reads this exact
                      path, so moving or renaming it breaks /english-study
@@ -139,6 +150,9 @@ docs/research/       the evidence behind live content. index.md is the status
                      source; units/ holds one record per topic/case study (46,
                      all INTEGRATED), dossiers/ compares across them
 secret/schedule.json  GITIGNORED. The real reminder list; the repo holds only its envelope
+secret/fshare-movie/  GITIGNORED. raw/ exports, sources.json, catalog.json — the movie
+                     link database with every link's check state; the repo holds only
+                     the sealed projection of its checked rows
 secret/              GITIGNORED. Personal setup notes and credentials
 ```
 
@@ -462,6 +476,38 @@ secret/              GITIGNORED. Personal setup notes and credentials
   `seal` checks entry ids for uniqueness across every list, not within one:
   renaming one orphans its tick exactly as renaming a topic file orphans
   `progress` rows.
+
+- **The movie catalog is one row per LINK, and only checked rows ship.**
+  `tools/fshare-movie.mjs` owns it end to end and `docs/fshare-movie-playbook.md`
+  is the procedure. Four things the shape depends on, each already the wrong
+  instinct once:
+
+  1. **The id is `fshare-{kind}-{CODE}`, never the title.** Two links to the
+     same film are two rows sharing a `titleKey`; the tab groups them under
+     one heading at read time. Nesting rows under a title object would make a
+     retitle move status history, exactly as re-slugging a section orphans
+     `progress` rows.
+  2. **`pending` and `unknown` are different answers.** `pending` is a link
+     nobody has asked about; `unknown` is one Fshare could not answer for
+     (timeout, 5xx). The envelope's `validated` flag is true only with zero
+     `pending` — `unknown` may remain and is retried next run. The tab shows
+     a NOT VALIDATED badge rather than hiding the difference.
+  3. **`build` only adds, `validate` only updates in place.** A raw export
+     that disappears does not un-know a link, and a link that died keeps its
+     `deadSince` — the "show dead" toggle exists because that history is the
+     point of re-checking monthly. Never delete rows to tidy the catalog.
+  4. **A file inside a live listing is live by that listing.** Fshare does not
+     list what it deleted, so per-file probes are spent only on standalone
+     file links and on children a listing no longer names; a proxy `dead` is
+     confirmed against the `fshare.vn` page title before it is written
+     (Node only — the browser is CORS-blocked). Folders remember what they
+     held via `parents` on their children, recounted into `children` on every
+     write. The browser re-check never persists: the catalog is the tool's file.
+
+  It shares the schedule's envelope AND passphrase on purpose (one key in the
+  password manager, one `schedule_access` grant), and the corollary is stated
+  in the playbook: a calendar grant is a catalog grant. The plaintext ceiling
+  is 2MB **after gzip**; trim `projectCatalog` rather than raising it.
 
 - **Fixed and rolling reminders are not the same recurrence, and confusing them
   is silent.** A *fixed* event (`once`, `yearly`, `lunar-yearly`, `monthly`)
@@ -1126,7 +1172,9 @@ patch tool. The commands below are what CI enforces.
 
 Editing the private schedule? `docs/schedule-playbook.md`. It is outside the
 three commands below on purpose: run `node tools/schedule-seal.mjs seal` and
-commit the envelope, because CI cannot re-seal what it cannot decrypt.
+commit the envelope, because CI cannot re-seal what it cannot decrypt. The
+movie catalog is the same shape: `node tools/fshare-movie.mjs seal`, per
+`docs/fshare-movie-playbook.md`.
 
 **`check.mjs` is the third of three commands CI runs, not all of it.** The two
 that come first regenerate derived data from git history and fail if the

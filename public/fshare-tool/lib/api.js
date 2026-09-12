@@ -31,6 +31,22 @@ const UNREACHABLE = 'Could not reach ' + API_ORIGIN +
 
 const isNetworkFailure = (e) => e instanceof TypeError;
 
+function validatePayload(data) {
+  if (!data || typeof data !== 'object') throw new Error('Fshare returned an invalid response');
+
+  const code = Number(data.code);
+  if (Number.isFinite(code) && code >= 400) {
+    throw new Error((data.msg || data.message || 'Fshare rejected the link') + ' (HTTP ' + code + ')');
+  }
+  if (data.error && !Array.isArray(data.items)) {
+    throw new Error(String(data.error));
+  }
+  if (!Array.isArray(data.items) && !data.current && !data.item) {
+    throw new Error('Fshare returned no link metadata');
+  }
+  return data;
+}
+
 /* The upstream drops connections under load — an ECONNRESET showed up while
    benchmarking. Without a retry the crawl just counts the folder as failed and
    moves on, silently losing every file inside it, which is far worse than
@@ -49,7 +65,7 @@ export function apiFolder(linkcode, page, sort) {
   const attempt = (n) =>
     fetch(url, { cache: 'no-store' }).then((res) => {
       if (!res.ok) throw new Error('HTTP ' + res.status);
-      return res.json();
+      return res.json().then(validatePayload);
     }).catch((e) => {
       // A 4xx is a real answer; retrying it only wastes time.
       const permanent = /HTTP 4\d\d/.test(e.message);
@@ -81,10 +97,11 @@ export const resetFetchStats = () => { fetchStats.hits = 0; fetchStats.misses = 
  * when possible — the crawl is entirely network-bound, so this is what makes a
  * second visit instant rather than another minute of waiting.
  */
-export function fetchAllPages(linkcode, sort, shouldStop, onPage) {
+export function fetchAllPages(linkcode, sort, shouldStop, onPage, options) {
   const useSort = sort || currentSort();
+  const fresh = !!(options && options.fresh);
 
-  if (!isBypassed()) {
+  if (!fresh && !isBypassed()) {
     const hit = cacheGet(linkcode, useSort);
     if (hit) {
       fetchStats.hits++;

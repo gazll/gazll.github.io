@@ -32,3 +32,8 @@ docs/case-study-drafts/
 # nuxt.config.ts is an env check, not a file read. The durable outputs are
 # DESIGN.md and PRODUCT.md at the root, which stay committed.
 .impeccable/
+
+# The Fshare movie catalog. Raw community exports and the working catalog with
+# every link's check state live under secret/ (already ignored above); only the
+# sealed, live-only projection public/data/fshare-movie/catalog.enc.json is
+# committed — see docs/fshare-movie-playbook.md.

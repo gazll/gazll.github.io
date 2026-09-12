@@ -17,6 +17,7 @@ export const currentLc = () =>
 
 export function showHome() {
   $('homeView').style.display = 'block';
+  $('movieView').style.display = 'none';
   $('folderView').style.display = 'none';
   $('batchView').style.display = 'none';
   document.title = 'Fshare Bulk Copy';
@@ -24,15 +25,25 @@ export function showHome() {
 
 export function showFolder() {
   $('homeView').style.display = 'none';
+  $('movieView').style.display = 'none';
   $('batchView').style.display = 'none';
   $('folderView').style.display = 'block';
 }
 
 export function showBatch() {
   $('homeView').style.display = 'none';
+  $('movieView').style.display = 'none';
   $('folderView').style.display = 'none';
   $('batchView').style.display = 'block';
   document.title = 'Bulk crawl — Fshare Bulk Copy';
+}
+
+export function showMovie() {
+  $('homeView').style.display = 'none';
+  $('folderView').style.display = 'none';
+  $('batchView').style.display = 'none';
+  $('movieView').style.display = 'block';
+  document.title = 'Movie search — Fshare Bulk Copy';
 }
 
 /* ---------- address bar ---------- */

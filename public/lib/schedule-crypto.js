@@ -30,6 +30,12 @@ const MAX_CIPHERTEXT_BYTES = 2 * 1024 * 1024;
 const MIN_CIPHERTEXT_BYTES = 16; // AES-GCM authentication tag
 export const MAX_ENVELOPE_JSON_CHARS = 3 * 1024 * 1024;
 const MAX_HINT_CHARS = 2000;
+/* Optional content encoding, applied before encryption. The movie catalog is
+   text that gzips ~5x, and the ciphertext ceiling above is what keeps the file
+   safe to fetch — so the plaintext is compressed to fit under it rather than
+   the ceiling raised to fit the plaintext. Absent means plain JSON, which is
+   what every envelope sealed before this field existed carries. */
+const ENCODINGS = new Set(['gzip']);
 
 const subtle = () => {
   const api = globalThis.crypto?.subtle;
@@ -66,6 +72,13 @@ async function deriveKey(passphrase, salt, iterations) {
 
 const BASE64 = /^[A-Za-z0-9+/]+={0,2}$/;
 
+async function pipeBytes(bytes, stream) {
+  const piped = new Blob([bytes]).stream().pipeThrough(stream);
+  return new Uint8Array(await new Response(piped).arrayBuffer());
+}
+const gzip = (bytes) => pipeBytes(bytes, new CompressionStream('gzip'));
+const gunzip = (bytes) => pipeBytes(bytes, new DecompressionStream('gzip'));
+
 function decodeField(value, name, { exactBytes, minBytes = 0, maxBytes = MAX_CIPHERTEXT_BYTES } = {}) {
   if (typeof value !== 'string' || !value || value.length > Math.ceil(maxBytes * 4 / 3) + 4 || !BASE64.test(value)) {
     throw new Error(`Invalid sealed schedule ${name}.`);
@@ -100,7 +113,10 @@ function validateEnvelope(envelope) {
   if (envelope.hint != null && (typeof envelope.hint !== 'string' || envelope.hint.length > MAX_HINT_CHARS)) {
     throw new Error('Invalid sealed schedule hint.');
   }
-  return { salt, iv, ct, iterations };
+  if (envelope.enc != null && !ENCODINGS.has(envelope.enc)) {
+    throw new Error('Unsupported sealed content encoding.');
+  }
+  return { salt, iv, ct, iterations, enc: envelope.enc || null };
 }
 
 /**
@@ -111,16 +127,19 @@ function validateEnvelope(envelope) {
  * because the file is: write a hint that jogs your own memory and tells a
  * stranger nothing, and keep it short of anything that narrows a guess.
  */
-export async function seal(value, passphrase, { hint = '' } = {}) {
+export async function seal(value, passphrase, { hint = '', compress = false } = {}) {
   if (!passphrase) throw new Error('A passphrase is required.');
   const salt = crypto.getRandomValues(new Uint8Array(SALT_BYTES));
   const iv = crypto.getRandomValues(new Uint8Array(IV_BYTES));
   const key = await deriveKey(passphrase, salt, KDF_ITERATIONS);
-  const ct = await subtle().encrypt(
-    { name: 'AES-GCM', iv },
-    key,
-    new TextEncoder().encode(JSON.stringify(value))
-  );
+  let plain = new TextEncoder().encode(JSON.stringify(value));
+  if (compress) plain = await gzip(plain);
+  // Refuse here rather than write a file that unseal() will refuse to read.
+  if (plain.byteLength + MIN_CIPHERTEXT_BYTES > MAX_CIPHERTEXT_BYTES) {
+    throw new Error(`Content is ${plain.byteLength} bytes${compress ? ' after gzip' : ''}; `
+      + `the envelope holds at most ${MAX_CIPHERTEXT_BYTES}${compress ? '.' : ' — try { compress: true }.'}`);
+  }
+  const ct = await subtle().encrypt({ name: 'AES-GCM', iv }, key, plain);
   return {
     v: ENVELOPE_VERSION,
     alg: 'AES-GCM-256',
@@ -130,6 +149,7 @@ export async function seal(value, passphrase, { hint = '' } = {}) {
     iv: toBase64(iv),
     ct: toBase64(ct),
     sealed_at: new Date().toISOString(),
+    ...(compress ? { enc: 'gzip' } : {}),
     ...(hint ? { hint: String(hint) } : {})
   };
 }
@@ -150,9 +170,10 @@ export async function unseal(envelope, passphrase) {
   } catch (error) {
     // GCM authenticates, so a failure here is a wrong key or a damaged file —
     // never partially decrypted output. Say which, because the fix differs.
-    throw new Error('Could not open the schedule — wrong passphrase, or the file was modified.');
+    throw new Error('Could not open the sealed file — wrong passphrase, or the file was modified.');
   }
-  return JSON.parse(new TextDecoder().decode(plain));
+  const bytes = checked.enc === 'gzip' ? await gunzip(new Uint8Array(plain)) : plain;
+  return JSON.parse(new TextDecoder().decode(bytes));
 }
 
 /** A cheap shape check before asking anyone for a passphrase. */

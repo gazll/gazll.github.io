@@ -35,7 +35,7 @@ git add public/data/schedule/private.enc.json && git commit
 ```
 
 The passphrase is looked for in three places, in order: the
-`GAZLL_SCHEDULE_KEY` environment variable, then `secret/schedule.key` (one
+`GAZLL_SCHEDULE_KEY` environment variable, then `secret/app.key` (one
 line, no quotes), then a prompt with the echo turned off. The key file is a
 convenience for the machine that edits the content and is safe only because
 `secret/` is gitignored — it is still a credential on disk, so the tool never
