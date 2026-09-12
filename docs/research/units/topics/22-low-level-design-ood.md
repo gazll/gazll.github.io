@@ -174,16 +174,16 @@ This is deliberately an LLD/data-structure exercise. Topic 10 owns system-wide r
 
 Gate passed on 2026-08-23: content index rebuild, EN/VI parity, `validate-content.mjs --stats`, complete `check.mjs`, and `git diff --check` succeeded.
 
-## Proposed follow-up changes
+## Proposed follow-up changes (applied 2026-09-12)
 
-- [ ] Reframe the five-step framework as a communication and invariant workflow, not a universal timed ritual.
-- [ ] Add explicit preconditions and complexity assumptions to LRU, limiter, allocator, and TTL examples.
-- [ ] Correct the LinkedHashMap/ConcurrentHashMap concurrency wording and state that the examples are process-local unless a shared authority is introduced.
-- [ ] Replace “most widely used” and interview-frequency claims with scoped teaching language unless a source is available.
-- [ ] Add monotonic/injected time to limiter and TTL code; define cleanup versus validity separately.
-- [ ] Add a pattern decision table based on change axis/lifecycle/routing and an anti-overengineering example.
-- [ ] Add deterministic fake-clock, property, contract, and targeted-interleaving tests; label jcstress as exploratory stress evidence.
-- [ ] Mirror all qualifiers, identifiers, and code terminology in EN/VI; preserve the nine persistent IDs.
+- [x] Reframe the five-step framework as a communication and invariant workflow, not a universal timed ritual.
+- [x] Add explicit preconditions and complexity assumptions to LRU, limiter, allocator, and TTL examples.
+- [x] Correct the LinkedHashMap/ConcurrentHashMap concurrency wording and state that the examples are process-local unless a shared authority is introduced.
+- [x] Replace “most widely used” and interview-frequency claims with scoped teaching language unless a source is available.
+- [x] Add monotonic/injected time to limiter and TTL code; define cleanup versus validity separately.
+- [x] Add a pattern decision table based on change axis/lifecycle/routing and an anti-overengineering example.
+- [x] Add deterministic fake-clock, property, contract, and targeted-interleaving tests; label jcstress as exploratory stress evidence.
+- [x] Mirror all qualifiers, identifiers, and code terminology in EN/VI; preserve the nine persistent IDs.
 
 ## EN/VI parity and cross-reference plan
 

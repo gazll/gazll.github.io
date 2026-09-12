@@ -198,7 +198,8 @@
       "cover_fit": "contain",
       "source_url": "https://engineering.tiki.vn/xac-thuc-va-phan-quyen-trong-microservices/",
       "created_at": "2026-08-05",
-      "updated_at": "2026-08-23",
+      "updated_at": "2026-09-12",
+      "reviewed_at": "2026-09-12",
       "cover_thumb": "assets/covers/case-studies/10-xac-thuc-va-phan-quyen-trong-microservices.webp"
     },
     {
@@ -251,7 +252,8 @@
       "cover_fit": "contain",
       "source_url": "https://discord.com/blog/how-discord-stores-trillions-of-messages",
       "created_at": "2026-08-18",
-      "updated_at": "2026-08-23"
+      "updated_at": "2026-09-12",
+      "reviewed_at": "2026-09-12"
     },
     {
       "n": 14,
@@ -269,7 +271,8 @@
       "cover_fit": "contain",
       "source_url": "https://blog.cloudmentor.pro/posts/aws-startup-xay-dung-ha-tang-aws-lon-va-khung-hoang-chi-phi",
       "created_at": "2026-08-18",
-      "updated_at": "2026-08-23",
+      "updated_at": "2026-09-12",
+      "reviewed_at": "2026-09-12",
       "cover_thumb": "assets/covers/case-studies/14-small-business-cloud-cost-shock.webp"
     },
     {
@@ -287,7 +290,8 @@
       "cover_image": "assets/case-studies/15-transactional-outbox-order-workflow/01-outbox-flow.svg",
       "cover_fit": "contain",
       "created_at": "2026-08-18",
-      "updated_at": "2026-08-23"
+      "updated_at": "2026-09-12",
+      "reviewed_at": "2026-09-12"
     },
     {
       "n": 16,

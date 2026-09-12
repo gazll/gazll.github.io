@@ -2,7 +2,7 @@
 
 Status: `INTEGRATED`
 
-Reviewed: 2026-08-23
+Reviewed: 2026-09-12
 
 Local unit: `01-java-core-jvm`
 
@@ -170,18 +170,18 @@ The public changes are intentionally scoped: a virtual thread is a scheduling pr
 
 Gate passed on 2026-08-23: content index rebuilt; `validate-content.mjs --stats`, the complete `check.mjs` gate, EN/VI parity checks, and `git diff --check` succeeded.
 
-## Proposed follow-up changes
+## Proposed follow-up changes — applied 2026-09-12
 
-- [ ] Keep all 27 IDs, but add a visible “Java SE guarantee versus HotSpot/OpenJDK implementation detail” label to the four sections.
-- [ ] Replace `<1 ms` pause diagrams and “major GC” shorthand with qualified collector-specific wording.
-- [ ] Mark escape-analysis flags, TLAB details, treeification thresholds, and object-layout statements as JDK-build implementation details; provide a diagnostic alternative.
-- [ ] Add a small workload card to q3/q4/q6: JDK/vendor, heap/live set, allocation rate, CPU quota, memory limit, target p99/p999, and measurement method.
-- [ ] Add the VT failure boundary: cheap task admission does not remove DB/HTTP/file descriptor/cpu limits; include JFR pinning and JDK 24 scope.
-- [ ] Add a monotonic-clock/deadline example and a clock-jump failure test.
-- [ ] Add a direct-memory/RSS/cgroup troubleshooting checklist and explicitly state NMT coverage limits.
-- [ ] Replace “CHM faster than Hashtable” with “different synchronization/operation contracts; compare under the target access pattern”.
-- [ ] Link q1/q4/q5 to `23-java-concurrency-coding` without duplicating implementations; link API retry/timeouts to `15`/`17`.
-- [ ] Apply the remaining collector, diagnostic, benchmark, and cross-reference refinements symmetrically to EN and VI; the Batch G changes above are already integrated.
+- [x] Kept all 27 IDs and added visible Java SE/JLS guarantee versus HotSpot/OpenJDK implementation-detail labels to the four sections.
+- [x] Replaced `<1 ms` pause diagrams and “major GC” shorthand with qualified collector-specific wording.
+- [x] Marked escape-analysis flags, TLAB details, treeification thresholds, and object-layout statements as JDK-build implementation details and added diagnostic alternatives.
+- [x] Added workload cards to q3/q4/q6 with JDK/vendor, heap/live set, allocation rate, CPU quota, memory limit, target p99/p999, and measurement method.
+- [x] Added the VT failure boundary, JFR pinning guidance, and JDK 24 scope.
+- [x] Added a monotonic-clock/deadline example and a clock-jump failure test.
+- [x] Added direct-memory/RSS/cgroup troubleshooting and stated NMT coverage limits.
+- [x] Replaced “CHM faster than Hashtable” with synchronization/operation-contract and target-access-pattern guidance.
+- [x] Linked q1/q4/q5 to `23-java-concurrency-coding` without duplicating implementations and linked retry/timeouts to `15`/`17`.
+- [x] Applied the collector, diagnostic, benchmark, and cross-reference refinements symmetrically to EN and VI; immutable IDs remain unchanged.
 
 ## EN/VI parity and cross-reference plan
 

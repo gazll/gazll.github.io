@@ -2,7 +2,7 @@
 
 Status: `INTEGRATED`
 
-Reviewed: 2026-08-23
+Reviewed: 2026-09-12
 
 Local unit: `15-transactional-outbox-order-workflow`
 
@@ -155,15 +155,15 @@ The order-specific crash matrix, expiring relay claim, conditional publication u
 
 ## EN/VI parity and proposed follow-up changes
 
-- [ ] Preserve all 11 section headings and code identifiers in both files.
-- [ ] Add the “repository-authored design example” label near the beginning of both language versions.
-- [ ] Make all “same transaction” statements say “same local database.”
-- [ ] Rename or explain `PUBLISHED` as a relay observation; consider `RELAYED`/`BROKER_ACKED` if the example needs to distinguish broker acknowledgement from consumer completion.
-- [ ] Add a lease/reclaim table for `SKIP LOCKED` relay workers and state the MySQL version/isolation assumption.
-- [ ] Keep generic Saga/Outbox definitions short and link topic 09; retain local order transitions and compensation failures.
-- [ ] Add status-resource expiry, authorization, terminal failure, and unknown-provider states to the `202` example.
-- [ ] Expand the failure test table with provider callback replay, lease expiry, stale/gap queue, schema rollback, and retention-window expiry.
-- [ ] Add the operational metrics in both languages and require trace IDs to be non-sensitive.
+- [x] Preserved all 11 section headings and code identifiers in both files.
+- [x] Added the “repository-authored design example” label near the beginning of both language versions in the guide metadata.
+- [x] Made the guide’s transaction boundary say “same local database.”
+- [x] Explained `PUBLISHED` in the guide as a relay/broker observation rather than business completion.
+- [x] Kept the lease/reclaim table and stated the illustrative MySQL 8.4/InnoDB and transaction-isolation assumptions in the paired body/guide notes; `SKIP LOCKED` remains scoped to queue-like claiming.
+- [x] Kept generic Saga/Outbox definitions short, linked Topic 09, and retained local order transitions and compensation failures.
+- [x] Added status-resource expiry, authorization, terminal failure, and unknown-provider states to the guide’s `202` decision notes.
+- [x] Expanded the failure-test coverage with provider callback replay, lease expiry, stale/gap queue, schema rollback, and retention-window expiry.
+- [x] Added operational metrics in both languages and required trace IDs to remain non-sensitive in the guide.
 
 ## Open questions and falsifiers
 

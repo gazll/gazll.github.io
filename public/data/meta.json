@@ -34,7 +34,7 @@
         ]
       },
       "created_at": "2026-07-31",
-      "updated_at": "2026-08-23"
+      "updated_at": "2026-09-12"
     },
     "2": {
       "topic_type": "core",
@@ -68,7 +68,7 @@
         ]
       },
       "created_at": "2026-07-31",
-      "updated_at": "2026-08-23"
+      "updated_at": "2026-09-12"
     },
     "3": {
       "topic_type": "core",
@@ -112,7 +112,7 @@
         ]
       },
       "created_at": "2026-07-31",
-      "updated_at": "2026-08-23"
+      "updated_at": "2026-09-12"
     },
     "4": {
       "topic_type": "design",
@@ -332,7 +332,7 @@
         ]
       },
       "created_at": "2026-07-31",
-      "updated_at": "2026-08-23"
+      "updated_at": "2026-09-12"
     },
     "10": {
       "topic_type": "design",
@@ -368,7 +368,7 @@
         ]
       },
       "created_at": "2026-07-31",
-      "updated_at": "2026-08-23"
+      "updated_at": "2026-09-12"
     },
     "11": {
       "topic_type": "design",
@@ -402,7 +402,7 @@
         ]
       },
       "created_at": "2026-07-31",
-      "updated_at": "2026-08-23"
+      "updated_at": "2026-09-12"
     },
     "12": {
       "topic_type": "design",
@@ -492,7 +492,7 @@
         ]
       },
       "created_at": "2026-07-31",
-      "updated_at": "2026-08-23"
+      "updated_at": "2026-09-12"
     },
     "14": {
       "topic_type": "platform",
@@ -528,7 +528,7 @@
         ]
       },
       "created_at": "2026-07-31",
-      "updated_at": "2026-08-23"
+      "updated_at": "2026-09-12"
     },
     "15": {
       "topic_type": "core",
@@ -718,7 +718,7 @@
         ]
       },
       "created_at": "2026-07-31",
-      "updated_at": "2026-08-23"
+      "updated_at": "2026-09-12"
     },
     "20": {
       "topic_type": "platform",
@@ -752,7 +752,7 @@
         ]
       },
       "created_at": "2026-07-31",
-      "updated_at": "2026-08-23"
+      "updated_at": "2026-09-12"
     },
     "21": {
       "topic_type": "platform",
@@ -788,7 +788,7 @@
         ]
       },
       "created_at": "2026-07-31",
-      "updated_at": "2026-08-23"
+      "updated_at": "2026-09-12"
     },
     "22": {
       "topic_type": "algorithm",
@@ -822,7 +822,7 @@
         ]
       },
       "created_at": "2026-07-31",
-      "updated_at": "2026-08-23"
+      "updated_at": "2026-09-12"
     },
     "23": {
       "topic_type": "algorithm",
@@ -856,7 +856,7 @@
         ]
       },
       "created_at": "2026-07-31",
-      "updated_at": "2026-08-23"
+      "updated_at": "2026-09-12"
     },
     "24": {
       "topic_type": "design",
@@ -960,7 +960,7 @@
         ]
       },
       "created_at": "2026-08-10",
-      "updated_at": "2026-08-23"
+      "updated_at": "2026-09-12"
     },
     "27": {
       "topic_type": "design",
@@ -1028,7 +1028,7 @@
         ]
       },
       "created_at": "2026-08-22",
-      "updated_at": "2026-08-23"
+      "updated_at": "2026-09-12"
     }
   }
 }

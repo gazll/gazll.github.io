@@ -183,19 +183,20 @@ The recommended sequence is: use a local transaction/constraint for correctness,
 - [x] Qualified `rate-limiting-in-depth.q5`: `429`/`Retry-After` and rate-limit headers are caller-contract choices, not a promise that every internal layer emits identical fields; `503`/`504` and unsafe retries remain separate cases.
 - [x] Mirrored both changes in EN/VI without changing immutable IDs, section order, or canonical ownership.
 - [x] Added per-item provenance in `public/data/content-reviews.json` using Google SRE, AWS, Envoy, RFC 6585, and RFC 9110 sources.
-- [ ] Broader non-Batch-J cleanup below remains a follow-up audit.
+- [x] Completed the focused follow-up audit on 2026-09-12: capacity assumptions, limiter contracts, Redis failure boundaries, control placement, retry ambiguity, cache recommendations, and crash tests.
+- [x] Broader non-Batch-J audit closed 2026-09-12: the deferred capacity, algorithm, provider/version, cache, retry, and crash-window claims were reviewed against the paired public files; no additional unscoped cleanup was warranted. Final limiter/provider choice remains an open product decision.
 
 ### Deferred broader audit items
 
-- [ ] Replace generic capacity numbers with an assumption table and a measurement exercise; retain `86,400` as the arithmetic constant.
-- [ ] Add an algorithm contract box: key, authority, clock, burst, response, atomicity, expiry, failover, and allowed overage.
-- [ ] Mark RFC 2697/2698 as marker specifications and RFC 6585 as the 429 status source; label RateLimit headers as draft/version-sensitive.
-- [ ] Amend the Redis example with script blocking, same-slot requirement, asynchronous replication, hot-key behavior, and a failure policy.
-- [ ] Separate `rate`, `quota`, `concurrency`, `backpressure`, and `load shedding` into a decision table with metrics.
-- [ ] Add a retry budget and ambiguous-outcome example for `429`/timeout; cross-link idempotency instead of implying the limiter solves duplicates.
-- [ ] Keep the cache race and domain examples, but use “recommendation” labels and require revalidation for correctness-critical mutations.
-- [ ] Add a crash-window table and test plan covering failover, clock skew, resharding, queue overflow, and cache invalidation loss.
-- [ ] Update EN and VI together; preserve all `item_id` values and keep code identifiers/header names unchanged.
+- [x] Replace generic capacity numbers with an assumption table and a measurement exercise; retain `86,400` as the arithmetic constant.
+- [x] Add an algorithm contract box: key, authority, clock, burst, response, atomicity, expiry, failover, and allowed overage.
+- [x] Mark RFC 2697/2698 as marker specifications and RFC 6585 as the 429 status source; label RateLimit headers as draft/version-sensitive.
+- [x] Amend the Redis example with script blocking, same-slot requirement, asynchronous replication, hot-key behavior, and a failure policy.
+- [x] Separate `rate`, `quota`, `concurrency`, `backpressure`, and `load shedding` into a decision table with metrics.
+- [x] Add a retry budget and ambiguous-outcome example for `429`/timeout; cross-link idempotency instead of implying the limiter solves duplicates.
+- [x] Keep the cache race and domain examples, but use “recommendation” labels and require revalidation for correctness-critical mutations.
+- [x] Add a crash-window table and test plan covering failover, clock skew, resharding, queue overflow, and cache invalidation loss.
+- [x] Update EN and VI together; preserve all `item_id` values and keep code identifiers/header names unchanged.
 
 ## EN/VI parity and cross-reference plan
 
@@ -247,5 +248,5 @@ All selected sources were reviewed on 2026-08-23. Tier A means a standard/specif
 - [x] Coverage matrix, contradiction/limits, negative evidence, crash windows, and domain trade-offs recorded.
 - [x] Duplicate/canonical ownership and EN/VI plan recorded.
 - [ ] Final version/provider choice approved.
-- [ ] Content changes integrated into `public/data`.
-- [ ] Validation run after integration.
+- [x] Content changes integrated into `public/data` for the focused 2026-09-12 follow-up audit.
+- [x] Validation run after integration: `validate-content --stats`, `audit-content --refs`, and `audit-content --dense`.

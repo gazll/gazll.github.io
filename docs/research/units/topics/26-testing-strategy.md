@@ -147,18 +147,20 @@ Test invariants:
 | Observability/SLO/alert testing | `20-observability-sre` | Keep test assertions for telemetry; canonical signal/SLO definitions there. |
 | Kubernetes rollout/collector/migration operations | `14-devops-k8s-best-practices` | Link deployment gates and keep portfolio guidance here. |
 
-## Proposed content changes (not applied)
+## Proposed content changes (applied 2026-09-12)
 
-- [ ] Replace any fixed pyramid ratio/“12 mocks” rule with a risk and feedback-cost heuristic.
-- [ ] Add an explicit test contract template: purpose, boundary, invariant, fixture, time/randomness, fault, cleanup, evidence, owner.
-- [ ] Split unit/fake/real-engine/contract/E2E tests with a table of blind spots and required evidence.
-- [ ] Add Spring test-managed transaction/flush/clear/commit examples and version caveats.
-- [ ] Add container image/version/parallel isolation and context-cache assumptions.
-- [ ] Add virtual-clock/timezone/DST/monotonic tests and race barriers plus repeated-run/stress guidance.
-- [ ] Add retry/fault-injection cases for duplicate effects, resource return, compensation and deadline budgets.
-- [ ] Add open versus closed load model, coordinated-omission warning, achieved throughput and histogram reporting.
-- [ ] Add a no-silent-retry flaky policy with owner, expiry, seed/order/environment capture, and a separate flake metric.
-- [ ] Update EN/VI together while preserving all 13 IDs.
+- [x] Replace any fixed pyramid ratio/“12 mocks” rule with a risk and feedback-cost heuristic.
+- [x] Add an explicit test contract template: purpose, boundary, invariant, fixture, time/randomness, fault, cleanup, evidence, owner.
+- [x] Split unit/fake/real-engine/contract/E2E tests with a table of blind spots and required evidence.
+- [x] Add Spring test-managed transaction/flush/clear/commit examples and version caveats.
+- [x] Add container image/version/parallel isolation and context-cache assumptions.
+- [x] Add virtual-clock/timezone/DST/monotonic tests and race barriers plus repeated-run/stress guidance.
+- [x] Add retry/fault-injection cases for duplicate effects, resource return, compensation and deadline budgets.
+- [x] Add open versus closed load model, coordinated-omission warning, achieved throughput and histogram reporting.
+- [x] Add a no-silent-retry flaky policy with owner, expiry, seed/order/environment capture, and a separate flake metric.
+- [x] Update EN/VI together while preserving all 13 IDs.
+
+The nine follow-up edits above were reviewed and integrated in paired EN/VI JSON on 2026-09-12; provider, framework, and load-tool choices remain open.
 
 ## EN/VI parity and cross-reference plan
 
@@ -168,7 +170,7 @@ The EN/VI files have identical sections and IDs. Keep framework annotations, cla
 
 - [x] Added `26-testing-strategy.testing-what-usually-breaks.q6` in EN/VI for timeout-after-commit, retry, unknown outcome, consumer checkpoint, and domain-invariant tests.
 - [x] Added `26-testing-strategy.testing-what-usually-breaks.q7` in EN/VI for restore/replay/cutover evidence, RPO/RTO, parity, dependency/configuration recovery, and repeatable drills.
-- [ ] The broader audit of framework-specific test performance, provider matrices, and mutation/fault tooling remains a follow-up.
+- [x] Bounded local audit completed 2026-09-12 across framework-specific performance, provider matrices, and mutation/fault tooling. The public contract keeps version, workload, resource, and evidence gates; no universal matrix or fixed performance target was invented without a target stack.
 
 ## Open questions and falsifiers
 
@@ -219,5 +221,5 @@ All selected sources were inspected/reviewed on 2026-08-23. Tier A is official f
 - [x] Coverage matrix, contradiction/limits, negative evidence, crash windows, operations, security/privacy, testing, and domain trade-offs recorded.
 - [x] Duplicate/canonical ownership and EN/VI parity plan recorded.
 - [ ] Target framework/database/provider/load-tool versions approved.
-- [ ] Content changes integrated into `public/data`.
-- [ ] Validation run after integration.
+- [x] Content changes integrated into `public/data`.
+- [x] Validation run after integration.

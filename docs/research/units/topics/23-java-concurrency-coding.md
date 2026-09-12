@@ -162,16 +162,16 @@ Gate passed on 2026-08-23: content index rebuild, EN/VI parity, `validate-conten
 
 ## Proposed follow-up changes
 
-- [ ] Add proof labels (safety, liveness, ordering, linearizability, visibility) to every exercise.
-- [ ] Keep wait/notify code but add close/shutdown and interruption semantics; compare with BlockingQueue contract.
-- [ ] Make strict alternation distinguish ordering from fairness and cancellation.
-- [ ] Add philosopher lock-order/resource-order proof and starvation trade-off.
-- [ ] Clarify ReadWriteLock/StampedLock optimistic-read validation and copy-on-write memory cost.
-- [ ] Add CompletableFuture executor choice, exception aggregation, timeout versus underlying cancellation, and shutdown.
-- [ ] Correct LongAdder/ABA/lock-free wording and cite API progress limits.
-- [ ] Mark StructuredTaskScope JDK 25 preview and JDK 24 pinning change; do not say “never pins”.
-- [ ] Correct volatile-counter answer: 20m is possible but not guaranteed; less is possible due lost updates.
-- [ ] Add jcstress/linearizability test hooks and mirror all qualifiers in VI.
+- [x] Added proof labels (safety, liveness, ordering, linearizability, visibility) to every exercise (applied 2026-09-12).
+- [x] Kept wait/notify code while adding close/shutdown and interruption semantics and comparing with the BlockingQueue contract (applied 2026-09-12).
+- [x] Made strict alternation distinguish ordering from fairness and cancellation (applied 2026-09-12).
+- [x] Added philosopher lock-order/resource-order proof and starvation trade-off (applied 2026-09-12).
+- [x] Clarified ReadWriteLock/StampedLock optimistic-read validation and copy-on-write memory cost (applied 2026-09-12).
+- [x] Added CompletableFuture executor choice, exception aggregation, timeout versus underlying cancellation, and shutdown (applied 2026-09-12).
+- [x] Corrected LongAdder/ABA/lock-free wording and cited API progress limits (applied 2026-09-12).
+- [x] Marked StructuredTaskScope JDK 25 preview and JDK 24 pinning change; removed the “never pins” wording (applied 2026-09-12).
+- [x] Corrected the volatile-counter answer: 20m is possible but not guaranteed; less is possible due to lost updates (applied 2026-09-12).
+- [x] Added jcstress/linearizability test hooks and mirrored all qualifiers in VI (applied 2026-09-12).
 
 ## EN/VI and cross-reference plan
 

@@ -3,20 +3,20 @@
   "guide": {
     "title": "The article should be read as a series of trust boundary decisions, not just a list of tokens and protocols.",
     "problem": "In a monolith, sessions and authorization checks are often part of the same process. When decoupling microservices, identities must traverse the network, each service can be invoked in multiple paths, and access needs to be consistent without turning an auth service into a new bottleneck.",
-    "core_idea": "The article compares JWT signing RSA with opaque tokens, puts OAuth 2 into the authorization problem, and then looks at two places of enforcement: the edge layer and each service. The access control part goes from ACL to RBAC and PBAC to increase policy expression capabilities.",
-    "outcome": "There is no one option that wins every time. JWT reduces lookups but is difficult to retrieve immediately; opaque token increases session control but adds network dependency; The gateway simplifies the client, but the service still needs to protect its own boundary.",
+    "core_idea": "The article is a historical introduction to token and enforcement choices in microservices. Read its RSA/JWT wording through the JOSE distinction between JWS signing and JWE encryption, OAuth 2.0 as authorization/delegation and OIDC as the identity layer, then compare edge and service enforcement with explicit validation and resource-policy contracts.",
+    "outcome": "There is no universal winner: a signed JWT can avoid an introspection round trip, while an opaque token can centralize active-state and revocation decisions. The correct choice depends on the issuer, resource audience, client workload, token size, policy freshness, revocation SLA, and failure mode; a gateway can reject coarse traffic, but every resource-owning service must authorize the subject, action, tenant, object, and property it actually serves.",
     "takeaways": [
-      "Authentication answers who is calling; authorization determines what the call does on a particular resource. Combining two steps makes the policy difficult to verify.",
-      "Self-contained tokens optimize the read path by accepting permission data that may be stale until the token expires.",
-      "Asymmetric signing allows multiple verification services without keeping secrets to be able to issue new tokens.",
-      "A gateway is a useful enforcement point but is not sufficient for service-to-service traffic or calls that bypass the edge layer.",
-      "RBAC is easier to manage than ACL as it scales; PBAC is more flexible but requires policy language, precedence, and decision interpretation tools."
+      "Authentication answers who or what presents a credential; authorization decides whether that subject may perform an action on a particular tenant, object, field, or other resource. OAuth 2.0 delegates authorization, while OIDC adds an identity layer for authenticated end users.",
+      "JWS signing provides integrity/authenticity and is not JWE confidentiality. If RSA is selected, name the profile and allowlist it—for example JWS RS256 for a signed access token, or JWE RSA-OAEP-256 with A256GCM when encryption is actually required—instead of calling every JWT 'RSA encryption'.",
+      "A resource server should validate the expected issuer, exact audience or resource, signature and allowlisted algorithm, expected `typ` token type/profile, and exp/nbf/iat with an explicit clock-skew policy. That validation still does not grant access: the owning service must enforce subject, action, tenant, object, and property authorization even when a gateway has already checked the request.",
+      "A signed JWT may reduce latency by avoiding an introspection round trip, but it carries stale claims and revocation risk and incurs token-size, key-rotation, JWKS, and local-validation costs. Opaque tokens trade those costs for introspection latency, availability, privacy, and cache freshness; compare them only for a named issuer/audience, client mix, RPS, token size, and revocation SLA.",
+      "NIST ABAC describes decisions over subject, object/resource, action, and environment attributes; PBAC is a broader policy-based architecture label, not a guaranteed maturity step beyond RBAC. Choose by relation/context, cardinality, policy churn, auditability, and evaluation cost, then verify the result with negative BOLA and policy-precedence tests."
     ],
     "review_lenses": [
-      "Draw the trust boundary and indicate where to issue, verify, refresh and revoke credential.",
-      "Choose token lifetime based on legacy risk, auth service availability, and user experience.",
-      "Specify which service is the source of truth for roles, permissions, and attributes used in the policy.",
-      "Log decides to delegate enough permissions to answer who was denied, by what rule, and with what policy version."
+      "Name the issuer, resource audience, expected `typ` token type, and JOSE profile; document the allowlisted algorithm, key ID/JWKS rotation and overlap, signature and time checks, and the boundary between OAuth delegation and OIDC identity.",
+      "Trace both the gateway path and direct, asynchronous, and service-to-service paths. Add tests for gateway bypass, issuer/audience/algorithm/type/time failures, wrong-tenant/object/property access, and BOLA; service-side authorization must remain the resource owner's decision.",
+      "Benchmark the chosen JWT and opaque/introspection paths under the real client and policy workload: validation and introspection p50/p95/p99, RPS, CPU, token size, cache age, error rate, and revocation-propagation time. Define per-operation timeout, cache, and fail-open/fail-closed rules rather than one global JWT claim.",
+      "Exercise key rotation and stale or unavailable JWKS, introspection outage and cache expiry, policy precedence, and replay scenarios. Monitor authentication failures by reason, JWKS refreshes, introspection latency/errors, policy decision latency and cache age, deny/indeterminate outcomes, revocations, and BOLA findings without logging raw bearer tokens or sensitive attributes."
     ]
   }
 }

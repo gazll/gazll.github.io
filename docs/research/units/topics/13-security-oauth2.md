@@ -169,18 +169,18 @@ Security invariants:
 | API error/idempotency semantics | Topic 17 and Case Study 15 | Link for client retries/unknown outcomes. |
 | Supply-chain image/provenance controls | Topic 14 | Mention threat, not a second CI/CD tutorial. |
 
-## Proposed content changes (not applied)
+## Proposed content changes (applied 2026-09-12)
 
-- [ ] Replace “OAuth authentication” wording with “OAuth authorization; OIDC authentication” throughout EN/VI.
-- [ ] Make Authorization Code + PKCE the default public/browser flow; cite RFC 9700 and the newly published RFC 10017, while leaving provider compatibility as an open question.
-- [ ] Add a token-validation checklist: trusted issuer, allowed algorithm, signature/key, `typ`, `iss`, `aud`, `exp`, `nbf`, clock skew, scopes, and resource ownership.
-- [ ] Split JWT, opaque token, BFF/session, DPoP, and mTLS into a decision matrix rather than presenting JWT as the default answer.
-- [ ] Mark all Keycloak endpoints, role mappers, token exchange, and Spring authority conversions as version/provider examples.
-- [ ] Add refresh-token rotation/reuse detection, JWKS single-flight/unknown-`kid` recovery, and IdP outage behavior.
-- [ ] Replace “secure browser storage” absolutes with a threat-model table covering HttpOnly cookie/BFF, in-memory SPA state, and Web Storage risks.
-- [ ] Add negative test cases for algorithm confusion, wrong issuer/audience, key rotation, replay, mass assignment, SSRF, deserialization, and cross-tenant access.
-- [ ] Separate encryption-at-rest, key management, application authorization, retention/deletion, and immutable audit into independent controls.
-- [ ] Update EN and VI together, preserving all 28 IDs and code identifiers.
+- [x] Replace “OAuth authentication” wording with “OAuth authorization; OIDC authentication” throughout EN/VI.
+- [x] Make Authorization Code + PKCE the default public/browser flow; cite RFC 9700 and the newly published RFC 10017, while leaving provider compatibility as an open question.
+- [x] Add a token-validation checklist: trusted issuer, allowed algorithm, signature/key, `typ`, `iss`, `aud`, `exp`, `nbf`, clock skew, scopes, and resource ownership.
+- [x] Split JWT, opaque token, BFF/session, DPoP, and mTLS into a decision matrix rather than presenting JWT as the default answer.
+- [x] Mark all Keycloak endpoints, role mappers, token exchange, and Spring authority conversions as version/provider examples.
+- [x] Add refresh-token rotation/reuse detection, JWKS single-flight/unknown-`kid` recovery, and IdP outage behavior.
+- [x] Replace “secure browser storage” absolutes with a threat-model table covering HttpOnly cookie/BFF, in-memory SPA state, and Web Storage risks.
+- [x] Add negative test cases for algorithm confusion, wrong issuer/audience, key rotation, replay, mass assignment, SSRF, deserialization, and cross-tenant access.
+- [x] Separate encryption-at-rest, key management, application authorization, retention/deletion, and immutable audit into independent controls.
+- [x] Update EN and VI together, preserving all 28 IDs and code identifiers.
 
 ## EN/VI parity and cross-reference plan
 
@@ -191,7 +191,8 @@ The EN/VI structures and IDs match exactly. Integrate security qualifiers as pai
 - Added paired q5/q6/q7 items under Protecting the data you store: object-level and tenant authorization, webhook/capability replay boundaries, and operational key rotation/session revocation/audit.
 - Preserved every existing item ID; EN/VI item IDs and section order remain identical.
 - Reused canonical ownership instead of duplicating Topic 27 edge routing, Topic 17 API lifecycle, Topic 20 incident telemetry, or Topic 28 lease/fencing.
-- Rebuilt public/data/content-index.json; the repository validator reports 486 total items with no thin item below the configured threshold.
+- Rebuilt public/data/content-index.json; the repository validator reports 500 total items with no thin item below the configured threshold.
+- Reviewed and integrated the ten follow-up edits above in paired EN/VI JSON, preserving the existing item IDs and provider/version qualifiers.
 - Remaining provider/version and browser-architecture decisions stay open below; INTEGRATED means the reviewed Batch F scope is in public data, not that deployment-specific policy is universal.
 
 ## Open questions and falsifiers

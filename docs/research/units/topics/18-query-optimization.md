@@ -166,7 +166,7 @@ Preserve all 12 IDs and section order. Translate `estimated rows`, `actual rows`
 
 - [x] Added `18-query-optimization.rewriting-the-query-reshaping-the-model.q6` in EN/VI to distinguish cache, materialized view, CDC projection, and OLAP by freshness, rebuild, and operational cost.
 - [x] Connected the decision back to measured plans and the canonical outbox/CDC boundaries without adding another generic indexing tutorial.
-- [ ] The broader local audit of provider-specific optimizer behavior, pool sizing, and plan-regression operations remains a follow-up.
+- [x] Bounded local audit completed 2026-09-12 across provider-specific optimizer behavior, pool sizing, and plan-regression operations in the paired public files. Existing guidance requires target versions, representative plans, and measured rollback evidence; no generic numeric tuning was added without a deployment target.
 
 ## Open questions and falsifiers
 

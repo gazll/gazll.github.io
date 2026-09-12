@@ -173,7 +173,7 @@ Keep the exact 18 IDs and answer structure in both languages. Translate the qual
 - [x] Preserved all existing IDs, section order, and provider-specific index/MVCC evidence.
 - [x] Expanded `05-db-core-index-lock.transactions-mvcc-locking.q7` in EN/VI with the logical-versus-physical distinction, B+Tree/LSM mechanics, amplification, compaction backpressure, and measurement guidance.
 - [x] Added the unchanged, attributed ByteByteGo B-Tree versus LSM visual plus a local SVG schematic; both language files keep the same visual structure.
-- [ ] The broader local audit of every schema/lock recommendation remains a follow-up; Topic 06 owns distributed topology and Topic 18 owns plan-level optimization.
+- [x] Bounded local audit completed 2026-09-12 across every schema/index/MVCC/lock recommendation in the paired public files; no universal rewrite was warranted. Target engine/version, workload, and plan/lock evidence remain explicit deployment questions; Topic 06 owns distributed topology and Topic 18 owns plan-level optimization.
 
 ## Open questions and falsifiers
 

@@ -237,21 +237,23 @@ Topic 19 remains the canonical home for algorithmic patterns and interview proof
 
 Gate passed on 2026-08-23: content index rebuild, EN/VI parity, `validate-content.mjs --stats`, complete `check.mjs`, and `git diff --check` succeeded.
 
-## Proposed follow-up changes
+## Proposed follow-up changes (applied 2026-09-12)
 
-- [ ] q1: keep six steps, replace universal interviewer claims with a recommendation, and add invariant/proof checkpoint.
-- [ ] q2: define windows by predicate monotonicity and retain the negative-number counterexample.
-- [ ] q3: state LC 30 equal-word-length/lowercase constraints, n/m/w, duplicate counts, offsets, and runtime assumptions.
-- [ ] q4 and visual q1: state sorted/order/functional-graph preconditions.
-- [ ] Prefix q1 and visual q7: justify numeric type and sentinel prefix.
-- [ ] Top-K q2 and visual q10: compare sort, heap, quickselect by streaming, memory, order, ties, and worst case.
-- [ ] Answer-search q3 and visual q3: write the feasibility predicate and boundary invariant before the loop.
-- [ ] Graph q4 and visual q13/q14: correct DFS/BFS wording, qualify Dijkstra, and state representation/recursion assumptions.
-- [ ] DP/backtracking q5 and visual q11/q15: separate enumeration from state reuse and output-sensitive cost.
-- [ ] Stack/deque/interval q6 and visual q5/q6/q8: add endpoint/duplicate semantics and amortized proof sentence.
-- [ ] Tree q7 and visual q12: keep global BST bounds, trie alphabet, and recursion warning.
-- [ ] Bit q8 and visual q4/q7/q14: remove the 5–10x benchmark and unsupported JDK-history anecdote; add JLS/Unicode/API qualifications.
-- [ ] Cross-link distributed top-K to topic 25 and preserve all 27 EN/VI IDs.
+- [x] q1: keep six steps, replace universal interviewer claims with a recommendation, and add invariant/proof checkpoint.
+- [x] q2: define windows by predicate monotonicity and retain the negative-number counterexample.
+- [x] q3: state LC 30 equal-word-length/lowercase constraints, n/m/w, duplicate counts, offsets, and runtime assumptions.
+- [x] q4 and visual q1: state sorted/order/functional-graph preconditions.
+- [x] Prefix q1 and visual q7: justify numeric type and sentinel prefix.
+- [x] Top-K q2 and visual q10: compare sort, heap, quickselect by streaming, memory, order, ties, and worst case.
+- [x] Answer-search q3 and visual q3: write the feasibility predicate and boundary invariant before the loop.
+- [x] Graph q4 and visual q13/q14: correct DFS/BFS wording, qualify Dijkstra, and state representation/recursion assumptions.
+- [x] DP/backtracking q5 and visual q11/q15: separate enumeration from state reuse and output-sensitive cost.
+- [x] Stack/deque/interval q6 and visual q5/q6/q8: add endpoint/duplicate semantics and amortized proof sentence.
+- [x] Tree q7 and visual q12: keep global BST bounds, trie alphabet, and recursion warning.
+- [x] Bit q8 and visual q4/q7/q14: remove the 5–10x benchmark and unsupported JDK-history anecdote; add JLS/Unicode/API qualifications.
+- [x] Cross-link distributed top-K to topic 25 and preserve all 27 EN/VI IDs.
+
+The 13 follow-up edits above were reviewed and integrated in paired EN/VI JSON on 2026-09-12; Java baseline, Unicode policy, input budgets, and deterministic tie policy remain open teaching inputs.
 
 ## EN/VI parity and cross-reference plan
 
@@ -351,5 +353,5 @@ All selected sources were reviewed on 2026-08-23. Tier A is a specification, off
 - [x] Workload, invariants, authority, crash windows, contradictions, provider/version limits, negative evidence, security, operations, and testing coverage recorded.
 - [x] Duplicate/canonical ownership and EN/VI parity plan recorded.
 - [x] Source-to-claim mapping and 39-source ledger recorded.
-- [ ] Editorial changes integrated into public/data.
-- [ ] Browser/content validation run after a future integration change.
+- [x] Editorial changes integrated into public/data.
+- [x] Browser/content validation run after the 2026-09-12 integration change.

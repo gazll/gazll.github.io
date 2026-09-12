@@ -174,17 +174,17 @@ Gate passed on 2026-08-23: content index rebuilt; `validate-content.mjs --stats`
 
 ## Proposed follow-up changes
 
-- [ ] Replace the release prose with a table that labels each feature `final`, `preview`, or `implementation/vendor-specific`; remove the unverified JDK25 JEP count.
-- [ ] Correct “record = immutable” to “shallowly immutable carrier; deep immutability is the component’s responsibility”.
-- [ ] Qualify Java 8 adoption and LTS statements with vendor/support/distribution/date.
-- [ ] Add migration gates for removed modules, strong encapsulation, agents, reflection, serialization, JDBC drivers, container limits, and preview flags.
-- [ ] Remove unsupported cost/velocity/company claims and insert the comparison workload card.
-- [ ] Rewrite q1 goroutine versus VT as a contract table: scheduling, blocking integration, cancellation/context, stack/memory, pinning/cgo, and downstream bulkheads.
-- [ ] Replace fixed goroutine stack and “millions” claims with “implementation-dependent; measure”.
-- [ ] Keep Native Image benefits but add metadata/build-time-init failure cases, PGO representative-workload requirement, and a native-image test gate.
-- [ ] Label Valhalla as a current project/unknown rather than a shipped Java 25 feature; distinguish FFM final in JDK 22 from future Panama work.
-- [ ] Explain records/sealed/patterns as ADT-like modeling, including open-world/serialization/evolution limits.
-- [ ] Mirror every status and qualifier in the VI file before integration.
+- [x] Replaced the release prose with a table that labels each feature `final`, `preview`, or `implementation/vendor-specific` and removed the unverified JDK25 JEP count (applied 2026-09-12).
+- [x] Corrected “record = immutable” to “shallowly immutable carrier; deep immutability is the component’s responsibility” (applied 2026-09-12).
+- [x] Qualified Java 8 adoption and LTS statements with vendor/support/distribution/date (applied 2026-09-12).
+- [x] Added migration gates for removed modules, strong encapsulation, agents, reflection, serialization, JDBC drivers, container limits, and preview flags (applied 2026-09-12).
+- [x] Removed unsupported cost/velocity/company claims and inserted the comparison workload card (applied 2026-09-12).
+- [x] Rewrote q1 goroutine versus VT as a contract table covering scheduling, blocking integration, cancellation/context, stack/memory, pinning/cgo, and downstream bulkheads (applied 2026-09-12).
+- [x] Replaced fixed goroutine stack and “millions” claims with “implementation-dependent; measure” (applied 2026-09-12).
+- [x] Kept Native Image benefits while adding metadata/build-time-init failure cases, PGO representative-workload requirement, and a native-image test gate (applied 2026-09-12).
+- [x] Labeled Valhalla as a current project/unknown rather than a shipped Java 25 feature and distinguished FFM final in JDK 22 from future Panama work (applied 2026-09-12).
+- [x] Explained records/sealed/patterns as ADT-like modeling, including open-world/serialization/evolution limits (applied 2026-09-12).
+- [x] Mirrored every status and qualifier in the VI file and validated the pair (applied 2026-09-12).
 
 ## EN/VI and cross-reference plan
 

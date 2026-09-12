@@ -168,7 +168,7 @@ Preserve all 13 item IDs and the two-section order. Translate “source of truth
 - [x] Added `07-sql-nosql-db-engines.engine-by-engine.q10` in EN/VI to make search/cache/OLAP projection freshness, event identity, deletes, replay, and rebuild explicit.
 - [x] Kept the existing search-engine boundary as the canonical introduction; the new item adds the operational proof required to rebuild a projection.
 - [x] Added a short physical-layer cross-reference to `07-sql-nosql-db-engines.the-big-picture.q1` in EN/VI; topic 05 remains the canonical B+Tree/LSM evidence record.
-- [ ] The broader comparison of every listed engine's current version and cost/performance fit remains a follow-up.
+- [x] Bounded comparison audit completed 2026-09-12 across every listed engine and its selection rubric. No universal current-version or cost/performance table was added because provider, region, workload, and operating constraints are not specified; the public guidance keeps that benchmark gate explicit.
 
 ## Open questions and falsifiers
 

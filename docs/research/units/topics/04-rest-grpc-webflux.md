@@ -163,20 +163,20 @@ Tests should cover method idempotency/conditional requests, gRPC status/deadline
 - [x] Added the matched REST/gRPC benchmark and flow-control contract as `04-rest-grpc-webflux.protocols.q7`.
 - [x] Added bounded reactive backpressure, cancellation, scheduler, and replayable-history guidance as `04-rest-grpc-webflux.reactive-webflux.q6`.
 - [x] Mirrored both additions in EN and VI without changing existing IDs or deleting protocol evidence.
-- [ ] Broader non-Batch-C cleanup below remains a follow-up audit, not an unverified claim of completion.
+- [x] Broader non-Batch-C cleanup below was completed in the matched EN/VI content pair; deployment-specific unknowns remain in the falsifier list.
 
-### Deferred broader audit items
+### Follow-up items applied (2026-09-12)
 
-- [ ] Remove the universal gRPC size/throughput multiplier and replace it with a reproducible benchmark contract.
-- [ ] Reframe “REST outside/gRPC inside” as a common topology with browser, public API, proxy, streaming, and organizational exceptions.
-- [ ] Qualify `422`, server push, HTTP/1.1 connection behavior, and versioning statements by RFC/convention/version.
-- [ ] Rewrite pagination around total ordering, cursor opacity/expiry, mutation consistency, arbitrary-jump needs, and index design.
-- [ ] Correct “cold publisher” to explain cold/hot Reactor sources and lazy assembly/subscription.
-- [ ] Add a WebFlux-versus-VT matrix tied to blocking dependency, event-loop policy, streaming/backpressure, debugging, and downstream bulkheads.
-- [ ] Add gRPC deadline propagation/cancellation and flow-control crash windows; link network retry/idempotency to topics 15/17.
-- [ ] Replace GraphQL “DataLoader mandatory” with batching/query-cost/cache controls and explicit N+1 failure evidence.
-- [ ] Add contract-first CI steps: schema lint, breaking-change check, generated client compile, provider/consumer contract, and runtime integration.
-- [ ] Mirror all protocol modal language in VI; no public content is edited by this dossier.
+- [x] Remove the universal gRPC size/throughput multiplier and replace it with a reproducible benchmark contract.
+- [x] Reframe “REST outside/gRPC inside” as a common topology with browser, public API, proxy, streaming, and organizational exceptions.
+- [x] Qualify `422`, server push, HTTP/1.1 connection behavior, and versioning statements by RFC/convention/version.
+- [x] Rewrite pagination around total ordering, cursor opacity/expiry, mutation consistency, arbitrary-jump needs, and index design.
+- [x] Correct “cold publisher” to explain cold/hot Reactor sources and lazy assembly/subscription.
+- [x] Add a WebFlux-versus-VT matrix tied to blocking dependency, event-loop policy, streaming/backpressure, debugging, and downstream bulkheads.
+- [x] Add gRPC deadline propagation/cancellation and flow-control crash windows; link network retry/idempotency to topics 15/17.
+- [x] Replace GraphQL “DataLoader mandatory” with batching/query-cost/cache controls and explicit N+1 failure evidence.
+- [x] Add contract-first CI steps: schema lint, breaking-change check, generated client compile, provider/consumer contract, and runtime integration.
+- [x] Mirror all protocol modal language in VI in the matched public data pair.
 
 ## EN/VI and cross-reference plan
 

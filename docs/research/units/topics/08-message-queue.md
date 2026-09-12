@@ -185,19 +185,19 @@ The canonical broker/effect boundary, workload-based RabbitMQ/Kafka comparison, 
 - [x] Extended `reliability-delivery-semantics.q2` with an explicit queue-type choice: quorum queues for replicated queue semantics versus streams for retained append/replay and fan-out workloads.
 - [x] Kept the boundary limit visible: queue type does not turn publisher confirmation or consumer ACK into an external business-effect guarantee.
 - [x] Mirrored the wording in EN/VI and refreshed per-item provenance with RabbitMQ confirms, quorum-queue, streams, and reliability documentation.
-- [ ] The multi-tenant blueprint still needs its own fairness/tenant-cost integration review; this q2 change is the canonical broker primitive only.
+- [x] Reviewed the multi-tenant RabbitMQ blueprint: fairness and tenant-cost controls stay in the blueprint, while this topic remains the canonical broker primitive. The boundary is now explicit in the blueprint's admission, dispatch, execution, prefetch, retry, and downstream-bulkhead sections.
 
 ## Proposed follow-up changes
 
-- [ ] Start with the four delivery/effect boundaries and define exactly-once by boundary.
-- [ ] Replace Rabbit/Kafka personality slogans with workload contracts and failure-domain tables.
-- [ ] Add explicit producer, broker, consumer, and business-effect crash matrices.
-- [ ] Separate queue flow control (`prefetch`, poll, unacked, lag) from application concurrency and DB capacity.
-- [ ] Add an order example with aggregate key, partition/queue scope, version check, stale-event handling, and replay.
-- [ ] Add a DLQ/quarantine runbook: error class, owner, retention, replay authorization, schema check, and age alert.
-- [ ] Add schema evolution examples for Protobuf/registry and state that policy/version is deployment-specific.
-- [ ] Link Outbox and Inbox to topics 09/25 and Case 15 rather than restating their complete patterns.
-- [ ] Apply all wording changes to EN and VI together after the canonical outline is approved.
+- [x] Start with the four delivery/effect boundaries and define exactly-once by boundary.
+- [x] Replace Rabbit/Kafka personality slogans with workload contracts and failure-domain tables.
+- [x] Add explicit producer, broker, consumer, and business-effect crash matrices.
+- [x] Separate queue flow control (`prefetch`, poll, unacked, lag) from application concurrency and DB capacity.
+- [x] Add an order example with aggregate key, partition/queue scope, version check, stale-event handling, and replay.
+- [x] Add a DLQ/quarantine runbook: error class, owner, retention, replay authorization, schema check, and age alert.
+- [x] Add schema evolution examples for Protobuf/registry and state that policy/version is deployment-specific.
+- [x] Link Outbox and Inbox to topics 09/25 and Case 15 rather than restating their complete patterns.
+- [x] Apply all wording changes to EN and VI together after the canonical outline was approved.
 
 ## EN/VI and cross-reference plan
 

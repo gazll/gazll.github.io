@@ -161,17 +161,17 @@ The public answers now distinguish three contracts instead of treating “idempo
 
 The wallet and asynchronous-payment case prompts link to this canonical checklist. The OTA late-webhook case adds the separate supplier-authority rule: local hold expiry is not proof that a GDS/airline inventory mutation was released. Supplier-specific expiry and idempotency behavior remains an explicit open contract, not an inferred fact.
 
-## EN/VI parity and proposed follow-up changes
+## EN/VI parity and follow-up changes (applied 2026-09-12)
 
-- [ ] Keep all question IDs and answer order identical.
-- [ ] Replace “Saga ensures data integrity” with “coordinates local transactions toward a declared desired state under eventual consistency.”
+- [x] Keep all question IDs and answer order identical.
+- [x] Replace “Saga ensures data integrity” with “coordinates local transactions toward a declared desired state under eventual consistency.”
 - [x] Add the correctness stack: local ACID → command idempotency → Outbox → relay → consumer Inbox/constraint → workflow state → provider reconciliation.
 - [x] Split command idempotency, consumer deduplication, and provider idempotency into three separate examples.
 - [x] Replace “Outbox guarantees delivery” with durable intent plus relay/retention/repair requirements.
-- [ ] Mark TCC/seat-hold equivalence as an analogy and list Try/Confirm/Cancel requirements.
+- [x] Mark TCC/seat-hold equivalence as an analogy and list Try/Confirm/Cancel requirements.
 - [x] Add explicit `UNKNOWN`, `PENDING`, `COMPENSATING`, and `RECONCILIATION_REQUIRED` states.
-- [ ] Preserve the double-entry and money representation material, but link provider-specific guarantees and legal/compliance scope rather than generalising them.
-- [ ] Add metrics and test cases from the coverage matrix in both languages.
+- [x] Preserve the double-entry and money representation material, but link provider-specific guarantees and legal/compliance scope rather than generalising them.
+- [x] Add metrics and test cases from the coverage matrix in both languages.
 
 ## Open questions and falsifiers
 

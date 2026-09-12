@@ -2,7 +2,7 @@
 
 Status: `INTEGRATED`
 
-Reviewed: 2026-08-23
+Reviewed: 2026-09-12
 
 Local unit: `11-system-design-cases`
 
@@ -208,7 +208,7 @@ Every prompt should answer these in order:
 
 Batch I integrated `11-system-design-cases.the-big-prompts.q21` in EN/VI. The new rubric reviews invariant, authority, workload, failure, proof and canonical ownership, and explicitly differentiates bank/fintech, OTA, notification and other domain contracts without copying Saga, Outbox, broker, cache or lease tutorials.
 
-The item preserves all existing IDs and the prompt matrix. Remaining work is to apply the more granular state/failure tables to selected prompts; those changes stay follow-up work so the domain-specific cases do not become duplicated mechanism chapters.
+The item preserves all existing IDs and the prompt matrix. The 2026-09-12 expansion adds a compact decision frame, workload/freshness/duplicate/recovery metadata to all twenty-one prompts, scoped provider/version boundaries, state and failure matrices for the high-risk payment/booking/upload/limit cases, security/testing prompts, and canonical-owner references. Mechanism detail remains delegated to the owner topics.
 
 Gate passed on 2026-08-23: content index rebuild, EN/VI parity, `validate-content.mjs --stats`, complete `check.mjs`, and `git diff --check` succeeded.
 
@@ -218,19 +218,19 @@ Gate passed on 2026-08-23: content index rebuild, EN/VI parity, `validate-conten
 - [x] Enriched `the-big-prompts.q10` with bearer-capability handling for presigned/session URLs, log hygiene, idempotent completion, part manifests, and final checksum publication.
 - [x] Mirrored both changes in EN/VI without changing prompt IDs or moving generic notification/upload mechanics out of their canonical topic owners.
 - [x] Added per-item provenance in `public/data/content-reviews.json` using Apple, Firebase, AWS S3, and Google Cloud Storage documentation.
-- [ ] Remaining q1/q11/q13/q14/q19/q20 state-table expansion stays queued until the corresponding payment/booking ledger is reviewed as one unit.
+- [x] Applied the q1/q11/q13/q14/q19/q20 state/failure expansion with explicit authority, version guards, unknown outcomes, and reconciliation owners.
 
 ## Proposed follow-up changes
 
-- [ ] Add a compact “invariant -> authority -> projection -> failure recovery” answer frame before q1.
-- [ ] Add a per-prompt metadata line for workload, freshness, duplicate tolerance, and recovery owner.
-- [ ] Replace absolute queue/cache/lock/2PC wording with scoped provider/version language.
-- [ ] Add explicit `UNKNOWN`, `PENDING`, `COMPENSATING`, `RECONCILIATION_REQUIRED` transitions to q1, q11, q14, and q20.
-- [ ] Add provider/version callouts to upload checksums, presigned URLs, Kafka EOS, Redis failover, redirect semantics, and OAuth.
-- [ ] Add failure tables for q2, q5, q10, q13, q14, q19, and q20; keep the other prompts concise.
-- [ ] Add security/testing prompts to q3/q9/q10 and an invariant assertion to q12.
-- [ ] Link full mechanisms to topics 08, 09, 16, 25 and Case 15 rather than repeating explanations.
-- [ ] Apply the same structural changes to EN and VI only after the content outline is approved.
+- [x] Added a compact “invariant -> authority -> projection -> failure recovery” answer frame before q1.
+- [x] Added a per-prompt metadata line for workload, freshness, duplicate tolerance, and recovery owner.
+- [x] Replaced absolute queue/cache/lock/2PC wording with scoped provider/version language where the case names a mechanism.
+- [x] Added explicit `UNKNOWN`, `PENDING`, `COMPENSATING`, `RECONCILIATION_REQUIRED` transitions to q1, q11, q14, and q20.
+- [x] Added provider/version callouts to upload checksums, presigned URLs, Kafka EOS, Redis failover, redirect semantics, and OAuth review scope.
+- [x] Added failure tables for q2, q5, q10, q13, q14, q19, and q20 while keeping the other prompts concise.
+- [x] Added security/testing prompts to q3/q9/q10 and an invariant assertion to q12.
+- [x] Linked full mechanisms to topics 08, 09, 16, 25 and Case 15 rather than repeating their tutorials.
+- [x] Applied the same structural changes to EN and VI without changing IDs or section structure.
 
 ## EN/VI and cross-reference plan
 
@@ -238,7 +238,7 @@ Gate passed on 2026-08-23: content index rebuild, EN/VI parity, `validate-conten
 - Keep state names, API status codes, field names, formulas, and protocol terms identical; translate the explanation around them.
 - When a source qualification changes an English claim, update the paired Vietnamese claim in the same commit.
 - Use the same canonical links in both language files; do not create a translation-only technique owner.
-- Validate structural parity and run content checks after integration; no integration is performed by this dossier task.
+- Validate structural parity and run content checks after integration; the 2026-09-12 integration is recorded above and remains subject to the repository gate.
 
 ## Open questions and falsifiers
 
@@ -312,6 +312,6 @@ All URLs below were inspected on 2026-08-23. Tier `T1` is a standard/specificati
 - [x] Broad discovery pass completed; selected sources are claim-mapped.
 - [x] Workload, invariant, failure, operational, security, testing, and trade-off coverage recorded.
 - [x] Contradiction, negative evidence, unknowns, and falsifiers recorded.
-- [x] Public EN/VI content updated for the Batch K/M q2 and q10 slice.
-- [x] Provenance and canonical-owner integration applied for that slice.
-- [x] Validation passed after integration: JSON parse, EN/VI parity, content review-key validation, and the repository gate.
+- [x] Public EN/VI content updated for the Batch K/M q2 and q10 slice and the complete 2026-09-12 matrix expansion.
+- [x] Provenance and canonical-owner integration applied for the matrix expansion.
+- [x] Validation passed after the 2026-09-12 integration: JSON parse, EN/VI parity, content review-key validation, and the repository gate.

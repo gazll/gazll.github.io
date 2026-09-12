@@ -4,6 +4,53 @@
     {
       "date": "2026-09-12",
       "en": {
+        "title": "Research follow-ups applied across seventeen topics"
+      },
+      "vi": {
+        "title": "Áp dụng các đề xuất từ hồ sơ nghiên cứu vào mười bảy topic"
+      },
+      "changes": [
+        {
+          "kind": "content",
+          "target": "system-design",
+          "en": {
+            "section": "Study Track",
+            "text": "About two hundred answers across seventeen topics were qualified against their research records: implementation details labelled, speed and pause claims scoped to a named collector or build, each big-prompt in topic 11 given case metadata and a failure matrix."
+          },
+          "vi": {
+            "section": "Study Track",
+            "text": "Khoảng hai trăm câu trả lời ở mười bảy topic được đối chiếu với hồ sơ nghiên cứu: chi tiết implementation được ghi rõ, claim tốc độ và pause giới hạn theo collector hoặc build, mỗi big-prompt ở topic 11 có metadata của case và failure matrix."
+          }
+        },
+        {
+          "kind": "content",
+          "target": "system-design",
+          "en": {
+            "section": "Case Studies",
+            "text": "The Discord, cloud-cost, transactional-outbox and authn/authz case-study guides were rewritten around the source each one cites, with reported numbers kept source-scoped."
+          },
+          "vi": {
+            "section": "Case Studies",
+            "text": "Guide của bốn case study Discord, cloud-cost, transactional outbox và authn/authz được viết lại bám theo nguồn bài trích dẫn, số liệu giữ đúng phạm vi nguồn."
+          }
+        },
+        {
+          "kind": "change",
+          "target": "system-design",
+          "en": {
+            "section": "Technically reviewed",
+            "text": "120 more version-bound claims carry a review date and primary sources in content-reviews.json (287 in all); four case studies gained a review date. The research records behind this were folded in and retired — git history keeps every source ledger."
+          },
+          "vi": {
+            "section": "Đã kiểm chứng kỹ thuật",
+            "text": "Thêm 120 claim ghim version có ngày kiểm chứng và nguồn chính thức trong content-reviews.json (tổng 287); bốn case study có ngày kiểm chứng. Hồ sơ nghiên cứu đã gộp vào nội dung và gỡ — git history giữ toàn bộ ledger nguồn."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-09-12",
+      "en": {
         "title": "Gateway versions re-verified, flash-sale diagram carries its mechanism"
       },
       "vi": {

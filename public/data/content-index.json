@@ -1145,8 +1145,8 @@
       "vi": "So sánh các GC: Serial, Parallel, G1, ZGC, Shenandoah — khi nào chọn cái nào?"
     },
     "01-java-core-jvm.memory-execution-model.q4": {
-      "en": "GC tuning: heap generations, minor vs major/full GC, and signs of a memory leak?",
-      "vi": "GC tuning: heap generation, minor vs major/full GC, và dấu hiệu memory leak?"
+      "en": "GC tuning: generational behavior, collector-specific events, and signs of a memory leak?",
+      "vi": "GC tuning: hành vi theo thế hệ, event riêng của collector, và dấu hiệu memory leak?"
     },
     "01-java-core-jvm.memory-execution-model.q5": {
       "en": "What are JIT compilation, the interpreter, C1/C2, tiered compilation, and warmup?",

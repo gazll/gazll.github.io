@@ -195,18 +195,20 @@ Declare these values before selecting a lock product:
 
 The authority-first decision, lease-expiry versus safety distinction, fencing requirement, provider/version limits, optimistic-concurrency alternative, and lock-versus-idempotency/Outbox boundary were integrated into both EN and VI. Existing IDs were preserved and the topic now links to Topics 05, 08, 09, 14, and the relevant case evidence. Remaining bullets are implementation-specific follow-ups, not missing integration.
 
+Focused follow-up audit (2026-09-12) added the authority preflight, mechanism map, TTL worksheet, Redis evidence boundary, recovery runbook, and explicit fairness/deadlock test cases in both languages.
+
 ## Proposed follow-up changes
 
-- [ ] Put the authority/resource/failure-model questions before product names; require a named invariant and accepted duplicate/blocked behavior.
-- [ ] Add the numbered invariants and crash-window table, especially pause-after-expiry, delayed release, authority failover, and external-write-after-acquire.
-- [ ] Split the mechanism table into database transaction/constraint, optimistic conditional write, coordination lock, lease/election, and durable work-claim categories.
-- [ ] Strengthen every TTL example with observed hold-time percentiles, renewal margin, monotonic deadline, maximum recovery time, and stale-work fencing.
-- [ ] Amend Redis examples with atomic acquisition, random owner token, compare-and-delete, replication/failover scope, and the official-versus-critique Redlock evidence boundary.
-- [ ] Amend etcd/Kubernetes/Consul examples to say their lease/session/election can coordinate the authority but cannot stop a stale external writer.
-- [ ] Add a concrete resource-side fencing example using a monotonically increasing generation/version or database/object-store precondition.
-- [ ] Add a recovery runbook: detect stuck holder, stop/drain old worker, inspect generation, force release only with authorization/audit, replay/reconcile, and verify stale-token rejection.
-- [ ] Add tests for GC/CPU pause, network delay/partition, failover, lost responses, late release, renewal race, hot-key contention, starvation, and multi-lock ordering.
-- [ ] Update EN and VI symmetrically, preserving every `id` and keeping product/version qualifiers equivalent.
+- [x] Put the authority/resource/failure-model questions before product names; require a named invariant and accepted duplicate/blocked behavior.
+- [x] Add the numbered invariants and crash-window table, especially pause-after-expiry, delayed release, authority failover, and external-write-after-acquire.
+- [x] Split the mechanism table into database transaction/constraint, optimistic conditional write, coordination lock, lease/election, and durable work-claim categories.
+- [x] Strengthen every TTL example with observed hold-time percentiles, renewal margin, monotonic deadline, maximum recovery time, and stale-work fencing.
+- [x] Amend Redis examples with atomic acquisition, random owner token, compare-and-delete, replication/failover scope, and the official-versus-critique Redlock evidence boundary.
+- [x] Amend etcd/Kubernetes/Consul examples to say their lease/session/election can coordinate the authority but cannot stop a stale external writer.
+- [x] Add a concrete resource-side fencing example using a monotonically increasing generation/version or database/object-store precondition.
+- [x] Add a recovery runbook: detect stuck holder, stop/drain old worker, inspect generation, force release only with authorization/audit, replay/reconcile, and verify stale-token rejection.
+- [x] Add tests for GC/CPU pause, network delay/partition, failover, lost responses, late release, renewal race, hot-key contention, starvation, and multi-lock ordering.
+- [x] Update EN and VI symmetrically, preserving every `id` and keeping product/version qualifiers equivalent.
 
 ## EN/VI parity and cross-reference plan
 

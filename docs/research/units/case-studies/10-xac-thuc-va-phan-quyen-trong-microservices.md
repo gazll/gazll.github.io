@@ -2,7 +2,7 @@
 
 Status: `INTEGRATED`
 
-Reviewed: 2026-08-23
+Reviewed: 2026-09-12
 
 Local unit: `10-xac-thuc-va-phan-quyen-trong-microservices`
 
@@ -158,6 +158,7 @@ Record: browser/mobile/service client type; number of issuers/audiences; token r
 - The qualifier explicitly limits the historical JWT/RSA/OAuth narrative: token validity and gateway authentication do not prove tenant/object/field permission.
 - It also requires trusted ownership checks across service hops, caches, exports, workers, and IdP/JWKS/policy outages.
 - Broader example cleanup, target-provider choices, and negative tests remain follow-up questions below; no persistent case IDs or figures were changed.
+- On 2026-09-12, the paired guide/editorial metadata was expanded with the seven semantic corrections, scoped comparison, and security-test prompts. The article HTML remains unchanged; body-only terminology, validation prose, test/metric examples, and the malformed regex still require an explicit article-body pass.
 
 ## Open questions and falsifiers
 

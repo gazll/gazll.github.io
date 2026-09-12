@@ -171,7 +171,7 @@ Both language files preserve the same three IDs. VI translates â€œIn-mem cacheâ€
 
 - [x] Added source-scoped evidence boundaries for throughput, connection, cache, payload, and bandwidth figures.
 - [x] Added bounded local single-flight/coalescing and compression CPU/size trade-offs to both EN and VI articles.
-- [ ] The broader catalog freshness/invalidation audit below remains a follow-up; the historical Tiki measurements are not generalized.
+- [x] Bounded catalog freshness/invalidation audit completed 2026-09-12 across the paired case files and research matrix. Historical Tiki measurements remain source-scoped; freshness, invalidation, and current-provider choices stay workload-specific rather than being generalized.
 
 ### Deferred broader audit items
 

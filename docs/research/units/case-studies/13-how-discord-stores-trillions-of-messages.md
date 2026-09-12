@@ -2,7 +2,7 @@
 
 Status: `INTEGRATED`
 
-Reviewed: 2026-08-23
+Reviewed: 2026-09-12
 
 Local unit: `13-how-discord-stores-trillions-of-messages`
 
@@ -148,13 +148,13 @@ Record append/read ratio, message size distribution, hot-channel skew, retention
 
 ### Deferred broader audit items
 
-- [ ] Add a visible “Discord report, published 2023; metrics around 2022” qualifier to both files.
-- [ ] Mark 3.2m msg/s, node counts, p99s, 9-day migration and 99.9999% as reported measurements with hardware/configuration scope.
-- [ ] Add a partition/replica/repair/tombstone glossary and failure table.
-- [ ] Explain that static bucketing controls partition size but not popularity skew.
-- [ ] Add a migration gate: dual write → backfill/checkpoint → shadow compare → staged reads → source cutover → rollback window.
-- [ ] Add deletion/privacy/backup/tenant-isolation concerns to the operations section.
-- [ ] Keep source-specific facts out of generic “best practice” prose and align EN/VI qualifiers.
+- [x] Added a visible “Discord report, published 2023; metrics around 2022” qualifier to both guide files.
+- [x] Marked 3.2m msg/s, node counts, p99s, 9-day migration, and 99.9999% as reported measurements with hardware/configuration scope in the guides.
+- [x] Added partition/replica/repair/tombstone vocabulary and failure-review prompts to the guides.
+- [x] Explained that static bucketing controls partition size but not popularity skew.
+- [x] Added the migration gate: dual write → backfill/checkpoint → shadow compare → staged reads → source cutover → rollback window.
+- [x] Added deletion/privacy/backup/tenant-isolation concerns to the guide operations prompts.
+- [x] Kept source-specific facts out of generic best-practice wording and aligned EN/VI qualifiers.
 
 ## Open questions and falsifiers
 
@@ -209,5 +209,5 @@ Video summaries, Reddit discussions and Wikipedia were used only to locate the o
 - [x] Workload, invariants, crash windows, comparison, coverage, limits, anti-patterns and falsifiers recorded.
 - [x] EN/VI parity and canonical ownership recorded.
 - [ ] Current Discord architecture/source update verified.
-- [ ] EN/VI content integration applied.
-- [ ] Validation passed after integration.
+- [x] EN/VI guide/editorial integration applied; article HTML/body_file remained unchanged.
+- [x] Validation passed after integration.

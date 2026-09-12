@@ -177,19 +177,19 @@ Gate passed on 2026-08-23: content index rebuilt; `validate-content.mjs --stats`
 
 ## Proposed follow-up changes
 
-- [ ] Add a version banner: target Java/Boot/Spring/Hikari/JDBC/database versions; mark Boot 4 and Spring 7 examples separately from Boot 3.
-- [ ] Change q2/q3 to “proxy mode by default” and explicitly distinguish imperative thread-bound transactions from reactive context.
-- [ ] Keep the `REQUIRES_NEW` pool formula/example, but label it a resource-allocation bound, not a recommendation for normal pool size.
-- [ ] Move generic Saga/Outbox definitions to topic 09; keep q5’s crash-window explanation and Spring-specific `@TransactionalEventListener` semantics.
-- [ ] Replace cache annotation “defaults” with provider matrix: local/shared, TTL, eviction, serialization, invalidation, `sync`, stampede, tenant key, and failure behavior.
-- [ ] Update auto-configuration metadata for Boot 3+/4 and add a condition-report/debugging method.
-- [ ] Replace Maven/Gradle speed claims with a build measurement table covering graph, plugins, repository, cache, configuration cache, and CI.
-- [ ] Make Hikari q9/q13/q14 numeric values illustrative only; add `replicas × pool`, nested-connection, DB max-connection/process, and failover-headroom formulas.
-- [ ] Add driver/database source links for MySQL 8.4, PostgreSQL current, and Oracle 26ai only if those are the pinned targets; otherwise mark the DB-specific answer unresolved.
-- [ ] Add Hikari session-state leakage tests and state that pool reset does not undo arbitrary SQL/session variables.
-- [ ] Expand q10 testing into a boundary matrix and link to topic 26.
-- [ ] Add ObjectMapper DTO/projection and payload/PII regression guidance; never silently promise that entity serialization is safe.
-- [ ] Apply the remaining provider matrices, pool formulas, cache/serialization details, and cross-reference refinements symmetrically to EN and VI; the Batch G changes above are already integrated.
+- [x] Added a version banner: target Java/Boot/Spring/Hikari/JDBC/database versions; Boot 4 and Spring 7 examples are marked separately from Boot 3 (applied 2026-09-12).
+- [x] Changed q2/q3 to “proxy mode by default” and explicitly distinguished imperative thread-bound transactions from reactive context (applied 2026-09-12).
+- [x] Kept the `REQUIRES_NEW` pool formula/example while labeling it a resource-allocation bound, not a recommendation for normal pool size (applied 2026-09-12).
+- [x] Moved generic Saga/Outbox definitions to topic 09 while keeping q5’s crash-window explanation and Spring-specific `@TransactionalEventListener` semantics (applied 2026-09-12).
+- [x] Replaced cache annotation “defaults” with a provider matrix covering local/shared, TTL, eviction, serialization, invalidation, `sync`, stampede, tenant key, and failure behavior (applied 2026-09-12).
+- [x] Updated auto-configuration metadata for Boot 3+/4 and added a condition-report/debugging method (applied 2026-09-12).
+- [x] Replaced Maven/Gradle speed claims with a build measurement table covering graph, plugins, repository, cache, configuration cache, and CI (applied 2026-09-12).
+- [x] Made Hikari q9/q13/q14 numeric values illustrative only and added `replicas × pool`, nested-connection, DB max-connection/process, and failover-headroom formulas (applied 2026-09-12).
+- [x] Added driver/database source links for the selected MySQL 8.4, PostgreSQL current, and Oracle 26ai examples, with unresolved-target qualification (applied 2026-09-12).
+- [x] Added Hikari session-state leakage tests and stated that pool reset does not undo arbitrary SQL/session variables (applied 2026-09-12).
+- [x] Expanded q10 testing into a boundary matrix and linked to topic 26 (applied 2026-09-12).
+- [x] Added ObjectMapper DTO/projection and payload/PII regression guidance without promising entity serialization safety (applied 2026-09-12).
+- [x] Applied the provider matrices, pool formulas, cache/serialization details, and cross-reference refinements symmetrically to EN and VI (applied 2026-09-12).
 
 ## EN/VI and cross-reference plan
 

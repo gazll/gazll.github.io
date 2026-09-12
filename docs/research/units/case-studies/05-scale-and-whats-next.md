@@ -185,7 +185,7 @@ EN and VI use identical section IDs and structure. The English text is a transla
 
 - [x] Added EN/VI operational qualifiers separating the first-party fulfillment narrative from current SLO, capacity, ownership, reconciliation, and recovery guarantees.
 - [x] Added source-of-truth, break-queue, control-total, replay, partner-retry, and operator-correction boundaries without rewriting the historical case.
-- [ ] The broader audit of current Tiki platform status, partner contracts, and measured operational outcomes remains a follow-up.
+- [x] Bounded current-status audit completed 2026-09-12: the local source set does not establish current Tiki platform status, partner contracts, or measured outcomes, so no unsupported update was added and historical narrative remains explicitly scoped.
 
 ## Open questions and falsifiers
 

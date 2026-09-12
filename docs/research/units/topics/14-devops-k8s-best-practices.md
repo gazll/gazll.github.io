@@ -165,19 +165,21 @@ The content keeps Kubernetes API versus controller/distribution behavior version
 
 Gate passed on 2026-08-23: content index rebuild, EN/VI parity, `validate-content.mjs --stats`, complete `check.mjs`, and `git diff --check` succeeded.
 
-## Proposed follow-up changes
+## Proposed follow-up changes (applied 2026-09-12)
 
-- [ ] Rename the “2026 best practices” section to a dated “current principles reviewed on 2026-08-23” heading and attach versions to all examples.
-- [ ] Add a Kubernetes version/distribution preface; pin current docs and mark alpha/beta feature gates.
-- [ ] Replace “StatefulSet for DB/Kafka” with “identity/storage controller; use an operator/managed service and verify data safety.”
-- [ ] Add Gateway API versus Ingress selection and implementation-conformance caveat.
-- [ ] Add a probe state machine and termination timeline: readiness, endpoint state, preStop, SIGTERM, drain, grace, SIGKILL.
-- [ ] Add resource requests/limits, PodDisruptionBudget, topology, autoscaling, and connection-pool assumptions to rollout examples.
-- [ ] Make service-mesh mTLS, app authz, policy availability, and non-meshed traffic separate rows.
-- [ ] Add image digest/signature/provenance admission and secret-mount examples; avoid claims that scan/provenance alone is sufficient.
-- [ ] Add collector backpressure/self-observability and high-cardinality rules.
-- [ ] Add expand-contract/migration failure cases and DB-specific lock examples; make drop operations an explicit later phase.
-- [ ] Update EN/VI together without changing 17 IDs.
+- [x] Rename the “2026 best practices” section to a dated “current principles reviewed on 2026-08-23” heading and attach versions to all examples.
+- [x] Add a Kubernetes version/distribution preface; pin current docs and mark alpha/beta feature gates.
+- [x] Replace “StatefulSet for DB/Kafka” with “identity/storage controller; use an operator/managed service and verify data safety.”
+- [x] Add Gateway API versus Ingress selection and implementation-conformance caveat.
+- [x] Add a probe state machine and termination timeline: readiness, endpoint state, preStop, SIGTERM, drain, grace, SIGKILL.
+- [x] Add resource requests/limits, PodDisruptionBudget, topology, autoscaling, and connection-pool assumptions to rollout examples.
+- [x] Make service-mesh mTLS, app authz, policy availability, and non-meshed traffic separate rows.
+- [x] Add image digest/signature/provenance admission and secret-mount examples; avoid claims that scan/provenance alone is sufficient.
+- [x] Add collector backpressure/self-observability and high-cardinality rules.
+- [x] Add expand-contract/migration failure cases and DB-specific lock examples; make drop operations an explicit later phase.
+- [x] Update EN/VI together without changing 17 IDs.
+
+The 11 follow-up edits above were reviewed and integrated in paired EN/VI JSON on 2026-09-12; deployment-specific version and controller choices remain open.
 
 ## EN/VI parity and cross-reference plan
 
@@ -238,5 +240,5 @@ All selected sources were inspected/reviewed on 2026-08-23. Tier A is an officia
 - [x] Coverage matrix, contradiction/limits, negative evidence, crash windows, operations, security, testing, and domain trade-offs recorded.
 - [x] Duplicate/canonical ownership and EN/VI parity plan recorded.
 - [ ] Target versions/distribution/controller/mesh/database approved.
-- [ ] Content changes integrated into `public/data`.
-- [ ] Validation run after integration.
+- [x] Content changes integrated into `public/data`.
+- [x] Validation run after integration.

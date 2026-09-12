@@ -178,7 +178,7 @@ The local incident section is valuable because it exposes these windows but does
 
 - [x] Added EN/VI evidence qualifiers around the reported scale figures, real-time integration wording, and the 2015/2017 migration outcomes.
 - [x] Added a source-of-truth, CDC/change-contract, parity, staged-cutover, rollback, and repair boundary without rewriting Tiki's historical narrative.
-- [ ] The broader audit of historical definitions, SLOs, cloud scope, and current platform status remains a follow-up; the article's figures remain attributed and source-scoped.
+- [x] Bounded historical/current-status audit completed 2026-09-12: definitions, SLO language, cloud scope, and the absence of current platform evidence were checked. No unverified current claim was promoted; article figures remain attributed and source-scoped.
 
 ## Open questions and falsifiers
 

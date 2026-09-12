@@ -142,17 +142,17 @@ Diagnostic invariants:
 | Test/load/chaos methodology | `26-testing-strategy` | Link reproducible fault scenarios. |
 | JVM memory/thread/profiling details | This topic | Keep the deep-dive canonical here; avoid repeating it in generic SRE text. |
 
-## Proposed content changes (not applied)
+## Proposed content changes (applied 2026-09-12)
 
-- [ ] Remove or mark unresolved the Netflix attribution; retain the first-minute sequence as repository guidance until a primary source is found.
-- [ ] Add explicit host/cgroup/process scopes and PSI/cgroup v2 commands to the first-minute checklist.
-- [ ] Replace universal swap/ephemeral-port/TIME_WAIT/tcp tuning numbers with runtime-read commands and version notes.
-- [ ] Make the OOM table distinguish kernel OOM, cgroup OOMKilled/137, Java heap OOME, direct/native/metaspace/thread exhaustion, and exit evidence.
-- [ ] Replace the 50-70% `Xmx` heuristic with a budget formula plus a clearly labeled starting example.
-- [ ] Add JDK 21 impact labels for `jcmd`, heap dump, histogram, JFR and NMT; include PID/user/namespace/disk requirements.
-- [ ] Add an artifact handling policy for heap/JFR/pcap files.
-- [ ] Add a symptom-to-evidence table and a command rollback/cleanup column.
-- [ ] Update EN/VI together while preserving all 8 IDs.
+- [x] Remove or mark unresolved the Netflix attribution; retain the first-minute sequence as repository guidance until a primary source is found.
+- [x] Add explicit host/cgroup/process scopes and PSI/cgroup v2 commands to the first-minute checklist.
+- [x] Replace universal swap/ephemeral-port/TIME_WAIT/tcp tuning numbers with runtime-read commands and version notes.
+- [x] Make the OOM table distinguish kernel OOM, cgroup OOMKilled/137, Java heap OOME, direct/native/metaspace/thread exhaustion, and exit evidence.
+- [x] Replace the 50-70% `Xmx` heuristic with a budget formula plus a clearly labeled starting example.
+- [x] Add JDK 21 impact labels for `jcmd`, heap dump, histogram, JFR and NMT; include PID/user/namespace/disk requirements.
+- [x] Add an artifact handling policy for heap/JFR/pcap files.
+- [x] Add a symptom-to-evidence table and a command rollback/cleanup column.
+- [x] Update EN/VI together while preserving all existing IDs.
 
 ## EN/VI parity and cross-reference plan
 
@@ -162,7 +162,8 @@ The EN and VI structures/IDs match. Keep Linux commands, `/proc` paths, sysctl n
 
 - [x] Added `21-linux-production-debug.jvm-network-deep-dive-on-prod.q5` in EN/VI for evidence-first production diagnosis, bounded captures, privacy, reversibility, and post-incident regression.
 - [x] Qualified profiler/heap/packet-capture overhead and preserved the provider/JDK/kernel/container scope of existing commands.
-- [ ] The broader audit of every command, kernel version, JDK version, and managed runtime remains a follow-up.
+- [x] Reviewed and integrated the nine follow-up edits above in paired EN/VI JSON, preserving all existing IDs and command/code identifiers.
+- [x] Bounded local audit completed 2026-09-12 across every command, kernel/JDK/runtime qualifier, and managed-debugging path in the paired public files. Commands retain scope, impact, rollback, and evidence requirements; exact distro/JDK/container/cloud approval remains open.
 
 ## Open questions and falsifiers
 
@@ -209,5 +210,5 @@ All selected sources were inspected/reviewed on 2026-08-23. Tier A is official J
 - [x] Coverage matrix, contradiction/limits, negative evidence, crash windows, privacy, testing and provider/runtime scope recorded.
 - [x] Duplicate/canonical ownership and EN/VI parity plan recorded.
 - [ ] Target kernel/JDK/container/cloud versions approved.
-- [ ] Content changes integrated into `public/data`.
-- [ ] Validation run after integration.
+- [x] Content changes integrated into `public/data`.
+- [x] Validation run after integration.

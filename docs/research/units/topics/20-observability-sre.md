@@ -18,7 +18,7 @@ The discovery pool used OpenTelemetry and W3C specifications, Prometheus/Grafana
 
 ## Local content map
 
-Both JSON files were read in full. Each has 2 sections and 8 items. EN is 25,717 bytes; VI is 27,154 bytes. All section/item IDs match.
+Both JSON files were read in full. Each has 2 sections and 10 items. EN is 39,191 bytes; VI is 41,458 bytes. All section/item IDs match.
 
 | Section | Exact item IDs | Current job |
 | --- | --- | --- |
@@ -149,26 +149,27 @@ Observability invariants:
 | Broker context/consumer lag | `08-message-queue` | Keep broker delivery semantics there; this topic owns cross-signal measurement. |
 | Incident workflow and postmortem case examples | This topic, with NIST/Google evidence | Keep the lifecycle and SLO alerting here; case studies can show a concrete incident. |
 
-## Proposed content changes (not applied)
+## Proposed content changes (applied 2026-09-12)
 
-- [ ] Replace “three pillars” as a rigid rule with “signals chosen by question,” adding profiles/events/business correctness where useful.
-- [ ] Add a versioned OTel context/semantic-convention note and explicit messaging links/batch/fan-out rules.
-- [ ] Add a signal-cost/cardinality/retention worksheet with region/provider assumptions.
-- [ ] Keep RED/USE but state that SLOs may be freshness/correctness/queue-age/business outcomes, not only HTTP availability.
-- [ ] Mark 99.9%/43m12s and burn-rate thresholds as 30-day/example calculations; add request-based counterexample.
-- [ ] Add a multi-window alert table with traffic floor, owner, runbook, action, and “monitoring pipeline down” handling.
-- [ ] Add telemetry crash windows and self-observability for collectors/evaluators/notification paths.
-- [ ] Add privacy/cardinality tests and a requirement that trace context is not authorization.
-- [ ] Make incident closure require user SLI plus data/security/reconciliation verification and preserve EN/VI parity.
+- [x] Replace “three pillars” as a rigid rule with “signals chosen by question,” adding profiles/events/business correctness where useful.
+- [x] Add a versioned OTel context/semantic-convention note and explicit messaging links/batch/fan-out rules.
+- [x] Add a signal-cost/cardinality/retention worksheet with region/provider assumptions.
+- [x] Keep RED/USE but state that SLOs may be freshness/correctness/queue-age/business outcomes, not only HTTP availability.
+- [x] Mark 99.9%/43m12s and burn-rate thresholds as 30-day/example calculations; add request-based counterexample.
+- [x] Add a multi-window alert table with traffic floor, owner, runbook, action, and “monitoring pipeline down” handling.
+- [x] Add telemetry crash windows and self-observability for collectors/evaluators/notification paths.
+- [x] Add privacy/cardinality tests and a requirement that trace context is not authorization.
+- [x] Make incident closure require user SLI plus data/security/reconciliation verification and preserve EN/VI parity.
 
 ## EN/VI parity and cross-reference plan
 
-The EN and VI files have identical 2-section/8-item structures. Keep metric names (`rate`, `errors`, `duration`, `utilization`, `saturation`), W3C headers, OTel attributes, and SLO formulas unchanged. Translate the scope words (“example”, “recommendation”, “unknown”, “provider-specific”) with equal force. Cross-links should point to topics 14, 21, 27, 13, and 08 only for their canonical boundaries.
+The EN and VI files have identical 2-section/10-item structures. Keep metric names (`rate`, `errors`, `duration`, `utilization`, `saturation`), W3C headers, OTel attributes, and SLO formulas unchanged. Translate the scope words (“example”, “recommendation”, “unknown”, “provider-specific”) with equal force. Cross-links should point to topics 14, 21, 27, 13, and 08 only for their canonical boundaries.
 
 ## Integration record (Batch E scope)
 
 - [x] Added `20-observability-sre.slos-alerting-incidents.q5` in EN/VI for async/business SLIs: completion age, freshness, outbox/CDC/reconciliation lag, unknown work, and recovery verification.
 - [x] Added `20-observability-sre.slos-alerting-incidents.q6` in EN/VI for bounded telemetry failure, collector health, missing-data alerts, and independent monitoring-path checks.
+- [x] Reviewed and integrated the nine follow-up edits above in paired EN/VI JSON, preserving the existing item IDs and example/provider qualifiers.
 - [ ] The broader audit of every SLI/threshold, provider cost, retention, and current collector configuration remains a follow-up.
 
 ## Open questions and falsifiers
@@ -218,5 +219,5 @@ All selected sources were inspected/reviewed on 2026-08-23. Tier A is a standard
 - [x] Coverage matrix, contradiction/limits, negative evidence, crash windows, operations, privacy, testing, and domain trade-offs recorded.
 - [x] Duplicate/canonical ownership and EN/VI parity plan recorded.
 - [ ] Target telemetry backend, versions, retention, SLOs and alert thresholds approved.
-- [ ] Content changes integrated into `public/data`.
-- [ ] Validation run after integration.
+- [x] Content changes integrated into `public/data`.
+- [x] Validation run after integration.

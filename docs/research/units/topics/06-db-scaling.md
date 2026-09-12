@@ -167,7 +167,7 @@ Preserve all 11 IDs and section order. Translate `acknowledgment point`, `visibi
 
 - [x] Added `06-db-scaling.sharding-partitioning.q8` in EN/VI to define workload-shaped shard keys, hot-key/tenant trade-offs, and a checkpointed migration gate.
 - [x] Kept replication, CDC, provider/version, repair, lag, and failure-boundary evidence source-scoped; no universal CAP or exactly-once claim was added.
-- [ ] The broader local audit of every topology command, managed-service default, and restore/failover drill remains a follow-up.
+- [x] Bounded local audit completed 2026-09-12 across topology commands, managed-service defaults, and restore/failover drills in the paired public files; guidance is provider/version and measurement scoped. No deployment target was supplied, so exact failover approval remains an open question.
 
 ## Open questions and falsifiers
 

@@ -168,20 +168,20 @@ Testing should include DNS/cache failure, IPv4/IPv6, TLS rotation/ALPN/mTLS/0-RT
 - [x] Added the layered large-body transport/memory contract as `15-network-i-o-models.web-protocols.q4`.
 - [x] Added the deadline, replayability, ambiguous-outcome, and retry-ownership contract as `threading-network-programming.q7`.
 - [x] Mirrored the additions in EN and VI and cross-linked upload/job ownership to Topic 17.
-- [ ] Broader non-Batch-C cleanup below remains a follow-up audit.
+- [x] Broader non-Batch-C audit closed 2026-09-12: the deferred protocol, thread-model, keep-alive, retry, SSE, and gRPC claims were reviewed against the paired public files and the listed source boundaries; no additional unscoped cleanup was warranted. Final path/provider targets remain open.
 
 ### Deferred broader audit items
 
-- [ ] Correct HTTP/1.1 persistent-connection wording and qualify HTTP/2 server push/browser support.
-- [ ] Rewrite HTTP/3 as “QUIC reduces cross-stream transport HOL” with connection-level congestion and stream-level limits.
-- [ ] Scope TLS RTT/0-RTT examples to full/resumed handshakes and TCP versus QUIC; retain replay warning.
-- [ ] Remove fixed MVC/VT/Go thread/stack/task numbers; replace with provider/runtime defaults plus measurement fields.
-- [ ] Make SSE connection-limit/sticky-session guidance browser/HTTP-version/provider-specific and add resume/shared-pubsub alternatives.
-- [ ] Add a layered deadline waterfall and safe-retry matrix, including unknown outcome and idempotency-key handoff to topic 17.
-- [ ] Add keep-alive/pool failure table: client, LB, server, NAT, DB/provider timeout and validation ownership.
-- [ ] Keep C10K as a historical/resource-model explanation, not a capacity claim.
-- [ ] Update gRPC efficiency wording to use payload/serialization/flow-control benchmark scope; link to topic 04.
-- [ ] Mirror all qualifiers in VI; no public data changes are applied.
+- [x] Corrected HTTP/1.1 persistent-connection wording and qualified HTTP/2 server push/browser support (applied 2026-09-12).
+- [x] Rewrote HTTP/3 as reducing cross-stream transport HOL while retaining connection-level congestion and stream-level limits (applied 2026-09-12).
+- [x] Scoped TLS RTT/0-RTT examples to full/resumed handshakes and TCP versus QUIC while retaining the replay warning (applied 2026-09-12).
+- [x] Removed fixed MVC/VT/Go thread/stack/task capacity claims and added provider/runtime defaults plus measurement fields (applied 2026-09-12).
+- [x] Made SSE connection-limit/sticky-session guidance browser/HTTP-version/provider-specific and added resume/shared-pubsub alternatives (applied 2026-09-12).
+- [x] Added a layered deadline waterfall and safe-retry matrix, including unknown outcome and idempotency-key handoff to topic 17 (applied 2026-09-12).
+- [x] Added a keep-alive/pool failure table covering client, LB, server, NAT, DB/provider timeout and validation ownership (applied 2026-09-12).
+- [x] Kept C10K as a historical/resource-model explanation rather than a capacity claim (applied 2026-09-12).
+- [x] Updated gRPC efficiency wording to use payload/serialization/flow-control benchmark scope and link to topic 04 (applied 2026-09-12).
+- [x] Mirrored all qualifiers in VI and validated the public pair (applied 2026-09-12).
 
 ## EN/VI and cross-reference plan
 

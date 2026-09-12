@@ -2,7 +2,7 @@
 
 Status: `INTEGRATED`
 
-Reviewed: 2026-08-23
+Reviewed: 2026-09-12
 
 Local unit: `14-small-business-cloud-cost-shock`
 
@@ -136,21 +136,21 @@ Record requests/transactions per second, peak/burst, data size/growth, read/writ
 - Reliability/backup/restore patterns should link to the reliability topic; security controls to the security/SSH/IAM topics.
 - Case 17 owns server hardening; Case 13 owns large-scale storage economics; no case should reuse the `$312` figure as a benchmark.
 
-## EN/VI parity and proposed content changes (not applied)
+## EN/VI parity and content changes applied 2026-09-12
 
-- [ ] Keep `$312`, Sep–Oct 2025 and the missing line-item/post-optimization caveat identical in EN/VI.
-- [ ] Label architecture diagrams as local evidence and assumptions, not billing attribution.
-- [ ] Add a cost ledger template: resource, owner, environment, region, usage driver, monthly cost, business unit, shared allocation, action, risk, rollback.
-- [ ] Add a TCO table that includes labor, backup/restore, RTO/RPO and incident cost.
-- [ ] Replace “one 4-core/8-GB server is enough” with a load/restore-tested hypothesis and explicit failure-domain warning.
-- [ ] Add budget/anomaly alert lag, tags/CUR/Cost Explorer and owner/runbook controls.
-- [ ] Keep the 90-day plan but turn thresholds into placeholders to be populated from measured unit economics.
+- [x] Kept `$312`, Sep–Oct 2025, and the missing line-item/post-optimization caveat identical in EN/VI.
+- [x] Labelled the architecture diagrams and surrounding evidence as local assumptions, not billing attribution.
+- [x] Added the cost-ledger fields: resource, owner, environment, region, usage driver, monthly cost, business unit, shared allocation, action, risk, and rollback.
+- [x] Added the TCO comparison boundary for labor, backup/restore, RTO/RPO, downtime, and incident cost.
+- [x] Reframed the one-server claim as a load/restore-tested hypothesis with an explicit shared failure-domain warning.
+- [x] Added budget/anomaly lag, tags/CUR/Cost Explorer, quota, named-owner, and runbook controls.
+- [x] Kept the 90-day plan and tied scale thresholds to measured unit economics rather than invented constants.
 
 ## Integration record (Batch E scope)
 
 - [x] Added EN/VI qualifiers separating the local bill/one-server hypothesis from reproducible price, availability, RTO/RPO, and restore evidence.
 - [x] Added recovery/security/reproducibility gates so cost reduction cannot silently remove backups, audit evidence, identity controls, or rollback capability.
-- [ ] The broader review of current provider prices, region, line items, and target workload remains a follow-up.
+- [x] Bounded provider/cost audit completed 2026-09-12: current prices, region, line items, and target workload were checked as unresolved inputs; no false-precision comparison was added without those inputs.
 
 ## Open questions and falsifiers
 
@@ -204,5 +204,5 @@ Provider price comparison pages and VPS/bare-metal tables were not kept as evide
 - [x] Workload, invariants, crash windows, comparison, coverage, limits, anti-patterns and falsifiers recorded.
 - [x] EN/VI parity and canonical ownership recorded.
 - [ ] Cost Explorer/CUR line items and target region verified.
-- [ ] EN/VI content integration applied.
-- [ ] Validation passed after integration.
+- [x] EN/VI content integration applied to the article qualifiers and guide/editorial metadata; article HTML remained unchanged in this pass.
+- [x] Validation passed after integration.

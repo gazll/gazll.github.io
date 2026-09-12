@@ -199,21 +199,22 @@ Record at least the following before selecting a placement or policy:
 
 - [x] Added the edge contract for large-body streaming, durable async acceptance, `UNKNOWN` outcomes, and retry boundaries as `internal-calls-sync-async-or-neither.q3`.
 - [x] Mirrored the addition in EN and VI and kept gateway ownership separate from Topic 17 upload/job state.
-- [ ] Broader non-Batch-C cleanup below remains a follow-up audit.
+- [x] Completed the focused follow-up audit on 2026-09-12: sizing inputs, edge ownership, effective-chain tests, timeout crash windows, layered identity, PDP failure modes, migration safety, and durable async acceptance.
+- [x] Broader non-Batch-C audit closed 2026-09-12: the deferred sizing, route-chain, timeout, identity, PDP, migration, and async claims were reviewed against the paired public files and source ledger; no additional unscoped cleanup was warranted. Final gateway/release choice remains an open product decision.
 
 ### Deferred broader audit items
 
-- [ ] Retain the four-size arithmetic but label the `20x` multiplier and all capacity breakpoints as assumptions; add burst duration, payload, connection, token, and downstream dimensions.
-- [ ] Add a small “edge contract” box: route owner, trusted ingress, identity source, authorization owner, per-hop deadline, retry budget, error contract, and rollback owner.
-- [ ] Replace the local Spring Cloud Gateway `5.0.2` wording with a pinned release-train note. Verify the selected Spring Boot/Cloud compatibility matrix and server flavor before integration.
-- [ ] State that route/filter order is implementation/version-specific and add an effective-chain regression test rather than relying on source/YAML order.
-- [ ] Add the timeout/crash-window table, especially upstream mutation followed by response loss and the resulting idempotency/status lookup requirement.
-- [ ] Separate JWT, opaque introspection, workload mTLS/SPIFFE, and application authorization into a layered decision table; do not present one as a replacement for the others.
-- [ ] Add explicit rules for stripping client identity headers, trusted proxy configuration, direct-ingress testing, token/key rotation, and telemetry redaction.
-- [ ] Add local-versus-remote PDP guidance with decision-cache TTL, policy version, rollout, outage, and fail-open/closed choices.
-- [ ] Make gateway migration shadow routes side-effect safe and require route ownership, config hash, rollback, and parity metrics.
-- [ ] Make async examples include durable acceptance, idempotency, status retrieval, duplicate/out-of-order handling, and operator recovery.
-- [ ] Update EN and VI symmetrically while preserving every existing `id` and keeping protocol names/header names unchanged.
+- [x] Retain the four-size arithmetic but label the `20x` multiplier and all capacity breakpoints as assumptions; add burst duration, payload, connection, token, and downstream dimensions.
+- [x] Add a small “edge contract” box: route owner, trusted ingress, identity source, authorization owner, per-hop deadline, retry budget, error contract, and rollback owner.
+- [x] Replace the local Spring Cloud Gateway `5.0.2` wording with a pinned release-train note. Verify the selected Spring Boot/Cloud compatibility matrix and server flavor before integration.
+- [x] State that route/filter order is implementation/version-specific and add an effective-chain regression test rather than relying on source/YAML order.
+- [x] Add the timeout/crash-window table, especially upstream mutation followed by response loss and the resulting idempotency/status lookup requirement.
+- [x] Separate JWT, opaque introspection, workload mTLS/SPIFFE, and application authorization into a layered decision table; do not present one as a replacement for the others.
+- [x] Add explicit rules for stripping client identity headers, trusted proxy configuration, direct-ingress testing, token/key rotation, and telemetry redaction.
+- [x] Add local-versus-remote PDP guidance with decision-cache TTL, policy version, rollout, outage, and fail-open/closed choices.
+- [x] Make gateway migration shadow routes side-effect safe and require route ownership, config hash, rollback, and parity metrics.
+- [x] Make async examples include durable acceptance, idempotency, status retrieval, duplicate/out-of-order handling, and operator recovery.
+- [x] Update EN and VI symmetrically while preserving every existing `id` and keeping protocol names/header names unchanged.
 
 ## EN/VI parity and cross-reference plan
 
@@ -289,5 +290,5 @@ All selected sources were inspected on 2026-08-23. Tier A means a standard, spec
 - [x] Comparison table, contradiction/limits table, negative evidence, duplicate/canonical ownership, EN/VI parity plan, and falsifiers recorded.
 - [x] Version/provider scope and unresolved source limits recorded.
 - [ ] Final gateway/identity/PDP implementation and release approved.
-- [ ] Content changes integrated into `public/data`.
-- [ ] Validation run after integration.
+- [x] Content changes integrated into `public/data` for the focused 2026-09-12 follow-up audit.
+- [x] Validation run after integration: `validate-content --stats`, `audit-content --refs`, and `audit-content --dense`.
