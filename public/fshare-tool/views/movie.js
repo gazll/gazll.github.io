@@ -39,6 +39,11 @@ const CATALOG_TYPES = Object.freeze({
     placeholder: 'Try: a name, folder, or link code...'
   }
 });
+/* Static markup: the icon says folder or link before a name is read. */
+const ICONS = {
+  folder: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>',
+  link: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>'
+};
 const STATUS_TEXT = {
   pending: 'not checked',
   raw: 'raw input',
@@ -399,9 +404,18 @@ function makeRow(row) {
    it. The last crumb — the folder that actually holds the files — is the
    strong one; the ancestors are context. A file that came from the Sheet
    with no folder is listed under "Direct links". */
+function groupIcon(kind) {
+  const icon = document.createElement('span');
+  icon.className = 'movie-group-icon';
+  icon.setAttribute('aria-hidden', 'true');
+  icon.innerHTML = ICONS[kind];
+  return icon;
+}
+
 function makeGroupHead(group) {
   const head = document.createElement('div');
-  head.className = 'movie-group-head movie-folder-head';
+  head.className = 'movie-folder-head';
+  head.appendChild(groupIcon(group.chain.length ? 'folder' : 'link'));
   const crumbs = document.createElement('span');
   crumbs.className = 'movie-crumbs';
   if (!group.chain.length) {
@@ -451,7 +465,8 @@ function makeGroupHead(group) {
 
 function makeRawHead(count) {
   const head = document.createElement('div');
-  head.className = 'movie-group-head movie-folder-head movie-raw-head';
+  head.className = 'movie-folder-head movie-raw-head';
+  head.appendChild(groupIcon('link'));
   const title = document.createElement('strong');
   title.className = 'movie-crumb is-leaf';
   title.textContent = 'X links';
@@ -502,24 +517,26 @@ function renderResults() {
   }
   const fragment = document.createDocumentFragment();
   let rows = 0;
-  if (config.raw) {
-    fragment.appendChild(makeRawHead(matches.length));
-    for (const row of matches) {
+  // Each group is its own card, so the head sticks only while its own rows
+  // are in view and the gap between cards is what separates two folders.
+  const makeGroup = (head, links, direct) => {
+    const section = document.createElement('section');
+    section.className = 'movie-group' + (direct ? ' is-direct' : '');
+    section.appendChild(head);
+    for (const row of links) {
       if (rows >= ROW_LIMIT) break;
-      fragment.appendChild(makeRow(row));
+      section.appendChild(makeRow(row));
       movie.shown.push(row);
       rows++;
     }
+    return section;
+  };
+  if (config.raw) {
+    fragment.appendChild(makeGroup(makeRawHead(matches.length), matches, true));
   } else {
     for (const group of groups) {
       if (rows >= ROW_LIMIT) break;
-      fragment.appendChild(makeGroupHead(group));
-      for (const row of group.links) {
-        if (rows >= ROW_LIMIT) break;
-        fragment.appendChild(makeRow(row));
-        movie.shown.push(row);
-        rows++;
-      }
+      fragment.appendChild(makeGroup(makeGroupHead(group), group.links, !group.chain.length));
     }
   }
   list.appendChild(fragment);

@@ -114,27 +114,35 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .movie-results.is-searching::before{content:"";position:sticky;top:0;z-index:2;display:block;height:2px;margin-bottom:-2px;background:linear-gradient(90deg,transparent,var(--accent) 40%,var(--accent) 60%,transparent);background-size:50% 100%;background-repeat:no-repeat;animation:movie-sweep .9s linear infinite}
 @keyframes movie-sweep{from{background-position:-100% 0}to{background-position:200% 0}}
 @media(prefers-reduced-motion:reduce){.movie-results.is-searching::before{animation:none;background:var(--accent)}}
-.movie-group-head{position:sticky;top:0;z-index:1;display:flex;align-items:baseline;gap:8px;padding:8px 14px 6px;background:var(--surface);border-bottom:1px solid var(--border);color:var(--text2);font-size:.74rem;font-weight:700}
-.movie-group-head span{color:var(--muted);font-weight:600;font-family:ui-monospace,Consolas,monospace;font-size:.64rem}
-.movie-group-head.multi{color:var(--accent)}
-/* folder heading: a breadcrumb, the holding folder in bold accent */
-.movie-folder-head{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:10px;padding:10px 14px 7px;background:var(--surface2)}
-.movie-crumbs{display:flex;align-items:center;flex-wrap:wrap;gap:2px 6px;min-width:0;font-size:.72rem;font-weight:600;color:var(--muted)}
-.movie-crumb{max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.movie-crumb.is-leaf{max-width:none;color:var(--accent);font-size:.8rem;font-weight:800}
+/* A folder is a card and its files are the rows inside it. Amber belongs to
+   the folder alone — rail, icon, leaf crumb — while a file is set in ink at
+   regular weight and takes blue for selection, the colour its actions already
+   use. Two levels, two colours, so a head is never mistaken for a row. The
+   card clips with `overflow:clip`, not `hidden`: hidden makes a scroll
+   container and the sticky head would stop sticking. */
+.movie-group{margin:10px 12px;border:1px solid var(--border2);border-radius:var(--radius-sm);background:var(--surface);overflow:clip}
+.movie-folder-head{position:sticky;top:0;z-index:1;display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;align-items:center;gap:10px;padding:9px 12px 9px 11px;background:var(--surface3);border-bottom:1px solid var(--border2);box-shadow:inset 3px 0 0 var(--accent)}
+.movie-group-icon{display:inline-flex;color:var(--accent)}
+.movie-group-icon svg{width:15px;height:15px}
+.movie-crumbs{display:flex;align-items:center;flex-wrap:wrap;gap:2px 6px;min-width:0;font-size:.7rem;font-weight:600;color:var(--muted)}
+.movie-crumb{max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.movie-crumb.is-leaf{max-width:none;color:var(--accent);font-size:.84rem;font-weight:800}
 .movie-crumb-sep{font-style:normal;color:var(--border2)}
+/* Files that came with no folder: still a group, but not a place, so no amber. */
+.movie-group.is-direct .movie-folder-head{box-shadow:inset 3px 0 0 var(--border2)}
+.movie-group.is-direct .movie-group-icon,.movie-group.is-direct .movie-crumb.is-leaf{color:var(--text2)}
 .movie-folder-meta{color:var(--muted);font-family:ui-monospace,Consolas,monospace;font-size:.62rem;white-space:nowrap}
 .movie-folder-head .movie-row-action{font-size:.68rem}
-.movie-result-row{display:grid;grid-template-columns:18px minmax(0,1fr) auto auto auto;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);transition:background .14s}
+.movie-result-row{display:grid;grid-template-columns:18px minmax(0,1fr) auto auto auto;align-items:center;gap:10px;padding:9px 12px 9px 14px;border-bottom:1px solid var(--border);box-shadow:inset 3px 0 0 transparent;transition:background .14s,box-shadow .14s}
 .movie-result-row.is-dead .movie-result-title a{color:var(--muted);text-decoration:line-through}
 .movie-result-children{margin-left:6px;color:var(--text2)}
 .movie-result-row:last-child{border-bottom:0}
 .movie-result-row:hover{background:var(--surface2)}
-.movie-result-row.selected{background:var(--accent-dim)}
+.movie-result-row.selected{background:var(--blue-dim);box-shadow:inset 3px 0 0 var(--blue)}
 .movie-result-row input{width:16px;height:16px;margin:0}
 .movie-result-details{min-width:0}
 .movie-result-title{display:flex;align-items:center;gap:8px;min-width:0}
-.movie-result-title a{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text);font-size:.86rem;font-weight:600;text-decoration:none}
+.movie-result-title a{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text);font-size:.84rem;font-weight:500;text-decoration:none}
 .movie-result-title a:hover{color:var(--blue)}
 .movie-kind{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;padding:3px 6px;border:1px solid transparent;border-radius:5px;font-family:ui-monospace,Consolas,monospace;font-size:.6rem;font-weight:700;letter-spacing:.04em}
 .movie-kind.folder{color:var(--accent);background:var(--accent-dim);border-color:rgba(245,166,35,.22)}
@@ -483,8 +491,10 @@ th.num-col,td.num-col{width:52px;text-align:right;padding-right:6px;color:var(--
   .movie-unlock{grid-template-columns:1fr}
   .movie-search-panel{grid-template-columns:1fr 1fr}
   .movie-search-field,.movie-show-dead{grid-column:1 / -1}
-  .movie-folder-head{grid-template-columns:minmax(0,1fr) auto}
-  .movie-folder-head .movie-row-action{grid-column:2;grid-row:1}
+  .movie-group{margin:8px}
+  .movie-folder-head{grid-template-columns:auto minmax(0,1fr) auto}
+  .movie-folder-head .movie-row-action{grid-column:3;grid-row:1}
+  .movie-folder-meta{grid-column:2;white-space:normal}
   .movie-search-panel>.btn2{min-height:38px}
   .movie-grid{grid-template-columns:1fr}
   .movie-results{max-height:none}
