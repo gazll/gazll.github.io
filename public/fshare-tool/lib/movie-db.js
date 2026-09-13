@@ -129,39 +129,93 @@ export function folderChain(row, byId, limit = 8) {
   return names;
 }
 
-export function searchMovieLinks(links, query, { kind = 'all', status = 'all', sourceId = 'all', byId = null } = {}) {
+/* One collator, not `localeCompare(…, "vi")` per comparison: the locale
+   string form re-resolves the collation on every call, which is what made
+   sorting an unfiltered catalog cost a second. */
+const COLLATOR = new Intl.Collator('vi');
+
+/**
+ * The folded text a movie row is searched by. The folder names above a file
+ * are part of what it is called — a reader searching "dune" expects
+ * Dune.2021.mkv inside "Dune (2021)" to match even when the file itself is
+ * named for its release group.
+ */
+export function movieHaystack(row, byId = null) {
+  const chain = byId ? folderChain(row, byId) : [];
+  return fold([row.name, ...(row.aliases || []), ...(row.keywords || []), row.code, row.path || '', ...chain].join(' '));
+}
+
+/**
+ * Folded search text and sort key per row, computed once per unlock instead
+ * of once per keystroke. `fold()` normalises and lowercases, and doing that
+ * for 74k rows on every input event is what made typing stutter; with the
+ * index a search is 74k `includes` calls, which is milliseconds. Keyed by row
+ * identity so the rows themselves stay exactly what the envelope shipped.
+ */
+export function buildSearchIndex(links, haystack) {
+  const hay = new Map();
+  const nameKey = new Map();
+  for (const row of links || []) {
+    hay.set(row, haystack(row));
+    nameKey.set(row, fold(row.name));
+  }
+  return { hay, nameKey };
+}
+
+/**
+ * True when every row matching `next` also matched `prev`, so a view may
+ * search the previous result set instead of the whole catalog. Each token is
+ * a substring test, so the guarantee holds when every previous token is
+ * contained in some next token — typing "dun" → "dune", or adding a word.
+ * Deleting a character breaks it and the caller falls back to the full scan.
+ */
+export function narrowsSearch(prev, next) {
+  const before = queryTokens(prev);
+  if (!before.length) return true;
+  const after = queryTokens(next);
+  return before.every((token) => after.some((candidate) => candidate.includes(token)));
+}
+
+export function searchMovieLinks(links, query, { kind = 'all', status = 'all', sourceId = 'all', byId = null, index = null } = {}) {
   const tokens = queryTokens(query);
+  const hayOf = (row) => (index && index.hay.get(row)) ?? movieHaystack(row, byId);
   return (links || []).filter((row) => {
     if (kind !== 'all' && row.kind !== kind) return false;
     if (status !== 'all' && row.status !== status) return false;
     if (sourceId !== 'all' && !(row.sourceIds || []).includes(sourceId)) return false;
     if (!tokens.length) return true;
-    // The folder names above a file are part of what it is called — a reader
-    // searching "dune" expects Dune.2021.mkv inside "Dune (2021)" to match
-    // even when the file itself is named for its release group.
-    const chain = byId ? folderChain(row, byId) : [];
-    const haystack = fold([row.name, ...(row.aliases || []), ...(row.keywords || []), row.code, row.path || '', ...chain].join(' '));
+    const haystack = hayOf(row);
     return tokens.every((token) => haystack.includes(token));
   });
 }
 
 /** Files grouped by the folder they sit in, so a result reads as a place, not a list. */
-export function groupByFolder(links, byId) {
+export function groupByFolder(links, byId, index = null) {
   const groups = new Map();
+  const nameOf = (row) => (index && index.nameKey.get(row)) ?? fold(row.name);
   (links || []).forEach((row) => {
-    const chain = folderChain(row, byId);
     const parentId = row.parents && row.parents.length ? row.parents[0] : '';
     const key = parentId || '(standalone)';
     let group = groups.get(key);
     if (!group) {
-      group = { key, folder: parentId ? byId.get(parentId) || null : null, chain, links: [] };
+      // Every row in a group shares the parent, so the chain is walked once
+      // per folder rather than once per file.
+      const chain = folderChain(row, byId);
+      group = { key, folder: parentId ? byId.get(parentId) || null : null, chain, links: [], sortKey: fold(chain.join(' / ')) };
       groups.set(key, group);
     }
     group.links.push(row);
   });
+  // Sort keys are folded once per row, never inside the comparator.
   return [...groups.values()]
-    .sort((a, b) => fold(a.chain.join(' / ')).localeCompare(fold(b.chain.join(' / ')), 'vi'))
-    .map((group) => ({ ...group, links: group.links.slice().sort((a, b) => fold(a.name).localeCompare(fold(b.name), 'vi')) }));
+    .sort((a, b) => COLLATOR.compare(a.sortKey, b.sortKey))
+    .map(({ sortKey, ...group }) => ({
+      ...group,
+      links: group.links
+        .map((row) => [nameOf(row), row])
+        .sort((a, b) => COLLATOR.compare(a[0], b[0]))
+        .map((pair) => pair[1])
+    }));
 }
 
 /** Rows that share a titleKey become one group, so two copies of one film sit together. */

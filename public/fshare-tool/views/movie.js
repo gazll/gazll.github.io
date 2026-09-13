@@ -10,9 +10,10 @@
 import { $ } from '../lib/state.js';
 import { copyText, debounce, downloadTxt, fmtSize, toast } from '../lib/util.js';
 import {
-  MOVIE_DB_URL, folderChain, groupByFolder, indexById, normalizeMovieDatabase, searchMovieLinks, sourceName
+  MOVIE_DB_URL, buildSearchIndex, groupByFolder, indexById, movieHaystack, narrowsSearch, normalizeMovieDatabase,
+  searchMovieLinks, sourceName
 } from '../lib/movie-db.js';
-import { X_DB_URL, normalizeXDatabase, searchXLinks } from '../lib/x-db.js';
+import { X_DB_URL, normalizeXDatabase, searchXLinks, xHaystack } from '../lib/x-db.js';
 import { validateMovieEntries } from '../lib/movie-check.js';
 import { isEnvelope, MAX_ENVELOPE_JSON_CHARS, unseal } from '../../lib/schedule-crypto.js';
 
@@ -53,6 +54,13 @@ const movie = {
   catalogType: 'movie',
   database: null,
   databases: new Map(),
+  indexes: new Map(),
+  index: null,
+  fileCount: 0,
+  /* The last search's matches, before the status filter. A query that only
+     narrows the previous one is searched within this set instead of the
+     whole catalog — see narrowsSearch. */
+  lastSearch: null,
   shown: [],
   selected: new Set(),
   statuses: new Map(),
@@ -81,9 +89,13 @@ function setCurrentDatabase(type, database) {
   movie.database = database || null;
   movie.sourceMap = database ? new Map(database.sources.map((source) => [source.id, source])) : new Map();
   movie.byId = database ? indexById(database.links) : new Map();
+  movie.index = database ? movie.indexes.get(type) || null : null;
+  movie.fileCount = database ? database.links.reduce((total, row) => total + (row.kind === 'file' ? 1 : 0), 0) : 0;
+  movie.lastSearch = null;
 }
 
 function clearWorkingState() {
+  movie.lastSearch = null;
   movie.shown = [];
   movie.selected.clear();
   movie.statuses.clear();
@@ -142,6 +154,9 @@ async function openSealed(secret, type = movie.catalogType) {
   if (!isEnvelope(envelope)) throw new Error('The published file is not a sealed envelope.');
   const opened = await unseal(envelope, secret);
   const database = config.raw ? normalizeXDatabase(opened) : normalizeMovieDatabase(opened);
+  // Folded once here, behind the unlock spinner, so no keystroke pays for it.
+  const byId = indexById(database.links);
+  movie.indexes.set(type, buildSearchIndex(database.links, config.raw ? xHaystack : (row) => movieHaystack(row, byId)));
   movie.databases.set(type, database);
   if (type === movie.catalogType) {
     setCurrentDatabase(type, database);
@@ -208,6 +223,7 @@ async function unlock(event) {
 function lock() {
   stopValidation();
   movie.databases.clear();
+  movie.indexes.clear();
   setCurrentDatabase('movie', null);
   clearWorkingState();
   try { sessionStorage.removeItem(KEY_STORE); localStorage.removeItem(KEY_STORE); } catch (error) { /* private mode */ }
@@ -454,22 +470,33 @@ function renderResults() {
   const query = $('movieSearchInput').value || '';
   const sourceId = $('movieSourceSelect').value || 'all';
   const showDead = $('movieShowDead').checked;
+  // "dun" → "dune" can only lose rows, so it is searched within the previous
+  // matches; the status filter is re-applied afterwards because a re-check
+  // in this browser may have changed a row since that set was built.
+  const searchKey = `${movie.catalogType}|${sourceId}`;
+  const previous = movie.lastSearch;
+  const pool = previous && previous.key === searchKey && narrowsSearch(previous.query, query)
+    ? previous.rows
+    : movie.database.links;
   // Movie is a file-only projection grouped by its holding folder. X is an
   // independent raw index, so folders and files remain searchable as links.
-  const matches = config.raw
-    ? searchXLinks(movie.database.links, query, { sourceId })
-    : searchMovieLinks(movie.database.links, query, { kind: 'file', sourceId, byId: movie.byId })
-      .filter((row) => showDead || currentStatus(row).status === 'live');
-  const groups = config.raw ? [] : groupByFolder(matches, movie.byId);
+  const found = config.raw
+    ? searchXLinks(pool, query, { sourceId, index: movie.index })
+    : searchMovieLinks(pool, query, { kind: 'file', sourceId, byId: movie.byId, index: movie.index });
+  movie.lastSearch = { key: searchKey, query, rows: found };
+  const matches = config.raw ? found : found.filter((row) => showDead || currentStatus(row).status === 'live');
+  const groups = config.raw ? [] : groupByFolder(matches, movie.byId, movie.index);
 
   movie.shown = [];
   list.innerHTML = '';
+  list.classList.remove('is-searching');
+  list.removeAttribute('aria-busy');
   if (!matches.length) {
     const empty = movie.database.links.length ? config.empty : 'This sealed catalog holds no links yet.';
     list.innerHTML = `<div class="movie-empty">${empty}</div>`;
     setText('movieResultCount', config.raw
       ? `0 of ${number(movie.database.links.length)} raw links`
-      : `0 of ${number(movie.database.links.filter((row) => row.kind === 'file').length)} files`);
+      : `0 of ${number(movie.fileCount)} files`);
     renderControls();
     return;
   }
@@ -660,12 +687,23 @@ function wireMovieEvents() {
   if (movie.wired) return;
   movie.wired = true;
   const rerender = debounce(renderResults, 120);
+  /* The debounce is the only wait left now that a search is milliseconds,
+     but during it the list still shows the previous query's rows. Mark it
+     stale on the first keystroke so it reads as "updating", not "wrong". */
+  const searchTyped = () => {
+    const list = $('movieResults');
+    if (list && movie.database) {
+      list.classList.add('is-searching');
+      list.setAttribute('aria-busy', 'true');
+    }
+    rerender();
+  };
   document.querySelectorAll('[data-movie-type]').forEach((button) => {
     button.addEventListener('click', () => { void switchCatalogType(button.getAttribute('data-movie-type')); });
   });
   $('movieUnlock').addEventListener('submit', unlock);
   $('movieLockBtn').addEventListener('click', lock);
-  $('movieSearchInput').addEventListener('input', rerender);
+  $('movieSearchInput').addEventListener('input', searchTyped);
   ['movieSourceSelect', 'movieShowDead'].forEach((id) => $(id).addEventListener('change', renderResults));
   $('movieClearSearch').addEventListener('click', () => {
     $('movieSearchInput').value = '';

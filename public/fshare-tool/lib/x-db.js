@@ -37,17 +37,18 @@ export function normalizeXDatabase(value) {
   };
 }
 
-export function searchXLinks(links, query, { sourceId = 'all' } = {}) {
+/** The folded text an X row is searched by; no folder chain, X is a flat index. */
+export function xHaystack(row) {
+  return fold([row.name, ...(row.aliases || []), ...(row.keywords || []), row.code].join(' '));
+}
+
+export function searchXLinks(links, query, { sourceId = 'all', index = null } = {}) {
   const tokens = queryTokens(query);
+  const hayOf = (row) => (index && index.hay.get(row)) ?? xHaystack(row);
   return (links || []).filter((row) => {
     if (sourceId !== 'all' && !(row.sourceIds || []).includes(sourceId)) return false;
     if (!tokens.length) return true;
-    const haystack = fold([
-      row.name,
-      ...(row.aliases || []),
-      ...(row.keywords || []),
-      row.code
-    ].join(' '));
+    const haystack = hayOf(row);
     return tokens.every((token) => haystack.includes(token));
   });
 }

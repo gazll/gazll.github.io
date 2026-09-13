@@ -106,6 +106,14 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .movie-panel-head p{color:var(--muted);font-size:.74rem;font-variant-numeric:tabular-nums}
 .movie-panel-actions{display:flex;justify-content:flex-end;gap:7px;flex-wrap:wrap}
 .movie-results{max-height:calc(100vh - 310px);min-height:280px;overflow:auto}
+/* Between a keystroke and the debounced render the list is the previous
+   query's answer; a thin sweep on top and dimmed rows say "updating" without
+   a spinner replacing content that is still useful to read. */
+.movie-results{position:relative}
+.movie-results.is-searching>*{opacity:.55;transition:opacity .12s}
+.movie-results.is-searching::before{content:"";position:sticky;top:0;z-index:2;display:block;height:2px;margin-bottom:-2px;background:linear-gradient(90deg,transparent,var(--accent) 40%,var(--accent) 60%,transparent);background-size:50% 100%;background-repeat:no-repeat;animation:movie-sweep .9s linear infinite}
+@keyframes movie-sweep{from{background-position:-100% 0}to{background-position:200% 0}}
+@media(prefers-reduced-motion:reduce){.movie-results.is-searching::before{animation:none;background:var(--accent)}}
 .movie-group-head{position:sticky;top:0;z-index:1;display:flex;align-items:baseline;gap:8px;padding:8px 14px 6px;background:var(--surface);border-bottom:1px solid var(--border);color:var(--text2);font-size:.74rem;font-weight:700}
 .movie-group-head span{color:var(--muted);font-weight:600;font-family:ui-monospace,Consolas,monospace;font-size:.64rem}
 .movie-group-head.multi{color:var(--accent)}

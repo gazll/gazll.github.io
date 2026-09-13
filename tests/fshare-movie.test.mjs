@@ -7,7 +7,8 @@ import {
 } from '../tools/fshare-movie.mjs';
 import { probeRow, selectRows } from '../tools/fshare-movie-shard.mjs';
 import {
-  extractFshareLinks, folderChain, groupByFolder, indexById, keywordTokens, normalizeMovieDatabase, searchMovieLinks, titleKey
+  buildSearchIndex, extractFshareLinks, folderChain, groupByFolder, indexById, keywordTokens, movieHaystack, narrowsSearch,
+  normalizeMovieDatabase, searchMovieLinks, titleKey
 } from '../public/fshare-tool/lib/movie-db.js';
 import { crawlMovieFolder } from '../public/fshare-tool/lib/movie-check.js';
 import { seal, unseal } from '../public/lib/schedule-crypto.js';
@@ -200,6 +201,18 @@ test('search finds a file by the folders above it, and results group under the h
   ]);
   assert.equal(groups[2].folder.children.files, 3, 'the group carries its folder row');
   assert.equal(searchMovieLinks(db.links, '', { status: 'dead' }).length, 1);
+
+  // The prebuilt index is a cache of the same haystack, never a different answer.
+  const index = buildSearchIndex(db.links, (row) => movieHaystack(row, byId));
+  for (const query of ['dune 1984', 'xu cat', 'release']) {
+    assert.deepEqual(
+      searchMovieLinks(db.links, query, { kind: 'file', byId, index }).map((r) => r.code),
+      searchMovieLinks(db.links, query, { kind: 'file', byId }).map((r) => r.code), query);
+  }
+  assert.deepEqual(groupByFolder(hits, byId, index).map((g) => g.links.map((r) => r.code)), [['D']]);
+  // Narrowing is only safe when the new matches are a subset of the old ones.
+  assert.ok(narrowsSearch('dun', 'dune') && narrowsSearch('dune', 'dune 1984') && narrowsSearch('', 'x'));
+  assert.ok(!narrowsSearch('dune', 'dun') && !narrowsSearch('dune 1984', 'dune'));
 });
 
 test('a gzip envelope round-trips and a plain one still opens', async () => {
