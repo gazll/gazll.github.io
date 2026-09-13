@@ -70,6 +70,9 @@ const movie = {
   selected: new Set(),
   statuses: new Map(),
   output: new Map(),
+  /* True from the first re-check until the output is cleared: the Working
+     files panel is only shown once there is a check to report on. */
+  checked: false,
   activeRun: null,
   wired: false,
   unlocking: false,
@@ -105,6 +108,7 @@ function clearWorkingState() {
   movie.selected.clear();
   movie.statuses.clear();
   movie.output.clear();
+  movie.checked = false;
 }
 
 function storedSecret() {
@@ -298,7 +302,7 @@ function renderControls() {
   clear.disabled = !selected;
   copy.disabled = !selected;
   validate.disabled = !selected || !!movie.activeRun;
-  validate.textContent = movie.activeRun ? 'Checking...' : `Re-check selected${selected ? ` (${selected})` : ''}`;
+  validate.textContent = movie.activeRun ? 'Checking...' : `Re-check Fshare now${selected ? ` (${selected})` : ''}`;
 }
 
 function currentStatus(row) {
@@ -581,6 +585,8 @@ const outputRows = () => [...movie.output.values()].map(outputRecord);
 function renderOutput() {
   const list = $('movieOutputList');
   if (!list) return;
+  $('movieOutputPanel').hidden = !movie.checked;
+  $('movieOutputPanel').parentElement.classList.toggle('is-solo', !movie.checked);
   const rows = outputRows();
   const hasUnknown = [...movie.statuses.values()].some((record) => record.status === 'unknown');
   if (!rows.length) {
@@ -620,7 +626,9 @@ function renderOutput() {
     });
     list.appendChild(fragment);
   }
-  ['movieCopyOutput', 'movieDownloadOutput', 'movieClearOutput'].forEach((id) => { $(id).disabled = !rows.length; });
+  ['movieCopyOutput', 'movieDownloadOutput'].forEach((id) => { $(id).disabled = !rows.length; });
+  // A run that confirmed nothing still needs Clear, or the panel cannot be dismissed.
+  $('movieClearOutput').disabled = !movie.checked || !!movie.activeRun;
 }
 
 /* ---------- re-check ---------- */
@@ -641,6 +649,7 @@ function startValidation() {
   if (!entries.length) return;
 
   movie.output.clear();
+  movie.checked = true;
   renderOutput();
   const run = { abort: false };
   movie.activeRun = run;
@@ -733,7 +742,7 @@ function wireMovieEvents() {
   $('movieCopySelected').addEventListener('click', copySelected);
   $('movieValidateBtn').addEventListener('click', startValidation);
   $('movieCancelBtn').addEventListener('click', stopValidation);
-  $('movieClearOutput').addEventListener('click', () => { movie.output.clear(); renderOutput(); });
+  $('movieClearOutput').addEventListener('click', () => { movie.output.clear(); movie.checked = false; renderOutput(); });
   $('movieCopyOutput').addEventListener('click', () => {
     const rows = outputRows();
     copyText(rows.map((row) => row.link).join('\n'))

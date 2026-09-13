@@ -100,6 +100,8 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .movie-progress-track i{display:block;height:100%;width:100%;background:var(--accent);border-radius:3px;transform:scaleX(0);transform-origin:left center;transition:transform .18s}
 .movie-progress-detail{margin-top:7px;color:var(--muted);font-size:.73rem;font-variant-numeric:tabular-nums}
 .movie-grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(330px,.8fr);align-items:start;gap:14px}
+.movie-grid.is-solo{grid-template-columns:1fr}
+.movie-type-switch .movie-lock{margin-left:auto}
 .movie-results-panel,.movie-output-panel{min-width:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)}
 .movie-panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 16px;border-bottom:1px solid var(--border)}
 .movie-panel-head h2{font-size:1rem;font-weight:800;color:var(--text);margin-bottom:4px}

@@ -94,6 +94,7 @@
           <button class="btn2 on" id="movieTypeMovie" data-movie-type="movie" type="button" aria-pressed="true">Movie</button>
           <button class="btn2" id="movieTypeX" data-movie-type="x" type="button" aria-pressed="false">X</button>
           <span class="movie-type-description" id="movieTypeDescription">Validated movie files</span>
+          <button class="btn2 movie-lock" id="movieLockBtn" type="button">Lock</button>
         </div>
         <label class="movie-search-field" for="movieSearchInput">
           <span id="movieSearchLabel">Search files by name, folder, alias, or link code</span>
@@ -127,13 +128,15 @@
               <button class="btn2" id="movieSelectVisible" type="button" disabled>Select visible</button>
               <button class="btn2" id="movieClearSelection" type="button" disabled>Clear selection</button>
               <button class="btn2" id="movieCopySelected" type="button" disabled>Copy selected</button>
-              <button class="btn" id="movieValidateBtn" type="button" disabled>Re-check selected</button>
+              <button class="btn" id="movieValidateBtn" type="button" disabled>Re-check Fshare now</button>
             </div>
           </div>
           <div class="movie-results" id="movieResults" aria-live="polite"></div>
         </section>
 
-        <aside class="movie-output-panel" aria-labelledby="movieOutputTitle">
+        <!-- Hidden until a re-check runs: an empty "Working files" beside the
+             results is a second column explaining a feature nobody has used yet. -->
+        <aside class="movie-output-panel" id="movieOutputPanel" aria-labelledby="movieOutputTitle" hidden>
           <div class="movie-panel-head movie-output-head">
             <div>
               <h2 id="movieOutputTitle">Working files</h2>
@@ -147,7 +150,6 @@
             <button class="btn2" id="movieCopyOutput" type="button" disabled>Copy links</button>
             <button class="btn2" id="movieDownloadOutput" type="button" disabled>Download JSON</button>
             <button class="btn2" id="movieClearOutput" type="button" disabled>Clear output</button>
-            <button class="btn2" id="movieLockBtn" type="button">Lock</button>
           </div>
         </aside>
       </div>
