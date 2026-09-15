@@ -458,7 +458,11 @@ import { randomUUID } from 'node:crypto';
     assert.deepEqual(en.map(fact => fact.value), ['2020-11-12', '2026-08-05', '2026-08-11']);
     assert.equal(en[0].label, 'Source published');
     assert.equal(vi[1].label, 'Đưa lên Gazl');
-    assert.notEqual(en[2].formatted, vi[2].formatted);
+    // Minimal-ICU Node builds fall back to English when vi-VN data is absent;
+    // full-ICU runtimes must still prove that the two locales render differently.
+    if (Intl.DateTimeFormat.supportedLocalesOf('vi-VN').length) {
+      assert.notEqual(en[2].formatted, vi[2].formatted);
+    }
   });
 
   test('an unchanged article shows one date, and it is the Updated one', () => {
