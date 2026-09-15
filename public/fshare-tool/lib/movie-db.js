@@ -176,10 +176,19 @@ export function narrowsSearch(prev, next) {
   return before.every((token) => after.some((candidate) => candidate.includes(token)));
 }
 
+const sizeOf = (row) => Number.isFinite(Number(row?.size)) ? Number(row.size) : 0;
+
+function sortMovieRowsBySize(rows, nameOf = (row) => fold(row.name)) {
+  return (rows || [])
+    .map((row) => [sizeOf(row), nameOf(row), String(row.code || ''), row])
+    .sort((a, b) => a[0] - b[0] || COLLATOR.compare(a[1], b[1]) || a[2].localeCompare(b[2]))
+    .map((pair) => pair[3]);
+}
+
 export function searchMovieLinks(links, query, { kind = 'all', status = 'all', sourceId = 'all', byId = null, index = null } = {}) {
   const tokens = queryTokens(query);
   const hayOf = (row) => (index && index.hay.get(row)) ?? movieHaystack(row, byId);
-  return (links || []).filter((row) => {
+  const matches = (links || []).filter((row) => {
     if (kind !== 'all' && row.kind !== kind) return false;
     if (status !== 'all' && row.status !== status) return false;
     if (sourceId !== 'all' && !(row.sourceIds || []).includes(sourceId)) return false;
@@ -187,9 +196,10 @@ export function searchMovieLinks(links, query, { kind = 'all', status = 'all', s
     const haystack = hayOf(row);
     return tokens.every((token) => haystack.includes(token));
   });
+  return sortMovieRowsBySize(matches);
 }
 
-/** Files grouped by the folder they sit in, so a result reads as a place, not a list. */
+/** Files grouped by folder, with the smallest result first within each group. */
 export function groupByFolder(links, byId, index = null) {
   const groups = new Map();
   const nameOf = (row) => (index && index.nameKey.get(row)) ?? fold(row.name);
@@ -211,10 +221,7 @@ export function groupByFolder(links, byId, index = null) {
     .sort((a, b) => COLLATOR.compare(a.sortKey, b.sortKey))
     .map(({ sortKey, ...group }) => ({
       ...group,
-      links: group.links
-        .map((row) => [nameOf(row), row])
-        .sort((a, b) => COLLATOR.compare(a[0], b[0]))
-        .map((pair) => pair[1])
+      links: sortMovieRowsBySize(group.links, nameOf)
     }));
 }
 

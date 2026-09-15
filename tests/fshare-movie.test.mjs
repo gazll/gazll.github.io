@@ -180,8 +180,8 @@ test('search finds a file by the folders above it, and results group under the h
     links: [
       { id: 'fshare-folder-ROOT', kind: 'folder', code: 'ROOT', name: 'KHO PHIM', status: 'live' },
       { id: 'fshare-folder-A', kind: 'folder', code: 'A', name: 'Dune (2021)', status: 'live', parents: ['fshare-folder-ROOT'], children: { files: 3 } },
-      { id: 'fshare-file-B', kind: 'file', code: 'B', name: 'Dune.2021.2160p.mkv', status: 'live', parents: ['fshare-folder-A'] },
-      { id: 'fshare-file-B2', kind: 'file', code: 'B2', name: 'Dune.2021.1080p.mkv', status: 'dead', parents: ['fshare-folder-A'] },
+      { id: 'fshare-file-B', kind: 'file', code: 'B', name: 'Dune.2021.2160p.mkv', size: 100, status: 'live', parents: ['fshare-folder-A'] },
+      { id: 'fshare-file-B2', kind: 'file', code: 'B2', name: 'Dune.2021.1080p.mkv', size: 200, status: 'dead', parents: ['fshare-folder-A'] },
       { id: 'fshare-folder-C', kind: 'folder', code: 'C', name: 'Dune (1984)', status: 'live', aliases: ['Xứ Cát'], parents: ['fshare-folder-ROOT'] },
       { id: 'fshare-file-D', kind: 'file', code: 'D', name: 'Some.Release.Group.mkv', status: 'live', parents: ['fshare-folder-C'] },
       { id: 'fshare-file-E', kind: 'file', code: 'E', name: 'Standalone.Dune.mkv', status: 'live' }
@@ -194,11 +194,13 @@ test('search finds a file by the folders above it, and results group under the h
   assert.deepEqual(hits.map((r) => r.code), ['D']);
   assert.equal(searchMovieLinks(db.links, 'dune', { kind: 'file' }).length, 3, 'without the map only file names match');
   assert.equal(searchMovieLinks(db.links, 'dune', { kind: 'file', byId }).length, 4);
+  assert.deepEqual(searchMovieLinks(db.links, 'dune', { kind: 'file', byId }).map((r) => r.code), ['D', 'E', 'B', 'B2'], 'search results sort by size ascending');
 
   const groups = groupByFolder(searchMovieLinks(db.links, 'dune', { kind: 'file', byId }), byId);
   assert.deepEqual(groups.map((g) => [g.chain.join(' › ') || '(standalone)', g.links.length]), [
     ['(standalone)', 1], ['KHO PHIM › Dune (1984)', 1], ['KHO PHIM › Dune (2021)', 2]
   ]);
+  assert.deepEqual(groups[2].links.map((r) => r.code), ['B', 'B2'], 'files in a search group sort by size ascending');
   assert.equal(groups[2].folder.children.files, 3, 'the group carries its folder row');
   assert.equal(searchMovieLinks(db.links, '', { status: 'dead' }).length, 1);
 
