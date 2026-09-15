@@ -10,8 +10,8 @@
 import { $ } from '../lib/state.js';
 import { copyText, debounce, downloadTxt, fmtSize, toast } from '../lib/util.js';
 import {
-  MOVIE_DB_URL, buildSearchIndex, groupByFolder, indexById, movieHaystack, narrowsSearch, normalizeMovieDatabase,
-  searchMovieLinks, sourceName
+  MOVIE_DB_URL, buildSearchIndex, folderChain, groupByFolder, indexById, movieHaystack, narrowsSearch,
+  normalizeMovieDatabase, searchMovieLinks, sourceName
 } from '../lib/movie-db.js';
 import { X_DB_URL, normalizeXDatabase, searchXLinks, xHaystack } from '../lib/x-db.js';
 import { validateMovieEntries } from '../lib/movie-check.js';
@@ -310,9 +310,13 @@ function currentStatus(row) {
   return record ? { status: record.status, error: record.error } : { status: row.status, error: row.error || '' };
 }
 
-function rowMeta(row) {
+function rowMeta(row, includeFolder = false) {
   const parts = catalogConfig().raw ? [row.kind, row.code] : [row.code];
   if (row.kind === 'file' && row.size) parts.push(fmtSize(row.size));
+  if (includeFolder && row.kind === 'file') {
+    const path = folderChain(row, movie.byId).join(' / ');
+    parts.push(path || 'Direct links');
+  }
   if (row.parents && row.parents.length > 1) parts.push(`also in ${row.parents.length - 1} other folder${row.parents.length > 2 ? 's' : ''}`);
   if (row.sourceIds && row.sourceIds.length) parts.push(sourceName(movie.sourceMap, row.sourceIds[0]) + (row.sourceIds.length > 1 ? ` +${row.sourceIds.length - 1}` : ''));
   if (row.checkedAt) parts.push(`checked ${fmtDay(row.checkedAt)}`);
@@ -334,7 +338,7 @@ function childrenSummary(row) {
   return bits.join(' · ');
 }
 
-function makeRow(row) {
+function makeRow(row, includeFolder = false) {
   const element = document.createElement('article');
   const state = currentStatus(row);
   element.className = 'movie-result-row' + (movie.selected.has(row.id) ? ' selected' : '') + (state.status === 'dead' ? ' is-dead' : '');
@@ -373,7 +377,7 @@ function makeRow(row) {
 
   const meta = document.createElement('div');
   meta.className = 'movie-result-meta';
-  meta.textContent = rowMeta(row);
+  meta.textContent = rowMeta(row, includeFolder);
   meta.title = meta.textContent;
   details.appendChild(meta);
   element.appendChild(details);
@@ -482,6 +486,21 @@ function makeRawHead(count) {
   return head;
 }
 
+function makeSearchHead(count) {
+  const head = document.createElement('div');
+  head.className = 'movie-folder-head movie-search-head';
+  head.appendChild(groupIcon('link'));
+  const title = document.createElement('strong');
+  title.className = 'movie-crumb is-leaf';
+  title.textContent = 'Search results';
+  head.appendChild(title);
+  const meta = document.createElement('span');
+  meta.className = 'movie-folder-meta';
+  meta.textContent = number(count) + ' file' + (count === 1 ? '' : 's') + ' - smallest first';
+  head.appendChild(meta);
+  return head;
+}
+
 function renderResults() {
   const list = $('movieResults');
   if (!list || !movie.database) return;
@@ -504,7 +523,8 @@ function renderResults() {
     : searchMovieLinks(pool, query, { kind: 'file', sourceId, byId: movie.byId, index: movie.index });
   movie.lastSearch = { key: searchKey, query, rows: found };
   const matches = config.raw ? found : found.filter((row) => showDead || currentStatus(row).status === 'live');
-  const groups = config.raw ? [] : groupByFolder(matches, movie.byId, movie.index);
+  const searching = !config.raw && Boolean(query.trim());
+  const groups = config.raw || searching ? [] : groupByFolder(matches, movie.byId, movie.index);
 
   movie.shown = [];
   list.innerHTML = '';
@@ -523,13 +543,13 @@ function renderResults() {
   let rows = 0;
   // Each group is its own card, so the head sticks only while its own rows
   // are in view and the gap between cards is what separates two folders.
-  const makeGroup = (head, links, direct) => {
+  const makeGroup = (head, links, direct, includeFolder = false) => {
     const section = document.createElement('section');
     section.className = 'movie-group' + (direct ? ' is-direct' : '');
     section.appendChild(head);
     for (const row of links) {
       if (rows >= ROW_LIMIT) break;
-      section.appendChild(makeRow(row));
+      section.appendChild(makeRow(row, includeFolder));
       movie.shown.push(row);
       rows++;
     }
@@ -537,6 +557,8 @@ function renderResults() {
   };
   if (config.raw) {
     fragment.appendChild(makeGroup(makeRawHead(matches.length), matches, true));
+  } else if (searching) {
+    fragment.appendChild(makeGroup(makeSearchHead(matches.length), matches, false, true));
   } else {
     for (const group of groups) {
       if (rows >= ROW_LIMIT) break;
@@ -547,6 +569,8 @@ function renderResults() {
   const suffix = matches.length > ROW_LIMIT ? ` · showing first ${number(ROW_LIMIT)}` : '';
   if (config.raw) {
     setText('movieResultCount', `${number(matches.length)} raw X link${matches.length === 1 ? '' : 's'}${suffix} · ${number(movie.selected.size)} selected`);
+  } else if (searching) {
+    setText('movieResultCount', number(matches.length) + ' file' + (matches.length === 1 ? '' : 's') + ' - smallest first' + suffix + ' - ' + number(movie.selected.size) + ' selected');
   } else {
     setText('movieResultCount', `${number(matches.length)} file${matches.length === 1 ? '' : 's'} in ${number(groups.length)} folder${groups.length === 1 ? '' : 's'}${suffix} · ${number(movie.selected.size)} selected`);
   }
