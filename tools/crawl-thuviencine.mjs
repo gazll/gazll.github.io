@@ -110,6 +110,25 @@ function sameOrigin(value, siteUrl) {
   try { return new URL(value).origin === new URL(siteUrl).origin; } catch { return false; }
 }
 
+function sameSiteHost(value, siteUrl) {
+  try {
+    const candidate = new URL(value);
+    const site = new URL(siteUrl);
+    return candidate.hostname === site.hostname && candidate.port === site.port;
+  } catch { return false; }
+}
+
+function canonicalSiteHost(value, siteUrl) {
+  try {
+    const candidate = new URL(value);
+    const site = new URL(siteUrl);
+    if (!sameSiteHost(candidate, site)) return '';
+    candidate.protocol = site.protocol;
+    candidate.host = site.host;
+    return candidate.href;
+  } catch { return ''; }
+}
+
 function canonicalSiteUrl(value, pageUrl) {
   try {
     const url = new URL(decodeHtml(value), pageUrl);
@@ -162,22 +181,26 @@ export function parseLocs(xml, baseUrl = DEFAULT_SITE) {
 
 export function selectPostSitemaps(xml, siteUrl = DEFAULT_SITE) {
   const site = new URL(siteUrl);
-  return parseLocs(xml, site).filter((value) => {
-    try {
-      const url = new URL(value);
-      return url.origin === site.origin && /\/post-sitemap\d*\.xml\/?$/i.test(url.pathname);
-    } catch { return false; }
-  });
+  return unique(parseLocs(xml, site)
+    .filter((value) => {
+      try {
+        const url = new URL(value);
+        return sameSiteHost(url, site) && /\/post-sitemap\d*\.xml\/?$/i.test(url.pathname);
+      } catch { return false; }
+    })
+    .map((value) => canonicalSiteHost(value, site)));
 }
 
 export function selectPostUrls(xml, siteUrl = DEFAULT_SITE) {
   const site = new URL(siteUrl);
-  return parseLocs(xml, site).filter((value) => {
-    try {
-      const url = new URL(value);
-      return url.origin === site.origin && url.pathname !== '/';
-    } catch { return false; }
-  });
+  return unique(parseLocs(xml, site)
+    .filter((value) => {
+      try {
+        const url = new URL(value);
+        return sameSiteHost(url, site) && url.pathname !== '/';
+      } catch { return false; }
+    })
+    .map((value) => canonicalSiteHost(value, site)));
 }
 
 export function sitemapUrlsFromRobots(robotsText, baseUrl = DEFAULT_SITE) {

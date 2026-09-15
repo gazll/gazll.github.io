@@ -539,6 +539,18 @@ secret/              GITIGNORED. Personal setup notes and credentials
   `response.ok`, the file's own URL and a non-error title: 38 dead links were
   recorded live with "503 Service Temporarily Unavailable" as their name.
 
+- **The thuviencine crawler is a two-hop harvester, not a site graph walk.**
+  It starts from the post sitemap, extracts same-site download IDs from each
+  post, then deduplicates those pages before extracting Fshare links. A sample
+  run of three posts made six page requests and found four unique links with no
+  failures. The sitemap currently publishes HTTP locs for an HTTPS site, so
+  compare hostnames and canonicalize them to HTTPS before fetching.
+  Keep the two phases bounded and concurrent, checkpoint outside raw/, and
+  retry only failed URLs. Tune concurrency upward gradually; 429/5xx responses
+  mean the host needs backoff, not unbounded parallelism. Do not build or
+  validate the movie catalog until the crawler report has zero movie and
+  download failures.
+
 - **Fixed and rolling reminders are not the same recurrence, and confusing them
   is silent.** A *fixed* event (`once`, `yearly`, `lunar-yearly`, `monthly`)
   happens on a date the calendar decides — paying late does not move next year.

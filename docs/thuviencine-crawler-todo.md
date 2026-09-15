@@ -32,3 +32,21 @@ Trạng thái hiện tại: đã có crawler và test parser; chưa chạy crawl
 
 State/report/raw nằm trong secret/ và không commit; chỉ sealed catalog trong
 public/data/fshare-movie/catalog.enc.json được publish.
+
+## Kinh nghiệm từ lần chạy mẫu
+
+Lần chạy 3 URL đã hoàn tất với 3 trang phim, 3 trang download, 4
+association Fshare, 4 link unique và 0 lỗi. Một số lưu ý để full crawl nhanh
+và ổn định hơn:
+
+- Sitemap của site trả loc dạng http dù site truy cập bằng https; phải so hostname
+  rồi chuẩn hoá về HTTPS, không so origin cả protocol.
+- Không đệ quy mọi link trong trang phim vì trang có danh sách phim liên quan;
+  post-sitemap là nguồn URL chính xác và tránh bùng nổ số request.
+- Chạy hai phase bounded-concurrency: fetch movie pages trước, dedupe download
+  URL rồi fetch mỗi trang download một lần. Đây là điểm tiết kiệm lớn nhất.
+- Giữ state checkpoint ngoài raw; lần chạy sau bỏ qua trang đã thành công và chỉ
+  retry URL lỗi. Có thể tăng concurrency từng bước, nhưng hạ xuống khi gặp
+  429/5xx thay vì tắt retry hoặc chạy vô hạn song song.
+- Chỉ build database sau khi report có movieFailures = 0 và downloadFailures = 0;
+  sau đó validate Fshare là phase riêng vì đây là các request chậm hơn.

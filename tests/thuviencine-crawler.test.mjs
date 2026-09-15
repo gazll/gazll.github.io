@@ -10,7 +10,7 @@ const SITE = 'https://thuviencine.uk/';
 
 test('sitemap helpers select every post sitemap and skip the homepage', () => {
   const index = '<?xml version="1.0"?><sitemapindex>\n'
-    + '<sitemap><loc>https://thuviencine.uk/post-sitemap.xml</loc></sitemap>\n'
+    + '<sitemap><loc>http://thuviencine.uk/post-sitemap.xml</loc></sitemap>\n'
     + '<sitemap><loc>https://thuviencine.uk/post-sitemap7.xml</loc></sitemap>\n'
     + '<sitemap><loc>https://thuviencine.uk/page-sitemap.xml</loc></sitemap>\n'
     + '</sitemapindex>';
