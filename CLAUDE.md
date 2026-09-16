@@ -172,10 +172,12 @@ docs/todo/           open work, one file per effort; delete the file when closed
                      2026-09-12; `git show "$(git log -1 --format=%h --diff-filter=D -- docs/research/index.md)^:docs/research/index.md"`
                      is the way back to any source ledger)
 secret/schedule.json  GITIGNORED. The real reminder list; the repo holds only its envelope
-secret/fshare-movie/  GITIGNORED. catalog.json — the movie link database with every
-                     link's check state — plus sources.json (the Sheet URLs to re-ingest
-                     from); raw exports are deleted after build. The repo holds only the
-                     sealed projection of the checked rows
+secret/fshare-movie/  GITIGNORED. catalog.json (header) + catalog/links-NN.json (16 shards
+                     by hash of id) — the movie link database with every link's check
+                     state — plus sources.json (the Sheet URLs to re-ingest from); raw
+                     exports are deleted after build. Every write is .tmp + rename with
+                     the previous copy kept as .bak. The repo holds only the sealed
+                     projection of the checked rows
 secret/              GITIGNORED. Personal setup notes and credentials
 ```
 
@@ -549,20 +551,33 @@ secret/              GITIGNORED. Personal setup notes and credentials
   its "Không tìm thấy" page. `webPage()` returns `dead` only for those two
   codes, `unknown` for everything else non-200.
 
-- **`catalog.json` past ~110k rows must be written by `writeCatalogFile`
-  (streamed), never `writeJson` (`JSON.stringify(catalog, null, 2)`).** The
-  recursive Thuviencine crawl grew the catalog from 93k to 113k rows mid-run
-  and a routine 25-row checkpoint OOM-crashed Node building and flattening
-  that one ~200MB pretty-printed string on a 3.5GB-RAM host. `writeCatalogFile`
-  streams the same shape field by field so peak memory is one row, not the
-  file; it is compact (no indent) because the file is gitignored and never
-  opened by hand — `status`/`audit` are how a human reads it. The same
-  incident showed `summarize(structuredClone(catalog))` — used by `status`,
-  `seal` and `audit` to avoid mutating `catalog.validation` — deep-cloning a
-  113k-row catalog just to read four counters, right next to a checkpoint
-  write, was the other half of the peak. `countValidation(catalog)` computes
-  the same counts read-only, with no clone; only `summarize` itself (which
-  intentionally writes `catalog.validation`) still needs the plain catalog.
+- **The movie catalog is sharded on disk, and `readCatalogSnapshot` /
+  `writeCatalogFile` are its only reader and writer.** `catalog.json` is a
+  small header (version, sources, validation, `shards`); rows live in
+  `catalog/links-NN.json`, one per line, a row's shard fixed by
+  `shardOf(id)`. Three things this layout exists for, each already paid for
+  once on the 3.5GB-RAM NAS: (1) a 25-row checkpoint OOM-crashed Node building
+  and flattening one ~200MB `JSON.stringify(catalog, null, 2)` string when the
+  recursive Thuviencine crawl pushed the catalog to 113k rows — rows are now
+  streamed one at a time; (2) the next ceiling was parsing one 141MB file as
+  one string — sixteen ~7MB files parse one at a time; (3) the writer went
+  straight onto the live file, so a crash mid-write would have cut the only
+  copy — every file is now written to `.tmp` and renamed in, the previous
+  copy stays as `.bak`, and a shard that fails to parse is read from its
+  `.bak` with a warning. The reader restores titleKey order after assembling
+  shards (the envelope and the browse tab inherit it), drops the `keywords`
+  field (never read; rebuilt in the browser; was 17% of the file), and hashes
+  exactly the bytes it read — that digest is what `merge` and the shard
+  runner compare, so a checkpoint landing between two shard reads is caught.
+  `ensureHeap()` in `main` re-executes the tool once with
+  `--max-old-space-size` when `8 × catalog bytes + 512MB` exceeds Node's
+  table-chosen heap limit and the host has the RAM (cap 75% of
+  `os.totalmem()`) — so `node tools/fshare-movie.mjs …` is the whole command
+  on any machine; `GAZLL_MOVIE_REEXEC=1` disables it. Two habits the incident
+  also ended: `summarize(structuredClone(catalog))` deep-cloned 113k rows to
+  read four counters (`countValidation` reads without cloning), and the
+  `remote` field (32MB, 25% of the file, no command reads it) is the next
+  thing to move out if the catalog grows another ~5×.
 
 - **The thuviencine crawler is a two-hop harvester, not a site graph walk.**
   It starts from the post sitemap, extracts same-site download IDs from each

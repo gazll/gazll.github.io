@@ -10,9 +10,17 @@ và publish một catalog "validated" mà 5.881 folder chưa từng được li�
 ```text
 secret/fshare-movie/raw/            export thô (CSV từng tab Sheet, list link dán tay)  GITIGNORED
 secret/fshare-movie/sources.json    URL gốc của từng raw file                              GITIGNORED
-secret/fshare-movie/catalog.json    DATABASE CHÍNH — mọi link từng thấy + kết quả check    GITIGNORED
+secret/fshare-movie/catalog.json    DATABASE CHÍNH — header: version, sources, validation, shards   GITIGNORED
+secret/fshare-movie/catalog/links-00.json … links-15.json   các dòng, mỗi dòng một link, shard theo hash(id)  GITIGNORED
+secret/fshare-movie/catalog.json.bak · catalog/links-NN.json.bak   bản của lần ghi TRƯỚC (tự động)     GITIGNORED
 public/data/fshare-movie/catalog.enc.json   projection đã seal: chỉ link đã check, gzip + AES-256-GCM   COMMIT
 ```
+
+"Catalog" trong tài liệu này = header + 16 shard, và `readCatalogSnapshot` /
+`writeCatalogFile` trong `tools/fshare-movie.mjs` là hai cửa duy nhất đọc/ghi
+nó. Cắt nhỏ để không bao giờ phải dựng một chuỗi JSON to bằng cả database
+trong RAM (lần crash 2026-09-16, xem "Bài học"); `grep CODE
+secret/fshare-movie/catalog/` vẫn tìm được một dòng bằng tay.
 
 ```text
 ingest / crawl:* ──► raw/ ──build──► catalog.json ──validate──► catalog.json ──audit──► seal ──► catalog.enc.json ──► deploy
@@ -130,22 +138,34 @@ node tools/fshare-movie.mjs --check
 
 Số đo thật, 2026-09-16, qua proxy, concurrency 4: 5.747 folder root (kể cả
 con) xong trong ~68 phút (~0,7 s/folder); 3.573 dead xong trong ~24 phút
-(~0,4 s/dòng, sau khi \`--only unverified\` tự chọn lại đúng phần còn thiếu
+(~0,4 s/dòng, sau khi `--only unverified` tự chọn lại đúng phần còn thiếu
 nếu một lần chạy bị dừng giữa chừng). Không cần chạy song song nhiều tiến
-trình cho cỡ này. Một số dòng \`dead\` cần chạy lại \`validate --only
-unverified\` vài lần liên tiếp (concurrency 1) mới hội tụ về 0 — ý kiến thứ
+trình cho cỡ này. Một số dòng `dead` cần chạy lại `validate --only
+unverified` vài lần liên tiếp (concurrency 1) mới hội tụ về 0 — ý kiến thứ
 hai từ fshare.vn không ổn định dưới tải đồng thời: cùng một code, hỏi dồn dập
 có lúc trả về trang của MỘT FILE KHÁC (tiêu đề thật, `ownPage` sai), hỏi lại
 thong thả thì đúng. Đây là hành vi phía fshare.vn/proxy, không phải bug —
 `unverified` được thiết kế để giữ lại đúng những dòng này cho lần chạy sau
 thay vì đoán.
 
-**Catalog quá ~110k dòng phải ghi bằng \`writeCatalogFile\` (stream), không
-được quay lại \`writeJson\`/\`JSON.stringify(catalog, null, 2)\`.** Lần crawl
-đệ quy 2026-09-16 đưa catalog từ 93k lên 113k dòng giữa chừng, và một
-checkpoint bình thường (mỗi 25 dòng) làm Node OOM khi dựng + flatten chuỗi
-pretty-print ~200MB đó trên máy 3,5GB RAM. Streaming ghi từng field/dòng một
-nên đỉnh bộ nhớ chỉ bằng một dòng, không phải cả file.
+**RAM và kích thước catalog.** Máy NAS có 3,5GB. Đo 2026-09-17 với 113.544
+dòng: 16 shard tổng 112MB, object graph sau khi parse ~290MB, `status` đỉnh
+RSS ~380MB, một lần `validate` load + save ~900MB. Ba lớp bảo vệ, theo thứ
+tự chúng đã cứu được gì:
+
+1. **Ghi stream, từng dòng** — không bao giờ có một chuỗi JSON to bằng cả
+   database trong RAM. Đây là thứ đã OOM ngày 2026-09-16.
+2. **Đọc theo shard** — 16 file ~7MB parse lần lượt, không phải một chuỗi
+   141MB. Trần tiếp theo lẽ ra sẽ ở ~500MB file.
+3. **Tự nới heap** — Node chọn giới hạn heap theo bảng, không theo máy. Tool
+   tính `8 × byte catalog + 512MB`; nếu vượt giới hạn hiện tại và máy còn
+   RAM (trần 75% `os.totalmem()`), nó tự chạy lại một lần với
+   `--max-old-space-size`. Vì thế `node tools/fshare-movie.mjs …` là
+   nguyên câu lệnh trên mọi máy; `GAZLL_MOVIE_REEXEC=1` tắt cơ chế này.
+
+Lớp còn lại nếu catalog tăng thêm ~5×: `remote` (32MB, 25% file, snapshot
+API của Fshare, chưa lệnh nào đọc) và `path` (13MB) là hai field kế tiếp
+nên tách ra file phụ hoặc bỏ. Chưa làm vì chưa cần.
 
 ### Chạy lại định kỳ (tuần / tháng)
 
@@ -249,7 +269,7 @@ dòng — chỉ trong catalog, không vào envelope (xem "Những thứ dễ h�
 ## Làm trên máy khác (NAS)
 
 Job validate dài giờ nên chạy trên NAS hợp lý hơn laptop. Repo clone được từ
-git; những gì **không** nằm trong git phải copy tay, và `catalog.json` là
+git; những gì **không** nằm trong git phải copy tay, và catalog (header + `catalog/`) là
 **bản duy nhất** — bên nào chạy tiếp thì bên đó giữ, xong thì copy ngược lại
 trước khi `seal`, không được seal từ bản cũ.
 
@@ -261,7 +281,7 @@ ssh nas@nas 'cd /volume2/99_Drives/Project/gazll.github.io   && git pull && mv c
 | File | Vì sao cần |
 |---|---|
 | `secret/app.key` | passphrase — thiếu là không `seal` được |
-| `secret/fshare-movie/catalog.json` | state đang validate |
+| `secret/fshare-movie/catalog.json` + `catalog/` | state đang validate — header VÀ thư mục shard, cả hai |
 | `secret/fshare-movie/raw/` + `sources.json` | để `build` lại khi Sheet có tab mới |
 | `public/config.js` | `GOOGLE_CLIENT_ID` + `SCRIPT_URL` cho dev local |
 
@@ -279,12 +299,50 @@ khi có advisory mới trên dependency transitive — `npm audit fix` rồi com
 
 ## Khôi phục
 
+- Crash giữa lúc ghi (OOM, mất điện, Ctrl+C sai lúc): không mất gì. Mỗi file
+  được ghi ra `.tmp` rồi rename vào, bản trước giữ lại thành `.bak`. Shard
+  nào hỏng thì lần load sau tự đọc `.bak` của nó và in cảnh báo; chạy lại
+  `validate` là đủ vì nó resumable. Xoá các `.bak` khi thấy chật đĩa — chúng
+  được ghi đè ở mỗi lần save nên không bao giờ nhiều hơn một bản.
 - Mất `secret/`: `node tools/fshare-movie.mjs unseal` lấy lại **projection**
   (các dòng đã check) từ envelope trong git vào `catalog.unsealed.json`.
   Không phải catalog đầy đủ — `pending` và các field nội bộ không nằm trong
   envelope. Ghép vào `catalog.json` theo `id`, hoặc `ingest` lại raw rồi
   `build`, rồi copy trạng thái sang.
 - Mất passphrase: mất envelope. Không có đường khác.
+
+## Bài học 2026-09-16 → 17
+
+Một đợt thu thập 10.641 link, ba lỗi quy trình, một crash. Ghi lại để lần
+sau đọc trước khi chạy:
+
+1. **Probe root không phải validate folder.** "Folder trả lời" ≠ "biết bên
+   trong có gì". 5.881 folder đã ship như thế với `validated: true`. Giờ
+   `uncrawled` là một cửa, `--kind all` của shard đã gỡ, `merge` từ chối
+   folder qua probe.
+2. **Một 404 của proxy là một ý kiến.** Ý kiến thứ hai từ fshare.vn bắt buộc;
+   `unverified` là cửa thứ ba. Và ý kiến thứ hai đó **không ổn định dưới
+   tải**: hỏi dồn (concurrency 4) có lúc nhận trang của file khác; hỏi lại
+   chậm (concurrency 1) vài lượt thì đúng — 113 → 110 → 46 → 1 → 0. Đừng
+   nới luật để "cho xong"; chạy lại chậm.
+3. **Một 404 thật từ fshare.vn thì ngược lại là kết luận.** Code
+   `M7VL29SY6AVENGERS` — nguồn đã dính tên phim vào code — cả hai phía đều
+   404. `webPage()` giờ coi 404/410 là `dead`, chỉ 5xx mới `unknown`.
+4. **`pending 0` không phải "xong".** `audit` mới là câu trả lời, và phải
+   `validated: OK` trước khi `seal`.
+5. **Không đếm tay.** Số trong todo lệch ngay (5.881 = 5.752 + 129, hai cửa
+   khác nhau). Mọi con số trong tài liệu lấy từ `audit --json`.
+6. **RAM là một ràng buộc thiết kế, không phải sự cố.** Catalog lớn dần theo
+   từng đợt; thứ hôm nay vừa đủ thì tháng sau OOM. Stream khi ghi, shard khi
+   đọc, bỏ field không ai đọc (`keywords`, −17%), và đo (`/usr/bin/time -v`)
+   thay vì đoán.
+7. **Crash không được phép làm mất dữ liệu.** Ghi `.tmp` + rename + giữ
+   `.bak`. Lần OOM 2026-09-16 may mắn rơi vào giữa hai checkpoint; nếu rơi
+   giữa lúc ghi thì bản duy nhất đã cụt.
+8. **Một commit một việc, kể cả khi đang vội.** `interviews.json` restamp lọt
+   vào commit crawl và che một bug thật của `stamp-content-dates`.
+9. **Todo nằm trong `docs/todo/`, xoá khi đóng.** Kinh nghiệm thì nằm ở đây
+   và ở CLAUDE.md; file todo không phải nơi giữ bài học.
 
 ## Những thứ dễ hỏng
 
