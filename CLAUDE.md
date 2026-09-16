@@ -1293,6 +1293,31 @@ planted there is dropped rather than trusted. Never widen it: `role` still
 comes from the backend and `user_id` still comes from the verified `sub`.
 Three tests in `tests/security.test.mjs` pin this.
 
+## Working with the operator
+
+The study site is edited from a laptop; the movie catalog and the private
+schedule are operated by hand, usually on the NAS in the evening, and the
+operator often goes offline mid-run. Three things follow, learned on
+2026-09-16/17:
+
+- **Put the rule in the tool, then in the playbook — never only in a note.**
+  A step the operator must remember (crawl folders, ask fshare.vn twice,
+  `audit` before `seal`) is a step that will be skipped once; the tool
+  refuses the wrong step (`merge` gates, `validated`'s three counts) and the
+  playbook explains why. Numbers in docs come from `audit --json`, never
+  from a hand count — the first todo for that harvest had 5,881 where the
+  truth was 5,752 + 129, two different gates.
+- **"Mình cần offline, bạn cứ chạy" means finish the whole thing.** Run it to
+  the end, run all three CI commands, commit locally one change per commit,
+  do not push — pushing is the operator's decision when they are back. A
+  long run goes through a `set -e` wrapper with step markers in a log
+  (playbook § "Chạy dài trên NAS") and is watched for step transitions and
+  errors only; sampling every N progress lines was just noise.
+- **Lessons live in this file and the playbooks, not in agent memory or a
+  todo.** Memory is per machine and does not follow the operator to the
+  laptop; a todo is deleted when closed. `docs/fshare-movie-playbook.md`
+  § "Bài học 2026-09-16 → 17" is the record of that harvest.
+
 ## Before pushing
 
 Editing study content? `docs/content-playbook.md` is the full procedure —

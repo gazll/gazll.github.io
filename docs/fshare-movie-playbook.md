@@ -167,6 +167,31 @@ Lớp còn lại nếu catalog tăng thêm ~5×: `remote` (32MB, 25% file, snaps
 API của Fshare, chưa lệnh nào đọc) và `path` (13MB) là hai field kế tiếp
 nên tách ra file phụ hoặc bỏ. Chưa làm vì chưa cần.
 
+### Chạy dài trên NAS
+
+Một đợt validate là vài giờ. Chạy trong `screen`/`tmux` hoặc `nohup`, qua
+một wrapper `sh` có `set -e` để một bước hỏng thì chuỗi dừng ngay chứ
+không `seal` đè lên kết quả dở; mỗi bước ghi mốc `started`/`finished` vào
+một log để biết đang ở đâu mà không cần đọc từng dòng tiến độ:
+
+```sh
+#!/bin/sh
+set -e
+cd /volume2/99_Drives/Project/gazll.github.io
+LOG=/tmp/validate-run.log
+step() { echo "--- $1 · $(date -u +%FT%TZ) ---" >> "$LOG"; }
+step "uncrawled";  node tools/fshare-movie.mjs validate --only uncrawled  --concurrency 4 >> "$LOG" 2>&1
+step "unverified"; node tools/fshare-movie.mjs validate --only unverified --concurrency 4 >> "$LOG" 2>&1
+step "unknown";    node tools/fshare-movie.mjs validate --only unknown    --concurrency 4 >> "$LOG" 2>&1
+step "audit";      node tools/fshare-movie.mjs audit >> "$LOG" 2>&1
+step "done"
+```
+
+`nohup sh run.sh &` rồi `grep -- --- /tmp/validate-run.log` cho mốc,
+`tail -3` cho tiến độ. Mọi bước đều resumable: chết giữa chừng thì chạy lại
+đúng wrapper đó, không cần sửa gì. Không tự động `seal` trong wrapper —
+`audit` phải đọc bằng mắt trước.
+
 ### Chạy lại định kỳ (tuần / tháng)
 
 ```bash
