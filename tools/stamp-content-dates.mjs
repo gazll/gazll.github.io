@@ -193,7 +193,9 @@ emitJson(projectPath, project);
 
 const interviewsPath = 'public/data/interviews.json';
 const interviews = readJson(interviewsPath);
-const interviewKey = row => row.source?.url || row.name;
+// name + role, not the source URL: two HSC postings share one careers URL, and
+// a shared key made the two rows re-stamp each other's updated_at every day.
+const interviewKey = row => row.name + '|' + (row.role || '');
 const interviewHistory = jsonRowsHistory(interviewsPath, value => value.companies || [], interviewKey);
 for (const company of interviews.companies || []) {
   delete company.fingerprint;
