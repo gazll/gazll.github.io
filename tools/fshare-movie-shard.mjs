@@ -26,13 +26,12 @@
    they use the same catalog snapshot hash.
 */
 
-import { createHash } from 'node:crypto';
 import { existsSync } from 'node:fs';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { probeFileOnWeb } from './fshare-movie.mjs';
+import { probeFileOnWeb, readCatalogSnapshot, shardDir } from './fshare-movie.mjs';
 
 const FSHARE_API = 'https://fshare.annnekkk.com/api/folder';
 const FSHARE_SORT = 'type,name';
@@ -198,9 +197,6 @@ function cloneJson(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
-function sha256(text) {
-  return createHash('sha256').update(text).digest('hex');
-}
 
 function samePath(first, second) {
   const a = path.resolve(first);
@@ -311,18 +307,19 @@ export function selectRows(catalog, options = {}) {
   };
 }
 
+/* The catalog is a header plus shard files; readCatalogSnapshot assembles
+   them and hashes exactly the bytes it read, and `merge` recomputes that same
+   digest. Reading twice catches a checkpoint landing between two shards. */
 async function readStableCatalog(catalogPath) {
   let lastError;
   for (let attempt = 1; attempt <= SNAPSHOT_READ_ATTEMPTS; attempt++) {
     try {
-      const first = await readFile(catalogPath, 'utf8');
-      const parsed = JSON.parse(first);
-      const second = await readFile(catalogPath, 'utf8');
-      if (first !== second) throw new Error('Catalog changed while it was being read.');
-      if (!Array.isArray(parsed) && !Array.isArray(parsed?.links)) {
-        throw new Error('Catalog must contain a links array.');
-      }
-      return { catalog: parsed, text: first, digest: sha256(first) };
+      const quiet = { log: () => {} };
+      const first = await readCatalogSnapshot(catalogPath, quiet);
+      const second = await readCatalogSnapshot(catalogPath, quiet);
+      if (first.digest !== second.digest) throw new Error('Catalog changed while it was being read.');
+      if (!Array.isArray(first.catalog?.links)) throw new Error('Catalog must contain a links array.');
+      return { catalog: first.catalog, digest: first.digest };
     } catch (error) {
       lastError = error;
       if (attempt < SNAPSHOT_READ_ATTEMPTS) await wait(250 * attempt);
@@ -557,8 +554,9 @@ async function writeOutput(outputPath, value, force) {
 async function run(options) {
   const catalogPath = path.resolve(options.catalogPath);
   const outputPath = path.resolve(options.outputPath);
-  if (samePath(catalogPath, outputPath) || path.basename(outputPath).toLowerCase() === 'catalog.json') {
-    fail('Output must be a separate JSON path and must not be catalog.json.');
+  if (samePath(catalogPath, outputPath) || path.basename(outputPath).toLowerCase() === 'catalog.json'
+    || path.resolve(outputPath).startsWith(path.resolve(shardDir(catalogPath)) + path.sep)) {
+    fail('Output must be a separate JSON path — not catalog.json and not inside its shard directory.');
   }
 
   const snapshot = await readStableCatalog(catalogPath);

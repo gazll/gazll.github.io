@@ -1,9 +1,14 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { mkdtemp, readFile, readdir, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+
 import {
   auditCatalog, buildCatalog, createListingFetcher, parseCsv, parseRawSource, probeFile, probeFileOnWeb, probeFolderOnWeb,
-  mergeShardResults, projectCatalog, recountChildren, selectEntries, sourceId
+  mergeShardResults, projectCatalog, readCatalogSnapshot, recountChildren, selectEntries, shardFile, shardOf, sourceId,
+  writeCatalogFile, SHARDS
 } from '../tools/fshare-movie.mjs';
 import { parseArgs, probeRow, selectRows } from '../tools/fshare-movie-shard.mjs';
 import {
@@ -348,4 +353,43 @@ test('shard results merge by immutable id and cannot change a different row', ()
     rows: [{ id: row.id, kind: row.kind, code: row.code, status: 'dead', via: 'probe', error: 'HTTP 404', web: { status: 'unknown', error: 'HTTP 503' } }]
   }, checkedAt).merged, 1, 'web unknown is accepted and left for the next run');
   assert.deepEqual([row.status, row.web.status], ['dead', 'unknown']);
+});
+
+test('the catalog is sharded on disk, rotated in atomically, and a single-file catalog migrates', async () => {
+  const dir = await mkdtemp(path.join(tmpdir(), 'gazll-movie-'));
+  const header = path.join(dir, 'catalog.json');
+  const text = Array.from({ length: 40 }, (_, i) => `Film ${i} https://www.fshare.vn/file/ROW${String(i).padStart(4, '0')}`).join('\n');
+  const catalog = buildCatalog([{ file: 'l.txt', text, updatedAt: NOW }], {}, null, NOW);
+  catalog.links[0].keywords = ['legacy'];
+
+  // The pre-2026-09-17 layout: one file carrying `links`. It loads as is.
+  await writeFile(header, JSON.stringify(catalog), 'utf8');
+  const legacy = await readCatalogSnapshot(header, { log: () => {} });
+  assert.equal(legacy.catalog.links.length, 40);
+  assert.ok(!('keywords' in legacy.catalog.links[0]), 'keywords is dropped on load');
+
+  // The next save writes the header without rows and one file per shard.
+  await writeCatalogFile(header, legacy.catalog);
+  const written = JSON.parse(await readFile(header, 'utf8'));
+  assert.ok(!('links' in written) && written.shards === SHARDS, 'the header names its shards and holds no rows');
+  assert.ok((await readdir(path.dirname(shardFile(header, 0)))).filter((f) => /^links-\d\d\.json$/.test(f)).length === SHARDS);
+  assert.ok(await readFile(`${header}.bak`, 'utf8'), 'the single file survives one save behind');
+  const shard0 = JSON.parse(await readFile(shardFile(header, 0), 'utf8'));
+  assert.ok(shard0.every((row) => shardOf(row.id) === 0), 'a row sits in the shard its id hashes to');
+
+  const first = await readCatalogSnapshot(header, { log: () => {} });
+  assert.deepEqual(first.catalog.links.map((r) => r.id).sort(), legacy.catalog.links.map((r) => r.id).sort(), 'every row round-trips');
+  assert.notEqual(first.digest, legacy.digest, 'the digest covers what was read, so a save changes it');
+
+  // A second save keeps the previous shard as .bak, and a truncated live
+  // shard is read from it — a crash mid-checkpoint loses at most one save.
+  first.catalog.links[0].status = 'live';
+  await writeCatalogFile(header, first.catalog);
+  const shard = shardFile(header, shardOf(first.catalog.links[0].id));
+  assert.ok(await readFile(`${shard}.bak`, 'utf8'));
+  await writeFile(shard, '[\n{"id":"fshare-file-', 'utf8');
+  const warnings = [];
+  const recovered = await readCatalogSnapshot(header, { log: (line) => warnings.push(line) });
+  assert.equal(recovered.catalog.links.length, 40, 'the .bak shard fills in for the cut one');
+  assert.match(warnings[0], /unreadable .* using .*\.bak/);
 });

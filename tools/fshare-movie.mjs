@@ -19,6 +19,17 @@
    because this repository is public and everything under public/data/ answers
    a plain GET. Raw and catalog live under secret/ and never enter git.
 
+   On disk the catalog is a small header (catalog.json: version, sources,
+   validation) plus SHARDS rows files, catalog/links-NN.json, each row on
+   its own line, a row's shard fixed by the hash of its id. One 141MB file
+   parsed as one string was the next ceiling after the write OOM; sixteen
+   files parse one at a time and `grep CODE catalog/` still works. Every
+   write goes to .tmp and is renamed in, and the previous copy stays as .bak,
+   so a crash — and one did happen mid-checkpoint — can truncate nothing the
+   tool cannot recover on the next load. readCatalogSnapshot() is the one
+   reader (merge and the shard runner hash exactly what it read), and
+   writeCatalogFile() the one writer.
+
    "Validated" is three gates, not one: no pending row, no live folder that
    was never listed (a root probe answers "the folder exists", not what it
    holds), and no dead row on the proxy's word alone. The 2026-09-16 harvest
@@ -29,15 +40,18 @@
    NOT part of tools/check.mjs, for the same reason schedule-seal is not: CI
    has neither the passphrase nor secret/. */
 
-import { copyFile, mkdir, readdir, readFile, stat, writeFile } from 'node:fs/promises';
-import { createWriteStream, existsSync } from 'node:fs';
+import { copyFile, mkdir, readdir, readFile, rename, stat, writeFile } from 'node:fs/promises';
+import { createWriteStream, existsSync, statSync } from 'node:fs';
 import { createHash } from 'node:crypto';
+import { spawnSync } from 'node:child_process';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import v8 from 'node:v8';
 
 import { isEnvelope, seal, unseal } from '../public/lib/schedule-crypto.js';
 import {
-  CATALOG_VERSION, STATUSES, extractFshareLinks, keywordTokens, linkId, linkUrl, queryTokens, titleKey
+  CATALOG_VERSION, STATUSES, extractFshareLinks, linkId, linkUrl, titleKey
 } from '../public/fshare-tool/lib/movie-db.js';
 import { crawlMovieFolder, remoteMetadata } from '../public/fshare-tool/lib/movie-check.js';
 import { passphrase } from './passphrase.mjs';
@@ -47,6 +61,11 @@ const SECRET_DIR = path.join(ROOT, 'secret', 'fshare-movie');
 export const RAW_DIR = path.join(SECRET_DIR, 'raw');
 export const SOURCES_FILE = path.join(SECRET_DIR, 'sources.json');
 export const CATALOG_FILE = path.join(SECRET_DIR, 'catalog.json');
+/** Row files beside the header: <header stem>/links-NN.json. */
+export const SHARDS = 16;
+export const shardDir = (headerPath) => path.join(path.dirname(headerPath), path.basename(headerPath, '.json'));
+export const shardFile = (headerPath, index) => path.join(shardDir(headerPath), `links-${String(index).padStart(2, '0')}.json`);
+export const shardOf = (id, shards = SHARDS) => parseInt(createHash('sha1').update(String(id)).digest('hex').slice(0, 8), 16) % shards;
 export const SEALED_FILE = path.join(ROOT, 'public', 'data', 'fshare-movie', 'catalog.enc.json');
 
 export const FSHARE_API = 'https://fshare.annnekkk.com/api/folder';
@@ -201,7 +220,6 @@ function newLink(link, origin, now) {
     link: link.link || linkUrl(link.kind, link.code),
     name: link.name || link.code,
     aliases: [],
-    keywords: keywordTokens(link.name || link.code),
     titleKey: titleKey(link.name || link.code),
     origin,
     sourceIds: [],
@@ -228,18 +246,9 @@ function addName(row, name) {
   if (row.name === row.code) {
     row.name = clean;
     row.titleKey = titleKey(clean);
-    row.keywords = [...new Set([...(row.keywords || []), ...keywordTokens(clean)])];
     return;
   }
   row.aliases.push(clean);
-  row.keywords = [...new Set([...(row.keywords || []), ...keywordTokens(clean)])];
-}
-
-function refreshKeywords(row) {
-  row.keywords = [...new Set([
-    ...(row.keywords || []),
-    ...keywordTokens([row.name, ...(row.aliases || []), row.code, row.path || ''])
-  ])];
 }
 
 /** Every folder's child counts, from the rows that name it as a parent. */
@@ -299,10 +308,15 @@ export function summarize(catalog, lastRunAt = catalog.validation?.lastRunAt || 
   return validation;
 }
 
+/** titleKey order, folders before files, then code. `build` established
+    it and the envelope inherits it — it is the browse tab's alphabetical
+    order — so the reader restores it after assembling shards (which regroup
+    rows by hash) and after validate appended what a crawl discovered.
+    One Collator, not localeCompare('vi') per pair: 4x faster over 113k rows. */
+const VI = new Intl.Collator('vi');
 function sortLinks(catalog) {
   const byKind = { folder: 0, file: 1 };
-  catalog.links.sort((a, b) =>
-    a.titleKey.localeCompare(b.titleKey, 'vi') || (byKind[a.kind] - byKind[b.kind]) || a.code.localeCompare(b.code));
+  catalog.links.sort((a, b) => VI.compare(a.titleKey, b.titleKey) || (byKind[a.kind] - byKind[b.kind]) || a.code.localeCompare(b.code));
 }
 
 /**
@@ -344,7 +358,6 @@ export function buildCatalog(sources, manifest = {}, previous = null, now = new 
   });
 
   catalog.sources = [...sourceRows.values()].sort((a, b) => a.file.localeCompare(b.file, 'vi'));
-  catalog.links.forEach(refreshKeywords);
   sortLinks(catalog);
   recountChildren(catalog);
   summarize(catalog);
@@ -574,11 +587,7 @@ function applyResult(row, result, now) {
     row.deadSince = null;
     if (result.name) addName(row, result.name);
     if (result.size) row.size = result.size;
-    if (result.path) {
-      row.path = result.path;
-      row.keywords = [...new Set([...(row.keywords || []), ...queryTokens(result.path)])];
-    }
-    refreshKeywords(row);
+    if (result.path) row.path = result.path;
   } else if (result.status === 'dead' && !row.deadSince) {
     row.deadSince = now;
   }
@@ -843,35 +852,135 @@ async function writeJson(file, value) {
   await writeFile(file, `${JSON.stringify(value, null, 2)}\n`, 'utf8');
 }
 
-/** `JSON.stringify(catalog, null, 2)` builds and then flattens one string
-    for the whole file — past ~110k rows (~200MB pretty-printed) that string
-    alone crashed a 3.5GB-RAM run with a heap OOM mid-checkpoint. Streamed
-    instead: peak memory is one row, not the file. Compact, not pretty —
-    catalog.json is gitignored and read only through `status`/`audit`,
-    never opened by hand. */
-async function writeCatalogFile(file, catalog) {
-  await mkdir(path.dirname(file), { recursive: true });
+/** One row per line, streamed: the string in memory is never bigger than a
+    row. `JSON.stringify(catalog, null, 2)` on the whole catalog was what OOM-
+    crashed a checkpoint at 113k rows on a 3.5GB host. */
+async function streamRows(file, rows) {
   await new Promise((resolve, reject) => {
     const stream = createWriteStream(file, { encoding: 'utf8' });
     stream.on('error', reject);
     stream.on('finish', resolve);
     (async () => {
       const write = async (chunk) => { if (!stream.write(chunk)) await new Promise((r) => stream.once('drain', r)); };
-      await write('{');
-      await write(`"version":${JSON.stringify(catalog.version)},`);
-      await write(`"kind":${JSON.stringify(catalog.kind)},`);
-      await write(`"createdAt":${JSON.stringify(catalog.createdAt)},`);
-      await write(`"updatedAt":${JSON.stringify(catalog.updatedAt)},`);
-      await write(`"validation":${JSON.stringify(catalog.validation)},`);
-      await write(`"sources":${JSON.stringify(catalog.sources)},`);
-      await write('"links":[');
-      for (let i = 0; i < catalog.links.length; i++) {
-        await write((i > 0 ? ',' : '') + JSON.stringify(catalog.links[i]));
-      }
-      await write(']}\n');
+      await write('[');
+      for (let i = 0; i < rows.length; i++) await write((i > 0 ? ',\n' : '\n') + JSON.stringify(rows[i]));
+      await write('\n]\n');
       stream.end();
     })().catch(reject);
   });
+}
+
+/** Write .tmp, keep the live file as .bak, rename .tmp in. A crash at any
+    point leaves either the old file or the new one, never a truncated one —
+    and the previous version survives one save behind. */
+async function rotateIn(file, writeTmp) {
+  const tmp = `${file}.tmp`;
+  await writeTmp(tmp);
+  if (existsSync(file)) await rename(file, `${file}.bak`);
+  await rename(tmp, file);
+}
+
+const catalogHeader = (catalog, shards) => ({
+  version: catalog.version,
+  kind: catalog.kind,
+  createdAt: catalog.createdAt,
+  updatedAt: catalog.updatedAt,
+  validation: catalog.validation,
+  sources: catalog.sources,
+  shards
+});
+
+/** The one writer: rows into their shards, then the header last, so a
+    header that says N shards never points at shard files that are not there. */
+export async function writeCatalogFile(headerPath, catalog) {
+  const shards = Number(catalog.shards) || SHARDS;
+  const dir = shardDir(headerPath);
+  await mkdir(dir, { recursive: true });
+  const buckets = Array.from({ length: shards }, () => []);
+  catalog.links.forEach((row) => buckets[shardOf(row.id, shards)].push(row));
+  for (let i = 0; i < shards; i++) {
+    await rotateIn(shardFile(headerPath, i), (tmp) => streamRows(tmp, buckets[i]));
+  }
+  await rotateIn(headerPath, (tmp) => writeFile(tmp, `${JSON.stringify(catalogHeader(catalog, shards), null, 2)}\n`, 'utf8'));
+  catalog.shards = shards;
+}
+
+async function readShard(file, log) {
+  try {
+    const text = await readFile(file, 'utf8');
+    return { text, rows: JSON.parse(text) };
+  } catch (error) {
+    if (!existsSync(`${file}.bak`)) throw error;
+    // The live shard is missing or cut short — the previous save is next to it.
+    log(`Warning: ${rel(file)} unreadable (${error.message}); using ${rel(file)}.bak — re-run the last validate, it is resumable.`);
+    const text = await readFile(`${file}.bak`, 'utf8');
+    return { text, rows: JSON.parse(text) };
+  }
+}
+
+/**
+ * The one reader. Returns the catalog with `links` assembled from its shards
+ * and a digest over exactly the bytes read — the header and every shard in
+ * order — which is what `merge` compares a shard result against. A header
+ * that still carries `links` is the single-file layout from before
+ * 2026-09-17; it loads as is and the next save writes the sharded layout.
+ */
+export async function readCatalogSnapshot(headerPath = CATALOG_FILE, { log = out } = {}) {
+  const headerText = await readFile(headerPath, 'utf8');
+  const catalog = JSON.parse(headerText);
+  const hash = createHash('sha256').update(headerText);
+  if (!Array.isArray(catalog.links)) {
+    const shards = Number(catalog.shards) || 0;
+    if (!shards) throw new Error(`${rel(headerPath)} names no shards and holds no links.`);
+    catalog.links = [];
+    for (let i = 0; i < shards; i++) {
+      const { text, rows } = await readShard(shardFile(headerPath, i), log);
+      hash.update(text);
+      catalog.links.push(...rows);
+    }
+  }
+  // `keywords` was written until 2026-09-17 and never read: rebuilt in the
+  // browser, dead weight (17% of the file) here.
+  catalog.links.forEach((row) => { delete row.keywords; });
+  sortLinks(catalog);
+  return { catalog, digest: hash.digest('hex') };
+}
+
+/** Header + shard bytes, for the heap budget below. */
+function catalogBytes(headerPath = CATALOG_FILE) {
+  if (!existsSync(headerPath)) return 0;
+  let total = statSync(headerPath).size;
+  for (let i = 0; i < SHARDS * 4; i++) {
+    const file = shardFile(headerPath, i);
+    if (!existsSync(file)) break;
+    total += statSync(file).size;
+  }
+  return total;
+}
+
+/**
+ * Node picks its heap limit from a table, not from the host, and a catalog
+ * that outgrows it dies with "Reached heap limit" however carefully the code
+ * streams. Measured: the parsed catalog is ~2.2x its bytes, validate's caches
+ * and one shard's text ride on top. When 8x the file plus headroom exceeds
+ * the limit and the host has more to give, run again once with the flag —
+ * so `node tools/fshare-movie.mjs …` stays the whole command on any machine.
+ * The parent ignores Ctrl+C: the child owns the checkpoint on SIGINT.
+ */
+function ensureHeap() {
+  if (process.env.GAZLL_MOVIE_REEXEC) return;
+  const MB = 1024 * 1024;
+  const need = Math.ceil((catalogBytes() * 8 + 512 * MB) / MB);
+  const limit = Math.floor(v8.getHeapStatistics().heap_size_limit / MB);
+  const cap = Math.floor((os.totalmem() * 0.75) / MB);
+  const size = Math.min(need, cap);
+  if (need <= limit || size <= limit) return;
+  process.on('SIGINT', () => {});
+  const child = spawnSync(process.execPath, [`--max-old-space-size=${size}`, ...process.argv.slice(1)], {
+    stdio: 'inherit',
+    env: { ...process.env, GAZLL_MOVIE_REEXEC: '1' }
+  });
+  process.exit(child.status ?? 1);
 }
 
 function option(args, name, fallback) {
@@ -882,8 +991,8 @@ function option(args, name, fallback) {
 }
 
 async function loadCatalog() {
-  const catalog = await readJson(CATALOG_FILE, null);
-  if (!catalog) die(`${rel(CATALOG_FILE)} not found — run \`build\` first.`);
+  if (!existsSync(CATALOG_FILE)) die(`${rel(CATALOG_FILE)} not found — run \`build\` first.`);
+  const { catalog } = await readCatalogSnapshot(CATALOG_FILE);
   if (catalog.version !== CATALOG_VERSION || catalog.kind !== 'fshare-movie-catalog' || !Array.isArray(catalog.links)) {
     die(`${rel(CATALOG_FILE)} is not a movie catalog this tool understands.`);
   }
@@ -891,7 +1000,6 @@ async function loadCatalog() {
 }
 
 async function saveCatalog(catalog) {
-  catalog.links.forEach(refreshKeywords);
   recountChildren(catalog);
   summarize(catalog);
   catalog.updatedAt = new Date().toISOString();
@@ -909,11 +1017,10 @@ async function mergeShards(files) {
   }
   const snapshotHashes = new Set(payloads.map(({ payload }) => payload.catalog.sha256));
   if (snapshotHashes.size !== 1) die('Shard results were created from different catalog snapshots.');
-  const catalogText = await readFile(CATALOG_FILE, 'utf8');
-  if (createHash('sha256').update(catalogText).digest('hex') !== payloads[0].payload.catalog.sha256) {
+  const { catalog, digest } = await readCatalogSnapshot(CATALOG_FILE);
+  if (digest !== payloads[0].payload.catalog.sha256) {
     die('Catalog changed since this shard was created - rerun the shard instead of merging stale results.');
   }
-  const catalog = JSON.parse(catalogText);
   const resultIds = new Set();
   let merged = 0;
   for (const { payload } of payloads) {
@@ -967,6 +1074,7 @@ function statusLine(catalog) {
 }
 
 async function main() {
+  ensureHeap();
   const args = process.argv.slice(2);
   const command = ['ingest', 'build', 'status', 'audit', 'validate', 'merge', 'seal', 'unseal'].find((name) => args.includes(name))
     || (args.includes('--check') ? 'check' : null);
@@ -986,7 +1094,7 @@ async function main() {
         updatedAt: new Date(info.mtimeMs).toISOString()
       });
     }
-    const previous = await readJson(CATALOG_FILE, null);
+    const previous = existsSync(CATALOG_FILE) ? (await readCatalogSnapshot(CATALOG_FILE)).catalog : null;
     const before = previous ? previous.links.length : 0;
     const catalog = buildCatalog(sources, await readJson(SOURCES_FILE, {}), previous);
     await writeCatalogFile(CATALOG_FILE, catalog);
