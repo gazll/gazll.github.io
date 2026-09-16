@@ -47,8 +47,11 @@ jobs:
           fi
 
           # Character classes keep this pattern from matching its own source.
+          # The sealed envelopes are excluded: AES-GCM ciphertext is random
+          # base64, and on 2026-09-17 a 5MB one happened to contain
+          # "AIza" + 35 alphanumerics. A secret cannot be read out of them.
           credential_pattern='[-]{5}BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY|A[I]za[0-9A-Za-z_-]{35}|g[h][pousr]_[0-9A-Za-z]{20,}|y[a]29\.[0-9A-Za-z_-]+|"client[_]secret"[[:space:]]*:'
-          if git grep -nI -E -e "$credential_pattern" -- .; then
+          if git grep -nI -E -e "$credential_pattern" -- . ':!public/data/**/*.enc.json'; then
             echo "::error::A private credential pattern was found in tracked files."
             exit 1
           fi

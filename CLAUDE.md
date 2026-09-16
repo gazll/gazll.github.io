@@ -1340,7 +1340,12 @@ older build while every later commit looked fine locally. Run all three, in
 this order:
 
 ```bash
-# what CI actually runs, in CI's order (see .github/workflows/deploy.yml):
+# what CI actually runs, in CI's order (see .github/workflows/deploy.yml).
+# Before all three, the workflow's "Enforce security guardrails" step greps every
+# tracked file for credential patterns — it is bash in deploy.yml, not a tool here,
+# so a green check.mjs says nothing about it. The sealed *.enc.json envelopes are
+# excluded: their base64 ciphertext is random and once matched the Google API-key
+# pattern by chance. To reproduce locally, copy the git grep line from the step.
 node tools/build-content-index.mjs --check   # content-index.json matches the topics
 node tools/stamp-content-dates.mjs --check   # created_at/updated_at match git history
 node tools/check.mjs                         # content validation · ESM syntax of every
