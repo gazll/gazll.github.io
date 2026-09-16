@@ -551,6 +551,16 @@ secret/              GITIGNORED. Personal setup notes and credentials
   validate the movie catalog until the crawler report has zero movie and
   download failures.
 
+  Harvesting a site's Fshare URLs is not the same as recursively crawling the
+  Fshare folders. A root probe only proves that the folder link answers; it does
+  not populate `children`, attach `parents` to files, or prove the file leaves.
+  `tools/fshare-movie-shard.mjs` is a probe-only runner and must not be used as
+  the recursive validation pass. The catalog's `validated` flag historically
+  meant only no pending rows, so a future seal must also require every
+  designated folder to have a completed crawl and every discovered file to
+  have a listing/probe answer. The open follow-up and the 2026-09-16
+  thuviencine counts live in `docs/todo/fshare-movie-validate.md`.
+
 - **Fixed and rolling reminders are not the same recurrence, and confusing them
   is silent.** A *fixed* event (`once`, `yearly`, `lunar-yearly`, `monthly`)
   happens on a date the calendar decides — paying late does not move next year.
