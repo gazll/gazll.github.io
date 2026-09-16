@@ -346,6 +346,25 @@ function retryable(error) {
   return true;
 }
 
+async function requestWithTimeout(fetcher, url, options, timeoutMs, label) {
+  const controller = new AbortController();
+  let timer;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => {
+      controller.abort();
+      reject(responseError(`${label} timed out after ${timeoutMs}ms`));
+    }, timeoutMs);
+  });
+  try {
+    return await Promise.race([
+      fetcher(url, { ...options, signal: controller.signal }),
+      timeout
+    ]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 async function responseJson(response) {
   if (typeof response.arrayBuffer !== 'function') return response.json();
   const bytes = await response.arrayBuffer();
@@ -365,12 +384,22 @@ export async function requestPage(code, {
   let lastError;
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
-      const signal = typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function'
-        ? AbortSignal.timeout(timeoutMs)
-        : undefined;
-      const response = await fetcher(url, { cache: 'no-store', signal });
+      const response = await requestWithTimeout(
+        fetcher,
+        url,
+        { cache: 'no-store' },
+        timeoutMs,
+        `Fshare request ${code} page 1`
+      );
       if (!response.ok) throw responseError(`HTTP ${response.status}`, response.status);
-      return { payload: validatePayload(await responseJson(response)), attempts: attempt, url };
+      const payload = await requestWithTimeout(
+        () => responseJson(response),
+        url,
+        {},
+        timeoutMs,
+        `Fshare response ${code} page 1`
+      );
+      return { payload: validatePayload(payload), attempts: attempt, url };
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
       lastError.attempts = attempt;
