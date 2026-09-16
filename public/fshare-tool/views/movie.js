@@ -190,14 +190,19 @@ function paintLockState() {
       + ` · sealed ${fmtDay(sealedAt) || '?'}`);
   } else {
     meta.append(`${number(counts.live)} live · ${number(counts.dead)} dead · ${number(counts.unknown)} unknown`
-      + (counts.pending ? ` · ${number(counts.pending)} pending` : '') + ` · sealed ${fmtDay(sealedAt) || '?'}`);
+      + (counts.pending ? ` · ${number(counts.pending)} pending` : '')
+      + (counts.uncrawled ? ` · ${number(counts.uncrawled)} folders unlisted` : '')
+      + (counts.unverified ? ` · ${number(counts.unverified)} dead unconfirmed` : '')
+      + ` · sealed ${fmtDay(sealedAt) || '?'}`);
   }
   const badge = document.createElement('span');
   badge.className = 'movie-validated ' + (validated ? 'ok' : 'no');
   badge.textContent = config.raw ? 'X ROOT CHECKS' : (validated ? 'VALIDATED' : 'NOT VALIDATED');
   badge.title = config.raw
     ? 'Imported from x.csv; only the root links were checked, with no folder traversal'
-    : (validated ? 'Every catalog link has been checked' : 'Links are still pending in the catalog — the tool has not finished a full run');
+    : (validated
+      ? 'Every link checked, every live folder listed, every dead link confirmed by fshare.vn'
+      : 'The tool has not finished a full run: links pending, live folders never listed, or dead links on the proxy\'s word alone');
   meta.appendChild(badge);
 }
 

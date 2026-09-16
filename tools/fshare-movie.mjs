@@ -5,6 +5,7 @@
      node tools/fshare-movie.mjs build        # raw exports → secret/fshare-movie/catalog.json
      node tools/fshare-movie.mjs status       # what is pending / live / dead / unknown
      node tools/fshare-movie.mjs validate     # check links against Fshare, in place, resumable
+     node tools/fshare-movie.mjs audit        # per-source completeness: uncrawled folders, unverified dead…
      node tools/fshare-movie.mjs seal         # checked links → public/data/fshare-movie/catalog.enc.json
      node tools/fshare-movie.mjs unseal       # the envelope → secret/ (recovery)
      node tools/fshare-movie.mjs --check      # the envelope opens and matches the catalog
@@ -17,6 +18,13 @@
    is the projection the site ships: checked rows only, gzipped and sealed,
    because this repository is public and everything under public/data/ answers
    a plain GET. Raw and catalog live under secret/ and never enter git.
+
+   "Validated" is three gates, not one: no pending row, no live folder that
+   was never listed (a root probe answers "the folder exists", not what it
+   holds), and no dead row on the proxy's word alone. The 2026-09-16 harvest
+   shipped validated: true with 5,881 probe-only folders and 3,509 single-
+   opinion deads, which is why the gates are counted here and not in the
+   operator's head. `isUncrawled` and `isUnverifiedDead` are the two rules.
 
    NOT part of tools/check.mjs, for the same reason schedule-seal is not: CI
    has neither the passphrase nor secret/. */
@@ -254,13 +262,29 @@ export function recountChildren(catalog) {
   return catalog;
 }
 
+/** A live folder nobody has listed. `children.crawledAt` is the only proof
+    a listing happened; a probe sets status and leaves children null. */
+export const isUncrawled = (row) => row.kind === 'folder' && (row.status === 'live' || row.status === 'unknown')
+  && !(row.children && row.children.crawledAt);
+
+/** A dead row on one opinion. The proxy's 404 alone once recorded a file
+    that fshare.vn forwards to a new code as dead; `web` is the second ask. */
+export const isUnverifiedDead = (row) => row.status === 'dead' && row.via !== 'web' && row.web?.status !== 'dead';
+
 export function summarize(catalog, lastRunAt = catalog.validation?.lastRunAt || null) {
-  const validation = { ok: false, total: catalog.links.length, pending: 0, live: 0, dead: 0, unknown: 0, lastRunAt };
-  catalog.links.forEach((row) => { validation[row.status]++; });
-  // The database is "OK" only when nothing is left unanswered — a pending
-  // row is a link nobody has looked at, and that is the one state the site
-  // must never present as a result.
-  validation.ok = validation.total > 0 && validation.pending === 0;
+  const validation = {
+    ok: false, total: catalog.links.length, pending: 0, live: 0, dead: 0, unknown: 0, uncrawled: 0, unverified: 0, lastRunAt
+  };
+  catalog.links.forEach((row) => {
+    validation[row.status]++;
+    if (isUncrawled(row)) validation.uncrawled++;
+    if (isUnverifiedDead(row)) validation.unverified++;
+  });
+  // The database is "OK" only when nothing is left unanswered: a pending row
+  // is a link nobody has looked at, an uncrawled folder is a listing nobody
+  // has read, an unverified dead is a deletion nobody has confirmed. `unknown`
+  // is allowed — it was asked and will be asked again.
+  validation.ok = validation.total > 0 && validation.pending === 0 && validation.uncrawled === 0 && validation.unverified === 0;
   catalog.validation = validation;
   return validation;
 }
@@ -345,7 +369,10 @@ export function projectCatalog(catalog, sealedAt = new Date().toISOString()) {
     kind: 'fshare-movie-db',
     sealedAt,
     validated: validation.ok,
-    counts: { total: validation.total, pending: validation.pending, live: validation.live, dead: validation.dead, unknown: validation.unknown },
+    counts: {
+      total: validation.total, pending: validation.pending, live: validation.live, dead: validation.dead, unknown: validation.unknown,
+      uncrawled: validation.uncrawled, unverified: validation.unverified
+    },
     sources: catalog.sources.map((source) => ({ id: source.id, name: source.name })),
     links
   };
@@ -450,30 +477,62 @@ export async function probeFile(code, fetcher = fetch) {
  * tells the cases apart is the <title>: a dead link is "Không tìm thấy",
  * a live one is the file name. Node only — the browser is blocked by CORS.
  */
+async function webPage(kind, code, fetcher) {
+  const signal = typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function'
+    ? AbortSignal.timeout(REQUEST_TIMEOUT_MS)
+    : undefined;
+  const response = await withTimeout(fetcher(`${FSHARE_WEB}/${kind}/${code}`, {
+    redirect: 'follow',
+    headers: { 'user-agent': 'Mozilla/5.0' },
+    ...(signal ? { signal } : {})
+  }), `Fshare web request ${code}`);
+  const html = await withTimeout(response.text(), `Fshare web response ${code}`);
+  const title = (html.match(/<title>([^<]*)<\/title>/i)?.[1] || '').trim();
+  /* Only the link's own page, answered 200, can vouch for it. A 503 page, an
+     "Đã có lỗi xảy ra" page and the homepage (where a folder-shaped code
+     lands) all carry a <title> too — 38 dead links were once recorded live
+     with "503 Service Temporarily Unavailable" as their name. */
+  if (!response.ok) return { status: 'unknown', error: `fshare.vn answered HTTP ${response.status}`, via: 'web' };
+  if (!title) return { status: 'unknown', error: `fshare.vn answered without a title (HTTP ${response.status})`, via: 'web' };
+  const finalUrl = String(response.url || '');
+  const ownPage = !finalUrl || finalUrl.toUpperCase().includes(`/${kind.toUpperCase()}/${code}`);
+  return { title, ownPage };
+}
+
 export async function probeFileOnWeb(code, fetcher = fetch) {
   try {
-    const signal = typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function'
-      ? AbortSignal.timeout(REQUEST_TIMEOUT_MS)
-      : undefined;
-    const response = await withTimeout(fetcher(`${FSHARE_WEB}/file/${code}`, {
-      redirect: 'follow',
-      headers: { 'user-agent': 'Mozilla/5.0' },
-      ...(signal ? { signal } : {})
-    }), `Fshare web request ${code}`);
-    const html = await withTimeout(response.text(), `Fshare web response ${code}`);
-    const title = (html.match(/<title>([^<]*)<\/title>/i)?.[1] || '').trim();
-    /* Only the file's own page, answered 200, can vouch for it. A 503 page, an
-       "Đã có lỗi xảy ra" page and the homepage (where a folder-shaped code
-       lands) all carry a <title> too — 38 dead links were once recorded live
-       with "503 Service Temporarily Unavailable" as their name. */
-    if (!response.ok) return { status: 'unknown', error: `fshare.vn answered HTTP ${response.status}`, via: 'web' };
-    if (!title) return { status: 'unknown', error: `fshare.vn answered without a title (HTTP ${response.status})`, via: 'web' };
+    const page = await webPage('file', code, fetcher);
+    if (page.status) return page;
+    const { title, ownPage } = page;
     if (/không tìm thấy|not found/i.test(title)) return { status: 'dead', error: title, via: 'web' };
-    const finalUrl = String(response.url || '');
-    if ((finalUrl && !finalUrl.toUpperCase().includes(`/FILE/${code}`)) || /lỗi|error|unavailable|dịch vụ lưu trữ/i.test(title)) {
+    // A file Fshare forwards to a new code lands on that code's page with a
+    // real name: not dead, but not this link either, so it stays unknown.
+    if (!ownPage || /lỗi|error|unavailable|dịch vụ lưu trữ/i.test(title)) {
       return { status: 'unknown', error: `fshare.vn did not show the file page: ${title}`, via: 'web' };
     }
     return { status: 'live', name: title.replace(/\s*-\s*Fshare\s*$/i, ''), via: 'web' };
+  } catch (error) {
+    return { status: 'unknown', error: String(error?.message || error), via: 'web' };
+  }
+}
+
+/**
+ * Second opinion for a folder the proxy could not list. fshare.vn keeps the
+ * folder URL either way; a folder that exists titles the page
+ * "Fshare - <name> - Fshare", a deleted one falls back to the site slogan.
+ * The slogan on the folder's own URL is therefore the dead answer here,
+ * where for a file it is only the homepage.
+ */
+export async function probeFolderOnWeb(code, fetcher = fetch) {
+  try {
+    const page = await webPage('folder', code, fetcher);
+    if (page.status) return page;
+    const { title, ownPage } = page;
+    if (!ownPage || /lỗi|error|unavailable/i.test(title)) {
+      return { status: 'unknown', error: `fshare.vn did not show the folder page: ${title}`, via: 'web' };
+    }
+    if (/không tìm thấy|not found|dịch vụ lưu trữ/i.test(title)) return { status: 'dead', error: title, via: 'web' };
+    return { status: 'live', name: title.replace(/^\s*Fshare\s*-\s*/i, '').replace(/\s*-\s*Fshare\s*$/i, ''), via: 'web' };
   } catch (error) {
     return { status: 'unknown', error: String(error?.message || error), via: 'web' };
   }
@@ -487,6 +546,10 @@ function applyResult(row, result, now) {
   row.via = result.via || row.via;
   row.error = result.status === 'live' ? '' : (result.error || '');
   if (result.probe && typeof result.probe === 'object') row.probe = remoteMetadata(result.probe);
+  // The second opinion travels with a dead result and is what `isUnverifiedDead`
+  // reads; a row that came back live has nothing left to confirm.
+  if (result.status === 'live') delete row.web;
+  else if (result.web && typeof result.web === 'object') row.web = { status: result.web.status, error: result.web.error || '', checkedAt: now };
   if (result.remote && Object.keys(result.remote).length) {
     row.remote = { ...(row.remote || {}), ...remoteMetadata(result.remote) };
   }
@@ -519,6 +582,15 @@ export function mergeShardResults(catalog, payload, now = new Date().toISOString
     if (!STATUSES.includes(result.status) || result.status === 'pending') {
       throw new Error(`Shard row has an invalid result status: ${result.id || '(missing id)'}`);
     }
+    // A shard probes; it cannot list. Merging a probed folder would write a
+    // live row with children: null that `validate` then has to crawl anyway,
+    // and the 2026-09-16 run shipped 5,881 of them as "validated".
+    if (result.kind === 'folder') {
+      throw new Error(`Shard rows must be files — folders are crawled by validate, never probed: ${result.id}`);
+    }
+    if (result.status === 'dead' && result.via !== 'web' && !(result.web && typeof result.web === 'object')) {
+      throw new Error(`Shard row is dead on the proxy's word alone — no fshare.vn second opinion: ${result.id}`);
+    }
     return { target, result };
   });
   updates.forEach(({ target, result }) => {
@@ -535,13 +607,17 @@ const parseDuration = (value) => {
   return n * ({ d: 86400000, h: 3600000, m: 60000 }[(match[2] || 'd').toLowerCase()]);
 };
 
+/** What `--only` accepts: the four statuses plus the two completeness gaps. */
+export const SELECTIONS = [...STATUSES, 'uncrawled', 'unverified'];
+
 /** Which rows a run looks at: folders before files, never-checked before stale. */
 export function selectEntries(catalog, { only = ['pending', 'unknown'], staleMs = 0, limit = 0, now = Date.now() } = {}) {
   const wanted = new Set(only);
   const rank = { pending: 0, unknown: 1, dead: 2, live: 3 };
   const stale = (row) => staleMs > 0 && row.checkedAt && now - Date.parse(row.checkedAt) >= staleMs;
+  const gap = (row) => (wanted.has('uncrawled') && isUncrawled(row)) || (wanted.has('unverified') && isUnverifiedDead(row));
   const entries = catalog.links
-    .filter((row) => wanted.has(row.status) || stale(row))
+    .filter((row) => wanted.has(row.status) || stale(row) || gap(row))
     .sort((a, b) => (a.kind === b.kind ? 0 : a.kind === 'folder' ? -1 : 1) || rank[a.status] - rank[b.status]);
   return limit > 0 ? entries.slice(0, limit) : entries;
 }
@@ -582,7 +658,7 @@ async function validate(catalog, options) {
     // deletes a row from what the site shows, so it gets the second opinion.
     if (web && result.status === 'dead') {
       const second = await probeFileOnWeb(row.code, fetcher);
-      if (second.status !== 'unknown') result = second;
+      result = second.status === 'unknown' ? { ...result, web: second } : { ...second, web: second };
     }
     applyResult(row, result, now);
   };
@@ -597,6 +673,7 @@ async function validate(catalog, options) {
       concurrency: FOLDER_CONCURRENCY
     });
     const seenChildren = new Set();
+    const deadFolders = [];
     result.folders.forEach((folder) => {
       crawled.add(folder.linkcode);
       const target = folder.linkcode === row.code
@@ -610,8 +687,23 @@ async function validate(catalog, options) {
         seenChildren.add(target.id);
       }
       applyResult(target, { status: folder.status, error: folder.error, remote: folder.remote, via: 'crawl' }, now);
-      target.children = { ...(target.children || {}), crawledAt: now, truncated: result.truncated && folder.linkcode === row.code };
+      // Only a listing proves a folder; a folder that answered is marked
+      // crawled, one that did not stays uncrawled (or dead) for the next run.
+      if (folder.status === 'live') {
+        target.children = { ...(target.children || {}), crawledAt: now, truncated: result.truncated && folder.linkcode === row.code };
+      }
+      if (folder.status === 'dead') deadFolders.push(target);
     });
+    for (const target of deadFolders) {
+      if (!web) continue;
+      const second = await probeFolderOnWeb(target.code, fetcher);
+      // fshare.vn showing a folder the proxy 404s on is a listing nobody has
+      // read: unknown, retried next run, never a live row with no children.
+      const result = second.status === 'live'
+        ? { status: 'unknown', error: `proxy 404 but fshare.vn shows the folder: ${second.name}`, via: 'crawl', web: second }
+        : { status: 'dead', error: target.error, via: 'crawl', web: second };
+      applyResult(target, result, now);
+    }
     result.files.forEach((file) => {
       const target = upsert({ id: file.id, kind: 'file', code: file.linkcode, name: file.name }, 'crawl', now);
       addName(target, file.name);
@@ -789,18 +881,49 @@ async function mergeShards(files) {
   return out(statusLine(catalog));
 }
 
+/**
+ * Completeness per source, so "validated: NO" says where. A file without a
+ * parent is only a gap when the source wrote it as a folder's child; a
+ * standalone file link legitimately has none, so that column is informational
+ * and the gates stay the three `summarize` counts.
+ */
+export function auditCatalog(catalog) {
+  const v = summarize(structuredClone(catalog));
+  const blank = () => ({ rows: 0, folders: 0, uncrawled: 0, files: 0, filesWithoutParent: 0, live: 0, dead: 0, unverified: 0, unknown: 0, pending: 0, via: {} });
+  const bySource = new Map(catalog.sources.map((s) => [s.id, { id: s.id, name: s.name, ...blank() }]));
+  const discovered = blank();
+  const tally = (bucket, row) => {
+    bucket.rows++;
+    bucket[row.status]++;
+    bucket.via[row.via || '-'] = (bucket.via[row.via || '-'] || 0) + 1;
+    if (row.kind === 'folder') { bucket.folders++; if (isUncrawled(row)) bucket.uncrawled++; }
+    else { bucket.files++; if (!row.parents.length) bucket.filesWithoutParent++; }
+    if (isUnverifiedDead(row)) bucket.unverified++;
+  };
+  catalog.links.forEach((row) => {
+    if (!row.sourceIds.length) { tally(discovered, row); return; }
+    row.sourceIds.forEach((id) => { const bucket = bySource.get(id); if (bucket) tally(bucket, row); });
+  });
+  const gaps = [];
+  if (v.pending) gaps.push(`${v.pending} pending`);
+  if (v.uncrawled) gaps.push(`${v.uncrawled} uncrawled folder(s)`);
+  if (v.unverified) gaps.push(`${v.unverified} unverified dead`);
+  return { ok: v.ok, counts: v, gaps, sources: [...bySource.values()], discovered };
+}
+
 function statusLine(catalog) {
   const v = summarize(structuredClone(catalog));
   const folders = catalog.links.filter((row) => row.kind === 'folder').length;
   return `${v.total} links (${folders} folders, ${v.total - folders} files) · pending ${v.pending} · live ${v.live} · dead ${v.dead} · unknown ${v.unknown}`
+    + ` · uncrawled folders ${v.uncrawled} · unverified dead ${v.unverified}`
     + ` · validated: ${v.ok ? 'OK' : 'NO'}${v.lastRunAt ? ` · last run ${v.lastRunAt}` : ''}`;
 }
 
 async function main() {
   const args = process.argv.slice(2);
-  const command = ['ingest', 'build', 'status', 'validate', 'merge', 'seal', 'unseal'].find((name) => args.includes(name))
+  const command = ['ingest', 'build', 'status', 'audit', 'validate', 'merge', 'seal', 'unseal'].find((name) => args.includes(name))
     || (args.includes('--check') ? 'check' : null);
-  if (!command) die('Usage: fshare-movie.mjs ingest <…> | build | status | validate [--only …] [--stale 30d] [--limit N] [--concurrency 4] [--no-web] [--dry-run] | seal | unseal | --check');
+  if (!command) die('Usage: fshare-movie.mjs ingest <…> | build | status | audit [--json] | validate [--only pending,unknown,uncrawled,unverified,dead,live|all] [--stale 30d] [--limit N] [--concurrency 4] [--no-web] [--dry-run] | merge <shard…> | seal | unseal | --check');
 
   if (command === 'ingest') return ingest(args.filter((arg) => arg !== 'ingest'));
 
@@ -826,6 +949,23 @@ async function main() {
 
   if (command === 'status') return out(statusLine(await loadCatalog()));
 
+  if (command === 'audit') {
+    const catalog = await loadCatalog();
+    const report = auditCatalog(catalog);
+    if (args.includes('--json')) return out(JSON.stringify(report, null, 2));
+    out(statusLine(catalog));
+    out('');
+    const col = (value, width) => String(value).padStart(width);
+    out('source                       rows  folders uncrawled  files no-parent  live  dead unverified unknown  by via');
+    [...report.sources, { name: '(crawl-discovered)', ...report.discovered }].forEach((s) => {
+      const via = Object.entries(s.via).map(([k, n]) => `${k} ${n}`).join(', ');
+      out(`${s.name.slice(0, 26).padEnd(26)} ${col(s.rows, 6)} ${col(s.folders, 8)} ${col(s.uncrawled, 9)} ${col(s.files, 6)} ${col(s.filesWithoutParent, 9)}`
+        + ` ${col(s.live, 5)} ${col(s.dead, 5)} ${col(s.unverified, 10)} ${col(s.unknown, 7)}  ${via}`);
+    });
+    out('');
+    return out(report.ok ? 'validated: OK' : `validated: NO — ${report.gaps.join(' · ')}`);
+  }
+
   if (command === 'merge') {
     const files = args.filter((arg) => arg !== 'merge' && !arg.startsWith('--'));
     if (!files.length) die('merge needs one or more shard result JSON paths.');
@@ -837,7 +977,7 @@ async function main() {
     const only = option(args, '--only', 'pending,unknown');
     const dryRun = args.includes('--dry-run');
     const result = await validate(catalog, {
-      only: only === 'all' ? STATUSES : only.split(',').map((s) => s.trim()).filter((s) => STATUSES.includes(s)),
+      only: only === 'all' ? SELECTIONS : only.split(',').map((s) => s.trim()).filter((s) => SELECTIONS.includes(s)),
       staleMs: parseDuration(option(args, '--stale', '0')),
       limit: Number(option(args, '--limit', 0)) || 0,
       concurrency: Number(option(args, '--concurrency', 4)) || 4,
@@ -855,7 +995,9 @@ async function main() {
     const catalog = await loadCatalog();
     const projection = projectCatalog(catalog);
     if (!projection.validated) {
-      out(`Warning: ${projection.counts.pending} link(s) still pending — sealing ${projection.links.length} checked row(s) with validated: false.`);
+      const c = projection.counts;
+      out(`Warning: ${c.pending} pending · ${c.uncrawled} uncrawled folder(s) · ${c.unverified} unverified dead — sealing ${projection.links.length} checked row(s) with validated: false.`);
+      out('The site will show NOT VALIDATED. validate --only pending,uncrawled,unverified closes the gaps; audit lists them per source.');
     }
     await writeJson(SEALED_FILE, await seal(projection, await passphrase(), { compress: true }));
     return out(`Sealed ${projection.links.length} checked link(s) into ${rel(SEALED_FILE)} (validated: ${projection.validated}). Commit it.`);

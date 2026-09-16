@@ -1,11 +1,19 @@
 #!/usr/bin/env node
 /*
-   Read-only parallel shard for pending Fshare movie-file checks.
+   Read-only parallel shard for pending Fshare movie-FILE checks.
 
    This process never writes the catalog. It reads one stable snapshot, probes
    a deterministic disjoint subset through the same folder proxy used by the
    movie tool, and writes merge-ready results to an explicitly named output
    file.
+
+   Files only, on purpose. A folder is proven by its listing, and a listing is
+   what `fshare-movie.mjs validate` reads (crawlMovieFolder, one cache per
+   run); a probe answers "the folder exists" and nothing about what it holds.
+   The 2026-09-16 run used a `--kind all` mode that has since been removed and
+   shipped 5,881 folders as validated with children: null. A dead answer here
+   also carries fshare.vn's second opinion, because `merge` refuses one
+   without it — the proxy's 404 alone once called a forwarded file dead.
 
    Example:
      node tools/fshare-movie-shard.mjs \
@@ -24,6 +32,8 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { probeFileOnWeb } from './fshare-movie.mjs';
+
 const FSHARE_API = 'https://fshare.annnekkk.com/api/folder';
 const FSHARE_SORT = 'type,name';
 const MAX_RESPONSE_BYTES = 2 * 1024 * 1024;
@@ -37,7 +47,7 @@ const MAX_RETRIES = 5;
 const DEFAULT_TIMEOUT_MS = 20_000;
 const MAX_TIMEOUT_MS = 60_000;
 const SNAPSHOT_READ_ATTEMPTS = 5;
-const VALID_KINDS = new Set(['file', 'folder', 'all']);
+const VALID_KINDS = new Set(['file']);
 const VALID_STATUSES = new Set(['pending', 'live', 'dead', 'unknown']);
 
 const out = (line) => process.stdout.write(`${line}\n`);
@@ -146,7 +156,7 @@ export function parseArgs(argv) {
   if (options.help) return options;
   if (!options.catalogPath) fail('--catalog is required.');
   if (!options.outputPath) fail('--output is required.');
-  if (!VALID_KINDS.has(options.kind)) fail('--kind must be file, folder, or all.');
+  if (!VALID_KINDS.has(options.kind)) fail('--kind must be file - folders are crawled by fshare-movie.mjs validate, never probed.');
   if (!options.statuses.length || options.statuses.some((status) => !VALID_STATUSES.has(status))) {
     fail('--status must contain pending, live, dead, or unknown.');
   }
@@ -165,7 +175,7 @@ export function helpText() {
     '  --output PATH        Result JSON; must not be catalog.json',
     '',
     'Selection:',
-    '  --kind file          file, folder, or all (default: file)',
+    '  --kind file          only file is accepted; folders are crawled by validate',
     '  --status pending     Comma-separated statuses (default: pending)',
     '  --shard-index 0      Zero-based shard index (default: 0)',
     '  --shard-count 1      Number of disjoint shards (default: 1)',
@@ -265,10 +275,10 @@ function candidateRows(catalog, options) {
     if (!sourceRow || typeof sourceRow !== 'object') { skipped++; return; }
     const code = codeOf(sourceRow);
     const kind = kindOf(sourceRow);
-    if (!code || !VALID_KINDS.has(kind === 'file' || kind === 'folder' ? kind : '')) { skipped++; return; }
+    if (!code || (kind !== 'file' && kind !== 'folder')) { skipped++; return; }
     const status = VALID_STATUSES.has(sourceRow.status) ? sourceRow.status : 'pending';
     if (!wantedStatuses.has(status)) return;
-    if (options.kind !== 'all' && options.kind !== kind) return;
+    if (options.kind !== kind) return;
 
     const id = rowIdentity({ ...sourceRow, kind, code });
     const identity = `${kind}:${code}`;
@@ -422,7 +432,7 @@ function linkFor(kind, code) {
   return `https://www.fshare.vn/${kind}/${code}`;
 }
 
-function failureRow(candidate, error, checkedAt, durationMs, options) {
+async function failureRow(candidate, error, checkedAt, started, options) {
   const row = cloneJson(candidate.sourceRow);
   row.id = candidate.id;
   row.kind = candidate.kind;
@@ -432,13 +442,29 @@ function failureRow(candidate, error, checkedAt, durationMs, options) {
   row.checkedAt = checkedAt;
   row.via = 'probe';
   row.error = String(error?.message || error);
-  if (row.status === 'dead') row.deadSince = row.deadSince || checkedAt;
   row.probe = {
     endpoint: options.endpoint,
     attempts: Number(error?.attempts || options.retries),
-    durationMs,
+    durationMs: 0,
     response: {}
   };
+  if (row.status === 'dead') {
+    // The proxy's 404 is one opinion. fshare.vn's page is the second, and a
+    // dead row without it is refused at merge time.
+    const second = await options.webProbe(candidate.code, options.fetcher);
+    row.web = { status: second.status, error: second.error || '' };
+    if (second.status === 'live') {
+      row.status = 'live';
+      row.via = 'web';
+      row.error = '';
+      row.lastLiveAt = checkedAt;
+      row.deadSince = null;
+      if (second.name) row.name = second.name;
+    } else {
+      row.deadSince = row.deadSince || checkedAt;
+    }
+  }
+  row.probe.durationMs = Date.now() - started;
   return row;
 }
 
@@ -451,6 +477,7 @@ export async function probeRow(candidate, options = {}) {
     retries: DEFAULT_RETRIES,
     timeoutMs: DEFAULT_TIMEOUT_MS,
     fetcher: fetch,
+    webProbe: probeFileOnWeb,
     ...options
   };
   try {
@@ -488,7 +515,7 @@ export async function probeRow(candidate, options = {}) {
     };
     return row;
   } catch (error) {
-    return failureRow(candidate, error, checkedAt, Date.now() - started, probeOptions);
+    return failureRow(candidate, error, checkedAt, started, probeOptions);
   }
 }
 

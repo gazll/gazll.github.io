@@ -2,10 +2,10 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
-  buildCatalog, createListingFetcher, parseCsv, parseRawSource, probeFile, probeFileOnWeb,
+  auditCatalog, buildCatalog, createListingFetcher, parseCsv, parseRawSource, probeFile, probeFileOnWeb, probeFolderOnWeb,
   mergeShardResults, projectCatalog, recountChildren, selectEntries, sourceId
 } from '../tools/fshare-movie.mjs';
-import { probeRow, selectRows } from '../tools/fshare-movie-shard.mjs';
+import { parseArgs, probeRow, selectRows } from '../tools/fshare-movie-shard.mjs';
 import {
   buildSearchIndex, extractFshareLinks, folderChain, groupByFolder, indexById, keywordTokens, movieHaystack, narrowsSearch,
   normalizeMovieDatabase, searchMovieLinks, titleKey
@@ -95,9 +95,23 @@ test('the projection ships checked rows only and is validated only with nothing 
   catalog.links[0].status = 'live';
   catalog.links[0].checkedAt = NOW;
   projection = projectCatalog(catalog, NOW);
+  // Nothing pending, but the live folder answered a probe and was never
+  // listed, and the dead one is on the proxy's word alone: three gates, not one.
+  assert.equal(projection.validated, false, 'a live folder with children: null is uncrawled');
+  assert.deepEqual([projection.counts.pending, projection.counts.uncrawled, projection.counts.unverified], [0, 1, 1]);
+  catalog.links.filter((row) => row.kind === 'folder').forEach((row) => { row.children = { folders: 0, files: 0, crawledAt: NOW }; });
+  assert.equal(projectCatalog(catalog, NOW).validated, false, 'a dead row needs the fshare.vn second opinion');
+  catalog.links[1].web = { status: 'unknown', error: 'fshare.vn answered HTTP 503' };
+  assert.equal(projectCatalog(catalog, NOW).validated, false, 'proxy dead + web unknown is still one opinion');
+  catalog.links[1].web = { status: 'dead', error: 'Không tìm thấy - Fshare' };
+  projection = projectCatalog(catalog, NOW);
   assert.equal(projection.validated, true);
   assert.equal(projection.counts.pending, 0);
   assert.equal(normalizeMovieDatabase(projection).links.length, 3);
+  const audit = auditCatalog(catalog);
+  assert.equal(audit.ok, true);
+  assert.equal(audit.sources[0].folders, 2);
+  assert.equal(audit.sources[0].filesWithoutParent, 1, 'a standalone file link has no parent and that is not a gate');
 });
 
 test('folder children are counted from the rows that name the folder as parent', () => {
@@ -124,6 +138,14 @@ test('a validation run takes folders first, never-checked before stale, and hono
   assert.deepEqual(selectEntries(catalog, { now, staleMs: 30 * 86400000 }).map((row) => row.code), ['DIR00001', 'FILE0002', 'FILE0001']);
   assert.deepEqual(selectEntries(catalog, { now, only: ['dead'] }).map((row) => row.code), []);
   assert.equal(selectEntries(catalog, { now, limit: 1 }).length, 1);
+  // --only uncrawled,unverified picks the completeness gaps, whatever the status says.
+  dir.status = 'live'; dir.checkedAt = NOW; dir.via = 'probe';
+  f1.status = 'dead'; f1.via = 'probe';
+  assert.deepEqual(selectEntries(catalog, { now, only: ['uncrawled'] }).map((row) => row.code), ['DIR00001']);
+  assert.deepEqual(selectEntries(catalog, { now, only: ['unverified'] }).map((row) => row.code), ['FILE0001']);
+  dir.children = { crawledAt: NOW };
+  f1.web = { status: 'dead' };
+  assert.deepEqual(selectEntries(catalog, { now, only: ['uncrawled', 'unverified'] }), []);
 });
 
 test('the listing cache fetches each folder once per run and follows every page', async () => {
@@ -172,6 +194,15 @@ test('a file probe says dead only on 404 and asks fshare.vn for the second opini
   assert.equal((await probeFileOnWeb('X', web('503 Service Temporarily Unavailable', { status: 503 }))).status, 'unknown');
   assert.equal((await probeFileOnWeb('X', web('Đã có lỗi xảy ra'))).status, 'unknown');
   assert.equal((await probeFileOnWeb('X', web('Dịch vụ lưu trữ và chia sẻ trực tuyến', { url: 'https://www.fshare.vn/' }))).status, 'unknown');
+  // A forwarded file lands on another code's page with a real name: not this link.
+  assert.equal((await probeFileOnWeb('X', web('Other.mkv - Fshare', { url: 'https://www.fshare.vn/file/Y?token=1' }))).status, 'unknown');
+
+  // A folder keeps its own URL either way; the slogan there is the dead answer.
+  const folderPage = (title, status = 200) => web(title, { status, url: 'https://www.fshare.vn/folder/F?token=1' });
+  assert.equal((await probeFolderOnWeb('F', folderPage('Dịch vụ lưu trữ và chia sẻ trực tuyến'))).status, 'dead');
+  const liveFolder = await probeFolderOnWeb('F', folderPage('Fshare - My Sole Desire 2023 - Fshare'));
+  assert.deepEqual([liveFolder.status, liveFolder.name], ['live', 'My Sole Desire 2023']);
+  assert.equal((await probeFolderOnWeb('F', folderPage('503 Service Temporarily Unavailable', 503))).status, 'unknown');
 });
 
 test('search finds a file by the folders above it, and results group under the holding folder', () => {
@@ -245,6 +276,8 @@ test('parallel shards are deterministic, disjoint, and preserve remote metadata'
   const second = selectRows(catalog, { kind: 'file', statuses: ['pending'], shardIndex: 1, shardCount: 2, limit: 10 });
   assert.deepEqual(first.shardRows.map((row) => row.code), ['AAAA']);
   assert.deepEqual(second.shardRows.map((row) => row.code), ['BBBB']);
+  assert.throws(() => parseArgs(['--catalog', 'c.json', '--output', 'o.json', '--kind', 'all']), /folders are crawled/);
+  assert.throws(() => parseArgs(['--catalog', 'c.json', '--output', 'o.json', '--kind', 'folder']), /folders are crawled/);
 
   const result = await probeRow(first.selected[0], {
     fetcher: async () => ({
@@ -258,6 +291,13 @@ test('parallel shards are deterministic, disjoint, and preserve remote metadata'
   assert.equal(result.size, 5 * 1024 * 1024);
   assert.equal(result.remote.id, 'remote-aaaa');
   assert.equal(result.probe.attempts, 1);
+
+  // A proxy 404 asks fshare.vn before it is written as dead, and the answer rides along.
+  const notFound = async () => ({ ok: false, status: 404 });
+  const dead = await probeRow(second.selected[0], { fetcher: notFound, webProbe: async () => ({ status: 'dead', error: 'Không tìm thấy - Fshare', via: 'web' }) });
+  assert.deepEqual([dead.status, dead.via, dead.web.status], ['dead', 'probe', 'dead']);
+  const forwarded = await probeRow(second.selected[0], { fetcher: notFound, webProbe: async () => ({ status: 'live', name: 'B.mkv', via: 'web' }) });
+  assert.deepEqual([forwarded.status, forwarded.via, forwarded.name], ['live', 'web', 'B.mkv']);
 });
 
 test('shard results merge by immutable id and cannot change a different row', () => {
@@ -287,4 +327,21 @@ test('shard results merge by immutable id and cannot change a different row', ()
     kind: 'fshare-movie-shard-results',
     rows: [{ id: row.id, kind: row.kind, code: 'OTHER0001', status: 'live' }]
   }), /does not match catalog/);
+  // Merge is where the two 2026-09-16 mistakes are refused: a probed folder
+  // (live with nothing listed) and a dead row on the proxy's word alone.
+  assert.throws(() => mergeShardResults(catalog, {
+    kind: 'fshare-movie-shard-results',
+    rows: [{ id: row.id, kind: row.kind, code: row.code, status: 'dead', via: 'probe', error: 'HTTP 404' }]
+  }), /second opinion/);
+  assert.equal(row.status, 'live', 'a refused shard changes nothing');
+  const folders = buildCatalog([{ file: 'l.txt', text: 'D https://www.fshare.vn/folder/DIR00001', updatedAt: NOW }], {}, null, NOW);
+  assert.throws(() => mergeShardResults(folders, {
+    kind: 'fshare-movie-shard-results',
+    rows: [{ id: folders.links[0].id, kind: 'folder', code: 'DIR00001', status: 'live', via: 'probe' }]
+  }), /never probed/);
+  assert.equal(mergeShardResults(catalog, {
+    kind: 'fshare-movie-shard-results',
+    rows: [{ id: row.id, kind: row.kind, code: row.code, status: 'dead', via: 'probe', error: 'HTTP 404', web: { status: 'unknown', error: 'HTTP 503' } }]
+  }, checkedAt).merged, 1, 'web unknown is accepted and left for the next run');
+  assert.deepEqual([row.status, row.web.status], ['dead', 'unknown']);
 });
