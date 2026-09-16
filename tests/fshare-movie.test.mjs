@@ -195,6 +195,9 @@ test('search finds a file by the folders above it, and results group under the h
   assert.equal(searchMovieLinks(db.links, 'dune', { kind: 'file' }).length, 3, 'without the map only file names match');
   assert.equal(searchMovieLinks(db.links, 'dune', { kind: 'file', byId }).length, 4);
   assert.deepEqual(searchMovieLinks(db.links, 'dune', { kind: 'file', byId }).map((r) => r.code), ['D', 'E', 'B', 'B2'], 'search results sort by size ascending');
+  assert.deepEqual(searchMovieLinks(db.links, 'dune 2021', { kind: 'all', byId }).map((r) => [r.kind, r.code]), [
+    ['folder', 'A'], ['file', 'B'], ['file', 'B2']
+  ], 'a title search includes its folder and sorts all results by size ascending');
 
   const groups = groupByFolder(searchMovieLinks(db.links, 'dune', { kind: 'file', byId }), byId);
   assert.deepEqual(groups.map((g) => [g.chain.join(' › ') || '(standalone)', g.links.length]), [

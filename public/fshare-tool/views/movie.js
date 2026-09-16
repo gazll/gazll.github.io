@@ -128,7 +128,7 @@ function paintTypeSwitch() {
   setText('movieTypeDescription', config.description);
   setText('movieResultsTitle', config.raw ? 'X links' : 'Files, by folder');
   setText('movieStatusLabel', config.raw ? 'Raw links are not validated' : 'Show dead & unknown');
-  setText('movieSearchLabel', config.raw ? 'Search X links by name or link code' : 'Search files by name, folder, alias, or link code');
+  setText('movieSearchLabel', config.raw ? 'Search X links by name or link code' : 'Search files, folders, aliases, or link code');
   const panel = $('movieSearchPanel');
   if (panel) panel.setAttribute('aria-label', config.raw ? 'X link filters' : 'Movie catalog filters');
   const input = $('movieSearchInput');
@@ -359,6 +359,10 @@ function makeRow(row, includeFolder = false) {
   details.className = 'movie-result-details';
   const titleLine = document.createElement('div');
   titleLine.className = 'movie-result-title';
+  const kind = document.createElement('span');
+  kind.className = 'movie-kind ' + row.kind;
+  kind.textContent = row.kind === 'folder' ? 'FOLDER' : 'FILE';
+  titleLine.appendChild(kind);
   const title = document.createElement('a');
   title.href = row.link;
   title.target = '_blank';
@@ -496,7 +500,7 @@ function makeSearchHead(count) {
   head.appendChild(title);
   const meta = document.createElement('span');
   meta.className = 'movie-folder-meta';
-  meta.textContent = number(count) + ' file' + (count === 1 ? '' : 's') + ' - smallest first';
+  meta.textContent = number(count) + ' result' + (count === 1 ? '' : 's') + ' - smallest first';
   head.appendChild(meta);
   return head;
 }
@@ -508,10 +512,14 @@ function renderResults() {
   const query = $('movieSearchInput').value || '';
   const sourceId = $('movieSourceSelect').value || 'all';
   const showDead = $('movieShowDead').checked;
+  const searching = !config.raw && Boolean(query.trim());
   // "dun" → "dune" can only lose rows, so it is searched within the previous
   // matches; the status filter is re-applied afterwards because a re-check
   // in this browser may have changed a row since that set was built.
-  const searchKey = `${movie.catalogType}|${sourceId}`;
+  // The browse view is file-only, while a query also searches folders. Keep
+  // the two pools separate or the first keystroke would search only the
+  // previous browse results and hide matching root folders.
+  const searchKey = `${movie.catalogType}|${sourceId}|${searching ? 'search' : 'browse'}`;
   const previous = movie.lastSearch;
   const pool = previous && previous.key === searchKey && narrowsSearch(previous.query, query)
     ? previous.rows
@@ -520,10 +528,9 @@ function renderResults() {
   // independent raw index, so folders and files remain searchable as links.
   const found = config.raw
     ? searchXLinks(pool, query, { sourceId, index: movie.index })
-    : searchMovieLinks(pool, query, { kind: 'file', sourceId, byId: movie.byId, index: movie.index });
+    : searchMovieLinks(pool, query, { kind: searching ? 'all' : 'file', sourceId, byId: movie.byId, index: movie.index });
   movie.lastSearch = { key: searchKey, query, rows: found };
   const matches = config.raw ? found : found.filter((row) => showDead || currentStatus(row).status === 'live');
-  const searching = !config.raw && Boolean(query.trim());
   const groups = config.raw || searching ? [] : groupByFolder(matches, movie.byId, movie.index);
 
   movie.shown = [];
@@ -535,7 +542,7 @@ function renderResults() {
     list.innerHTML = `<div class="movie-empty">${empty}</div>`;
     setText('movieResultCount', config.raw
       ? `0 of ${number(movie.database.links.length)} raw links`
-      : `0 of ${number(movie.fileCount)} files`);
+      : searching ? `0 of ${number(movie.database.links.length)} results` : `0 of ${number(movie.fileCount)} files`);
     renderControls();
     return;
   }
@@ -570,7 +577,7 @@ function renderResults() {
   if (config.raw) {
     setText('movieResultCount', `${number(matches.length)} raw X link${matches.length === 1 ? '' : 's'}${suffix} · ${number(movie.selected.size)} selected`);
   } else if (searching) {
-    setText('movieResultCount', number(matches.length) + ' file' + (matches.length === 1 ? '' : 's') + ' - smallest first' + suffix + ' - ' + number(movie.selected.size) + ' selected');
+    setText('movieResultCount', number(matches.length) + ' result' + (matches.length === 1 ? '' : 's') + ' - smallest first' + suffix + ' - ' + number(movie.selected.size) + ' selected');
   } else {
     setText('movieResultCount', `${number(matches.length)} file${matches.length === 1 ? '' : 's'} in ${number(groups.length)} folder${groups.length === 1 ? '' : 's'}${suffix} · ${number(movie.selected.size)} selected`);
   }
