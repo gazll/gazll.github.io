@@ -30,7 +30,7 @@
    has neither the passphrase nor secret/. */
 
 import { copyFile, mkdir, readdir, readFile, stat, writeFile } from 'node:fs/promises';
-import { existsSync } from 'node:fs';
+import { createWriteStream, existsSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -271,7 +271,12 @@ export const isUncrawled = (row) => row.kind === 'folder' && (row.status === 'li
     that fshare.vn forwards to a new code as dead; `web` is the second ask. */
 export const isUnverifiedDead = (row) => row.status === 'dead' && row.via !== 'web' && row.web?.status !== 'dead';
 
-export function summarize(catalog, lastRunAt = catalog.validation?.lastRunAt || null) {
+/** The counts, without touching `catalog.validation` or cloning the catalog
+    to get there — a read-only peek (status/seal/audit) does not need to
+    deep-clone a 100k-row catalog just to read four numbers, and doing so was
+    exactly the extra peak-memory spike that turned a checkpoint write into
+    an OOM crash at 113k rows. */
+function countValidation(catalog, lastRunAt = catalog.validation?.lastRunAt || null) {
   const validation = {
     ok: false, total: catalog.links.length, pending: 0, live: 0, dead: 0, unknown: 0, uncrawled: 0, unverified: 0, lastRunAt
   };
@@ -285,6 +290,11 @@ export function summarize(catalog, lastRunAt = catalog.validation?.lastRunAt || 
   // has read, an unverified dead is a deletion nobody has confirmed. `unknown`
   // is allowed — it was asked and will be asked again.
   validation.ok = validation.total > 0 && validation.pending === 0 && validation.uncrawled === 0 && validation.unverified === 0;
+  return validation;
+}
+
+export function summarize(catalog, lastRunAt = catalog.validation?.lastRunAt || null) {
+  const validation = countValidation(catalog, lastRunAt);
   catalog.validation = validation;
   return validation;
 }
@@ -347,7 +357,7 @@ export function buildCatalog(sources, manifest = {}, previous = null, now = new 
     and a file's place is its `parents` (names resolve in the same file), not
     the full path string, which alone was 9MB across 60k rows. */
 export function projectCatalog(catalog, sealedAt = new Date().toISOString()) {
-  const validation = summarize(structuredClone(catalog));
+  const validation = countValidation(catalog);
   const links = catalog.links
     .filter((row) => row.status !== 'pending')
     .map((row) => ({
@@ -491,7 +501,13 @@ async function webPage(kind, code, fetcher) {
   /* Only the link's own page, answered 200, can vouch for it. A 503 page, an
      "Đã có lỗi xảy ra" page and the homepage (where a folder-shaped code
      lands) all carry a <title> too — 38 dead links were once recorded live
-     with "503 Service Temporarily Unavailable" as their name. */
+     with "503 Service Temporarily Unavailable" as their name. A 404/410 is
+     the one non-200 answer that IS conclusive: fshare.vn's own router
+     refusing the code at all (a malformed code, e.g. one a raw source had
+     already fused to trailing title text) is at least as certain as its
+     "Không tìm thấy" page. A 5xx or anything else stays unknown — that is
+     the server, not the link, being unable to answer.  */
+  if (response.status === 404 || response.status === 410) return { status: 'dead', error: `fshare.vn answered HTTP ${response.status}`, via: 'web' };
   if (!response.ok) return { status: 'unknown', error: `fshare.vn answered HTTP ${response.status}`, via: 'web' };
   if (!title) return { status: 'unknown', error: `fshare.vn answered without a title (HTTP ${response.status})`, via: 'web' };
   const finalUrl = String(response.url || '');
@@ -827,6 +843,37 @@ async function writeJson(file, value) {
   await writeFile(file, `${JSON.stringify(value, null, 2)}\n`, 'utf8');
 }
 
+/** `JSON.stringify(catalog, null, 2)` builds and then flattens one string
+    for the whole file — past ~110k rows (~200MB pretty-printed) that string
+    alone crashed a 3.5GB-RAM run with a heap OOM mid-checkpoint. Streamed
+    instead: peak memory is one row, not the file. Compact, not pretty —
+    catalog.json is gitignored and read only through `status`/`audit`,
+    never opened by hand. */
+async function writeCatalogFile(file, catalog) {
+  await mkdir(path.dirname(file), { recursive: true });
+  await new Promise((resolve, reject) => {
+    const stream = createWriteStream(file, { encoding: 'utf8' });
+    stream.on('error', reject);
+    stream.on('finish', resolve);
+    (async () => {
+      const write = async (chunk) => { if (!stream.write(chunk)) await new Promise((r) => stream.once('drain', r)); };
+      await write('{');
+      await write(`"version":${JSON.stringify(catalog.version)},`);
+      await write(`"kind":${JSON.stringify(catalog.kind)},`);
+      await write(`"createdAt":${JSON.stringify(catalog.createdAt)},`);
+      await write(`"updatedAt":${JSON.stringify(catalog.updatedAt)},`);
+      await write(`"validation":${JSON.stringify(catalog.validation)},`);
+      await write(`"sources":${JSON.stringify(catalog.sources)},`);
+      await write('"links":[');
+      for (let i = 0; i < catalog.links.length; i++) {
+        await write((i > 0 ? ',' : '') + JSON.stringify(catalog.links[i]));
+      }
+      await write(']}\n');
+      stream.end();
+    })().catch(reject);
+  });
+}
+
 function option(args, name, fallback) {
   const inline = args.find((arg) => arg.startsWith(`${name}=`));
   if (inline) return inline.slice(name.length + 1);
@@ -848,7 +895,7 @@ async function saveCatalog(catalog) {
   recountChildren(catalog);
   summarize(catalog);
   catalog.updatedAt = new Date().toISOString();
-  await writeJson(CATALOG_FILE, catalog);
+  await writeCatalogFile(CATALOG_FILE, catalog);
 }
 
 async function mergeShards(files) {
@@ -888,7 +935,7 @@ async function mergeShards(files) {
  * and the gates stay the three `summarize` counts.
  */
 export function auditCatalog(catalog) {
-  const v = summarize(structuredClone(catalog));
+  const v = countValidation(catalog);
   const blank = () => ({ rows: 0, folders: 0, uncrawled: 0, files: 0, filesWithoutParent: 0, live: 0, dead: 0, unverified: 0, unknown: 0, pending: 0, via: {} });
   const bySource = new Map(catalog.sources.map((s) => [s.id, { id: s.id, name: s.name, ...blank() }]));
   const discovered = blank();
@@ -912,7 +959,7 @@ export function auditCatalog(catalog) {
 }
 
 function statusLine(catalog) {
-  const v = summarize(structuredClone(catalog));
+  const v = countValidation(catalog);
   const folders = catalog.links.filter((row) => row.kind === 'folder').length;
   return `${v.total} links (${folders} folders, ${v.total - folders} files) · pending ${v.pending} · live ${v.live} · dead ${v.dead} · unknown ${v.unknown}`
     + ` · uncrawled folders ${v.uncrawled} · unverified dead ${v.unverified}`
@@ -942,7 +989,7 @@ async function main() {
     const previous = await readJson(CATALOG_FILE, null);
     const before = previous ? previous.links.length : 0;
     const catalog = buildCatalog(sources, await readJson(SOURCES_FILE, {}), previous);
-    await writeJson(CATALOG_FILE, catalog);
+    await writeCatalogFile(CATALOG_FILE, catalog);
     out(`${rel(CATALOG_FILE)}: ${catalog.links.length} links from ${sources.length} raw file(s), ${catalog.links.length - before} new.`);
     return out(statusLine(catalog));
   }

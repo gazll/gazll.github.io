@@ -543,7 +543,26 @@ secret/              GITIGNORED. Personal setup notes and credentials
   ceiling bounds memory, the KDF pin bounds CPU, so it is not the security
   margin it looks like. A second-opinion probe on `fshare.vn` must require
   `response.ok`, the file's own URL and a non-error title: 38 dead links were
-  recorded live with "503 Service Temporarily Unavailable" as their name.
+  recorded live with "503 Service Temporarily Unavailable" as their name. A
+  clean 404/410 from that same page IS conclusive on its own, unlike a 5xx —
+  it is fshare.vn's router refusing the code outright, at least as certain as
+  its "Không tìm thấy" page. `webPage()` returns `dead` only for those two
+  codes, `unknown` for everything else non-200.
+
+- **`catalog.json` past ~110k rows must be written by `writeCatalogFile`
+  (streamed), never `writeJson` (`JSON.stringify(catalog, null, 2)`).** The
+  recursive Thuviencine crawl grew the catalog from 93k to 113k rows mid-run
+  and a routine 25-row checkpoint OOM-crashed Node building and flattening
+  that one ~200MB pretty-printed string on a 3.5GB-RAM host. `writeCatalogFile`
+  streams the same shape field by field so peak memory is one row, not the
+  file; it is compact (no indent) because the file is gitignored and never
+  opened by hand — `status`/`audit` are how a human reads it. The same
+  incident showed `summarize(structuredClone(catalog))` — used by `status`,
+  `seal` and `audit` to avoid mutating `catalog.validation` — deep-cloning a
+  113k-row catalog just to read four counters, right next to a checkpoint
+  write, was the other half of the peak. `countValidation(catalog)` computes
+  the same counts read-only, with no clone; only `summarize` itself (which
+  intentionally writes `catalog.validation`) still needs the plain catalog.
 
 - **The thuviencine crawler is a two-hop harvester, not a site graph walk.**
   It starts from the post sitemap, extracts same-site download IDs from each

@@ -192,6 +192,10 @@ test('a file probe says dead only on 404 and asks fshare.vn for the second opini
   assert.equal(live.name, 'Movie.2021.mkv');
   // An error page and the homepage carry a <title> too; neither vouches for the file.
   assert.equal((await probeFileOnWeb('X', web('503 Service Temporarily Unavailable', { status: 503 }))).status, 'unknown');
+  // A clean 404/410 is conclusive on its own — fshare.vn's router refusing the
+  // code outright (e.g. a malformed code a raw source had fused to title text).
+  assert.equal((await probeFileOnWeb('X', web('Not Found', { status: 404 }))).status, 'dead');
+  assert.equal((await probeFileOnWeb('X', web('Gone', { status: 410 }))).status, 'dead');
   assert.equal((await probeFileOnWeb('X', web('Đã có lỗi xảy ra'))).status, 'unknown');
   assert.equal((await probeFileOnWeb('X', web('Dịch vụ lưu trữ và chia sẻ trực tuyến', { url: 'https://www.fshare.vn/' }))).status, 'unknown');
   // A forwarded file lands on another code's page with a real name: not this link.
