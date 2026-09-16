@@ -128,9 +128,24 @@ git add public/data/fshare-movie/catalog.enc.json && git commit -m "reseal movie
 node tools/fshare-movie.mjs --check
 ```
 
-Ước lượng từ lần đo 2026-09-16 qua proxy, concurrency 4: một folder root
-1–3 s (kể cả con), một ý kiến thứ hai ~1,5 s. 5.752 folder ≈ 2–3 giờ; 3.573
-dead ≈ 1,5 giờ. Không cần chạy song song nhiều tiến trình cho cỡ này.
+Số đo thật, 2026-09-16, qua proxy, concurrency 4: 5.747 folder root (kể cả
+con) xong trong ~68 phút (~0,7 s/folder); 3.573 dead xong trong ~24 phút
+(~0,4 s/dòng, sau khi \`--only unverified\` tự chọn lại đúng phần còn thiếu
+nếu một lần chạy bị dừng giữa chừng). Không cần chạy song song nhiều tiến
+trình cho cỡ này. Một số dòng \`dead\` cần chạy lại \`validate --only
+unverified\` vài lần liên tiếp (concurrency 1) mới hội tụ về 0 — ý kiến thứ
+hai từ fshare.vn không ổn định dưới tải đồng thời: cùng một code, hỏi dồn dập
+có lúc trả về trang của MỘT FILE KHÁC (tiêu đề thật, `ownPage` sai), hỏi lại
+thong thả thì đúng. Đây là hành vi phía fshare.vn/proxy, không phải bug —
+`unverified` được thiết kế để giữ lại đúng những dòng này cho lần chạy sau
+thay vì đoán.
+
+**Catalog quá ~110k dòng phải ghi bằng \`writeCatalogFile\` (stream), không
+được quay lại \`writeJson\`/\`JSON.stringify(catalog, null, 2)\`.** Lần crawl
+đệ quy 2026-09-16 đưa catalog từ 93k lên 113k dòng giữa chừng, và một
+checkpoint bình thường (mỗi 25 dòng) làm Node OOM khi dựng + flatten chuỗi
+pretty-print ~200MB đó trên máy 3,5GB RAM. Streaming ghi từng field/dòng một
+nên đỉnh bộ nhớ chỉ bằng một dòng, không phải cả file.
 
 ### Chạy lại định kỳ (tuần / tháng)
 
