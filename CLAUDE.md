@@ -510,11 +510,17 @@ secret/              GITIGNORED. Personal setup notes and credentials
      one heading at read time. Nesting rows under a title object would make a
      retitle move status history, exactly as re-slugging a section orphans
      `progress` rows.
-  2. **`pending` and `unknown` are different answers.** `pending` is a link
-     nobody has asked about; `unknown` is one Fshare could not answer for
-     (timeout, 5xx). The envelope's `validated` flag is true only with zero
-     `pending` — `unknown` may remain and is retried next run. The tab shows
-     a NOT VALIDATED badge rather than hiding the difference.
+  2. **`pending` and `unknown` are different answers, and `validated` is
+     three gates.** `pending` is a link nobody has asked about; `unknown` is
+     one Fshare could not answer for (timeout, 5xx) — it may remain and is
+     retried next run. The envelope's `validated` flag is true only with zero
+     `pending`, zero **uncrawled** live folders (`children.crawledAt` absent
+     — a root probe proves existence, not contents) and zero **unverified**
+     dead rows (no fshare.vn second opinion in `web`). `isUncrawled` and
+     `isUnverifiedDead` in `tools/fshare-movie.mjs` are the only definitions;
+     `audit` prints them per source and `merge` refuses a shard that would
+     add either. The tab shows a NOT VALIDATED badge rather than hiding the
+     difference.
   3. **`build` only adds, `validate` only updates in place.** A raw export
      that disappears does not un-know a link, and a link that died keeps its
      `deadSince` — the "show dead" toggle exists because that history is the
@@ -554,12 +560,12 @@ secret/              GITIGNORED. Personal setup notes and credentials
   Harvesting a site's Fshare URLs is not the same as recursively crawling the
   Fshare folders. A root probe only proves that the folder link answers; it does
   not populate `children`, attach `parents` to files, or prove the file leaves.
-  `tools/fshare-movie-shard.mjs` is a probe-only runner and must not be used as
-  the recursive validation pass. The catalog's `validated` flag historically
-  meant only no pending rows, so a future seal must also require every
-  designated folder to have a completed crawl and every discovered file to
-  have a listing/probe answer. The open follow-up and the 2026-09-16
-  thuviencine counts live in `docs/todo/fshare-movie-validate.md`.
+  `tools/fshare-movie-shard.mjs` therefore accepts `--kind file` only (its
+  `--kind all` mode shipped 5,881 probe-only folders as validated on
+  2026-09-16 and was removed), and a shard's dead row must carry the fshare.vn
+  second opinion or `merge` refuses it. Folders are crawled by `validate`
+  alone — `--only uncrawled,unverified` is how the two gaps are closed. The
+  recovery runbook for that harvest is `docs/todo/fshare-movie-validate.md`.
 
 - **Fixed and rolling reminders are not the same recurrence, and confusing them
   is silent.** A *fixed* event (`once`, `yearly`, `lunar-yearly`, `monthly`)

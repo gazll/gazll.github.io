@@ -1,8 +1,11 @@
 # Fshare movie catalog — playbook
 
 Tab **Movie** trong `/fshare-tool` là một database link phim lấy từ các
-Google Sheet cộng đồng, đã kiểm tra với Fshare và giữ lịch sử từng link. Tài
-liệu này là toàn bộ quy trình vận hành: một tool, ba file, một chiều.
+Google Sheet cộng đồng và các site chia sẻ, đã kiểm tra với Fshare và giữ
+lịch sử từng link. Tài liệu này là toàn bộ quy trình vận hành: một tool, ba
+file, một chiều. **Đọc hết mục "Vòng lặp" và "Ba cửa validated" trước khi
+chạy bất kỳ lệnh nào ghi catalog** — ngày 2026-09-16 đã bỏ qua đúng hai bước
+và publish một catalog "validated" mà 5.881 folder chưa từng được liệt kê.
 
 ```text
 secret/fshare-movie/raw/            export thô (CSV từng tab Sheet, list link dán tay)  GITIGNORED
@@ -12,9 +15,14 @@ public/data/fshare-movie/catalog.enc.json   projection đã seal: chỉ link đ�
 ```
 
 ```text
-ingest ──► raw/ ──build──► catalog.json ──validate──► catalog.json ──seal──► catalog.enc.json ──► deploy
-                               (pending)                (live/dead/unknown)     (validated: true/false)
+ingest / crawl:* ──► raw/ ──build──► catalog.json ──validate──► catalog.json ──audit──► seal ──► catalog.enc.json ──► deploy
+                                        (pending)     folder: crawl đệ quy         validated: OK?    (validated: true/false)
+                                                      file:   probe + 2nd opinion
 ```
+
+Hai việc khác nhau, đừng gộp: **thu thập** (Sheet, site) chỉ tạo ra link để
+`build`; **kiểm tra** là việc của `validate`, và với folder nó là duyệt đệ
+quy, không phải một lần probe root.
 
 ## Vì sao ba file, và vì sao mã hoá
 
@@ -53,7 +61,9 @@ field nội bộ), không phải bản sao.
   "checkedAt": null, "lastLiveAt": null, "deadSince": null,
   "via": "",                                  // probe · listing · crawl · web — bằng chứng của lần check cuối
   "error": "",
+  "web": { "status": "dead", "error": "…" },  // chỉ dòng dead: ý kiến thứ hai của fshare.vn
   "children": null                            // folder: {folders, files, live, dead, unknown, pending, crawledAt}
+                                              // null = chưa liệt kê; crawledAt là bằng chứng duy nhất đã liệt kê
 }
 ```
 
@@ -62,11 +72,28 @@ field nội bộ), không phải bản sao.
   trạng thái, đổi code là link khác.
 - **`status` chỉ có bốn giá trị.** `pending` = chưa ai nhìn tới; `unknown` =
   đã hỏi mà Fshare/proxy không trả lời được (timeout, 5xx). Hai thứ đó khác
-  nhau: `validated` của cả database chỉ đúng khi **không còn `pending`**;
-  `unknown` được phép tồn tại và sẽ được hỏi lại ở lần chạy sau.
+  nhau: `unknown` được phép tồn tại và sẽ được hỏi lại ở lần chạy sau, còn
+  `pending` là một trong ba cửa của `validated` (xem "Ba cửa validated").
 - **Folder nhớ con của nó.** File tìm thấy trong folder có `parents`; `children`
   của folder được đếm lại từ đó mỗi lần ghi. Tháng sau chạy lại, một folder
   hiện "40 file · 35 live · 5 dead" là đọc thẳng từ đây.
+
+## Ba cửa validated
+
+`validated: true` trong envelope — và badge VALIDATED trên tab — chỉ đúng khi
+**cả ba** đếm về 0. `status` và `audit` in đủ ba số; `seal` vẫn ghi khi còn
+thiếu nhưng với `validated: false` và nói rõ thiếu gì.
+
+| Cửa | Là gì | Vì sao là cửa riêng | Đóng bằng |
+|---|---|---|---|
+| `pending` | link chưa ai hỏi | cửa gốc | `validate` (mặc định) |
+| `uncrawled` | folder `live`/`unknown` mà `children.crawledAt` trống | probe root chỉ nói "folder tồn tại", không nói bên trong có gì; 5.881 folder Thuviencine đã ship như vậy | `validate --only uncrawled` |
+| `unverified` | dòng `dead` mà `via !== 'web'` và `web.status !== 'dead'` | proxy 404 là **một** ý kiến; đã có file proxy 404 mà fshare.vn chuyển tiếp sang code mới | `validate --only unverified` |
+
+`unknown` **không** phải cửa: đã hỏi, chưa có câu trả lời, lần sau hỏi lại.
+Hai hàm `isUncrawled` / `isUnverifiedDead` trong `tools/fshare-movie.mjs` là
+định nghĩa duy nhất; `merge` từ chối shard vi phạm (folder qua probe, dead
+không có ý kiến thứ hai) ngay lúc gộp chứ không đợi tới `seal`.
 
 ## Vòng lặp
 
@@ -76,21 +103,34 @@ node tools/fshare-movie.mjs ingest "https://docs.google.com/spreadsheets/d/ID/ed
 node tools/fshare-movie.mjs ingest "https://docs.google.com/spreadsheets/d/ID/edit" --gid 123,456
 node tools/fshare-movie.mjs ingest https://www.fshare.vn/folder/ABCD1234 https://www.fshare.vn/file/EFGH5678
 node tools/fshare-movie.mjs ingest ./export-tôi-tải-tay.csv
+#    Hoặc thu thập từ một site (xem "Thu thập từ site") — cũng chỉ ghi vào raw/.
+npm run crawl:thuviencine
 
 # 2. Raw → catalog. Link mới vào với status pending; link cũ giữ nguyên kết quả.
 node tools/fshare-movie.mjs build
 node tools/fshare-movie.mjs status
 
-# 3. Kiểm tra. Xem docs/todo/fshare-movie-validate.md — đây là bước lâu nhất.
-node tools/fshare-movie.mjs validate --concurrency 6
+# 3. Kiểm tra — bước lâu nhất, chạy trên NAS, resumable (Ctrl+C rồi chạy lại).
+#    Folder: duyệt đệ quy, file bên trong sống theo listing. File lẻ: probe,
+#    dead thì hỏi fshare.vn lần hai. Một tiến trình duy nhất ghi catalog.
+node tools/fshare-movie.mjs validate --concurrency 4
+#    Rồi đóng hai cửa còn lại (thường chỉ khi shard/proxy đã để lại):
+node tools/fshare-movie.mjs validate --only uncrawled,unverified --concurrency 4
 
-# 4. Seal và commit. Chỉ dòng đã check được đưa vào; validated=true khi hết pending.
+# 4. Audit: ba cửa về 0 chưa, và thiếu ở nguồn nào. Không OK thì quay lại 3.
+node tools/fshare-movie.mjs audit
+
+# 5. Seal và commit. Chỉ dòng đã check được đưa vào; validated=true khi audit OK.
 node tools/fshare-movie.mjs seal
 git add public/data/fshare-movie/catalog.enc.json && git commit -m "reseal movie catalog"
 
 # Kiểm tra envelope mở được và khớp catalog local (không phải stage của check.mjs)
 node tools/fshare-movie.mjs --check
 ```
+
+Ước lượng từ lần đo 2026-09-16 qua proxy, concurrency 4: một folder root
+1–3 s (kể cả con), một ý kiến thứ hai ~1,5 s. 5.752 folder ≈ 2–3 giờ; 3.573
+dead ≈ 1,5 giờ. Không cần chạy song song nhiều tiến trình cho cỡ này.
 
 ### Chạy lại định kỳ (tuần / tháng)
 
@@ -102,6 +142,33 @@ node tools/fshare-movie.mjs seal && git commit -am "reseal movie catalog"
 
 `--stale 30d` chọn thêm những dòng `checkedAt` cũ hơn 30 ngày. Mặc định
 (không `--only`) chỉ chọn `pending,unknown`; `--only all` là mọi dòng.
+`--only` nhận bốn status và hai cửa: `uncrawled`, `unverified`.
+
+## Thu thập từ site
+
+Một site chia sẻ (hiện có `tools/crawl-thuviencine.mjs`, `npm run
+crawl:thuviencine`) là một **nguồn raw** như Sheet: crawler chỉ ghi
+`raw/<site>-<ngày>.txt` (dòng `Tên phim https://www.fshare.vn/...`) và đăng ký
+`originUrl` vào `sources.json`. Nó **không** chạm Fshare, không chạm catalog.
+
+```bash
+npm run crawl:thuviencine            # sitemap → trang phim → /download?id= → link Fshare
+cat secret/fshare-movie/thuviencine-crawl-report.json   # movieFailures = downloadFailures = 0 mới đi tiếp
+npm run crawl:thuviencine            # chạy lại = retry đúng các trang lỗi (state ngoài raw/)
+```
+
+Kinh nghiệm đã trả giá, giữ để crawler sau không lặp lại:
+
+- Sitemap trả `loc` dạng `http` dù site chạy `https` — so hostname rồi chuẩn
+  hoá về HTTPS, đừng so nguyên origin.
+- Không đệ quy mọi link trong trang phim (có danh sách phim liên quan);
+  post-sitemap là index chính xác và chặn bùng nổ request.
+- Hai phase bounded-concurrency: fetch trang phim, dedupe URL download, rồi
+  mỗi trang download một lần. Checkpoint ngoài `raw/`; 429/5xx là hạ
+  concurrency, không phải tắt retry.
+- **Thu thập link ≠ duyệt folder.** Crawler xong chỉ có `pending`; folder vẫn
+  phải qua `validate` (đệ quy). Root probe không thay được bước này — đó chính
+  là sai lầm 2026-09-16.
 
 ## `validate` làm gì, và làm gì để không tốn gấp mười
 
@@ -124,13 +191,21 @@ node tools/fshare-movie.mjs seal && git commit -am "reseal movie catalog"
    Proxy đo được 6 là sạch với tab Browse; cao hơn thì `unknown` tăng vì bị
    reset, và những dòng đó phải chạy lại.
 
-## Chạy song song bằng shard
+## Chạy song song bằng shard — chỉ cho FILE
 
 `validate` ghi `catalog.json` tại chỗ nên chỉ được **một tiến trình**. Muốn
 chia việc ra nhiều tiến trình/máy thì dùng `tools/fshare-movie-shard.mjs`: nó
 đọc một snapshot catalog, probe một tập con **rời nhau và xác định** theo
 `--shard-index/--shard-count`, ghi kết quả ra file riêng và **không bao giờ
 ghi `catalog.json`**. Ghi vào catalog chỉ xảy ra một lần, ở `merge`.
+
+Shard **chỉ nhận `--kind file`**. Folder được chứng minh bằng listing, và
+listing là việc của `validate` (`crawlMovieFolder`, một cache cho cả lần chạy);
+probe một folder chỉ trả lời "tồn tại". Chế độ `--kind all` từng có và đã
+bị gỡ sau khi nó ship 5.881 folder `live` với `children: null`. Một dòng
+`dead` từ shard cũng mang sẵn ý kiến thứ hai của fshare.vn (`web`); `merge`
+từ chối cả hai loại dòng sai đó, nên một shard cũ chạy bằng code cũ không
+gộp được nữa.
 
 ```bash
 # thử nhỏ trước
@@ -198,10 +273,23 @@ khi có advisory mới trên dependency transitive — `npm audit fix` rồi com
 
 ## Những thứ dễ hỏng
 
-- **`seal` ghi cả khi còn pending**, với `validated: false` và chỉ dòng đã
+- **`seal` ghi cả khi chưa validated**, với `validated: false` và chỉ dòng đã
   check. Đó là chủ ý (site hiển thị "NOT VALIDATED" thay vì trống), nhưng
   đừng coi đó là bản chính thức — bản chính thức là lần seal đầu tiên
-  `status` báo `validated: OK`.
+  `audit` báo `validated: OK`. `pending 0` **không** đồng nghĩa OK: xem
+  "Ba cửa validated".
+- **Đừng "kiểm tra nhanh" folder bằng probe root.** Kết quả trông đầy đủ
+  (`live`, có `path`, có `checkedAt`) nhưng `children` trống và không file
+  con nào được tìm thấy — tab search không có gì để hiện dưới folder đó.
+  `isUncrawled` đếm chính xác các dòng này.
+- **`dead` phải có hai ý kiến, kể cả folder.** File: proxy 404 + trang
+  `fshare.vn/file/CODE` tiêu đề "Không tìm thấy". Folder: proxy 404 + trang
+  `fshare.vn/folder/CODE` tiêu đề rơi về slogan "Dịch vụ lưu trữ…" (folder
+  sống có tiêu đề `Fshare - <tên> - Fshare`). Web nói sống mà proxy 404 →
+  file thành `live via web`, folder thành `unknown` (chưa liệt kê được) —
+  không bao giờ thành `live` với `children: null`. Có file proxy 404 nhưng
+  fshare.vn chuyển tiếp sang code khác (`ZKJPO2ZG3P2W29W` → `9M4FK884KCQC6NH`):
+  hiện là `unknown`, mô hình chưa có chỗ ghi `movedTo`.
 - **Đừng chạy `tools/fshare-movie.mjs --check` trong `check.mjs`.** CI không
   có passphrase, giống `schedule-seal.mjs`.
 - **Trần ciphertext là 8MB sau gzip** (`lib/schedule-crypto.js`), đã nới
