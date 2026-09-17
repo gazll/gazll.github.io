@@ -192,7 +192,7 @@ một log để biết đang ở đâu mà không cần đọc từng dòng ti�
 ```sh
 #!/bin/sh
 set -e
-cd /volume2/99_Drives/Project/gazll.github.io
+cd /volume1/0_System/project/gazll.github.io
 LOG=/tmp/validate-run.log
 step() { echo "--- $1 · $(date -u +%FT%TZ) ---" >> "$LOG"; }
 step "uncrawled";  node tools/fshare-movie.mjs validate --only uncrawled  --concurrency 4 >> "$LOG" 2>&1
@@ -324,8 +324,8 @@ git; những gì **không** nằm trong git phải copy tay, và catalog (header
 trước khi `seal`, không được seal từ bản cũ.
 
 ```bash
-scp -r secret public/config.js nas@nas:/volume2/99_Drives/Project/gazll.github.io/
-ssh nas@nas 'cd /volume2/99_Drives/Project/gazll.github.io   && git pull && mv config.js public/config.js   && npm ci --legacy-peer-deps --no-audit --no-fund   && node -v && node tools/fshare-movie.mjs status'
+scp -r secret public/config.js nas@nas:/volume1/0_System/project/gazll.github.io/
+ssh nas@nas 'cd /volume1/0_System/project/gazll.github.io   && git pull && mv config.js public/config.js   && npm ci --legacy-peer-deps --no-audit --no-fund   && node -v && node tools/fshare-movie.mjs status'
 ```
 
 | File | Vì sao cần |
