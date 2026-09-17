@@ -123,7 +123,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
    card clips with `overflow:clip`, not `hidden`: hidden makes a scroll
    container and the sticky head would stop sticking. */
 .movie-group{margin:10px 12px;border:1px solid var(--border2);border-radius:var(--radius-sm);background:var(--surface);overflow:clip}
-.movie-folder-head{position:sticky;top:0;z-index:1;display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;align-items:center;gap:10px;padding:9px 12px 9px 11px;background:var(--surface3);border-bottom:1px solid var(--border2);box-shadow:inset 3px 0 0 var(--accent)}
+.movie-folder-head{position:sticky;top:0;z-index:1;display:grid;grid-template-columns:18px auto minmax(0,1fr) auto auto;align-items:center;gap:10px;padding:9px 12px 9px 11px;background:var(--surface3);border-bottom:1px solid var(--border2);box-shadow:inset 3px 0 0 var(--accent)}
 .movie-group-icon{display:inline-flex;color:var(--accent)}
 .movie-group-icon svg{width:15px;height:15px}
 .movie-crumbs{display:flex;align-items:center;flex-wrap:wrap;gap:2px 6px;min-width:0;font-size:.7rem;font-weight:600;color:var(--muted)}
@@ -133,9 +133,10 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 /* Files that came with no folder: still a group, but not a place, so no amber. */
 .movie-group.is-direct .movie-folder-head{box-shadow:inset 3px 0 0 var(--border2)}
 .movie-group.is-direct .movie-group-icon,.movie-group.is-direct .movie-crumb.is-leaf{color:var(--text2)}
-.movie-folder-meta{color:var(--muted);font-family:ui-monospace,Consolas,monospace;font-size:.62rem;white-space:nowrap}
+.movie-folder-meta{color:var(--muted);font-family:ui-monospace,Consolas,monospace;font-size:.62rem;white-space:nowrap;font-variant-numeric:tabular-nums}
+.movie-folder-select{width:16px;height:16px;margin:0 0 0 1px;accent-color:var(--accent)}
 .movie-folder-head .movie-row-action{font-size:.68rem}
-.movie-result-row{display:grid;grid-template-columns:18px minmax(0,1fr) auto auto auto;align-items:center;gap:10px;padding:9px 12px 9px 14px;border-bottom:1px solid var(--border);box-shadow:inset 3px 0 0 transparent;transition:background .14s,box-shadow .14s}
+.movie-result-row{display:grid;grid-template-columns:18px minmax(0,1fr) auto auto auto auto;align-items:center;gap:10px;padding:9px 12px 9px 14px;border-bottom:1px solid var(--border);box-shadow:inset 3px 0 0 transparent;transition:background .14s,box-shadow .14s}
 .movie-result-row.is-dead .movie-result-title a{color:var(--muted);text-decoration:line-through}
 .movie-result-children{margin-left:6px;color:var(--text2)}
 .movie-result-row:last-child{border-bottom:0}
@@ -143,6 +144,9 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .movie-result-row.selected{background:var(--blue-dim);box-shadow:inset 3px 0 0 var(--blue)}
 .movie-result-row input{width:16px;height:16px;margin:0}
 .movie-result-details{min-width:0}
+/* Sizes line up in one column so two versions of a film compare at a glance. */
+.movie-result-size{min-width:64px;text-align:right;color:var(--text2);font-family:ui-monospace,Consolas,monospace;font-size:.72rem;font-variant-numeric:tabular-nums;white-space:nowrap}
+.movie-result-row.is-dead .movie-result-size{color:var(--muted)}
 .movie-result-title{display:flex;align-items:center;gap:8px;min-width:0}
 .movie-result-title a{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text);font-size:.84rem;font-weight:500;text-decoration:none}
 .movie-result-title a:hover{color:var(--blue)}
@@ -177,7 +181,11 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .movie-output-parent{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);font-size:.68rem}
 .movie-output-size{color:var(--text2);font-size:.7rem;font-variant-numeric:tabular-nums;white-space:nowrap}
 .movie-output-actions{display:flex;justify-content:flex-end;gap:7px;flex-wrap:wrap;padding:12px 14px;border-top:1px solid var(--border)}
-.movie-empty,.movie-output-empty{display:flex;align-items:center;justify-content:center;min-height:280px;padding:28px;text-align:center;color:var(--muted);font-size:.82rem;line-height:1.6}
+.movie-empty,.movie-output-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-height:280px;padding:28px;text-align:center;color:var(--muted);font-size:.82rem;line-height:1.6}
+.movie-empty p{margin:0;color:var(--text2)}
+.movie-empty-hint{color:var(--muted)!important;font-size:.76rem}
+.movie-search-hint{display:flex;justify-content:flex-end;gap:6px;margin-top:-2px;color:var(--muted);font-size:.66rem}
+.movie-search-hint kbd{padding:0 4px;border:1px solid var(--border2);border-bottom-width:2px;border-radius:4px;font-family:ui-monospace,Consolas,monospace;font-size:.62rem;color:var(--text2)}
 .movie-empty code{margin:0 4px;color:var(--accent);font-family:ui-monospace,Consolas,monospace;font-size:.78rem}
 .movie-error{color:var(--red)}
 [hidden]{display:none!important}
@@ -494,9 +502,10 @@ th.num-col,td.num-col{width:52px;text-align:right;padding-right:6px;color:var(--
   .movie-search-panel{grid-template-columns:1fr 1fr}
   .movie-search-field,.movie-show-dead{grid-column:1 / -1}
   .movie-group{margin:8px}
-  .movie-folder-head{grid-template-columns:auto minmax(0,1fr) auto}
-  .movie-folder-head .movie-row-action{grid-column:3;grid-row:1}
-  .movie-folder-meta{grid-column:2;white-space:normal}
+  .movie-folder-head{grid-template-columns:18px auto minmax(0,1fr) auto}
+  .movie-folder-head .movie-row-action{grid-column:4;grid-row:1}
+  .movie-folder-meta{grid-column:3;white-space:normal}
+  .movie-search-hint{display:none}
   .movie-search-panel>.btn2{min-height:38px}
   .movie-grid{grid-template-columns:1fr}
   .movie-results{max-height:none}
@@ -513,6 +522,7 @@ th.num-col,td.num-col{width:52px;text-align:right;padding-right:6px;color:var(--
   .movie-search-panel{grid-template-columns:1fr}
   .movie-search-field{grid-column:auto}
   .movie-result-row{grid-template-columns:18px minmax(0,1fr) auto;gap:8px}
+  .movie-result-size{grid-column:2;text-align:left;min-width:0}
   .movie-status{grid-column:2;justify-self:start}
   .movie-row-action{grid-column:3;grid-row:1}
   .movie-result-row>.movie-row-action:last-child{grid-column:3;grid-row:2}

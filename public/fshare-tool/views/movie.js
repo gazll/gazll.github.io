@@ -333,7 +333,6 @@ function currentStatus(row) {
 
 function rowMeta(row) {
   const parts = catalogConfig().raw ? [row.kind, row.code] : [row.code];
-  if (row.kind === 'file' && row.size) parts.push(fmtSize(row.size));
   if (row.parents && row.parents.length > 1) parts.push(`also in ${row.parents.length - 1} other folder${row.parents.length > 2 ? 's' : ''}`);
   if (row.sourceIds && row.sourceIds.length) parts.push(sourceName(movie.sourceMap, row.sourceIds[0]) + (row.sourceIds.length > 1 ? ` +${row.sourceIds.length - 1}` : ''));
   if (row.checkedAt) parts.push(`checked ${fmtDay(row.checkedAt)}`);
@@ -371,6 +370,15 @@ function highlighted(text, tokens = movie.tokens) {
   return fragment;
 }
 
+/* The folder's own box mirrors its rows: all, some (indeterminate) or none. */
+function syncFolderBox(section) {
+  const all = section?.querySelector('.movie-folder-select');
+  if (!all) return;
+  const rows = [...section.querySelectorAll('.movie-result-row')];
+  const on = rows.filter((row) => movie.selected.has(row.dataset.itemId)).length;
+  all.checked = on > 0 && on === rows.length;
+  all.indeterminate = on > 0 && on < rows.length;
+}
 function makeRow(row) {
   const element = document.createElement('article');
   const state = currentStatus(row);
@@ -384,6 +392,7 @@ function makeRow(row) {
   check.addEventListener('change', () => {
     if (check.checked) movie.selected.add(row.id); else movie.selected.delete(row.id);
     element.classList.toggle('selected', check.checked);
+    syncFolderBox(element.parentElement);
     renderControls();
   });
   element.appendChild(check);
@@ -392,10 +401,14 @@ function makeRow(row) {
   details.className = 'movie-result-details';
   const titleLine = document.createElement('div');
   titleLine.className = 'movie-result-title';
-  const kind = document.createElement('span');
-  kind.className = 'movie-kind ' + row.kind;
-  kind.textContent = row.kind === 'folder' ? 'FOLDER' : 'FILE';
-  titleLine.appendChild(kind);
+  // Movie search is files only, so a FILE badge on every row said nothing;
+  // the raw X index still mixes folders in and keeps the badge.
+  if (catalogConfig().raw) {
+    const kind = document.createElement('span');
+    kind.className = 'movie-kind ' + row.kind;
+    kind.textContent = row.kind === 'folder' ? 'FOLDER' : 'FILE';
+    titleLine.appendChild(kind);
+  }
   const title = document.createElement('a');
   title.href = row.link;
   title.target = '_blank';
@@ -418,6 +431,13 @@ function makeRow(row) {
   meta.title = meta.textContent;
   details.appendChild(meta);
   element.appendChild(details);
+
+  // Size is its own right-aligned column: the versions of one film sit
+  // together by name, and the column is what makes 10 GB vs 20 GB readable.
+  const size = document.createElement('span');
+  size.className = 'movie-result-size';
+  size.textContent = row.kind === 'file' && row.size ? fmtSize(row.size) : '';
+  element.appendChild(size);
 
   const status = document.createElement('span');
   status.className = 'movie-status status-' + state.status;
@@ -460,6 +480,31 @@ function groupIcon(kind) {
 function makeGroupHead(group) {
   const head = document.createElement('div');
   head.className = 'movie-folder-head';
+  // One box selects the whole folder — a season is downloaded as a set.
+  const all = document.createElement('input');
+  all.type = 'checkbox';
+  all.className = 'movie-folder-select';
+  const ids = group.links.map((row) => row.id);
+  const paint = () => {
+    const on = ids.filter((id) => movie.selected.has(id)).length;
+    all.checked = on > 0 && on === ids.length;
+    all.indeterminate = on > 0 && on < ids.length;
+  };
+  paint();
+  all.setAttribute('aria-label', 'Select every file in ' + (group.chain[group.chain.length - 1] || 'direct links'));
+  all.addEventListener('change', () => {
+    ids.forEach((id) => { if (all.checked) movie.selected.add(id); else movie.selected.delete(id); });
+    const section = head.parentElement;
+    section?.querySelectorAll('.movie-result-row').forEach((row) => {
+      const on = movie.selected.has(row.dataset.itemId);
+      row.classList.toggle('selected', on);
+      const box = row.querySelector('input[type=checkbox]');
+      if (box) box.checked = on;
+    });
+    paint();
+    renderControls();
+  });
+  head.appendChild(all);
   head.appendChild(groupIcon(group.chain.length ? 'folder' : 'link'));
   const crumbs = document.createElement('span');
   crumbs.className = 'movie-crumbs';
@@ -489,6 +534,8 @@ function makeGroupHead(group) {
   const meta = document.createElement('span');
   meta.className = 'movie-folder-meta';
   const bits = [`${group.links.length} file${group.links.length === 1 ? '' : 's'}`];
+  const total = group.links.reduce((sum, row) => sum + (Number(row.size) || 0), 0);
+  if (total) bits.push(fmtSize(total));
   if (group.folder) {
     const c = group.folder.children;
     if (c && c.files && c.files !== group.links.length) bits.push(`of ${number(c.files)} in folder`);
@@ -571,8 +618,37 @@ function renderResults() {
   list.classList.remove('is-searching');
   list.removeAttribute('aria-busy');
   if (!matches.length) {
-    const empty = movie.database.links.length ? config.empty : 'This sealed catalog holds no links yet.';
-    list.innerHTML = `<div class="movie-empty">${empty}</div>`;
+    const hidden = found.length - matches.length;
+    list.innerHTML = '';
+    const empty = document.createElement('div');
+    empty.className = 'movie-empty';
+    if (!movie.database.links.length) empty.textContent = 'This sealed catalog holds no links yet.';
+    else if (hidden) {
+      // The rows exist and the dead filter is what removed them: say so, and
+      // make showing them one click rather than a hunt for the checkbox.
+      const line = document.createElement('p');
+      line.textContent = `${number(hidden)} matching file${hidden === 1 ? ' is' : 's are'} dead or unknown and hidden.`;
+      const show = document.createElement('button');
+      show.type = 'button';
+      show.className = 'btn2';
+      show.textContent = 'Show dead & unknown';
+      show.addEventListener('click', () => { $('movieShowDead').checked = true; renderResults(); });
+      empty.append(line, show);
+    } else {
+      const line = document.createElement('p');
+      const trimmed = query.trim();
+      line.textContent = trimmed ? `No files match “${trimmed}”.` : config.empty;
+      empty.appendChild(line);
+      if (trimmed) {
+        const hint = document.createElement('p');
+        hint.className = 'movie-empty-hint';
+        hint.textContent = movie.tokens.length > 1
+          ? 'Every word must match — try fewer words, or the Vietnamese title.'
+          : 'Try another spelling, a year, or a folder name.';
+        empty.appendChild(hint);
+      }
+    }
+    list.appendChild(empty);
     setText('movieResultCount', config.raw
       ? `0 of ${number(movie.database.links.length)} raw links`
       : `0 of ${number(movie.fileCount)} files`);
