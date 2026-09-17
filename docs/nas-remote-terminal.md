@@ -128,6 +128,26 @@ cạnh máy hoặc có SSH LAN, không làm qua remote. Sau khi chuyển: `ls -l
 Mấy thứ ghi hệ thống khác (log DSM, `thumbd`, `synoelasticd`) nằm trên phân vùng hệ thống mirror
 cả 3 ổ — nếu `/var/log/hibernation.log` (đã bật) báo ổ thức mà không phải do ta, xem log đó để tìm tên process.
 
+## Những gì còn chạm ổ to sau khi dọn (2026-09-17)
+
+### DSM PostgreSQL (`@database/pgsql`) — dời sang volume1 (làm 2026-09-17)
+
+DSM đặt DB hệ thống ở volume có nhiều chỗ trống nhất lúc khởi tạo (`/var/services/pgsql → /volume2/@database/pgsql`
+từ 2025-08-15). Download Station ghi vào đó liên tục khi tải/seed → 14 TB không ngủ (`block_dump`: 186 write/10 phút; 0 khi DS stop).
+Script: `home-nas/bin/move-pgsql.sh` (`sudo sh …`), có kiểm tra và rollback. Nó làm:
+stop DS → stop `pgsql-adapter` + `pgsql` → nếu postgres còn (unit có `KillMode=none`; một lần start ngoài systemd
+để lại process mồ côi) thì `kill -INT <postmaster>` (= `pg_ctl -m fast`) → `cp -a` → `servicetool --set-service-data-store-path pgsql <dst>`
+→ symlink → start `pgsql` rồi `pgsql-adapter` → đổi tên bản cũ `pgsql.moved-YYYYMMDD`, để symlink ở chỗ cũ.
+Kiểm: `readlink /var/services/pgsql` = `/volume1/@database/pgsql`, `servicetool --get-service-volume pgsql` = `/volume1`,
+`systemctl is-active pgsql pgsql-adapter`. Sau một reboot còn đúng → `rm -rf /volume2/@database/pgsql.moved-*`.
+Bài học: DSM **không có `pgrep`** (dùng `pidof`); `synosystemctl stop pgsql` không giết postgres mà nó không quản.
+Rollback: stop 2 unit → `servicetool --unset-service-data-store-path pgsql` → symlink về bản cũ → start.
+
+- 2026-09-17: `SYNO.Core.Syslog` ghi md0 mỗi 60 s **khi DSM web đang mở** — kiểm chứng: logout DSM → 0 lần. Quy tắc: logout DSM.
+- 2026-09-17: Postgres của DSM (Download Station) ghi volume2 mỗi checkpoint → dời `@database/pgsql` sang volume1 (mục trên).
+- 2026-09-17: SMB transfer log (`.SMBXFERDB` trong `/volume2/@database/synolog`) ghi khi copy qua SMB → tắt ở SMB → Advanced nếu không cần.
+- SynoFinder (`@SynoFinder-log/etc-volume`) tự chọn volume nhiều chỗ trống nhất, dời tay là nó dời lại; nó chỉ ghi lúc khởi động/re-index → bỏ qua.
+
 ## An toàn
 
 - Funnel = **public internet**. Lớp bảo vệ duy nhất là basic‑auth của ttyd → mật khẩu dài ngẫu nhiên
