@@ -206,6 +206,23 @@ const STARTER = {
   ]
 };
 
+/* The hint rides outside the ciphertext, so it is as public as the repo. A
+   hint that carries characters of the passphrase — even "buried in noise", as
+   the playbook once advised — shortens an attacker's search by exactly that
+   much, and the trick itself is documented here. The seal tool holds both
+   strings at once, so it can refuse rather than trust the author's judgement:
+   no run of HINT_RUN characters may appear in both. */
+const HINT_RUN = 4;
+export function hintLeaks(hint, passphrase) {
+  const a = String(hint || '').toLowerCase();
+  const b = String(passphrase || '').toLowerCase();
+  for (let i = 0; i + HINT_RUN <= a.length; i++) {
+    const run = a.slice(i, i + HINT_RUN);
+    if (run.trim().length === HINT_RUN && b.includes(run)) return run;
+  }
+  return '';
+}
+
 async function main() {
   const command = ['seal', 'unseal', 'init', 'validate'].find(name => process.argv.includes(name))
     || (process.argv.includes('--check') ? 'check' : null);
@@ -238,7 +255,10 @@ async function main() {
     const document = await readJson(PLAIN);
     const problems = validate(document);
     if (problems.length) die(`${problems.length} problem(s):\n  ${problems.join('\n  ')}`);
-    await writeJson(SEALED, await seal(document, await passphrase(), { hint: document.hint }));
+    const key = await passphrase();
+    const leak = hintLeaks(document.hint, key);
+    if (leak) die(`The hint contains "${leak}", which is also in the passphrase. The hint is published in the clear beside the ciphertext — it must share no run of ${HINT_RUN} characters with the passphrase. Write a cue only you can follow, not a fragment.`);
+    await writeJson(SEALED, await seal(document, key, { hint: document.hint }));
     return out(`Sealed ${document.events.length} event(s) into ${path.relative(ROOT, SEALED)}. Commit it.`);
   }
 
@@ -266,4 +286,5 @@ async function main() {
   out(`Envelope opens; ${opened.events.length} event(s) valid; sealed ${envelope.sealed_at}.`);
 }
 
-main().catch(error => die(error.message || String(error)));
+const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+if (isMain) main().catch(error => die(error.message || String(error)));
