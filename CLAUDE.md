@@ -163,6 +163,7 @@ docs/README.md       what each group under docs/ is for, and its lifecycle
 docs/content-playbook.md  how to add/update study content end to end
 docs/schedule-playbook.md  the calendar, the sealed schedule, and how to recover it
 docs/fshare-movie-playbook.md  the movie link catalog: raw → catalog → validate → seal
+docs/nas-remote-terminal.md  NAS as remote dev box: ttyd + tmux + Tailscale Funnel, keep big HDDs asleep
 docs/english-speaking-os-complete-2026.md  NOT documentation — shipped data.
                      server/api/content/english-study.get.ts reads this exact
                      path, so moving or renaming it breaks /english-study
