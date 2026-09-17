@@ -86,7 +86,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .movie-unlock input:focus{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-dim)}
 .movie-check{display:inline-flex;align-items:center;gap:7px;min-height:38px;color:var(--text2);font-size:.78rem;white-space:nowrap;cursor:pointer}
 .movie-check input{width:15px;height:15px;margin:0;accent-color:var(--accent)}
-.movie-search-panel{display:grid;grid-template-columns:minmax(240px,1fr) 200px auto auto;align-items:end;gap:10px;margin:20px 0 14px;padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)}
+.movie-search-panel{display:grid;grid-template-columns:minmax(240px,1fr) auto auto;align-items:end;gap:10px;margin:20px 0 14px;padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)}
 .movie-type-switch{grid-column:1 / -1;display:flex;align-items:center;flex-wrap:wrap;gap:7px;padding-bottom:10px;border-bottom:1px solid var(--border)}
 .movie-type-label{margin-right:3px;color:var(--muted);font-family:ui-monospace,Consolas,monospace;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
 .movie-type-switch .btn2{min-height:32px;padding:5px 12px}

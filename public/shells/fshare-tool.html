@@ -100,13 +100,15 @@
           <span id="movieSearchLabel">Search files by name, folder, alias or link code</span>
           <input id="movieSearchInput" type="search" autocomplete="off" placeholder="Try: Dune 2021, anime, 4K..."/>
         </label>
-        <label class="movie-filter-field" for="movieSourceSelect">
+        <!-- Every catalog is searched across all its sources; the select stays
+             for the code that reads it, out of sight. -->
+        <label class="movie-filter-field" for="movieSourceSelect" hidden>
           <span>Source</span>
           <select id="movieSourceSelect"><option value="all">All sources</option></select>
         </label>
         <label class="movie-check movie-show-dead" id="movieStatusFilter"><input type="checkbox" id="movieShowDead"/> <span id="movieStatusLabel">Show dead &amp; unknown</span></label>
         <button class="btn2" id="movieClearSearch" type="button">Clear</button>
-        <span class="movie-search-hint" aria-hidden="true"><kbd>/</kbd> focus search · <kbd>Enter</kbd> search now · <kbd>Esc</kbd> clear</span>
+        <span class="movie-search-hint" aria-hidden="true"><kbd>Enter</kbd> search now · <kbd>Esc</kbd> clear</span>
       </section>
 
       <section class="movie-progress" id="movieProgress" hidden aria-live="polite">
