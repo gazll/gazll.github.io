@@ -202,17 +202,24 @@ export function narrowsSearch(prev, next) {
 
 const sizeOf = (row) => Number.isFinite(Number(row?.size)) ? Number(row.size) : 0;
 
-function sortMovieRowsBySize(rows, nameOf = (row) => fold(row.name)) {
+/** Smallest first, then name, then code — the order inside one folder. */
+export function sortMovieRowsBySize(rows, nameOf = (row) => fold(row.name)) {
   return (rows || [])
     .map((row) => [sizeOf(row), nameOf(row), String(row.code || ''), row])
     .sort((a, b) => a[0] - b[0] || COLLATOR.compare(a[1], b[1]) || a[2].localeCompare(b[2]))
     .map((pair) => pair[3]);
 }
 
-export function searchMovieLinks(links, query, { kind = 'all', status = 'all', sourceId = 'all', byId = null, index = null } = {}) {
+/**
+ * The rows a query matches, in catalog order and nothing else: a one-letter
+ * query matches 60k of 88k files, and sorting those to show 150 was what
+ * made the first keystroke stall. Every token must be a substring of the
+ * row's folded haystack (name, aliases, code, path, the folders above it).
+ */
+export function matchMovieLinks(links, query, { kind = 'all', status = 'all', sourceId = 'all', byId = null, index = null } = {}) {
   const tokens = queryTokens(query);
   const hayOf = (row) => (index && index.hay.get(row)) ?? movieHaystack(row, byId);
-  const matches = (links || []).filter((row) => {
+  return (links || []).filter((row) => {
     if (kind !== 'all' && row.kind !== kind) return false;
     if (status !== 'all' && row.status !== status) return false;
     if (sourceId !== 'all' && !(row.sourceIds || []).includes(sourceId)) return false;
@@ -220,7 +227,85 @@ export function searchMovieLinks(links, query, { kind = 'all', status = 'all', s
     const haystack = hayOf(row);
     return tokens.every((token) => haystack.includes(token));
   });
-  return sortMovieRowsBySize(matches);
+}
+
+export function searchMovieLinks(links, query, options = {}) {
+  const nameOf = (row) => (options.index && options.index.nameKey.get(row)) ?? fold(row.name);
+  return sortMovieRowsBySize(matchMovieLinks(links, query, options), nameOf);
+}
+
+/**
+ * Matches grouped under their holding folder, groups ordered by how well the
+ * folder answers the query: a folder whose own name or alias carries every
+ * token first (the film was filed under that name), then folders where some
+ * token is in the folder, then folders reached only through a file's own
+ * name or a grandparent; ties by name, and with no query plain name order —
+ * the browse view. Only the ORDER OF GROUPS is decided here: a group's rows
+ * are sorted by the caller for the groups it renders (sortMovieRowsBySize),
+ * so a query matching 8k folders costs one pass and one 8k-element sort.
+ */
+export function rankFolderGroups(matches, query, byId, index = null) {
+  const tokens = queryTokens(query);
+  const nameOf = (row) => (index && index.nameKey.get(row)) ?? fold(row.name);
+  const groups = new Map();
+  for (const row of matches || []) {
+    const parentId = row.parents && row.parents.length ? row.parents[0] : '';
+    let group = groups.get(parentId);
+    if (!group) {
+      const folder = parentId && byId ? byId.get(parentId) || null : null;
+      group = { key: parentId || '(standalone)', folder, links: [], score: 0, nameKey: folder ? nameOf(folder) : '' };
+      groups.set(parentId, group);
+    }
+    group.links.push(row);
+  }
+  if (tokens.length) {
+    for (const group of groups.values()) {
+      const folderText = group.folder ? fold([group.folder.name, ...(group.folder.aliases || [])].join(' ')) : '';
+      const inFolder = tokens.filter((token) => folderText.includes(token)).length;
+      const byOwnName = group.links.some((row) => { const name = nameOf(row); return tokens.every((token) => name.includes(token)); });
+      group.score = (inFolder === tokens.length ? 4 : inFolder ? 2 : 0) + (byOwnName ? 1 : 0);
+    }
+  }
+  return [...groups.values()].sort((a, b) => b.score - a.score || COLLATOR.compare(a.nameKey, b.nameKey) || a.key.localeCompare(b.key));
+}
+
+/**
+ * fold() for highlighting: the same folding, one output unit per input unit,
+ * so an offset found in the folded text is the offset in the original.
+ * fold() itself may not be used for this — NFKD turns "ế" into three units.
+ */
+export function foldAligned(text) {
+  let out = '';
+  for (const ch of String(text || '')) {
+    let folded = ch === 'đ' || ch === 'Đ' ? 'd' : (ch.normalize('NFKD')[0] || ch).toLowerCase();
+    if (folded.length !== ch.length) folded = ch;
+    out += folded;
+  }
+  return out;
+}
+
+/** [start, end) ranges of every token in `text`, merged, for <mark>. */
+export function matchRanges(text, tokens) {
+  const folded = foldAligned(text);
+  const ranges = [];
+  for (const token of tokens || []) {
+    if (!token) continue;
+    let from = 0;
+    while (from < folded.length) {
+      const at = folded.indexOf(token, from);
+      if (at < 0) break;
+      ranges.push([at, at + token.length]);
+      from = at + token.length;
+    }
+  }
+  ranges.sort((a, b) => a[0] - b[0]);
+  const merged = [];
+  for (const range of ranges) {
+    const last = merged[merged.length - 1];
+    if (last && range[0] <= last[1]) last[1] = Math.max(last[1], range[1]);
+    else merged.push(range.slice());
+  }
+  return merged;
 }
 
 /** Files grouped by folder, with the smallest result first within each group. */

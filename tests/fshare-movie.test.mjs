@@ -12,8 +12,8 @@ import {
 } from '../tools/fshare-movie.mjs';
 import { parseArgs, probeRow, selectRows } from '../tools/fshare-movie-shard.mjs';
 import {
-  buildSearchIndex, extractFshareLinks, folderChain, groupByFolder, indexById, keywordTokens, movieHaystack, narrowsSearch,
-  normalizeMovieDatabase, searchMovieLinks, titleKey
+  buildSearchIndex, extractFshareLinks, folderChain, groupByFolder, indexById, keywordTokens, matchMovieLinks, matchRanges,
+  movieHaystack, narrowsSearch, normalizeMovieDatabase, rankFolderGroups, searchMovieLinks, titleKey
 } from '../public/fshare-tool/lib/movie-db.js';
 import { crawlMovieFolder } from '../public/fshare-tool/lib/movie-check.js';
 import { seal, unseal } from '../public/lib/schedule-crypto.js';
@@ -250,6 +250,24 @@ test('search finds a file by the folders above it, and results group under the h
   assert.deepEqual(searchMovieLinks(db.links, 'dune 2021', { kind: 'file', byId }).map((r) => r.code), ['B', 'B2']);
   assert.deepEqual(searchMovieLinks(db.links, 'xu cat', { kind: 'file', byId }).map((r) => r.code), ['D'], 'a folder alias reaches its files');
   assert.ok(!('keywords' in db.links[0]), 'no keyword list on a row: the haystack already holds that text');
+
+  // The view matches without sorting and ranks GROUPS: a folder whose own
+  // name carries every token first, then folders reached through a file's
+  // name; a group's rows are sorted only when rendered.
+  const ranking = buildSearchIndex(db.links, (row, above) => movieHaystack(row, byId, above));
+  const matches = matchMovieLinks(db.links, 'dune', { kind: 'file', byId, index: ranking });
+  assert.deepEqual(matches.map((r) => r.code), ['B', 'B2', 'D', 'E'], 'catalog order, unsorted');
+  const ranked = rankFolderGroups(matches, 'dune', byId, ranking);
+  assert.deepEqual(ranked.map((g) => [g.folder ? g.folder.name : '(direct)', g.score]), [
+    ['Dune (1984)', 4], ['Dune (2021)', 5], ['(direct)', 1]
+  ].sort((a, b) => b[1] - a[1]), 'folders named for the query outrank a standalone file that merely contains it');
+  assert.equal(rankFolderGroups(matches, '', byId, ranking).every((g) => g.score === 0), true, 'no query, no ranking — name order');
+
+  // Highlight offsets come from a length-preserving fold, so "phap su" lands
+  // on "Pháp Sư" in the original and never mid-character.
+  assert.deepEqual(matchRanges('Frieren Pháp Sư Tiễn Táng - Sousou no Frieren', ['frieren', 'phap su']), [[0, 7], [8, 15], [38, 45]]);
+  assert.deepEqual(matchRanges('Đường về', ['duong']), [[0, 5]]);
+  assert.deepEqual(matchRanges('abcabc', ['abc', 'bca']), [[0, 6]], 'overlapping tokens merge');
 
   const groups = groupByFolder(searchMovieLinks(db.links, 'dune', { kind: 'file', byId }), byId);
   assert.deepEqual(groups.map((g) => [g.chain.join(' › ') || '(standalone)', g.links.length]), [

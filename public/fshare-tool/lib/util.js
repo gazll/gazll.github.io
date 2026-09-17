@@ -115,8 +115,11 @@ export function skeletonRows(n) {
 
 export function debounce(fn, ms) {
   let t = null;
-  return function (...args) {
+  const debounced = function (...args) {
     clearTimeout(t);
     t = setTimeout(() => fn.apply(null, args), ms);
   };
+  // Enter runs the search now; the pending one must not run again after it.
+  debounced.cancel = () => clearTimeout(t);
+  return debounced;
 }

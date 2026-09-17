@@ -518,3 +518,8 @@ th.num-col,td.num-col{width:52px;text-align:right;padding-right:6px;color:var(--
   .movie-result-row>.movie-row-action:last-child{grid-column:3;grid-row:2}
   .movie-result-meta{max-width:50vw}
 }
+/* Query tokens inside a result name or a folder crumb. Colour stays the text's
+   own so a dead (struck-through, muted) row reads the same with or without a
+   match; only the tint says "this is why it matched". */
+.movie-result-title mark,.movie-crumb mark{background:rgba(245,166,35,.28);color:inherit;border-radius:3px;padding:0 1px}
+body.light .movie-result-title mark,body.light .movie-crumb mark{background:rgba(245,166,35,.4)}

@@ -10,8 +10,8 @@
 import { $ } from '../lib/state.js';
 import { copyText, debounce, downloadTxt, fmtSize, toast } from '../lib/util.js';
 import {
-  MOVIE_DB_URL, buildSearchIndex, groupByFolder, indexById, movieHaystack, narrowsSearch,
-  normalizeMovieDatabase, searchMovieLinks, sourceName
+  MOVIE_DB_URL, buildSearchIndex, folderChain, indexById, matchMovieLinks, matchRanges, movieHaystack, narrowsSearch,
+  normalizeMovieDatabase, queryTokens, rankFolderGroups, sortMovieRowsBySize, sourceName
 } from '../lib/movie-db.js';
 import { X_DB_URL, normalizeXDatabase, searchXLinks, xHaystack } from '../lib/x-db.js';
 import { validateMovieEntries } from '../lib/movie-check.js';
@@ -66,6 +66,8 @@ const movie = {
      narrows the previous one is searched within this set instead of the
      whole catalog — see narrowsSearch. */
   lastSearch: null,
+  browse: null,         // the empty-query grouping, the state every clear returns to
+  tokens: [],           // the current query's folded tokens, for <mark>
   shown: [],
   selected: new Set(),
   statuses: new Map(),
@@ -100,10 +102,12 @@ function setCurrentDatabase(type, database) {
   movie.index = database ? movie.indexes.get(type) || null : null;
   movie.fileCount = database ? database.links.reduce((total, row) => total + (row.kind === 'file' ? 1 : 0), 0) : 0;
   movie.lastSearch = null;
+  movie.browse = null;
 }
 
 function clearWorkingState() {
   movie.lastSearch = null;
+  movie.browse = null;
   movie.shown = [];
   movie.selected.clear();
   movie.statuses.clear();
@@ -128,7 +132,7 @@ function paintTypeSwitch() {
   setText('movieTypeDescription', config.description);
   setText('movieResultsTitle', config.raw ? 'X links' : 'Files, by folder');
   setText('movieStatusLabel', config.raw ? 'Raw links are not validated' : 'Show dead & unknown');
-  setText('movieSearchLabel', config.raw ? 'Search X links by name or link code' : 'Search files by name, folder, alias, or link code');
+  setText('movieSearchLabel', config.raw ? 'Search X links by name or link code' : 'Search files by name, folder, alias, or link code · Enter searches now · / focuses');
   const panel = $('movieSearchPanel');
   if (panel) panel.setAttribute('aria-label', config.raw ? 'X link filters' : 'Movie catalog filters');
   const input = $('movieSearchInput');
@@ -351,6 +355,22 @@ function childrenSummary(row) {
   return bits.join(' · ');
 }
 
+/** `text` as text nodes with every query token wrapped in <mark>. */
+function highlighted(text, tokens = movie.tokens) {
+  const fragment = document.createDocumentFragment();
+  const ranges = tokens.length ? matchRanges(text, tokens) : [];
+  let at = 0;
+  for (const [start, end] of ranges) {
+    if (start > at) fragment.appendChild(document.createTextNode(text.slice(at, start)));
+    const mark = document.createElement('mark');
+    mark.textContent = text.slice(start, end);
+    fragment.appendChild(mark);
+    at = end;
+  }
+  if (at < text.length) fragment.appendChild(document.createTextNode(text.slice(at)));
+  return fragment;
+}
+
 function makeRow(row) {
   const element = document.createElement('article');
   const state = currentStatus(row);
@@ -380,7 +400,7 @@ function makeRow(row) {
   title.href = row.link;
   title.target = '_blank';
   title.rel = 'noopener noreferrer';
-  title.textContent = row.name;
+  title.appendChild(highlighted(row.name));
   title.title = [row.name, ...(row.aliases || [])].join('\n');
   titleLine.appendChild(title);
   const children = childrenSummary(row);
@@ -460,7 +480,7 @@ function makeGroupHead(group) {
       const crumb = document.createElement(last ? 'strong' : 'span');
       crumb.className = 'movie-crumb' + (last ? ' is-leaf' : '');
       // Sheet titles carry list bullets ("- - Bluray…"); they are not part of the name.
-      crumb.textContent = name.replace(/^[\s\-–—·•*]+/, '');
+      crumb.appendChild(highlighted(name.replace(/^[\s\-–—·•*]+/, '')));
       crumb.title = name;
       crumbs.appendChild(crumb);
     });
@@ -523,14 +543,28 @@ function renderResults() {
   // result of its own — a folder row was a click to find out what it held. A
   // file matches by its own name or by any folder above it (the chain is in
   // its haystack), so "frieren" lists "Sousou no Frieren - 27" under the
-  // folder that carries the Vietnamese title. X is an independent raw index,
-  // so there folders and files remain searchable as links.
+  // folder that carries the Vietnamese title. Matches come back unsorted and
+  // only the GROUPS are ordered (by relevance); a group's rows are sorted as
+  // it is rendered, so a one-letter query does not sort 60k rows to show 150.
+  // X is an independent raw index, so there folders and files remain
+  // searchable as links.
   const found = config.raw
     ? searchXLinks(pool, query, { sourceId, index: movie.index })
-    : searchMovieLinks(pool, query, { kind: 'file', sourceId, byId: movie.byId, index: movie.index });
+    : matchMovieLinks(pool, query, { kind: 'file', sourceId, byId: movie.byId, index: movie.index });
   movie.lastSearch = { key: searchKey, query, rows: found };
+  movie.tokens = config.raw ? [] : queryTokens(query);
   const matches = config.raw ? found : found.filter((row) => showDead || currentStatus(row).status === 'live');
-  const groups = config.raw ? [] : groupByFolder(matches, movie.byId, movie.index);
+  // The empty query is where every Esc and Clear lands, and grouping 11k
+  // folders is the one step that cannot be narrowed — keep it.
+  const browseKey = `${searchKey}|${showDead}`;
+  let groups = [];
+  if (!config.raw) {
+    if (!movie.tokens.length && movie.browse && movie.browse.key === browseKey) groups = movie.browse.groups;
+    else {
+      groups = rankFolderGroups(matches, query, movie.byId, movie.index);
+      if (!movie.tokens.length) movie.browse = { key: browseKey, groups };
+    }
+  }
 
   movie.shown = [];
   list.innerHTML = '';
@@ -564,9 +598,12 @@ function renderResults() {
   if (config.raw) {
     fragment.appendChild(makeGroup(makeRawHead(matches.length), matches, true));
   } else {
+    const nameOf = (row) => movie.index?.nameKey.get(row) ?? row.name;
     for (const group of groups) {
       if (rows >= ROW_LIMIT) break;
-      fragment.appendChild(makeGroup(makeGroupHead(group), group.links, !group.chain.length));
+      const links = sortMovieRowsBySize(group.links, nameOf);
+      const chain = folderChain(links[0], movie.byId);
+      fragment.appendChild(makeGroup(makeGroupHead({ ...group, chain }), links, !chain.length));
     }
   }
   list.appendChild(fragment);
@@ -690,6 +727,7 @@ function startValidation() {
     shouldStop: () => run.abort,
     onEntry: (report, index, total) => {
       movie.statuses.set(report.entry.id, report);
+      movie.browse = null;
       paintStatus(report.entry.id, report.status, report.error);
       const label = report.status === 'checking'
         ? `Checking ${report.entry.name}`
@@ -738,18 +776,37 @@ function copySelected() {
 function wireMovieEvents() {
   if (movie.wired) return;
   movie.wired = true;
-  const rerender = debounce(renderResults, 120);
-  /* The debounce is the only wait left now that a search is milliseconds,
-     but during it the list still shows the previous query's rows. Mark it
-     stale on the first keystroke so it reads as "updating", not "wrong". */
+  /* A search runs once typing pauses, not on every keystroke: the first
+     letters match most of the catalog and cost the most, and a scan on each
+     of them is what stuttered. 400ms is the pause between words; Enter runs
+     it at once. During the wait the list shows the previous query's rows,
+     marked stale so it reads as "updating", not "wrong". */
+  const SEARCH_PAUSE_MS = 400;
+  const rerender = debounce(renderResults, SEARCH_PAUSE_MS);
   const searchTyped = () => {
     const list = $('movieResults');
     if (list && movie.database) {
       list.classList.add('is-searching');
       list.setAttribute('aria-busy', 'true');
+      setText('movieResultCount', 'Searching…');
     }
     rerender();
   };
+  $('movieSearchInput').addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') { event.preventDefault(); rerender.cancel?.(); renderResults(); }
+    if (event.key === 'Escape' && $('movieSearchInput').value) { event.preventDefault(); $('movieSearchInput').value = ''; renderResults(); }
+  });
+  document.addEventListener('keydown', (event) => {
+    // "/" jumps to the search box, as on GitHub — unless the reader is typing.
+    if (event.key !== '/' || event.ctrlKey || event.metaKey || event.altKey) return;
+    const active = document.activeElement;
+    if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable)) return;
+    const input = $('movieSearchInput');
+    if (!input || !movie.database || input.closest('[hidden]')) return;
+    event.preventDefault();
+    input.focus();
+    input.select();
+  });
   document.querySelectorAll('[data-movie-type]').forEach((button) => {
     button.addEventListener('click', () => { void switchCatalogType(button.getAttribute('data-movie-type')); });
   });
