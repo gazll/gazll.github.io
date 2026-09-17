@@ -308,6 +308,16 @@ dòng — chỉ trong catalog, không vào envelope (xem "Những thứ dễ h�
 
 ## Làm trên máy khác (NAS)
 
+Máy NAS thật sự là **ASRock J3455-ITX** chạy DSM (báo DS920+/DS918+): Celeron
+J3455 4 nhân 1,5GHz, **4GB DDR3L** trong 2 khe SO-DIMM (tối đa 16GB = 2×8GB
+DDR3L-1866 1,35V — không phải DDR4 như DS920+ thật, đừng mua D4NESO). Với 4GB
+tổng, Node tự đặt trần heap ~1,8GB — đó là con số OOM 2026-09-16; `ensureHeap`
+nới được tới 75% RAM máy. Idle đã dùng ~1,4GB + 0,5GB swap (Claude/Codex
+session ~430MB mỗi cái, postgres, transmission), nên một lần validate cạnh
+một session AI là chạm swap. CPU không nâng được; mọi số đo "Node" trong
+tài liệu này là trên CPU này, laptop nhanh gấp 3–4 lần.
+
+
 Job validate dài giờ nên chạy trên NAS hợp lý hơn laptop. Repo clone được từ
 git; những gì **không** nằm trong git phải copy tay, và catalog (header + `catalog/`) là
 **bản duy nhất** — bên nào chạy tiếp thì bên đó giữ, xong thì copy ngược lại
