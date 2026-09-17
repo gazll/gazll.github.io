@@ -12,7 +12,7 @@ thì `p <tên>` / `claude-project <tên>` / `codex-project <tên>` (hàm trong `
 |---|---|---|
 | `ttyd` 1.7.7 (web terminal) | `/volume1/0_System/project/home-nas/bin/ttyd` → `~/.local/bin/ttyd` | 1 |
 | `tmux` | gói DiagnosisTool (`/var/packages/DiagnosisTool/target/tool/tmux`) | hệ thống |
-| Tailscale 1.58 (Funnel) | gói Tailscale (`/volume1/@appstore/Tailscale`) | 1 |
+| Tailscale ≥1.102 (Funnel) — cài spk từ pkgs.tailscale.com, bản Package Center 1.58 lỗi ingress | gói Tailscale (`/volume1/@appstore/Tailscale`) | 1 |
 | Repo + `~/.claude ~/.codex ~/.codegraph ~/.npm ~/.cache` | `/volume1/0_System/project/` | 1 |
 | Home (`~/.claude.json`, `.bash_history`, `.profile`) | `/volume2/homes/nas` — **còn trên ổ 14 TB** | 2 ⚠ |
 
@@ -29,6 +29,7 @@ PROJ=/volume1/0_System/project
 # Task Scheduler starts this with no HOME/USER; git and every dotfile need them.
 export HOME=/var/services/homes/nas USER=nas LOGNAME=nas
 TMUX=/var/packages/DiagnosisTool/target/tool/tmux
+TS=/var/packages/Tailscale/target/bin/tailscale
 export PATH="$H/bin:/var/packages/Git/target/bin:$HOME/.local/bin:$PATH"
 export HISTFILE=$H/.bash_history          # đừng ghi history lên /volume2/homes
 
@@ -50,6 +51,19 @@ done
 # -W ghi được, -O chặn origin lạ, -a nhận ?arg=<session>, tối đa 2 client
 $TMUX kill-session -t ttyd 2>/dev/null; pkill -x ttyd 2>/dev/null
 $TMUX new -d -s ttyd -c $H "exec $H/bin/ttyd -p 7681 -i 127.0.0.1 -W -O -a --max-clients 2 -c \"\$(cat $H/ttyd.cred)\" -t fontSize=15 -t titleFixed=NAS $H/bin/nas-attach >> $H/ttyd.log 2>&1"
+
+# Funnel came back "on" after a reboot yet answered nothing: tailscaled
+# dropped the ingress→peerapi packets ("no rules matched") until funnel was
+# reset. Re-applying it is idempotent, so do it every start, once the node
+# is actually Running (the boot task can fire before tailscaled is).
+if [ -x $TS ]; then
+  i=0
+  while [ $i -lt 30 ] && [ "$($TS status --json 2>/dev/null | sed -n 's/.*"BackendState": *"\([A-Za-z]*\)".*/\1/p' | head -1)" != Running ]; do
+    i=$((i+1)); sleep 2
+  done
+  $TS funnel reset >/dev/null 2>&1
+  $TS funnel --bg 7681 >/dev/null 2>&1 && echo "funnel: https://nas.tail74216c.ts.net" || echo "funnel: FAILED (chạy tay: $TS funnel --bg 7681)"
+fi
 echo "ttyd :7681 (tmux session ttyd) → tmux [claude|codex] — login $(cat $H/ttyd.cred)"
 ```
 
@@ -90,8 +104,30 @@ Không có nút bật Funnel cho từng máy trên web — bước đó làm b�
    $TS funnel status
    ```
    Cấu hình serve/funnel được lưu, **sống qua reboot**; gói Tailscale tự khởi động cùng DSM.
+   `nas-terminal start` vẫn `funnel reset` + bật lại mỗi lần boot (xem sự cố 19:00 bên dưới).
    Tắt khi không cần: `tailscale funnel --https=443 off` (hoặc `tailscale funnel reset`).
 5. Chỉ dùng trong tailnet (iPad/laptop có Tailscale) mà không public: thay `funnel` bằng `serve`.
+
+### Funnel "on" nhưng web báo ERR_TIMED_OUT (2026-09-17 19:00, sau reboot)
+
+Triệu chứng: `tailscale funnel status` = on, DNS đúng, cert đúng, `curl 127.0.0.1:7681` = 401,
+nhưng `https://nas.<tailnet>.ts.net` treo ở TLS ClientHello (không có ServerHello) — lúc được lúc không.
+Log tailscaled: `Drop: TCP{[fd7a:…:ab12:4843:cd96:…]:… > [fd7a:…:c501:c158]:34042} no rules matched`.
+
+Nguyên nhân: `tailscale debug netmap` cho thấy rule cấp quyền ingress (`Caps: …/cap/ingress`)
+chỉ liệt kê các node `funnel-ingress-node` kiểu địa chỉ cũ (`fd7a:115c:a1e0::xxxx:xxxx`), còn
+các ingress node mới (`fd7a:115c:a1e0:ab12:…`) có trong peer list nhưng **không có trong rule**,
+nên client 1.58.2 (01/2024) drop. Tên DNS trỏ tới 2 ingress host trong region → ~50 % request treo.
+
+Sửa:
+1. Tạm: `tailscale funnel reset && tailscale funnel --bg 7681` — làm ingress reconnect, đỡ được
+   một phần; `nas-terminal start` giờ tự làm bước này sau khi tailscale Running (idempotent).
+2. Triệt để: **nâng gói Tailscale** — bản trong Package Center quá cũ. File đã tải sẵn
+   `/volume1/0_System/project/home-nas/tailscale-x86_64-1.102.4-700102004-dsm7.spk`
+   (từ `https://pkgs.tailscale.com/stable/`). Package Center → *Manual Install* → chọn file →
+   Next tới hết. Sau đó kiểm: `tailscale version`, `tailscale funnel status`, mở URL 5 lần liên tiếp.
+   Setting `--operator=nas` và cấu hình funnel nằm trong `tailscaled.state` nên **giữ nguyên qua nâng cấp**;
+   nếu mất: chạy lại bước 4 ở §2.
 
 ## 3. DSM Task Scheduler
 
