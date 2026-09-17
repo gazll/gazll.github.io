@@ -33,7 +33,7 @@ export PATH="$H/bin:/var/packages/Git/target/bin:$HOME/.local/bin:$PATH"
 export HISTFILE=$H/.bash_history          # đừng ghi history lên /volume2/homes
 
 case "$1" in
-  stop)  pkill -x ttyd; $TMUX kill-server; exit 0 ;;
+  stop)  $TMUX kill-session -t ttyd 2>/dev/null; pkill -x ttyd; $TMUX kill-server; exit 0 ;;
 esac
 
 umask 077
@@ -43,12 +43,14 @@ for s in claude codex; do
   $TMUX has-session -t $s 2>/dev/null || $TMUX new -d -s $s -c $PROJ
 done
 
+# ttyd runs INSIDE the tmux server (its own session), not as a child of
+# whoever ran this script: a task "Run" from DSM's web UI lives under
+# synoscgi, and restarting DSM killed ttyd that way once. The tmux server
+# is started at boot and outlives every DSM service restart.
 # -W ghi được, -O chặn origin lạ, -a nhận ?arg=<session>, tối đa 2 client
-pkill -x ttyd 2>/dev/null
-nohup ttyd -p 7681 -i 127.0.0.1 -W -O -a --max-clients 2 -c "$(cat $H/ttyd.cred)" \
-  -t fontSize=15 -t titleFixed=NAS \
-  $H/bin/nas-attach > $H/ttyd.log 2>&1 &
-echo "ttyd :7681 → tmux [claude|codex] — login $(cat $H/ttyd.cred)"
+$TMUX kill-session -t ttyd 2>/dev/null; pkill -x ttyd 2>/dev/null
+$TMUX new -d -s ttyd -c $H "exec $H/bin/ttyd -p 7681 -i 127.0.0.1 -W -O -a --max-clients 2 -c \"\$(cat $H/ttyd.cred)\" -t fontSize=15 -t titleFixed=NAS $H/bin/nas-attach >> $H/ttyd.log 2>&1"
+echo "ttyd :7681 (tmux session ttyd) → tmux [claude|codex] — login $(cat $H/ttyd.cred)"
 ```
 
 `/volume1/0_System/project/home-nas/bin/nas-attach`:
