@@ -48,11 +48,22 @@ creates it for you and never prints it back.
 unlocking is no reminder at all. It is therefore public, exactly as public as
 the ciphertext beside it.
 
-So write a hint that jogs your own memory and tells a stranger nothing. Burying
-the few characters you need among noise is the trick: `4qJmz@r7t2kx6bw` reads
-as a random string, while the person who chose the passphrase picks their
-landmarks out of it at a glance. A hint that spells out part of the passphrase
-does the opposite — it hands an attacker a shorter search.
+So write a hint that jogs your own memory and tells a stranger nothing — a
+**cue**, never a **fragment**: "the wifi at the old flat", "what Bố called
+the dog", not characters of the passphrase. This file used to advise the
+opposite ("bury the few characters you need among noise, they look random");
+that was wrong twice over: the characters are still in the passphrase, so the
+hint shortens an attacker's search by exactly that much, and the trick was
+documented here, in a public repository, for anyone to apply. `seal` now
+refuses a hint that shares any run of four characters with the passphrase.
+
+The old hint stayed in four sealed versions in git history, and a public
+repository does not un-publish. If a hint ever carried passphrase characters,
+the honest fix is to **rotate the passphrase**: choose a new one, put it in
+`secret/app.key` and in the Apps Script property `SCHEDULE_KEY`
+(`setScheduleKey`), then re-seal all three envelopes — this schedule, the
+movie catalog and the X catalog share it — and commit the three files
+together.
 
 On the page the hint is not shown by default: it costs a fetch of the envelope,
 and a visitor who only wants a calendar should not pay for it. A **Quên
