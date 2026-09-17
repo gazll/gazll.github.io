@@ -6,9 +6,9 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 
 import {
-  auditCatalog, buildCatalog, createListingFetcher, parseCsv, parseRawSource, probeFile, probeFileOnWeb, probeFolderOnWeb,
-  mergeShardResults, projectCatalog, readCatalogSnapshot, recountChildren, selectEntries, shardFile, shardOf, sourceId,
-  writeCatalogFile, SHARDS
+  auditCatalog, buildCatalog, createListingFetcher, markEmptyFolders, parseCsv, parseRawSource, probeFile, probeFileOnWeb,
+  probeFolderOnWeb, mergeShardResults, projectCatalog, readCatalogSnapshot, recountChildren, selectEntries, shardFile, shardOf,
+  sourceId, isUnverifiedDead, writeCatalogFile, EMPTY_LISTING, SHARDS
 } from '../tools/fshare-movie.mjs';
 import { parseArgs, probeRow, selectRows } from '../tools/fshare-movie-shard.mjs';
 import {
@@ -129,6 +129,14 @@ test('folder children are counted from the rows that name the folder as parent',
   recountChildren(catalog);
   const root = catalog.links.find((row) => row.code === 'ROOT0001');
   assert.deepEqual(root.children, { folders: 1, files: 2, live: 1, dead: 1, unknown: 0, pending: 0 });
+  // A crawled folder that lists nothing is dead by its own listing — and
+  // that answer came from the API, so it needs no fshare.vn second opinion.
+  const sub = catalog.links.find((row) => row.code === 'SUB1');
+  sub.children = { crawledAt: NOW, folders: 0, files: 0 };
+  assert.equal(markEmptyFolders(catalog, NOW), 1);
+  assert.deepEqual([sub.status, sub.via, sub.error, sub.deadSince], ['dead', 'listing', EMPTY_LISTING, NOW]);
+  assert.equal(root.status, 'pending', 'a folder with children is untouched');
+  assert.equal(isUnverifiedDead(sub), false);
 });
 
 test('a validation run takes folders first, never-checked before stale, and honours --limit', () => {
@@ -235,9 +243,13 @@ test('search finds a file by the folders above it, and results group under the h
   assert.equal(searchMovieLinks(db.links, 'dune', { kind: 'file' }).length, 3, 'without the map only file names match');
   assert.equal(searchMovieLinks(db.links, 'dune', { kind: 'file', byId }).length, 4);
   assert.deepEqual(searchMovieLinks(db.links, 'dune', { kind: 'file', byId }).map((r) => r.code), ['D', 'E', 'B', 'B2'], 'search results sort by size ascending');
-  assert.deepEqual(searchMovieLinks(db.links, 'dune 2021', { kind: 'all', byId }).map((r) => [r.kind, r.code]), [
-    ['folder', 'A'], ['file', 'B'], ['file', 'B2']
-  ], 'a title search includes its folder and sorts all results by size ascending');
+  // Search is files only: a folder is the head its files sit under, never a
+  // result — every folder was crawled, so a folder row would only be a click
+  // to find out what it held. A file with no name match still surfaces
+  // through the alias of a folder above it.
+  assert.deepEqual(searchMovieLinks(db.links, 'dune 2021', { kind: 'file', byId }).map((r) => r.code), ['B', 'B2']);
+  assert.deepEqual(searchMovieLinks(db.links, 'xu cat', { kind: 'file', byId }).map((r) => r.code), ['D'], 'a folder alias reaches its files');
+  assert.ok(!('keywords' in db.links[0]), 'no keyword list on a row: the haystack already holds that text');
 
   const groups = groupByFolder(searchMovieLinks(db.links, 'dune', { kind: 'file', byId }), byId);
   assert.deepEqual(groups.map((g) => [g.chain.join(' › ') || '(standalone)', g.links.length]), [

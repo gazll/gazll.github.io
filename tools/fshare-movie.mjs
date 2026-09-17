@@ -277,8 +277,36 @@ export const isUncrawled = (row) => row.kind === 'folder' && (row.status === 'li
   && !(row.children && row.children.crawledAt);
 
 /** A dead row on one opinion. The proxy's 404 alone once recorded a file
-    that fshare.vn forwards to a new code as dead; `web` is the second ask. */
-export const isUnverifiedDead = (row) => row.status === 'dead' && row.via !== 'web' && row.web?.status !== 'dead';
+    that fshare.vn forwards to a new code as dead; `web` is the second ask.
+    A folder dead by its own listing (`via: 'listing'`, see markEmptyFolders)
+    is the API answering, not the proxy failing, so it needs no second one. */
+export const isUnverifiedDead = (row) => row.status === 'dead' && row.via !== 'web' && row.via !== 'listing' && row.web?.status !== 'dead';
+
+export const EMPTY_LISTING = 'empty listing';
+
+/**
+ * A crawled folder that lists nothing — no files, no sub-folders — is dead
+ * for what this catalog is for: there is nothing in it to find. Half of the
+ * crawled folders are like this (owner set public: 0, or genuinely empty;
+ * the API cannot tell them apart), and every one of them was a "LIVE ·
+ * nothing listed" row the reader had to click through. Applied on every
+ * save, so a folder emptied since its last crawl flips on the next one; the
+ * reason stays in `error` and `--only dead --stale 90d` asks again.
+ */
+export function markEmptyFolders(catalog, now = new Date().toISOString()) {
+  let marked = 0;
+  catalog.links.forEach((row) => {
+    if (row.kind !== 'folder' || row.status !== 'live' || !row.children?.crawledAt) return;
+    if (row.children.folders || row.children.files || row.children.truncated) return;
+    row.status = 'dead';
+    row.via = 'listing';
+    row.error = EMPTY_LISTING;
+    row.deadSince = row.deadSince || now;
+    delete row.web;
+    marked++;
+  });
+  return marked;
+}
 
 /** The counts, without touching `catalog.validation` or cloning the catalog
     to get there — a read-only peek (status/seal/audit) does not need to
@@ -1001,6 +1029,7 @@ async function loadCatalog() {
 
 async function saveCatalog(catalog) {
   recountChildren(catalog);
+  markEmptyFolders(catalog);
   summarize(catalog);
   catalog.updatedAt = new Date().toISOString();
   await writeCatalogFile(CATALOG_FILE, catalog);
