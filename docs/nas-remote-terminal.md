@@ -3,6 +3,9 @@
 Mục tiêu: bật NAS → mở một trang web ở bất kỳ máy nào → có terminal vào tmux
 (`claude` hoặc `codex`) → tắt NAS thì mọi thứ tắt theo. Không đánh thức ổ 14 TB / 8 TB.
 
+`/volume1/0_System/project/` chứa nhiều project, nên tmux mở ở **thư mục cha** đó; vào project nào
+thì `cd` (hoặc alias `claude-gazl` / `codex-gazl` cho repo này). Mỗi project Claude hỏi trust một lần.
+
 ## Thành phần
 
 | Thứ | Ở đâu | Volume |
@@ -22,7 +25,7 @@ Chọn session bằng tham số URL: `https://nas.<tailnet>.ts.net/?arg=claude` 
 #!/bin/sh
 # nas-terminal start|stop
 H=/volume1/0_System/project/home-nas
-REPO=/volume1/0_System/project/gazll.github.io
+PROJ=/volume1/0_System/project
 TMUX=/var/packages/DiagnosisTool/target/tool/tmux
 export PATH="/var/packages/Git/target/bin:$HOME/.local/bin:$PATH"
 export HISTFILE=$H/.bash_history          # đừng ghi history lên /volume2/homes
@@ -35,7 +38,7 @@ umask 077
 [ -s $H/ttyd.cred ] || echo "nas:$(head -c 30 /dev/urandom | base64 | tr -d '/+=' | cut -c1-24)" > $H/ttyd.cred
 
 for s in claude codex; do
-  $TMUX has-session -t $s 2>/dev/null || $TMUX new -d -s $s -c $REPO
+  $TMUX has-session -t $s 2>/dev/null || $TMUX new -d -s $s -c $PROJ
 done
 
 # -W ghi được, -O chặn origin lạ, -a nhận ?arg=<session>, tối đa 2 client
@@ -50,18 +53,27 @@ echo "ttyd :7681 → tmux [claude|codex] — login $(cat $H/ttyd.cred)"
 
 ```sh
 #!/bin/sh
-exec /var/packages/DiagnosisTool/target/tool/tmux new -A -s "${1:-claude}" -c /volume1/0_System/project/gazll.github.io
+exec /var/packages/DiagnosisTool/target/tool/tmux new -A -s "${1:-claude}" -c /volume1/0_System/project
 ```
 
 `chmod 700` cả hai. `-i 127.0.0.1` để ttyd **không** nghe trên LAN/WAN — chỉ Tailscale mới với tới.
 
 ## 2. Tailscale Funnel (làm một lần, cần root)
 
-1. Admin console <https://login.tailscale.com/admin/acls> → thêm vào policy:
+Phần trên web admin (<https://login.tailscale.com/admin>):
+
+1. **DNS** tab → *MagicDNS* = Enabled, *HTTPS Certificates* = Enable (Funnel bắt buộc cả hai;
+   tên máy sẽ là `nas.<tailnet-name>.ts.net`, tailnet name hiện ngay đầu tab DNS).
+2. **Access Controls** tab → sửa policy file, thêm khối (ngang hàng với `"acls"`):
    ```json
    "nodeAttrs": [{ "target": ["autogroup:member"], "attr": ["funnel"] }]
    ```
-2. Trên NAS (SSH, `sudo -i`):
+   Save. (Quên bước này thì lệnh `tailscale funnel` sẽ in ra link dẫn thẳng tới đây.)
+3. **Machines** tab → máy `nas` → ⋯ → *Disable key expiry*, khỏi phải đăng nhập lại sau 180 ngày.
+
+Không có nút bật Funnel cho từng máy trên web — bước đó làm bằng CLI trên NAS:
+
+4. Trên NAS (SSH, `sudo -i`):
    ```sh
    TS=/var/packages/Tailscale/target/bin/tailscale
    $TS set --operator=nas          # user nas được điều khiển tailscale, khỏi sudo về sau
@@ -70,7 +82,7 @@ exec /var/packages/DiagnosisTool/target/tool/tmux new -A -s "${1:-claude}" -c /v
    ```
    Cấu hình serve/funnel được lưu, **sống qua reboot**; gói Tailscale tự khởi động cùng DSM.
    Tắt khi không cần: `tailscale funnel --https=443 off` (hoặc `tailscale funnel reset`).
-3. Chỉ dùng trong tailnet (iPad/laptop có Tailscale) mà không public: thay `funnel` bằng `serve`.
+5. Chỉ dùng trong tailnet (iPad/laptop có Tailscale) mà không public: thay `funnel` bằng `serve`.
 
 ## 3. DSM Task Scheduler
 
@@ -83,7 +95,7 @@ Bật NAS từ xa: Hardware & Power → Power Schedule, hoặc WOL (`ether-wake`
 ## 4. Quy trình dùng
 
 1. Mở `https://nas.<tailnet>.ts.net/?arg=claude` → nhập user/pass (`ttyd.cred`).
-2. `claude-gazl` (alias: cd repo, `git pull`, chạy claude) → trong claude bật remote control như vẫn làm với `tmux-claude`.
+2. `claude-gazl` (alias: cd repo này, `git pull`, chạy claude; project khác thì `cd <tên>` rồi `claude`) → trong claude bật remote control như vẫn làm với `tmux-claude`.
 3. Đóng tab web — tmux vẫn giữ claude chạy; code tiếp bằng Claude Code web.
 4. Codex: `?arg=codex` → `codex-gazl`, gõ lệnh trực tiếp trong tab web.
 5. Tab bị rớt mạng → mở lại URL là về đúng session (`tmux new -A`).
