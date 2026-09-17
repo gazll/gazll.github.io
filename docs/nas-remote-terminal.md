@@ -53,7 +53,9 @@ echo "ttyd :7681 → tmux [claude|codex] — login $(cat $H/ttyd.cred)"
 
 ```sh
 #!/bin/sh
-exec /var/packages/DiagnosisTool/target/tool/tmux new -A -s "${1:-claude}" -c /volume1/0_System/project
+# ttyd (from Task Scheduler) has no locale; without UTF-8 here tmux mangles Vietnamese.
+export LANG=en_US.utf8 LC_ALL=en_US.utf8 TERM=xterm-256color
+exec /var/packages/DiagnosisTool/target/tool/tmux -u new -A -s "${1:-claude}" -c /volume1/0_System/project
 ```
 
 `chmod 700` cả hai. `-i 127.0.0.1` để ttyd **không** nghe trên LAN/WAN — chỉ Tailscale mới với tới.
