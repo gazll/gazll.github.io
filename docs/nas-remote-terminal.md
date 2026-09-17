@@ -127,3 +127,29 @@ cả 3 ổ — nếu `/var/log/hibernation.log` (đã bật) báo ổ thức mà
   (script sinh 24 ký tự), `--max-clients 2`, `-O`. Tắt Funnel khi không dùng dài ngày.
 - ttyd chạy bằng user `nas`, không phải root; DSM admin vẫn cần đăng nhập riêng.
 - Đừng bao giờ bind ttyd ra `0.0.0.0` hay mở port router — mật khẩu basic‑auth đi HTTP thuần.
+
+## Sổ tay hibernate (những gì đã tìm ra, theo thứ tự)
+
+Cách đo chuẩn, cần root (`sudo -i` trong tab `?arg=shell`), 10 phút, ra tên process + file + ổ:
+
+```sh
+OUT=/volume1/0_System/project/home-nas/blockdump.txt
+dmesg -c > /dev/null; echo 1 > /proc/sys/vm/block_dump; sleep 600; echo 0 > /proc/sys/vm/block_dump
+dmesg | grep -E 'WRITE|dirtied' > $OUT; chown nas $OUT
+```
+Đọc: `dm-8` = volume1, `dm-7` = volume2/3, `md0` = phân vùng hệ thống DSM (mirror trên **cả 3 ổ**:
+`sata1p1 sata2p1 sata3p1`) — ghi vào `md0` là cả 14 TB lẫn 8 TB thức. `hdparm -C /dev/sata1 /dev/sata3` xem ổ đang ngủ chưa.
+
+1. **scemd.log** (06/09/2026) — scemd ghi `/var/log/scemd.log` liên tục. Fix: symlink về `/dev/null`.
+   **Mất sau mỗi lần update DSM** (`/var/log` nằm trên md0, bị ghi đè). Sau update kiểm tra:
+   ```sh
+   ls -l /var/log/scemd.log          # phải thấy -> /dev/null
+   sudo rm -f /var/log/scemd.log && sudo ln -sf /dev/null /var/log/scemd.log && sudo synosystemctl restart syslog-ng
+   ```
+   Dấu hiệu quên: điện vọt lên ~30 W vì 2 ổ to không ngủ.
+2. **Repo + Claude/Codex/home trên volume2** (16–17/09/2026) — chuyển hết sang volume1 (`/volume1/0_System/project`, User Home → Volume 1).
+   Sau đó `block_dump` xác nhận Claude/ttyd/tmux chỉ ghi `dm-8`.
+3. **Log Center SQLite** (17/09/2026, chưa xong) — `SYNO.Core.Syslog` ghi `.SYNOSYSDB-wal` / `.SYNOCONNDB-wal`
+   (`/var/log/synolog/`, trên md0) đúng **mỗi 60 s** → jbd2 flush md0 → 3 ổ thức mỗi phút. Không symlink được
+   (SQLite). Phải tắt nguồn sự kiện: xem Log Center → Connection / System, dòng nào lặp mỗi phút.
+   Nghi: Cloud Sync (daemon vẫn gọi `SYNO.CloudSync_*` mỗi phút dù đang suspended) hoặc phiên DSM qua QuickConnect.
