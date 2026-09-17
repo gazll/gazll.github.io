@@ -11,7 +11,7 @@ import { $ } from '../lib/state.js';
 import { copyText, debounce, downloadTxt, fmtSize, toast } from '../lib/util.js';
 import {
   MOVIE_DB_URL, buildSearchIndex, folderChain, indexById, matchMovieLinks, matchRanges, movieHaystack, narrowsSearch,
-  normalizeMovieDatabase, queryTokens, rankFolderGroups, sortMovieRowsBySize, sourceName
+  normalizeMovieDatabase, queryTokens, rankFolderGroups, sortMovieRows, sourceName
 } from '../lib/movie-db.js';
 import { X_DB_URL, normalizeXDatabase, searchXLinks, xHaystack } from '../lib/x-db.js';
 import { validateMovieEntries } from '../lib/movie-check.js';
@@ -601,7 +601,7 @@ function renderResults() {
     const nameOf = (row) => movie.index?.nameKey.get(row) ?? row.name;
     for (const group of groups) {
       if (rows >= ROW_LIMIT) break;
-      const links = sortMovieRowsBySize(group.links, nameOf);
+      const links = sortMovieRows(group.links, nameOf);
       const chain = folderChain(links[0], movie.byId);
       fragment.appendChild(makeGroup(makeGroupHead({ ...group, chain }), links, !chain.length));
     }

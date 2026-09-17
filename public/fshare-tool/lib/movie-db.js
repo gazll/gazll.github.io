@@ -202,11 +202,20 @@ export function narrowsSearch(prev, next) {
 
 const sizeOf = (row) => Number.isFinite(Number(row?.size)) ? Number(row.size) : 0;
 
-/** Smallest first, then name, then code — the order inside one folder. */
-export function sortMovieRowsBySize(rows, nameOf = (row) => fold(row.name)) {
+/* Numeric-aware: "Tập 2" before "Tập 10". A folder is read as its owner
+   listed it — episodes, parts, discs — and that listing is in name order. */
+const NAME_ORDER = new Intl.Collator('vi', { numeric: true });
+
+/**
+ * Name order, then size, then code — the order inside one folder. It was
+ * size first, which shuffled a 29-episode folder into a random-looking
+ * list; the sizes of one film's versions still sit together because those
+ * rows share a name stem, and size only breaks the tie between equal names.
+ */
+export function sortMovieRows(rows, nameOf = (row) => fold(row.name)) {
   return (rows || [])
-    .map((row) => [sizeOf(row), nameOf(row), String(row.code || ''), row])
-    .sort((a, b) => a[0] - b[0] || COLLATOR.compare(a[1], b[1]) || a[2].localeCompare(b[2]))
+    .map((row) => [nameOf(row), sizeOf(row), String(row.code || ''), row])
+    .sort((a, b) => NAME_ORDER.compare(a[0], b[0]) || a[1] - b[1] || a[2].localeCompare(b[2]))
     .map((pair) => pair[3]);
 }
 
@@ -231,7 +240,7 @@ export function matchMovieLinks(links, query, { kind = 'all', status = 'all', so
 
 export function searchMovieLinks(links, query, options = {}) {
   const nameOf = (row) => (options.index && options.index.nameKey.get(row)) ?? fold(row.name);
-  return sortMovieRowsBySize(matchMovieLinks(links, query, options), nameOf);
+  return sortMovieRows(matchMovieLinks(links, query, options), nameOf);
 }
 
 /**
@@ -241,7 +250,7 @@ export function searchMovieLinks(links, query, options = {}) {
  * token is in the folder, then folders reached only through a file's own
  * name or a grandparent; ties by name, and with no query plain name order —
  * the browse view. Only the ORDER OF GROUPS is decided here: a group's rows
- * are sorted by the caller for the groups it renders (sortMovieRowsBySize),
+ * are sorted by the caller for the groups it renders (sortMovieRows),
  * so a query matching 8k folders costs one pass and one 8k-element sort.
  */
 export function rankFolderGroups(matches, query, byId, index = null) {
@@ -330,7 +339,7 @@ export function groupByFolder(links, byId, index = null) {
     .sort((a, b) => COLLATOR.compare(a.sortKey, b.sortKey))
     .map(({ sortKey, ...group }) => ({
       ...group,
-      links: sortMovieRowsBySize(group.links, nameOf)
+      links: sortMovieRows(group.links, nameOf)
     }));
 }
 

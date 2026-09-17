@@ -13,7 +13,7 @@ import {
 import { parseArgs, probeRow, selectRows } from '../tools/fshare-movie-shard.mjs';
 import {
   buildSearchIndex, extractFshareLinks, folderChain, groupByFolder, indexById, keywordTokens, matchMovieLinks, matchRanges,
-  movieHaystack, narrowsSearch, normalizeMovieDatabase, rankFolderGroups, searchMovieLinks, titleKey
+  movieHaystack, narrowsSearch, normalizeMovieDatabase, rankFolderGroups, searchMovieLinks, sortMovieRows, titleKey
 } from '../public/fshare-tool/lib/movie-db.js';
 import { crawlMovieFolder } from '../public/fshare-tool/lib/movie-check.js';
 import { seal, unseal } from '../public/lib/schedule-crypto.js';
@@ -242,12 +242,12 @@ test('search finds a file by the folders above it, and results group under the h
   assert.deepEqual(hits.map((r) => r.code), ['D']);
   assert.equal(searchMovieLinks(db.links, 'dune', { kind: 'file' }).length, 3, 'without the map only file names match');
   assert.equal(searchMovieLinks(db.links, 'dune', { kind: 'file', byId }).length, 4);
-  assert.deepEqual(searchMovieLinks(db.links, 'dune', { kind: 'file', byId }).map((r) => r.code), ['D', 'E', 'B', 'B2'], 'search results sort by size ascending');
+  assert.deepEqual(searchMovieLinks(db.links, 'dune', { kind: 'file', byId }).map((r) => r.code), ['B2', 'B', 'D', 'E'], 'search results are in name order, numeric-aware');
   // Search is files only: a folder is the head its files sit under, never a
   // result — every folder was crawled, so a folder row would only be a click
   // to find out what it held. A file with no name match still surfaces
   // through the alias of a folder above it.
-  assert.deepEqual(searchMovieLinks(db.links, 'dune 2021', { kind: 'file', byId }).map((r) => r.code), ['B', 'B2']);
+  assert.deepEqual(searchMovieLinks(db.links, 'dune 2021', { kind: 'file', byId }).map((r) => r.code), ['B2', 'B']);
   assert.deepEqual(searchMovieLinks(db.links, 'xu cat', { kind: 'file', byId }).map((r) => r.code), ['D'], 'a folder alias reaches its files');
   assert.ok(!('keywords' in db.links[0]), 'no keyword list on a row: the haystack already holds that text');
 
@@ -273,7 +273,12 @@ test('search finds a file by the folders above it, and results group under the h
   assert.deepEqual(groups.map((g) => [g.chain.join(' › ') || '(standalone)', g.links.length]), [
     ['(standalone)', 1], ['KHO PHIM › Dune (1984)', 1], ['KHO PHIM › Dune (2021)', 2]
   ]);
-  assert.deepEqual(groups[2].links.map((r) => r.code), ['B', 'B2'], 'files in a search group sort by size ascending');
+  assert.deepEqual(groups[2].links.map((r) => r.code), ['B2', 'B'], 'files in a group read in name order: 1080p before 2160p');
+  // An episode folder reads as the owner listed it, not by file size.
+  const episodes = [
+    { name: 'Tập 10.mkv', size: 1, code: 'T10' }, { name: 'Tập 2.mkv', size: 9, code: 'T2' }, { name: 'Tập 1.mkv', size: 5, code: 'T1' }
+  ];
+  assert.deepEqual(sortMovieRows(episodes).map((r) => r.code), ['T1', 'T2', 'T10']);
   assert.equal(groups[2].folder.children.files, 3, 'the group carries its folder row');
   assert.equal(searchMovieLinks(db.links, '', { status: 'dead' }).length, 1);
 

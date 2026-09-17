@@ -537,7 +537,10 @@ secret/              GITIGNORED. Personal setup notes and credentials
      The tab searches **files only** and shows a folder only as the head its
      files sit under — a folder row was a click to find out what it held,
      and every folder has been crawled. A file matches by its own name or by
-     the name/alias of any folder above it.
+     the name/alias of any folder above it. Rows inside a group are in
+     **numeric-aware name order** (`sortMovieRows`: "Tập 2" before "Tập 10"),
+     size only breaking ties — size-first shuffled every episode folder, and
+     one film's versions already sit together by name stem.
   5. **A file inside a live listing is live by that listing.** Fshare does not
      list what it deleted, so per-file probes are spent only on standalone
      file links and on children a listing no longer names; a proxy `dead` is
