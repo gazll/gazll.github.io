@@ -10,7 +10,7 @@
 import { $ } from '../lib/state.js';
 import { copyText, debounce, downloadTxt, fmtSize, toast } from '../lib/util.js';
 import {
-  MOVIE_DB_URL, buildSearchIndex, folderChain, groupByFolder, indexById, movieHaystack, narrowsSearch,
+  MOVIE_DB_URL, buildSearchIndex, groupByFolder, indexById, movieHaystack, narrowsSearch,
   normalizeMovieDatabase, searchMovieLinks, sourceName
 } from '../lib/movie-db.js';
 import { X_DB_URL, normalizeXDatabase, searchXLinks, xHaystack } from '../lib/x-db.js';
@@ -128,7 +128,7 @@ function paintTypeSwitch() {
   setText('movieTypeDescription', config.description);
   setText('movieResultsTitle', config.raw ? 'X links' : 'Files, by folder');
   setText('movieStatusLabel', config.raw ? 'Raw links are not validated' : 'Show dead & unknown');
-  setText('movieSearchLabel', config.raw ? 'Search X links by name or link code' : 'Search files, folders, aliases, or link code');
+  setText('movieSearchLabel', config.raw ? 'Search X links by name or link code' : 'Search files by name, folder, alias, or link code');
   const panel = $('movieSearchPanel');
   if (panel) panel.setAttribute('aria-label', config.raw ? 'X link filters' : 'Movie catalog filters');
   const input = $('movieSearchInput');
@@ -152,8 +152,18 @@ function populateSourceSelect() {
 
 /* ---------- unlock ---------- */
 
+/* Opening the catalog is seconds of work on one thread (PBKDF2, gunzip,
+   113k rows folded for search), so each phase names itself on the unlock
+   note and yields one frame first — otherwise the text never paints and a
+   disabled button is all the reader sees for the whole wait. */
+async function phase(label) {
+  setText('movieUnlockNote', label);
+  await new Promise((resolve) => setTimeout(resolve, 0));
+}
+
 async function openSealed(secret, type = movie.catalogType) {
   const config = catalogConfig(type);
+  await phase('Fetching the sealed catalog…');
   const response = await fetch(config.url, { cache: 'no-cache' });
   if (!response.ok) throw new Error(`No sealed ${config.label} catalog is published yet — run \`node tools/fshare-${type}.mjs seal\` and deploy.`);
   const text = await response.text();
@@ -161,11 +171,13 @@ async function openSealed(secret, type = movie.catalogType) {
   let envelope;
   try { envelope = JSON.parse(text); } catch (error) { throw new Error('The sealed catalog is not valid JSON.'); }
   if (!isEnvelope(envelope)) throw new Error('The published file is not a sealed envelope.');
+  await phase('Deriving the key and decrypting…');
   const opened = await unseal(envelope, secret);
   const database = config.raw ? normalizeXDatabase(opened) : normalizeMovieDatabase(opened);
-  // Folded once here, behind the unlock spinner, so no keystroke pays for it.
+  // Folded once here, behind the unlock note, so no keystroke pays for it.
+  await phase(`Indexing ${number(database.links.length)} links for search…`);
   const byId = indexById(database.links);
-  movie.indexes.set(type, buildSearchIndex(database.links, config.raw ? xHaystack : (row) => movieHaystack(row, byId)));
+  movie.indexes.set(type, buildSearchIndex(database.links, config.raw ? xHaystack : (row, above) => movieHaystack(row, byId, above)));
   movie.databases.set(type, database);
   if (type === movie.catalogType) {
     setCurrentDatabase(type, database);
@@ -315,13 +327,9 @@ function currentStatus(row) {
   return record ? { status: record.status, error: record.error } : { status: row.status, error: row.error || '' };
 }
 
-function rowMeta(row, includeFolder = false) {
+function rowMeta(row) {
   const parts = catalogConfig().raw ? [row.kind, row.code] : [row.code];
   if (row.kind === 'file' && row.size) parts.push(fmtSize(row.size));
-  if (includeFolder && row.kind === 'file') {
-    const path = folderChain(row, movie.byId).join(' / ');
-    parts.push(path || 'Direct links');
-  }
   if (row.parents && row.parents.length > 1) parts.push(`also in ${row.parents.length - 1} other folder${row.parents.length > 2 ? 's' : ''}`);
   if (row.sourceIds && row.sourceIds.length) parts.push(sourceName(movie.sourceMap, row.sourceIds[0]) + (row.sourceIds.length > 1 ? ` +${row.sourceIds.length - 1}` : ''));
   if (row.checkedAt) parts.push(`checked ${fmtDay(row.checkedAt)}`);
@@ -343,7 +351,7 @@ function childrenSummary(row) {
   return bits.join(' · ');
 }
 
-function makeRow(row, includeFolder = false) {
+function makeRow(row) {
   const element = document.createElement('article');
   const state = currentStatus(row);
   element.className = 'movie-result-row' + (movie.selected.has(row.id) ? ' selected' : '') + (state.status === 'dead' ? ' is-dead' : '');
@@ -386,7 +394,7 @@ function makeRow(row, includeFolder = false) {
 
   const meta = document.createElement('div');
   meta.className = 'movie-result-meta';
-  meta.textContent = rowMeta(row, includeFolder);
+  meta.textContent = rowMeta(row);
   meta.title = meta.textContent;
   details.appendChild(meta);
   element.appendChild(details);
@@ -495,21 +503,6 @@ function makeRawHead(count) {
   return head;
 }
 
-function makeSearchHead(count) {
-  const head = document.createElement('div');
-  head.className = 'movie-folder-head movie-search-head';
-  head.appendChild(groupIcon('link'));
-  const title = document.createElement('strong');
-  title.className = 'movie-crumb is-leaf';
-  title.textContent = 'Search results';
-  head.appendChild(title);
-  const meta = document.createElement('span');
-  meta.className = 'movie-folder-meta';
-  meta.textContent = number(count) + ' result' + (count === 1 ? '' : 's') + ' - smallest first';
-  head.appendChild(meta);
-  return head;
-}
-
 function renderResults() {
   const list = $('movieResults');
   if (!list || !movie.database) return;
@@ -517,26 +510,27 @@ function renderResults() {
   const query = $('movieSearchInput').value || '';
   const sourceId = $('movieSourceSelect').value || 'all';
   const showDead = $('movieShowDead').checked;
-  const searching = !config.raw && Boolean(query.trim());
   // "dun" → "dune" can only lose rows, so it is searched within the previous
   // matches; the status filter is re-applied afterwards because a re-check
   // in this browser may have changed a row since that set was built.
-  // The browse view is file-only, while a query also searches folders. Keep
-  // the two pools separate or the first keystroke would search only the
-  // previous browse results and hide matching root folders.
-  const searchKey = `${movie.catalogType}|${sourceId}|${searching ? 'search' : 'browse'}`;
+  const searchKey = `${movie.catalogType}|${sourceId}`;
   const previous = movie.lastSearch;
   const pool = previous && previous.key === searchKey && narrowsSearch(previous.query, query)
     ? previous.rows
     : movie.database.links;
-  // Movie is a file-only projection grouped by its holding folder. X is an
-  // independent raw index, so folders and files remain searchable as links.
+  // Movie is files only, searched and browsed the same way: every folder was
+  // crawled, so a folder is shown as the head its files sit under, never as a
+  // result of its own — a folder row was a click to find out what it held. A
+  // file matches by its own name or by any folder above it (the chain is in
+  // its haystack), so "frieren" lists "Sousou no Frieren - 27" under the
+  // folder that carries the Vietnamese title. X is an independent raw index,
+  // so there folders and files remain searchable as links.
   const found = config.raw
     ? searchXLinks(pool, query, { sourceId, index: movie.index })
-    : searchMovieLinks(pool, query, { kind: searching ? 'all' : 'file', sourceId, byId: movie.byId, index: movie.index });
+    : searchMovieLinks(pool, query, { kind: 'file', sourceId, byId: movie.byId, index: movie.index });
   movie.lastSearch = { key: searchKey, query, rows: found };
   const matches = config.raw ? found : found.filter((row) => showDead || currentStatus(row).status === 'live');
-  const groups = config.raw || searching ? [] : groupByFolder(matches, movie.byId, movie.index);
+  const groups = config.raw ? [] : groupByFolder(matches, movie.byId, movie.index);
 
   movie.shown = [];
   list.innerHTML = '';
@@ -547,7 +541,7 @@ function renderResults() {
     list.innerHTML = `<div class="movie-empty">${empty}</div>`;
     setText('movieResultCount', config.raw
       ? `0 of ${number(movie.database.links.length)} raw links`
-      : searching ? `0 of ${number(movie.database.links.length)} results` : `0 of ${number(movie.fileCount)} files`);
+      : `0 of ${number(movie.fileCount)} files`);
     renderControls();
     return;
   }
@@ -555,13 +549,13 @@ function renderResults() {
   let rows = 0;
   // Each group is its own card, so the head sticks only while its own rows
   // are in view and the gap between cards is what separates two folders.
-  const makeGroup = (head, links, direct, includeFolder = false) => {
+  const makeGroup = (head, links, direct) => {
     const section = document.createElement('section');
     section.className = 'movie-group' + (direct ? ' is-direct' : '');
     section.appendChild(head);
     for (const row of links) {
       if (rows >= ROW_LIMIT) break;
-      section.appendChild(makeRow(row, includeFolder));
+      section.appendChild(makeRow(row));
       movie.shown.push(row);
       rows++;
     }
@@ -569,8 +563,6 @@ function renderResults() {
   };
   if (config.raw) {
     fragment.appendChild(makeGroup(makeRawHead(matches.length), matches, true));
-  } else if (searching) {
-    fragment.appendChild(makeGroup(makeSearchHead(matches.length), matches, false, true));
   } else {
     for (const group of groups) {
       if (rows >= ROW_LIMIT) break;
@@ -581,8 +573,6 @@ function renderResults() {
   const suffix = matches.length > ROW_LIMIT ? ` · showing first ${number(ROW_LIMIT)}` : '';
   if (config.raw) {
     setText('movieResultCount', `${number(matches.length)} raw X link${matches.length === 1 ? '' : 's'}${suffix} · ${number(movie.selected.size)} selected`);
-  } else if (searching) {
-    setText('movieResultCount', number(matches.length) + ' result' + (matches.length === 1 ? '' : 's') + ' - smallest first' + suffix + ' - ' + number(movie.selected.size) + ' selected');
   } else {
     setText('movieResultCount', `${number(matches.length)} file${matches.length === 1 ? '' : 's'} in ${number(groups.length)} folder${groups.length === 1 ? '' : 's'}${suffix} · ${number(movie.selected.size)} selected`);
   }
