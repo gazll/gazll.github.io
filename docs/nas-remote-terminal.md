@@ -27,7 +27,7 @@ Chọn session bằng tham số URL: `https://nas.<tailnet>.ts.net/?arg=claude` 
 H=/volume1/0_System/project/home-nas
 PROJ=/volume1/0_System/project
 TMUX=/var/packages/DiagnosisTool/target/tool/tmux
-export PATH="/var/packages/Git/target/bin:$HOME/.local/bin:$PATH"
+export PATH="$H/bin:/var/packages/Git/target/bin:$HOME/.local/bin:$PATH"
 export HISTFILE=$H/.bash_history          # đừng ghi history lên /volume2/homes
 
 case "$1" in
