@@ -142,6 +142,15 @@ Mở khoá trong trình duyệt (Node đo hộ, 2026-09-17, 113.544 dòng): gi�
 form mở khoá nói đang ở bước nào. Bước tiếp nếu muốn nhanh nữa: đưa dựng
 index vào Web Worker.
 
+Search (Node đo hộ, cùng dữ liệu): một ký tự đầu "f" khớp 59k file / 8,6k
+folder — trước 670 ms (sắp xếp toàn bộ 59k dòng theo size rồi gom nhóm để
+hiện 150 dòng), sau 234 ms (chỉ xếp thứ tự NHÓM theo độ liên quan, xếp dòng
+trong nhóm khi render); xoá ô tìm 866 → 158 ms và được cache. Search chạy
+khi ngừng gõ 400 ms, Enter chạy ngay, Esc xoá, `/` nhảy vào ô tìm; từ khớp
+được tô trong tên file và breadcrumb. Nhóm xếp theo: folder có tên/alias
+chứa đủ từ khoá → folder chứa một phần → khớp qua tên file/ông bà; trong
+nhóm nhỏ nhất trước.
+
 Số đo thật, 2026-09-16, qua proxy, concurrency 4: 5.747 folder root (kể cả
 con) xong trong ~68 phút (~0,7 s/folder); 3.573 dead xong trong ~24 phút
 (~0,4 s/dòng, sau khi `--only unverified` tự chọn lại đúng phần còn thiếu
