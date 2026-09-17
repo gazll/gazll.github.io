@@ -136,6 +136,12 @@ git add public/data/fshare-movie/catalog.enc.json && git commit -m "reseal movie
 node tools/fshare-movie.mjs --check
 ```
 
+Mở khoá trong trình duyệt (Node đo hộ, 2026-09-17, 113.544 dòng): giải mã
+~2,9 s + chuẩn hoá ~1,1 s + dựng index ~2,3 s ≈ **6,4 s** và ~190MB heap
+(trước khi tối ưu: 10,3 s / 234MB). Điện thoại chậm hơn 3–5×; chú thích trên
+form mở khoá nói đang ở bước nào. Bước tiếp nếu muốn nhanh nữa: đưa dựng
+index vào Web Worker.
+
 Số đo thật, 2026-09-16, qua proxy, concurrency 4: 5.747 folder root (kể cả
 con) xong trong ~68 phút (~0,7 s/folder); 3.573 dead xong trong ~24 phút
 (~0,4 s/dòng, sau khi `--only unverified` tự chọn lại đúng phần còn thiếu
@@ -395,9 +401,19 @@ sau đọc trước khi chạy:
   `remote`, `path`, `keywords`, `id`, `titleKey` khỏi projection — ba field
   đầu chiếm 39MB trong 70MB). Vượt trần thì cắt field trong `projectCatalog`
   trước; `normalizeMovieDatabase` dựng lại id/titleKey/keywords khi load.
-- **Folder `public: 0` trả listing rỗng** — cả proxy lẫn API của chính
-  fshare.vn. Không phân biệt được "trống" với "chủ không public", nên tab hiện
-  "nothing listed" thay vì không hiện gì. Lần chạy đầu có 5.368 folder như vậy.
+- **Folder liệt kê rỗng là `dead`, với `error: "empty listing"`.** Folder
+  `public: 0` trả listing rỗng — cả proxy lẫn API của chính fshare.vn — và
+  không phân biệt được với folder trống thật. Với mục đích của catalog thì
+  như nhau: không có gì để tìm. `markEmptyFolders` chạy ở mỗi lần save:
+  folder đã crawl, 0 folder con, 0 file → `dead via listing` (listing chính là
+  bằng chứng, không cần ý kiến thứ hai). 2026-09-17: 12.843 / 25.428 folder
+  đã crawl là như vậy. `--only dead --stale 90d` hỏi lại; chủ mở public thì
+  lần crawl sau tự sống lại.
+- **Search chỉ trả về FILE; folder là tiêu đề nhóm.** Mọi folder đã được crawl
+  đệ quy, nên một dòng folder trong kết quả chỉ là một cú click để biết bên
+  trong có gì. File khớp theo tên nó HOẶC theo tên/alias của mọi folder phía
+  trên (`movieHaystack`) — "xứ cát" tìm ra `Dune.1984.mkv` qua alias tiếng
+  Việt của folder cha. Kết quả gom theo folder chứa nó, nhỏ nhất trước.
 - **`titleKey` không gộp chất lượng.** `Dune.2021.1080p` và `Dune.2021.2160p`
   là hai key gần nhau, không phải một; gộp thêm là đoán, và đoán sai thì hai
   phim khác nhau dính vào nhau.

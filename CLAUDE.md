@@ -504,7 +504,7 @@ secret/              GITIGNORED. Personal setup notes and credentials
 
 - **The movie catalog is one row per LINK, and only checked rows ship.**
   `tools/fshare-movie.mjs` owns it end to end and `docs/fshare-movie-playbook.md`
-  is the procedure. Four things the shape depends on, each already the wrong
+  is the procedure. Five things the shape depends on, each already the wrong
   instinct once:
 
   1. **The id is `fshare-{kind}-{CODE}`, never the title.** Two links to the
@@ -527,7 +527,17 @@ secret/              GITIGNORED. Personal setup notes and credentials
      that disappears does not un-know a link, and a link that died keeps its
      `deadSince` — the "show dead" toggle exists because that history is the
      point of re-checking monthly. Never delete rows to tidy the catalog.
-  4. **A file inside a live listing is live by that listing.** Fshare does not
+  4. **A crawled folder that lists nothing is dead by that listing.**
+     `markEmptyFolders` runs on every save: 0 sub-folders, 0 files, not
+     truncated → `dead`, `via: 'listing'`, `error: 'empty listing'` — the
+     API's own answer, so `isUnverifiedDead` does not ask fshare.vn for a
+     second one. Half of all crawled folders are like this (owner set
+     `public: 0`); before the rule each was a "LIVE · nothing listed" row.
+     The tab searches **files only** and shows a folder only as the head its
+     files sit under — a folder row was a click to find out what it held,
+     and every folder has been crawled. A file matches by its own name or by
+     the name/alias of any folder above it.
+  5. **A file inside a live listing is live by that listing.** Fshare does not
      list what it deleted, so per-file probes are spent only on standalone
      file links and on children a listing no longer names; a proxy `dead` is
      confirmed against the `fshare.vn` page title before it is written
