@@ -4,7 +4,7 @@ Mục tiêu: bật NAS → mở một trang web ở bất kỳ máy nào → có
 (`claude` hoặc `codex`) → tắt NAS thì mọi thứ tắt theo. Không đánh thức ổ 14 TB / 8 TB.
 
 `/volume1/0_System/project/` chứa nhiều project, nên tmux mở ở **thư mục cha** đó; vào project nào
-thì `p <tên>` / `cl <tên>` / `cx <tên>` (hàm trong `~/.profile`, có Tab completion). Mỗi project Claude hỏi trust một lần.
+thì `p <tên>` / `claude-project <tên>` / `codex-project <tên>` (hàm trong `~/.profile`, có Tab completion). Mỗi project Claude hỏi trust một lần.
 
 ## Thành phần
 
@@ -97,11 +97,11 @@ Bật NAS từ xa: Hardware & Power → Power Schedule, hoặc WOL (`ether-wake`
 ## 4. Quy trình dùng
 
 1. Mở `https://nas.<tailnet>.ts.net/?arg=claude` → nhập user/pass (`ttyd.cred`).
-2. `cl <project>` (cd, `git pull --ff-only`, chạy claude; `cl <project> --continue` để tiếp phiên cũ) → trong claude bật remote control như vẫn làm với `tmux-claude`.
+2. `claude-project <project>` (cd, `git pull --ff-only`, chạy claude; `claude-project <project> --continue` để tiếp phiên cũ) → trong claude bật remote control như vẫn làm với `tmux-claude`.
 3. Đóng tab web — tmux vẫn giữ claude chạy; code tiếp bằng Claude Code web.
-4. Codex: `?arg=codex` → `cx <project>`, gõ lệnh trực tiếp trong tab web.
+4. Codex: `?arg=codex` → `codex-project <project>`, gõ lệnh trực tiếp trong tab web.
 6. Shell riêng không đụng hai session kia: `?arg=shell` (tên bất kỳ đều tạo session mới).
-7. Chạy ngầm không cần mở tab: `tmux send-keys -t codex "cx <project>" Enter`.
+7. Chạy ngầm không cần mở tab: `tmux send-keys -t codex "codex-project <project>" Enter`.
 5. Tab bị rớt mạng → mở lại URL là về đúng session (`tmux new -A`).
 
 ## 5. Không đánh thức ổ to
