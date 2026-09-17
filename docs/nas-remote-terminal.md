@@ -145,6 +145,7 @@ Bật NAS từ xa: Hardware & Power → Power Schedule, hoặc WOL (`ether-wake`
 4. Codex: `?arg=codex` → `codex-project <project>`, gõ lệnh trực tiếp trong tab web.
 6. Shell riêng không đụng hai session kia: `?arg=shell` (tên bất kỳ đều tạo session mới).
 7. Chạy ngầm không cần mở tab: `tmux send-keys -t codex "codex-project <project>" Enter`.
+8. SSH ở nhà (không qua web): `tmux-claude-project <project>` / `tmux-codex-project <project>` — attach vào **đúng** session `claude`/`codex` mà ttyd dùng; session đang rảnh thì gõ lệnh vào giúp, đang chạy Claude/Codex thì chỉ attach. Rớt SSH không chết gì; tab web thấy cùng màn hình. Thoát: `Ctrl+B D`.
 5. Tab bị rớt mạng → mở lại URL là về đúng session (`tmux new -A`).
 
 ## 5. Không đánh thức ổ to
