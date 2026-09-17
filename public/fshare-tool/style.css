@@ -78,6 +78,10 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .movie-unlock p{color:var(--muted);font-size:.78rem;line-height:1.5;max-width:52ch}
 .movie-unlock .err{grid-column:1 / -1;margin-top:0}
 .movie-unlock .err:empty{display:none}
+.movie-unlock.is-busy p{color:var(--accent)}
+.movie-unlock.is-busy p::before{content:"";display:inline-block;width:12px;height:12px;margin:0 7px -2px 0;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite}
+.movie-unlock.is-busy input,.movie-unlock.is-busy .btn{opacity:.55}
+@media(prefers-reduced-motion:reduce){.movie-unlock.is-busy p::before{animation-duration:2s}}
 .movie-unlock input{width:100%;min-height:38px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);padding:8px 11px;font-size:.84rem;outline:none}
 .movie-unlock input:focus{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-dim)}
 .movie-check{display:inline-flex;align-items:center;gap:7px;min-height:38px;color:var(--text2);font-size:.78rem;white-space:nowrap;cursor:pointer}

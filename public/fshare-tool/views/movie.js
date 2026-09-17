@@ -165,6 +165,20 @@ async function phase(label) {
   await new Promise((resolve) => setTimeout(resolve, 0));
 }
 
+/* The unlock card while a key is being tried: spinner, the phase line, the
+   field and button held. Without it the auto-unlock with a saved key looked
+   like a form waiting for input — nothing said "already opening". */
+function unlockBusy(on, note = '') {
+  const form = $('movieUnlock');
+  if (!form) return;
+  form.classList.toggle('is-busy', on);
+  form.setAttribute('aria-busy', on ? 'true' : 'false');
+  $('moviePassphrase').disabled = on;
+  $('movieUnlockBtn').disabled = on;
+  $('movieUnlockBtn').textContent = on ? 'Opening…' : 'Open';
+  if (note) setText('movieUnlockNote', note);
+}
+
 async function openSealed(secret, type = movie.catalogType) {
   const config = catalogConfig(type);
   await phase('Fetching the sealed catalog…');
@@ -229,7 +243,7 @@ async function unlock(event) {
   if (!secret || movie.unlocking) return;
   movie.unlocking = true;
   paintTypeSwitch();
-  $('movieUnlockBtn').disabled = true;
+  unlockBusy(true, 'Opening…');
   setText('movieUnlockErr', '');
   try {
     await openSealed(secret, movie.catalogType);
@@ -245,7 +259,7 @@ async function unlock(event) {
     setText('movieUnlockErr', error.message || String(error));
   } finally {
     movie.unlocking = false;
-    $('movieUnlockBtn').disabled = false;
+    unlockBusy(false, catalogConfig().unlockNote);
     paintTypeSwitch();
   }
 }
@@ -265,12 +279,20 @@ async function restore() {
   if (movie.database) return;
   const stored = storedSecret();
   if (!stored) return;
+  movie.unlocking = true;
+  unlockBusy(true, 'Opening with the key saved on this device…');
   try {
     await openSealed(stored, movie.catalogType);
     paintLockState();
     renderResults();
     renderOutput();
-  } catch (error) { /* stale key or no file yet: stay locked */ }
+  } catch (error) {
+    /* stale key or no file yet: stay locked, and say why the form is back */
+    setText('movieUnlockErr', 'The saved key no longer opens this catalog — enter the passphrase.');
+  } finally {
+    movie.unlocking = false;
+    unlockBusy(false, catalogConfig().unlockNote);
+  }
 }
 
 async function switchCatalogType(type) {
