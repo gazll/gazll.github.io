@@ -188,8 +188,8 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .movie-empty,.movie-output-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-height:280px;padding:28px;text-align:center;color:var(--muted);font-size:.82rem;line-height:1.6}
 .movie-empty p{margin:0;color:var(--text2)}
 .movie-empty-hint{color:var(--muted)!important;font-size:.76rem}
-.movie-search-hint{display:flex;justify-content:flex-end;gap:6px;margin-top:-2px;color:var(--muted);font-size:.66rem}
-.movie-search-hint kbd{padding:0 4px;border:1px solid var(--border2);border-bottom-width:2px;border-radius:4px;font-family:ui-monospace,Consolas,monospace;font-size:.62rem;color:var(--text2)}
+.movie-search-hint{grid-column:1 / -1;display:flex;align-items:center;gap:6px;margin-top:-2px;color:var(--muted);font-size:.68rem;font-weight:400;text-transform:none;letter-spacing:0}
+.movie-search-hint kbd{padding:0 5px;border:1px solid var(--border2);border-bottom-width:2px;border-radius:4px;font-family:ui-monospace,Consolas,monospace;font-size:.62rem;font-weight:700;color:var(--text2)}
 .movie-empty code{margin:0 4px;color:var(--accent);font-family:ui-monospace,Consolas,monospace;font-size:.78rem}
 .movie-error{color:var(--red)}
 [hidden]{display:none!important}

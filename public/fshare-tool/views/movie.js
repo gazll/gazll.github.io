@@ -132,7 +132,7 @@ function paintTypeSwitch() {
   setText('movieTypeDescription', config.description);
   setText('movieResultsTitle', config.raw ? 'X links' : 'Files, by folder');
   setText('movieStatusLabel', config.raw ? 'Raw links are not validated' : 'Show dead & unknown');
-  setText('movieSearchLabel', config.raw ? 'Search X links by name or link code' : 'Search files by name, folder, alias, or link code · Enter searches now · / focuses');
+  setText('movieSearchLabel', config.raw ? 'Search X links by name or link code' : 'Search files by name, folder, alias or link code');
   const panel = $('movieSearchPanel');
   if (panel) panel.setAttribute('aria-label', config.raw ? 'X link filters' : 'Movie catalog filters');
   const input = $('movieSearchInput');
