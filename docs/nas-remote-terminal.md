@@ -201,6 +201,22 @@ Rollback: stop 2 unit → `servicetool --unset-service-data-store-path pgsql` �
 - 2026-09-17: SMB transfer log (`.SMBXFERDB` trong `/volume2/@database/synolog`) ghi khi copy qua SMB → tắt ở SMB → Advanced nếu không cần.
 - SynoFinder (`@SynoFinder-log/etc-volume`) tự chọn volume nhiều chỗ trống nhất, dời tay là nó dời lại; nó chỉ ghi lúc khởi động/re-index → bỏ qua.
 
+### bash_err.log — DSM log mọi lỗi shell lên md0 (2026-09-18)
+
+Sau khi dời hết về volume1, `find / -xdev -mmin -3 -type f` (md0 = `/`) vẫn ra đúng một file:
+`/var/log/bash_err.log`. Bash của DSM được vá để gửi mọi lỗi (`command not found`, `unalias` lỗi,
+`shopt` sai) qua syslog → file này. Đo: `bash -c nonexistent` = +4.7 KB; mỗi tool call của Claude Code
+(wrapper của nó `unalias unsetenv` luôn lỗi) ≈ +4 KB → **cứ Claude/Codex chạy lệnh là 3 ổ thức**.
+
+Fix (root) — phải sửa cả `/etc.defaults`, vì `syslog-ng.sh start-pre` chép patterndb.d từ đó mỗi lần start:
+```sh
+for f in /etc.defaults/syslog-ng/patterndb.d/bash.conf /etc/syslog-ng/patterndb.d/bash.conf; do
+  sed -i 's#file("/var/log/bash_err.log")#file("/dev/null")#; s#file("/var/log/bash_history.log")#file("/dev/null")#' "$f"
+done && systemctl restart syslog-ng      # "Job failed" = timeout; kiểm systemctl is-active syslog-ng
+grep destination /etc/syslog-ng/patterndb.d/bash.conf   # 2 dòng /dev/null
+```
+Mất sau update DSM, như scemd.log. `bash_history.log` là log lệnh của DSM, không phải `~/.bash_history`.
+
 ## An toàn
 
 - Funnel = **public internet**. Lớp bảo vệ duy nhất là basic‑auth của ttyd → mật khẩu dài ngẫu nhiên
