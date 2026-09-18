@@ -227,23 +227,39 @@ kernel `synobios get empty ttyS current` (mỗi 61 s, Xpenology không có vi đ
 (`not2msg/main`). "Job failed" khi restart syslog-ng: đọc `/var/log/syslog.log`, đừng đoán timeout.
 Mất sau update DSM, như scemd.log. `bash_history.log` là log lệnh của DSM, không phải `~/.bash_history`.
 
-### DSM không bao giờ ra lệnh ngủ — ổ tự ngủ bằng `hdparm -S` (2026-09-18)
+### Kết luận hibernate (2026-09-18): DSM ngủ cả dàn, và cái giữ nó thức là chính mình
 
-Sau khi md0 sạch (13:05 → 13:21: `sata1`, `sata3`, `md0` không nhích một write; md0 lần cuối bị ghi
-11:29), `hdparm -C` vẫn `active/idle` sau gần 2 giờ. DSM chỉ hibernate khi **mọi** ổ trong đều rảnh,
-mà `sata2` (volume1: tmux, Claude, Tailscale, md0) không bao giờ rảnh → hai ổ to bị vạ lây vĩnh viễn.
-`syno_hibernation_log_level` = 0 nên cũng không có `/var/log/hibernation.log` để cãi.
-
-Lối ra: timer standby trong firmware của chính ổ, không phụ thuộc DSM:
-```sh
-hdparm -S 120 /dev/sata1 /dev/sata3   # 120 × 5 s = 10 phút; mất khi cúp điện
-hdparm -y /dev/sata1 /dev/sata3       # ép ngủ ngay (test)
-hdparm -C /dev/sata1 /dev/sata3       # standby
+Bằng chứng cuối, không ép gì (đóng mọi phiên Claude/Codex, im 2,5 giờ):
 ```
-Làm lại mỗi lần boot bằng `home-nas/bin/nas-root-boot` (Task Scheduler, user **root**, Boot-up) — script
-đó cũng tự vá lại `scemd.log` và `bash.conf` sau update DSM, nên là *một* task root cho mọi thứ trên md0.
-Cái đánh thức ổ 14 TB sau đó chỉ còn là dữ liệu thật trên volume2/3 (OneDrive, media) — kể cả `cp` một
-file vào `Media/Nas/config/` (tự tay làm lúc 13:29, thấy ngay `sata3 r+11`). Đó là việc, không phải lỗi.
+/sys/block/sata{1,2,3}/device/syno_idle_time   9031  8690  9031   (giây rảnh, kernel đếm)
+/sys/block/sata{1,2,3}/device/syno_spindown    1     1     1      (DSM đã cho ngủ)
+```
+Hai file sysfs đó đọc được không cần root và là thước đo chuẩn — hơn `hdparm -C`, hơn diskstats.
+
+**Cơ chế DSM (đo được, không phải đoán):**
+1. Kernel đếm idle *từng* ổ, nhưng DSM chỉ ra lệnh standby khi **cả ba** ổ trong ≥ timer. Ổ 8 TB/14 TB rảnh
+   1697 s (gấp 3 timer 600 s) vẫn `spindown=0` chừng nào volume1 (sata2) còn bị ghi.
+2. md0 (RAID1 hệ thống trên cả 3 ổ, không bitmap, `safe_mode_delay` 0.2 s): ghi md0 1 byte → array
+   `clean→active→clean` → superblock 1 sector lên **cả 3 thành viên** (`md0_raid1 WRITE on sata3p1`).
+   Nên "ghi chỗ khác" không cứu được, phải "không ghi".
+
+**Những gì ghi volume1 khi tưởng là im (block_dump 10 phút, lọc `dm-8|md2|sata2p3`):**
+- `ttyd → ttyd.log` 228 lần: hostname public bị bot quét cả ngày (`/.env`, `/.git/config`, `/.ssh/id_rsa`,
+  `/wp-login.php`; 350 request trong 8 phút). ttyd trả 401, nhưng mức log mặc định ghi mỗi probe một dòng
+  vào file trên volume1. Fix trong `nas-terminal`: `-d 3` + log ra `/tmp/ttyd-<tool>.log` (tmpfs).
+  **Quy tắc: log của service public không bao giờ nằm trên đĩa.**
+- `Bun Pool → ~/.claude/skills/synced/<id>/manifest.json`: **Claude Code idle vẫn ghi** vài phút một lần
+  (đồng bộ skill từ claude.ai), mỗi phiên đang mở một nhịp. Hai phiên mở = nhịp 15:01/15:03, 15:09/15:11…
+  → sata2 idle tối đa 409 s → DSM không bao giờ ngủ. Muốn NAS ngủ: `/exit` Claude/Codex, tmux + ttyd +
+  Tailscale để nguyên (chúng không ghi gì khi im).
+- `synocrond → /var/log/synocrond-execute.log` (md0): job `DownloadStationMonitorTransmissionJob` mỗi giờ
+  (phút ngẫu nhiên) khi Download Station chạy → cả 3 ổ dậy mỗi giờ. Pause tải không đủ, phải **Stop gói**
+  khi không tải. `nas-root-boot` cũng trỏ log đó về `/dev/null` (cùng kiểu scemd.log) nếu muốn.
+- PostgreSQL của Download Station (`checkpointer` 5 phút) — chỉ ghi khi có thay đổi; im khi DS stop.
+
+**Quy trình dùng hằng ngày để ổ ngủ:** xong việc → `/exit` Claude/Codex (cửa sổ tmux còn nguyên) →
+Stop Download Station nếu không tải → logout DSM. Không cần `hdparm`, không cần task root nào cho việc ngủ.
+Kiểm: `cat /sys/block/sata*/device/syno_spindown` → `1 1 1` sau ~10 phút.
 
 ## An toàn
 
