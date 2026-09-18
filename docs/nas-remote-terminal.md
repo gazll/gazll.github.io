@@ -211,10 +211,20 @@ Sau khi dời hết về volume1, `find / -xdev -mmin -3 -type f` (md0 = `/`) v�
 Fix (root) — phải sửa cả `/etc.defaults`, vì `syslog-ng.sh start-pre` chép patterndb.d từ đó mỗi lần start:
 ```sh
 for f in /etc.defaults/syslog-ng/patterndb.d/bash.conf /etc/syslog-ng/patterndb.d/bash.conf; do
-  sed -i 's#file("/var/log/bash_err.log")#file("/dev/null")#; s#file("/var/log/bash_history.log")#file("/dev/null")#' "$f"
-done && systemctl restart syslog-ng      # "Job failed" = timeout; kiểm systemctl is-active syslog-ng
-grep destination /etc/syslog-ng/patterndb.d/bash.conf   # 2 dòng /dev/null
+  sed -i 's#d_bash_err { file("/var/log/bash_err.log"); }#d_bash_err { file("/dev/null" persist-name("d_bash_err_null")); }#; s#d_bash_hist { file("/var/log/bash_history.log"); }#d_bash_hist { file("/dev/null" persist-name("d_bash_hist_null")); }#' "$f"
+done
+syslog-ng -s -f /etc.defaults/syslog-ng/syslog-ng.conf && systemctl restart syslog-ng
+systemctl is-active syslog-ng                            # active
+grep -c 'patterndb.d/"' /etc/syslog-ng/syslog-ng.conf    # 2 = config đầy đủ
+grep destination /etc/syslog-ng/patterndb.d/bash.conf    # 2 dòng /dev/null
 ```
+`persist-name` là bắt buộc: DSM đã dùng `file("/dev/null")` trong `cupsd.conf`, hai destination cùng file
+phải khác persist-name, không thì syslog-ng "Error checking the uniqueness of the persist names" và
+**từ chối start — DSM lặng lẽ thay bằng config rút gọn** (không `@include patterndb.d`, chỉ còn
+`messages` với `level(warn..emerg)`, không lọc). Ở trạng thái đó rác `scemd polling_sys_current` +
+kernel `synobios get empty ttyS current` (mỗi 61 s, Xpenology không có vi điều khiển Synology) đổ vào
+`messages` → md0 thức — chính là cái block_dump thấy sau lần restart hỏng. Config đầy đủ đã lọc sẵn
+(`not2msg/main`). "Job failed" khi restart syslog-ng: đọc `/var/log/syslog.log`, đừng đoán timeout.
 Mất sau update DSM, như scemd.log. `bash_history.log` là log lệnh của DSM, không phải `~/.bash_history`.
 
 ## An toàn
