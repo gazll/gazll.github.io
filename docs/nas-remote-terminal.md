@@ -18,8 +18,8 @@ thì `p <tên>` / `claude-project <tên>` / `codex-project <tên>` (hàm trong `
 
 ## 1. Script khởi động (chạy bằng user `nas`)
 
-`/volume1/0_System/project/home-nas/bin/nas-terminal` — tạo sẵn hai tmux session và bật ttyd.
-Chọn session bằng tham số URL: `https://nas.<tailnet>.ts.net/?arg=claude` hoặc `?arg=codex`. **Không có `?arg=` → session `shell`** (bash trần, không đụng Claude/Codex).
+`/volume1/0_System/project/home-nas/bin/nas-terminal` — tạo sẵn hai tmux session, bật **ba** ttyd (7681 shell · 7682 claude · 7683 codex) và map Funnel `/` `/claude` `/codex` vào đó.
+URL = session: `https://nas.<tailnet>.ts.net/` → `shell`, `/claude`, `/codex`; `?arg=<project>` chọn/tạo cửa sổ project trong session đó (§4).
 
 ```sh
 #!/bin/sh
@@ -48,9 +48,20 @@ done
 # whoever ran this script: a task "Run" from DSM's web UI lives under
 # synoscgi, and restarting DSM killed ttyd that way once. The tmux server
 # is started at boot and outlives every DSM service restart.
-# -W ghi được, -O chặn origin lạ, -a nhận ?arg=<session>, tối đa 2 client
+# One ttyd per tool, on its own port, so the public URL is a PATH
+# (/ = shell, /claude, /codex — Funnel maps each path to its port and strips
+# the prefix) instead of ttyd's fixed "?arg=" query. -a still lets
+# ?arg=<project> pick the window inside that session.
+# -W ghi được, -O chặn origin lạ, tối đa 2 client mỗi cái
 $TMUX kill-session -t ttyd 2>/dev/null; pkill -x ttyd 2>/dev/null
-$TMUX new -d -s ttyd -c $H "exec $H/bin/ttyd -p 7681 -i 127.0.0.1 -W -O -a --max-clients 2 -c \"\$(cat $H/ttyd.cred)\" -t fontSize=15 -t titleFixed=NAS $H/bin/nas-attach >> $H/ttyd.log 2>&1"
+ttyd_start() {  # $1 port  $2 tool  ($3 = first|"")
+  cmd="exec $H/bin/ttyd -p $1 -i 127.0.0.1 -W -O -a --max-clients 2 -c \"\$(cat $H/ttyd.cred)\" -t fontSize=15 -t titleFixed=NAS:$2 $H/bin/nas-attach $2 >> $H/ttyd.log 2>&1"
+  if [ "$3" = first ]; then $TMUX new -d -s ttyd -n "$2" -c $H "$cmd"
+  else $TMUX new-window -d -t ttyd -n "$2" -c $H "$cmd"; fi
+}
+ttyd_start 7681 shell first
+ttyd_start 7682 claude
+ttyd_start 7683 codex
 
 # Funnel came back "on" after a reboot yet answered nothing: tailscaled
 # dropped the ingress→peerapi packets ("no rules matched") until funnel was
@@ -62,9 +73,13 @@ if [ -x $TS ]; then
     i=$((i+1)); sleep 2
   done
   $TS funnel reset >/dev/null 2>&1
-  $TS funnel --bg 7681 >/dev/null 2>&1 && echo "funnel: https://nas.tail74216c.ts.net" || echo "funnel: FAILED (chạy tay: $TS funnel --bg 7681)"
+  $TS funnel --bg 7681 >/dev/null 2>&1 \
+    && $TS funnel --bg --set-path /claude http://127.0.0.1:7682 >/dev/null 2>&1 \
+    && $TS funnel --bg --set-path /codex  http://127.0.0.1:7683 >/dev/null 2>&1 \
+    && echo "funnel: https://nas.tail74216c.ts.net/{,claude,codex}" \
+    || echo "funnel: FAILED (chạy tay: $TS funnel --bg 7681; --set-path /claude http://127.0.0.1:7682; --set-path /codex http://127.0.0.1:7683)"
 fi
-echo "ttyd :7681 (tmux session ttyd) → tmux [claude|codex] — login $(cat $H/ttyd.cred)"
+echo "ttyd :7681 shell · :7682 claude · :7683 codex (tmux session ttyd) — login $(cat $H/ttyd.cred)"
 ```
 
 `/volume1/0_System/project/home-nas/bin/nas-attach`:
@@ -139,14 +154,15 @@ Bật NAS từ xa: Hardware & Power → Power Schedule, hoặc WOL (`ether-wake`
 
 ## 4. Quy trình dùng
 
-1. Mở `https://nas.<tailnet>.ts.net/?arg=claude` → nhập user/pass (`ttyd.cred`).
-2. `claude-project <project>` (cd, `git pull --ff-only`, chạy claude; `claude-project <project> --continue` để tiếp phiên cũ) → trong claude bật remote control như vẫn làm với `tmux-claude`.
-3. Đóng tab web — tmux vẫn giữ claude chạy; code tiếp bằng Claude Code web.
-4. Codex: `?arg=codex` → `codex-project <project>`, gõ lệnh trực tiếp trong tab web.
-6. Shell riêng không đụng hai session kia: `?arg=shell` hoặc URL trần không tham số (tên bất kỳ đều tạo session mới).
-7. Chạy ngầm không cần mở tab: `tmux send-keys -t codex "codex-project <project>" Enter`.
-8. SSH ở nhà (không qua web): `tmux-claude-project <project>` / `tmux-codex-project <project>` — attach vào **đúng** session `claude`/`codex` mà ttyd dùng; session đang rảnh thì gõ lệnh vào giúp, đang chạy Claude/Codex thì chỉ attach. Rớt SSH không chết gì; tab web thấy cùng màn hình. Thoát: `Ctrl+B D`.
-5. Tab bị rớt mạng → mở lại URL là về đúng session (`tmux new -A`).
+1. Mở `https://nas.<tailnet>.ts.net/claude` → nhập user/pass (`ttyd.cred`). Ba URL, ba tmux session:
+   `/` = `shell` (bash trần, `sudo -i` khi cần root) · `/claude` · `/codex`.
+2. **Mỗi project là một cửa sổ tmux** trong session đó. `https://…/claude?arg=gazll.github.io` mở (hoặc tạo, tự chạy `claude-project gazll.github.io`) cửa sổ `gazll.github.io`. Không có `?arg=` → vào cửa sổ đang chọn. Chuyển cửa sổ: `Ctrl+B w` (danh sách), `Ctrl+B n`/`p`, `Ctrl+B 0..9`; thanh trạng thái dưới cùng liệt kê các cửa sổ.
+3. Trong cửa sổ: `claude-project <project>` (cd, `git pull --ff-only`, chạy claude; `--continue` để tiếp phiên cũ) → bật remote control → đóng tab, code tiếp bằng Claude Code web. Thoát Claude: `/exit` — cửa sổ thành shell, không mất.
+4. Codex y hệt: `/codex?arg=<project>` hoặc `codex-project <project>`.
+5. Đóng tab / rớt mạng = detach; mở lại URL là về đúng chỗ (`tmux new -A`).
+6. Chạy ngầm không cần mở tab: `tmux send-keys -t codex:<project> "codex-project <project>" Enter`.
+7. SSH ở nhà (không qua web): `tmux-claude-project <project>` / `tmux-codex-project <project>` = cùng `nas-attach` với web → cùng session, cùng cửa sổ; đang ở trong tmux thì `switch-client`, không lồng. Rớt SSH không chết gì. Thoát: `Ctrl+B D`.
+8. Tên `?arg=` là của ttyd (cố định, không đổi được); đường dẫn `/claude` `/codex` là Funnel `--set-path` trỏ vào 3 ttyd ở 7681/7682/7683 (Tailscale **cắt prefix** trước khi proxy, ttyd frontend ghép `pathname + /ws` nên `/claude` không cần dấu `/` cuối).
 
 ## 5. Không đánh thức ổ to
 
@@ -194,7 +210,7 @@ Rollback: stop 2 unit → `servicetool --unset-service-data-store-path pgsql` �
 
 ## Sổ tay hibernate (những gì đã tìm ra, theo thứ tự)
 
-Cách đo chuẩn, cần root (`sudo -i` trong tab `?arg=shell`), 10 phút, ra tên process + file + ổ:
+Cách đo chuẩn, cần root (`sudo -i` trong tab `/`), 10 phút, ra tên process + file + ổ:
 
 ```sh
 OUT=/volume1/0_System/project/home-nas/blockdump.txt
