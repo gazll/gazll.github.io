@@ -260,7 +260,7 @@ Code nằm trong repo và không chứa gì riêng tư. Mọi thứ nhận diệ
 
 | File | Là gì |
 |---|---|
-| `config.json` | `{ "apiId": 123, "apiHash": "…", "chats": ["@name", -1001234567890] }` — apiId/apiHash lấy ở https://my.telegram.org → *API development tools* |
+| `config.json` | `{ "apiId": 123, "apiHash": "…", "chats": ["@name", -1001234567890, "-1002633694014/571"] }` — apiId/apiHash lấy ở https://my.telegram.org → *API development tools*. `id/topic` (hoặc link `t.me/c/<id>/<topic>`) là **một topic** trong group dạng forum — HDvietnam là forum, và chỉ vài topic có link |
 | `session` | phiên đăng nhập MTProto, mode 600. **Là credential**: ai có file này là đăng nhập được tài khoản Telegram của bạn |
 | `state.json` | message id cuối đã đọc mỗi chat — chạy lại chỉ đọc phần mới |
 | `report.json` | lần chạy gần nhất tìm được gì |
@@ -286,12 +286,16 @@ Bốn điều đã quyết, để khỏi làm lại:
 - **Đọc từ cũ → mới, `state.lastId` là con trỏ.** Ctrl+C giữa chừng vẫn đúng:
   phần trước con trỏ đã ghi ra raw, phần sau đọc tiếp lần sau. Thứ tự mới → cũ
   thì không resume được (đã đọc đầu, chưa đọc đuôi, không có con trỏ nào đúng).
-- **Link không chỉ nằm trong text.** Một *text link* giấu URL sau chữ hiển thị,
-  nút inline chỉ có `url`, link preview giữ URL trên `media.webpage`; tool gộp
-  cả bốn chỗ rồi mới lọc Fshare. Tên phim là dòng đầu của post (bỏ URL,
-  hashtag, emoji đầu/cuối); một file trong album không có caption, hay một link
-  trả lời post, **mượn** tên của album/post đó — resolve sau khi đọc xong vì
-  caption có thể đứng trước hoặc sau link trong lịch sử.
+- **Link không chỉ nằm trong text, và tên là của đoạn chứ không phải của tin.**
+  Một *text link* giấu URL sau chữ hiển thị, nút inline chỉ có `url`, link
+  preview giữ URL trên `media.webpage`; tool gộp cả bốn chỗ rồi mới lọc Fshare.
+  Tin chia thành đoạn theo dòng trống và mỗi link lấy dòng đầu của **đoạn**
+  chứa nó (bỏ URL, hashtag, số thứ tự `1.`, emoji đầu/cuối) — FSHARE GROUP là
+  bot search, một tin là 5 file mỗi file một đoạn, dòng đầu tin chỉ là câu
+  query; lần chạy đầu 308 dòng đều mang tên query. Đoạn không có tên rơi về
+  tên tin; một file trong album không có caption, hay một link trả lời post,
+  **mượn** tên của album/post đó — resolve sau khi đọc xong vì caption có thể
+  đứng trước hoặc sau link trong lịch sử.
 - **FloodWait là bình thường.** `floodSleepThreshold: 300` — tool tự ngủ tới 5
   phút thay vì ném lỗi; lâu hơn thế thì Ctrl+C và chạy lại sau. Đừng thêm
   concurrency: một tài khoản người dùng đọc tuần tự là đúng tốc độ Telegram
