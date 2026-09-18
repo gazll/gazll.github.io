@@ -558,12 +558,14 @@ secret/              GITIGNORED. Personal setup notes and credentials
   It shares the schedule's envelope AND passphrase on purpose (one key in the
   password manager, one `schedule_access` grant), and the corollary is stated
   in the playbook: a calendar grant is a catalog grant. The ciphertext ceiling
-  in `lib/schedule-crypto.js` is 8MB, raised from 2MB once — a real run is
-  74k rows, and trimmed to what the tab renders (no `remote`, `path`,
-  `keywords`, `id` or `titleKey`; the first three alone were 39MB of a 70MB
-  projection) it still gzips to ~2.4MB. Trim `projectCatalog` first; the
-  ceiling bounds memory, the KDF pin bounds CPU, so it is not the security
-  margin it looks like. A second-opinion probe on `fshare.vn` must require
+  in `lib/schedule-crypto.js` is 16MB, raised from 8MB once more: adding
+  three Telegram sources on 2026-09-18 took the catalog to 326k links,
+  trimmed to what the tab renders (no `remote`, `path`, `keywords`, `id` or
+  `titleKey`) it gzips to ~10.9MB — past the 8MB ceiling, itself raised from
+  2MB once at 74k links/~2.4MB. Trim `projectCatalog` first; the ceiling
+  bounds memory, the KDF pin bounds CPU, so it is not the security margin it
+  looks like. `MAX_ENVELOPE_JSON_CHARS` (the base64 JSON text, checked ahead
+  of the ciphertext-bytes decode) moves with it, at base64's 4/3 ratio. A second-opinion probe on `fshare.vn` must require
   `response.ok`, the file's own URL and a non-error title: 38 dead links were
   recorded live with "503 Service Temporarily Unavailable" as their name. A
   clean 404/410 from that same page IS conclusive on its own, unlike a 5xx —

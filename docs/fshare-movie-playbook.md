@@ -474,11 +474,14 @@ sau đọc trước khi chạy:
   hiện là `unknown`, mô hình chưa có chỗ ghi `movedTo`.
 - **Đừng chạy `tools/fshare-movie.mjs --check` trong `check.mjs`.** CI không
   có passphrase, giống `schedule-seal.mjs`.
-- **Trần ciphertext là 8MB sau gzip** (`lib/schedule-crypto.js`), đã nới
-  từ 2MB một lần vì lần chạy thật ra 74k dòng (~2,4MB gzip sau khi đã cắt
-  `remote`, `path`, `keywords`, `id`, `titleKey` khỏi projection — ba field
-  đầu chiếm 39MB trong 70MB). Vượt trần thì cắt field trong `projectCatalog`
-  trước; `normalizeMovieDatabase` dựng lại id/titleKey/keywords khi load.
+- **Trần ciphertext là 16MB sau gzip** (`lib/schedule-crypto.js`), đã nới
+  từ 8MB một lần nữa: thêm ba nguồn Telegram ngày 2026-09-18 đưa catalog lên
+  326k link, ~10,9MB gzip sau khi đã cắt `remote`, `path`, `keywords`, `id`,
+  `titleKey` khỏi projection (trần 8MB trước đó tự nó đã nới từ 2MB ở mốc
+  74k link/~2,4MB). Vượt trần thì cắt field trong `projectCatalog` trước;
+  `normalizeMovieDatabase` dựng lại id/titleKey/keywords khi load.
+  `MAX_ENVELOPE_JSON_CHARS` (bound base64 JSON, kiểm trước khi decode) nới
+  cùng lúc, theo tỉ lệ base64 (4/3 dung lượng nhị phân).
 - **Folder liệt kê rỗng là `dead`, với `error: "empty listing"`.** Folder
   `public: 0` trả listing rỗng — cả proxy lẫn API của chính fshare.vn — và
   không phân biệt được với folder trống thật. Với mục đích của catalog thì

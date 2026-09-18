@@ -36,7 +36,7 @@ test('public schedule envelopes reject hostile KDF and binary metadata', async (
   assert.equal(isEnvelope(badSalt), false);
   await assert.rejects(() => unseal(badSalt, 'a passphrase'), /salt/i);
 
-  const badCiphertext = { ...envelope, ct: 'A'.repeat(12 * 1024 * 1024) };
+  const badCiphertext = { ...envelope, ct: 'A'.repeat(24 * 1024 * 1024) };
   assert.equal(isEnvelope(badCiphertext), false);
   await assert.rejects(() => unseal(badCiphertext, 'a passphrase'), /ciphertext/i);
 
