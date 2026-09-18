@@ -94,5 +94,8 @@ test('telegram: links hidden in entities, buttons and previews are found, and a 
     'Album caption https://www.fshare.vn/file/ALBUM001',
     'Dune: Part Two (2024) 4K https://www.fshare.vn/file/REPLY001'
   ]);
-  assert.deepEqual(['@foo', 'https://t.me/c/1234/56', 't.me/bar', -1001234567890].map(chatReference), ['@foo', '-1001234', 'bar', '-1001234567890']);
+  assert.deepEqual(['@foo', 'https://t.me/c/1234/56', 't.me/bar', -1001234567890, '1002633694014_571', '-1002633694014/571'].map(chatReference), [
+    { chat: '@foo', topic: 0 }, { chat: '-1001234', topic: 56 }, { chat: 'bar', topic: 0 },
+    { chat: '-1001234567890', topic: 0 }, { chat: '-1002633694014', topic: 571 }, { chat: '-1002633694014', topic: 571 }
+  ]);
 });

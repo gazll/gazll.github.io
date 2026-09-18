@@ -12,7 +12,7 @@
    machine. Everything that identifies the operator lives in secret/telegram/,
    which .gitignore already covers:
 
-     config.json   { "apiId": 123, "apiHash": "…", "chats": ["@name", -1001234567890] }
+     config.json   { "apiId": 123, "apiHash": "…", "chats": ["@name", -1001234567890, "-1002633694014/571"] }
                    apiId/apiHash come from https://my.telegram.org (API development tools)
      session       the signed-in MTProto session — a login credential, mode 0600
      state.json    the last message id read per chat, so a rerun is incremental
@@ -23,6 +23,7 @@
      node tools/crawl-telegram.mjs chats            # list groups/channels → ids for config.json
      node tools/crawl-telegram.mjs                  # harvest every chat in config.json
      node tools/crawl-telegram.mjs --chat @name     # one chat (username, t.me link or id)
+     node tools/crawl-telegram.mjs --chat -1002633694014/571   # one forum topic (id/topic, or its t.me/c/… link)
      node tools/crawl-telegram.mjs --full           # re-read the whole history, not just new
      node tools/crawl-telegram.mjs --limit 200      # stop after N messages per chat (smoke test)
      node tools/crawl-telegram.mjs --no-register    # do not touch sources.json
@@ -39,7 +40,7 @@ import path from 'node:path';
 import readline from 'node:readline/promises';
 import { fileURLToPath } from 'node:url';
 
-import { Logger, TelegramClient } from 'telegram';
+import { Api, Logger, TelegramClient } from 'telegram';
 import { StringSession } from 'telegram/sessions/index.js';
 
 import { extractFshareLinks } from '../public/fshare-tool/lib/movie-db.js';
@@ -273,18 +274,37 @@ function chatId(entity) {
   return raw;
 }
 
-/** What getEntity accepts: a digit string becomes an id, anything else a
-    username. A t.me/c/<id> link is the private form the app copies. */
+/** A chat, or one forum topic inside it. Accepted: @username, t.me/<user>,
+    t.me/c/<id>/<topic>, -100<id>, -100<id>/<topic>, -100<id>_<topic>. A bare
+    100<id> (13+ digits) is the -100 form with the sign dropped — no user id
+    is that long. The chat half is what getEntity accepts: a digit string is
+    an id, anything else a username. */
 export function chatReference(value) {
-  const text = String(value).trim();
-  const link = text.match(/^(?:https?:\/\/)?t\.me\/(?:c\/(\d+)|([A-Za-z0-9_]+))/i);
-  if (link?.[1]) return '-100' + link[1];
-  if (link?.[2]) return link[2];
-  return text;
+  let text = String(value).trim();
+  let topic = 0;
+  const link = text.match(/^(?:https?:\/\/)?t\.me\/(?:c\/(\d+)|([A-Za-z0-9_]+))(?:\/(\d+))?/i);
+  if (link) {
+    text = link[1] ? '-100' + link[1] : link[2];
+    topic = Number(link[3] || 0);
+  } else {
+    const pair = text.match(/^(-?\d+)[/_](\d+)$/) || text.match(/^(@?[A-Za-z0-9_]+)\/(\d+)$/);
+    if (pair) { text = pair[1]; topic = Number(pair[2]); }
+  }
+  if (/^100\d{10,}$/.test(text)) text = '-' + text;
+  return { chat: text, topic };
 }
 
-const slugOf = (entity) => (entity.username ? entity.username.toLowerCase() : 'c' + String(entity.id));
-const originOf = (entity) => (entity.username ? `https://t.me/${entity.username}` : `https://t.me/c/${String(entity.id)}`);
+const slugOf = (entity, topic) => (entity.username ? entity.username.toLowerCase() : 'c' + String(entity.id)) + (topic ? `-t${topic}` : '');
+const originOf = (entity, topic) => (entity.username ? `https://t.me/${entity.username}` : `https://t.me/c/${String(entity.id)}`) + (topic ? `/${topic}` : '');
+
+/** The topic's name, for sources.json and the log; the root message is a
+    service message with no text, so it cannot be read from history. */
+async function topicTitle(client, entity, topic) {
+  try {
+    const result = await client.invoke(new Api.channels.GetForumTopicsByID({ channel: entity, topics: [topic] }));
+    return result.topics?.[0]?.title || '';
+  } catch { return ''; }
+}
 
 /* ---------- harvest ---------- */
 
@@ -325,9 +345,12 @@ async function registerSource(file, originUrl, title) {
 }
 
 async function harvestChat(client, reference, state, options) {
-  const entity = await client.getEntity(chatReference(reference));
-  const key = slugOf(entity);
-  const title = entity.title || entity.username || key;
+  const { chat, topic } = chatReference(reference);
+  const entity = await client.getEntity(chat);
+  const key = slugOf(entity, topic);
+  const chatTitle = entity.title || entity.username || key;
+  const title = topic ? `${chatTitle} › ${await topicTitle(client, entity, topic) || `topic ${topic}`}` : chatTitle;
+  const label = chatId(entity) + (topic ? `/${topic}` : '');
   const chatState = (!options.full && state.chats[key]) || { lastId: 0, messages: 0, links: 0 };
   const output = options.output || path.join(RAW_DIR, `telegram-${key}-${options.date}.txt`);
 
@@ -348,7 +371,7 @@ async function harvestChat(client, reference, state, options) {
     resolveTitles(records, titles).forEach((record) => lines.add(rawLine(record)));
     if (lines.size) await atomicWrite(output, [...lines].join('\n') + '\n');
     state.chats[key] = {
-      id: chatId(entity),
+      id: label,
       title,
       lastId,
       messages: chatState.messages + seen,
@@ -359,11 +382,13 @@ async function harvestChat(client, reference, state, options) {
     await saveJson(STATE_FILE, state);
   };
 
-  out(`${title} (${chatId(entity)}): reading ${chatState.lastId ? `messages after #${chatState.lastId}` : 'the whole history'}…`);
+  out(`${title} (${label}): reading ${chatState.lastId ? `messages after #${chatState.lastId}` : 'the whole history'}…`);
   for await (const message of client.iterMessages(entity, {
     minId: chatState.lastId,
     reverse: true,
-    limit: options.limit || undefined
+    limit: options.limit || undefined,
+    // A forum topic is a reply thread under its root message.
+    replyTo: topic || undefined
   })) {
     if (stopping) break;
     lastId = Math.max(lastId, message.id);
@@ -381,9 +406,9 @@ async function harvestChat(client, reference, state, options) {
   }
   process.off('SIGINT', stop);
   await flush();
-  if (options.register && lines.size) await registerSource(output, originOf(entity), title);
+  if (options.register && lines.size) await registerSource(output, originOf(entity, topic), title);
 
-  const report = { chat: chatId(entity), title, key, messages: seen, lines: lines.size, lastId, output: relative(output), stopped: stopping };
+  const report = { chat: label, title, key, messages: seen, lines: lines.size, lastId, output: relative(output), stopped: stopping };
   out(`  ${seen} message(s) read, ${lines.size} line(s) in ${relative(output)}${stopping ? ' (stopped — rerun to continue)' : ''}`);
   return report;
 }
