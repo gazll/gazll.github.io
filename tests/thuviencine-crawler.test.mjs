@@ -58,3 +58,31 @@ test('robots rules allow the wildcard root and obey the longest matching rule', 
   assert.equal(robotsAllows(robots, SITE + 'private/public/a/'), true);
   assert.deepEqual(sitemapUrlsFromRobots('Sitemap: /sitemap.xml', SITE), ['https://thuviencine.uk/sitemap.xml']);
 });
+
+// The Telegram harvester shares this file: both are raw sources for the movie
+// catalog and both are only helpers around extractFshareLinks.
+test('telegram: links hidden in entities, buttons and previews are found, and a caption is borrowed', async () => {
+  const { recordsFromMessage, resolveTitles, rawLine, chatReference } = await import('../tools/crawl-telegram.mjs');
+  const post = {
+    id: 5,
+    message: '🎬 #phimmoi Dune: Part Two (2024) 4K — fshare.vn/file/TEXT0001',
+    entities: [{ className: 'MessageEntityTextUrl', url: 'https://fshare.vn/folder/ENTITY01' }],
+    replyMarkup: { rows: [{ buttons: [{ url: 'https://www.fshare.vn/file/BUTTON01' }] }] },
+    media: { webpage: { url: 'https://www.fshare.vn/file/PREVIEW1' } }
+  };
+  assert.deepEqual(recordsFromMessage(post).map(rawLine), [
+    'Dune: Part Two (2024) 4K https://www.fshare.vn/file/TEXT0001',
+    'Dune: Part Two (2024) 4K https://www.fshare.vn/folder/ENTITY01',
+    'Dune: Part Two (2024) 4K https://www.fshare.vn/file/BUTTON01',
+    'Dune: Part Two (2024) 4K https://www.fshare.vn/file/PREVIEW1'
+  ]);
+  // An album file with no caption and a bare-link reply both borrow the post's title.
+  const album = recordsFromMessage({ id: 6, message: 'https://www.fshare.vn/file/ALBUM001', groupedId: 77n });
+  const reply = recordsFromMessage({ id: 7, message: 'fshare.vn/file/REPLY001', replyTo: { replyToMsgId: 5 } });
+  const titles = { groups: new Map([['77', 'Album caption']]), messages: new Map([[5, 'Dune: Part Two (2024) 4K']]) };
+  assert.deepEqual(resolveTitles([...album, ...reply], titles).map(rawLine), [
+    'Album caption https://www.fshare.vn/file/ALBUM001',
+    'Dune: Part Two (2024) 4K https://www.fshare.vn/file/REPLY001'
+  ]);
+  assert.deepEqual(['@foo', 'https://t.me/c/1234/56', 't.me/bar', -1001234567890].map(chatReference), ['@foo', '-1001234', 'bar', '-1001234567890']);
+});
