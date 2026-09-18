@@ -19,7 +19,7 @@ thì `p <tên>` / `claude-project <tên>` / `codex-project <tên>` (hàm trong `
 ## 1. Script khởi động (chạy bằng user `nas`)
 
 `/volume1/0_System/project/home-nas/bin/nas-terminal` — tạo sẵn hai tmux session và bật ttyd.
-Chọn session bằng tham số URL: `https://nas.<tailnet>.ts.net/?arg=claude` hoặc `?arg=codex`.
+Chọn session bằng tham số URL: `https://nas.<tailnet>.ts.net/?arg=claude` hoặc `?arg=codex`. **Không có `?arg=` → session `shell`** (bash trần, không đụng Claude/Codex).
 
 ```sh
 #!/bin/sh
@@ -76,7 +76,7 @@ export LANG=en_US.utf8 LC_ALL=en_US.utf8 TERM=xterm-256color
 # ttyd itself lives in a tmux session, so every connection inherits $TMUX and
 # tmux would refuse to "nest"; this is a fresh client, not a nested one.
 unset TMUX TMUX_PANE
-exec /var/packages/DiagnosisTool/target/tool/tmux -u new -A -s "${1:-claude}" -c /volume1/0_System/project
+exec /var/packages/DiagnosisTool/target/tool/tmux -u new -A -s "${1:-shell}" -c /volume1/0_System/project
 ```
 
 `chmod 700` cả hai. `-i 127.0.0.1` để ttyd **không** nghe trên LAN/WAN — chỉ Tailscale mới với tới.
@@ -143,7 +143,7 @@ Bật NAS từ xa: Hardware & Power → Power Schedule, hoặc WOL (`ether-wake`
 2. `claude-project <project>` (cd, `git pull --ff-only`, chạy claude; `claude-project <project> --continue` để tiếp phiên cũ) → trong claude bật remote control như vẫn làm với `tmux-claude`.
 3. Đóng tab web — tmux vẫn giữ claude chạy; code tiếp bằng Claude Code web.
 4. Codex: `?arg=codex` → `codex-project <project>`, gõ lệnh trực tiếp trong tab web.
-6. Shell riêng không đụng hai session kia: `?arg=shell` (tên bất kỳ đều tạo session mới).
+6. Shell riêng không đụng hai session kia: `?arg=shell` hoặc URL trần không tham số (tên bất kỳ đều tạo session mới).
 7. Chạy ngầm không cần mở tab: `tmux send-keys -t codex "codex-project <project>" Enter`.
 8. SSH ở nhà (không qua web): `tmux-claude-project <project>` / `tmux-codex-project <project>` — attach vào **đúng** session `claude`/`codex` mà ttyd dùng; session đang rảnh thì gõ lệnh vào giúp, đang chạy Claude/Codex thì chỉ attach. Rớt SSH không chết gì; tab web thấy cùng màn hình. Thoát: `Ctrl+B D`.
 5. Tab bị rớt mạng → mở lại URL là về đúng session (`tmux new -A`).
