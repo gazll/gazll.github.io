@@ -227,6 +227,24 @@ kernel `synobios get empty ttyS current` (mỗi 61 s, Xpenology không có vi đ
 (`not2msg/main`). "Job failed" khi restart syslog-ng: đọc `/var/log/syslog.log`, đừng đoán timeout.
 Mất sau update DSM, như scemd.log. `bash_history.log` là log lệnh của DSM, không phải `~/.bash_history`.
 
+### DSM không bao giờ ra lệnh ngủ — ổ tự ngủ bằng `hdparm -S` (2026-09-18)
+
+Sau khi md0 sạch (13:05 → 13:21: `sata1`, `sata3`, `md0` không nhích một write; md0 lần cuối bị ghi
+11:29), `hdparm -C` vẫn `active/idle` sau gần 2 giờ. DSM chỉ hibernate khi **mọi** ổ trong đều rảnh,
+mà `sata2` (volume1: tmux, Claude, Tailscale, md0) không bao giờ rảnh → hai ổ to bị vạ lây vĩnh viễn.
+`syno_hibernation_log_level` = 0 nên cũng không có `/var/log/hibernation.log` để cãi.
+
+Lối ra: timer standby trong firmware của chính ổ, không phụ thuộc DSM:
+```sh
+hdparm -S 120 /dev/sata1 /dev/sata3   # 120 × 5 s = 10 phút; mất khi cúp điện
+hdparm -y /dev/sata1 /dev/sata3       # ép ngủ ngay (test)
+hdparm -C /dev/sata1 /dev/sata3       # standby
+```
+Làm lại mỗi lần boot bằng `home-nas/bin/nas-root-boot` (Task Scheduler, user **root**, Boot-up) — script
+đó cũng tự vá lại `scemd.log` và `bash.conf` sau update DSM, nên là *một* task root cho mọi thứ trên md0.
+Cái đánh thức ổ 14 TB sau đó chỉ còn là dữ liệu thật trên volume2/3 (OneDrive, media) — kể cả `cp` một
+file vào `Media/Nas/config/` (tự tay làm lúc 13:29, thấy ngay `sata3 r+11`). Đó là việc, không phải lỗi.
+
 ## An toàn
 
 - Funnel = **public internet**. Lớp bảo vệ duy nhất là basic‑auth của ttyd → mật khẩu dài ngẫu nhiên
