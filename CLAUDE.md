@@ -150,6 +150,9 @@ tools/               check.mjs (the one entrypoint) · validate-content.mjs · a
                      check.mjs stage — CI has no passphrase and no secret/)
                      fshare-movie.mjs (ingest · build · validate · seal · unseal the
                      movie catalog; same rule, never a check.mjs stage)
+                     crawl-thuviencine.mjs · crawl-telegram.mjs — raw-source harvesters
+                     for that catalog: they write secret/fshare-movie/raw/ and
+                     sources.json only, never touch Fshare or the catalog
                      passphrase.mjs — the one resolver both seal tools share
 DESIGN.md            the visual tokens, and they must agree with public/styles.css
                      (25/25 colours currently match). The contrast FLOOR is owned
@@ -179,6 +182,9 @@ secret/fshare-movie/  GITIGNORED. catalog.json (header) + catalog/links-NN.json 
                      exports are deleted after build. Every write is .tmp + rename with
                      the previous copy kept as .bak. The repo holds only the sealed
                      projection of the checked rows
+secret/telegram/     GITIGNORED. config.json (apiId/apiHash/chats), the MTProto
+                     session (a login credential, mode 600), state.json (last message
+                     id per chat), report.json — crawl-telegram.mjs's whole private side
 secret/              GITIGNORED. Personal setup notes and credentials
 ```
 

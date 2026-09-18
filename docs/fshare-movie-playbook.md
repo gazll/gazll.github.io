@@ -113,6 +113,8 @@ node tools/fshare-movie.mjs ingest https://www.fshare.vn/folder/ABCD1234 https:/
 node tools/fshare-movie.mjs ingest ./export-tôi-tải-tay.csv
 #    Hoặc thu thập từ một site (xem "Thu thập từ site") — cũng chỉ ghi vào raw/.
 npm run crawl:thuviencine
+#    Hoặc từ group Telegram mình là thành viên (xem "Thu thập từ Telegram").
+npm run crawl:telegram
 
 # 2. Raw → catalog. Link mới vào với status pending; link cũ giữ nguyên kết quả.
 node tools/fshare-movie.mjs build
@@ -244,6 +246,59 @@ Kinh nghiệm đã trả giá, giữ để crawler sau không lặp lại:
 - **Thu thập link ≠ duyệt folder.** Crawler xong chỉ có `pending`; folder vẫn
   phải qua `validate` (đệ quy). Root probe không thay được bước này — đó chính
   là sai lầm 2026-09-16.
+
+## Thu thập từ Telegram
+
+`tools/crawl-telegram.mjs` (`npm run crawl:telegram`) đọc lịch sử group/channel
+**bằng chính tài khoản của bạn** qua MTProto (GramJS) — là thành viên thì đọc
+được, không cần bot, không cần admin. Cũng là một nguồn raw như site: ghi
+`raw/telegram-<chat>-<ngày>.txt`, đăng ký `originUrl` (`https://t.me/<user>`
+hoặc `t.me/c/<id>`) vào `sources.json`, không chạm Fshare, không chạm catalog.
+
+Code nằm trong repo và không chứa gì riêng tư. Mọi thứ nhận diện bạn nằm ở
+`secret/telegram/` (gitignored, **không có backup**):
+
+| File | Là gì |
+|---|---|
+| `config.json` | `{ "apiId": 123, "apiHash": "…", "chats": ["@name", -1001234567890] }` — apiId/apiHash lấy ở https://my.telegram.org → *API development tools* |
+| `session` | phiên đăng nhập MTProto, mode 600. **Là credential**: ai có file này là đăng nhập được tài khoản Telegram của bạn |
+| `state.json` | message id cuối đã đọc mỗi chat — chạy lại chỉ đọc phần mới |
+| `report.json` | lần chạy gần nhất tìm được gì |
+
+```bash
+node tools/crawl-telegram.mjs login          # một lần mỗi máy: số điện thoại, code, 2FA
+node tools/crawl-telegram.mjs chats          # liệt kê group/channel → chép id vào config.json
+npm run crawl:telegram                       # mọi chat trong config.json; lần đầu đọc cả lịch sử
+npm run crawl:telegram -- --chat @name --limit 200   # thử nhỏ một chat
+npm run crawl:telegram -- --full             # bỏ state, đọc lại từ đầu
+cat secret/telegram/report.json
+```
+
+Bốn điều đã quyết, để khỏi làm lại:
+
+- **Đăng nhập là việc của người, `login` làm một lần mỗi máy.** Tool không bao
+  giờ in session hay apiHash ra, và từ chối ghi `session` nếu `git check-ignore`
+  không nhận đường dẫn đó — một clone mất dòng `secret/` trong `.gitignore` sẽ
+  commit credential ở lần `git add -A` kế. Đem qua máy khác: pull code rồi
+  `login` lại ở đó (một session mới trong *Active sessions* của Telegram), đừng
+  chép file `session` qua chat/mail. Thu hồi: Telegram → Settings → Devices →
+  terminate phiên đó, hoặc xoá file.
+- **Đọc từ cũ → mới, `state.lastId` là con trỏ.** Ctrl+C giữa chừng vẫn đúng:
+  phần trước con trỏ đã ghi ra raw, phần sau đọc tiếp lần sau. Thứ tự mới → cũ
+  thì không resume được (đã đọc đầu, chưa đọc đuôi, không có con trỏ nào đúng).
+- **Link không chỉ nằm trong text.** Một *text link* giấu URL sau chữ hiển thị,
+  nút inline chỉ có `url`, link preview giữ URL trên `media.webpage`; tool gộp
+  cả bốn chỗ rồi mới lọc Fshare. Tên phim là dòng đầu của post (bỏ URL,
+  hashtag, emoji đầu/cuối); một file trong album không có caption, hay một link
+  trả lời post, **mượn** tên của album/post đó — resolve sau khi đọc xong vì
+  caption có thể đứng trước hoặc sau link trong lịch sử.
+- **FloodWait là bình thường.** `floodSleepThreshold: 300` — tool tự ngủ tới 5
+  phút thay vì ném lỗi; lâu hơn thế thì Ctrl+C và chạy lại sau. Đừng thêm
+  concurrency: một tài khoản người dùng đọc tuần tự là đúng tốc độ Telegram
+  cho phép.
+
+Xong crawler chỉ có `pending`; quy tắc cuối của "Thu thập từ site" vẫn đúng ở
+đây — folder phải qua `validate`.
 
 ## `validate` làm gì, và làm gì để không tốn gấp mười
 
