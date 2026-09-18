@@ -67,46 +67,67 @@ const relative = (file) => path.relative(ROOT, file).replaceAll(path.sep, '/');
 // A bare `fshare.vn/file/…` is a link the poster typed without a scheme.
 const URL_RE = /(?:https?:\/\/|www\.|fshare\.vn\/)\S+/gi;
 
-/** The line a human would call the film: the first line of the post that is
-    not just a link, with URLs, hashtags and decoration removed. */
+// A line that is only a label for the link beside it ("🔗 Link:") names nothing.
+const LABEL_RE = /^(?:link|links|download|tải|tải về|fshare|size)$/i;
+
+/** The line a human would call the film: the first line that is not just a
+    link, with URLs, hashtags, list numbering and decoration removed. */
 export function titleFromText(text) {
   for (const rawLine of String(text ?? '').split(/\r?\n/)) {
     const line = cleanText(rawLine.replace(URL_RE, ' ').replace(/#[\p{L}\p{N}_]+/gu, ' '))
       .replace(/^[\s\p{P}\p{S}]+|[\s\p{P}\p{S}]+$/gu, '')
+      .replace(/^\d{1,3}[.)]\s+/, '')
       .trim();
-    if (line) return line.slice(0, TITLE_MAX);
+    if (line && !LABEL_RE.test(line)) return line.slice(0, TITLE_MAX);
   }
   return '';
 }
 
-/** Every URL a message carries, including the ones its text does not show:
-    a text_link entity hides the target behind display text, an inline
-    keyboard button carries only a url, and a link preview keeps the url on
-    the media. Fshare links are filtered out of the union afterwards. */
-export function urlsOfMessage(message) {
-  const urls = [String(message.message ?? '')];
-  for (const entity of message.entities || []) {
-    if (entity.className === 'MessageEntityTextUrl' && entity.url) urls.push(entity.url);
+/** A bot's search result or a curated post lists many files in one message,
+    one paragraph each — the paragraph names the file, the first line of the
+    message only names the list. So a link is titled by the blank-line block
+    it sits in; a text_link entity is placed by its offset (UTF-16, like JS);
+    buttons and previews have no place in the text and take the message's. */
+export function recordsFromMessage(message) {
+  const text = String(message.message ?? '');
+  const fallback = titleFromText(text) || cleanText(message.file?.name || '');
+  const textUrls = (message.entities || [])
+    .filter((entity) => entity.className === 'MessageEntityTextUrl' && entity.url)
+    .map((entity) => ({ url: entity.url, offset: entity.offset ?? 0 }));
+  const groups = [];
+  let pos = 0;
+  for (const block of text.split(/\n[ \t]*\n/)) {
+    const start = text.indexOf(block, pos);
+    const end = start + block.length;
+    pos = end;
+    const inside = textUrls.filter((entity) => entity.offset >= start && entity.offset < end).map((entity) => entity.url);
+    groups.push({ text: [block, ...inside].join('\n'), title: titleFromText(block) || fallback });
   }
+  const outside = textUrls.filter((entity) => !groups.some((group) => group.text.includes(entity.url))).map((entity) => entity.url);
   for (const row of message.replyMarkup?.rows || []) {
-    for (const button of row.buttons || []) if (button.url) urls.push(button.url);
+    for (const button of row.buttons || []) if (button.url) outside.push(button.url);
   }
   const webpage = message.media?.webpage;
-  if (webpage?.url) urls.push(webpage.url);
-  if (webpage?.description) urls.push(webpage.description);
-  return urls;
-}
+  if (webpage?.url) outside.push(webpage.url);
+  if (webpage?.description) outside.push(webpage.description);
+  groups.push({ text: outside.join('\n'), title: fallback });
 
-export function recordsFromMessage(message) {
-  const links = extractFshareLinks(urlsOfMessage(message).join('\n'));
-  if (!links.length) return [];
-  return links.map((link) => ({
-    link: link.link,
-    title: titleFromText(message.message) || cleanText(message.file?.name || ''),
-    id: message.id,
-    groupedId: message.groupedId ? String(message.groupedId) : '',
-    replyTo: message.replyTo?.replyToMsgId || 0
-  }));
+  const seen = new Set();
+  const records = [];
+  groups.forEach((group) => {
+    extractFshareLinks(group.text).forEach((link) => {
+      if (seen.has(link.id)) return;
+      seen.add(link.id);
+      records.push({
+        link: link.link,
+        title: group.title,
+        id: message.id,
+        groupedId: message.groupedId ? String(message.groupedId) : '',
+        replyTo: message.replyTo?.replyToMsgId || 0
+      });
+    });
+  });
+  return records;
 }
 
 /** A link without a caption of its own borrows one: from the album it sits

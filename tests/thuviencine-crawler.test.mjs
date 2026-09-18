@@ -76,6 +76,16 @@ test('telegram: links hidden in entities, buttons and previews are found, and a 
     'Dune: Part Two (2024) 4K https://www.fshare.vn/file/BUTTON01',
     'Dune: Part Two (2024) 4K https://www.fshare.vn/file/PREVIEW1'
   ]);
+  // A bot's result list: each link is named by its own paragraph, not by the query line.
+  const list = {
+    id: 8,
+    message: '🔍 Kết quả: "dream to you"\n\nTìm thấy 2 kết quả\n\n1. Dream to You S01E01 2026 1080p WEB.mkv\n📦 Size: 1.47 GB\n🔗 Link: https://www.fshare.vn/file/LIST0001?des=abc\n\n2. Dream to You S01E02.mkv\n📦 Size: 1.24 GB\n🔗 Link: https://www.fshare.vn/file/LIST0002\n\n🔗 Link: https://www.fshare.vn/file/LIST0003'
+  };
+  assert.deepEqual(recordsFromMessage(list).map(rawLine), [
+    'Dream to You S01E01 2026 1080p WEB.mkv https://www.fshare.vn/file/LIST0001',
+    'Dream to You S01E02.mkv https://www.fshare.vn/file/LIST0002',
+    'Kết quả: "dream to you https://www.fshare.vn/file/LIST0003'
+  ]);
   // An album file with no caption and a bare-link reply both borrow the post's title.
   const album = recordsFromMessage({ id: 6, message: 'https://www.fshare.vn/file/ALBUM001', groupedId: 77n });
   const reply = recordsFromMessage({ id: 7, message: 'fshare.vn/file/REPLY001', replyTo: { replyToMsgId: 5 } });
