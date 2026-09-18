@@ -48,14 +48,20 @@ done
 # whoever ran this script: a task "Run" from DSM's web UI lives under
 # synoscgi, and restarting DSM killed ttyd that way once. The tmux server
 # is started at boot and outlives every DSM service restart.
+# ttyd is started with TMUX unset: nas-attach must see $TMUX only from a real
+# SSH-inside-tmux client, or it would switch-client with no client ("no clients").
 # One ttyd per tool, on its own port, so the public URL is a PATH
 # (/ = shell, /claude, /codex — Funnel maps each path to its port and strips
 # the prefix) instead of ttyd's fixed "?arg=" query. -a still lets
 # ?arg=<project> pick the window inside that session.
-# -W ghi được, -O chặn origin lạ, tối đa 2 client mỗi cái
+# -W ghi được, -O chặn origin lạ, tối đa 2 client mỗi cái.
+# Log goes to /tmp (tmpfs) at -d 3 (errors+warnings): the public hostname is
+# scanned all day (/.env, /wp-login.php, /.ssh/id_rsa …), and at the default
+# level every probe was a line in a file on volume1 — 350 writes in 8 minutes,
+# enough on its own to keep DSM from ever hibernating.
 $TMUX kill-session -t ttyd 2>/dev/null; pkill -x ttyd 2>/dev/null
 ttyd_start() {  # $1 port  $2 tool  ($3 = first|"")
-  cmd="exec $H/bin/ttyd -p $1 -i 127.0.0.1 -W -O -a --max-clients 2 -c \"\$(cat $H/ttyd.cred)\" -t fontSize=15 -t titleFixed=NAS:$2 $H/bin/nas-attach $2 >> $H/ttyd.log 2>&1"
+  cmd="exec env -u TMUX -u TMUX_PANE $H/bin/ttyd -p $1 -i 127.0.0.1 -W -O -a --max-clients 2 -d 3 -c \"\$(cat $H/ttyd.cred)\" -t fontSize=15 -t titleFixed=NAS:$2 $H/bin/nas-attach $2 >> /tmp/ttyd-$2.log 2>&1"
   if [ "$3" = first ]; then $TMUX new -d -s ttyd -n "$2" -c $H "$cmd"
   else $TMUX new-window -d -t ttyd -n "$2" -c $H "$cmd"; fi
 }
@@ -86,12 +92,38 @@ echo "ttyd :7681 shell · :7682 claude · :7683 codex (tmux session ttyd) — lo
 
 ```sh
 #!/bin/sh
+# nas-attach [claude|codex|shell] [project]
+# One tmux session per tool, one WINDOW per project inside it — so two Claude
+# projects are two windows of `claude` (Ctrl+B w to list, Ctrl+B n/p to move),
+# not two sessions nobody can tell apart. ttyd calls this with the URL args
+# (?arg=claude&arg=gazll.github.io); the tmux-*-project shell functions call it too.
+T=/var/packages/DiagnosisTool/target/tool/tmux
+PROJ=/volume1/0_System/project
+tool=${1:-shell}; p=$2
 # ttyd (from Task Scheduler) has no locale; without UTF-8 here tmux mangles Vietnamese.
 export LANG=en_US.utf8 LC_ALL=en_US.utf8 TERM=xterm-256color
-# ttyd itself lives in a tmux session, so every connection inherits $TMUX and
-# tmux would refuse to "nest"; this is a fresh client, not a nested one.
+
+$T has-session -t "$tool" 2>/dev/null || $T new -d -s "$tool" -c "$PROJ"
+if [ -n "$p" ]; then
+  [ -d "$PROJ/$p" ] || { echo "no such project: $PROJ/$p"; exit 1; }
+  if ! $T list-windows -t "$tool" -F '#W' | grep -qx "$p"; then
+    # -n pins the name (turns automatic-rename off for that window)
+    $T new-window -d -t "$tool" -n "$p" -c "$PROJ/$p"
+    case $tool in claude|codex) $T send-keys -t "$tool:$p" "$tool-project $p" Enter ;; esac
+  fi
+  $T select-window -t "$tool:$p"
+fi
+# Already inside tmux (typed in a tmux window): switch this client, never nest.
+# No exec here — exec replaced the window's shell, the window closed under the
+# user and the client got thrown into whatever session was left ("bung qua
+# session mới").
+if [ -n "$TMUX" ]; then
+  $T switch-client -t "$tool"
+  exit $?
+fi
+# ttyd starts us with TMUX unset (nas-terminal); a plain SSH shell has it unset too.
 unset TMUX TMUX_PANE
-exec /var/packages/DiagnosisTool/target/tool/tmux -u new -A -s "${1:-shell}" -c /volume1/0_System/project
+exec $T -u attach -t "$tool"
 ```
 
 `chmod 700` cả hai. `-i 127.0.0.1` để ttyd **không** nghe trên LAN/WAN — chỉ Tailscale mới với tới.
