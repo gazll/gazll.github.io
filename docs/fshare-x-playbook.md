@@ -25,6 +25,12 @@ The build parses only the raw files under `secret/fshare-x/raw/`. If a matching
 file, the report's `live`, `dead`, and `unknown` results are carried into the X
 catalog. This allows a later transfer file, such as
 `moved-from-movie-YYYY-MM-DD.txt`, to be checked without changing `x.csv`.
+That transfer file is exactly what `node tools/fshare-movie.mjs move-to-x
+[--apply]` writes — adult content that surfaced mixed into a movie source
+gets classified by `isAdultContent()` in `movie-db.js` and physically moved
+here, never left in the movie catalog with a category flag. See
+`docs/fshare-movie-playbook.md`'s "Nội dung 18+ lẫn vào" for the full command
+and the false-positive guards it needed.
 The current report checks each root link once; it does not crawl folder
 children. Therefore the X envelope is never labelled fully validated.
 

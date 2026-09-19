@@ -571,7 +571,18 @@ secret/              GITIGNORED. Personal setup notes and credentials
      client-side (`matchMovieLinks`'s `category` option) — X is the one
      genuinely separate catalog, its own fetch and its own envelope.
      `node tools/fshare-movie.mjs categorize` re-runs the classifier over an
-     already-built catalog (dry run by default; `--apply` to write).
+     already-built catalog (dry run by default; `--apply` to write). Adult
+     content is not a fourth category — it does not belong in this dataset
+     at all, so `isAdultContent(name)` backs `move-to-x [--apply]`, which
+     physically moves matching rows (folder cascade included) into the
+     separate X catalog's "moved-from-movie" transfer file rather than
+     tagging them in place — the one sanctioned exception to "never delete
+     rows to tidy the catalog" below, because these rows are not being
+     tidied, they are leaving for the dataset they actually belong to.
+     `strict` mode drops the bare `xxx` marker for folders specifically: a
+     folder cascades onto everything under it, and a real folder holding
+     nothing but Paris By Night discs had "XXX" in its own name for no
+     reason connected to its contents.
 
   It shares the schedule's envelope AND passphrase on purpose (one key in the
   password manager, one `schedule_access` grant), and the corollary is stated

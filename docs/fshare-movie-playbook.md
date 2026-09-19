@@ -128,6 +128,44 @@ catalog riêng hoàn toàn (xem "Thu thập từ Telegram" không áp dụng cho
 là import x.csv độc lập). Bấm "Software"/"Music" không mở khoá lại, không tải
 lại gì — chỉ đổi bộ lọc trên dữ liệu đã có trong bộ nhớ.
 
+### Nội dung 18+ lẫn vào — chuyển hẳn sang X, không phải một category
+
+Khác software/music (giữ trong cùng catalog, chỉ lọc tab), nội dung người lớn
+**không** có `category` riêng — nó thuộc bộ dữ liệu X hoàn toàn tách biệt
+(`docs/fshare-x-playbook.md`), vì X vốn đã là chỗ được thiết kế cho việc này
+(transfer file "moved-from-movie" đã được nhắc tới trong playbook X từ trước).
+
+```bash
+node tools/fshare-movie.mjs move-to-x           # dry-run: đếm + mẫu tên sẽ chuyển
+node tools/fshare-movie.mjs move-to-x --apply   # ghi secret/fshare-x/raw/moved-from-movie-YYYY-MM-DD.txt,
+                                                 # xoá hẳn các dòng đó khỏi catalog.json (không chỉ đánh dấu)
+node tools/fshare-x.mjs build && node tools/fshare-x.mjs seal
+node tools/fshare-movie.mjs seal
+```
+
+`isAdultContent(name)` trong `movie-db.js` — dấu hiệu mạnh nhất là tên
+studio/site (Blacked, Tushy, Vixen, Dorcel, Brazzers…), sau đó là hành vi rõ
+ràng, `xxx` đứng riêng là dấu hiệu yếu nhất. Ba điều quan trọng:
+
+- **Đây là ngoại lệ có chủ đích của luật "không xoá dòng để dọn catalog"** —
+  dòng không xoá để dọn dẹp trạng thái, nhưng một dòng thuộc **sai bộ dữ
+  liệu** hoàn toàn (không phải phim/software/music theo nghĩa nào cả) thì
+  chuyển hẳn sang nơi nó thuộc về, đúng như X playbook đã tính trước.
+- **Một folder kéo theo mọi thứ bên dưới nó** (cascade theo `parents`, một
+  cấp mỗi vòng) — nên `isAdultContent(name, { strict: true })` cho folder bỏ
+  hẳn nhánh `xxx` trần: folder thật `"- - Paris by night Clollection 001 -
+  XXX Update"` chứa toàn đĩa Paris By Night hợp lệ, "XXX" ở đây không có
+  nghĩa gì, nhưng nếu tính là adult thì cascade xuống hết các đĩa bên trong.
+  File không cascade nên vẫn dùng luật đầy đủ.
+- **Hiệu chỉnh trên dữ liệu thật, không đoán** — soi kỹ 326k dòng bắt được
+  nhiều phim/series thật trùng từ nhạy cảm: "Stepmom (1998)", "Hardcore Henry
+  (2015)", phim Hàn "Mischievous Kiss" ("...Little Vixen"), phim Hàn tên
+  thẳng là "Threesome" (chặn bằng season/episode), anime "Swallowed Star",
+  series Netflix "The End of the F***ing World", phim tài liệu "Orgasm Inc"
+  và "The Year I Started Masturbating", phim kinh dị "Don't Fuck in the
+  Woods". `hardcore`, `stepmom/-sis/-dad/-bro`, `vixen` trần và `swallowed`
+  bị bỏ hẳn khỏi danh sách marker vì đụng từ tiếng Anh thông dụng.
+
 ## Ba cửa validated
 
 `validated: true` trong envelope — và badge VALIDATED trên tab — chỉ đúng khi
