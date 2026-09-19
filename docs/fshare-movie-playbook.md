@@ -69,6 +69,7 @@ field nội bộ), không phải bản sao.
   "checkedAt": null, "lastLiveAt": null, "deadSince": null,
   "via": "",                                  // probe · listing · crawl · web — bằng chứng của lần check cuối
   "error": "",
+  "category": "movie",                        // movie · software · music — categoryOf(name), xem mục dưới
   "web": { "status": "dead", "error": "…" },  // chỉ dòng dead: ý kiến thứ hai của fshare.vn
   "children": null                            // folder: {folders, files, live, dead, unknown, pending, crawledAt}
                                               // null = chưa liệt kê; crawledAt là bằng chứng duy nhất đã liệt kê
@@ -85,6 +86,47 @@ field nội bộ), không phải bản sao.
 - **Folder nhớ con của nó.** File tìm thấy trong folder có `parents`; `children`
   của folder được đếm lại từ đó mỗi lần ghi. Tháng sau chạy lại, một folder
   hiện "40 file · 35 live · 5 dead" là đọc thẳng từ đây.
+
+## Movie / Software / Music — một catalog, ba tab
+
+Các nguồn (Sheet, thuviencine, Telegram) không phân loại nội dung — một group
+chia sẻ phim thỉnh thoảng trộn cả crack phần mềm (Adobe, AutoCAD, game
+-CODEX/-SKIDROW…) và nhạc (FLAC/WAV album) vào cùng một chỗ. `categoryOf(name)`
+(`public/fshare-tool/lib/movie-db.js`) gán mỗi dòng một `category` ngay lúc
+tạo (`newLink`) và mỗi khi tên đổi từ mã sang tên thật (`addName`):
+
+1. **Đuôi file quyết định trước, chắc chắn.** `.mkv/.mp4/.avi/…` → `movie`,
+   `.mp3/.flac/.wav/…` → `music`, `.exe/.apk/.dmg/…` → `software` — không đọc
+   tên nữa. Đây là phần lớn: ~99.7% catalog 2026-09-18 (326.648 dòng) có đuôi
+   quyết định được ngay.
+2. **Phần còn lại** (`.iso/.rar/.zip`, không đuôi — folder, hoặc tên trần từ
+   Telegram) đọc từ khoảng chục cụm từ đặc trưng mỗi loại (CODEX/SKIDROW/
+   Adobe/Photoshop/AutoCAD cho software; FLAC/OST/CD1/TNCD cho music). Không
+   đuôi thắng thì mặc định `movie` — sai lệch còn lại nghiêng về false
+   negative (bỏ sót software/music) chứ không phải false positive (đá nhầm
+   phim thật ra khỏi tab Movie), vì false positive vô hình cho tới khi có
+   người tìm phim không thấy.
+3. **Từ chung chung là bẫy, đã bắt được lúc hiệu chỉnh trên dữ liệu thật:**
+   `driver`, `action`, `portable`, `remastered` từng đá "Taxi Driver (1976)",
+   "Missing in Action (1984)", "The Portable Door 2023" và
+   "Spider-Man Remastered" sang software/music vì đó là những từ tiếng Anh
+   phổ biến trong tên phim/game/nhạc như nhau. Cả bốn đã bị bỏ khỏi danh sách
+   marker; chỉ giữ những cụm đặc trưng riêng một ngành (thương hiệu phần mềm,
+   tag nhóm crack, định dạng nhạc).
+4. **`category: "movie"` (mặc định) không được ghi vào envelope** — cùng quy
+   tắc với `aliases`/`parents` rỗng, đỡ vài trăm nghìn field lặp một giá trị
+   trên gần như mọi dòng. Tab đọc thấy field vắng thì hiểu là `movie`
+   (`normalizeMovieDatabase`).
+5. **Đổi phân loại cho dữ liệu cũ:** `node tools/fshare-movie.mjs categorize`
+   (mặc định dry-run, in trước/sau + mẫu tên sẽ đổi loại) rồi thêm `--apply`
+   để ghi thật. Chạy lại an toàn: chỉ tính lại `categoryOf(name)` cho mọi
+   dòng, không đụng `status`/`checkedAt`/lịch sử check.
+
+Ba tab UI (`public/fshare-tool/views/movie.js`) đọc **chung một sealed
+catalog** (`MOVIE_DB_URL`) lọc theo `category` phía client — khác X, X là một
+catalog riêng hoàn toàn (xem "Thu thập từ Telegram" không áp dụng cho X; X vẫn
+là import x.csv độc lập). Bấm "Software"/"Music" không mở khoá lại, không tải
+lại gì — chỉ đổi bộ lọc trên dữ liệu đã có trong bộ nhớ.
 
 ## Ba cửa validated
 

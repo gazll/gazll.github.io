@@ -511,7 +511,7 @@ secret/              GITIGNORED. Personal setup notes and credentials
 
 - **The movie catalog is one row per LINK, and only checked rows ship.**
   `tools/fshare-movie.mjs` owns it end to end and `docs/fshare-movie-playbook.md`
-  is the procedure. Five things the shape depends on, each already the wrong
+  is the procedure. Six things the shape depends on, each already the wrong
   instinct once:
 
   1. **The id is `fshare-{kind}-{CODE}`, never the title.** Two links to the
@@ -554,6 +554,24 @@ secret/              GITIGNORED. Personal setup notes and credentials
      (Node only — the browser is CORS-blocked). Folders remember what they
      held via `parents` on their children, recounted into `children` on every
      write. The browser re-check never persists: the catalog is the tool's file.
+  6. **Movie/Software/Music are one catalog, split by `row.category`, not
+     three sealed files.** The sources mix content — a movie group also
+     shares Adobe/AutoCAD cracks and FLAC albums — so `categoryOf(name)` in
+     `movie-db.js` tags every row at build time: file extension is decisive
+     for ~99.7% of rows, and only the extension-less remainder (folders,
+     `.iso`/`.rar`/`.zip`, bare Telegram titles) falls to name markers. Those
+     markers are tuned for precision over recall against the real 2026-09-18
+     catalog: bare English words (`driver`, `action`, `portable`,
+     `remastered`) matched real titles ("Taxi Driver", "Missing in Action",
+     "The Portable Door", "Spider-Man Remastered") and were removed — a real
+     movie mis-bucketed out of the Movie tab is worse than a stray software
+     row staying put, so an unresolved name defaults to `movie`. The default
+     `category: "movie"` is never shipped in the envelope, same as an empty
+     `aliases`. The three tabs read one fetched database and filter
+     client-side (`matchMovieLinks`'s `category` option) — X is the one
+     genuinely separate catalog, its own fetch and its own envelope.
+     `node tools/fshare-movie.mjs categorize` re-runs the classifier over an
+     already-built catalog (dry run by default; `--apply` to write).
 
   It shares the schedule's envelope AND passphrase on purpose (one key in the
   password manager, one `schedule_access` grant), and the corollary is stated
