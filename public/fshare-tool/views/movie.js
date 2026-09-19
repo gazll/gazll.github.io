@@ -309,6 +309,9 @@ async function restore() {
   } finally {
     movie.unlocking = false;
     unlockBusy(false, catalogConfig().unlockNote);
+    // paintLockState above ran while `unlocking` was still true and left every
+    // dataset button disabled; nothing else repaints them on this path.
+    paintTypeSwitch();
   }
 }
 
