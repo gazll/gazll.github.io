@@ -69,36 +69,73 @@ export function titleKey(name) {
 }
 
 /* What content a link actually is — not every Fshare share in these sources
-   is a movie. `movie`/`software`/`music` split the one Movie tab into three,
-   without touching the crawl/validate pipeline, which does not care what a
-   link contains. Extension is decisive where a file carries one — the video
-   and audio containers below cover 99%+ of the 2026-09-18 catalog and never
-   collide with a title. Only the extension-less remainder (folders, .iso/
-   .rar/.zip wrappers, bare titles) falls to name markers, and those are
-   tuned for PRECISION over recall against that same catalog: bare, common
-   English words ("action", "driver", "portable") matched real film titles
-   (Taxi Driver, Missing in Action, The Portable Door) and were dropped —
-   a real movie missing from the Movie tab is worse than a software/music
-   link staying put. A generic marker present in all three ("remastered")
-   was dropped the same way after it tagged "Spider-Man Remastered" as
-   music. "crack" keeps only its bare form for the same reason: it still
-   catches "Crack.rar" and "-CRACKFIX-CPY" but a word-boundary match already
-   excludes "cracked" on its own (no boundary between "crack" and the "ed"
-   that follows) — kept that way on purpose after "Vết Nứt Ám Hồn Trong
-   Tranh - Cracked 2022", a real film, showed up tagged software during a
-   post-seal audit. Unmarked and ambiguous rows default to `movie`, the
-   majority case. */
-export const CATEGORIES = ['movie', 'software', 'music'];
+   is a movie. `movie`/`software`/`music`/`document` split the one Movie
+   tab into four, without touching the crawl/validate pipeline, which does
+   not care what a link contains. Extension is decisive where a file carries
+   one — the video, audio, app and document extensions below cover 99%+ of
+   the 2026-09-18 catalog and never collide with a title. The remainder
+   (folders, archive wrappers, bare titles) falls to name markers, and the
+   markers come in two tiers because the same word means different things
+   in different places:
+
+   1. The tight tier applies to every name and is tuned for PRECISION over
+      recall: bare, common English words ("action", "driver", "portable",
+      "rock", "piano", "jazz", "blues", "opera", "vol") each matched real
+      titles in the extension-less rows (Taxi Driver, Missing in Action,
+      The Portable Door, The Rock, The Piano, Peking Opera Blues,
+      Guardians of the Galaxy Vol. 2) and are not in it — a real movie
+      missing from the Movie tab is worse than a stray link staying put.
+      "crack" keeps only its bare form for the same reason: a word-boundary
+      match already excludes "cracked", and "Vết Nứt Ám Hồn Trong Tranh -
+      Cracked 2022" is a real film that showed up tagged software.
+   2. The archive tier applies only to .rar/.zip/.7z/.iso/.nrg names that
+      the tight tier left alone. Nobody wraps a film in a rar without also
+      writing 1080p/BluRay/WEB-DL in the name (and those are caught first),
+      so inside an archive the very same words — "album", "vol.2", "best
+      of", "rock", "piano", "Artist - Title (1990)" — were music in every
+      real row checked, and "ebook"/"tài liệu"/"hồ sơ thiết kế" were
+      documents. The one film archive without release tags found, "Kill
+      Bill Vol.1 ... BluRay.iso", is caught by the movie tier first.
+
+   Underscores are folded to spaces before any marker runs: `_` is a word
+   character to a regex, so "\\brevit\\b" never matched "3D_revit_office"
+   and a JAV studio hidden in "Momota_1pondo_sh" was invisible to the adult
+   check below. Unmarked and ambiguous rows default to `movie`, the
+   majority case. A design work file (a Revit house, a 3ds Max scene, a
+   drawing set) is a document — something opened and read — while the
+   application, its plugins, presets and templates are software; that is
+   why "tailieukientruc"/"hồ sơ thiết kế" are checked before "revit". */
+export const CATEGORIES = ['movie', 'software', 'music', 'document'];
 const VIDEO_EXT = new Set(['mkv', 'mp4', 'avi', 'ts', 'm2ts', 'wmv', 'mov', 'flv', 'rmvb', 'vob', 'mpg', 'mpeg', 'm4v', 'divx', 'webm', '3gp']);
 const AUDIO_EXT = new Set(['mp3', 'flac', 'wav', 'm4a', 'wma', 'aac', 'dsf', 'ogg', 'ape', 'alac', 'opus']);
 const APP_EXT = new Set(['exe', 'msi', 'apk', 'dmg', 'appimage', 'deb', 'ipa']);
-const MOVIE_MARKERS = /\b(1080p|2160p|720p|480p|4k|uhd|bluray|blu-ray|web-?dl|webrip|hdtv|hdrip|dvdrip|remux|x264|x265|h\.?26[45]|hevc|dts(-hd)?|ddp\d?|atmos|complete|iqiyi|netflix|nf\.web|amzn|s\d{2}e\d{2})\b/i;
-const SOFTWARE_MARKERS = /-(codex|skidrow|reloaded|cpy|plaza|hoodlum|tenoke|rune|flt|razor1911|prophet|gog|darksiders)\b|\b(crackfix|full\s?crack|keygen|activator|repack|multilingual|ph[aầ]n\s?m[eề]m|setup|installer|incl\.?\s?dlc|adobe|photoshop|premiere\s?pro|illustrator|autocad|solidworks|sketchup|revit|vmware|windows\s?(7|8|10|11)|microsoft|antivirus|kaspersky|\bidm\b|winrar|plugin|overlays?|presets?|crack)\b/i;
-const MUSIC_MARKERS = /\b(flac|wav|ost|soundtrack|lossless|karaoke|hi-res|accuraterip|vinyl|24bit|96khz|cd\d|tncd\d+|lvcd\d+|asia\d+cd\d+)\b/i;
+const DOC_EXT = new Set(['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'epub', 'mobi', 'azw3', 'djvu', 'prc', 'cbr', 'cbz', 'rtf', 'odt', 'dwg', 'dxf', 'rvt', 'rfa', 'skp']);
+const ARCHIVE_EXT = new Set(['rar', 'zip', '7z', 'iso', 'nrg', 'tar', 'gz']);
+const MOVIE_MARKERS = /\b(1080p|2160p|720p|480p|4k|uhd|bluray|blu-ray|web[-.\s]?dl|webrip|hdtv|hdrip|dvdrip|remux|x264|x265|h\.?26[45]|hevc|dts(-hd)?|ddp\d?|atmos|complete|iqiyi|netflix|nf[.\s]web|amzn|s\d{2}e\d{2})\b/i;
+const DOCUMENT_MARKERS = /\b(pdf(?!\s?(editor|reader|converter|creator|pro|architect|xchange|element|expert))|e-?books?|epub|tài liệu|tai lieu|giáo trình|giao trinh|dossier|luận văn|luan van|đề thi|de thi|toeic|ielts|bài giảng|bai giang|hồ sơ thiết kế|ho so thiet ke|bản vẽ|ban ve|tailieukientruc)\b/i;
+const SOFTWARE_MARKERS = /-(codex|skidrow|reloaded|cpy|plaza|hoodlum|tenoke|rune|flt|razor1911|prophet|gog|darksiders|fpc)\b|\b(codex|skidrow|plaza|hoodlum|tenoke|razor1911|fitgirl|dodi|elamigos)-|\b(crackfix|full\s?crack|keygen|activator|repack|multilingual|ph[aầ]n\s?m[eề]m|setup|installer|incl\.?\s?dlc|full\s?dlc|adobe|photoshop|lightroom|premiere\s?pro|after\s?effects|illustrator|indesign|davinci\s?resolve|autocad|autodesk|solidworks|sketchup|revit|3ds\s?max|lumion|enscape|matlab|ansys|catia|archicad|etabs|vmware|virtualbox|windows\s?(7|8|10|11|xp)|win\s?(7|8|10|11|xp)|microsoft|office[\s._-]?(pro|plus|professional|365|20(03|07|10|13|16|19|21|24)|standard|home|enterprise|ltsc)|kmsauto|\bkms\b|anhdv|nhv[\s-]?boot|onekey\s?ghost|ghost\s?win|winpe|antivirus|kaspersky|bitdefender|\bidm\b|internet download manager|winrar|teamviewer|ultraiso|rufus|plugins?|overlays?|presets?|luts?|crack|viet\s?ho[aá]|việt\s?ho[aá]|linkneverdie|toithuthuat|fullcrackpc|hadoantv|bkshare|tech24h|khodohoa|tuihocit|taimienphi|sinhvienit|designervn|videohive|graphicriver|envato|motion\s?array|macos|mac\s?os|v\d+\.\d+(\.\d+)*)\b/i;
+const MUSIC_MARKERS = /\b(flac|wav|ost|soundtrack|lossless|karaoke|hi-?res|accuraterip|vinyl|16bit|24bit|96khz|tncd\d+|lvcd\d+|asia\d+cd\d+|nhạc (vàng|xuân|trẻ|xưa|việt|chọn lọc|trữ tình|sống)|cd nhạc|liên khúc|lien khuc|audiophile|sacd|xrcd|shm-cd|mqa|various artists|discography|greatest hits)\b|\[(16|24)-(44\.1|48|88\.2|96|176\.4|192)\]|\b24-(96|192)\b/i;
+/* Archive tier — see the comment above: only for names the tight tier left
+   alone, and only when the extension says archive. */
+/* "Phim tài liệu" is a documentary and a folder of "Tài Liệu Sub Viet" is
+   subtitled video: a video word anywhere in the name keeps a document
+   marker from firing. */
+const VIDEO_WORDS = /\b(phim|vietsub|sub\s?vi[eệ]t|thuyết minh|phụ đề|tập|tap|s\d{2})\b/i;
+const ARCHIVE_DOCUMENT = /\b(books?|sách|sach|slides?|tutorials?|courses?|khóa học|khoa hoc|bài tập|bai tap|hồ sơ|ho so|thiết kế|thiet ke|kiến trúc|kien truc|nhà phố|nha pho|biệt thự|biet thu|mẫu nhà|mau nha|3d model|scene|3dsmax|3ds max|grammar|từ vựng|tu vung|ngữ pháp|ngu phap|giáo án|giao an)\b/i;
+const ARCHIVE_SOFTWARE = /\b(x64|x86|32-?bit|64-?bit|portable|patch|serial|licen[cs]e|activat(e|ed|ion)|bootable|boot\s?(usb|disk|cd)|firmware|drivers?|android|apk|games?|steam|gog|goty|definitive edition|ultimate edition|topaz|blackmagic|nevercenter|3dvista|virtual tour|corel|coreldraw|cinema\s?4d|c4d|blender|zbrush|unity\s?(3d|hub)|unreal|vray|v-ray|corona render|jetbrains|intellij|pycharm|visual studio|xcode|sql server|oracle|arcgis|primavera|visio|excel|powerpoint|outlook|eset|norton|malwarebytes|ccleaner|7-zip|downloader|converter|recovery|retouch(ing)?|actions?|brushes|templates?|mockups?|fonts?|transitions?|openers?|titles?|lower thirds?|project files|xmp|dng|dlc|repack|cracked|full\s?(version|soft|unlocked)|santruongit|vngame|materials?|library|pbr|textures?|hdri|photo albums?|tiện ích|tien ich|cài win|cai win|foxit|acdsee|aescripts)\b|\b\d+\.\d+\.\d+(\.\d+)?\b/i;
+const ARCHIVE_MUSIC = /\b(albums?|vol\.?\s?\d+|best of|piano|violin|guitar|jazz|blues|opera|concerts?|rock|sonatas?|symphon(y|ies)|concertos?|orchestra|quartet|ballads?|hits|singles|classical|acoustic|instrumental|live (in|at)|cd\s?\d{1,2}|\dcds?|nrg|dsd|nhạc|nhac|tuyển tập|tuyen tap|tình ca|tinh ca|bolero|nhạc vàng|nhac vang|nhạc trẻ|nhac tre|hòa tấu|hoa tau|mp3|dts|chopin|mozart|beethoven|bach|vivaldi|tchaikovsky|liszt|schubert|brahms|handel|haydn|debussy)\b|^\d{4} - |^[^-]{2,40} - .+\(\d{4}[^)]*\)|^[^-]{2,40} - .+\b(19|20)\d{2}\s*(\.|\(|$)/i;
 
 function extOf(name) {
   const match = /\.([a-z0-9]{2,8})$/i.exec(String(name || '').trim());
   return match ? match[1].toLowerCase() : '';
+}
+
+/* `_` is a word character, so a marker at a word boundary never matched
+   "3D_revit_office" or "Momota_1pondo_sh" until the underscores went; a dot
+   between two letters is a scene-name space ("Paris.By.Night"), while one
+   next to a digit ("v2.31", "h.264", "[24-44.1]") is left alone. */
+function markerText(name) {
+  return String(name || '').replace(/_/g, ' ').replace(/(?<=\p{L})\.(?=\p{L})/gu, ' ');
 }
 
 export function categoryOf(name) {
@@ -106,10 +143,18 @@ export function categoryOf(name) {
   if (VIDEO_EXT.has(ext)) return 'movie';
   if (AUDIO_EXT.has(ext)) return 'music';
   if (APP_EXT.has(ext)) return 'software';
-  const text = String(name || '');
+  if (DOC_EXT.has(ext)) return 'document';
+  const text = markerText(name);
   if (MOVIE_MARKERS.test(text)) return 'movie';
+  const video = VIDEO_WORDS.test(text);
+  if (!video && DOCUMENT_MARKERS.test(text)) return 'document';
   if (SOFTWARE_MARKERS.test(text)) return 'software';
   if (MUSIC_MARKERS.test(text)) return 'music';
+  if (ARCHIVE_EXT.has(ext)) {
+    if (ARCHIVE_SOFTWARE.test(text)) return 'software';
+    if (!video && ARCHIVE_MUSIC.test(text)) return 'music';
+    if (!video && ARCHIVE_DOCUMENT.test(text)) return 'document';
+  }
   return 'movie';
 }
 
@@ -136,13 +181,29 @@ export function categoryOf(name) {
    `strict` below exists because one folder's meaningless "XXX" ("- - Paris
    by night Clollection 001 - XXX Update") would otherwise have cascaded
    `move-to-x` onto every real Paris By Night disc inside it. */
-const ADULT_STUDIO_MARKERS = /\b(intheCrack|wowgirls|blacked(raw)?|tushy(raw)?|realitykings|reality[ .]kings|bangbros|digitalplayground|digital[ .]playground|marc[ .]dorcel|wickedpictures|evilangel|evil[ .]angel|metart|nubilefilms|nubile[ .]films|babes\.com|momsfamilysecrets|handsonhardcore|naughtyamerica|naughty[ .]america|brazzers|mofos|bangbus|teamskeet|povperv|myfamilypies|familystrokes|deeplush|pervmom|pervtherapy|21sextury|allanal|analvids|facialabuse|littlecaprice|clubseventeen|femjoy|watch4beauty|hegre|joymii|onlyfans|manyvids|thothub|elegantangel|newsensations|defloration|cum4k|dorcel|brattysis|teenslikeitbig|sexselector)\b/i;
-const ADULT_EXPLICIT_MARKERS = /\b(blowjob|creampie|gangbang|deepthroat|cumshot|masturbat(e|ing|ion)?|orgasm|fuck(ed|ing)?|jerk(ed|ing)?\s?off)\b/i;
+const ADULT_STUDIO_MARKERS = /\b(intheCrack|wowgirls|blacked(raw)?|tushy(raw)?|realitykings|reality[ .]kings|bangbros|digitalplayground|digital[ .]playground|marc[ .]dorcel|wickedpictures|evilangel|evil[ .]angel|metart|nubilefilms|nubile[ .]films|babes\.com|momsfamilysecrets|handsonhardcore|naughtyamerica|naughty[ .]america|brazzers|mofos|bangbus|teamskeet|povperv|myfamilypies|familystrokes|deeplush|pervmom|pervtherapy|21sextury|allanal|analvids|facialabuse|littlecaprice|clubseventeen|femjoy|watch4beauty|hegre|joymii|onlyfans|manyvids|thothub|elegantangel|newsensations|defloration|cum4k|dorcel|brattysis|teenslikeitbig|sexselector|1pondo|caribbeancom|carib|heyzo|tokyo-?hot|10musume|pacopacomama|s-cute|kin8(tengoku)?|mywife|gachinco|fc2-?ppv|model media|modelmedia|mdwp|asiansdoporn|asiansexdiary|legalporno|pornfidelity|pornworld|pornforce|porndude(casting)?|pornhub|hentaied|thaiswinger|youthlust|travelvids|hackcam|hack cam|javhd)\b/i;
+const ADULT_EXPLICIT_MARKERS = /\b(blowjob|creampie|gangbang|deepthroat|cumshot|masturbat(e|ing|ion)?|orgasm|fuck(ed|ing)?|jerk(ed|ing)?\s?off|anal|dit nhau|địt|đụ|chich|chịch|nung lon|nứng|lồn(?! tiếng)|bu cu|bú cu|thu dam|thủ dâm|sex ?tape|clip sex|phim sex|lộ clip|ko che|không che)\b/i;
+/* Weak, file-only signals (see `strict`): a bare word that real film titles
+   also use — "Bad Luck Banging or Loony Porn" (2021), "After Porn Ends",
+   Nikkatsu's "Angel Guts: Red Porno", "The Lowlife" (about a JAV actress),
+   and "Nữ Chủ Nhà Dâm Đãng" (a Vivamax feature) are all folders in the
+   real catalog. */
+const ADULT_WEAK_MARKERS = /\b(xxx|jav|hentai|porno?|pornstar|dam dang|dâm đãng)\b/i;
+/* JAV release codes: "SSNI-757", "JUQ-915_CUC HAY_…", "230ORECO-903",
+   "FC2-PPV-4706057" — two to six letters, a dash, three or four digits,
+   at the start of the name (a bracketed tag may precede it). Two-letter
+   prefixes ("DV-1387.mp4") are accepted only when the code IS the name,
+   because "MB-2019.zip" is a real archive and "AR-558" is a Star Trek
+   episode. "DSD-512 Rhapsody In Blue" is a music catalogue number. */
+const ADULT_JAV_CODE = /^\s*(\[[^\]]*\]\s*)?(\d{3}[a-z]{2,6}-\d{2,4}|(?!dsd-)[a-z]{3,6}-\d{3,4})(?![\dp])/i;
+const ADULT_JAV_BARE = /^[a-z]{2}-\d{3,4}(-[a-z]|_hay)?\.(mp4|mkv|avi|wmv|mpe?g)$/i;
+/* Site rips name themselves "site.YY.MM.DD.performer…" and OnlyFans dumps
+   "name-YYYY-MM-DD-<post id>-…". */
+const ADULT_SITE_DATED = /^[a-z]+\.\d{2}\.\d{2}\.\d{2}\.[a-z]|\d{4}-\d{2}-\d{2}-\d{9,}/i;
 const ADULT_VIXEN_DATED = /vixen\.com|\bvixen\b[.\s-]*\d{2,4}[.\-]\d{2}[.\-]\d{2}/i;
-const ADULT_XXX_MARKER = /\bxxx\b/i;
 const ADULT_XXX_EXCLUDE = /xander[.\s]?cage|xxx[.\s]*:?[.\s]*state[.\s]+of[.\s]+the[.\s]+union/i;
 const SERIES_GUARD = /\bs\d{2}e\d{2}\b|\bseason\s?\d+\b|\bphần\s?\d+\b|\btập\s?\d+\b/i;
-const KNOWN_TITLE_EXCLUDE = /orgasm[.\s]inc|year[.\s]i[.\s]started[.\s]masturbating|young[.\s]people[.\s]fucking|don.?t[.\s]+fuck[.\s]+in[.\s]+the[.\s]+woods|end[.\s]of[.\s]the[.\s]f\S*ing[.\s]world|swallowed[.\s]star|swallowed[.\s]the[.\s]sun/i;
+const KNOWN_TITLE_EXCLUDE = /money[.\s]shot|best[.\s]porn[.\s]star|pangalawang|loony[.\s]porn|after[.\s]porn[.\s]ends|angel[.\s]guts|porno[.\s]holocaust|roman[.\s]porno|the[.\s]lowlife|orgasm[.\s]inc|year[.\s]i[.\s]started[.\s]masturbating|young[.\s]people[.\s]fucking|don.?t[.\s]+fuck[.\s]+in[.\s]+the[.\s]+woods|end[.\s]of[.\s]the[.\s]f\S*ing[.\s]world|swallowed[.\s]star|swallowed[.\s]the[.\s]sun/i;
 
 /**
  * A folder is a much bigger blast radius than a file: `move-to-x` cascades a
@@ -154,13 +215,17 @@ const KNOWN_TITLE_EXCLUDE = /orgasm[.\s]inc|year[.\s]i[.\s]started[.\s]masturbat
  * studio/site name or an explicit act instead; a file keeps the full check.
  */
 export function isAdultContent(name, { strict = false } = {}) {
-  const text = String(name || '');
+  const text = markerText(name);
   if (KNOWN_TITLE_EXCLUDE.test(text) || SERIES_GUARD.test(text)) return false;
   if (ADULT_STUDIO_MARKERS.test(text)) return true;
   if (ADULT_EXPLICIT_MARKERS.test(text)) return true;
   if (ADULT_VIXEN_DATED.test(text)) return true;
+  if (ADULT_JAV_CODE.test(text) || ADULT_JAV_BARE.test(text) || ADULT_SITE_DATED.test(text)) return true;
   if (strict) return false;
-  return ADULT_XXX_MARKER.test(text) && !ADULT_XXX_EXCLUDE.test(text);
+  // A release tag or a Vietnamese subtitle note beside a weak word is a
+  // film: "Porno (2013) 1080p WEB-DL", "Pleasure 2021 Sub Việt (…ngôi sao Porn…)".
+  if (MOVIE_MARKERS.test(text) || VIDEO_WORDS.test(text)) return false;
+  return ADULT_WEAK_MARKERS.test(text) && !ADULT_XXX_EXCLUDE.test(text);
 }
 
 /** Search tokens: every word of the folded query. */

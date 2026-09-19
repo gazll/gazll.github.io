@@ -67,7 +67,27 @@ test('categoryOf trusts the extension first, falls back to name markers, and nev
   // "remastered" alone is dropped as a marker (movies, games and music all
   // use it), so an unrecognised release-group tag with no other signal
   // defaults to movie — a missed software row, never a stolen movie one.
-  assert.equal(categoryOf('Marvels.Spider-Man.Remastered-FPC.iso'), 'movie');
+  assert.equal(categoryOf('Marvels.Spider-Man.Remastered-FPC.iso'), 'software', '-FPC is a Vietnamese game-repack tag');
+  // Underscores are word characters: without folding them these two never
+  // reached their markers. The Revit house is a design work file (document);
+  // the Anhdv boot USB is a tool (software).
+  assert.equal(categoryOf('1_Revit_NHA PHO_2tang_4.7x15m_tailieukientruc.net.rar'), 'document');
+  assert.equal(categoryOf('1_Click_Anhdv_Boot1.1.7z'), 'software');
+  assert.equal(categoryOf('.Office.Pro.Plus.2019.0.11929.20300.32BIT.ISO'), 'software');
+  assert.equal(categoryOf('Corner Office - Corner Office 2023'), 'movie', 'a TV series — only Microsoft Office versions count');
+  assert.equal(categoryOf('0. Dossier Vimectin Chewable PDF.rar'), 'document');
+  assert.equal(categoryOf('Ronaldinho The One and Only S01 2026 - phim Tài Liệu 3 tập SV'), 'movie', '"phim tài liệu" is a documentary');
+  assert.equal(categoryOf('2.Foxit PDF Editor Pro 12.0.1.12430.rar'), 'software', 'a PDF editor is not a PDF');
+  // The archive tier: the same bare words are music inside a .rar/.zip and
+  // titles when the name stands alone.
+  assert.equal(categoryOf('00 - Rock Viet.zip'), 'music');
+  assert.equal(categoryOf('Mariya Takeuchi - Morning Glory (1990 RCA-Japan)(1).rar'), 'music');
+  assert.equal(categoryOf('The Rock (1996)'), 'movie');
+  assert.equal(categoryOf('Guardians of the Galaxy Vol 3 (2023)'), 'movie');
+  assert.equal(categoryOf('Kill.Bill.Vol.1.2003.UHD.BluRay.2160p.HEVC.DTS-HD.MA5.1-CHDBits.iso'), 'movie', 'release tags win before the archive tier');
+  assert.equal(categoryOf('Quỷ Lùn Tinh Nghịch 3 Đồng Tâm Hiệp Nhạc - Trolls Band Together 2023'), 'movie', 'bare "nhạc" sits in many film titles');
+  assert.equal(categoryOf('25 CD Nhạc Xuân'), 'music');
+  assert.equal(categoryOf('60 - Larry Young - Unity 1966 .rar'), 'music', '"Unity" the album, not the engine');
 });
 
 test('isAdultContent trusts studio/site names and explicit acts, never a bare provocative word', () => {
@@ -95,6 +115,25 @@ test('isAdultContent trusts studio/site names and explicit acts, never a bare pr
   assert.equal(isAdultContent('- - Paris by night Clollection 001 - XXX Update', { strict: true }), false);
   assert.equal(isAdultContent('- - Paris by night Clollection 001 - XXX Update'), true, 'the same name is fine for a file, which has no children to drag down');
   assert.equal(isAdultContent('Marc Dorcel - Russian Institute', { strict: true }), true, 'a real studio name still counts strict');
+  // JAV codes, Japanese/Chinese studios and Vietnamese explicit tags — the
+  // bulk of what the first pass missed (~1,600 rows), plus the underscore
+  // fold that hid "1pondo" in "Momota_1pondo_sh".
+  assert.equal(isAdultContent('SSNI-757_HAY.mp4'), true);
+  assert.equal(isAdultContent('JUQ-915_NOI DUNG HAY_CHI NHAN VIEN DAM LOAN CAC NHAN VIEN.mp4'), true);
+  assert.equal(isAdultContent('230ORECO-903 HAY CHICH EM GAI NHAN VIEN CONG SO.mp4'), true);
+  assert.equal(isAdultContent('1-010520_955_Emiri_Momota_1pondo_sh.mp4'), true);
+  assert.equal(isAdultContent('Seduce_My_Tutor_MD-0134__色诱我的家教老师_-_Model_Media_Asia.mp4'), true);
+  assert.equal(isAdultContent('pornworld.23.05.07.hazel.moore.4k.mp4'), true, 'site.YY.MM.DD.performer');
+  assert.equal(isAdultContent('DV-1387.mp4'), true, 'a two-letter code is enough when the code is the whole name');
+  assert.equal(isAdultContent('Dit Nhau Trong Toilet.mp4'), true);
+  assert.equal(isAdultContent('MB-2019.zip'), false, 'two letters, an archive: a real software dump');
+  assert.equal(isAdultContent('Star.Trek.Deep.Space.Nine.S07E08.The.Siege.of.AR-558.NF.WEB-DL.mkv'), false);
+  assert.equal(isAdultContent('DSD-512 Rhapsody In Blue 1924.dsf'), false, 'a music catalogue number');
+  assert.equal(isAdultContent('Outer Banks lồn tiếng từ netflix'), false, 'a typo of "lồng tiếng" (dubbed)');
+  assert.equal(isAdultContent('Bad.Luck.Banging.or.Loony.Porn.2021 18+'), false, 'a Berlinale winner');
+  assert.equal(isAdultContent('Porno 2013 1080p HC WEB-DL AAC2 0 x264-RSG_Engsub.LK.mkv'), false, 'release tags beside a weak word mean a film');
+  assert.equal(isAdultContent('Nữ Chủ Nhà Dâm Đãng - Paupahan 2023', { strict: true }), false, 'a Vivamax feature — weak words never cascade a folder');
+  assert.equal(isAdultContent('Co Vo Dam Dang HD.mp4'), true);
 });
 
 test('keywords keep years and extensions searchable after punctuation is removed', () => {
@@ -304,7 +343,7 @@ test('search finds a file by the folders above it, and results group under the h
   assert.deepEqual(searchMovieLinks(db.links, 'dune 2021', { kind: 'file', byId }).map((r) => r.code), ['B2', 'B']);
   assert.deepEqual(searchMovieLinks(db.links, 'xu cat', { kind: 'file', byId }).map((r) => r.code), ['D'], 'a folder alias reaches its files');
   assert.ok(!('keywords' in db.links[0]), 'no keyword list on a row: the haystack already holds that text');
-  // The Movie/Software/Music tabs are one database filtered by `category`.
+  // The Movie/Software/Music/Document tabs are one database filtered by `category`.
   assert.deepEqual(matchMovieLinks(db.links, '', { kind: 'file', category: 'software' }).map((r) => r.code), ['F']);
   assert.ok(!matchMovieLinks(db.links, '', { kind: 'file', category: 'movie' }).some((r) => r.code === 'F'));
 
