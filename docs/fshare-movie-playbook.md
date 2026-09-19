@@ -69,7 +69,7 @@ field nội bộ), không phải bản sao.
   "checkedAt": null, "lastLiveAt": null, "deadSince": null,
   "via": "",                                  // probe · listing · crawl · web — bằng chứng của lần check cuối
   "error": "",
-  "category": "movie",                        // movie · software · music — categoryOf(name), xem mục dưới
+  "category": "movie",                        // movie · software · music · document — categoryOf(name), xem mục dưới
   "web": { "status": "dead", "error": "…" },  // chỉ dòng dead: ý kiến thứ hai của fshare.vn
   "children": null                            // folder: {folders, files, live, dead, unknown, pending, crawledAt}
                                               // null = chưa liệt kê; crawledAt là bằng chứng duy nhất đã liệt kê
@@ -87,7 +87,7 @@ field nội bộ), không phải bản sao.
   của folder được đếm lại từ đó mỗi lần ghi. Tháng sau chạy lại, một folder
   hiện "40 file · 35 live · 5 dead" là đọc thẳng từ đây.
 
-## Movie / Software / Music — một catalog, ba tab
+## Movie / Software / Music / Document — một catalog, bốn tab
 
 Các nguồn (Sheet, thuviencine, Telegram) không phân loại nội dung — một group
 chia sẻ phim thỉnh thoảng trộn cả crack phần mềm (Adobe, AutoCAD, game
@@ -96,8 +96,8 @@ chia sẻ phim thỉnh thoảng trộn cả crack phần mềm (Adobe, AutoCAD, 
 tạo (`newLink`) và mỗi khi tên đổi từ mã sang tên thật (`addName`):
 
 1. **Đuôi file quyết định trước, chắc chắn.** `.mkv/.mp4/.avi/…` → `movie`,
-   `.mp3/.flac/.wav/…` → `music`, `.exe/.apk/.dmg/…` → `software` — không đọc
-   tên nữa. Đây là phần lớn: ~99.7% catalog 2026-09-18 (326.648 dòng) có đuôi
+   `.mp3/.flac/.wav/…` → `music`, `.exe/.apk/.dmg/…` → `software`,
+   `.pdf/.docx/.epub/.dwg/.rvt/.skp/…` → `document` — không đọc tên nữa. Đây là phần lớn: ~99.7% catalog 2026-09-18 (326.648 dòng) có đuôi
    quyết định được ngay.
 2. **Phần còn lại** (`.iso/.rar/.zip`, không đuôi — folder, hoặc tên trần từ
    Telegram) đọc từ khoảng chục cụm từ đặc trưng mỗi loại (CODEX/SKIDROW/
@@ -112,7 +112,32 @@ tạo (`newLink`) và mỗi khi tên đổi từ mã sang tên thật (`addName`
    "Spider-Man Remastered" sang software/music vì đó là những từ tiếng Anh
    phổ biến trong tên phim/game/nhạc như nhau. Cả bốn đã bị bỏ khỏi danh sách
    marker; chỉ giữ những cụm đặc trưng riêng một ngành (thương hiệu phần mềm,
-   tag nhóm crack, định dạng nhạc).
+   tag nhóm crack, định dạng nhạc). Cùng một lý do, `nhạc` trần đứng trong
+   nhiều tên phim ("Đấu Trường Âm Nhạc - Sing 2", "Nhạc Trưởng Maestra",
+   "Tinh Trung Nhạc Phi") nên chỉ nhận dạng `nhạc vàng/xuân/trẻ/xưa/việt`,
+   `CD nhạc`; và "phim tài liệu" là phim tài liệu, không phải tài liệu — có
+   `phim`/`vietsub`/`sub việt`/`tập` trong tên thì marker document im.
+3b. **Hai tầng marker, vì cùng một chữ nghĩa khác nhau tuỳ chỗ đứng.** Tầng
+   chặt (trên) áp cho mọi tên. Tầng **file nén** chỉ áp cho `.rar/.zip/.7z/
+   .iso/.nrg` mà tầng chặt bỏ qua: không ai đóng phim vào rar mà không ghi
+   1080p/BluRay/WEB-DL vào tên (và các tag đó được bắt trước), nên trong file
+   nén những chữ `album`, `vol.2`, `best of`, `rock`, `piano`, `jazz`,
+   "Nghệ sĩ - Album (1990)" là nhạc ở **mọi** dòng thật đã soi, còn `x64`,
+   `portable`, `v1.2.3`, tên site crack (toithuthuat, fullcrackpc,
+   linkneverdie…), `Việt hoá`, `-FPC` là phần mềm/game. Đứng trần thì
+   chính những chữ đó là "The Rock", "The Piano", "Guardians of the Galaxy
+   Vol. 2" — nên tầng rộng không bao giờ chạm tên không đuôi.
+3c. **Dấu `_` được đổi thành khoảng trắng trước khi so marker.** Với regex,
+   `_` là ký tự chữ nên `\brevit\b` không bao giờ khớp "3D_revit_office"
+   và "Momota_1pondo_sh" giấu được studio JAV khỏi bộ lọc X — đó là lý do
+   đợt phân loại đầu (2026-09-19) bỏ sót cả Office ISO lẫn ~1.600 JAV. Dấu
+   chấm giữa hai chữ cái ("Paris.By.Night") cũng là khoảng trắng; cạnh số
+   ("v2.31", "h.264") thì giữ nguyên.
+3d. **Document là thứ để mở ra đọc, software là thứ để cài/áp dụng.** Nhà
+   Revit, scene 3ds Max, hồ sơ thiết kế, giáo trình, TOEIC, dossier PDF →
+   document; bộ cài, plugin, preset, LUT, font, template, khoá học DaVinci →
+   software. Vì thế `tailieukientruc`/`hồ sơ thiết kế` được xét **trước**
+   `revit`, và "Foxit PDF Editor" là software chứ không phải PDF.
 4. **`category: "movie"` (mặc định) không được ghi vào envelope** — cùng quy
    tắc với `aliases`/`parents` rỗng, đỡ vài trăm nghìn field lặp một giá trị
    trên gần như mọi dòng. Tab đọc thấy field vắng thì hiểu là `movie`
@@ -122,10 +147,10 @@ tạo (`newLink`) và mỗi khi tên đổi từ mã sang tên thật (`addName`
    để ghi thật. Chạy lại an toàn: chỉ tính lại `categoryOf(name)` cho mọi
    dòng, không đụng `status`/`checkedAt`/lịch sử check.
 
-Ba tab UI (`public/fshare-tool/views/movie.js`) đọc **chung một sealed
+Bốn tab UI (`public/fshare-tool/views/movie.js`) đọc **chung một sealed
 catalog** (`MOVIE_DB_URL`) lọc theo `category` phía client — khác X, X là một
 catalog riêng hoàn toàn (xem "Thu thập từ Telegram" không áp dụng cho X; X vẫn
-là import x.csv độc lập). Bấm "Software"/"Music" không mở khoá lại, không tải
+là import x.csv độc lập). Bấm "Software"/"Music"/"Document" không mở khoá lại, không tải
 lại gì — chỉ đổi bộ lọc trên dữ liệu đã có trong bộ nhớ.
 
 ### Nội dung 18+ lẫn vào — chuyển hẳn sang X, không phải một category
@@ -144,8 +169,16 @@ node tools/fshare-movie.mjs seal
 ```
 
 `isAdultContent(name)` trong `movie-db.js` — dấu hiệu mạnh nhất là tên
-studio/site (Blacked, Tushy, Vixen, Dorcel, Brazzers…), sau đó là hành vi rõ
-ràng, `xxx` đứng riêng là dấu hiệu yếu nhất. Ba điều quan trọng:
+studio/site (Blacked, Tushy, Vixen, Dorcel, Brazzers, 1pondo, Carib, Heyzo,
+FC2-PPV, Model Media…), **mã phát hành JAV** ở đầu tên (`SSNI-757`,
+`JUQ-915_CUC HAY_…`, `230ORECO-903`; hai chữ cái như `DV-1387.mp4` chỉ khi
+mã là cả tên file, vì "MB-2019.zip" là file thật và "AR-558" là tập Star
+Trek), tên site kèm ngày (`pornworld.23.05.07.…`), từ tục tiếng Việt (địt,
+chịch, nứng, bú cu, ko che…); sau đó là hành vi rõ ràng; `xxx`/`porn`/`jav`/
+`hentai`/`dâm đãng` đứng riêng là tầng yếu nhất — chỉ tính cho file, và
+không tính khi cạnh nó có tag phát hành hay "Sub Việt" ("Porno (2013) 1080p
+WEB-DL", "Pleasure 2021 Sub Việt (…ngôi sao Porn…)" là phim). Ba điều quan
+trọng:
 
 - **Đây là ngoại lệ có chủ đích của luật "không xoá dòng để dọn catalog"** —
   dòng không xoá để dọn dẹp trạng thái, nhưng một dòng thuộc **sai bộ dữ
@@ -164,7 +197,26 @@ ràng, `xxx` đứng riêng là dấu hiệu yếu nhất. Ba điều quan trọ
   series Netflix "The End of the F***ing World", phim tài liệu "Orgasm Inc"
   và "The Year I Started Masturbating", phim kinh dị "Don't Fuck in the
   Woods". `hardcore`, `stepmom/-sis/-dad/-bro`, `vixen` trần và `swallowed`
-  bị bỏ hẳn khỏi danh sách marker vì đụng từ tiếng Anh thông dụng.
+  bị bỏ hẳn khỏi danh sách marker vì đụng từ tiếng Anh thông dụng. Đợt hai
+  (2026-09-19, sau khi gỡ lỗi `_`) thêm: "Bad Luck Banging or Loony Porn"
+  (giải Berlinale), "After Porn Ends", "Angel Guts: Red Porno", "The Lowlife",
+  "Nữ Chủ Nhà Dâm Đãng - Paupahan" (phim Vivamax, là **folder** — chính vì
+  thế `dâm đãng` xuống tầng yếu), "Sex Education"/"Sex Is Zero" (nên không
+  có `sex` trần), "The Empress of China … UNCEN" (bản không cắt của phim bộ,
+  nên không có `uncen`), "lồn tiếng" là lỗi gõ của "lồng tiếng", và
+  `gái gọi`/`cưỡng hiếp`/`làm tình` đều là tên phim thật nên không dùng.
+
+### Ghi đĩa trước, in báo cáo sau — bài học 2026-09-19
+
+Hai lần `categorize --apply` đầu tiên in "814 row(s) moved category" rồi
+**không ghi gì**, và envelope đã push lên production không có một dòng
+software/music nào. Nguyên nhân không phải heap hay NAS: lệnh được chạy qua
+`| head -3`. `head` đóng pipe sau ba dòng, dòng `out()` thứ tư (danh sách
+mẫu) làm Node chết vì EPIPE **trước** khi tới `saveCatalog`, và `2>&1` nuốt
+luôn stack trace. `move-to-x` chạy qua `| tail` nên không sao. Luật trong
+tool từ đó: **mọi lệnh `--apply` ghi xong rồi mới `out()` dòng đầu tiên**
+(`categorize`, `move-to-x`), và sau mỗi lần apply hãy đếm lại trên đĩa —
+hoặc `unseal` envelope vừa seal — thay vì tin dòng log.
 
 ## Ba cửa validated
 

@@ -28,7 +28,8 @@ catalog. This allows a later transfer file, such as
 That transfer file is exactly what `node tools/fshare-movie.mjs move-to-x
 [--apply]` writes — adult content that surfaced mixed into a movie source
 gets classified by `isAdultContent()` in `movie-db.js` and physically moved
-here, never left in the movie catalog with a category flag. See
+here, never left in the movie catalog with a category flag. A second run
+on the same day appends to that file rather than replacing it. See
 `docs/fshare-movie-playbook.md`'s "Nội dung 18+ lẫn vào" for the full command
 and the false-positive guards it needed.
 The current report checks each root link once; it does not crawl folder

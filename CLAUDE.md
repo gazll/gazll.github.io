@@ -554,8 +554,8 @@ secret/              GITIGNORED. Personal setup notes and credentials
      (Node only — the browser is CORS-blocked). Folders remember what they
      held via `parents` on their children, recounted into `children` on every
      write. The browser re-check never persists: the catalog is the tool's file.
-  6. **Movie/Software/Music are one catalog, split by `row.category`, not
-     three sealed files.** The sources mix content — a movie group also
+  6. **Movie/Software/Music/Document are one catalog, split by
+     `row.category`, not four sealed files.** The sources mix content — a movie group also
      shares Adobe/AutoCAD cracks and FLAC albums — so `categoryOf(name)` in
      `movie-db.js` tags every row at build time: file extension is decisive
      for ~99.7% of rows, and only the extension-less remainder (folders,
@@ -565,9 +565,19 @@ secret/              GITIGNORED. Personal setup notes and credentials
      `remastered`) matched real titles ("Taxi Driver", "Missing in Action",
      "The Portable Door", "Spider-Man Remastered") and were removed — a real
      movie mis-bucketed out of the Movie tab is worse than a stray software
-     row staying put, so an unresolved name defaults to `movie`. The default
+     row staying put, so an unresolved name defaults to `movie`. The markers
+     therefore come in two tiers: a tight one for every name, and a broad
+     one that only runs on `.rar/.zip/.7z/.iso` names the tight tier left
+     alone — inside an archive "album", "vol.2", "rock", "piano" were music
+     in every real row checked, while standing alone they are "The Rock",
+     "The Piano", "Guardians of the Galaxy Vol. 2". Underscores are folded
+     to spaces first: `_` is a word character, so `\brevit\b` never saw
+     "3D_revit_office" and the whole first pass missed both Office ISOs and
+     ~1,600 JAV files. A document is what you open and read (a Revit
+     house, a drawing set, a PDF, a giáo trình); software is what you
+     install or apply (the app, its plugins, presets, LUTs). The default
      `category: "movie"` is never shipped in the envelope, same as an empty
-     `aliases`. The three tabs read one fetched database and filter
+     `aliases`. The four tabs read one fetched database and filter
      client-side (`matchMovieLinks`'s `category` option) — X is the one
      genuinely separate catalog, its own fetch and its own envelope.
      `node tools/fshare-movie.mjs categorize` re-runs the classifier over an
@@ -579,10 +589,17 @@ secret/              GITIGNORED. Personal setup notes and credentials
      tagging them in place — the one sanctioned exception to "never delete
      rows to tidy the catalog" below, because these rows are not being
      tidied, they are leaving for the dataset they actually belong to.
-     `strict` mode drops the bare `xxx` marker for folders specifically: a
-     folder cascades onto everything under it, and a real folder holding
-     nothing but Paris By Night discs had "XXX" in its own name for no
-     reason connected to its contents.
+     `strict` mode drops the weak tier (bare `xxx`/`porn`/`jav`/`hentai`/
+     `dâm đãng`) for folders specifically: a folder cascades onto
+     everything under it, a real folder holding nothing but Paris By Night
+     discs had "XXX" in its own name, and "Nữ Chủ Nhà Dâm Đãng" is a
+     Vivamax feature. JAV release codes at the start of a name
+     (`SSNI-757`, `230ORECO-903`) are the strong signal the first pass
+     lacked. **Every `--apply` command writes before its first `out()`.**
+     Two `categorize --apply` runs "succeeded" and persisted nothing: run
+     through `| head -3`, the fourth printed line hit a closed pipe, Node
+     died of EPIPE before `saveCatalog`, and `2>&1` hid the trace. After
+     an apply, count on disk or `unseal` the envelope — never trust the log.
 
   It shares the schedule's envelope AND passphrase on purpose (one key in the
   password manager, one `schedule_access` grant), and the corollary is stated
