@@ -42,7 +42,7 @@
    NOT part of tools/check.mjs, for the same reason schedule-seal is not: CI
    has neither the passphrase nor secret/. */
 
-import { copyFile, mkdir, readdir, readFile, rename, stat, writeFile } from 'node:fs/promises';
+import { appendFile, copyFile, mkdir, readdir, readFile, rename, stat, writeFile } from 'node:fs/promises';
 import { createWriteStream, existsSync, statSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
@@ -1158,8 +1158,8 @@ async function main() {
   if (command === 'categorize') {
     const catalog = await loadCatalog();
     const apply = args.includes('--apply');
-    const before = { movie: 0, software: 0, music: 0 };
-    const after = { movie: 0, software: 0, music: 0 };
+    const before = Object.fromEntries(CATEGORIES.map((cat) => [cat, 0]));
+    const after = Object.fromEntries(CATEGORIES.map((cat) => [cat, 0]));
     const moved = [];
     catalog.links.forEach((row) => {
       const from = CATEGORIES.includes(row.category) ? row.category : 'movie';
@@ -1171,14 +1171,18 @@ async function main() {
         if (apply) row.category = to;
       }
     });
-    out(`Before: movie ${before.movie} · software ${before.software} · music ${before.music}`);
-    out(`After:  movie ${after.movie} · software ${after.software} · music ${after.music}`);
+    // Write before reporting: a reader that stops early (`| head`) closes
+    // stdout, the next out() dies with EPIPE, and a save placed after the
+    // report never happens — while the lines already printed say it did.
+    if (apply) await saveCatalog(catalog);
+    const line = (counts) => CATEGORIES.map((cat) => `${cat} ${counts[cat]}`).join(' · ');
+    out(`Before: ${line(before)}`);
+    out(`After:  ${line(after)}`);
     out(`${moved.length} row(s) ${apply ? 'moved' : 'would move'} category${apply ? '' : ' — pass --apply to write'}.`);
-    ['software', 'music'].forEach((cat) => {
+    CATEGORIES.filter((cat) => cat !== 'movie').forEach((cat) => {
       const sample = moved.filter((m) => m.to === cat).slice(0, 15);
       if (sample.length) { out(`  → ${cat}:`); sample.forEach((m) => out(`    ${m.name}`)); }
     });
-    if (apply) await saveCatalog(catalog);
     return;
   }
 
@@ -1201,17 +1205,23 @@ async function main() {
       });
     }
     const rows = catalog.links.filter((row) => moved.has(row.id));
-    out(`${rows.length} row(s) of ${catalog.links.length} match the X classifier (isAdultContent, plus folder cascade).`);
+    const total = catalog.links.length;
+    const date = new Date().toISOString().slice(0, 10);
+    const transferFile = path.join(ROOT, 'secret', 'fshare-x', 'raw', `moved-from-movie-${date}.txt`);
+    // Same rule as categorize: every write happens before the first out().
+    if (apply && rows.length) {
+      await mkdir(path.dirname(transferFile), { recursive: true });
+      // Two runs on one day append: the X build reads the file whole, and the
+      // earlier batch must not vanish from the raw record.
+      await appendFile(transferFile, rows.map((row) => `${row.name} ${row.link}`).join('\n') + '\n', 'utf8');
+      catalog.links = catalog.links.filter((row) => !moved.has(row.id));
+      await saveCatalog(catalog);
+    }
+    out(`${rows.length} row(s) of ${total} match the X classifier (isAdultContent, plus folder cascade).`);
     rows.slice(0, 20).forEach((row) => out(`  ${row.kind} ${row.code}: ${row.name}`));
     if (rows.length > 20) out(`  … and ${rows.length - 20} more.`);
     if (!apply) return out('Dry run — pass --apply to write the X transfer file and remove these rows from the movie catalog.');
     if (!rows.length) return out('Nothing to move.');
-    const date = new Date().toISOString().slice(0, 10);
-    const transferFile = path.join(ROOT, 'secret', 'fshare-x', 'raw', `moved-from-movie-${date}.txt`);
-    await mkdir(path.dirname(transferFile), { recursive: true });
-    await writeFile(transferFile, rows.map((row) => `${row.name} ${row.link}`).join('\n') + '\n', 'utf8');
-    catalog.links = catalog.links.filter((row) => !moved.has(row.id));
-    await saveCatalog(catalog);
     out(`Wrote ${rows.length} link(s) to ${rel(transferFile)} and removed them from the movie catalog.`);
     return out('Next: node tools/fshare-x.mjs build && node tools/fshare-x.mjs seal — then node tools/fshare-movie.mjs seal.');
   }
