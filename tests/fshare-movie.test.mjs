@@ -12,7 +12,7 @@ import {
 } from '../tools/fshare-movie.mjs';
 import { parseArgs, probeRow, selectRows } from '../tools/fshare-movie-shard.mjs';
 import {
-  buildSearchIndex, extractFshareLinks, folderChain, groupByFolder, indexById, keywordTokens, matchMovieLinks, matchRanges,
+  buildSearchIndex, categoryOf, extractFshareLinks, folderChain, groupByFolder, indexById, keywordTokens, matchMovieLinks, matchRanges,
   movieHaystack, narrowsSearch, normalizeMovieDatabase, rankFolderGroups, searchMovieLinks, sortMovieRows, titleKey
 } from '../public/fshare-tool/lib/movie-db.js';
 import { crawlMovieFolder } from '../public/fshare-tool/lib/movie-check.js';
@@ -45,6 +45,27 @@ test('titleKey folds accents, list bullets and release punctuation but keeps the
   assert.equal(titleKey('- - Tần Số Chết (2019)'), 'tan so chet 2019');
   assert.equal(titleKey('Suffering.of.Ninko.2016.1080p.mkv'), 'suffering of ninko 2016 1080p');
   assert.notEqual(titleKey('Dune (1984)'), titleKey('Dune (2021)'));
+});
+
+test('categoryOf trusts the extension first, falls back to name markers, and never trusts a bare genre word', () => {
+  assert.equal(categoryOf('Dune.2021.2160p.mkv'), 'movie');
+  assert.equal(categoryOf('01. Track One.flac'), 'music');
+  assert.equal(categoryOf('Adobe.Photoshop.2024.apk'), 'software');
+  assert.equal(categoryOf('Adobe Photoshop CS6 Multilingual.rar'), 'software');
+  assert.equal(categoryOf('Star.Wars.Jedi.Fallen.Order-CODEX.iso'), 'software');
+  assert.equal(categoryOf('01 - Track One - Some Artist FLAC.rar'), 'music');
+  assert.equal(categoryOf('LVCD 339 - Lien Khuc Xuan - CD1.zip'), 'music');
+  // Real catalog names that a naive keyword scan mis-bucketed during tuning:
+  // generic English words in the title collide with generic software/game
+  // markers once a row has no video extension to short-circuit the scan.
+  assert.equal(categoryOf('Taxi Driver (1976)'), 'movie');
+  assert.equal(categoryOf('Missing in Action (1984)'), 'movie');
+  assert.equal(categoryOf('The Portable Door 2023'), 'movie');
+  assert.equal(categoryOf('The.Office.U.S.S06E13.1080p.mkv'), 'movie');
+  // "remastered" alone is dropped as a marker (movies, games and music all
+  // use it), so an unrecognised release-group tag with no other signal
+  // defaults to movie — a missed software row, never a stolen movie one.
+  assert.equal(categoryOf('Marvels.Spider-Man.Remastered-FPC.iso'), 'movie');
 });
 
 test('keywords keep years and extensions searchable after punctuation is removed', () => {
@@ -88,6 +109,7 @@ test('the projection ships checked rows only and is validated only with nothing 
   catalog.links[1].remote = { id: 'remote-1', size: 1234, modified: 1779530685 };
   catalog.links[1].path = '/Movies/Dead';
   catalog.links[1].keywords = ['dead'];
+  catalog.links[1].category = 'software';
   let projection = projectCatalog(catalog, NOW);
   assert.equal(projection.validated, false, 'one row is still pending');
   assert.deepEqual(projection.links.map((row) => row.status), ['dead', 'live']);
@@ -96,6 +118,8 @@ test('the projection ships checked rows only and is validated only with nothing 
   for (const field of ['remote', 'path', 'keywords', 'id', 'titleKey', 'error', 'firstSeenAt']) {
     assert.ok(!(field in projection.links[0]), `${field} stays in the catalog`);
   }
+  assert.equal(projection.links[0].category, 'software', 'a non-default category rides along');
+  assert.ok(!('category' in projection.links[1]), 'a default movie category is not shipped — it costs bytes on almost every row');
   assert.equal(normalizeMovieDatabase(projection).links[0].id, 'fshare-folder-EXMPL0000001', 'id is rebuilt on load');
   catalog.links[0].status = 'live';
   catalog.links[0].checkedAt = NOW;
@@ -232,7 +256,8 @@ test('search finds a file by the folders above it, and results group under the h
       { id: 'fshare-file-B2', kind: 'file', code: 'B2', name: 'Dune.2021.1080p.mkv', size: 200, status: 'dead', parents: ['fshare-folder-A'] },
       { id: 'fshare-folder-C', kind: 'folder', code: 'C', name: 'Dune (1984)', status: 'live', aliases: ['Xứ Cát'], parents: ['fshare-folder-ROOT'] },
       { id: 'fshare-file-D', kind: 'file', code: 'D', name: 'Some.Release.Group.mkv', status: 'live', parents: ['fshare-folder-C'] },
-      { id: 'fshare-file-E', kind: 'file', code: 'E', name: 'Standalone.Dune.mkv', status: 'live' }
+      { id: 'fshare-file-E', kind: 'file', code: 'E', name: 'Standalone.Dune.mkv', status: 'live' },
+      { id: 'fshare-file-F', kind: 'file', code: 'F', name: 'Adobe Photoshop CS6.rar', category: 'software', status: 'live' }
     ]
   });
   const byId = indexById(db.links);
@@ -250,6 +275,9 @@ test('search finds a file by the folders above it, and results group under the h
   assert.deepEqual(searchMovieLinks(db.links, 'dune 2021', { kind: 'file', byId }).map((r) => r.code), ['B2', 'B']);
   assert.deepEqual(searchMovieLinks(db.links, 'xu cat', { kind: 'file', byId }).map((r) => r.code), ['D'], 'a folder alias reaches its files');
   assert.ok(!('keywords' in db.links[0]), 'no keyword list on a row: the haystack already holds that text');
+  // The Movie/Software/Music tabs are one database filtered by `category`.
+  assert.deepEqual(matchMovieLinks(db.links, '', { kind: 'file', category: 'software' }).map((r) => r.code), ['F']);
+  assert.ok(!matchMovieLinks(db.links, '', { kind: 'file', category: 'movie' }).some((r) => r.code === 'F'));
 
   // The view matches without sorting and ranks GROUPS: a folder whose own
   // name carries every token first, then folders reached through a file's

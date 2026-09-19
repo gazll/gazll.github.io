@@ -6,6 +6,7 @@
      node tools/fshare-movie.mjs status       # what is pending / live / dead / unknown
      node tools/fshare-movie.mjs validate     # check links against Fshare, in place, resumable
      node tools/fshare-movie.mjs audit        # per-source completeness: uncrawled folders, unverified dead…
+     node tools/fshare-movie.mjs categorize [--apply]  # re-run the movie/software/music classifier
      node tools/fshare-movie.mjs seal         # checked links → public/data/fshare-movie/catalog.enc.json
      node tools/fshare-movie.mjs unseal       # the envelope → secret/ (recovery)
      node tools/fshare-movie.mjs --check      # the envelope opens and matches the catalog
@@ -51,7 +52,7 @@ import v8 from 'node:v8';
 
 import { isEnvelope, seal, unseal } from '../public/lib/schedule-crypto.js';
 import {
-  CATALOG_VERSION, STATUSES, extractFshareLinks, linkId, linkUrl, titleKey
+  CATALOG_VERSION, CATEGORIES, categoryOf, STATUSES, extractFshareLinks, linkId, linkUrl, titleKey
 } from '../public/fshare-tool/lib/movie-db.js';
 import { crawlMovieFolder, remoteMetadata } from '../public/fshare-tool/lib/movie-check.js';
 import { passphrase } from './passphrase.mjs';
@@ -221,6 +222,7 @@ function newLink(link, origin, now) {
     name: link.name || link.code,
     aliases: [],
     titleKey: titleKey(link.name || link.code),
+    category: categoryOf(link.name || link.code),
     origin,
     sourceIds: [],
     parents: [],
@@ -246,6 +248,7 @@ function addName(row, name) {
   if (row.name === row.code) {
     row.name = clean;
     row.titleKey = titleKey(clean);
+    row.category = categoryOf(clean);
     return;
   }
   row.aliases.push(clean);
@@ -406,6 +409,7 @@ export function projectCatalog(catalog, sealedAt = new Date().toISOString()) {
       code: row.code,
       name: row.name,
       ...(row.aliases.length ? { aliases: row.aliases } : {}),
+      ...(row.category && row.category !== 'movie' ? { category: row.category } : {}),
       status: row.status,
       checkedAt: row.checkedAt,
       ...(row.status !== 'live' && row.lastLiveAt ? { lastLiveAt: row.lastLiveAt } : {}),
@@ -1105,9 +1109,9 @@ function statusLine(catalog) {
 async function main() {
   ensureHeap();
   const args = process.argv.slice(2);
-  const command = ['ingest', 'build', 'status', 'audit', 'validate', 'merge', 'seal', 'unseal'].find((name) => args.includes(name))
+  const command = ['ingest', 'build', 'status', 'audit', 'validate', 'merge', 'categorize', 'seal', 'unseal'].find((name) => args.includes(name))
     || (args.includes('--check') ? 'check' : null);
-  if (!command) die('Usage: fshare-movie.mjs ingest <…> | build | status | audit [--json] | validate [--only pending,unknown,uncrawled,unverified,dead,live|all] [--stale 30d] [--limit N] [--concurrency 4] [--no-web] [--dry-run] | merge <shard…> | seal | unseal | --check');
+  if (!command) die('Usage: fshare-movie.mjs ingest <…> | build | status | audit [--json] | validate [--only pending,unknown,uncrawled,unverified,dead,live|all] [--stale 30d] [--limit N] [--concurrency 4] [--no-web] [--dry-run] | merge <shard…> | categorize [--apply] | seal | unseal | --check');
 
   if (command === 'ingest') return ingest(args.filter((arg) => arg !== 'ingest'));
 
@@ -1148,6 +1152,33 @@ async function main() {
     });
     out('');
     return out(report.ok ? 'validated: OK' : `validated: NO — ${report.gaps.join(' · ')}`);
+  }
+
+  if (command === 'categorize') {
+    const catalog = await loadCatalog();
+    const apply = args.includes('--apply');
+    const before = { movie: 0, software: 0, music: 0 };
+    const after = { movie: 0, software: 0, music: 0 };
+    const moved = [];
+    catalog.links.forEach((row) => {
+      const from = CATEGORIES.includes(row.category) ? row.category : 'movie';
+      const to = categoryOf(row.name);
+      before[from]++;
+      after[to]++;
+      if (from !== to) {
+        moved.push({ from, to, name: row.name });
+        if (apply) row.category = to;
+      }
+    });
+    out(`Before: movie ${before.movie} · software ${before.software} · music ${before.music}`);
+    out(`After:  movie ${after.movie} · software ${after.software} · music ${after.music}`);
+    out(`${moved.length} row(s) ${apply ? 'moved' : 'would move'} category${apply ? '' : ' — pass --apply to write'}.`);
+    ['software', 'music'].forEach((cat) => {
+      const sample = moved.filter((m) => m.to === cat).slice(0, 15);
+      if (sample.length) { out(`  → ${cat}:`); sample.forEach((m) => out(`    ${m.name}`)); }
+    });
+    if (apply) await saveCatalog(catalog);
+    return;
   }
 
   if (command === 'merge') {

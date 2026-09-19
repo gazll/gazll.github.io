@@ -68,6 +68,45 @@ export function titleKey(name) {
     .trim();
 }
 
+/* What content a link actually is — not every Fshare share in these sources
+   is a movie. `movie`/`software`/`music` split the one Movie tab into three,
+   without touching the crawl/validate pipeline, which does not care what a
+   link contains. Extension is decisive where a file carries one — the video
+   and audio containers below cover 99%+ of the 2026-09-18 catalog and never
+   collide with a title. Only the extension-less remainder (folders, .iso/
+   .rar/.zip wrappers, bare titles) falls to name markers, and those are
+   tuned for PRECISION over recall against that same catalog: bare, common
+   English words ("action", "driver", "portable") matched real film titles
+   (Taxi Driver, Missing in Action, The Portable Door) and were dropped —
+   a real movie missing from the Movie tab is worse than a software/music
+   link staying put. A generic marker present in all three ("remastered")
+   was dropped the same way after it tagged "Spider-Man Remastered" as
+   music. Unmarked and ambiguous rows default to `movie`, the majority case. */
+export const CATEGORIES = ['movie', 'software', 'music'];
+const VIDEO_EXT = new Set(['mkv', 'mp4', 'avi', 'ts', 'm2ts', 'wmv', 'mov', 'flv', 'rmvb', 'vob', 'mpg', 'mpeg', 'm4v', 'divx', 'webm', '3gp']);
+const AUDIO_EXT = new Set(['mp3', 'flac', 'wav', 'm4a', 'wma', 'aac', 'dsf', 'ogg', 'ape', 'alac', 'opus']);
+const APP_EXT = new Set(['exe', 'msi', 'apk', 'dmg', 'appimage', 'deb', 'ipa']);
+const MOVIE_MARKERS = /\b(1080p|2160p|720p|480p|4k|uhd|bluray|blu-ray|web-?dl|webrip|hdtv|hdrip|dvdrip|remux|x264|x265|h\.?26[45]|hevc|dts(-hd)?|ddp\d?|atmos|complete|iqiyi|netflix|nf\.web|amzn|s\d{2}e\d{2})\b/i;
+const SOFTWARE_MARKERS = /-(codex|skidrow|reloaded|cpy|plaza|hoodlum|tenoke|rune|flt|razor1911|prophet|gog|darksiders)\b|\b(crack(ed|fix)?|keygen|activator|repack|multilingual|full\s?crack|ph[aầ]n\s?m[eề]m|setup|installer|incl\.?\s?dlc|adobe|photoshop|premiere\s?pro|illustrator|autocad|solidworks|sketchup|revit|vmware|windows\s?(7|8|10|11)|microsoft|antivirus|kaspersky|\bidm\b|winrar|plugin|overlays?|presets?)\b/i;
+const MUSIC_MARKERS = /\b(flac|wav|ost|soundtrack|lossless|karaoke|hi-res|accuraterip|vinyl|24bit|96khz|cd\d|tncd\d+|lvcd\d+|asia\d+cd\d+)\b/i;
+
+function extOf(name) {
+  const match = /\.([a-z0-9]{2,8})$/i.exec(String(name || '').trim());
+  return match ? match[1].toLowerCase() : '';
+}
+
+export function categoryOf(name) {
+  const ext = extOf(name);
+  if (VIDEO_EXT.has(ext)) return 'movie';
+  if (AUDIO_EXT.has(ext)) return 'music';
+  if (APP_EXT.has(ext)) return 'software';
+  const text = String(name || '');
+  if (MOVIE_MARKERS.test(text)) return 'movie';
+  if (SOFTWARE_MARKERS.test(text)) return 'software';
+  if (MUSIC_MARKERS.test(text)) return 'music';
+  return 'movie';
+}
+
 /** Search tokens: every word of the folded query. */
 export function queryTokens(value) {
   return fold(value).replace(/[^\p{L}\p{N}]+/gu, ' ').split(/\s+/).filter(Boolean);
@@ -100,7 +139,8 @@ export function normalizeMovieDatabase(value) {
         aliases: Array.isArray(row.aliases) ? row.aliases : [],
         parents: Array.isArray(row.parents) ? row.parents : [],
         sourceIds: Array.isArray(row.sourceIds) ? row.sourceIds : [],
-        titleKey: row.titleKey || titleKey(row.name)
+        titleKey: row.titleKey || titleKey(row.name),
+        category: CATEGORIES.includes(row.category) ? row.category : 'movie'
       }))
   };
 }
@@ -225,12 +265,13 @@ export function sortMovieRows(rows, nameOf = (row) => fold(row.name)) {
  * made the first keystroke stall. Every token must be a substring of the
  * row's folded haystack (name, aliases, code, path, the folders above it).
  */
-export function matchMovieLinks(links, query, { kind = 'all', status = 'all', sourceId = 'all', byId = null, index = null } = {}) {
+export function matchMovieLinks(links, query, { kind = 'all', status = 'all', sourceId = 'all', category = 'all', byId = null, index = null } = {}) {
   const tokens = queryTokens(query);
   const hayOf = (row) => (index && index.hay.get(row)) ?? movieHaystack(row, byId);
   return (links || []).filter((row) => {
     if (kind !== 'all' && row.kind !== kind) return false;
     if (status !== 'all' && row.status !== status) return false;
+    if (category !== 'all' && (row.category || 'movie') !== category) return false;
     if (sourceId !== 'all' && !(row.sourceIds || []).includes(sourceId)) return false;
     if (!tokens.length) return true;
     const haystack = hayOf(row);

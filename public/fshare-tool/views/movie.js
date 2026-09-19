@@ -39,6 +39,18 @@ const CATALOG_TYPES = Object.freeze({
     placeholder: 'Try: a name, folder, or link code...'
   }
 });
+/* Movie/Software/Music are one sealed catalog (tools/fshare-movie.mjs
+   classifies every link's own name at build time — see categoryOf in
+   movie-db.js) split into three tabs by `row.category`, not three separate
+   fetches like X. Switching between them never re-fetches or re-unlocks. */
+const CATEGORY_LABELS = Object.freeze({
+  movie: { label: 'Movie', description: 'Validated movie files', placeholder: 'Try: Dune 2021, anime, 4K...',
+    empty: 'Nothing matches these filters. Try an alias, a year, a link code — or show dead links.' },
+  software: { label: 'Software', description: 'Apps and installers pulled out of the movie catalog', placeholder: 'Try: Adobe, AutoCAD, Windows...',
+    empty: 'Nothing matches these filters in Software. Try a shorter name, or show dead links.' },
+  music: { label: 'Music', description: 'Music pulled out of the movie catalog', placeholder: 'Try: an artist, an album, a song...',
+    empty: 'Nothing matches these filters in Music. Try a shorter name, or show dead links.' }
+});
 /* Static markup: the icon says folder or link before a name is read. */
 const ICONS = {
   folder: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>',
@@ -57,6 +69,7 @@ const STATUS_TEXT = {
 
 const movie = {
   catalogType: 'movie',
+  category: 'movie',
   database: null,
   databases: new Map(),
   indexes: new Map(),
@@ -121,22 +134,25 @@ function storedSecret() {
 
 function paintTypeSwitch() {
   const config = catalogConfig();
+  const isMovieCatalog = movie.catalogType === 'movie';
+  const display = isMovieCatalog ? CATEGORY_LABELS[movie.category] : config;
   document.querySelectorAll('[data-movie-type]').forEach((button) => {
-    const active = button.getAttribute('data-movie-type') === movie.catalogType;
+    const value = button.getAttribute('data-movie-type');
+    const active = isMovieCatalog ? value === movie.category : value === 'x';
     button.classList.toggle('on', active);
     button.setAttribute('aria-pressed', active ? 'true' : 'false');
     button.disabled = movie.unlocking;
   });
   setText('movieUnlockType', config.label);
   setText('movieUnlockNote', config.unlockNote);
-  setText('movieTypeDescription', config.description);
+  setText('movieTypeDescription', display.description);
   setText('movieResultsTitle', config.raw ? 'X links' : 'Files, by folder');
   setText('movieStatusLabel', config.raw ? 'Raw links are not validated' : 'Show dead & unknown');
   setText('movieSearchLabel', config.raw ? 'Search X links by name or link code' : 'Search files by name, folder, alias or link code');
   const panel = $('movieSearchPanel');
   if (panel) panel.setAttribute('aria-label', config.raw ? 'X link filters' : 'Movie catalog filters');
   const input = $('movieSearchInput');
-  if (input) input.placeholder = config.placeholder;
+  if (input) input.placeholder = display.placeholder;
   const statusFilter = $('movieStatusFilter');
   if (statusFilter) statusFilter.hidden = config.raw;
   const outputNote = $('movieOutputNote');
@@ -268,6 +284,7 @@ function lock() {
   stopValidation();
   movie.databases.clear();
   movie.indexes.clear();
+  movie.category = 'movie';
   setCurrentDatabase('movie', null);
   clearWorkingState();
   try { sessionStorage.removeItem(KEY_STORE); localStorage.removeItem(KEY_STORE); } catch (error) { /* private mode */ }
@@ -296,10 +313,17 @@ async function restore() {
 }
 
 async function switchCatalogType(type) {
-  if (!CATALOG_TYPES[type] || type === movie.catalogType || movie.unlocking) return;
+  if (movie.unlocking) return;
+  // Movie/Software/Music are one catalog fetch (catalogType 'movie') split
+  // by `category`; X is its own fetch and ignores category entirely.
+  const isCategory = Object.hasOwn(CATEGORY_LABELS, type);
+  const nextCatalogType = isCategory ? 'movie' : type;
+  const nextCategory = isCategory ? type : 'movie';
+  if (!CATALOG_TYPES[nextCatalogType] || (nextCatalogType === movie.catalogType && nextCategory === movie.category)) return;
   stopValidation();
-  movie.catalogType = type;
-  setCurrentDatabase(type, movie.databases.get(type) || null);
+  const catalogChanged = nextCatalogType !== movie.catalogType;
+  movie.category = nextCategory;
+  if (catalogChanged) setCurrentDatabase(nextCatalogType, movie.databases.get(nextCatalogType) || null);
   clearWorkingState();
   $('movieSearchInput').value = '';
   $('movieSourceSelect').value = 'all';
@@ -314,7 +338,7 @@ async function switchCatalogType(type) {
   movie.unlocking = true;
   paintLockState();
   try {
-    await openSealed(secret, type);
+    await openSealed(secret, nextCatalogType);
     paintLockState();
     renderResults();
     renderOutput();
@@ -596,13 +620,14 @@ function renderResults() {
   const list = $('movieResults');
   if (!list || !movie.database) return;
   const config = catalogConfig();
+  const category = config.raw ? 'all' : movie.category;
   const query = $('movieSearchInput').value || '';
   const sourceId = $('movieSourceSelect').value || 'all';
   const showDead = $('movieShowDead').checked;
   // "dun" → "dune" can only lose rows, so it is searched within the previous
   // matches; the status filter is re-applied afterwards because a re-check
   // in this browser may have changed a row since that set was built.
-  const searchKey = `${movie.catalogType}|${sourceId}`;
+  const searchKey = `${movie.catalogType}|${category}|${sourceId}`;
   const previous = movie.lastSearch;
   const pool = previous && previous.key === searchKey && narrowsSearch(previous.query, query)
     ? previous.rows
@@ -619,7 +644,7 @@ function renderResults() {
   // searchable as links.
   const found = config.raw
     ? searchXLinks(pool, query, { sourceId, index: movie.index })
-    : matchMovieLinks(pool, query, { kind: 'file', sourceId, byId: movie.byId, index: movie.index });
+    : matchMovieLinks(pool, query, { kind: 'file', sourceId, category, byId: movie.byId, index: movie.index });
   movie.lastSearch = { key: searchKey, query, rows: found };
   movie.tokens = config.raw ? [] : queryTokens(query);
   const matches = config.raw ? found : found.filter((row) => showDead || currentStatus(row).status === 'live');
@@ -659,7 +684,7 @@ function renderResults() {
     } else {
       const line = document.createElement('p');
       const trimmed = query.trim();
-      line.textContent = trimmed ? `No files match “${trimmed}”.` : config.empty;
+      line.textContent = trimmed ? `No files match “${trimmed}”.` : (config.raw ? config.empty : CATEGORY_LABELS[movie.category].empty);
       empty.appendChild(line);
       if (trimmed) {
         const hint = document.createElement('p');
