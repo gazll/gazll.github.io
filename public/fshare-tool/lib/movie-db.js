@@ -81,13 +81,19 @@ export function titleKey(name) {
    a real movie missing from the Movie tab is worse than a software/music
    link staying put. A generic marker present in all three ("remastered")
    was dropped the same way after it tagged "Spider-Man Remastered" as
-   music. Unmarked and ambiguous rows default to `movie`, the majority case. */
+   music. "crack" keeps only its bare form for the same reason: it still
+   catches "Crack.rar" and "-CRACKFIX-CPY" but a word-boundary match already
+   excludes "cracked" on its own (no boundary between "crack" and the "ed"
+   that follows) — kept that way on purpose after "Vết Nứt Ám Hồn Trong
+   Tranh - Cracked 2022", a real film, showed up tagged software during a
+   post-seal audit. Unmarked and ambiguous rows default to `movie`, the
+   majority case. */
 export const CATEGORIES = ['movie', 'software', 'music'];
 const VIDEO_EXT = new Set(['mkv', 'mp4', 'avi', 'ts', 'm2ts', 'wmv', 'mov', 'flv', 'rmvb', 'vob', 'mpg', 'mpeg', 'm4v', 'divx', 'webm', '3gp']);
 const AUDIO_EXT = new Set(['mp3', 'flac', 'wav', 'm4a', 'wma', 'aac', 'dsf', 'ogg', 'ape', 'alac', 'opus']);
 const APP_EXT = new Set(['exe', 'msi', 'apk', 'dmg', 'appimage', 'deb', 'ipa']);
 const MOVIE_MARKERS = /\b(1080p|2160p|720p|480p|4k|uhd|bluray|blu-ray|web-?dl|webrip|hdtv|hdrip|dvdrip|remux|x264|x265|h\.?26[45]|hevc|dts(-hd)?|ddp\d?|atmos|complete|iqiyi|netflix|nf\.web|amzn|s\d{2}e\d{2})\b/i;
-const SOFTWARE_MARKERS = /-(codex|skidrow|reloaded|cpy|plaza|hoodlum|tenoke|rune|flt|razor1911|prophet|gog|darksiders)\b|\b(crack(ed|fix)?|keygen|activator|repack|multilingual|full\s?crack|ph[aầ]n\s?m[eề]m|setup|installer|incl\.?\s?dlc|adobe|photoshop|premiere\s?pro|illustrator|autocad|solidworks|sketchup|revit|vmware|windows\s?(7|8|10|11)|microsoft|antivirus|kaspersky|\bidm\b|winrar|plugin|overlays?|presets?)\b/i;
+const SOFTWARE_MARKERS = /-(codex|skidrow|reloaded|cpy|plaza|hoodlum|tenoke|rune|flt|razor1911|prophet|gog|darksiders)\b|\b(crackfix|full\s?crack|keygen|activator|repack|multilingual|ph[aầ]n\s?m[eề]m|setup|installer|incl\.?\s?dlc|adobe|photoshop|premiere\s?pro|illustrator|autocad|solidworks|sketchup|revit|vmware|windows\s?(7|8|10|11)|microsoft|antivirus|kaspersky|\bidm\b|winrar|plugin|overlays?|presets?|crack)\b/i;
 const MUSIC_MARKERS = /\b(flac|wav|ost|soundtrack|lossless|karaoke|hi-res|accuraterip|vinyl|24bit|96khz|cd\d|tncd\d+|lvcd\d+|asia\d+cd\d+)\b/i;
 
 function extOf(name) {

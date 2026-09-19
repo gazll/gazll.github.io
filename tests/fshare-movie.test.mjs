@@ -53,6 +53,8 @@ test('categoryOf trusts the extension first, falls back to name markers, and nev
   assert.equal(categoryOf('Adobe.Photoshop.2024.apk'), 'software');
   assert.equal(categoryOf('Adobe Photoshop CS6 Multilingual.rar'), 'software');
   assert.equal(categoryOf('Star.Wars.Jedi.Fallen.Order-CODEX.iso'), 'software');
+  assert.equal(categoryOf('Crack.rar'), 'software');
+  assert.equal(categoryOf('Vết Nứt Ám Hồn Trong Tranh - Cracked 2022'), 'movie', 'a real film — "cracked" must not match "crack"');
   assert.equal(categoryOf('01 - Track One - Some Artist FLAC.rar'), 'music');
   assert.equal(categoryOf('LVCD 339 - Lien Khuc Xuan - CD1.zip'), 'music');
   // Real catalog names that a naive keyword scan mis-bucketed during tuning:
