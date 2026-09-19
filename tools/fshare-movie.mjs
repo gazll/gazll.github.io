@@ -697,6 +697,7 @@ async function validate(catalog, options) {
   let stopping = false;
   let done = 0;
   let sinceCheckpoint = 0;
+  let checkpointInFlight = null;
   const started = Date.now();
 
   const stop = () => { if (!stopping) { stopping = true; log('Stopping after the current checks…'); } };
@@ -809,7 +810,15 @@ async function validate(catalog, options) {
       }
       if (sinceCheckpoint >= CHECKPOINT_EVERY && !dryRun) {
         sinceCheckpoint = 0;
-        await onCheckpoint(catalog);
+        // `onCheckpoint` (saveCatalog) is not safe to run twice at once — two
+        // overlapping writeCatalogFile calls race the same shard's rotateIn
+        // and one rename finds its own .tmp already consumed by the other.
+        // Concurrent workers hitting the threshold together must await the
+        // SAME save rather than each starting their own.
+        if (!checkpointInFlight) {
+          checkpointInFlight = onCheckpoint(catalog).finally(() => { checkpointInFlight = null; });
+        }
+        await checkpointInFlight;
       }
     }
   };
