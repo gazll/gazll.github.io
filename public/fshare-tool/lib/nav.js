@@ -15,12 +15,24 @@ export const currentLc = () =>
 
 /* ---------- screens ---------- */
 
+/* The basket tray belongs to Browse and Bulk crawl: the Movie tab has its own
+   selection, so a basket left over from an earlier crawl (it persists in
+   localStorage) must not sit under the movie results. Only the tray's own
+   visibility is decided here; its contents stay renderTray's. */
+function trayFor(view) {
+  const tray = $('tray');
+  if (!tray) return;
+  tray.hidden = view === 'movie';
+  document.body.style.paddingBottom = !tray.hidden && tray.classList.contains('on') ? '96px' : '24px';
+}
+
 export function showHome() {
   $('homeView').style.display = 'block';
   $('movieView').style.display = 'none';
   $('folderView').style.display = 'none';
   $('batchView').style.display = 'none';
   document.title = 'Fshare Bulk Copy';
+  trayFor('home');
 }
 
 export function showFolder() {
@@ -28,6 +40,7 @@ export function showFolder() {
   $('movieView').style.display = 'none';
   $('batchView').style.display = 'none';
   $('folderView').style.display = 'block';
+  trayFor('folder');
 }
 
 export function showBatch() {
@@ -36,6 +49,7 @@ export function showBatch() {
   $('folderView').style.display = 'none';
   $('batchView').style.display = 'block';
   document.title = 'Bulk crawl — Fshare Bulk Copy';
+  trayFor('batch');
 }
 
 export function showMovie() {
@@ -44,6 +58,7 @@ export function showMovie() {
   $('batchView').style.display = 'none';
   $('movieView').style.display = 'block';
   document.title = 'Movie search — Fshare Bulk Copy';
+  trayFor('movie');
 }
 
 /* ---------- address bar ---------- */

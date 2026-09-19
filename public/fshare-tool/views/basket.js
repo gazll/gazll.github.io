@@ -136,7 +136,7 @@ export function renderTray() {
   tray.classList.toggle('on', t.count > 0);
   $('trayCount').textContent = t.count + ' files selected';
   $('traySub').textContent = t.bytes ? 'Total ' + fmtSize(t.bytes) : '';
-  document.body.style.paddingBottom = t.count > 0 ? '96px' : '24px';
+  document.body.style.paddingBottom = t.count > 0 && !tray.hidden ? '96px' : '24px';
 }
 
 /* ---------- export ---------- */
