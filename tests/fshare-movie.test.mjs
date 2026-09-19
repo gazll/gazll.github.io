@@ -12,8 +12,8 @@ import {
 } from '../tools/fshare-movie.mjs';
 import { parseArgs, probeRow, selectRows } from '../tools/fshare-movie-shard.mjs';
 import {
-  buildSearchIndex, categoryOf, extractFshareLinks, folderChain, groupByFolder, indexById, keywordTokens, matchMovieLinks, matchRanges,
-  movieHaystack, narrowsSearch, normalizeMovieDatabase, rankFolderGroups, searchMovieLinks, sortMovieRows, titleKey
+  buildSearchIndex, categoryOf, extractFshareLinks, folderChain, groupByFolder, indexById, isAdultContent, keywordTokens, matchMovieLinks,
+  matchRanges, movieHaystack, narrowsSearch, normalizeMovieDatabase, rankFolderGroups, searchMovieLinks, sortMovieRows, titleKey
 } from '../public/fshare-tool/lib/movie-db.js';
 import { crawlMovieFolder } from '../public/fshare-tool/lib/movie-check.js';
 import { seal, unseal } from '../public/lib/schedule-crypto.js';
@@ -66,6 +66,33 @@ test('categoryOf trusts the extension first, falls back to name markers, and nev
   // use it), so an unrecognised release-group tag with no other signal
   // defaults to movie — a missed software row, never a stolen movie one.
   assert.equal(categoryOf('Marvels.Spider-Man.Remastered-FPC.iso'), 'movie');
+});
+
+test('isAdultContent trusts studio/site names and explicit acts, never a bare provocative word', () => {
+  assert.equal(isAdultContent('blacked.24.01.13.emma.rosie.training.day.4k.mp4'), true);
+  assert.equal(isAdultContent('[Tushy.2023.08.27] Eliza Ibarra - Anal Obsessed.mp4'), true);
+  assert.equal(isAdultContent('Elvis XXX A Porn Parody.mp4'), true);
+  assert.equal(isAdultContent('The Gangbang Girl 20 (Erica Bella Mercedesz).mp4'), true);
+  assert.equal(isAdultContent('Vixen.2026.04.17 Eve Sweet - Super Hot Wedding Guest.mp4'), true);
+  // Real titles that collide with adult vocabulary once a name-only scan has
+  // no video-extension short-circuit to lean on — each found by checking
+  // real hits in the 2026-09-18 catalog, not guessed:
+  assert.equal(isAdultContent('Stepmom (1998)'), false);
+  assert.equal(isAdultContent('Hardcore Henry (2015)'), false);
+  assert.equal(isAdultContent('My.Royal.Nemesis.S01E01.The.Vixen.and.the.Beast.1080p.mkv'), false, 'a K-drama episode, not the Vixen studio');
+  assert.equal(isAdultContent('Tìm Lại Chính Mình - Threesome - S01E01 S01E02 - Jade Thr33s0m3 2018 ViE PPhim.mkv'), false, 'literally titled Threesome — episode numbering guards it');
+  assert.equal(isAdultContent('xXx.Return.of.Xander.Cage.2017.MULTI.COMPLETE.UHD.BLURAY-EXTREME.iso'), false);
+  assert.equal(isAdultContent('Orgasm Inc The Story of OneTaste (2022)'), false, 'an HBO documentary');
+  assert.equal(isAdultContent('The Year I Started Masturbating (2022)'), false, 'a Cannes-selected Swedish documentary');
+  assert.equal(isAdultContent("Dont.Fuck.in.the.Woods.2016.Remux.1080i.USA.Blu-ray.MPEG-2.LPCM.2.0.m2ts"), false, 'a real horror franchise');
+  assert.equal(isAdultContent('A Woman Who Swallowed the Sun (2025)'), false);
+  assert.equal(isAdultContent('The End of the Fucking World S02'), false, 'the Netflix show — S02 alone has no episode number for SERIES_GUARD to catch');
+  // A folder cascades onto everything under it (move-to-x), so a folder's
+  // bare "XXX" — found for real holding nothing but Paris By Night discs —
+  // must not be enough on its own to drag real content down with it.
+  assert.equal(isAdultContent('- - Paris by night Clollection 001 - XXX Update', { strict: true }), false);
+  assert.equal(isAdultContent('- - Paris by night Clollection 001 - XXX Update'), true, 'the same name is fine for a file, which has no children to drag down');
+  assert.equal(isAdultContent('Marc Dorcel - Russian Institute', { strict: true }), true, 'a real studio name still counts strict');
 });
 
 test('keywords keep years and extensions searchable after punctuation is removed', () => {

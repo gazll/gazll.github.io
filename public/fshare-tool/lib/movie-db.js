@@ -107,6 +107,56 @@ export function categoryOf(name) {
   return 'movie';
 }
 
+/* Adult content shares the same crawled sources as everything else and does
+   not get its own `category` — it belongs in the separate X dataset
+   (public/fshare-tool/lib/x-db.js), not the Movie/Software/Music split
+   above, so `tools/fshare-movie.mjs move-to-x` uses this to pull matching
+   rows out of the movie catalog entirely (see docs/fshare-x-playbook.md's
+   "moved-from-movie" transfer file). Studio/site names are the strongest,
+   least ambiguous signal; explicit acts are next; a bare "xxx" is weakest
+   and excluded by name for the one franchise that spells its title that way.
+   SERIES_GUARD and KNOWN_TITLE_EXCLUDE exist because real titles collide
+   with adult vocabulary more than any of the movie/software/music markers
+   did: "Stepmom (1998)", "Hardcore Henry (2015)", the Korean dramas
+   "Mischievous Kiss" ("...Little Vixen") and literally titled "Threesome"
+   (season/episode numbering, guarded), the anime "Swallowed Star", the
+   Netflix show "The End of the F***ing World", and the films "Orgasm Inc",
+   "The Year I Started Masturbating" and "Don't Fuck in the Woods" — each
+   found by checking real hits against the 2026-09-18 catalog, not guessed.
+   `hardcore`, `stepmom/-sis/-dad/-bro`, bare `vixen` and `swallowed` were
+   dropped as markers entirely rather than special-cased, since normal
+   English usage of them is common and a false positive here means a real
+   title silently vanishes from the Movie tab. A folder is worse again —
+   `strict` below exists because one folder's meaningless "XXX" ("- - Paris
+   by night Clollection 001 - XXX Update") would otherwise have cascaded
+   `move-to-x` onto every real Paris By Night disc inside it. */
+const ADULT_STUDIO_MARKERS = /\b(intheCrack|wowgirls|blacked(raw)?|tushy(raw)?|realitykings|reality[ .]kings|bangbros|digitalplayground|digital[ .]playground|marc[ .]dorcel|wickedpictures|evilangel|evil[ .]angel|metart|nubilefilms|nubile[ .]films|babes\.com|momsfamilysecrets|handsonhardcore|naughtyamerica|naughty[ .]america|brazzers|mofos|bangbus|teamskeet|povperv|myfamilypies|familystrokes|deeplush|pervmom|pervtherapy|21sextury|allanal|analvids|facialabuse|littlecaprice|clubseventeen|femjoy|watch4beauty|hegre|joymii|onlyfans|manyvids|thothub|elegantangel|newsensations|defloration|cum4k|dorcel|brattysis|teenslikeitbig|sexselector)\b/i;
+const ADULT_EXPLICIT_MARKERS = /\b(blowjob|creampie|gangbang|deepthroat|cumshot|masturbat(e|ing|ion)?|orgasm|fuck(ed|ing)?|jerk(ed|ing)?\s?off)\b/i;
+const ADULT_VIXEN_DATED = /vixen\.com|\bvixen\b[.\s-]*\d{2,4}[.\-]\d{2}[.\-]\d{2}/i;
+const ADULT_XXX_MARKER = /\bxxx\b/i;
+const ADULT_XXX_EXCLUDE = /xander[.\s]?cage|xxx[.\s]*:?[.\s]*state[.\s]+of[.\s]+the[.\s]+union/i;
+const SERIES_GUARD = /\bs\d{2}e\d{2}\b|\bseason\s?\d+\b|\bphần\s?\d+\b|\btập\s?\d+\b/i;
+const KNOWN_TITLE_EXCLUDE = /orgasm[.\s]inc|year[.\s]i[.\s]started[.\s]masturbating|young[.\s]people[.\s]fucking|don.?t[.\s]+fuck[.\s]+in[.\s]+the[.\s]+woods|end[.\s]of[.\s]the[.\s]f\S*ing[.\s]world|swallowed[.\s]star|swallowed[.\s]the[.\s]sun/i;
+
+/**
+ * A folder is a much bigger blast radius than a file: `move-to-x` cascades a
+ * matched folder onto every row under it (see the comment above), so a bare
+ * "XXX" false positive on a folder drags real content down with it — found
+ * on a real folder, "- - Paris by night Clollection 001 - XXX Update", whose
+ * "XXX" meant nothing but held nothing but legitimate Paris By Night discs.
+ * `strict: true` (used for folders) drops that weakest signal and asks for a
+ * studio/site name or an explicit act instead; a file keeps the full check.
+ */
+export function isAdultContent(name, { strict = false } = {}) {
+  const text = String(name || '');
+  if (KNOWN_TITLE_EXCLUDE.test(text) || SERIES_GUARD.test(text)) return false;
+  if (ADULT_STUDIO_MARKERS.test(text)) return true;
+  if (ADULT_EXPLICIT_MARKERS.test(text)) return true;
+  if (ADULT_VIXEN_DATED.test(text)) return true;
+  if (strict) return false;
+  return ADULT_XXX_MARKER.test(text) && !ADULT_XXX_EXCLUDE.test(text);
+}
+
 /** Search tokens: every word of the folded query. */
 export function queryTokens(value) {
   return fold(value).replace(/[^\p{L}\p{N}]+/gu, ' ').split(/\s+/).filter(Boolean);
