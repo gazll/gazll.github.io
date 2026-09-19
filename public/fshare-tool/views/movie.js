@@ -39,9 +39,9 @@ const CATALOG_TYPES = Object.freeze({
     placeholder: 'Try: a name, folder, or link code...'
   }
 });
-/* Movie/Software/Music are one sealed catalog (tools/fshare-movie.mjs
+/* Movie/Software/Music/Document are one sealed catalog (tools/fshare-movie.mjs
    classifies every link's own name at build time — see categoryOf in
-   movie-db.js) split into three tabs by `row.category`, not three separate
+   movie-db.js) split into four tabs by `row.category`, not four separate
    fetches like X. Switching between them never re-fetches or re-unlocks. */
 const CATEGORY_LABELS = Object.freeze({
   movie: { label: 'Movie', description: 'Validated movie files', placeholder: 'Try: Dune 2021, anime, 4K...',
@@ -49,7 +49,9 @@ const CATEGORY_LABELS = Object.freeze({
   software: { label: 'Software', description: 'Apps and installers pulled out of the movie catalog', placeholder: 'Try: Adobe, AutoCAD, Windows...',
     empty: 'Nothing matches these filters in Software. Try a shorter name, or show dead links.' },
   music: { label: 'Music', description: 'Music pulled out of the movie catalog', placeholder: 'Try: an artist, an album, a song...',
-    empty: 'Nothing matches these filters in Music. Try a shorter name, or show dead links.' }
+    empty: 'Nothing matches these filters in Music. Try a shorter name, or show dead links.' },
+  document: { label: 'Document', description: 'Books, papers and design files pulled out of the movie catalog', placeholder: 'Try: giáo trình, TOEIC, Revit, PDF...',
+    empty: 'Nothing matches these filters in Document. Try a shorter name, or show dead links.' }
 });
 /* Static markup: the icon says folder or link before a name is read. */
 const ICONS = {
@@ -317,7 +319,7 @@ async function restore() {
 
 async function switchCatalogType(type) {
   if (movie.unlocking) return;
-  // Movie/Software/Music are one catalog fetch (catalogType 'movie') split
+  // Movie/Software/Music/Document are one catalog fetch (catalogType 'movie') split
   // by `category`; X is its own fetch and ignores category entirely.
   const isCategory = Object.hasOwn(CATEGORY_LABELS, type);
   const nextCatalogType = isCategory ? 'movie' : type;
