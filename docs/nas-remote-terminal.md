@@ -108,15 +108,24 @@ tool=${1:-shell}; p=$2
 # ttyd (from Task Scheduler) has no locale; without UTF-8 here tmux mangles Vietnamese.
 export LANG=en_US.utf8 LC_ALL=en_US.utf8 TERM=xterm-256color
 
-$T has-session -t "$tool" 2>/dev/null || $T new -d -s "$tool" -c "$PROJ"
+# tmux 1.9a refuses new-session whenever $TMUX is set, -d or not ("sessions
+# should be nested with care"), so typed from a tmux window this could never
+# recreate a missing session. A detached session nests nothing: drop TMUX here.
+$T has-session -t "$tool" 2>/dev/null || env -u TMUX -u TMUX_PANE $T new -d -s "$tool" -c "$PROJ"
 if [ -n "$p" ]; then
   [ -d "$PROJ/$p" ] || { echo "no such project: $PROJ/$p"; exit 1; }
-  if ! $T list-windows -t "$tool" -F '#W' | grep -qx "$p"; then
+  # Address the window by INDEX, never by name: in "claude:gazll.github.io"
+  # tmux reads ".io" as a pane, so every dotted project failed with
+  # "can't find pane: io".
+  win() { $T list-windows -t "$tool" -F '#{window_index} #W' | awk -v n="$p" 'substr($0, index($0, " ") + 1) == n { print $1; exit }'; }
+  w=$(win)
+  if [ -z "$w" ]; then
     # -n pins the name (turns automatic-rename off for that window)
     $T new-window -d -t "$tool" -n "$p" -c "$PROJ/$p"
-    case $tool in claude|codex) $T send-keys -t "$tool:$p" "$tool-project $p" Enter ;; esac
+    w=$(win)
+    case $tool in claude|codex) $T send-keys -t "$tool:$w" "$tool-project $p" Enter ;; esac
   fi
-  $T select-window -t "$tool:$p"
+  $T select-window -t "$tool:$w"
 fi
 # Already inside tmux (typed in a tmux window): switch this client, never nest.
 # No exec here — exec replaced the window's shell, the window closed under the
@@ -142,6 +151,16 @@ chạy `nas-terminal` không có `LANG`, nên mỗi ký tự 3 byte chiếm 3 ô
 `nas-attach` có `-u` và `LANG` nhưng chỉ cho client; server đã chạy thì không đổi.
 Sửa: `nas-terminal` export `LANG`/`LC_ALL` UTF-8 trước khi gọi tmux. Sửa nóng không cần kill server:
 `tmux set -g utf8 on; tmux set -g status-utf8 on`.
+
+### `tmux-claude-project gazll.github.io` báo "can't find pane: io" (2026-09-23)
+
+Hai lỗi của `nas-attach`, đều chỉ lộ ra khi gõ lệnh từ **bên trong** tmux (trang `/`):
+1. **Dấu chấm trong tên project.** Target tmux là `session:window.pane`, nên `claude:gazll.github.io`
+   bị đọc thành cửa sổ `gazll.github`, pane `io` → `send-keys`/`select-window` hỏng, Claude không tự chạy.
+   Giờ `nas-attach` tìm **số thứ tự** cửa sổ theo tên rồi nhắm `claude:<số>`. Đừng bao giờ nhắm cửa sổ bằng tên project.
+2. **Không tạo lại được session `claude`.** tmux 1.9a từ chối `new-session` mỗi khi `$TMUX` có mặt, kể cả `-d`
+   ("sessions should be nested with care"). Khi `/exit` hết cửa sổ, session `claude` mất và không lấy lại được từ `/`.
+   Giờ lệnh tạo session chạy với `env -u TMUX`.
 
 ## 2. Tailscale Funnel (làm một lần, cần root)
 
