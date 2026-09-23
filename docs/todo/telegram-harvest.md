@@ -54,5 +54,8 @@ overlap với Sheet, dấu hiệu chúng cùng một cộng đồng.
       `state.lastId`), rồi `build` → `validate --only pending`. Cân nhắc ghép
       vào "Chạy lại định kỳ" của playbook. **Còn mở — chưa có cron/lịch thật,
       chỉ là thao tác tay.** File này chưa xoá vì lý do đó.
+      - 2026-09-23 (tay): 3 chat, 572 tin mới → 583 dòng raw → 541 dòng mới
+        sau `build`; validate hội tụ sau 5 vòng, `validated: OK`, 373.791 link
+        (`687f67a`). Cursor: fshare_group #84576 · t571 #42204 · t7407 #42203.
 - [ ] Dò topic còn lại của HDvietnam (`-1002633694014`) — đếm link mỗi topic
       rồi mới thêm vào `chats`; tool chưa có lệnh liệt kê topic.
