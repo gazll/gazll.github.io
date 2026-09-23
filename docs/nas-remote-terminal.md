@@ -32,6 +32,10 @@ TMUX=/var/packages/DiagnosisTool/target/tool/tmux
 TS=/var/packages/Tailscale/target/bin/tailscale
 export PATH="$H/bin:/var/packages/Git/target/bin:$HOME/.local/bin:$PATH"
 export HISTFILE=$H/.bash_history          # đừng ghi history lên /volume2/homes
+# Task Scheduler also gives no locale, and tmux 1.9a fixes UTF-8 for the whole
+# server from the locale of whoever starts it: without this, a 3-byte char
+# takes 3 cells and Claude's box-drawn UI shreds (boot of 2026-09-22).
+export LANG=en_US.utf8 LC_ALL=en_US.utf8
 
 case "$1" in
   stop)  $TMUX kill-session -t ttyd 2>/dev/null; pkill -x ttyd; $TMUX kill-server; exit 0 ;;
@@ -43,6 +47,7 @@ umask 077
 for s in claude codex; do
   $TMUX has-session -t $s 2>/dev/null || $TMUX new -d -s $s -c $PROJ
 done
+$TMUX set -g default-terminal screen-256color >/dev/null  # 256 colours inside panes, not 8
 
 # ttyd runs INSIDE the tmux server (its own session), not as a child of
 # whoever ran this script: a task "Run" from DSM's web UI lives under
@@ -127,6 +132,16 @@ exec $T -u attach -t "$tool"
 ```
 
 `chmod 700` cả hai. `-i 127.0.0.1` để ttyd **không** nghe trên LAN/WAN — chỉ Tailscale mới với tới.
+
+### Claude trong tmux vỡ giao diện sau reboot (2026-09-22)
+
+Triệu chứng: sau khi tắt máy thay RAM, mở `/claude` thì khung, spinner, chữ Việt của Claude lệch
+và xuống dòng lung tung. `tmux show -gw utf8` = `utf8 off`.
+Nguyên nhân: tmux 1.9a chốt UTF-8 cho **cả server** theo locale của process khởi động nó. Task Scheduler
+chạy `nas-terminal` không có `LANG`, nên mỗi ký tự 3 byte chiếm 3 ô (`printf '╭─╮'` → `#{cursor_x}` = 9, đúng là 3).
+`nas-attach` có `-u` và `LANG` nhưng chỉ cho client; server đã chạy thì không đổi.
+Sửa: `nas-terminal` export `LANG`/`LC_ALL` UTF-8 trước khi gọi tmux. Sửa nóng không cần kill server:
+`tmux set -g utf8 on; tmux set -g status-utf8 on`.
 
 ## 2. Tailscale Funnel (làm một lần, cần root)
 
