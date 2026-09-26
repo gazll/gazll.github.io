@@ -305,6 +305,9 @@ test('a file probe says dead only on 404 and asks fshare.vn for the second opini
   assert.equal((await probeFileOnWeb('X', web('Dịch vụ lưu trữ và chia sẻ trực tuyến', { url: 'https://www.fshare.vn/' }))).status, 'unknown');
   // A forwarded file lands on another code's page with a real name: not this link.
   assert.equal((await probeFileOnWeb('X', web('Other.mkv - Fshare', { url: 'https://www.fshare.vn/file/Y?token=1' }))).status, 'unknown');
+  // …unless it is this row's own file under a new code: the old link still reaches it.
+  const moved = await probeFileOnWeb('X', web('Movie.2021.mkv - Fshare', { url: 'https://www.fshare.vn/file/Y?token=1' }), ['movie.2021.mkv']);
+  assert.deepEqual([moved.status, moved.movedTo], ['live', 'Y']);
 
   // A folder keeps its own URL either way; the slogan there is the dead answer.
   const folderPage = (title, status = 200) => web(title, { status, url: 'https://www.fshare.vn/folder/F?token=1' });

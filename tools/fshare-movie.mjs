@@ -561,21 +561,32 @@ async function webPage(kind, code, fetcher) {
   if (!title) return { status: 'unknown', error: `fshare.vn answered without a title (HTTP ${response.status})`, via: 'web' };
   const finalUrl = String(response.url || '');
   const ownPage = !finalUrl || finalUrl.toUpperCase().includes(`/${kind.toUpperCase()}/${code}`);
-  return { title, ownPage };
+  const forwardedTo = ownPage ? '' : (finalUrl.match(new RegExp(`/${kind}/([A-Z0-9]+)`, 'i'))?.[1] || '');
+  return { title, ownPage, forwardedTo };
 }
 
-export async function probeFileOnWeb(code, fetcher = fetch) {
+const sameName = (a, b) => String(a || '').trim().toLowerCase() === String(b || '').trim().toLowerCase();
+
+/** `names` are the row's own name and aliases: a forwarded page vouches for the
+    link only when it shows the same file. */
+export async function probeFileOnWeb(code, fetcher = fetch, names = []) {
   try {
     const page = await webPage('file', code, fetcher);
     if (page.status) return page;
-    const { title, ownPage } = page;
+    const { title, ownPage, forwardedTo } = page;
     if (/không tìm thấy|not found/i.test(title)) return { status: 'dead', error: title, via: 'web' };
-    // A file Fshare forwards to a new code lands on that code's page with a
-    // real name: not dead, but not this link either, so it stays unknown.
+    const name = title.replace(/\s*-\s*Fshare\s*$/i, '');
+    // After the 2026-08-31 uploader purge Fshare re-homed files under new codes and forwards the old
+    // link there (~36k rows on 2026-09-27). The old link still takes a reader to the file, so a
+    // forward to a page showing THIS file's name is live, with the new code kept as `movedTo`. A
+    // forward to some other name stays unknown: that is not this link's file.
+    if (!ownPage && forwardedTo && !/lỗi|error|unavailable|dịch vụ lưu trữ/i.test(title) && names.some((n) => sameName(n, name))) {
+      return { status: 'live', name, via: 'web', movedTo: forwardedTo };
+    }
     if (!ownPage || /lỗi|error|unavailable|dịch vụ lưu trữ/i.test(title)) {
       return { status: 'unknown', error: `fshare.vn did not show the file page: ${title}`, via: 'web' };
     }
-    return { status: 'live', name: title.replace(/\s*-\s*Fshare\s*$/i, ''), via: 'web' };
+    return { status: 'live', name, via: 'web' };
   } catch (error) {
     return { status: 'unknown', error: String(error?.message || error), via: 'web' };
   }
@@ -618,6 +629,7 @@ function applyResult(row, result, now) {
   if (result.remote && Object.keys(result.remote).length) {
     row.remote = { ...(row.remote || {}), ...remoteMetadata(result.remote) };
   }
+  if (result.movedTo) row.movedTo = result.movedTo;
   if (result.status === 'live') {
     row.lastLiveAt = now;
     row.deadSince = null;
@@ -730,7 +742,7 @@ async function validate(catalog, options) {
     // Only a proxy "dead" earns the slower page fetch: it is the answer that
     // deletes a row from what the site shows, so it gets the second opinion.
     if (web && result.status === 'dead') {
-      const second = await probeFileOnWeb(row.code, fetcher);
+      const second = await probeFileOnWeb(row.code, fetcher, [row.name, ...(row.aliases || [])]);
       result = second.status === 'unknown' ? { ...result, web: second } : { ...second, web: second };
     }
     applyResult(row, result, now);
