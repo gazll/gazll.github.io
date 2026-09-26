@@ -603,7 +603,16 @@ sau đọc trước khi chạy:
   file thành `live via web`, folder thành `unknown` (chưa liệt kê được) —
   không bao giờ thành `live` với `children: null`. Có file proxy 404 nhưng
   fshare.vn chuyển tiếp sang code khác (`ZKJPO2ZG3P2W29W` → `9M4FK884KCQC6NH`):
-  hiện là `unknown`, mô hình chưa có chỗ ghi `movedTo`.
+  nếu trang đích mang **đúng tên** (hoặc alias) của dòng thì là cùng file —
+  `live via web`, code mới ghi vào `movedTo` (link cũ vẫn đưa người đọc tới
+  file); tên khác thì vẫn `unknown`. fshare.vn trả lời chập chờn khi bị hỏi
+  dồn (cùng một code lúc chuyển tiếp, lúc "Không tìm thấy", lúc 503) — vòng
+  `unverified` chạy ở `--concurrency 4`, không cao hơn.
+- **Validate toàn bộ nhanh nhờ hai sửa 2026-09-27.** Trước đó mỗi folder quét
+  lại cả catalog tìm con cũ và cứ 25 dòng ghi lại cả catalog, nên chạy kẹt CPU
+  ~3,5 dòng/s (≈3 ngày cho 379k dòng) dù tăng concurrency. Giờ có chỉ mục
+  cha→con và checkpoint tối đa mỗi phút: `--concurrency 16` ra ~33 dòng/s phần
+  folder, ~80 dòng/s phần file — cả catalog ~2,5 giờ.
 - **Đừng chạy `tools/fshare-movie.mjs --check` trong `check.mjs`.** CI không
   có passphrase, giống `schedule-seal.mjs`.
 - **Trần ciphertext là 16MB sau gzip** (`lib/schedule-crypto.js`), đã nới
