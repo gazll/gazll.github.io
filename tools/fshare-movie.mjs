@@ -76,6 +76,9 @@ const PAGE_SIZE = 50;
 const RETRIES = 3;
 const SORT = 'type,name';
 const CHECKPOINT_EVERY = 25;
+// A checkpoint recounts and rewrites the whole catalog (~100MB at 379k rows) while every worker waits on
+// it, so a row-count trigger alone capped a full re-validation at ~3.5 rows/s. Save at most once a minute.
+const CHECKPOINT_MS = 60000;
 const REQUEST_TIMEOUT_MS = 20000;
 const LISTING_PAGE_CONCURRENCY = 4;
 const FOLDER_CONCURRENCY = 8;
@@ -697,6 +700,7 @@ async function validate(catalog, options) {
   let stopping = false;
   let done = 0;
   let sinceCheckpoint = 0;
+  let lastCheckpoint = Date.now();
   let checkpointInFlight = null;
   const started = Date.now();
 
@@ -708,6 +712,16 @@ async function validate(catalog, options) {
     if (!row) { row = newLink(link, origin, now); rows.set(row.id, row); catalog.links.push(row); }
     return row;
   };
+  // parent id → rows naming it. Finding a listed folder's earlier children by scanning every row cost
+  // O(catalog) per folder — 55k folders × 379k rows kept a full run CPU-bound at ~4 rows/s.
+  const childrenOf = new Map();
+  const linkParent = (row, parentId) => {
+    if (!row.parents.includes(parentId)) row.parents.push(parentId);
+    let list = childrenOf.get(parentId);
+    if (!list) childrenOf.set(parentId, list = new Set());
+    list.add(row);
+  };
+  catalog.links.forEach((row) => row.parents.forEach((parentId) => linkParent(row, parentId)));
 
   const checkFile = async (row, now) => {
     if (probed.has(row.code)) return;
@@ -741,8 +755,7 @@ async function validate(catalog, options) {
       if (folder.name) addName(target, folder.name);
       if (folder.path) target.path = folder.path;
       if (folder.parent) {
-        const parentId = linkId('folder', folder.parent);
-        if (!target.parents.includes(parentId)) target.parents.push(parentId);
+        linkParent(target, linkId('folder', folder.parent));
         seenChildren.add(target.id);
       }
       applyResult(target, { status: folder.status, error: folder.error, remote: folder.remote, via: 'crawl' }, now);
@@ -766,8 +779,7 @@ async function validate(catalog, options) {
     result.files.forEach((file) => {
       const target = upsert({ id: file.id, kind: 'file', code: file.linkcode, name: file.name }, 'crawl', now);
       addName(target, file.name);
-      const parentId = linkId('folder', file.parent);
-      if (!target.parents.includes(parentId)) target.parents.push(parentId);
+      linkParent(target, linkId('folder', file.parent));
       seenChildren.add(target.id);
       probed.add(file.linkcode);
       // A file in a live listing is live by that listing; Fshare does not
@@ -786,8 +798,9 @@ async function validate(catalog, options) {
     // directly instead of guessing — a file moved out of a folder can still
     // answer on its own link.
     const listed = new Set(result.folders.map((folder) => linkId('folder', folder.linkcode)));
-    catalog.links.forEach((child) => {
-      if (seenChildren.has(child.id) || !child.parents.some((parentId) => listed.has(parentId))) return;
+    const absent = new Set();
+    listed.forEach((parentId) => childrenOf.get(parentId)?.forEach((child) => { if (!seenChildren.has(child.id)) absent.add(child); }));
+    absent.forEach((child) => {
       if (child.kind === 'file' ? !probed.has(child.code) : !crawled.has(child.code)) { queue.push(child); total++; }
     });
   };
@@ -808,8 +821,9 @@ async function validate(catalog, options) {
         const elapsed = Math.round((Date.now() - started) / 1000);
         log(`${done}/${total} · ${row.kind} ${row.code} → ${row.status} · ${elapsed}s`);
       }
-      if (sinceCheckpoint >= CHECKPOINT_EVERY && !dryRun) {
+      if (sinceCheckpoint >= CHECKPOINT_EVERY && Date.now() - lastCheckpoint >= CHECKPOINT_MS && !dryRun) {
         sinceCheckpoint = 0;
+        lastCheckpoint = Date.now();
         // `onCheckpoint` (saveCatalog) is not safe to run twice at once — two
         // overlapping writeCatalogFile calls race the same shard's rotateIn
         // and one rename finds its own .tmp already consumed by the other.
