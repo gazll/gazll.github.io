@@ -546,7 +546,10 @@ async function webPage(kind, code, fetcher) {
     ...(signal ? { signal } : {})
   }), `Fshare web request ${code}`);
   const html = await withTimeout(response.text(), `Fshare web response ${code}`);
-  const title = (html.match(/<title>([^<]*)<\/title>/i)?.[1] || '').trim();
+  // Copied out, not sliced: a regex slice keeps the whole ~100KB page alive, and the title ends up in
+  // row.error / row.web on every dead row — 5,000 slices held ~1GB, and a 30k-row second-opinion
+  // run hit the 4GB heap limit after 90 minutes.
+  const title = Buffer.from((html.match(/<title>([^<]*)<\/title>/i)?.[1] || '').trim(), 'utf8').toString('utf8');
   /* Only the link's own page, answered 200, can vouch for it. A 503 page, an
      "Đã có lỗi xảy ra" page and the homepage (where a folder-shaped code
      lands) all carry a <title> too — 38 dead links were once recorded live
