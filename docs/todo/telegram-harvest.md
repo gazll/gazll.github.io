@@ -50,12 +50,22 @@ overlap với Sheet, dấu hiệu chúng cùng một cộng đồng.
       trước đó (`5844602` tên theo đoạn · `2c6f6d9` topic · `8ca8f4b` playbook ·
       `5449887` todo này) — 6 commit, `check.mjs` + hai `--check` xanh trước
       mỗi lần commit. Push: xem log của phiên chạy việc này.
-- [ ] Lịch chạy lại: `npm run crawl:telegram` hằng tuần (incremental theo
-      `state.lastId`), rồi `build` → `validate --only pending`. Cân nhắc ghép
-      vào "Chạy lại định kỳ" của playbook. **Còn mở — chưa có cron/lịch thật,
-      chỉ là thao tác tay.** File này chưa xoá vì lý do đó.
+- [~] Lịch chạy lại: từ 2026-09-27 có vòng lặp hằng tuần trên NAS
+      (`home-nas/fshare/loop.sh` → `telegram-weekly.sh`: crawl → build →
+      validate tới khi hội tụ → categorize → move-to-x → audit; log
+      `home-nas/fshare/logs/telegram-YYYY-MM-DD.log`). Không seal/commit —
+      `audit` đọc bằng mắt trước. DSM không cho user thường `crontab`, nên
+      vòng lặp là `nohup`: **mất khi NAS reboot** — cần một mục DSM Task
+      Scheduler (boot-up, user `nas`, `sh …/loop.sh`) mới coi là xong.
+      - 2026-09-26 (vòng lặp, lần 1): 2.786 link mới, `validated: OK`,
+        2.768 dòng 18+ chuyển sang X.
       - 2026-09-23 (tay): 3 chat, 572 tin mới → 583 dòng raw → 541 dòng mới
         sau `build`; validate hội tụ sau 5 vòng, `validated: OK`, 373.791 link
         (`687f67a`). Cursor: fshare_group #84576 · t571 #42204 · t7407 #42203.
-- [ ] Dò topic còn lại của HDvietnam (`-1002633694014`) — đếm link mỗi topic
-      rồi mới thêm vào `chats`; tool chưa có lệnh liệt kê topic.
+- [x] Dò topic còn lại của HDvietnam và 19 chat khác (2026-09-27, mẫu 400 tin
+      mỗi chat/topic, 64 nơi): chỉ **Chia Sẻ Nhạc** (`-1002633694014/544`) có
+      link (68/400) → đã thêm vào `chats`, crawl trọn 3.066 tin, 1.268 dòng.
+      Mọi chat còn lại 0 link; "Chia sẻ phụ đề" 2 folder — không thêm.
+- [x] Validate toàn bộ catalog 2026-09-26/27 (`e153192`): 376.645 link,
+      314.805 live · 61.840 dead (Fshare thu hồi uploader 31/08), 8.393 dòng
+      18+ sang X, `validated: OK`.
