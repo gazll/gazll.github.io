@@ -308,6 +308,10 @@ test('a file probe says dead only on 404 and asks fshare.vn for the second opini
   // …unless it is this row's own file under a new code: the old link still reaches it.
   const moved = await probeFileOnWeb('X', web('Movie.2021.mkv - Fshare', { url: 'https://www.fshare.vn/file/Y?token=1' }), ['movie.2021.mkv']);
   assert.deepEqual([moved.status, moved.movedTo], ['live', 'Y']);
+  const renamed = await probeFileOnWeb('X', web('Show06_ZeroPhim.mkv - Fshare', { url: 'https://www.fshare.vn/file/Y?token=1' }), ['Show06.mkv']);
+  assert.equal(renamed.status, 'live', 'a lightly renamed copy is the same file');
+  const elsewhere = await probeFileOnWeb('X', web('Show.S04E07.srt - Fshare', { url: 'https://www.fshare.vn/file/Y?token=1' }), ['Other.S04E07.mkv']);
+  assert.deepEqual([elsewhere.status, elsewhere.forwardedTo], ['unknown', 'Y']);
 
   // A folder keeps its own URL either way; the slogan there is the dead answer.
   const folderPage = (title, status = 200) => web(title, { status, url: 'https://www.fshare.vn/folder/F?token=1' });

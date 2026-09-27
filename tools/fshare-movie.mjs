@@ -568,7 +568,13 @@ async function webPage(kind, code, fetcher) {
   return { title, ownPage, forwardedTo };
 }
 
-const sameName = (a, b) => String(a || '').trim().toLowerCase() === String(b || '').trim().toLowerCase();
+/** Same file under a (lightly) different name: equal, or one letters-and-digits stem containing the
+    other — "X06.mkv" ↔ "X06_ZeroPhim.mkv", "Y.mkv" ↔ "Y(1).mkv". Stems under 6 characters never match. */
+const nameStem = (value) => String(value || '').trim().toLowerCase().replace(/\.[a-z0-9]{2,4}$/, '').replace(/\(\d+\)/g, '').replace(/[^a-z0-9]+/g, '');
+const sameName = (a, b) => {
+  const x = nameStem(a); const y = nameStem(b);
+  return x.length >= 6 && y.length >= 6 && (x.includes(y) || y.includes(x));
+};
 
 /** `names` are the row's own name and aliases: a forwarded page vouches for the
     link only when it shows the same file. */
@@ -587,7 +593,7 @@ export async function probeFileOnWeb(code, fetcher = fetch, names = []) {
       return { status: 'live', name, via: 'web', movedTo: forwardedTo };
     }
     if (!ownPage || /lỗi|error|unavailable|dịch vụ lưu trữ/i.test(title)) {
-      return { status: 'unknown', error: `fshare.vn did not show the file page: ${title}`, via: 'web' };
+      return { status: 'unknown', error: `fshare.vn did not show the file page: ${title}`, via: 'web', ...(forwardedTo && title ? { forwardedTo } : {}) };
     }
     return { status: 'live', name, via: 'web' };
   } catch (error) {
@@ -746,7 +752,10 @@ async function validate(catalog, options) {
     // deletes a row from what the site shows, so it gets the second opinion.
     if (web && result.status === 'dead') {
       const second = await probeFileOnWeb(row.code, fetcher, [row.name, ...(row.aliases || [])]);
-      result = second.status === 'unknown' ? { ...result, web: second } : { ...second, web: second };
+      // A forward to some other file's page is not a death certificate: the code still resolves on
+      // fshare.vn, so the row is unknown (retried next run), not dead-awaiting-a-second-opinion.
+      if (second.status === 'unknown' && second.forwardedTo) result = { status: 'unknown', error: second.error, via: 'web', web: second };
+      else result = second.status === 'unknown' ? { ...result, web: second } : { ...second, web: second };
     }
     applyResult(row, result, now);
   };
