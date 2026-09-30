@@ -45,7 +45,13 @@ thì cũng mở được catalog phim.
 Raw và catalog tách nhau vì chúng khác vòng đời. Raw là thứ cộng đồng chia sẻ,
 không bao giờ sửa, và **xoá được sau khi `build`** — catalog đã giữ mọi link,
 còn `sources.json` giữ URL Sheet để `ingest` lại khi có tab mới (lần đầu đã
-xoá 3 CSV sau khi seal). Catalog là thứ tool ghi: một
+xoá 3 CSV sau khi seal). Một file **có mục** trong `sources.json` lấy đúng
+`originUrl` của mục đó — kể cả rỗng — chứ không rơi về `defaultOriginUrl`; link
+dán tay được `ingest` đăng ký `{ "title": "Pasted links" }` vì Sheet mặc định
+không phải nguồn của chúng. `title`, nếu có, là tên nguồn hiện trên tab (kèm
+ngày trong tên file). Tên folder "LINK FSHARE" là chữ giữ chỗ Fshare trả về,
+không phải tên phim: tool đẩy alias thật lên làm tên và không giữ nó làm
+alias. Catalog là thứ tool ghi: một
 dòng cho **mỗi link** (không phải mỗi phim), `build` chỉ thêm, `validate` chỉ
 cập nhật tại chỗ. Một link chết vẫn ở lại với `deadSince` — đó là dữ liệu,
 không phải rác. Sợ "dư data" là đúng nếu lưu nhiều bản; ở đây catalog là bản

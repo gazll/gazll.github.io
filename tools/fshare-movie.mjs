@@ -245,17 +245,40 @@ function newLink(link, origin, now) {
   return row;
 }
 
+/* One Telegram poster shares every folder as "LINK FSHARE", and Fshare answers
+   with that as the folder's name — 768 folders then shared one titleKey and
+   one heading while the real title sat in `aliases`. A placeholder only beats
+   a bare code; any real name replaces it, and it is never kept as an alias. */
+const PLACEHOLDER_NAME = /^link\s*fshare$/i;
+
+function setName(row, name) {
+  row.name = name;
+  row.titleKey = titleKey(name);
+  row.category = categoryOf(name);
+}
+
 function addName(row, name) {
   const clean = cleanText(name);
   if (!clean || clean === row.name || row.aliases.includes(clean)) return;
+  const placeholder = PLACEHOLDER_NAME.test(clean);
   // A raw title beats a bare code that a link-only line left behind.
-  if (row.name === row.code) {
-    row.name = clean;
-    row.titleKey = titleKey(clean);
-    row.category = categoryOf(clean);
-    return;
-  }
-  row.aliases.push(clean);
+  if (row.name === row.code || (!placeholder && PLACEHOLDER_NAME.test(row.name))) return setName(row, clean);
+  if (!placeholder) row.aliases.push(clean);
+}
+
+/** Repairs rows written before addName knew placeholders: the first real
+    alias becomes the name, and placeholder aliases are dropped. */
+export function promotePlaceholderNames(catalog) {
+  let promoted = 0;
+  catalog.links.forEach((row) => {
+    if (!row.aliases?.some((alias) => PLACEHOLDER_NAME.test(alias)) && !PLACEHOLDER_NAME.test(row.name)) return;
+    row.aliases = row.aliases.filter((alias) => !PLACEHOLDER_NAME.test(alias));
+    if (PLACEHOLDER_NAME.test(row.name) && row.aliases.length) {
+      setName(row, row.aliases.shift());
+      promoted++;
+    }
+  });
+  return promoted;
 }
 
 /** Every folder's child counts, from the rows that name it as a parent. */
@@ -368,8 +391,14 @@ export function buildCatalog(sources, manifest = {}, previous = null, now = new 
   sources.forEach((source) => {
     const id = sourceId(source.file);
     const configured = manifest.sources?.[source.file];
-    const originUrl = (typeof configured === 'string' ? configured : configured?.originUrl)
-      || manifest.defaultOriginUrl || sourceRows.get(id)?.originUrl || '';
+    // A registered source says where it came from, even when that is nowhere:
+    // pasted links have no origin, and the default Sheet is not theirs.
+    const originUrl = configured
+      ? (typeof configured === 'string' ? configured : configured.originUrl || '')
+      : manifest.defaultOriginUrl || sourceRows.get(id)?.originUrl || '';
+    const stem = path.basename(source.file, path.extname(source.file));
+    const dated = stem.match(/\d{4}-\d{2}-\d{2}$/)?.[0];
+    const name = configured?.title ? [configured.title, dated].filter(Boolean).join(' · ') : stem;
     const records = parseRawSource(source.file, source.text);
     const linkIds = new Set();
     records.forEach((record) => {
@@ -382,7 +411,7 @@ export function buildCatalog(sources, manifest = {}, previous = null, now = new 
     const prior = sourceRows.get(id);
     sourceRows.set(id, {
       id,
-      name: path.basename(source.file, path.extname(source.file)),
+      name,
       file: source.file,
       originUrl,
       importedAt: prior?.importedAt || now,
@@ -393,6 +422,7 @@ export function buildCatalog(sources, manifest = {}, previous = null, now = new 
   });
 
   catalog.sources = [...sourceRows.values()].sort((a, b) => a.file.localeCompare(b.file, 'vi'));
+  promotePlaceholderNames(catalog);
   sortLinks(catalog);
   recountChildren(catalog);
   summarize(catalog);
@@ -912,6 +942,7 @@ async function ingest(args) {
     const target = path.join(RAW_DIR, file);
     const existing = existsSync(target) ? await readFile(target, 'utf8') : '';
     await writeFile(target, `${existing}${existing && !existing.endsWith('\n') ? '\n' : ''}${pasted.join('\n')}\n`, 'utf8');
+    manifest.sources[file] ??= { title: 'Pasted links' };
     written.push(file);
   }
   await writeJson(SOURCES_FILE, manifest);
@@ -1080,6 +1111,7 @@ async function loadCatalog() {
 }
 
 async function saveCatalog(catalog) {
+  promotePlaceholderNames(catalog);
   recountChildren(catalog);
   markEmptyFolders(catalog);
   summarize(catalog);

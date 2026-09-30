@@ -164,6 +164,19 @@ test('build gives one row per link, groups same-title links, and never drops a r
   assert.deepEqual(kept.aliases, ['Alias Name']);
   assert.deepEqual(kept.sourceIds, [sourceId('export.csv'), sourceId('more.txt')]);
   assert.equal(second.sources.length, 2, 'the source that vanished is still recorded');
+
+  // A registered source keeps its own (absent) origin, and a placeholder name
+  // written before the fix gives way to the real title it was hiding.
+  kept.name = 'LINK FSHARE';
+  kept.aliases = ['Real Title (2024)', 'Alias Name', 'Link Fshare'];
+  const third = buildCatalog([{ file: 'links-2026-09-30.txt', text: 'https://www.fshare.vn/folder/EXMPL0000001', updatedAt: NOW }],
+    { defaultOriginUrl: 'https://sheet', sources: { 'links-2026-09-30.txt': { title: 'Pasted links' } } }, second, NOW);
+  const pasted = third.sources.find((source) => source.file === 'links-2026-09-30.txt');
+  assert.equal(pasted.originUrl, '', 'a pasted batch is not the default Sheet');
+  assert.equal(pasted.name, 'Pasted links · 2026-09-30');
+  const renamed = third.links.find((row) => row.code === 'EXMPL0000001');
+  assert.equal(renamed.name, 'Real Title (2024)');
+  assert.deepEqual(renamed.aliases, ['Alias Name'], 'a placeholder is never kept as an alias');
 });
 
 test('the projection ships checked rows only and is validated only with nothing pending', () => {
