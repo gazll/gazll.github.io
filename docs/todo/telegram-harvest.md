@@ -51,12 +51,16 @@ overlap với Sheet, dấu hiệu chúng cùng một cộng đồng.
       `5449887` todo này) — 6 commit, `check.mjs` + hai `--check` xanh trước
       mỗi lần commit. Push: xem log của phiên chạy việc này.
 - [~] Lịch chạy lại: từ 2026-09-27 có vòng lặp hằng tuần trên NAS
-      (`home-nas/fshare/loop.sh` → `telegram-weekly.sh`: crawl → build →
-      validate tới khi hội tụ → categorize → move-to-x → audit; log
-      `home-nas/fshare/logs/telegram-YYYY-MM-DD.log`). Không seal/commit —
-      `audit` đọc bằng mắt trước. DSM không cho user thường `crontab`, nên
-      vòng lặp là `nohup`: **mất khi NAS reboot** — cần một mục DSM Task
-      Scheduler (boot-up, user `nas`, `sh …/loop.sh`) mới coi là xong.
+      (`personal-vault/nas-operations/tasks/common/fshare-validate/loop.sh`
+      → `telegram-weekly.sh`: crawl → build → validate tới khi hội tụ →
+      categorize → move-to-x → audit; chạy với `TASK_DIR` =
+      `tasks/20260926_fshare-validate/`, log ở `logs/telegram-YYYY-MM-DD.log`).
+      Không seal/commit — `audit` đọc bằng mắt trước. DSM không cho user
+      thường `crontab`, nên vòng lặp là `nohup`: **mất khi NAS reboot** — và
+      đã mất: NAS reboot 2026-10-01 ~21h, `loop.pid` còn nhưng process chết,
+      lần chạy hẹn 2026-10-03 sẽ không xảy ra. Cần một mục DSM Task Scheduler
+      (boot-up, user `nas`, `cd …/tasks/20260926_fshare-validate && sh
+      ../common/fshare-validate/loop.sh`) mới coi là xong.
       - 2026-09-26 (vòng lặp, lần 1): 2.786 link mới, `validated: OK`,
         2.768 dòng 18+ chuyển sang X.
       - 2026-09-23 (tay): 3 chat, 572 tin mới → 583 dòng raw → 541 dòng mới
