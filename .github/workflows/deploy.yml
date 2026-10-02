@@ -33,8 +33,10 @@ jobs:
       - name: Install Nuxt dependencies
         run: npm ci --legacy-peer-deps --prefer-offline --no-audit --no-fund
 
+      # Fails on any high/critical advisory in production dependencies, except
+      # one tools/audit-gate.mjs lists with a reason and an expiry date.
       - name: Audit production dependencies
-        run: npm audit --omit=dev --audit-level=high --no-fund
+        run: node tools/audit-gate.mjs
 
       - name: Enforce security guardrails
         shell: bash

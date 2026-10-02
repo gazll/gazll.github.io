@@ -539,9 +539,11 @@ envelope). Node phải ≥ 18 (`CompressionStream`, `structuredClone`).
 
 Ba lệnh CI như thường lệ. Hai thứ đã làm CI đỏ mà không liên quan code:
 `stamp-content-dates --check` lệch (chạy không `--check` rồi commit), và bước
-`Audit production dependencies` (`npm audit --omit=dev --audit-level=high`)
-khi có advisory mới trên dependency transitive — `npm audit fix` rồi commit
-`package-lock.json`. Sau push, xác nhận deploy bằng
+`Audit production dependencies` (`node tools/audit-gate.mjs`) khi có
+advisory mới trên dependency transitive — `npm audit fix` rồi commit
+`package-lock.json`. Advisory chưa có bản vá mà không chạm tới site deploy
+thì thêm vào `ALLOWED` trong `tools/audit-gate.mjs`, kèm lý do và ngày hết
+hạn — không hạ `--audit-level`. Sau push, xác nhận deploy bằng
 `https://gazll.github.io/version.json` mang đúng commit.
 
 ## Khôi phục
