@@ -35,7 +35,7 @@ git add public/data/schedule/private.enc.json && git commit
 ```
 
 The passphrase is looked for in three places, in order: the
-`GAZLL_SCHEDULE_KEY` environment variable, then `secret/app.key` (one
+`GAZLL_KEY` environment variable (the old name `GAZLL_SCHEDULE_KEY` is still read), then `secret/app.key` (one
 line, no quotes), then a prompt with the echo turned off. The key file is a
 convenience for the machine that edits the content and is safe only because
 `secret/` is gitignored — it is still a credential on disk, so the tool never
@@ -59,11 +59,20 @@ refuses a hint that shares any run of four characters with the passphrase.
 
 The old hint stayed in four sealed versions in git history, and a public
 repository does not un-publish. If a hint ever carried passphrase characters,
-the honest fix is to **rotate the passphrase**: choose a new one, put it in
-`secret/app.key` and in the Apps Script property `SCHEDULE_KEY`
-(`setScheduleKey`), then re-seal all three envelopes — this schedule, the
-movie catalog and the X catalog share it — and commit the three files
-together.
+the honest fix is to **rotate the passphrase** with `node tools/rekey.mjs`
+(or `--generate` for a random one, printed once). It finds every
+`*.enc.json` under `public/data/` — this schedule, the private Gazl Try
+entries, the movie and X catalogs all share the one key — opens them all with
+the old key, refuses a new passphrase under 20 characters, proves each new
+envelope opens, and only then writes them and `secret/app.key`. Then update
+the Apps Script property `SCHEDULE_KEY` (`setScheduleKey`) and commit every
+envelope in one commit. `--same` only re-seals under the current KDF profile.
+
+Rotation protects what is sealed **from now on**. Every earlier envelope stays
+in git history under the passphrase it was sealed with, so keep the old
+passphrase in the password manager as well — it is what opens older commits —
+and choose the new one strong from the start: the ciphertext is attacked
+offline, with no rate limit, forever.
 
 On the page the hint is not shown by default: it costs a fetch of the envelope,
 and a visitor who only wants a calendar should not pay for it. A **Quên

@@ -157,7 +157,8 @@ tools/               check.mjs (the one entrypoint) · validate-content.mjs · a
                      crawl-thuviencine.mjs · crawl-telegram.mjs — raw-source harvesters
                      for that catalog: they write secret/fshare-movie/raw/ and
                      sources.json only, never touch Fshare or the catalog
-                     passphrase.mjs — the one resolver both seal tools share
+                     passphrase.mjs — the one site key every seal tool shares
+                     rekey.mjs — re-seal every *.enc.json under a new key in one go
 DESIGN.md            the visual tokens, and they must agree with public/styles.css
                      (25/25 colours currently match). The contrast FLOOR is owned
                      by tests/a11y.contrast.test.mjs, not by this file
@@ -440,6 +441,17 @@ secret/              GITIGNORED. Personal setup notes and credentials
   text because the resolver had no questions to look up.
   `server/api/content/item-index.get.ts` serves that file, and a test asserts
   no view goes back to the raw path.
+
+- **There is one site key, and nothing gets a second one.** Every
+  `*.enc.json` is sealed by `tools/passphrase.mjs` (`GAZLL_KEY`, then
+  `secret/app.key`), every page reads one browser slot (`KEY_STORE`, exported
+  by `lib/schedule-crypto.js` — never re-declared), and the backend holds one
+  Script Property. A new private surface reuses all three. New seals use
+  PBKDF2 at OWASP's 600,000; opening accepts exactly {310000, 600000}, so drop
+  310000 once nothing is left under it. `tools/rekey.mjs` rotates every
+  envelope at once and refuses a key under 20 characters — the ciphertext is
+  public forever, so the attack is offline and unlimited, and rotation cannot
+  reach the copies already in git history. `secret/` is mode 700.
 
 - **The private schedule ships as ciphertext, and the passphrase is the only
   gate.** `gazll.github.io` is a user-pages repository, so it is necessarily

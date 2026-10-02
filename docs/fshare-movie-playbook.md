@@ -38,7 +38,7 @@ Repo này là user-pages nên public; mọi thứ dưới `public/data/` trả l
 `GET` thường. Danh sách link cộng đồng không thuộc về nơi
 đó ở dạng plaintext, nên file duy nhất được commit là ciphertext — cùng cơ
 chế và **cùng passphrase** với lịch riêng (`docs/schedule-playbook.md`).
-Passphrase lấy theo thứ tự: `GAZLL_SCHEDULE_KEY` → `secret/app.key` →
+Passphrase lấy theo thứ tự: `GAZLL_KEY` (tên cũ `GAZLL_SCHEDULE_KEY` vẫn đọc) → `secret/app.key` →
 hỏi trên terminal. Hệ quả cần biết: ai được cấp `schedule_access` để mở lịch
 thì cũng mở được catalog phim.
 
