@@ -1,6 +1,6 @@
 # Fshare movie catalog — đợt Telegram 2026-09-18
 
-Trạng thái: **MỞ** · bắt đầu 2026-09-18 · xoá file này khi `audit` báo
+Trạng thái: **TẠM DỪNG** (2026-10-02: chưa cần chạy lại; vòng lặp đã đổi sang 14 ngày/lần) · bắt đầu 2026-09-18 · xoá file này khi `audit` báo
 `validated: OK`, envelope đã commit, và crawler Telegram đã có lịch chạy lại.
 
 Quy trình chuẩn ở `docs/fshare-movie-playbook.md` ("Thu thập từ Telegram",
@@ -50,7 +50,7 @@ overlap với Sheet, dấu hiệu chúng cùng một cộng đồng.
       trước đó (`5844602` tên theo đoạn · `2c6f6d9` topic · `8ca8f4b` playbook ·
       `5449887` todo này) — 6 commit, `check.mjs` + hai `--check` xanh trước
       mỗi lần commit. Push: xem log của phiên chạy việc này.
-- [~] Lịch chạy lại: từ 2026-09-27 có vòng lặp hằng tuần trên NAS
+- [~] Lịch chạy lại: từ 2026-09-27 có vòng lặp trên NAS (hằng tuần, từ 2026-10-02 là 14 ngày)
       (`personal-vault/nas-operations/tasks/common/fshare-validate/loop.sh`
       → `telegram-weekly.sh`: crawl → build → validate tới khi hội tụ →
       categorize → move-to-x → audit; chạy với `TASK_DIR` =
