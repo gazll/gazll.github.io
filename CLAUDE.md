@@ -639,8 +639,10 @@ secret/              GITIGNORED. Personal setup notes and credentials
      an apply, count on disk or `unseal` the envelope — never trust the log.
 
   It shares the schedule's envelope format and the master passphrase, but has
-  its own scope key, `fshare` (X: `x`), deliberately owner-only — no
-  `KEY_FSHARE` on the backend, so a calendar grant opens no catalog. The ciphertext ceiling
+  its own scope key, `fshare` (X: `x`), so a calendar grant opens no catalog.
+  The tool is its own module graph and cannot share the page's `Auth`, so
+  `StaticToolSurface` hands it one capability — `grantedKey(scope)` on the
+  mount element, plus a `gazll:auth` event — never the Google token. The ciphertext ceiling
   in `lib/schedule-crypto.js` is 16MB, raised from 8MB once more: adding
   three Telegram sources on 2026-09-18 took the catalog to 326k links,
   trimmed to what the tab renders (no `remote`, `path`, `keywords`, `id` or

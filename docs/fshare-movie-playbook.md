@@ -38,9 +38,9 @@ Repo này là user-pages nên public; mọi thứ dưới `public/data/` trả l
 `GET` thường. Danh sách link cộng đồng không thuộc về nơi
 đó ở dạng plaintext, nên file duy nhất được commit là ciphertext — cùng cơ
 chế với lịch riêng, nhưng **key riêng**: scope `fshare` (X là scope `x`),
-lấy từ keyring bằng passphrase chủ (`docs/keys-playbook.md`). Hai scope này
-cố ý **chỉ chủ**: không có `KEY_FSHARE`/`KEY_X` trên backend, nên được cấp
-lịch không mở được catalog phim.
+lấy từ keyring bằng passphrase chủ (`docs/keys-playbook.md`). Được cấp lịch
+không mở được catalog phim: muốn chia sẻ thì cài `KEY_FSHARE`/`KEY_X` và thêm
+scope vào sheet `access`; tool nhận key qua `StaticToolSurface` khi đăng nhập.
 
 Raw và catalog tách nhau vì chúng khác vòng đời. Raw là thứ cộng đồng chia sẻ,
 không bao giờ sửa, và **xoá được sau khi `build`** — catalog đã giữ mọi link,

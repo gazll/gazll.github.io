@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { grantedKey } from '../../public/lib/site-keys.js';
+
 const props = defineProps<{
   shell: string
   controller: string
@@ -6,6 +8,8 @@ const props = defineProps<{
 }>();
 
 const mountPoint = useTemplateRef<HTMLElement>('mountPoint');
+const nuxtApp = useNuxtApp() as any;
+let stopAuth: (() => void) | null = null;
 const failure = ref('');
 const loading = ref(true);
 const labels = computed(() => props.lang === 'vi'
@@ -35,6 +39,12 @@ onMounted(async () => {
     const target = mountPoint.value;
     if (!target) throw new Error('Could not mount the tool surface');
     target.replaceChildren(...Array.from(document_.body.childNodes));
+    /* A tool is its own module graph, so it cannot share this page's signed-in
+       Auth. It gets one narrow capability instead: ask for a scope key the
+       backend grants this account — never the Google token itself — and an
+       event when sign-in changes, so a locked tool can ask again. */
+    (target as any).grantedKey = (scope: string) => grantedKey(nuxtApp.$apiCall, nuxtApp.$auth?.token, scope);
+    stopAuth = nuxtApp.$auth?.onChange?.(() => target.dispatchEvent(new Event('gazll:auth'))) || null;
 
     const controller = new URL(props.controller, window.location.origin);
     controller.searchParams.set('v', await deployedVersion());
@@ -45,6 +55,7 @@ onMounted(async () => {
     loading.value = false;
   }
 });
+onBeforeUnmount(() => stopAuth?.());
 function retry() {
   if (import.meta.client) window.location.reload();
 }

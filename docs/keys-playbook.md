@@ -82,8 +82,9 @@ git, không phải Sheet chia sẻ).
 1. `node tools/keyring.mjs show schedule` → copy key.
 2. Sheet: menu **gazl → Cài key cho một scope** → scope `schedule`, dán key.
    Key nằm trong Script Property `KEY_SCHEDULE`, không bao giờ trong ô Sheet.
-   Scope không cài key = **chỉ chủ** (backend không có gì để đưa). `fshare` và
-   `x` cố ý để trống.
+   Scope không cài key = **chỉ chủ** (backend không có gì để đưa). Cả bốn
+   scope đều có thể cài; `/fshare-tool` nhận key `fshare`/`x` qua trang chứa
+   nó khi người được cấp đăng nhập.
 3. Sheet `access`: một dòng mỗi người, `email · scope · name · note ·
    granted_at`. `scope` là một hoặc nhiều scope cách nhau bằng dấu phẩy
    (`schedule, interviews`), hoặc `*` cho tất cả. Admin trong `profiles` luôn

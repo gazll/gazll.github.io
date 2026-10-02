@@ -204,7 +204,7 @@ async function openSealed(secret, type = movie.catalogType) {
   try { envelope = JSON.parse(text); } catch (error) { throw new Error('The sealed catalog is not valid JSON.'); }
   if (!isEnvelope(envelope)) throw new Error('The published file is not a sealed envelope.');
   await phase('Deriving the key and decrypting…');
-  // Owner-only scopes: no backend hand-over, the master opens them via the keyring.
+  // The master (via the keyring) or a granted scope key; the GCM tag decides.
   const opened = await unseal(envelope, await scopeKey(secret, type === 'x' ? 'x' : 'fshare'));
   const database = config.raw ? normalizeXDatabase(opened) : normalizeMovieDatabase(opened);
   // Folded once here, behind the unlock note, so no keystroke pays for it.
@@ -289,12 +289,24 @@ function lock() {
   renderControls();
 }
 
+const scopeOf = (type) => (type === 'x' ? 'x' : 'fshare');
+
+/** The scope key the backend grants a signed-in account, through the one
+    capability the mounting page hands this tool. Used and dropped: a granted
+    key is never written to storage, so deleting the access row ends it. */
+async function grantedSecret(type) {
+  const ask = document.querySelector('.static-tool-mount')?.grantedKey;
+  if (typeof ask !== 'function') return '';
+  try { return (await ask(scopeOf(type))) || ''; } catch (error) { return ''; }
+}
+
 async function restore() {
   if (movie.database) return;
-  const stored = storedSecret();
-  if (!stored) return;
+  const saved = storedSecret();
+  const stored = saved || await grantedSecret(movie.catalogType);
+  if (!stored || movie.database) return;
   movie.unlocking = true;
-  unlockBusy(true, 'Opening with the key saved on this device…');
+  unlockBusy(true, saved ? 'Opening with the key saved on this device…' : 'Opening with the access granted to this account…');
   try {
     await openSealed(stored, movie.catalogType);
     paintLockState();
@@ -333,7 +345,7 @@ async function switchCatalogType(type) {
   renderOutput();
   if (movie.database) { renderResults(); return; }
 
-  const secret = storedSecret();
+  const secret = storedSecret() || await grantedSecret(nextCatalogType);
   if (!secret) return;
   movie.unlocking = true;
   paintLockState();
@@ -966,6 +978,8 @@ export function initMovieView() {
   renderControls();
   renderOutput();
   if (!movie.database) void restore();
+  // Signing in after the tool loaded: ask again for a granted key.
+  document.querySelector('.static-tool-mount')?.addEventListener('gazll:auth', () => { if (!movie.database && !movie.unlocking) void restore(); });
 }
 
 export function stopMovieValidation() {
