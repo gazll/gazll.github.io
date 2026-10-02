@@ -19,7 +19,7 @@
 import { canChiDay, canChiMonth, canChiYear, lunarMonthName, solarToLunar } from '../../../public/lib/lunar.js';
 import { holidayMap, isDayOff, lunarMarker, shiftDays } from '../../../public/lib/vn-holidays.js';
 import { agenda, diffDays, localized, occurrenceMap, todayISO } from '../../../public/lib/schedule.js';
-import { isEnvelope, MAX_ENVELOPE_JSON_CHARS, unseal } from '../../../public/lib/schedule-crypto.js';
+import { isEnvelope, KEY_STORE, MAX_ENVELOPE_JSON_CHARS, unseal } from '../../../public/lib/schedule-crypto.js';
 import { checklistRows, endingSoon, groupedItems, itemRows } from '../../../public/lib/inventory.js';
 import { copyText } from '../../../public/lib/clipboard.js';
 
@@ -29,7 +29,6 @@ const nuxtApp = useNuxtApp() as any;
 const SEALED_URL = '/data/schedule/private.enc.json';
 const OVERRIDES_URL = '/data/calendar/holidays.json';
 const VIEW_KEY = 'gazll:calendar-view-v2';
-const KEY_STORE = 'gazll:schedule-key';
 const CHECKS_KEY = 'gazll:calendar-checks';
 const VIEW_TABS = ['overview', 'tasks', 'cashflow', 'month', 'year', 'items'] as const;
 type CalendarView = typeof VIEW_TABS[number];

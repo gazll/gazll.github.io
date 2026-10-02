@@ -28,9 +28,13 @@ test('public schedule envelopes reject hostile KDF and binary metadata', async (
   const envelope = await seal({ events: [] }, 'a passphrase');
   assert.equal(isEnvelope(envelope), true);
 
+  // New seals use OWASP's 600k; only the profiles this site wrote may open.
+  assert.equal(envelope.iterations, 600000);
   const raised = { ...envelope, iterations: envelope.iterations + 1 };
   assert.equal(isEnvelope(raised), false);
   await assert.rejects(() => unseal(raised, 'a passphrase'), /KDF parameters/i);
+  const downgraded = { ...envelope, iterations: 1000 };
+  assert.equal(isEnvelope(downgraded), false);
 
   const badSalt = { ...envelope, salt: envelope.salt.slice(0, -4) };
   assert.equal(isEnvelope(badSalt), false);

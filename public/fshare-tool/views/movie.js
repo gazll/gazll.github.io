@@ -15,9 +15,8 @@ import {
 } from '../lib/movie-db.js';
 import { X_DB_URL, normalizeXDatabase, searchXLinks, xHaystack } from '../lib/x-db.js';
 import { validateMovieEntries } from '../lib/movie-check.js';
-import { isEnvelope, MAX_ENVELOPE_JSON_CHARS, unseal } from '../../lib/schedule-crypto.js';
+import { isEnvelope, KEY_STORE, MAX_ENVELOPE_JSON_CHARS, unseal } from '../../lib/schedule-crypto.js';
 
-const KEY_STORE = 'gazll:schedule-key';
 const ROW_LIMIT = 150;
 const CATALOG_TYPES = Object.freeze({
   movie: {

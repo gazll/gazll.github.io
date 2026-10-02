@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { escapeHtml, renderMarkdown } from '~/utils/markdown.js';
 import { mergeJournal, privateRows, seedImport, seedRows } from '../../../public/lib/interview-merge.js';
-import { fetchEnvelope, unseal } from '../../../public/lib/schedule-crypto.js';
+import { fetchEnvelope, KEY_STORE, unseal } from '../../../public/lib/schedule-crypto.js';
 
 const props = defineProps<{ seed: any[]; lang: 'en' | 'vi' }>();
 const { $auth, $apiCall } = useNuxtApp() as any;
@@ -11,7 +11,6 @@ const { $auth, $apiCall } = useNuxtApp() as any;
    either page unlocks both. The KEY is the gate, exactly as on /calendar —
    sign-in only matters as a way to be handed it. */
 const SEALED_URL = '/data/interviews/private.enc.json';
-const KEY_STORE = 'gazll:schedule-key';
 const sealedCompanies = ref<any[]>([]);
 const sealedAvailable = ref(false);
 const unlockOpen = ref(false);

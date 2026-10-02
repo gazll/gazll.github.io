@@ -18,7 +18,17 @@
    tree therefore loses nothing; losing the passphrase loses everything. */
 
 export const ENVELOPE_VERSION = 1;
-export const KDF_ITERATIONS = 310000;
+/* New seals use OWASP's current PBKDF2-HMAC-SHA256 figure (600,000). Opening
+   accepts exactly the profiles this site has ever written, so envelopes sealed
+   before the raise still open, while a tampered count — up or down — is still
+   refused. Drop 310000 once every envelope has been re-sealed. */
+export const KDF_ITERATIONS = 600000;
+const ACCEPTED_ITERATIONS = new Set([310000, KDF_ITERATIONS]);
+/* The one site key, one browser slot: every page that opens an envelope reads
+   and writes this name, so unlocking one unlocks them all and locking one
+   forgets the key everywhere. The value keeps its historical name so a key a
+   reader already saved still works. */
+export const KEY_STORE = 'gazll:schedule-key';
 const SALT_BYTES = 16;
 const IV_BYTES = 12;
 /* The envelope is fetched from a public repository. Treat its metadata as
@@ -106,9 +116,9 @@ function validateEnvelope(envelope) {
     throw new Error(`Unsupported envelope version ${envelope.v}.`);
   }
   const iterations = Number(envelope.iterations);
-  /* This version emits one fixed KDF profile. Reject both a downgrade and an
+  /* Only profiles this site has written. Reject both a downgrade and an
      attacker-controlled increase instead of silently accepting either. */
-  if (!Number.isSafeInteger(iterations) || iterations !== KDF_ITERATIONS) {
+  if (!Number.isSafeInteger(iterations) || !ACCEPTED_ITERATIONS.has(iterations)) {
     throw new Error('Unsupported sealed schedule KDF parameters.');
   }
   const salt = decodeField(envelope.salt, 'salt', { exactBytes: SALT_BYTES, maxBytes: SALT_BYTES });
