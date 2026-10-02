@@ -100,12 +100,25 @@ var SHEETS = {
    *  notes. Keep it that way: nothing here should ever be the only copy. */
   schedule_inbox:      ['id', 'user_id', 'body', 'category', 'due_hint', 'status', 'created_at', 'updated_at'],
 
-  /** Who may open the sealed schedule. Edit by hand, exactly like setting a
-   *  role in `profiles`: one row per person, keyed on the Google email.
-   *  The passphrase itself is NOT here — it is a Script Property, because a
-   *  Sheet cell is the thing most likely to be shared by accident. */
-  schedule_access:     ['email', 'name', 'note', 'granted_at']
+  /** LEGACY — read as scope `schedule` until its rows are moved into
+   *  `access` (menu gazl -> Chuyển schedule_access sang access). */
+  schedule_access:     ['email', 'name', 'note', 'granted_at'],
+
+  /** Who may be handed which sealed surface's key. One row per (email,
+   *  scope); scope is one of ACCESS_SCOPES, or `*` for all of them. Edit by
+   *  hand, exactly like setting a role in `profiles`. The keys themselves are
+   *  NOT here — they are Script Properties (KEY_<SCOPE>), because a Sheet cell
+   *  is the thing most likely to be shared by accident. */
+  access:              ['email', 'scope', 'name', 'note', 'granted_at']
 };
+
+/* Every sealed surface has its own key (tools/keyring.mjs), so a grant is a
+   grant to one surface: family on the schedule does not open the movie
+   catalog. A scope whose KEY_<SCOPE> property is unset is owner-only — the
+   owner opens it with the master passphrase and the backend has nothing to
+   hand anyone. */
+var ACCESS_SCOPES = ['schedule', 'interviews', 'fshare', 'x'];
+function scopeProperty(scope) { return 'KEY_' + String(scope).toUpperCase(); }
 
 /**
  * A menu in the Spreadsheet itself.
@@ -120,38 +133,64 @@ function onOpen() {
     .createMenu('gazl')
     .addItem('Tạo/kiểm tra các sheet', 'setup')
     .addSeparator()
-    .addItem('Cài passphrase lịch riêng', 'setScheduleKey')
-    .addItem('Kiểm tra passphrase', 'checkScheduleKey')
+    .addItem('Cài key cho một scope', 'setScopeKey')
+    .addItem('Kiểm tra các key', 'checkScopeKeys')
+    .addItem('Chuyển schedule_access sang access', 'migrateScheduleAccess')
     .addToUi();
 }
 
 /**
- * Run by hand (menu gazl -> Cài passphrase, or Run -> setScheduleKey).
+ * Run by hand (menu gazl -> Cài key cho một scope).
  *
- * The Script Properties pane does the same thing, but this asks in a dialog
- * that closes, so the passphrase never sits in a settings field, never lands
- * in this file, and never enters the version history Apps Script keeps of it.
- * Never replace the prompt with a literal — a saved deployment version would
- * keep that string forever.
+ * Paste the value `node tools/keyring.mjs show <scope>` printed. A dialog
+ * that closes keeps the key out of settings fields, out of this file and out
+ * of the version history Apps Script keeps of it. Never replace the prompt
+ * with a literal — a saved deployment version would keep that string forever.
+ * Only scopes shared with someone else need a key here.
  */
-function setScheduleKey() {
+function setScopeKey() {
   var ui = SpreadsheetApp.getUi();
-  var answer = ui.prompt('Passphrase cho lịch riêng', 'Dán passphrase vào đây:', ui.ButtonSet.OK_CANCEL);
-  if (answer.getSelectedButton() !== ui.Button.OK) return;
+  var scopeAnswer = ui.prompt('Scope', 'Một trong: ' + ACCESS_SCOPES.join(', '), ui.ButtonSet.OK_CANCEL);
+  if (scopeAnswer.getSelectedButton() !== ui.Button.OK) return;
+  var scope = trim(scopeAnswer.getResponseText()).toLowerCase();
+  if (ACCESS_SCOPES.indexOf(scope) < 0) { ui.alert('Scope không hợp lệ — không thay đổi.'); return; }
 
+  var answer = ui.prompt('Key cho scope ' + scope, 'Dán key (từ tools/keyring.mjs show ' + scope + '):', ui.ButtonSet.OK_CANCEL);
+  if (answer.getSelectedButton() !== ui.Button.OK) return;
   var key = trim(answer.getResponseText());
   if (!key) { ui.alert('Chưa nhập gì — không thay đổi.'); return; }
 
-  PropertiesService.getScriptProperties().setProperty('SCHEDULE_KEY', key);
-  ui.alert('Đã lưu. Nhớ Deploy -> Manage deployments -> New version.');
+  PropertiesService.getScriptProperties().setProperty(scopeProperty(scope), key);
+  ui.alert('Đã lưu ' + scopeProperty(scope) + '. Nhớ Deploy -> Manage deployments -> New version.');
 }
 
-/** Confirms a key is stored without revealing it. */
-function checkScheduleKey() {
-  var key = PropertiesService.getScriptProperties().getProperty('SCHEDULE_KEY');
-  SpreadsheetApp.getUi().alert(key
-    ? 'SCHEDULE_KEY đã có (' + key.length + ' ký tự).'
-    : 'Chưa có SCHEDULE_KEY.');
+/** Says which scopes are shareable without revealing any key, and flags the
+    pre-keyring SCHEDULE_KEY, which held the MASTER passphrase. */
+function checkScopeKeys() {
+  var props = PropertiesService.getScriptProperties();
+  var lines = ACCESS_SCOPES.map(function (scope) {
+    return scope + ': ' + (props.getProperty(scopeProperty(scope)) ? 'có key (chia sẻ được)' : 'chỉ chủ (không có key)');
+  });
+  if (props.getProperty('SCHEDULE_KEY')) {
+    lines.push('', 'SCHEDULE_KEY cũ vẫn còn — nó là passphrase CHỦ. Xoá nó trong Project Settings -> Script Properties.');
+  }
+  SpreadsheetApp.getUi().alert(lines.join('\n'));
+}
+
+/** Copies every schedule_access row into access as scope `schedule`, once. */
+function migrateScheduleAccess() {
+  var legacy = table('schedule_access').read();
+  var target = table('access');
+  var have = target.read().map(function (r) { return trim(r.email).toLowerCase() + '|' + trim(r.scope); });
+  var rows = [];
+  legacy.forEach(function (r) {
+    var email = trim(r.email).toLowerCase();
+    if (!email || have.indexOf(email + '|schedule') >= 0) return;
+    have.push(email + '|schedule');
+    rows.push({ email: email, scope: 'schedule', name: r.name || '', note: r.note || '', granted_at: r.granted_at || new Date() });
+  });
+  if (rows.length) target.appendAll(rows);
+  SpreadsheetApp.getUi().alert('Đã chuyển ' + rows.length + ' dòng. Kiểm tra sheet access rồi có thể xoá schedule_access.');
 }
 
 /** Run once by hand (Run -> setup) to create every sheet declared above. */
@@ -675,12 +714,18 @@ var ACTIONS = Object.assign(Object.create(null), {
    * copy of it. Deleting the row stops the page handing it over again; taking
    * it back for real means re-sealing the file under a new passphrase.
    */
-  'schedule.key': function (user) {
-    var key = PropertiesService.getScriptProperties().getProperty('SCHEDULE_KEY');
-    if (!key) throw publicError('Chưa cấu hình SCHEDULE_KEY trong Script Properties.');
-    if (!hasScheduleAccess(user)) throw publicError('Tài khoản này chưa được cấp quyền xem lịch riêng.');
+  'access.key': function (user, p) {
+    var scope = trim(p && p.scope).toLowerCase();
+    if (ACCESS_SCOPES.indexOf(scope) < 0) throw publicError('Scope không hợp lệ.');
+    var key = PropertiesService.getScriptProperties().getProperty(scopeProperty(scope));
+    if (!key) throw publicError('Scope ' + scope + ' không chia sẻ qua đăng nhập.');
+    if (!hasAccess(user, scope)) throw publicError('Tài khoản này chưa được cấp quyền cho ' + scope + '.');
     return { key: key };
   },
+
+  /** The pre-keyring name, kept so a page cached before the deploy still
+      works; it now hands out the schedule SCOPE key, never the master. */
+  'schedule.key': function (user) { return ACTIONS['access.key'](user, { scope: 'schedule' }); },
 
   /* ---- Schedule inbox ----------------------------------------------- */
 
@@ -972,23 +1017,32 @@ var ACTIONS = Object.assign(Object.create(null), {
  * what makes Apps Script slow.
  */
 /**
- * True when this account may be handed the schedule passphrase.
+ * True when this account may be handed `scope`'s key.
  *
  * An admin always may — otherwise the owner could lock themselves out of their
- * own file by clearing the sheet. Everyone else needs a row, matched on the
- * verified token's email, lowercased so a stray capital does not silently deny
- * someone who was granted.
+ * own surface by clearing the sheet. Everyone else needs an `access` row for
+ * that scope (or `*`), matched on the verified token's email, lowercased so a
+ * stray capital does not silently deny someone who was granted. The legacy
+ * schedule_access sheet still counts for `schedule` until it is migrated.
  */
-function hasScheduleAccess(user) {
+function hasAccess(user, scope) {
   if (user.role === 'admin') return true;
   var email = trim(user.email).toLowerCase();
   if (!email) return false;
-  var rows = table('schedule_access').read();
+  var rows = table('access').read();
   for (var i = 0; i < rows.length; i++) {
-    if (trim(rows[i].email).toLowerCase() === email) return true;
+    var rowScope = trim(rows[i].scope).toLowerCase();
+    if (trim(rows[i].email).toLowerCase() === email && (rowScope === scope || rowScope === '*')) return true;
+  }
+  if (scope !== 'schedule') return false;
+  var legacy = table('schedule_access').read();
+  for (var j = 0; j < legacy.length; j++) {
+    if (trim(legacy[j].email).toLowerCase() === email) return true;
   }
   return false;
 }
+
+function hasScheduleAccess(user) { return hasAccess(user, 'schedule'); }
 
 function table(name) {
   var headers = SHEETS[name];
