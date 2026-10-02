@@ -680,7 +680,8 @@ secret/              GITIGNORED. Personal setup notes and credentials
   2026-09-16 and was removed), and a shard's dead row must carry the fshare.vn
   second opinion or `merge` refuses it. Folders are crawled by `validate`
   alone — `--only uncrawled,unverified` is how the two gaps are closed. The
-  recovery runbook for that harvest is `docs/todo/fshare-movie-validate.md`.
+  recovery runbook for that harvest is `docs/fshare-movie-playbook.md`
+  § "Bài học 2026-09-16 → 17" (the todo that held it was closed).
 
 - **Fixed and rolling reminders are not the same recurrence, and confusing them
   is silent.** A *fixed* event (`once`, `yearly`, `lunar-yearly`, `monthly`)
