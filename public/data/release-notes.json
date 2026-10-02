@@ -2,6 +2,122 @@
   "version": 1,
   "releases": [
     {
+      "date": "2026-10-02",
+      "items_added": 10,
+      "en": {
+        "title": "Old Java and architecture notes, rewritten where the track had a gap"
+      },
+      "vi": {
+        "title": "Viết lại ghi chú Java và kiến trúc cũ ở những chỗ track còn thiếu"
+      },
+      "changes": [
+        {
+          "kind": "topic",
+          "target": "01-java-core-jvm",
+          "count": 1,
+          "en": {
+            "section": "Language fundamentals",
+            "text": "Added pass-by-value and references to Topic 01, and StringBuffer and invokedynamic concatenation to the String item."
+          },
+          "vi": {
+            "section": "Nền tảng ngôn ngữ",
+            "text": "Thêm pass-by-value và reference vào Topic 01, cùng StringBuffer và phép nối chuỗi qua invokedynamic vào mục String."
+          }
+        },
+        {
+          "kind": "topic",
+          "target": "01-java-core-jvm",
+          "count": 1,
+          "en": {
+            "section": "Collections & data structures",
+            "text": "Added Comparable vs Comparator, which sort algorithm runs, and how a broken comparator fails."
+          },
+          "vi": {
+            "section": "Collections & Data Structures",
+            "text": "Thêm Comparable và Comparator, thuật toán sort nào chạy, và comparator sai hỏng ra sao."
+          }
+        },
+        {
+          "kind": "topic",
+          "target": "03-spring-boot-deep-build",
+          "count": 2,
+          "en": {
+            "section": "Auto-configuration & build",
+            "text": "Added read-only routing to a replica with LazyConnectionDataSourceProxy, and @Scheduled triggers against Quartz clustering."
+          },
+          "vi": {
+            "section": "Auto-configuration & build",
+            "text": "Thêm route transaction read-only sang replica bằng LazyConnectionDataSourceProxy, và các trigger của @Scheduled so với Quartz cluster."
+          }
+        },
+        {
+          "kind": "topic",
+          "target": "12-architecture-patterns",
+          "count": 1,
+          "en": {
+            "section": "Patterns & principles",
+            "text": "Added a map of the 23 GoF patterns by who writes them today: the platform, your code, or a language feature."
+          },
+          "vi": {
+            "section": "Patterns & nguyên tắc",
+            "text": "Thêm bản đồ 23 mẫu GoF theo ai viết chúng hôm nay: nền tảng, code của bạn, hay một tính năng ngôn ngữ."
+          }
+        },
+        {
+          "kind": "topic",
+          "target": "18-query-optimization",
+          "count": 1,
+          "en": {
+            "section": "Rewriting the query & reshaping the model",
+            "text": "Added INNER vs LEFT JOIN, the WHERE filter that turns one into the other, and why NOT IN fails on NULL."
+          },
+          "vi": {
+            "section": "Viết lại query & chỉnh mô hình",
+            "text": "Thêm INNER và LEFT JOIN, điều kiện WHERE biến loại này thành loại kia, và vì sao NOT IN hỏng với NULL."
+          }
+        },
+        {
+          "kind": "topic",
+          "target": "19-dsa-leetcode",
+          "count": 1,
+          "en": {
+            "section": "The patterns that keep coming up",
+            "text": "Added membership for ten million keys in 10 MB: Bloom and binary fuse filters sized by arithmetic."
+          },
+          "vi": {
+            "section": "Dạng bài hay bị hỏi",
+            "text": "Thêm bài kiểm tra tồn tại cho mười triệu key trong 10 MB: Bloom và binary fuse filter tính bằng số học."
+          }
+        },
+        {
+          "kind": "topic",
+          "target": "22-low-level-design-ood",
+          "count": 1,
+          "en": {
+            "section": "The LLD framework & classic problems",
+            "text": "Added a Q&A take-home with voting: the uniqueness constraint, the relative score update, and how to scope three days."
+          },
+          "vi": {
+            "section": "Khung LLD & bài kinh điển",
+            "text": "Thêm bài home test hỏi đáp có vote: constraint duy nhất, cập nhật score tương đối, và cách chia ba ngày."
+          }
+        },
+        {
+          "kind": "topic",
+          "target": "22-low-level-design-ood",
+          "count": 2,
+          "en": {
+            "section": "Patterns in interview code",
+            "text": "Added thread-safe singletons and double-checked locking, and what team coding conventions should enforce."
+          },
+          "vi": {
+            "section": "Pattern trong code phỏng vấn",
+            "text": "Thêm singleton thread-safe và double-checked locking, và coding convention của team nên ép điều gì."
+          }
+        }
+      ]
+    },
+    {
       "date": "2026-09-12",
       "en": {
         "title": "Every design topic now says what would change its answer"

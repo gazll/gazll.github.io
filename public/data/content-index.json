@@ -26,13 +26,15 @@
         "01-java-core-jvm.language-fundamentals.q7",
         "01-java-core-jvm.language-fundamentals.q8",
         "01-java-core-jvm.language-fundamentals.q9",
+        "01-java-core-jvm.language-fundamentals.q10",
         "01-java-core-jvm.collections-data-structures.q1",
         "01-java-core-jvm.collections-data-structures.q2",
         "01-java-core-jvm.collections-data-structures.q3",
         "01-java-core-jvm.collections-data-structures.q4",
         "01-java-core-jvm.collections-data-structures.q5",
         "01-java-core-jvm.collections-data-structures.q6",
-        "01-java-core-jvm.collections-data-structures.q7"
+        "01-java-core-jvm.collections-data-structures.q7",
+        "01-java-core-jvm.collections-data-structures.q8"
       ],
       "track_item_ids": [
         "01-java-core-jvm.memory-execution-model.q1",
@@ -57,13 +59,15 @@
         "01-java-core-jvm.language-fundamentals.q7",
         "01-java-core-jvm.language-fundamentals.q8",
         "01-java-core-jvm.language-fundamentals.q9",
+        "01-java-core-jvm.language-fundamentals.q10",
         "01-java-core-jvm.collections-data-structures.q1",
         "01-java-core-jvm.collections-data-structures.q2",
         "01-java-core-jvm.collections-data-structures.q3",
         "01-java-core-jvm.collections-data-structures.q4",
         "01-java-core-jvm.collections-data-structures.q5",
         "01-java-core-jvm.collections-data-structures.q6",
-        "01-java-core-jvm.collections-data-structures.q7"
+        "01-java-core-jvm.collections-data-structures.q7",
+        "01-java-core-jvm.collections-data-structures.q8"
       ]
     },
     {
@@ -129,6 +133,8 @@
         "03-spring-boot-deep-build.auto-configuration-build.q14",
         "03-spring-boot-deep-build.auto-configuration-build.q15",
         "03-spring-boot-deep-build.auto-configuration-build.q16",
+        "03-spring-boot-deep-build.auto-configuration-build.q17",
+        "03-spring-boot-deep-build.auto-configuration-build.q18",
         "03-spring-boot-deep-build.bean-lifecycle-request-flow.q1",
         "03-spring-boot-deep-build.bean-lifecycle-request-flow.q2",
         "03-spring-boot-deep-build.bean-lifecycle-request-flow.q3"
@@ -157,6 +163,8 @@
         "03-spring-boot-deep-build.auto-configuration-build.q14",
         "03-spring-boot-deep-build.auto-configuration-build.q15",
         "03-spring-boot-deep-build.auto-configuration-build.q16",
+        "03-spring-boot-deep-build.auto-configuration-build.q17",
+        "03-spring-boot-deep-build.auto-configuration-build.q18",
         "03-spring-boot-deep-build.bean-lifecycle-request-flow.q1",
         "03-spring-boot-deep-build.bean-lifecycle-request-flow.q2",
         "03-spring-boot-deep-build.bean-lifecycle-request-flow.q3"
@@ -440,6 +448,7 @@
         "12-architecture-patterns.patterns-principles.q4",
         "12-architecture-patterns.patterns-principles.q5",
         "12-architecture-patterns.patterns-principles.q6",
+        "12-architecture-patterns.patterns-principles.q7",
         "12-architecture-patterns.clean-layered-building-it-for-real.q1",
         "12-architecture-patterns.clean-layered-building-it-for-real.q2",
         "12-architecture-patterns.clean-layered-building-it-for-real.q3",
@@ -465,6 +474,7 @@
         "12-architecture-patterns.patterns-principles.q4",
         "12-architecture-patterns.patterns-principles.q5",
         "12-architecture-patterns.patterns-principles.q6",
+        "12-architecture-patterns.patterns-principles.q7",
         "12-architecture-patterns.clean-layered-building-it-for-real.q1",
         "12-architecture-patterns.clean-layered-building-it-for-real.q2",
         "12-architecture-patterns.clean-layered-building-it-for-real.q3",
@@ -706,7 +716,8 @@
         "18-query-optimization.rewriting-the-query-reshaping-the-model.q3",
         "18-query-optimization.rewriting-the-query-reshaping-the-model.q4",
         "18-query-optimization.rewriting-the-query-reshaping-the-model.q5",
-        "18-query-optimization.rewriting-the-query-reshaping-the-model.q6"
+        "18-query-optimization.rewriting-the-query-reshaping-the-model.q6",
+        "18-query-optimization.rewriting-the-query-reshaping-the-model.q7"
       ],
       "track_item_ids": [
         "18-query-optimization.measure-first-reading-the-execution-plan.q1",
@@ -721,7 +732,8 @@
         "18-query-optimization.rewriting-the-query-reshaping-the-model.q3",
         "18-query-optimization.rewriting-the-query-reshaping-the-model.q4",
         "18-query-optimization.rewriting-the-query-reshaping-the-model.q5",
-        "18-query-optimization.rewriting-the-query-reshaping-the-model.q6"
+        "18-query-optimization.rewriting-the-query-reshaping-the-model.q6",
+        "18-query-optimization.rewriting-the-query-reshaping-the-model.q7"
       ]
     },
     {
@@ -740,6 +752,7 @@
         "19-dsa-leetcode.the-patterns-that-keep-coming-up.q6",
         "19-dsa-leetcode.the-patterns-that-keep-coming-up.q7",
         "19-dsa-leetcode.the-patterns-that-keep-coming-up.q8",
+        "19-dsa-leetcode.the-patterns-that-keep-coming-up.q9",
         "19-dsa-leetcode.fifteen-patterns-visualized.q1",
         "19-dsa-leetcode.fifteen-patterns-visualized.q2",
         "19-dsa-leetcode.fifteen-patterns-visualized.q3",
@@ -770,6 +783,7 @@
         "19-dsa-leetcode.the-patterns-that-keep-coming-up.q6",
         "19-dsa-leetcode.the-patterns-that-keep-coming-up.q7",
         "19-dsa-leetcode.the-patterns-that-keep-coming-up.q8",
+        "19-dsa-leetcode.the-patterns-that-keep-coming-up.q9",
         "19-dsa-leetcode.fifteen-patterns-visualized.q1",
         "19-dsa-leetcode.fifteen-patterns-visualized.q2",
         "19-dsa-leetcode.fifteen-patterns-visualized.q3",
@@ -846,24 +860,30 @@
         "22-low-level-design-ood.the-lld-framework-classic-problems.q2",
         "22-low-level-design-ood.the-lld-framework-classic-problems.q3",
         "22-low-level-design-ood.the-lld-framework-classic-problems.q4",
+        "22-low-level-design-ood.the-lld-framework-classic-problems.q5",
         "22-low-level-design-ood.patterns-in-interview-code.q1",
         "22-low-level-design-ood.patterns-in-interview-code.q2",
         "22-low-level-design-ood.patterns-in-interview-code.q3",
         "22-low-level-design-ood.patterns-in-interview-code.q4",
         "22-low-level-design-ood.patterns-in-interview-code.q5",
-        "22-low-level-design-ood.patterns-in-interview-code.q6"
+        "22-low-level-design-ood.patterns-in-interview-code.q6",
+        "22-low-level-design-ood.patterns-in-interview-code.q7",
+        "22-low-level-design-ood.patterns-in-interview-code.q8"
       ],
       "track_item_ids": [
         "22-low-level-design-ood.the-lld-framework-classic-problems.q1",
         "22-low-level-design-ood.the-lld-framework-classic-problems.q2",
         "22-low-level-design-ood.the-lld-framework-classic-problems.q3",
         "22-low-level-design-ood.the-lld-framework-classic-problems.q4",
+        "22-low-level-design-ood.the-lld-framework-classic-problems.q5",
         "22-low-level-design-ood.patterns-in-interview-code.q1",
         "22-low-level-design-ood.patterns-in-interview-code.q2",
         "22-low-level-design-ood.patterns-in-interview-code.q3",
         "22-low-level-design-ood.patterns-in-interview-code.q4",
         "22-low-level-design-ood.patterns-in-interview-code.q5",
-        "22-low-level-design-ood.patterns-in-interview-code.q6"
+        "22-low-level-design-ood.patterns-in-interview-code.q6",
+        "22-low-level-design-ood.patterns-in-interview-code.q7",
+        "22-low-level-design-ood.patterns-in-interview-code.q8"
       ]
     },
     {
@@ -1220,6 +1240,10 @@
       "en": "The four OOP pillars — which Java mechanism actually implements each, and where does each one leak?",
       "vi": "Bốn trụ OOP — cơ chế Java nào thực sự hiện thực từng cái, và mỗi cái rò rỉ ở đâu?"
     },
+    "01-java-core-jvm.language-fundamentals.q10": {
+      "en": "Is Java pass-by-value or pass-by-reference — and what does that mean for objects, arrays and \"pointers\"?",
+      "vi": "Java truyền tham trị hay tham chiếu — và điều đó nghĩa là gì với object, mảng và \"con trỏ\"?"
+    },
     "01-java-core-jvm.collections-data-structures.q1": {
       "en": "How does HashMap work? Hashing, buckets, collisions, treeify, resize?",
       "vi": "HashMap hoạt động thế nào? Hashing, bucket, collision, treeify, resize?"
@@ -1247,6 +1271,10 @@
     "01-java-core-jvm.collections-data-structures.q7": {
       "en": "ConcurrentHashMap is thread-safe; when is a multi-step cache or deduplication operation still wrong?",
       "vi": "ConcurrentHashMap thread-safe; khi nào một thao tác cache hoặc dedup nhiều bước vẫn sai?"
+    },
+    "01-java-core-jvm.collections-data-structures.q8": {
+      "en": "Comparable vs Comparator — what does `sort` actually rely on, which algorithm runs, and how does a bad comparator break it?",
+      "vi": "Comparable và Comparator — `sort` thực sự dựa vào gì, thuật toán nào chạy, và một comparator sai làm hỏng nó ra sao?"
     },
     "02-java-8-25-java-vs-go.release-timeline.q1": {
       "en": "How did Java 8 change the way Java is written?",
@@ -1399,6 +1427,14 @@
     "03-spring-boot-deep-build.auto-configuration-build.q16": {
       "en": "How do you make a Spring Boot dependency upgrade reproducible instead of trusting a green build?",
       "vi": "Làm sao để upgrade dependency Spring Boot reproducible thay vì chỉ tin một lần build xanh?"
+    },
+    "03-spring-boot-deep-build.auto-configuration-build.q17": {
+      "en": "How do you route read-only transactions to a replica in Spring, and why does the obvious `AbstractRoutingDataSource` version keep hitting the primary?",
+      "vi": "Làm sao route transaction chỉ đọc sang replica trong Spring, và vì sao bản `AbstractRoutingDataSource` hiển nhiên cứ đánh vào primary?"
+    },
+    "03-spring-boot-deep-build.auto-configuration-build.q18": {
+      "en": "`@Scheduled` with fixedDelay, fixedRate or cron — and when do you need Quartz or a job table instead?",
+      "vi": "`@Scheduled` với fixedDelay, fixedRate hay cron — và khi nào cần Quartz hoặc một bảng job thay thế?"
     },
     "03-spring-boot-deep-build.bean-lifecycle-request-flow.q1": {
       "en": "The full bean lifecycle: what are the 8 stages, and where do the intervention hooks sit?",
@@ -1960,6 +1996,10 @@
       "en": "What does an Anti-Corruption Layer (ACL) do when integrating with a legacy system?",
       "vi": "Anti-Corruption Layer (ACL) để làm gì khi tích hợp hệ legacy?"
     },
+    "12-architecture-patterns.patterns-principles.q7": {
+      "en": "The 23 GoF patterns — which does modern Java already give you, which do you still write, and which has the language replaced?",
+      "vi": "23 mẫu GoF — Java hiện đại đã cho sẵn mẫu nào, mẫu nào bạn vẫn tự viết, và mẫu nào ngôn ngữ đã thay thế?"
+    },
     "12-architecture-patterns.clean-layered-building-it-for-real.q1": {
       "en": "What does a real-world package structure for a Spring Boot service look like under Clean/Hexagonal?",
       "vi": "Cấu trúc package thực tế cho một service Spring Boot theo Clean/Hexagonal?"
@@ -2420,6 +2460,10 @@
       "en": "When should a slow query become a cache, materialized view, CDC projection, or OLAP model?",
       "vi": "Khi nào một query chậm nên trở thành cache, materialized view, CDC projection hoặc OLAP model?"
     },
+    "18-query-optimization.rewriting-the-query-reshaping-the-model.q7": {
+      "en": "INNER vs LEFT JOIN — what does each return, and why does a filter in `WHERE` quietly turn a LEFT JOIN into an INNER one?",
+      "vi": "INNER và LEFT JOIN — mỗi loại trả về gì, và vì sao một điều kiện trong `WHERE` lặng lẽ biến LEFT JOIN thành INNER?"
+    },
     "19-dsa-leetcode.the-solving-framework-core-patterns.q1": {
       "en": "What is the six-step framework for solving a coding interview problem while thinking out loud?",
       "vi": "Khung sáu bước giải một bài coding interview (nói ra thành tiếng)?"
@@ -2471,6 +2515,10 @@
     "19-dsa-leetcode.the-patterns-that-keep-coming-up.q8": {
       "en": "Which bit-manipulation techniques are worth knowing, and what correctness traps matter in Java?",
       "vi": "Những kỹ thuật bit manipulation nào đáng biết, và Java có bẫy correctness gì?"
+    },
+    "19-dsa-leetcode.the-patterns-that-keep-coming-up.q9": {
+      "en": "Ten million fixed keys, a flood of \"does this key exist?\" requests, and 10 MB of RAM. How do you answer, and what does the memory actually buy?",
+      "vi": "Mười triệu key cố định, một lượng lớn request \"key này có tồn tại không?\", và 10 MB RAM. Trả lời thế nào, và bộ nhớ đó thực sự mua được gì?"
     },
     "19-dsa-leetcode.fifteen-patterns-visualized.q1": {
       "en": "Two pointers: trace the converging scan that finds a pair summing to a target.",
@@ -2624,6 +2672,10 @@
       "en": "How should classes be divided when designing a parking lot or elevator system?",
       "vi": "Thiết kế bãi đỗ xe / thang máy: chia class thế nào?"
     },
+    "22-low-level-design-ood.the-lld-framework-classic-problems.q5": {
+      "en": "Take-home brief: a Q&A REST service where users ask questions, answer open ones, and up- or down-vote both. How do you keep the score right under concurrent votes, and how do you scope three days?",
+      "vi": "Đề home test: một REST service hỏi đáp, người dùng đặt câu hỏi, trả lời câu hỏi đang mở, và upvote/downvote cả hai. Giữ score đúng khi vote đồng thời thế nào, và chia phạm vi ba ngày ra sao?"
+    },
     "22-low-level-design-ood.patterns-in-interview-code.q1": {
       "en": "How do you reference SOLID naturally in an LLD interview without sounding formulaic?",
       "vi": "SOLID trong một bài LLD: nêu ở đâu cho tự nhiên, không sáo rỗng?"
@@ -2647,6 +2699,14 @@
     "22-low-level-design-ood.patterns-in-interview-code.q6": {
       "en": "What must a correct in-memory TTL cache specify beyond O(1) get and put?",
       "vi": "Một TTL cache in-memory đúng cần đặc tả gì ngoài get và put O(1)?"
+    },
+    "22-low-level-design-ood.patterns-in-interview-code.q7": {
+      "en": "How do you write a thread-safe singleton in Java, why is double-checked locking broken without `volatile`, and when should you not write one at all?",
+      "vi": "Viết singleton thread-safe trong Java thế nào, vì sao double-checked locking hỏng khi thiếu `volatile`, và khi nào đừng viết singleton?"
+    },
+    "22-low-level-design-ood.patterns-in-interview-code.q8": {
+      "en": "What should a team's coding conventions actually enforce — and which rules belong in a tool rather than a review comment?",
+      "vi": "Coding convention của team thực sự nên ép điều gì — và luật nào thuộc về công cụ chứ không phải comment trong review?"
     },
     "23-java-concurrency-coding.classic-synchronisation-problems.q1": {
       "en": "Bounded blocking queue: how would you implement it with wait/notify and with Lock/Condition?",

@@ -75,6 +75,40 @@
       "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html"
     ]
   },
+  "01-java-core-jvm.language-fundamentals.q2": {
+    "reviewed_at": "2026-10-02",
+    "target_versions": [
+      "Java SE 25",
+      "JEP 280 (Java 9)"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://openjdk.org/jeps/280",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/StringBuffer.html"
+    ]
+  },
+  "01-java-core-jvm.language-fundamentals.q10": {
+    "reviewed_at": "2026-10-02",
+    "target_versions": [
+      "Java SE 25 JLS"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.12.4.5"
+    ]
+  },
+  "01-java-core-jvm.collections-data-structures.q8": {
+    "reviewed_at": "2026-10-02",
+    "target_versions": [
+      "Java SE 25 API"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Arrays.html",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Comparator.html",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/math/BigDecimal.html"
+    ]
+  },
   "03-spring-boot-deep-build.auto-configuration-build.q10": {
     "reviewed_at": "2026-09-12",
     "target_versions": [
@@ -84,6 +118,31 @@
     "claim_type": "normative",
     "sources": [
       "https://docs.spring.io/spring-boot/reference/testing/testcontainers.html"
+    ]
+  },
+  "03-spring-boot-deep-build.auto-configuration-build.q17": {
+    "reviewed_at": "2026-10-02",
+    "target_versions": [
+      "Spring Framework 7.0",
+      "Spring Framework 6.1.2+ (setReadOnlyDataSource)"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/jdbc/datasource/LazyConnectionDataSourceProxy.html",
+      "https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/jdbc/datasource/lookup/AbstractRoutingDataSource.html"
+    ]
+  },
+  "03-spring-boot-deep-build.auto-configuration-build.q18": {
+    "reviewed_at": "2026-10-02",
+    "target_versions": [
+      "Spring Boot 4.0",
+      "Quartz 2.x clustering documentation"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.spring.io/spring-boot/reference/features/task-execution-and-scheduling.html",
+      "https://docs.spring.io/spring-boot/reference/io/quartz.html",
+      "https://www.quartz-scheduler.org/documentation/quartz-2.3.0/configuration/ConfigJDBCJobStoreClustering.html"
     ]
   },
   "04-rest-grpc-webflux.reactive-webflux.q1": {
@@ -685,6 +744,19 @@
       "https://dev.mysql.com/doc/refman/8.4/en/optimization-indexes.html"
     ]
   },
+  "18-query-optimization.rewriting-the-query-reshaping-the-model.q7": {
+    "reviewed_at": "2026-10-02",
+    "target_versions": [
+      "PostgreSQL 18",
+      "MySQL 8.4"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://www.postgresql.org/docs/current/queries-table-expressions.html",
+      "https://www.postgresql.org/docs/current/functions-subquery.html",
+      "https://dev.mysql.com/doc/refman/8.4/en/semijoins-antijoins.html"
+    ]
+  },
   "20-observability-sre.the-three-pillars-how-to-measure.q2": {
     "reviewed_at": "2026-08-01",
     "target_versions": [
@@ -734,6 +806,41 @@
       "https://docs.junit.org/current/user-guide/",
       "https://jqwik.net/docs/current/user-guide.html",
       "https://openjdk.org/projects/code-tools/jcstress/"
+    ]
+  },
+  "22-low-level-design-ood.the-lld-framework-classic-problems.q5": {
+    "reviewed_at": "2026-10-02",
+    "target_versions": [
+      "PostgreSQL 18 (RETURNING OLD/NEW)"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://www.postgresql.org/docs/current/sql-insert.html",
+      "https://www.rfc-editor.org/rfc/rfc9457.html"
+    ]
+  },
+  "22-low-level-design-ood.patterns-in-interview-code.q7": {
+    "reviewed_at": "2026-10-02",
+    "target_versions": [
+      "Java SE 25 JLS (memory model)"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.oracle.com/javase/specs/jls/se25/html/jls-17.html#jls-17.4.5",
+      "https://docs.oracle.com/javase/specs/jls/se25/html/jls-12.html#jls-12.4.2"
+    ]
+  },
+  "22-low-level-design-ood.patterns-in-interview-code.q8": {
+    "reviewed_at": "2026-10-02",
+    "target_versions": [
+      "Java SE 25 API",
+      "Spring Framework 7.0 / JSpecify 1.0"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Optional.html",
+      "https://docs.spring.io/spring-framework/reference/core/null-safety.html",
+      "https://google.github.io/styleguide/javaguide.html"
     ]
   },
   "25-microservice.01-cascading-failure-retry-storm.q2": {
@@ -3001,6 +3108,17 @@
       "https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/28461a74f81101874a13d9679a40584d_MIT6_006S20_lec16.pdf"
     ]
   },
+  "19-dsa-leetcode.the-patterns-that-keep-coming-up.q9": {
+    "reviewed_at": "2026-10-02",
+    "target_versions": [
+      "Binary fuse filters (Graf & Lemire, 2022)"
+    ],
+    "claim_type": "example",
+    "sources": [
+      "https://arxiv.org/abs/2201.01174",
+      "https://www.eecs.harvard.edu/~michaelm/postscripts/rsa2008.pdf"
+    ]
+  },
   "04-rest-grpc-webflux.protocols.q2": {
     "reviewed_at": "2026-09-12",
     "target_versions": [
@@ -3727,6 +3845,18 @@
       "https://spec.openapis.org/oas/",
       "https://www.rfc-editor.org/rfc/rfc9457.html",
       "https://www.rfc-editor.org/rfc/rfc9700.html"
+    ]
+  },
+  "12-architecture-patterns.patterns-principles.q7": {
+    "reviewed_at": "2026-10-02",
+    "target_versions": [
+      "Java 21 (JEP 441, JEP 440)"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://openjdk.org/jeps/441",
+      "https://openjdk.org/jeps/440",
+      "https://www.slf4j.org/manual.html"
     ]
   }
 }
