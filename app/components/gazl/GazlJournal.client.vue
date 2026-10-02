@@ -1,9 +1,24 @@
 <script setup lang="ts">
 import { escapeHtml, renderMarkdown } from '~/utils/markdown.js';
-import { mergeJournal, seedImport, seedRows } from '../../../public/lib/interview-merge.js';
+import { mergeJournal, privateRows, seedImport, seedRows } from '../../../public/lib/interview-merge.js';
+import { fetchEnvelope, unseal } from '../../../public/lib/schedule-crypto.js';
 
 const props = defineProps<{ seed: any[]; lang: 'en' | 'vi' }>();
 const { $auth, $apiCall } = useNuxtApp() as any;
+
+/* Private entries ship sealed, under the calendar's passphrase and key store:
+   one key in the password manager, one schedule_access grant, and unlocking
+   either page unlocks both. The KEY is the gate, exactly as on /calendar —
+   sign-in only matters as a way to be handed it. */
+const SEALED_URL = '/data/interviews/private.enc.json';
+const KEY_STORE = 'gazll:schedule-key';
+const sealedCompanies = ref<any[]>([]);
+const sealedAvailable = ref(false);
+const unlockOpen = ref(false);
+const passphrase = ref('');
+const remember = ref(false);
+const unlocking = ref(false);
+const unlockError = ref('');
 const companies = ref<any[]>([]);
 const source = ref<'seed' | 'remote'>('seed');
 const loading = ref(true);
@@ -14,7 +29,8 @@ const openQuestions = ref(new Set<string>());
 const openCompanies = ref(new Set<string>());
 let stopAuth: (() => void) | null = null;
 
-const seed = computed(() => seedRows(props.seed));
+const seed = computed(() => privateRows(sealedCompanies.value).concat(seedRows(props.seed)));
+const unlocked = computed(() => sealedCompanies.value.length > 0);
 const editable = computed(() => source.value === 'remote');
 const ownCount = computed(() => companies.value.filter(company => company.own).length);
 const seedCount = computed(() => companies.value.filter(company => !company.own).length);
@@ -45,7 +61,10 @@ const labels = computed(() => props.lang === 'vi' ? {
   answered: 'Cách tôi trả lời', improve: 'Điểm rút ra / cần cải thiện', removeQuestion: 'Xóa câu hỏi', cancel: 'Hủy', save: 'Lưu',
   resultLabels: { pending: 'Đang chờ', passed: 'Đạt', offer: 'Offer', failed: 'Từ chối' },
   kindLabels: { playbook: 'Playbook học tập', 'community-report': 'Báo cáo cộng đồng' },
-  deleteConfirm: (name: string) => `Xóa “${name}” và toàn bộ câu hỏi bên dưới?`, deleteFailed: 'Không thể xóa:', saveFailed: 'Không thể lưu:'
+  deleteConfirm: (name: string) => `Xóa “${name}” và toàn bộ câu hỏi bên dưới?`, deleteFailed: 'Không thể xóa:', saveFailed: 'Không thể lưu:',
+  privateBadge: 'Riêng tư', privateMine: 'riêng tư', unlockPrivate: 'Mở mục riêng tư', lockPrivate: 'Khoá mục riêng tư',
+  passphrase: 'Passphrase', rememberDevice: 'Nhớ trên thiết bị này', open: 'Mở', opening: 'Đang mở…',
+  privateIntro: 'Các mục theo công ty được mã hoá trong repo, dùng chung passphrase với lịch riêng.'
 } : {
   title: 'Gazl Try — interview journal', intro: 'Interview experiences · preparation playbooks · technically reviewed answers.',
   loading: 'Loading the interview journal…', backendError: 'Could not read from the backend:', backendFallback: ' — showing repository samples instead.',
@@ -71,7 +90,10 @@ const labels = computed(() => props.lang === 'vi' ? {
   answered: 'How I answered', improve: 'Takeaway / what to improve', removeQuestion: 'Remove question', cancel: 'Cancel', save: 'Save',
   resultLabels: { pending: 'Pending', passed: 'Passed', offer: 'Offer', failed: 'Rejected' },
   kindLabels: { playbook: 'Learning playbook', 'community-report': 'Community report' },
-  deleteConfirm: (name: string) => `Delete “${name}” and every question under it?`, deleteFailed: 'Could not delete:', saveFailed: 'Could not save:'
+  deleteConfirm: (name: string) => `Delete “${name}” and every question under it?`, deleteFailed: 'Could not delete:', saveFailed: 'Could not save:',
+  privateBadge: 'Private', privateMine: 'private', unlockPrivate: 'Open private entries', lockPrivate: 'Lock private entries',
+  passphrase: 'Passphrase', rememberDevice: 'Remember on this device', open: 'Open', opening: 'Opening…',
+  privateIntro: 'Company entries ship encrypted in the repository, under the same passphrase as the private calendar.'
 });
 const resultLabels = computed(() => labels.value.resultLabels);
 const kindLabels = computed(() => labels.value.kindLabels);
@@ -201,7 +223,69 @@ function safeExternalUrl(value: string) {
   catch { return '#'; }
 }
 
-onMounted(() => { stopAuth = $auth.onChange(load); load(); });
+/* ---------- private entries ---------- */
+
+async function openSealed(secret: string) {
+  const envelope = await fetchEnvelope(SEALED_URL);
+  if (!envelope) { sealedAvailable.value = false; return false; }
+  const document = await unseal(envelope, secret);
+  sealedCompanies.value = Array.isArray(document.companies) ? document.companies : [];
+  await load();
+  return true;
+}
+
+async function unlockPrivate() {
+  if (!passphrase.value || unlocking.value) return;
+  unlocking.value = true;
+  unlockError.value = '';
+  try {
+    if (await openSealed(passphrase.value)) {
+      // Session by default, device only when asked — the calendar's promise.
+      const store = remember.value ? localStorage : sessionStorage;
+      try { store.setItem(KEY_STORE, passphrase.value); } catch (error) { /* private mode */ }
+      passphrase.value = '';
+      unlockOpen.value = false;
+    }
+  } catch (reason: any) { unlockError.value = reason?.message || String(reason); }
+  finally { unlocking.value = false; }
+}
+
+/* Locking forgets the key everywhere it was kept, so it also locks the
+   calendar — the two pages share one key, and a half-locked browser would be
+   a surprise in the wrong direction. */
+async function lockPrivate() {
+  sealedCompanies.value = [];
+  try { sessionStorage.removeItem(KEY_STORE); localStorage.removeItem(KEY_STORE); } catch (error) { /* private mode */ }
+  await load();
+}
+
+async function restoreKey() {
+  let stored = '';
+  try { stored = sessionStorage.getItem(KEY_STORE) || localStorage.getItem(KEY_STORE) || ''; } catch (error) { return; }
+  if (!stored) return;
+  try { await openSealed(stored); } catch (error) { /* a stale key: stay locked */ }
+}
+
+/** A granted account is handed the key; it is used and dropped, never stored,
+    so deleting the schedule_access row really takes access away. */
+async function tryBackendKey() {
+  if (unlocked.value || !$auth.token || !sealedAvailable.value) return;
+  try {
+    const data = await $apiCall('schedule.key', {}, $auth.token);
+    if (data?.key) await openSealed(data.key);
+  } catch (error) { /* not granted: the passphrase box stays */ }
+}
+
+async function onAuthChange() { await load(); await tryBackendKey(); }
+
+onMounted(async () => {
+  stopAuth = $auth.onChange(onAuthChange);
+  await load();
+  try { sealedAvailable.value = Boolean(await fetchEnvelope(SEALED_URL)); } catch (error) { sealedAvailable.value = false; }
+  if (!sealedAvailable.value) return;
+  await restoreKey();
+  await tryBackendKey();
+});
 onBeforeUnmount(() => stopAuth?.());
 </script>
 
@@ -211,6 +295,22 @@ onBeforeUnmount(() => stopAuth?.());
     <p v-if="loading" class="loading-block">{{ labels.loading }}</p>
     <div v-if="error" class="warn"><b>{{ labels.backendError }}</b> {{ error }}{{ labels.backendFallback }}</div>
     <div class="toolbar"><span class="sectioncount">{{ companies.length }} {{ companies.length === 1 ? labels.entry : labels.entries }}<span v-if="editable"> ({{ ownCount }} {{ labels.mine }} · {{ seedCount }} {{ labels.samples }})</span> · {{ questionCount }} {{ questionCount === 1 ? labels.question : labels.questions }} <span v-if="!editable" class="ro">· {{ labels.readOnly }}</span></span><div class="tb-actions"><button v-if="companies.length" class="btn-ghost" type="button" @click="toggleAll">{{ allOpen ? labels.collapseAll : labels.expandAll }}</button><button v-if="editable" id="ivAdd" class="btn-primary" type="button" @click="resetForm()">+ {{ labels.addCompany }}</button><span v-else class="hint">{{ $auth.enabled ? labels.signIn : labels.noBackend }}</span></div></div>
+
+    <!-- Private entries: shown only when a sealed file is published. The form
+         is collapsed behind one button so the public journal reads unchanged. -->
+    <section v-if="sealedAvailable" class="iv-private" data-ui="journal-private">
+      <div class="iv-private-row">
+        <span class="hint">{{ labels.privateIntro }}</span>
+        <button v-if="unlocked" class="btn-ghost sm" type="button" @click="lockPrivate">{{ labels.lockPrivate }}</button>
+        <button v-else class="btn-ghost sm" type="button" :aria-expanded="unlockOpen" aria-controls="iv-unlock" @click="unlockOpen = !unlockOpen">{{ labels.unlockPrivate }}</button>
+      </div>
+      <form v-if="!unlocked && unlockOpen" id="iv-unlock" class="iv-unlock" :aria-busy="unlocking" @submit.prevent="unlockPrivate">
+        <label class="f"><span>{{ labels.passphrase }}</span><input v-model="passphrase" type="password" autocomplete="off" spellcheck="false" :disabled="unlocking"></label>
+        <label class="iv-remember"><input v-model="remember" type="checkbox" :disabled="unlocking"> {{ labels.rememberDevice }}</label>
+        <button class="btn-primary" type="submit" :disabled="!passphrase || unlocking">{{ unlocking ? labels.opening : labels.open }}</button>
+        <p v-if="unlockError" class="form-err" role="alert">{{ unlockError }}</p>
+      </form>
+    </section>
 
     <div v-if="!loading && !companies.length" class="page"><p>{{ labels.noEntries }}</p></div>
 
@@ -229,7 +329,8 @@ onBeforeUnmount(() => stopAuth?.());
           <span class="iv-co-text">
             <span class="iv-co-name">
               <b>{{ company.name }}</b>
-              <span v-if="!company.own" class="seed-badge">{{ labels.sample }}</span>
+              <span v-if="company.sealed" class="seed-badge is-private">{{ labels.privateBadge }}</span>
+              <span v-else-if="!company.own" class="seed-badge">{{ labels.sample }}</span>
               <span v-if="kindLabels[company.kind]" class="entry-kind">{{ kindLabels[company.kind] }}</span>
               <span v-if="company.result" class="result" :class="`result-${company.result}`">{{ resultLabels[company.result] || company.result }}</span>
             </span>
@@ -244,12 +345,12 @@ onBeforeUnmount(() => stopAuth?.());
         </button>
 
         <div v-show="isOpen(company)" :id="`iv-body-${company.id}`" class="iv-co-body">
-          <div v-if="editable" class="co-actions">
+          <div v-if="editable && !company.sealed" class="co-actions">
             <template v-if="company.own">
               <button class="btn-ghost sm" type="button" @click="resetForm(company)">{{ labels.edit }}</button>
               <button class="btn-ghost sm danger" type="button" :disabled="busy === company.id" @click="remove(company)">{{ labels.remove }}</button>
             </template>
-            <button v-else class="btn-ghost sm" type="button" :disabled="busy === company.id" @click="importSeed(company)">{{ busy === company.id ? labels.saving : labels.saveToJournal }}</button>
+            <button v-else-if="!company.sealed" class="btn-ghost sm" type="button" :disabled="busy === company.id" @click="importSeed(company)">{{ busy === company.id ? labels.saving : labels.saveToJournal }}</button>
           </div>
           <div v-if="company.created_at || company.updated_at" class="content-dates iv-content-dates"><span v-if="company.created_at"><b>{{ labels.created }}</b><time :datetime="company.created_at">{{ company.created_at }}</time></span><span v-if="company.updated_at"><b>{{ labels.updated }}</b><time :datetime="company.updated_at">{{ company.updated_at }}</time></span></div>
           <a v-if="company.source?.url" class="iv-source" :href="safeExternalUrl(company.source.url)" target="_blank" rel="noopener noreferrer">{{ labels.source }}: {{ company.source.label || company.source.url }} ↗</a>

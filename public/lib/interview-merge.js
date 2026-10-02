@@ -25,6 +25,13 @@ export function seedRows(companies) {
   return (companies || []).map((company, index) => ({ ...company, id: `seed-${index}`, own: false }));
 }
 
+/** Entries opened from the sealed file. Read-only like the seed, but never
+    importable: copying one into the Sheet would put back in plain text what
+    was sealed precisely to keep it out of a shareable document. */
+export function privateRows(companies) {
+  return (companies || []).map((company, index) => ({ ...company, id: `private-${index}`, own: false, sealed: true }));
+}
+
 /** Own rows first, then the seed entries the reader has not already imported. */
 export function mergeJournal(own, seed) {
   const mine = (own || []).map(company => ({ ...company, own: true }));

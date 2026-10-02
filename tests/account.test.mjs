@@ -859,7 +859,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
      plugins) and reimplemented the rules, which left the module unreferenced
      and these tests green against code nobody ran. lib/interview-merge.js is
      the one owner now, and the view calls the same three functions. */
-  const { mergeJournal, seedImport, seedRows } = await import(
+  const { mergeJournal, privateRows, seedImport, seedRows } = await import(
     pathToFileURL(join(PUBLIC, 'lib/interview-merge.js')).href);
 
   const seed = () => seedRows(SEED.companies);
@@ -926,6 +926,13 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
     // space in the view without a second key.
     assert.equal(mergeJournal([{ id: 'uuid-1', name: 'Grab' }], seed())
       .filter(row => row.id === 'seed-0').length, 1);
+    // Sealed entries share the id space with their own prefix, and are marked
+    // so the view never offers to copy them into the Sheet in plain text.
+    for (const row of privateRows([{ name: 'A' }, { name: 'B' }])) {
+      assert.match(row.id, /^private-\d+$/);
+      assert.equal(row.own, false);
+      assert.equal(row.sealed, true);
+    }
   });
 
   test('the journal view uses the shared rules rather than its own copy', async () => {
@@ -933,6 +940,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
     assert.match(view, /from '\.\.\/\.\.\/\.\.\/public\/lib\/interview-merge\.js'/);
     assert.match(view, /mergeJournal\(data\.companies, seed\.value\)/);
     assert.match(view, /seedImport\(company/);
+    assert.match(view, /v-else-if="!company\.sealed"[^>]*@click="importSeed/, 'a sealed entry is never importable');
     assert.ok(!/trim\(\)\.toLocaleLowerCase\(\)/.test(view), 'the name-matching rule has one owner');
   });
 }

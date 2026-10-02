@@ -184,6 +184,19 @@ export async function unseal(envelope, passphrase) {
 }
 
 /** A cheap shape check before asking anyone for a passphrase. */
+/** Fetch a published envelope, or null when there is none to open. Every
+    guard runs before any crypto: a missing file, an oversized body and a
+    non-envelope all mean "nothing sealed here", not an error to show. */
+export async function fetchEnvelope(url) {
+  const response = await fetch(url, { cache: 'no-cache' });
+  if (!response.ok) return null;
+  const text = await response.text();
+  if (text.length > MAX_ENVELOPE_JSON_CHARS) return null;
+  let envelope;
+  try { envelope = JSON.parse(text); } catch (error) { return null; }
+  return isEnvelope(envelope) ? envelope : null;
+}
+
 export const isEnvelope = (value) =>
   (() => {
     try { validateEnvelope(value); return true; }

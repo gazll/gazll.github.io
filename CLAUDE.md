@@ -125,6 +125,9 @@ vendor/mermaid-11.16.1/  pinned upstream build; version lives in the directory n
     photography/     Other Knowledge collection: manifest, meta, NN-slug[.vi].json, articles/
     homelab/         the same shape for NAS / Home Server
     interviews.json     seed entries, merged under everyone's own Sheet rows
+    interviews/private.enc.json  the operator's own company entries (JDs, what was
+                         asked), AES-256-GCM under the schedule's passphrase. The
+                         plaintext is secret/interviews.json; tools/interview-seal.mjs
     calendar/holidays.json  yearly ministry notices ONLY — compensatory days, make-up
                          Saturdays, which side of 02/09 the second National Day sits.
                          The statutory eleven are computed, never listed here
@@ -148,6 +151,7 @@ tools/               check.mjs (the one entrypoint) · validate-content.mjs · a
                      check-diagrams.mjs (run by check.mjs, needs jsdom)
                      schedule-seal.mjs (seal/unseal the private schedule; NOT a
                      check.mjs stage — CI has no passphrase and no secret/)
+                     interview-seal.mjs (the same for private Gazl Try entries)
                      fshare-movie.mjs (ingest · build · validate · seal · unseal the
                      movie catalog; same rule, never a check.mjs stage)
                      crawl-thuviencine.mjs · crawl-telegram.mjs — raw-source harvesters
@@ -288,6 +292,15 @@ secret/              GITIGNORED. Personal setup notes and credentials
 
   The route is `/gazl-try`. It was `/gazl`, and that URL was shared, so
   `nuxt.config.ts` keeps a 301 — the same promise the retired hash URLs carry.
+
+  A third source is **sealed**: `data/interviews/private.enc.json`, the
+  operator's own company entries, under the calendar's passphrase and its
+  `gazll:schedule-key` store — unlocking either page unlocks both, and a
+  `schedule_access` grant opens it through `schedule.key`. They are personal
+  data, and a Sheet is what gets shared by accident, so they are never written
+  to one: `privateRows()` marks them `sealed`, and the view offers no
+  "Save to journal" for them. Edit `secret/interviews.json`, then
+  `node tools/interview-seal.mjs seal` and commit the envelope.
 
 - **The interview journal merges two sources; `own` separates them.** Sheet
   rows carry `own: true`, `interviews.json` entries `own: false` and an id of
@@ -1394,7 +1407,8 @@ patch tool. The commands below are what CI enforces.
 
 Editing the private schedule? `docs/schedule-playbook.md`. It is outside the
 three commands below on purpose: run `node tools/schedule-seal.mjs seal` and
-commit the envelope, because CI cannot re-seal what it cannot decrypt. The
+commit the envelope, because CI cannot re-seal what it cannot decrypt.
+Private Gazl Try entries likewise: `node tools/interview-seal.mjs seal`. The
 movie catalog is the same shape: `node tools/fshare-movie.mjs seal`, per
 `docs/fshare-movie-playbook.md`.
 

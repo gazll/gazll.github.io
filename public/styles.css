@@ -1018,6 +1018,13 @@
   .seed-badge{font-family:"IBM Plex Mono",monospace;font-size:10.5px;font-weight:600;letter-spacing:.4px;
     text-transform:uppercase;padding:3px 9px;border-radius:999px;white-space:nowrap;
     color:var(--indigo);border:1px solid #cdd5ef;background:var(--indigo-soft)}
+  .seed-badge.is-private{color:var(--clay);border-color:#e8c9c3;background:var(--clay-soft)}
+  .iv-private{margin:0 2px 14px;padding:10px 12px;border:1px dashed var(--line-strong);border-radius:var(--radius)}
+  .iv-private-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .iv-private-row .hint{font-size:12px;color:var(--muted)}
+  .iv-unlock{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;margin-top:10px}
+  .iv-unlock .f{flex:1 1 220px}
+  .iv-remember{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
   .entry-kind{font-family:"IBM Plex Mono",monospace;font-size:10.5px;font-weight:600;letter-spacing:.35px;
     text-transform:uppercase;padding:3px 9px;border-radius:999px;white-space:nowrap;
     color:var(--emerald-deep);border:1px solid #cfe6da;background:var(--emerald-soft)}
