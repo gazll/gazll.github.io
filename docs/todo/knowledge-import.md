@@ -22,8 +22,28 @@ chuẩn hiện hành và theo `docs/content-playbook.md` (EN/VI cặp, nguồn g
 | `architecture/System architecture.md` + `ResourceDocuments/` | microservice, DDD (domain, ubiquitous language, layer, entity/value/aggregate), development workflow | topic 24 (DDD) / 25 (microservice); đối chiếu cái đã có, chỉ thêm phần thiếu |
 | `career/Home Test - Software Developer (Backend).pdf` | đề bài home test tuyển dụng backend | đề của công ty khác: không đăng nguyên văn; nếu dùng thì thành một prompt tự viết trong topic 11 / 22 |
 
-## Việc
+## Kết quả rà 2026-10-02
 
-- [ ] Đọc từng nguồn, đánh dấu cái site **đã có** (cross-ref thay vì viết lại — "One owner per mechanism").
-- [ ] Viết phần còn thiếu theo content-playbook, chạy đủ ba lệnh CI trước khi push.
-- [ ] Dời `secret/knowledge-import/` vào `#recycle` khi xong.
+Phần lớn ghi chú đã có trên site, thường sâu hơn bản gốc — không viết lại:
+HashMap/ArrayList/LinkedList/Set, OOP + overload/override + interface vs
+abstract (`01…language-fundamentals.q9`), Java 8→11 (`02`), `@Async`/`@Scheduled`
+qua N replica (`03…q6`, `25…08-operational-concerns.q4`), REST (`17`, `04`),
+OpenAPI, DDD chiến lược/chiến thuật (`24`, `12`), read-after-write trên replica
+(`06…q2`), gateway auth/permission trong token/revocation (`27`, `13`), CI/CD (`14`),
+DP/backtracking/DFS (`19`). Ghi chú cũ có hai chỗ sai đã sửa trong bản mới:
+DCL thiếu `volatile`, và "hash 3 lần là tối ưu" (k tối ưu = (m/n)·ln 2).
+
+Đã thêm 10 mục + 1 đoạn deep (EN/VI, `content-reviews.json`, release note):
+
+| Nguồn | Mục mới |
+|---|---|
+| `pv-java.md` | `01…language-fundamentals.q10` pass-by-value · `01…collections-data-structures.q8` Comparator/sort · `19…the-patterns-that-keep-coming-up.q9` 10M key / 10 MB · `18…rewriting-the-query-reshaping-the-model.q7` INNER/LEFT JOIN · StringBuffer vào `01…q2` |
+| `code rule for DDD.md` | `22…patterns-in-interview-code.q8` coding convention · `03…auto-configuration-build.q18` `@Scheduled` vs Quartz |
+| `Design Pattern.md` | `22…patterns-in-interview-code.q7` singleton/DCL · `12…patterns-principles.q7` bản đồ 23 mẫu GoF |
+| `Replication_database.jpg` | `03…auto-configuration-build.q17` route read-only sang replica (cơ chế chung, không chép code của dự án cũ) |
+| Home test PDF | `22…the-lld-framework-classic-problems.q5` — đề tự viết lại, không nêu tên công ty |
+
+## Còn lại
+
+- [ ] Phần theo công ty trong `pv-java.md` (Finbase, MoMo, ZaloPay, Luxoft — JD và câu PV của MoMo) → Gazl Try **qua Sheet**, do operator tự nhập vì là dữ liệu cá nhân.
+- [ ] Dời `secret/knowledge-import/` vào `#recycle` sau khi nhập xong mục trên, rồi xoá file này.
