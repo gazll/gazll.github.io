@@ -56,6 +56,27 @@ Không cần sao lưu gì khác: keyring nằm trong git, passphrase chủ mở 
 `rekey` từ chối passphrase chủ dưới 20 ký tự. `--generate` sinh ~129 bit và in
 **một lần** — chạy nó trong terminal riêng, không qua công cụ ghi lại output.
 
+## Lỡ quên passphrase chủ
+
+1. **Tìm lại trước:** `secret/app.key` trên NAS chính là passphrase chủ;
+   password manager là bản thứ hai. Còn một trong hai thì không mất gì.
+2. **Mất cả hai, nhưng `secret/` còn bản gốc:** đặt passphrase chủ mới vào
+   `secret/app.key` (dài ≥ 20 ký tự), chạy `node tools/keyring.mjs reset --force`
+   — tạo keyring mới với key scope mới — rồi seal lại từng bề mặt từ `secret/`
+   (`schedule-seal seal`, `interview-seal seal`, `fshare-movie seal`,
+   `fshare-x seal`), commit keyring cùng mọi envelope, và cài lại
+   `KEY_<SCOPE>` cho scope đang chia sẻ. `reset` từ chối chạy khi passphrase
+   hiện tại vẫn mở được keyring.
+3. **Mất passphrase lẫn `secret/`:** chỉ scope đang chia sẻ còn cứu được — key
+   của nó nằm trong Script Properties (`KEY_SCHEDULE`), mở bằng
+   `node -e` + `unseal` hoặc đăng nhập tài khoản được cấp. Scope chỉ-chủ
+   (`interviews`, `fshare`, `x`) mất hẳn: không có cửa sau, đó là cái giá của
+   "chỉ mình mở được".
+
+`secret/` không được sao lưu tự động. Muốn trường hợp 3 không xảy ra, sao lưu
+`secret/schedule.json` và `secret/interviews.json` ra chỗ riêng tư (không phải
+git, không phải Sheet chia sẻ).
+
 ## Chia sẻ một scope qua đăng nhập
 
 1. `node tools/keyring.mjs show schedule` → copy key.

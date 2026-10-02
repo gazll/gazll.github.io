@@ -6,6 +6,7 @@
      node tools/keyring.mjs status          # which envelope opens with which key
      node tools/keyring.mjs show <scope>    # print ONE scope key (for setScopeKey)
      node tools/keyring.mjs rotate <scope>  # new key for one scope, re-seal its file
+     node tools/keyring.mjs reset --force   # master forgotten: fresh keys, re-seal from secret/
 
    Why two layers. One passphrase is what a person can remember and type on a
    new machine (secret/app.key, or GAZLL_KEY). But a grant is a grant to ONE
@@ -88,6 +89,26 @@ async function opensWith(file, scopeValue, master) {
 async function main() {
   const [command, scope] = process.argv.slice(2).filter(arg => !arg.startsWith('--'));
   const master = await passphrase();
+
+  /* The forgotten-master path. The old keyring cannot be opened, so its scope
+     keys are gone with it; the data survives only as the plaintext in
+     secret/, which each seal tool re-seals under the fresh keys. Refused when
+     the current master still opens the keyring — then nothing was lost, and a
+     reset would only orphan every envelope. */
+  if (command === 'reset') {
+    if (!process.argv.includes('--force')) die('reset replaces every scope key. Re-run with --force once you are sure the old master is gone.');
+    let opens = false;
+    try { opens = Boolean(await openKeyring(master)); } catch (error) { /* expected: the old master is lost */ }
+    if (opens) die('The current master still opens the keyring — nothing to reset. Use `node tools/rekey.mjs` to change it.');
+    const fresh = { version: 1, keys: Object.fromEntries(Object.keys(SCOPES).map(name => [name, generatePassphrase()])) };
+    await sealKeyring(fresh, master);
+    out(`New keyring under the current master. Now re-seal every surface from secret/:`);
+    out('  node tools/schedule-seal.mjs seal · node tools/interview-seal.mjs seal');
+    out('  node tools/fshare-movie.mjs seal  · node tools/fshare-x.mjs seal');
+    out('Then commit the keyring with every envelope, and re-run gazl → "Cài key cho một scope" for each shared scope.');
+    return out('A surface whose plaintext is not in secret/ cannot be recovered — its envelope stays under the lost key.');
+  }
+
   let ring = await openKeyring(master);
 
   if (command === 'init') {
@@ -134,7 +155,7 @@ async function main() {
     return out(`If ${scope} is shared: menu gazl -> "Cài key cho một scope" with \`node tools/keyring.mjs show ${scope}\`.`);
   }
 
-  die('Usage: keyring.mjs init | migrate | status | show <scope> | rotate <scope>');
+  die('Usage: keyring.mjs init | migrate | status | show <scope> | rotate <scope> | reset --force');
 }
 
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
