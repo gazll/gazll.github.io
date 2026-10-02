@@ -84,9 +84,11 @@ git, không phải Sheet chia sẻ).
    Key nằm trong Script Property `KEY_SCHEDULE`, không bao giờ trong ô Sheet.
    Scope không cài key = **chỉ chủ** (backend không có gì để đưa). `fshare` và
    `x` cố ý để trống.
-3. Sheet `access`: một dòng `email · scope · name · note · granted_at`. `scope`
-   là `schedule`, `interviews`, `fshare`, `x`, hoặc `*`. Admin trong
-   `profiles` luôn được.
+3. Sheet `access`: một dòng mỗi người, `email · scope · name · note ·
+   granted_at`. `scope` là một hoặc nhiều scope cách nhau bằng dấu phẩy
+   (`schedule, interviews`), hoặc `*` cho tất cả. Admin trong `profiles` luôn
+   được. Cấp một scope chưa có `KEY_<SCOPE>` thì không có tác dụng — backend
+   không có key nào để đưa, nên phải làm bước 1–2 cho scope đó trước.
 4. Deploy → Manage deployments → **New version**.
 
 Lần đầu chuyển sang mô hình này: menu **gazl → Chuyển schedule_access sang

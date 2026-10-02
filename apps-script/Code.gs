@@ -104,8 +104,9 @@ var SHEETS = {
    *  `access` (menu gazl -> Chuyển schedule_access sang access). */
   schedule_access:     ['email', 'name', 'note', 'granted_at'],
 
-  /** Who may be handed which sealed surface's key. One row per (email,
-   *  scope); scope is one of ACCESS_SCOPES, or `*` for all of them. Edit by
+  /** Who may be handed which sealed surface's key. One row per person;
+   *  `scope` lists ACCESS_SCOPES separated by commas ("schedule, interviews"),
+   *  or `*` for all of them. Edit by
    *  hand, exactly like setting a role in `profiles`. The keys themselves are
    *  NOT here — they are Script Properties (KEY_<SCOPE>), because a Sheet cell
    *  is the thing most likely to be shared by accident. */
@@ -119,6 +120,11 @@ var SHEETS = {
    hand anyone. */
 var ACCESS_SCOPES = ['schedule', 'interviews', 'fshare', 'x'];
 function scopeProperty(scope) { return 'KEY_' + String(scope).toUpperCase(); }
+
+/** The scopes one `access` cell grants: "schedule, interviews" -> both. */
+function scopesOf(cell) {
+  return trim(cell).toLowerCase().split(/[\s,;]+/).filter(function (s) { return s; });
+}
 
 /**
  * A menu in the Spreadsheet itself.
@@ -181,7 +187,10 @@ function checkScopeKeys() {
 function migrateScheduleAccess() {
   var legacy = table('schedule_access').read();
   var target = table('access');
-  var have = target.read().map(function (r) { return trim(r.email).toLowerCase() + '|' + trim(r.scope); });
+  var have = [];
+  target.read().forEach(function (r) {
+    scopesOf(r.scope).forEach(function (scope) { have.push(trim(r.email).toLowerCase() + '|' + scope); });
+  });
   var rows = [];
   legacy.forEach(function (r) {
     var email = trim(r.email).toLowerCase();
@@ -1031,8 +1040,8 @@ function hasAccess(user, scope) {
   if (!email) return false;
   var rows = table('access').read();
   for (var i = 0; i < rows.length; i++) {
-    var rowScope = trim(rows[i].scope).toLowerCase();
-    if (trim(rows[i].email).toLowerCase() === email && (rowScope === scope || rowScope === '*')) return true;
+    var granted = scopesOf(rows[i].scope);
+    if (trim(rows[i].email).toLowerCase() === email && (granted.indexOf(scope) >= 0 || granted.indexOf('*') >= 0)) return true;
   }
   if (scope !== 'schedule') return false;
   var legacy = table('schedule_access').read();
