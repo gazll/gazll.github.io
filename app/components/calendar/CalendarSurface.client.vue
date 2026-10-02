@@ -12,14 +12,16 @@
    and the KEY is the gate — never sign-in on its own, which would buy no
    privacy over ciphertext while locking you out whenever Google is
    unreachable. There are two ways to hold that key: type the passphrase, or
-   sign in with an account the owner listed in the schedule_access sheet and
-   let the backend hand it over. A backend-delivered key is used and dropped,
-   never stored, so deleting the row actually takes access away. */
+   sign in with an account granted scope `schedule` in the `access` sheet and
+   let the backend hand over that scope's key (lib/site-keys.js). A
+   backend-delivered key is used and dropped, never stored, so deleting the
+   row actually takes access away. */
 
 import { canChiDay, canChiMonth, canChiYear, lunarMonthName, solarToLunar } from '../../../public/lib/lunar.js';
 import { holidayMap, isDayOff, lunarMarker, shiftDays } from '../../../public/lib/vn-holidays.js';
 import { agenda, diffDays, localized, occurrenceMap, todayISO } from '../../../public/lib/schedule.js';
-import { isEnvelope, KEY_STORE, MAX_ENVELOPE_JSON_CHARS, unseal } from '../../../public/lib/schedule-crypto.js';
+import { isEnvelope, MAX_ENVELOPE_JSON_CHARS, unseal } from '../../../public/lib/schedule-crypto.js';
+import { forgetSecret, grantedKey, rememberSecret, scopeKey, storedSecret } from '../../../public/lib/site-keys.js';
 import { checklistRows, endingSoon, groupedItems, itemRows } from '../../../public/lib/inventory.js';
 import { copyText } from '../../../public/lib/clipboard.js';
 
@@ -588,12 +590,9 @@ async function unlock() {
   unlocking.value = true;
   unlockError.value = '';
   try {
-    await openSealed(passphrase.value);
-    /* Session by default, device only when asked — the same promise search
-       history makes, and for the same reason: a borrowed browser must not
-       keep the key to someone else's reminders. */
-    const store = remember.value ? localStorage : sessionStorage;
-    try { store.setItem(KEY_STORE, passphrase.value); } catch (error) { /* private mode */ }
+    // The master passphrase, or the schedule's own key — site-keys decides which.
+    await openSealed(await scopeKey(passphrase.value, 'schedule'));
+    rememberSecret(passphrase.value, remember.value);
     passphrase.value = '';
   } catch (error: any) {
     unlockError.value = error?.message || String(error);
@@ -620,7 +619,7 @@ function lock() {
   showPassphrase.value = false;
   hint.value = '';
   hintShown.value = false;
-  try { sessionStorage.removeItem(KEY_STORE); localStorage.removeItem(KEY_STORE); } catch (error) { /* private mode */ }
+  forgetSecret();
 }
 
 /**
@@ -634,16 +633,15 @@ function lock() {
 async function tryBackendKey() {
   if (!locked.value || !nuxtApp.$auth?.token) return;
   try {
-    const data = await callBackend('schedule.key');
-    if (data?.key) await openSealed(data.key);
+    const key = await grantedKey(nuxtApp.$apiCall, nuxtApp.$auth.token, 'schedule');
+    if (key) await openSealed(await scopeKey(key, 'schedule'));
   } catch (error) { /* not granted, or no key configured: the passphrase box stays */ }
 }
 
 async function restore() {
-  let stored = '';
-  try { stored = sessionStorage.getItem(KEY_STORE) || localStorage.getItem(KEY_STORE) || ''; } catch (error) { return; }
+  const stored = storedSecret();
   if (!stored) return;
-  try { await openSealed(stored); } catch (error) { /* stale key or no file: stay locked */ }
+  try { await openSealed(await scopeKey(stored, 'schedule')); } catch (error) { /* stale key or no file: stay locked */ }
 }
 
 /* ---------- checklists ---------- */

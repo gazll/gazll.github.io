@@ -37,10 +37,10 @@ quy, không phải một lần probe root.
 Repo này là user-pages nên public; mọi thứ dưới `public/data/` trả lời một
 `GET` thường. Danh sách link cộng đồng không thuộc về nơi
 đó ở dạng plaintext, nên file duy nhất được commit là ciphertext — cùng cơ
-chế và **cùng passphrase** với lịch riêng (`docs/schedule-playbook.md`).
-Passphrase lấy theo thứ tự: `GAZLL_KEY` (tên cũ `GAZLL_SCHEDULE_KEY` vẫn đọc) → `secret/app.key` →
-hỏi trên terminal. Hệ quả cần biết: ai được cấp `schedule_access` để mở lịch
-thì cũng mở được catalog phim.
+chế với lịch riêng, nhưng **key riêng**: scope `fshare` (X là scope `x`),
+lấy từ keyring bằng passphrase chủ (`docs/keys-playbook.md`). Hai scope này
+cố ý **chỉ chủ**: không có `KEY_FSHARE`/`KEY_X` trên backend, nên được cấp
+lịch không mở được catalog phim.
 
 Raw và catalog tách nhau vì chúng khác vòng đời. Raw là thứ cộng đồng chia sẻ,
 không bao giờ sửa, và **xoá được sau khi `build`** — catalog đã giữ mọi link,

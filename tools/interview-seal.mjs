@@ -9,8 +9,9 @@
    Company entries written from someone's own job search — which companies,
    which postings, what was asked — are personal, but a Google Sheet is the
    wrong home for them: a Sheet is what gets shared by accident. They ship the
-   way the reminder list does, as an envelope under the same passphrase
-   (tools/passphrase.mjs), so a schedule_access grant opens them too.
+   way the reminder list does, as an envelope under the `interviews` scope
+   key (tools/keyring.mjs): the master opens it, and only an `access` row for
+   that scope hands it to anyone else.
 
    The plaintext lives in gitignored secret/, so `unseal` is the recovery path
    and `git log` on the envelope is the history. Like schedule-seal, this is
@@ -22,6 +23,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { isEnvelope, seal, unseal } from '../public/lib/schedule-crypto.js';
 import { passphrase } from './passphrase.mjs';
+import { scopeKey } from './keyring.mjs';
 import { hintLeaks } from './schedule-seal.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
@@ -79,8 +81,9 @@ async function main() {
     const problems = validate(document);
     if (problems.length) die(`${problems.length} problem(s):\n  ${problems.join('\n  ')}`);
     if (command === 'validate') return out(`${rel(PLAIN)} is valid — ${document.companies.length} entr(ies). Not sealed.`);
-    const key = await passphrase();
-    const leak = hintLeaks(document.hint, key);
+    const key = await scopeKey('interviews');
+    // The hint is a cue for the master passphrase — the thing a person types.
+    const leak = hintLeaks(document.hint, await passphrase());
     if (leak) die(`The hint contains "${leak}", which is also in the passphrase — the hint is published in the clear.`);
     await writeJson(SEALED, await seal(document, key, { hint: document.hint }));
     return out(`Sealed ${document.companies.length} entr(ies) into ${rel(SEALED)}. Commit it.`);
@@ -89,7 +92,7 @@ async function main() {
   if (!existsSync(SEALED)) die(`${rel(SEALED)} not found.`);
   const envelope = await readJson(SEALED);
   if (!isEnvelope(envelope)) die('That file is not a sealed envelope.');
-  const opened = await unseal(envelope, await passphrase());
+  const opened = await unseal(envelope, await scopeKey('interviews'));
 
   if (command === 'unseal') {
     if (existsSync(PLAIN) && !force) die(`${rel(PLAIN)} exists — pass --force to overwrite it.`);

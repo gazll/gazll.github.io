@@ -1,13 +1,12 @@
-/* The one site key: one passphrase seals every envelope under public/data/.
+/* The master passphrase: the one secret a person remembers.
 
    Env, then secret/app.key, then ask. The key file is a convenience for the
    machine that edits the content, and it is safe only because `secret/` is
    gitignored and readable by its owner alone — it is still a credential on
-   disk, so it is never created implicitly and never echoed back. Every
-   envelope (schedule, private Gazl Try entries, movie and X catalogs) shares
-   it on purpose: one passphrase in the password manager, one
-   `schedule_access` grant on the backend. The cost is that anyone granted
-   one can open them all. `tools/rekey.mjs` rotates it across all of them. */
+   disk, so it is never created implicitly and never echoed back. The master
+   seals only the keyring (tools/keyring.mjs); every envelope is sealed with
+   its scope's own key from it, so a grant to one surface opens that surface
+   alone. `tools/rekey.mjs` rotates the master. docs/keys-playbook.md. */
 
 import { chmodSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';

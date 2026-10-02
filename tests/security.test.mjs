@@ -5,6 +5,7 @@ import test from 'node:test';
 import vm from 'node:vm';
 
 import { isEnvelope, seal, unseal } from '../public/lib/schedule-crypto.js';
+import { scopeKey } from '../public/lib/site-keys.js';
 import { renderMarkdown } from '../public/lib/markdown.js';
 import { safeJsonLd } from '../app/utils/safe-jsonld.js';
 
@@ -23,6 +24,23 @@ async function loadBackend() {
   new vm.Script(source, { filename: 'apps-script/Code.gs' }).runInContext(context);
   return context;
 }
+
+test('a scope key opens its own surface only; the master opens every one', async () => {
+  const keys = { schedule: 'schedule-scope-key-0001', fshare: 'fshare-scope-key-00002' };
+  const keyring = await seal({ version: 1, keys }, 'the master passphrase');
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = async () => new Response(JSON.stringify(keyring));
+  try {
+    const schedule = await seal({ events: [] }, keys.schedule);
+    const fshare = await seal({ links: [] }, keys.fshare);
+    // The owner types the master once; the keyring yields each scope key.
+    await unseal(schedule, await scopeKey('the master passphrase', 'schedule'));
+    await unseal(fshare, await scopeKey('the master passphrase', 'fshare'));
+    // A family member handed the schedule key cannot open the movie catalog.
+    await unseal(schedule, await scopeKey(keys.schedule, 'schedule'));
+    await assert.rejects(async () => unseal(fshare, await scopeKey(keys.schedule, 'fshare')), /wrong passphrase/i);
+  } finally { globalThis.fetch = realFetch; }
+});
 
 test('public schedule envelopes reject hostile KDF and binary metadata', async () => {
   const envelope = await seal({ events: [] }, 'a passphrase');

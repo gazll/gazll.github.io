@@ -15,7 +15,8 @@ import {
 } from '../lib/movie-db.js';
 import { X_DB_URL, normalizeXDatabase, searchXLinks, xHaystack } from '../lib/x-db.js';
 import { validateMovieEntries } from '../lib/movie-check.js';
-import { isEnvelope, KEY_STORE, MAX_ENVELOPE_JSON_CHARS, unseal } from '../../lib/schedule-crypto.js';
+import { isEnvelope, MAX_ENVELOPE_JSON_CHARS, unseal } from '../../lib/schedule-crypto.js';
+import { forgetSecret, rememberSecret, scopeKey, storedSecret } from '../../lib/site-keys.js';
 
 const ROW_LIMIT = 150;
 const CATALOG_TYPES = Object.freeze({
@@ -129,10 +130,6 @@ function clearWorkingState() {
   movie.checked = false;
 }
 
-function storedSecret() {
-  try { return sessionStorage.getItem(KEY_STORE) || localStorage.getItem(KEY_STORE) || ''; } catch (error) { return ''; }
-}
-
 function paintTypeSwitch() {
   const config = catalogConfig();
   const isMovieCatalog = movie.catalogType === 'movie';
@@ -207,7 +204,8 @@ async function openSealed(secret, type = movie.catalogType) {
   try { envelope = JSON.parse(text); } catch (error) { throw new Error('The sealed catalog is not valid JSON.'); }
   if (!isEnvelope(envelope)) throw new Error('The published file is not a sealed envelope.');
   await phase('Deriving the key and decrypting…');
-  const opened = await unseal(envelope, secret);
+  // Owner-only scopes: no backend hand-over, the master opens them via the keyring.
+  const opened = await unseal(envelope, await scopeKey(secret, type === 'x' ? 'x' : 'fshare'));
   const database = config.raw ? normalizeXDatabase(opened) : normalizeMovieDatabase(opened);
   // Folded once here, behind the unlock note, so no keystroke pays for it.
   await phase(`Indexing ${number(database.links.length)} links for search…`);
@@ -264,10 +262,8 @@ async function unlock(event) {
   setText('movieUnlockErr', '');
   try {
     await openSealed(secret, movie.catalogType);
-    /* Session by default, device only when asked — the same promise the
-       calendar makes, and the same key, so one unlock serves both pages. */
-    const store = $('movieRemember').checked ? localStorage : sessionStorage;
-    try { store.setItem(KEY_STORE, secret); } catch (error) { /* private mode */ }
+    // One saved slot for every sealed page, session unless asked otherwise.
+    rememberSecret(secret, $('movieRemember').checked);
     input.value = '';
     paintLockState();
     renderResults();
@@ -288,7 +284,7 @@ function lock() {
   movie.category = 'movie';
   setCurrentDatabase('movie', null);
   clearWorkingState();
-  try { sessionStorage.removeItem(KEY_STORE); localStorage.removeItem(KEY_STORE); } catch (error) { /* private mode */ }
+  forgetSecret();
   paintLockState();
   renderControls();
 }

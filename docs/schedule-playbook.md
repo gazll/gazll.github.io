@@ -59,20 +59,9 @@ refuses a hint that shares any run of four characters with the passphrase.
 
 The old hint stayed in four sealed versions in git history, and a public
 repository does not un-publish. If a hint ever carried passphrase characters,
-the honest fix is to **rotate the passphrase** with `node tools/rekey.mjs`
-(or `--generate` for a random one, printed once). It finds every
-`*.enc.json` under `public/data/` — this schedule, the private Gazl Try
-entries, the movie and X catalogs all share the one key — opens them all with
-the old key, refuses a new passphrase under 20 characters, proves each new
-envelope opens, and only then writes them and `secret/app.key`. Then update
-the Apps Script property `SCHEDULE_KEY` (`setScheduleKey`) and commit every
-envelope in one commit. `--same` only re-seals under the current KDF profile.
-
-Rotation protects what is sealed **from now on**. Every earlier envelope stays
-in git history under the passphrase it was sealed with, so keep the old
-passphrase in the password manager as well — it is what opens older commits —
-and choose the new one strong from the start: the ciphertext is attacked
-offline, with no rate limit, forever.
+the honest fix is to rotate: `node tools/keyring.mjs rotate schedule` for
+this file's key, `node tools/rekey.mjs` for the master passphrase — see
+`docs/keys-playbook.md`, which owns the whole key mechanism.
 
 On the page the hint is not shown by default: it costs a fetch of the envelope,
 and a visitor who only wants a calendar should not pay for it. A **Quên
@@ -108,35 +97,11 @@ revoked without re-sealing under a new passphrase and telling everyone the new
 one. Fine for one trusted person; poor as a habit.
 
 **Grant the account instead**, so they never see a passphrase at all: they sign
-in with Google and the page opens itself. Three steps, and the second is the
-same gesture as making someone an admin.
-
-1. **Store the passphrase in Apps Script, once.** Either Extensions → Apps
-   Script → ⚙ Project Settings → Script properties → Add script property
-   (`SCHEDULE_KEY`), or — better — Run → `setScheduleKey`, which asks in a
-   dialog that closes. The second way keeps the passphrase out of a settings
-   field and out of the version history Apps Script retains. It lives in a
-   Script Property rather than a Sheet cell because a Sheet is the thing most
-   likely to be shared by accident. `checkScheduleKey` confirms one is stored
-   without printing it.
-2. **List who may open it.** In the Sheet, the `schedule_access` tab — created
-   by `setup()` — takes one row per person: `email`, `name`, `note`,
-   `granted_at`. The email must be the Google account they sign in with.
-   Anyone with `role = admin` in `profiles` is always allowed, so clearing this
-   sheet cannot lock you out of your own file.
-3. **Redeploy.** Deploy → Manage deployments → New version. Apps Script serves
-   the last deployed version, so nothing changes until you do.
-
-They then open `/calendar`, sign in, and the schedule is simply there. The key
-is used and dropped — never written to storage — so it is fetched fresh on
-every visit.
-
-**Revocation is soft, and it matters that you know why.** The key has to reach
-the browser to decrypt anything, so anyone you have granted could have kept a
-copy. Deleting their row stops the page handing it to them again, which is
-enough for "they no longer work here"; it is not enough for "they must never
-read this again". For that, re-seal under a new passphrase and update
-`SCHEDULE_KEY`.
+in with Google and the page opens itself. The schedule has its own scope key,
+so a grant here opens the schedule and nothing else. The steps — cài
+`KEY_SCHEDULE`, one `access` row with scope `schedule`, redeploy — and why
+revocation is soft are in `docs/keys-playbook.md` § "Chia sẻ một scope qua
+đăng nhập". The key is used and dropped, never written to storage.
 
 Everyone granted sees the whole file — there is no per-member view. The member
 chips filter what is on screen; they are not a permission boundary.

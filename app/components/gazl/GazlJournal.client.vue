@@ -1,15 +1,17 @@
 <script setup lang="ts">
 import { escapeHtml, renderMarkdown } from '~/utils/markdown.js';
 import { mergeJournal, privateRows, seedImport, seedRows } from '../../../public/lib/interview-merge.js';
-import { fetchEnvelope, KEY_STORE, unseal } from '../../../public/lib/schedule-crypto.js';
+import { fetchEnvelope, unseal } from '../../../public/lib/schedule-crypto.js';
+import { forgetSecret, grantedKey, rememberSecret, scopeKey, storedSecret } from '../../../public/lib/site-keys.js';
 
 const props = defineProps<{ seed: any[]; lang: 'en' | 'vi' }>();
 const { $auth, $apiCall } = useNuxtApp() as any;
 
-/* Private entries ship sealed, under the calendar's passphrase and key store:
-   one key in the password manager, one schedule_access grant, and unlocking
-   either page unlocks both. The KEY is the gate, exactly as on /calendar —
-   sign-in only matters as a way to be handed it. */
+/* Private entries ship sealed under their own scope key, `interviews`
+   (tools/keyring.mjs). The owner opens them with the master passphrase — the
+   same one, and the same saved slot, as every other sealed page — and an
+   account granted `interviews` in the `access` sheet is handed that key on
+   sign-in. The KEY is the gate, exactly as on /calendar. */
 const SEALED_URL = '/data/interviews/private.enc.json';
 const sealedCompanies = ref<any[]>([]);
 const sealedAvailable = ref(false);
@@ -63,7 +65,7 @@ const labels = computed(() => props.lang === 'vi' ? {
   deleteConfirm: (name: string) => `Xóa “${name}” và toàn bộ câu hỏi bên dưới?`, deleteFailed: 'Không thể xóa:', saveFailed: 'Không thể lưu:',
   privateBadge: 'Riêng tư', privateMine: 'riêng tư', unlockPrivate: 'Mở mục riêng tư', lockPrivate: 'Khoá mục riêng tư',
   passphrase: 'Passphrase', rememberDevice: 'Nhớ trên thiết bị này', open: 'Mở', opening: 'Đang mở…',
-  privateIntro: 'Các mục theo công ty được mã hoá trong repo, dùng chung passphrase với lịch riêng.'
+  privateIntro: 'Các mục theo công ty được mã hoá trong repo; mở bằng passphrase chủ.'
 } : {
   title: 'Gazl Try — interview journal', intro: 'Interview experiences · preparation playbooks · technically reviewed answers.',
   loading: 'Loading the interview journal…', backendError: 'Could not read from the backend:', backendFallback: ' — showing repository samples instead.',
@@ -92,7 +94,7 @@ const labels = computed(() => props.lang === 'vi' ? {
   deleteConfirm: (name: string) => `Delete “${name}” and every question under it?`, deleteFailed: 'Could not delete:', saveFailed: 'Could not save:',
   privateBadge: 'Private', privateMine: 'private', unlockPrivate: 'Open private entries', lockPrivate: 'Lock private entries',
   passphrase: 'Passphrase', rememberDevice: 'Remember on this device', open: 'Open', opening: 'Opening…',
-  privateIntro: 'Company entries ship encrypted in the repository, under the same passphrase as the private calendar.'
+  privateIntro: 'Company entries ship encrypted in the repository; open them with the master passphrase.'
 });
 const resultLabels = computed(() => labels.value.resultLabels);
 const kindLabels = computed(() => labels.value.kindLabels);
@@ -227,7 +229,7 @@ function safeExternalUrl(value: string) {
 async function openSealed(secret: string) {
   const envelope = await fetchEnvelope(SEALED_URL);
   if (!envelope) { sealedAvailable.value = false; return false; }
-  const document = await unseal(envelope, secret);
+  const document = await unseal(envelope, await scopeKey(secret, 'interviews'));
   sealedCompanies.value = Array.isArray(document.companies) ? document.companies : [];
   await load();
   return true;
@@ -239,9 +241,7 @@ async function unlockPrivate() {
   unlockError.value = '';
   try {
     if (await openSealed(passphrase.value)) {
-      // Session by default, device only when asked — the calendar's promise.
-      const store = remember.value ? localStorage : sessionStorage;
-      try { store.setItem(KEY_STORE, passphrase.value); } catch (error) { /* private mode */ }
+      rememberSecret(passphrase.value, remember.value);
       passphrase.value = '';
       unlockOpen.value = false;
     }
@@ -249,29 +249,28 @@ async function unlockPrivate() {
   finally { unlocking.value = false; }
 }
 
-/* Locking forgets the key everywhere it was kept, so it also locks the
-   calendar — the two pages share one key, and a half-locked browser would be
-   a surprise in the wrong direction. */
+/* Locking forgets the saved key, so the other sealed pages lock too — they
+   share one slot, and a half-locked browser would surprise in the wrong
+   direction. */
 async function lockPrivate() {
   sealedCompanies.value = [];
-  try { sessionStorage.removeItem(KEY_STORE); localStorage.removeItem(KEY_STORE); } catch (error) { /* private mode */ }
+  forgetSecret();
   await load();
 }
 
 async function restoreKey() {
-  let stored = '';
-  try { stored = sessionStorage.getItem(KEY_STORE) || localStorage.getItem(KEY_STORE) || ''; } catch (error) { return; }
+  const stored = storedSecret();
   if (!stored) return;
   try { await openSealed(stored); } catch (error) { /* a stale key: stay locked */ }
 }
 
-/** A granted account is handed the key; it is used and dropped, never stored,
-    so deleting the schedule_access row really takes access away. */
+/** A granted account is handed the scope key; it is used and dropped, never
+    stored, so deleting the `access` row really takes access away. */
 async function tryBackendKey() {
   if (unlocked.value || !$auth.token || !sealedAvailable.value) return;
   try {
-    const data = await $apiCall('schedule.key', {}, $auth.token);
-    if (data?.key) await openSealed(data.key);
+    const key = await grantedKey($apiCall, $auth.token, 'interviews');
+    if (key) await openSealed(key);
   } catch (error) { /* not granted: the passphrase box stays */ }
 }
 

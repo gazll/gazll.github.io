@@ -21,7 +21,7 @@ import { fileURLToPath } from 'node:url';
 import { isEnvelope, seal, unseal } from '../public/lib/schedule-crypto.js';
 import { keywordTokens, linkUrl, titleKey } from '../public/fshare-tool/lib/movie-db.js';
 import { parseRawSource } from './fshare-movie.mjs';
-import { passphrase } from './passphrase.mjs';
+import { scopeKey } from './keyring.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const SECRET_DIR = path.join(ROOT, 'secret', 'fshare-x');
@@ -304,14 +304,14 @@ async function main() {
   if (command === 'seal') {
     const catalog = await loadCatalog();
     const projection = projectXCatalog(catalog);
-    await writeJson(SEALED_FILE, await seal(projection, await passphrase(), { compress: true }));
+    await writeJson(SEALED_FILE, await seal(projection, await scopeKey('x'), { compress: true }));
     return out(`Sealed ${projection.links.length} raw X link(s) into ${rel(SEALED_FILE)}.`);
   }
 
   if (!existsSync(SEALED_FILE)) die(`${rel(SEALED_FILE)} not found.`);
   const envelope = await readJson(SEALED_FILE);
   if (!isEnvelope(envelope)) die('That file is not a sealed envelope.');
-  const opened = await unseal(envelope, await passphrase());
+  const opened = await unseal(envelope, await scopeKey('x'));
   const local = projectXCatalog(await loadCatalog(), opened.sealedAt);
   if (JSON.stringify(local) !== JSON.stringify(opened)) {
     die('secret/fshare-x/catalog.json differs from the sealed envelope — run `seal` and commit.');

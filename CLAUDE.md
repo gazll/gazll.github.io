@@ -89,6 +89,8 @@ public/
     inventory.js     things owned: warranty from purchase, part age from its service log
     schedule-crypto.js  AES-GCM envelope, one module for both the seal tool and the page;
                         `enc: gzip` compresses before sealing (the movie catalog needs it)
+    site-keys.js     which key opens a scope in the browser: master via the keyring, or
+                        the scope key itself; the one saved slot; the backend hand-over
   dsa-player.js       play/pause/step control for DSA animations, loaded by QuestionCard
   fshare-tool/        standalone FShare browser tool. lib/movie-db.js is the movie
                       catalog's data model (pure, shared with tools/fshare-movie.mjs);
@@ -126,16 +128,18 @@ vendor/mermaid-11.16.1/  pinned upstream build; version lives in the directory n
     homelab/         the same shape for NAS / Home Server
     interviews.json     seed entries, merged under everyone's own Sheet rows
     interviews/private.enc.json  the operator's own company entries (JDs, what was
-                         asked), AES-256-GCM under the schedule's passphrase. The
+                         asked), AES-256-GCM under scope key `interviews`. The
                          plaintext is secret/interviews.json; tools/interview-seal.mjs
+    keyring.enc.json    one random key per sealed scope, sealed with the master
+                         passphrase. docs/keys-playbook.md owns the mechanism
     calendar/holidays.json  yearly ministry notices ONLY — compensatory days, make-up
                          Saturdays, which side of 02/09 the second National Day sits.
                          The statutory eleven are computed, never listed here
     schedule/private.enc.json  the private reminder list, AES-256-GCM. The plaintext
                          is secret/schedule.json and is gitignored; see the sealed-
                          schedule rule below and docs/schedule-playbook.md
-    fshare-movie/catalog.enc.json  the movie link catalog, same envelope and same
-                         passphrase; only CHECKED rows, gzipped. The working catalog
+    fshare-movie/catalog.enc.json  the movie link catalog, same envelope, its own
+                         owner-only scope key `fshare`; only CHECKED rows, gzipped. The working catalog
                          and the raw exports are secret/fshare-movie/ — see the
                          movie-catalog rule below and docs/fshare-movie-playbook.md
   assets/case-studies/  local article figures; never hotlinked from a publisher
@@ -157,8 +161,9 @@ tools/               check.mjs (the one entrypoint) · validate-content.mjs · a
                      crawl-thuviencine.mjs · crawl-telegram.mjs — raw-source harvesters
                      for that catalog: they write secret/fshare-movie/raw/ and
                      sources.json only, never touch Fshare or the catalog
-                     passphrase.mjs — the one site key every seal tool shares
-                     rekey.mjs — re-seal every *.enc.json under a new key in one go
+                     passphrase.mjs — resolves the master passphrase (GAZLL_KEY, app.key)
+                     keyring.mjs — scope keys: init · migrate · status · show · rotate
+                     rekey.mjs — rotate the master (re-seals the keyring only)
 DESIGN.md            the visual tokens, and they must agree with public/styles.css
                      (25/25 colours currently match). The contrast FLOOR is owned
                      by tests/a11y.contrast.test.mjs, not by this file
@@ -295,9 +300,9 @@ secret/              GITIGNORED. Personal setup notes and credentials
   `nuxt.config.ts` keeps a 301 — the same promise the retired hash URLs carry.
 
   A third source is **sealed**: `data/interviews/private.enc.json`, the
-  operator's own company entries, under the calendar's passphrase and its
-  `gazll:schedule-key` store — unlocking either page unlocks both, and a
-  `schedule_access` grant opens it through `schedule.key`. They are personal
+  operator's own company entries, under scope key `interviews`: the master
+  passphrase opens it (one saved slot for every sealed page), and only an
+  `access` row for that scope makes `access.key` hand it over. They are personal
   data, and a Sheet is what gets shared by accident, so they are never written
   to one: `privateRows()` marks them `sealed`, and the view offers no
   "Save to journal" for them. Edit `secret/interviews.json`, then
@@ -442,16 +447,23 @@ secret/              GITIGNORED. Personal setup notes and credentials
   `server/api/content/item-index.get.ts` serves that file, and a test asserts
   no view goes back to the raw path.
 
-- **There is one site key, and nothing gets a second one.** Every
-  `*.enc.json` is sealed by `tools/passphrase.mjs` (`GAZLL_KEY`, then
-  `secret/app.key`), every page reads one browser slot (`KEY_STORE`, exported
-  by `lib/schedule-crypto.js` — never re-declared), and the backend holds one
-  Script Property. A new private surface reuses all three. New seals use
-  PBKDF2 at OWASP's 600,000; opening accepts exactly {310000, 600000}, so drop
-  310000 once nothing is left under it. `tools/rekey.mjs` rotates every
-  envelope at once and refuses a key under 20 characters — the ciphertext is
-  public forever, so the attack is offline and unlimited, and rotation cannot
-  reach the copies already in git history. `secret/` is mode 700.
+- **One master passphrase, one key per surface — and a grant is per
+  surface.** The owner remembers one master (`GAZLL_KEY`, else
+  `secret/app.key`); it seals only `data/keyring.enc.json`, which holds a
+  random key per scope (`schedule`, `interviews`, `fshare`, `x` — the list is
+  `SCOPES` in `tools/keyring.mjs`, `lib/site-keys.js` and `ACCESS_SCOPES` in
+  `Code.gs`, and they must agree). Every envelope is sealed with its scope
+  key, so the crypto itself enforces the role: the backend hands a granted
+  account (`access` sheet, email + scope) only `KEY_<SCOPE>`, and a scope
+  with no such property is owner-only. One "same key for everything" was the
+  design until 2026-10-02; it made a calendar grant a catalog grant, and no
+  role sheet can fix that, because whoever holds the key decrypts the file.
+  Pages never re-declare the browser slot (`KEY_STORE`) or the resolution
+  order — both live in `lib/site-keys.js`. New seals use PBKDF2 at OWASP's
+  600,000; opening accepts exactly {310000, 600000}. Rotation cannot reach
+  copies already in git history, so `rekey` refuses a master under 20
+  characters. `GAZLL_KEY` does not belong in GitHub Secrets: CI seals and
+  opens nothing. `docs/keys-playbook.md` is the procedure; `secret/` is 700.
 
 - **The private schedule ships as ciphertext, and the passphrase is the only
   gate.** `gazll.github.io` is a user-pages repository, so it is necessarily
@@ -467,8 +479,8 @@ secret/              GITIGNORED. Personal setup notes and credentials
      `public/config.js`, so `Auth` is `offline` there and the gate would hide
      the panel from the one person entitled to it. There are two ways to hold
      the key and both must keep working: typing the passphrase, and signing in
-     with an account listed in the `schedule_access` sheet, which makes
-     `schedule.key` hand it over (the passphrase itself lives in a Script
+     with an account granted scope `schedule` in the `access` sheet, which
+     makes `access.key` hand over that scope's key (it lives in a Script
      Property, not a Sheet cell, because a Sheet is what gets shared by
      accident). A backend-delivered key is used and **dropped** — writing it to
      storage would outlive the row being deleted and make revocation a lie.
@@ -626,9 +638,9 @@ secret/              GITIGNORED. Personal setup notes and credentials
      died of EPIPE before `saveCatalog`, and `2>&1` hid the trace. After
      an apply, count on disk or `unseal` the envelope — never trust the log.
 
-  It shares the schedule's envelope AND passphrase on purpose (one key in the
-  password manager, one `schedule_access` grant), and the corollary is stated
-  in the playbook: a calendar grant is a catalog grant. The ciphertext ceiling
+  It shares the schedule's envelope format and the master passphrase, but has
+  its own scope key, `fshare` (X: `x`), deliberately owner-only — no
+  `KEY_FSHARE` on the backend, so a calendar grant opens no catalog. The ciphertext ceiling
   in `lib/schedule-crypto.js` is 16MB, raised from 8MB once more: adding
   three Telegram sources on 2026-09-18 took the catalog to 326k links,
   trimmed to what the tab renders (no `remote`, `path`, `keywords`, `id` or
@@ -1481,6 +1493,12 @@ sign-in-every-visit behaviour rather than breaking. The `search.pull` /
 `search.push` / `search.delete` actions and the `search_history` sheet were
 added there — until that redeploy, signed-in search history stays on the
 device and the site behaves exactly as it did before.
+
+The per-scope keys added the `access` sheet, `access.key` and the
+`KEY_<SCOPE>` properties. Until that redeploy the pages fall back to the old
+`schedule.key`, whose `SCHEDULE_KEY` holds the master passphrase — so after
+redeploying, run **gazl → Chuyển schedule_access sang access**, set
+`KEY_SCHEDULE`, and delete `SCHEDULE_KEY` (**Kiểm tra các key** reminds you).
 
 The interview journal since gained six trailing columns —
 `interview_questions.diagrams_json`, `interviews.active_question_set`,

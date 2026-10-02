@@ -56,7 +56,7 @@ import {
   CATALOG_VERSION, CATEGORIES, categoryOf, isAdultContent, STATUSES, extractFshareLinks, linkId, linkUrl, titleKey
 } from '../public/fshare-tool/lib/movie-db.js';
 import { crawlMovieFolder, remoteMetadata } from '../public/fshare-tool/lib/movie-check.js';
-import { passphrase } from './passphrase.mjs';
+import { scopeKey } from './keyring.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const SECRET_DIR = path.join(ROOT, 'secret', 'fshare-movie');
@@ -1338,14 +1338,14 @@ async function main() {
       out(`Warning: ${c.pending} pending · ${c.uncrawled} uncrawled folder(s) · ${c.unverified} unverified dead — sealing ${projection.links.length} checked row(s) with validated: false.`);
       out('The site will show NOT VALIDATED. validate --only pending,uncrawled,unverified closes the gaps; audit lists them per source.');
     }
-    await writeJson(SEALED_FILE, await seal(projection, await passphrase(), { compress: true }));
+    await writeJson(SEALED_FILE, await seal(projection, await scopeKey('fshare'), { compress: true }));
     return out(`Sealed ${projection.links.length} checked link(s) into ${rel(SEALED_FILE)} (validated: ${projection.validated}). Commit it.`);
   }
 
   if (!existsSync(SEALED_FILE)) die(`${rel(SEALED_FILE)} not found.`);
   const envelope = await readJson(SEALED_FILE);
   if (!isEnvelope(envelope)) die('That file is not a sealed envelope.');
-  const opened = await unseal(envelope, await passphrase());
+  const opened = await unseal(envelope, await scopeKey('fshare'));
 
   if (command === 'unseal') {
     const target = path.join(SECRET_DIR, 'catalog.unsealed.json');

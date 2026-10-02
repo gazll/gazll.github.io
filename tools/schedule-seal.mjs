@@ -22,6 +22,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { isEnvelope, seal, unseal } from '../public/lib/schedule-crypto.js';
 import { passphrase } from './passphrase.mjs';
+import { scopeKey } from './keyring.mjs';
 import { CATEGORIES, REPEAT_KINDS, SEVERITIES } from '../public/lib/schedule.js';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
@@ -255,8 +256,9 @@ async function main() {
     const document = await readJson(PLAIN);
     const problems = validate(document);
     if (problems.length) die(`${problems.length} problem(s):\n  ${problems.join('\n  ')}`);
-    const key = await passphrase();
-    const leak = hintLeaks(document.hint, key);
+    const key = await scopeKey('schedule');
+    // The hint is a cue for the master passphrase — the thing a person types.
+    const leak = hintLeaks(document.hint, await passphrase());
     if (leak) die(`The hint contains "${leak}", which is also in the passphrase. The hint is published in the clear beside the ciphertext — it must share no run of ${HINT_RUN} characters with the passphrase. Write a cue only you can follow, not a fragment.`);
     await writeJson(SEALED, await seal(document, key, { hint: document.hint }));
     return out(`Sealed ${document.events.length} event(s) into ${path.relative(ROOT, SEALED)}. Commit it.`);
@@ -265,7 +267,7 @@ async function main() {
   if (!existsSync(SEALED)) die(`${path.relative(ROOT, SEALED)} not found.`);
   const envelope = await readJson(SEALED);
   if (!isEnvelope(envelope)) die('That file is not a sealed envelope.');
-  const opened = await unseal(envelope, await passphrase());
+  const opened = await unseal(envelope, await scopeKey('schedule'));
 
   if (command === 'unseal') {
     if (existsSync(PLAIN) && !force) die(`${path.relative(ROOT, PLAIN)} exists — pass --force to overwrite it.`);
