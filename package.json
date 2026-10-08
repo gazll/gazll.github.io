@@ -20,12 +20,15 @@
     "check": "node tools/check.mjs && nuxt generate"
   },
   "dependencies": {
-    "nuxt": "4.5.2"
+    "nuxt": "4.6.0"
   },
   "devDependencies": {
     "jsdom": "^30.0.1",
     "sharp": "^0.35.3",
     "telegram": "^2.26.22",
     "terser": "^5.50.0"
+  },
+  "overrides": {
+    "simple-git": "^4.0.2"
   }
 }
