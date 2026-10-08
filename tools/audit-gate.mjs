@@ -25,6 +25,12 @@ const ALLOWED = Object.freeze({
     why: 'node-forge <= 1.4.0, no patched version. Reached only via nuxt -> @nuxt/cli -> listhen, '
       + 'which uses it to make the self-signed certificate for `nuxt dev --https`. The prerendered '
       + 'site does not contain it, and nothing here verifies RSA PKCS#1 v1.5 signatures with it.'
+  },
+  'GHSA-vfj7-8cjw-p6xm': {
+    until: '2026-11-01',
+    why: 'braces <= 3.0.3, no patched version published (3.0.3 is the latest). Reached only via nuxt -> '
+      + 'nitropack -> globby -> micromatch, which expands glob patterns the build writes itself; no '
+      + 'request-time input reaches it, so the nested-pattern stack exhaustion is not reachable.'
   }
 });
 
