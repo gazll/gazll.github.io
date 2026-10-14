@@ -1,6 +1,6 @@
 # MD3 redesign — whole site (branch `preview/md3`)
 
-Trạng thái: **ĐANG LÀM** · bắt đầu 2026-10-14 · xoá file này khi branch đã merge
+Trạng thái: **XONG TRÊN BRANCH — chờ chủ kho duyệt merge** · bắt đầu 2026-10-14 · xoá file này khi branch đã merge
 vào `main`, deploy xanh và `DESIGN.md` đã viết lại theo MD3.
 
 Chủ kho chốt (2026-10-14): **full Material Design 3** (không chỉ token), font
@@ -31,8 +31,8 @@ Push `preview/md3` → `preview-build.yml` đẩy bản build lên `build/previe
 - [x] 3 component: button, chip, card, top app bar, drawer, search, dialog, segmented
 - [x] 4 dark mode: bỏ màu viết cứng, nút theme, Mermaid/DSA/code theo token
 - [x] 5 đọc: breakout, progress bar, scrollspy TOC, xem trước link chéo, in ấn
-- [ ] 6 chuyển động: View Transitions, container query, empty/loading/error
-- [ ] 7 dọn: xoá alias, viết lại DESIGN.md, test contrast theo role MD3
+- [x] 6 chuyển động: View Transitions, loading MD3, error-container (container query: chưa cần — ghi trong DESIGN.md)
+- [x] 7 dọn: DESIGN.md viết lại theo MD3; token cũ GIỮ làm lớp app token (quyết định trong DESIGN.md); gỡ cờ hydration; data-ui + ?ui
 
 ## Còn mở
 
