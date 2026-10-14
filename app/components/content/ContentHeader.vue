@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { THEMES, TEXT_SIZES, applyDisplayPrefs, readDisplayPrefs, saveDisplayPrefs } from '~/utils/display-prefs.js';
+
 type TopicRow = { n: number; file: string; topic_type: string; label: string };
 type ReleaseMetadata = { version: string; revision: string; deployed_at: string };
 
@@ -16,6 +18,18 @@ const nuxtApp = useNuxtApp() as any;
 const isAdmin = ref(false);
 const releaseMetadata = ref<ReleaseMetadata | null>(null);
 const releaseChecked = ref(false);
+/* SSR renders the defaults; the stored choice is read on mount, so the first
+   client render matches the server and only then moves. The inline head
+   script has already painted the right theme by that point. */
+const display = reactive({ theme: 'auto', text: 'default' });
+const THEME_LABELS: Record<string, string> = { auto: 'Auto', light: 'Light', dark: 'Dark' };
+const TEXT_LABELS: Record<string, string> = { default: 'A', large: 'A+', larger: 'A++' };
+const TEXT_NAMES: Record<string, string> = { default: 'Default text size', large: 'Large text', larger: 'Larger text' };
+function setDisplay(key: 'theme' | 'text', value: string) {
+  display[key] = value;
+  applyDisplayPrefs(document.documentElement, display);
+  saveDisplayPrefs(display);
+}
 const LANGUAGE_SCROLL_KEY = 'gazll:language-scroll';
 let stopAuth: (() => void) | null = null;
 
@@ -265,6 +279,7 @@ onMounted(() => {
   updateAdmin();
   stopAuth = nuxtApp.$auth?.onChange(updateAdmin) || null;
   void loadReleaseMetadata();
+  Object.assign(display, readDisplayPrefs());
 });
 onBeforeUnmount(() => {
   document.removeEventListener('keydown', onKeydown);
@@ -361,6 +376,22 @@ onBeforeUnmount(() => {
       </section>
     </nav>
     <div class="np-foot">
+      <div class="np-display" role="group" aria-label="Display">
+        <div class="np-display-row">
+          <span id="np-theme-label" class="np-display-label">Theme</span>
+          <div class="md-segmented" role="group" aria-labelledby="np-theme-label">
+            <button v-for="option in THEMES" :key="option" type="button" class="md-segment"
+                    :aria-pressed="display.theme === option" @click="setDisplay('theme', option)">{{ THEME_LABELS[option] }}</button>
+          </div>
+        </div>
+        <div class="np-display-row">
+          <span id="np-text-label" class="np-display-label">Text</span>
+          <div class="md-segmented" role="group" aria-labelledby="np-text-label">
+            <button v-for="option in TEXT_SIZES" :key="option" type="button" class="md-segment"
+                    :aria-pressed="display.text === option" :aria-label="TEXT_NAMES[option]" @click="setDisplay('text', option)">{{ TEXT_LABELS[option] }}</button>
+          </div>
+        </div>
+      </div>
       <NuxtLink class="np-action np-foot-action" :aria-current="route.path === '/release-notes' ? 'page' : undefined" :to="withLang('/release-notes')">
         <svg class="nv-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 3h9l3 3v15H6zM9 11h6M9 15h6" /></svg><span>Release Notes</span>
       </NuxtLink>

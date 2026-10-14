@@ -84,6 +84,12 @@ export default defineNuxtConfig({
         { property: 'og:site_name', content: 'GAZLL' },
         { name: 'twitter:card', content: 'summary' }
       ],
+      // Applies the reader's theme and text size before first paint, so a dark
+      // reader never sees a light flash. Keys match app/utils/display-prefs.js.
+      script: [{
+        tagPosition: 'head',
+        innerHTML: "try{var d=document.documentElement,t=localStorage.getItem('gazll:theme'),s=localStorage.getItem('gazll:text-size');if(t==='light'||t==='dark')d.dataset.theme=t;if(s==='large'||s==='larger')d.dataset.text=s}catch(e){}"
+      }],
       link: [
         { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
         // Fonts are self-hosted (tools/fonts.mjs); the Latin face is on every page.
