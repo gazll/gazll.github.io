@@ -3672,7 +3672,7 @@ header.top{border-bottom:0}
    becomes secondary-container with large corners. ---- */
 .gs-group{display:flex;flex-direction:column;gap:var(--md-sys-spacing-space25)}
 .gs-group :is(h2,h3){margin:var(--md-sys-spacing-space150) var(--md-sys-spacing-space200) var(--md-sys-spacing-space75)}
-.gs-hit{border:0;border-radius:var(--md-sys-shape-corner-extra-small);background:var(--md-sys-color-surface-container-lowest);
+.gs-hit,button.gs-hit,.gs-page-body .gs-hit{margin:0;border:0;border-radius:var(--md-sys-shape-corner-extra-small);background:var(--md-sys-color-surface-container-lowest);
   padding:var(--md-sys-spacing-space150) var(--md-sys-spacing-space200);
   transition:border-radius var(--md-sys-motion-spring-fast-spatial-duration) var(--md-sys-motion-spring-fast-spatial),
     background-color var(--md-sys-motion-spring-fast-effects-duration) var(--md-sys-motion-spring-fast-effects)}
