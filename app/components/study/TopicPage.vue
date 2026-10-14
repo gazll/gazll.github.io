@@ -169,7 +169,7 @@ useHead(() => ({
                 <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m4.5 10 3.3 3.3 7.7-7.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" /></svg>
                 <span>{{ pageLabels.complete }}</span>
               </span>
-              <button id="study-expand-all" data-ui="study-expand-all" class="btn-ghost" type="button" :aria-pressed="expandAll" @click="setAll(!expandAll)">
+              <button id="study-expand-all" data-ui="study-expand-all" class="btn-ghost" type="button" :aria-label="expandAll ? pageLabels.collapseAll : pageLabels.expandAll" :aria-pressed="expandAll" @click="setAll(!expandAll)">
                 <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
                   <path v-if="expandAll" d="m5.5 12.5 4.5-4.5 4.5 4.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
                   <path v-else d="m5.5 7.5 4.5 4.5 4.5-4.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
@@ -188,7 +188,7 @@ useHead(() => ({
         </div>
 
         <nav id="topic-pager" data-ui="topic-pager" class="pager" :aria-label="pageLabels.navigation">
-          <NuxtLink v-if="previous" class="pbtn prev" :to="`/topics/${rowSlug(previous)}?lang=${lang}`">
+          <NuxtLink v-if="previous" class="pbtn prev" :aria-label="pageLabels.previous" :to="`/topics/${rowSlug(previous)}?lang=${lang}`">
             <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m12.5 4.5-5.5 5.5 5.5 5.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
             <span>{{ pageLabels.previous }}</span>
           </NuxtLink>
@@ -197,7 +197,7 @@ useHead(() => ({
             <span>{{ pageLabels.previous }}</span>
           </span>
           <div class="pcenter">{{ pageLabels.topic }} <b>{{ currentIndex + 1 }}</b> / {{ data!.rows.length }}</div>
-          <NuxtLink v-if="next" class="pbtn next" :to="`/topics/${rowSlug(next)}?lang=${lang}`">
+          <NuxtLink v-if="next" class="pbtn next" :aria-label="pageLabels.next" :to="`/topics/${rowSlug(next)}?lang=${lang}`">
             <span>{{ pageLabels.next }}</span>
             <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m7.5 4.5 5.5 5.5-5.5 5.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
           </NuxtLink>
