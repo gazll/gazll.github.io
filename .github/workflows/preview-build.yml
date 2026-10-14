@@ -1,0 +1,54 @@
+name: Preview build
+
+# The NAS this site is edited on cannot run the Nuxt bundler (it segfaults on
+# its 4.4 kernel), so a UI branch is built here and the static output is pushed
+# to `build/<branch>`. `git fetch origin build/<branch>` then gives a real,
+# servable copy of the site to screenshot locally — no artifact token needed.
+on:
+  push:
+    branches: ['preview/**']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: preview-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install Nuxt dependencies
+        run: npm ci --legacy-peer-deps --prefer-offline --no-audit --no-fund
+
+      # Offline config: a preview must not depend on repository secrets.
+      - name: Generate Nuxt static site
+        run: |
+          cp public/config.example.js public/config.js
+          npm run generate
+          node tools/stamp-assets.mjs "${{ github.sha }}" .output/public
+
+      - name: Push the output to build/<branch>
+        env:
+          BRANCH: ${{ github.ref_name }}
+          SHA: ${{ github.sha }}
+        run: |
+          cd .output/public
+          git init -q -b build
+          git config user.name 'preview-build'
+          git config user.email 'preview-build@users.noreply.github.com'
+          touch .nojekyll
+          git add -A
+          git commit -q -m "Preview build of ${BRANCH} at ${SHA}"
+          git push -q -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" "build:refs/heads/build/${BRANCH}"
