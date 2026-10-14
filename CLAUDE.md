@@ -1446,6 +1446,11 @@ operator often goes offline mid-run. Three things follow, learned on
   todo.** Memory is per machine and does not follow the operator to the
   laptop; a todo is deleted when closed. `docs/fshare-movie-playbook.md`
   § "Bài học 2026-09-16 → 17" is the record of that harvest.
+- **A merged branch is deleted, without asking.** Once a branch is merged
+  into `main` and the deploy is confirmed, delete it locally and on origin —
+  and for a `preview/<name>` branch, its `build/preview/<name>` too. The
+  operator asked for this standing rule on 2026-10-14; stale branches were
+  piling up.
 
 ## Before pushing
 
