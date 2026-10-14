@@ -6,6 +6,11 @@ type ReleaseMetadata = { version: string; revision: string; deployed_at: string 
 
 const props = defineProps<{ lang: 'en' | 'vi'; topic?: TopicRow; topics?: TopicRow[]; progressIndex?: any }>();
 const route = useRoute();
+/* GitHub Pages serves /release-notes as /release-notes/, while prerender saw
+   /release-notes: every href or aria-current built from the raw path differed
+   between server and client (NUXT_E1005 on every page). Compare and link with
+   the path the prerender used. */
+const routePath = computed(() => route.path.length > 1 ? route.path.replace(/\/+$/, '') : route.path);
 const drawerOpen = ref(false);
 const topicOpen = ref(false);
 const topicQuery = ref('');
@@ -104,8 +109,8 @@ const routeLabels: Record<string, string> = {
   '/release-notes': 'Release Notes', '/search': 'Search'
 };
 const currentLabel = computed(() => {
-  if (routeLabels[route.path]) return localize(routeLabels[route.path]);
-  const prefix = Object.keys(routeLabels).filter(key => key !== '/' && route.path.startsWith(`${key}/`)).sort((a, b) => b.length - a.length)[0];
+  if (routeLabels[routePath.value]) return localize(routeLabels[routePath.value]);
+  const prefix = Object.keys(routeLabels).filter(key => key !== '/' && routePath.value.startsWith(`${key}/`)).sort((a, b) => b.length - a.length)[0];
   return localize(routeLabels[prefix] || 'Knowledge Base');
 });
 const visibleNavGroups = computed(() => navGroups.map(group => ({
@@ -123,8 +128,8 @@ const filteredTopics = computed(() => {
 const withLang = (path: string) => ({ path, query: props.lang === 'vi' ? { lang: 'vi' } : {} });
 const topicPath = (row: TopicRow) => `/topics/${row.file.split('/').pop()!.replace(/\.json$/, '')}`;
 const isCurrent = (path: string) => path === '/'
-  ? route.path === '/' || route.path.startsWith('/topics/')
-  : route.path === path || route.path.startsWith(`${path}/`);
+  ? routePath.value === '/' || routePath.value.startsWith('/topics/')
+  : routePath.value === path || routePath.value.startsWith(`${path}/`);
 
 function setDrawer(open: boolean) {
   if (open && !drawerOpen.value && import.meta.client) {
@@ -191,7 +196,7 @@ function rememberLanguageScroll(event?: MouseEvent) {
   if (!import.meta.client || (event && (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey))) return;
   try {
     sessionStorage.setItem(LANGUAGE_SCROLL_KEY, JSON.stringify({
-      path: route.path,
+      path: routePath.value,
       lang: props.lang === 'vi' ? 'en' : 'vi',
       y: Math.max(0, Math.round(window.scrollY))
     }));
@@ -203,7 +208,7 @@ function restoreLanguageScroll() {
     const raw = sessionStorage.getItem(LANGUAGE_SCROLL_KEY);
     if (!raw) return;
     const saved = JSON.parse(raw);
-    if (saved?.path !== route.path || saved?.lang !== props.lang || !Number.isFinite(saved.y)) return;
+    if (saved?.path !== routePath.value || saved?.lang !== props.lang || !Number.isFinite(saved.y)) return;
     sessionStorage.removeItem(LANGUAGE_SCROLL_KEY);
     const y = Math.max(0, Number(saved.y));
     if (typeof window.requestAnimationFrame === 'function') window.requestAnimationFrame(() => window.scrollTo(0, y));
@@ -330,7 +335,7 @@ onBeforeUnmount(() => {
         <!-- The denominator is useful only on study pages. Avoid constructing
              the async content-index reader on tools and long-form surfaces. -->
         <ClientOnly v-if="topic"><StudyProgressRing :lang="lang" :index="progressIndex" /></ClientOnly>
-        <NuxtLink id="header-language-switch" class="langswitch hdr-lang" data-ui="language-switch" role="switch" :aria-checked="lang === 'vi'" :aria-label="languageActionLabel" :to="{ path: route.path, query: { ...route.query, lang: lang === 'vi' ? 'en' : 'vi' }, hash: route.hash || undefined }" @click="rememberLanguageScroll">
+        <NuxtLink id="header-language-switch" class="langswitch hdr-lang" data-ui="language-switch" role="switch" :aria-checked="lang === 'vi'" :aria-label="languageActionLabel" :to="{ path: routePath, query: { ...route.query, lang: lang === 'vi' ? 'en' : 'vi' }, hash: route.hash || undefined }" @click="rememberLanguageScroll">
           <span class="lang-label" data-lang="en">EN</span>
           <span class="lang-track" aria-hidden="true"><span class="lang-knob"><ContentFlagIcon :lang="lang" /></span></span>
           <span class="lang-label" data-lang="vi">VI</span>
@@ -392,7 +397,7 @@ onBeforeUnmount(() => {
           </div>
         </div>
       </div>
-      <NuxtLink class="np-action np-foot-action" :aria-current="route.path === '/release-notes' ? 'page' : undefined" :to="withLang('/release-notes')">
+      <NuxtLink class="np-action np-foot-action" :aria-current="routePath === '/release-notes' ? 'page' : undefined" :to="withLang('/release-notes')">
         <svg class="nv-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 3h9l3 3v15H6zM9 11h6M9 15h6" /></svg><span>Release Notes</span>
       </NuxtLink>
       <p class="np-foot-release" aria-live="polite">

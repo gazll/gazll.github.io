@@ -299,7 +299,7 @@ import { pathToFileURL } from 'node:url';
     assert.match(header, /languageActionLabel/);
     assert.match(header, /topicQuery\.value = ''/,
       'closing the topic picker should clear a stale filter');
-    assert.match(header, /aria-current="route\.path === '\/release-notes' \? 'page' : undefined"/);
+    assert.match(header, /aria-current="routePath === '\/release-notes' \? 'page' : undefined"/);
     assert.match(header, /sessionStorage\.setItem\(LANGUAGE_SCROLL_KEY/,
       'language changes should preserve the reader viewport');
   });
@@ -307,7 +307,7 @@ import { pathToFileURL } from 'node:url';
   test('search overlay keeps the see-all action in its top search panel', async () => {
     const overlay = await read('app/components/search/SearchOverlay.client.vue');
 
-    assert.match(overlay, /<div class="gs-box">[\s\S]*?<button[^>]*class="gs-more"[\s\S]*?<\/button>[\s\S]*?<\/div>\s*<div class="gs-body">/);
+    assert.match(overlay, /<div[^>]*class="gs-box">[\s\S]*?<button[^>]*class="gs-more"[\s\S]*?<\/button>[\s\S]*?<\/div>\s*<div[^>]*class="gs-body">/);
     assert.match(overlay, /role="combobox"/);
     assert.match(overlay, /aria-activedescendant/);
     assert.match(overlay, /role="listbox"/);
