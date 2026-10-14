@@ -3672,5 +3672,5 @@ html.ui-labels [data-ui].ui-label-active{outline:2px solid var(--md-sys-color-te
   font:500 var(--md-sys-typescale-label-medium-size)/1.4 var(--md-ref-typeface-mono)}
 .ui-label{transform:translateY(-100%)}
 .ui-label.inside{transform:none}
-.ui-label-hint{right:12px;bottom:12px;opacity:.9}
+.ui-label-hint{right:12px;bottom:12px;opacity:.9;white-space:normal;max-width:calc(100vw - 24px)}
 @media print{.ui-label,.ui-label-hint{display:none}}
