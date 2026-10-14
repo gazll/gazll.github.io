@@ -1,4 +1,4 @@
-# MD3 redesign — whole site (branch `preview/md3`)
+# M3 Expressive redesign — whole site (branch `preview/md3`)
 
 Trạng thái: **XONG TRÊN BRANCH — chờ chủ kho duyệt merge** · bắt đầu 2026-10-14 · xoá file này khi branch đã merge
 vào `main`, deploy xanh và `DESIGN.md` đã viết lại theo MD3.
@@ -39,3 +39,4 @@ Push `preview/md3` → `preview-build.yml` đẩy bản build lên `build/previe
 - [x] Hydration mismatch `NUXT_E1005`: href/aria-current dựng từ route.path có dấu / cuối trên Pages — sửa bằng routePath (9016ca6).
 - Không dùng `@layer`: CSS của fshare-tool/course-registration không layer, sẽ thắng mọi xung đột và token `:root` của chúng đè lên header.
 - [x] Vòng rà soát 2: bỏ 516 khai báo bị ghi đè (ảnh 72 shot giống từng byte) + class chết; zoom sơ đồ 44px trên mobile; `:target` đánh dấu thẻ khi mở link sâu; corner `<th>` rỗng → `td.corner`; code cuộn ngang focus được; tên cho nút icon-only trên mobile; listbox search; "offline" lặp; nút EN/VI tràn 3px. Axe sạch 12 route × 2 theme + drawer/search/thẻ mở ở 390px.
+- [x] Vòng 3 — chuyển sang **M3 Expressive** (chủ kho chốt 2026-10-14: "apply full md3 của google"): màu spec 2025, shape morph, spring motion (bảng chuyển đổi web của Material), spacing 8px (I/O 2026), drawer → navigation rail mở rộng dạng modal, segmented → connected button group, pager → floating toolbar, menu/list Expressive, loading indicator đổi hình. Token lấy từ `androidx.compose.material3.tokens` (Material Web không có bản Expressive). Sửa kèm: drawer không đánh dấu trang hiện tại (aria-current "page" vs "true"); nút EN/VI trên thẻ tràn mép ở 390px.
