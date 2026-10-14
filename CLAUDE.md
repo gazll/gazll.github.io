@@ -1123,16 +1123,17 @@ secret/              GITIGNORED. Personal setup notes and credentials
   full-bleed, so anchoring there parks the panel on the window edge while the
   rest of the page stays centred.
 
-- **A standalone tool's tokens live on its mount surface, not only on
-  `:root`.** Inside the Nuxt shell the tool is a `div`; the site's own
-  `:root` is later in the cascade and wins for every name both sheets
-  define — `--surface`, `--muted`, `--radius`, `--shadow` — so the Fshare
-  tool ran with a dark `--bg` beside a white `--surface`, and a heading set in
-  `var(--text)` was invisible. Both tools now declare their tokens on
-  `:root, .static-tool-surface` (and the light variant on
-  `body.light .static-tool-surface`) and paint `background`/`color` on the
-  surface, because `body` is the site's. `:root` stays for the shell opened
-  directly.
+- **A standalone tool's tokens live on its mount surface, and they are
+  aliases onto the site's MD3 roles.** Inside the Nuxt shell the tool is a
+  `div` under the site's own stylesheet. Both tools once shipped their own
+  palettes on `:root`, which overwrote the site's `--surface`, `--muted`,
+  `--line` and `--shadow` and left the Fshare tool with its own dark/light
+  toggle beside the site's Theme switch. Their tokens are now declared on
+  `.static-tool-surface` only, each one a `var(--md-sys-…)` / `--md-custom-…`
+  role, so light and dark come with the site's theme and the tools carry no
+  switch of their own. Never put a hex value or a `:root` block back in a
+  tool stylesheet. The Fshare tool's reset is `:where(.static-tool-surface) *`
+  so it cannot outrank the tool's own `td`/`th` padding.
 
 - **`.headright` is sized by its content, never by a flex basis.** A basis of
   470px fit the library pages and was 120px short on every topic page, where

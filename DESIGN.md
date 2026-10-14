@@ -244,8 +244,13 @@ shared link marks its card with `:target`, never a script-set class.
   onto system roles and carry this site's semantics. New rules may use either;
   the app tokens are a deliberate layer, not debt.
 - **No `@layer`.** The standalone tools' stylesheets are unlayered; layering
-  the site would let them win every conflict and their `:root` tokens repaint
-  the shared header.
+  the site would let them win every conflict.
+- **The Tools follow the same roles.** `/fshare-tool` and
+  `/course-registration` declare their own token names on
+  `.static-tool-surface` only, each aliased onto a system or custom role, so
+  they switch with the site's Theme. The Fshare tool's interactive accent is
+  primary and its folders keep amber as `--md-custom-brass`; course
+  registration's warnings use brass, its success teal.
 - **No Material Web components.** `@material/web` is in maintenance mode, has
   no Expressive build, and ships custom elements that fight SSR; Expressive is
   implemented in plain CSS.
