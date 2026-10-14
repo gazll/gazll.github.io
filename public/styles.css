@@ -1878,9 +1878,9 @@
 
   .gs-body{flex:1 1 auto;overflow-y:auto;scrollbar-width:thin;padding:8px}
   .gs-group{margin-bottom:6px}
-  .gs-group h3{display:flex;align-items:center;gap:8px;margin:8px 8px 4px;font-family:var(--md-ref-typeface-plain);
+  .gs-group :is(h2,h3){display:flex;align-items:center;gap:8px;margin:8px 8px 4px;font-family:var(--md-ref-typeface-plain);
     font-size:var(--md-sys-typescale-label-small-size);font-weight:600;letter-spacing:0.5px;text-transform:none;color:var(--muted)}
-  .gs-group h3 span{color:var(--muted)}
+  .gs-group :is(h2,h3) span{color:var(--muted)}
   .gs-clear{margin-left:auto;cursor:pointer;font:inherit;font-family:var(--md-ref-typeface-plain);font-size:var(--md-sys-typescale-label-small-size);
     letter-spacing:0.5px;text-transform:none;color:var(--clay);border:0;background:none;padding:2px 4px}
   .gs-clear:hover{text-decoration:underline}

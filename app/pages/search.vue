@@ -129,14 +129,14 @@ useHead(() => ({
           </button>
         </div>
         <div id="search-page-results" data-ui="search-page-results" class="gs-page-body">
-          <section v-if="!query && recent.length" class="gs-group gs-history"><h3>{{ labels.recent }} <button type="button" class="gs-clear" @click="nuxtApp.$searchHistory?.clear()">{{ labels.clear }}</button></h3><div v-for="entry in recent" :key="entry.q" class="gs-recent-row"><button type="button" class="gs-recent" @click="query = entry.q">{{ entry.q }}</button><button type="button" class="gs-forget" :aria-label="`${labels.remove}: ${entry.q}`" @click="nuxtApp.$searchHistory?.remove(entry.q)">×</button></div></section>
+          <section v-if="!query && recent.length" class="gs-group gs-history"><h2>{{ labels.recent }} <button type="button" class="gs-clear" @click="nuxtApp.$searchHistory?.clear()">{{ labels.clear }}</button></h2><div v-for="entry in recent" :key="entry.q" class="gs-recent-row"><button type="button" class="gs-recent" @click="query = entry.q">{{ entry.q }}</button><button type="button" class="gs-forget" :aria-label="`${labels.remove}: ${entry.q}`" @click="nuxtApp.$searchHistory?.remove(entry.q)">×</button></div></section>
           <p v-else-if="!query" class="gs-empty">{{ labels.start }}</p>
           <p v-else-if="indexFailed" class="gs-empty" role="alert">{{ labels.indexFailed }}</p>
           <p v-else-if="indexLoading" class="gs-empty" role="status">{{ labels.loadingIndex }}</p>
           <p v-else-if="!results.length" class="gs-empty">{{ labels.noResult.replace('{query}', query) }}</p>
           <p v-else class="gs-count">{{ results.length }} {{ results.length === 1 ? labels.result : labels.results }}{{ surface === 'all' ? '' : ` ${labels.in} ${surfaceLabels[surface]}` }} {{ labels.for }} <b>{{ query }}</b></p>
           <section v-for="([resultSurface, rows]) in groupedResults" :key="resultSurface" class="gs-group">
-            <h3>{{ surfaceLabels[resultSurface] }} <span>{{ rows.length }}</span></h3>
+            <h2>{{ surfaceLabels[resultSurface] }} <span>{{ rows.length }}</span></h2>
             <NuxtLink v-for="result in rows" :key="result.id" class="gs-hit" :to="resultRoute(result.href)" @click="followResult">
               <span class="gs-hit-badge">{{ surfaceBadges[result.surface] }}</span>
               <span class="gs-hit-main">
