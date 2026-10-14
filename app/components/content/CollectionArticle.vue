@@ -18,7 +18,7 @@ const copy = computed(() => data.value.row.metadata[lang.value] || data.value.ro
 const guide = computed(() => (lang.value === 'vi' && data.value.vi ? data.value.vi : data.value.en).guide || {});
 const body = computed(() => lang.value === 'vi' ? data.value.viBody : data.value.enBody);
 const decoratedBody = computed(() => body.value.replace(/<h([23])\b([^>]*\bid=["']([^"']+)["'][^>]*)>([\s\S]*?)<\/h\1>/gi,
-  (_match: string, level: string, attrs: string, id: string, label: string) => `<h${level}${attrs}><a class="md-heading-anchor" href="#${encodeURIComponent(id)}" aria-label="${lang.value === 'vi' ? 'Liên kết đến mục này' : 'Link to this section'}">${label}</a></h${level}>`));
+  (_match: string, level: string, attrs: string, id: string, label: string) => `<h${level}${attrs}><a class="md-heading-anchor" href="#${encodeURIComponent(id)}" title="${lang.value === 'vi' ? 'Liên kết đến mục này' : 'Link to this section'}">${label}</a></h${level}>`));
 const decoratedBodyWithReviews = computed(() => decorateReviewQuestions(decoratedBody.value));
 const dates = computed(() => contentDateFacts(data.value.row, lang.value, { includePublished: true }));
 const categoryLabel = computed(() => {

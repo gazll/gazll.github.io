@@ -31,7 +31,7 @@ export function renderMarkdown(md, options) {
       const target = resolveRef(id);
       const href = target && String(target.href || '');
       return target && INTERNAL_HREF.test(href)
-        ? '(<a class="xref" href="' + escapeHtml(href) + '" title="' + escapeHtml(id) + '">&#8594; ' + escapeHtml(target.label) + '</a>)'
+        ? '(<a class="xref" href="' + escapeHtml(href) + '" title="' + escapeHtml(target.title || id) + '">&#8594; ' + escapeHtml(target.label) + '</a>)'
         : whole;
     });
   }
@@ -90,7 +90,8 @@ export function renderMarkdown(md, options) {
       while (i < lines.length && !/^```\s*$/.test(lines[i].trim())) { buf.push(lines[i]); i++; }
       if (i < lines.length) i++;
       const language = fence[1] ? ' class="language-' + escapeHtml(fence[1]) + '"' : '';
-      html += '<pre><code' + language + '>' + escapeHtml(buf.join('\n')) + '</code></pre>';
+      // Focusable because a phone scrolls it sideways, and the keyboard must too.
+      html += '<pre tabindex="0"><code' + language + '>' + escapeHtml(buf.join('\n')) + '</code></pre>';
       continue;
     }
 
@@ -104,7 +105,7 @@ export function renderMarkdown(md, options) {
       const linkLabel = options?.headingLinkLabel || 'Link to this section';
       html += '<h' + level + ' id="' + escapeHtml(id) + '"><a class="md-heading-anchor" data-anchor-link data-anchor-id="'
         + escapeHtml(id) + '"' + (route ? ' data-anchor-route="' + escapeHtml(route) + '"' : '')
-        + ' href="' + escapeHtml(href) + '" aria-label="' + escapeHtml(linkLabel) + '">' + inlineMd(label)
+        + ' href="' + escapeHtml(href) + '" title="' + escapeHtml(linkLabel) + '">' + inlineMd(label)
         + '</a></h' + level + '>';
       i++;
       continue;
@@ -141,7 +142,11 @@ export function renderMarkdown(md, options) {
       const raw = buf.join('\n');
       // Table cells cite items too. <pre> and <svg> are excluded: there the id
       // is sample text or diagram content, and an <a> would be wrong markup.
-      html += /<(?:pre|svg)\b/.test(raw) ? raw : linkRefs(raw);
+      // An empty corner <th> heads nothing, and screen readers announce it as a
+      // blank column header (axe empty-table-header); it is a plain cell.
+      html += /<(?:pre|svg)\b/.test(raw)
+        ? raw.replace(/<pre(?![^>]*\btabindex=)(?=[\s>])/g, '<pre tabindex="0"')
+        : linkRefs(raw.replace(/<th>\s*<\/th>/g, '<td class="corner"></td>'));
       continue;
     }
 

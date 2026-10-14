@@ -34,7 +34,6 @@ onBeforeUnmount(() => { if (announcementTimer) clearTimeout(announcementTimer); 
     :class="{ 'is-reviewed': isReviewed }"
     type="button"
     :aria-pressed="isReviewed"
-    :aria-label="isReviewed ? labels.done : labels.pending"
     :title="isReviewed ? labels.done : labels.pending"
     @click.stop="toggleReviewed"
   >

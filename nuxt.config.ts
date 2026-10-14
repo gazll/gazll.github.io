@@ -48,6 +48,9 @@ function contentRoutes() {
 export default defineNuxtConfig({
   compatibilityDate: '2026-08-20',
   devtools: { enabled: false },
+  // Route changes cross-fade through the View Transition API where the browser
+  // has it; the plugin skips it under prefers-reduced-motion.
+  experimental: { viewTransition: true },
   ssr: true,
   /* Keep the shared stylesheet cacheable across routes instead of copying it
      into every prerendered HTML document. Vite still emits the minified,
@@ -69,8 +72,8 @@ export default defineNuxtConfig({
           "base-uri 'self'",
           "object-src 'none'",
           `script-src 'self' 'unsafe-inline' https://accounts.google.com/gsi/client${__impeccableLiveDev}`,
-          "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com/gsi/style",
-          "font-src 'self' https://fonts.gstatic.com",
+          "style-src 'self' 'unsafe-inline' https://accounts.google.com/gsi/style",
+          "font-src 'self'",
           "img-src 'self' data: https://*.googleusercontent.com",
           `connect-src 'self' https://fshare.annnekkk.com https://accounts.google.com/gsi/ https://script.google.com https://script.googleusercontent.com${__impeccableLiveDev}`,
           "frame-src https://accounts.google.com/gsi/",
@@ -82,11 +85,16 @@ export default defineNuxtConfig({
         { property: 'og:site_name', content: 'GAZLL' },
         { name: 'twitter:card', content: 'summary' }
       ],
+      // Applies the reader's theme and text size before first paint, so a dark
+      // reader never sees a light flash. Keys match app/utils/display-prefs.js.
+      script: [{
+        tagPosition: 'head',
+        innerHTML: "try{var d=document.documentElement,t=localStorage.getItem('gazll:theme'),s=localStorage.getItem('gazll:text-size');if(t==='light'||t==='dark')d.dataset.theme=t;if(s==='large'||s==='larger')d.dataset.text=s}catch(e){}"
+      }],
       link: [
         { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
-        { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
-        { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
-        { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap' },
+        // Fonts are self-hosted (tools/fonts.mjs); the Latin face is on every page.
+        { rel: 'preload', as: 'font', type: 'font/woff2', href: '/fonts/roboto-flex-latin-wght-normal.woff2', crossorigin: '' },
       ]
     }
   },

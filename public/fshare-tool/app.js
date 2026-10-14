@@ -48,20 +48,8 @@ on(EV.SELECTION, () => { paintRows(); renderTray(); renderCacheBadge(); });
 on(EV.HISTORY, () => { renderHistory(); syncPush(); });
 on(EV.CONFIG, () => syncPush());
 
-/* ---------- theme ---------- */
-
-let theme = localStorage.getItem('fsbc-theme') || 'dark';
-
-function applyTheme() {
-  document.body.classList.toggle('light', theme === 'light');
-  $('themeBtn').textContent = theme === 'dark' ? '☀️ Light' : '🌙 Dark';
-}
-
-$('themeBtn').addEventListener('click', () => {
-  theme = theme === 'dark' ? 'light' : 'dark';
-  localStorage.setItem('fsbc-theme', theme);
-  applyTheme();
-});
+/* No theme switch of its own: the tokens are the site's MD3 roles, so the
+   tool follows the Theme choice in the site's navigation rail. */
 
 /* The folder browser, movie index, and bulk crawler are separate working modes
    inside one tool. Keep the tab state explicit so a folder hash never gets
@@ -559,7 +547,6 @@ $('perPageSelect').value = String(S.perPage);
 $('chunkInput').value = String(S.chunkSize);
 $('sortSelect').value = S.sortValue;
 
-applyTheme();
 applyDensity();
 setToolTab('folder');
 setView(S.viewMode);          // booted is still false, so this only paints chrome

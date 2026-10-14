@@ -1,223 +1,278 @@
 ---
-version: alpha
+version: m3-expressive-1
 name: GAZLL
-description: A calm, evidence-led systems lab notebook for bilingual senior backend interview preparation.
+description: A calm, evidence-led systems lab notebook for bilingual senior backend interview preparation, built on Material 3 Expressive.
+system: Material 3 Expressive (May 2025) with the I/O 2026 spacing system
+seed: "#0B6E4F"
+scheme: TonalSpot, colour spec 2025 (custom groups on 2021)
 colors:
-  cool-paper: "#EEF1F6"
-  white-surface: "#FFFFFF"
-  deep-navy-ink: "#14233A"
-  slate-text: "#42536C"
-  quiet-slate: "#626E7F"
-  mist-line: "#DBE1EA"
-  structural-line: "#C6CFDC"
-  engineering-emerald: "#0B6E4F"
-  engineering-emerald-deep: "#085239"
-  emerald-wash: "#E4F1EB"
-  review-clay: "#AE4536"
-  clay-wash: "#F6E8E5"
-  annotation-brass: "#846938"
-  blueprint-indigo: "#3D4E8F"
-  blueprint-wash: "#E7EAF6"
-  systems-teal: "#1C7684"
-  systems-wash: "#E3F1F3"
-  terminal-navy: "#0F1D31"
-  terminal-raised: "#16273F"
-  terminal-text: "#E6ECF5"
-  terminal-muted: "#8A9AB4"
-  terminal-green: "#86D6AC"
-  terminal-blue: "#8DBBEC"
-  terminal-amber: "#E2B871"
-  terminal-clay: "#E69185"
+  light:
+    primary: "#2D6A51"
+    on-primary: "#E6FFF0"
+    primary-container: "#B1F0D1"
+    on-primary-container: "#1D5C44"
+    secondary-container: "#CFE9D9"
+    on-secondary-container: "#40574B"
+    tertiary-container: "#BBF5FD"
+    on-tertiary-container: "#235F66"
+    surface: "#F7FAF5"
+    surface-container-lowest: "#FFFFFF"
+    surface-container-low: "#EFF5EF"
+    surface-container: "#E8F0E9"
+    surface-container-high: "#E2EAE3"
+    on-surface: "#2B352F"
+    on-surface-variant: "#57615B"
+    outline: "#737D77"
+    outline-variant: "#AAB4AD"
+  dark:
+    primary: "#A2D1B9"
+    on-primary: "#1B4836"
+    primary-container: "#2F5B48"
+    on-primary-container: "#BEEED5"
+    secondary-container: "#2A4035"
+    on-secondary-container: "#ACC5B7"
+    surface: "#0B0F0D"
+    surface-container-lowest: "#000000"
+    surface-container-low: "#0F1511"
+    surface-container: "#141B17"
+    surface-container-high: "#1A211D"
+    on-surface: "#DEE8E0"
+    on-surface-variant: "#A3AEA6"
+    outline: "#6E7871"
+    outline-variant: "#404A44"
+  custom-groups: [indigo, teal, clay, brass, violet, slate, rose, steel]
+  terminal: { background: "#0F1D31", raised: "#16273F", text: "#E6ECF5", muted: "#A8B7C9" }
 typography:
-  display:
-    fontFamily: "Space Grotesk, sans-serif"
-    fontSize: "60px"
-    fontWeight: 600
-    lineHeight: 1.05
-    letterSpacing: "-1.4px"
-  headline:
-    fontFamily: "Space Grotesk, sans-serif"
-    fontSize: "30px"
-    fontWeight: 600
-    lineHeight: 1.15
-    letterSpacing: "-0.4px"
-  title:
-    fontFamily: "Space Grotesk, sans-serif"
-    fontSize: "19px"
-    fontWeight: 600
-    lineHeight: 1.25
-  body:
-    fontFamily: "IBM Plex Sans, sans-serif"
-    fontSize: "16px"
-    fontWeight: 400
-    lineHeight: 1.62
-  label:
-    fontFamily: "IBM Plex Mono, monospace"
-    fontSize: "10.5px"
-    fontWeight: 600
-    lineHeight: 1.2
-    letterSpacing: "0.5px"
-rounded:
-  micro: "5px"
-  compact: "7px"
-  control: "9px"
-  card: "10px"
-  surface: "14px"
-  overlay: "16px"
-  full: "999px"
-spacing:
-  micro: "4px"
-  xs: "6px"
-  sm: "8px"
-  md: "12px"
-  lg: "14px"
-  xl: "18px"
-  "2xl": "24px"
-  "3xl": "28px"
-components:
-  button-primary:
-    backgroundColor: "{colors.engineering-emerald}"
-    textColor: "{colors.white-surface}"
-    typography: "{typography.label}"
-    rounded: "{rounded.control}"
-    padding: "7px 14px"
-  button-ghost:
-    backgroundColor: "{colors.white-surface}"
-    textColor: "{colors.slate-text}"
-    typography: "{typography.label}"
-    rounded: "{rounded.compact}"
-    padding: "6px 12px"
-  filter-chip:
-    backgroundColor: "{colors.white-surface}"
-    textColor: "{colors.slate-text}"
-    typography: "{typography.label}"
-    rounded: "{rounded.full}"
-    padding: "4px 10px"
-  question-card:
-    backgroundColor: "{colors.white-surface}"
-    textColor: "{colors.deep-navy-ink}"
-    rounded: "{rounded.card}"
-    padding: "15px 18px"
-  note-input:
-    backgroundColor: "{colors.white-surface}"
-    textColor: "{colors.deep-navy-ink}"
-    typography: "{typography.body}"
-    rounded: "{rounded.control}"
-    padding: "10px 12px"
-  navigation-item:
-    backgroundColor: "{colors.white-surface}"
-    textColor: "{colors.slate-text}"
-    rounded: "{rounded.card}"
-    padding: "9px 10px"
-  search-result:
-    backgroundColor: "{colors.white-surface}"
-    textColor: "{colors.deep-navy-ink}"
-    rounded: "{rounded.control}"
-    padding: "12px 14px"
-  calendar-day:
-    backgroundColor: "{colors.white-surface}"
-    textColor: "{colors.deep-navy-ink}"
-    rounded: "{rounded.compact}"
-    padding: "8px"
+  brand: "Roboto Flex (variable, self-hosted)"
+  plain: "Roboto Flex (variable, self-hosted)"
+  mono: "Roboto Mono (variable, self-hosted) — code only"
+  scale: "M3 type scale in rem: display L/M/S 57/45/36, headline 32/28/24, title 22/16/14, body 16/14/12, label 14/12/11"
+  emphasized: "500 for display/headline/body/title-large, 700 for labels and title-medium/small"
+  floor: "11px (label-small); nothing smaller"
+shape: { extra-small: 4px, small: 8px, medium: 12px, large: 16px, large-increased: 20px, extra-large: 28px, extra-large-increased: 32px, extra-extra-large: 48px, full: 9999px }
+spacing: "8px scale, space100 = 8px: 0 2 4 6 8 10 12 14 16 20 24 32 36 40 48 56 64 72"
+motion: "expressive spring scheme, as Material's web curves: fast/default/slow spatial 350/500/650ms, effects 150/200/300ms"
+state-layers: { hover: 8%, focus: 10%, pressed: 10%, dragged: 16% }
 ---
 
-# Design System: GAZLL
+# Design System: GAZLL on Material 3 Expressive
 
 ## Overview
 
-**Creative North Star: "The Systems Lab Notebook"**
+**Creative North Star: "The Systems Lab Notebook"** — a calm, rigorous
+workspace where a senior backend engineer collects evidence, rehearses
+explanations and returns to difficult ideas. It reads like an annotated
+technical reference, not a promotional learning product.
 
-GAZLL should feel like **The Systems Lab Notebook**: a calm, rigorous workspace where a senior backend engineer collects evidence, rehearses explanations, and returns to difficult ideas. It is closer to a carefully annotated technical reference than a promotional learning product. The interface should reward depth without becoming heavy, and remain easy to scan during focused study.
+Since 2026-10-14 the notebook is expressed in **Material 3 Expressive** — the
+current Material on m3.material.io: the May 2025 Expressive update (shape
+morphing, the motion physics system, new and replaced components) plus the
+I/O 2026 spacing system. A first pass shipped baseline M3 on the argument
+that Expressive's large shapes and lively motion fight a long-reading surface;
+the owner chose full Expressive instead (2026-10-14). The reading column
+itself keeps its measure and calm — Expressive lives in the controls.
 
-The visual system is built around cool paper, crisp white work surfaces, deep navy text, and restrained engineering accents. Its voice is precise rather than sterile: compact metadata, visible structure, quiet feedback, and enough warmth to make repeated study inviting.
+**Material Web has no Expressive build** (it is in maintenance mode), so
+there is nothing to install: every component here is plain CSS written
+against the Jetpack Compose token files (`androidx.compose.material3.tokens`),
+which are generated from Material's own token source, and against the specs
+on m3.material.io. When the two disagree, the Compose tokens win — they are
+what Google ships.
 
-The calendar-schedule subtool uses the same materials—color, type, controls, focus treatment, and radii—but a denser operational topology. It may use month, year, agenda, rail, and item views without copying the main study page composition. This is **shared materials, different instrument**, not a separate brand.
+`public/styles.css` declares everything here; this file says why. Where the
+two disagree, the CSS is what ships and this file is the bug.
 
-**Key Characteristics:**
+## Colour
 
-- Calm, technical, and evidence-led.
-- Information-rich but deliberately scannable.
-- Precise controls over cool paper and crisp work surfaces.
-- One visual language across study and scheduling tools.
+**One seed, two themes, generated.** `tools/md3-tokens.mjs` derives every
+colour role from the seed `#0B6E4F` with the TonalSpot scheme of
+`@material/material-color-utilities`, on the **2025 colour spec** that
+Expressive ships (on-container roles at tone 30, deeper dark surfaces), and
+writes the block between the
+`md3:generated` markers at the top of `styles.css`. Never edit that block by
+hand; change the seed or the custom list and re-run the tool.
+`tests/a11y.contrast.test.mjs` fails when the block is stale.
 
-## Colors
+- **Roles, not colours.** Rules use `--md-sys-color-*` roles: `surface` is
+  the page, `surface-container-lowest…highest` are tonal steps for cards and
+  sheets, `on-surface` / `on-surface-variant` carry text, `outline-variant`
+  draws dividers and card outlines, `outline` draws control outlines.
+- **Content families are MD3 custom colour groups** — indigo, teal, clay,
+  brass, violet, slate (neutral scheme), rose, steel — each with colour,
+  on-colour, container and on-container in both themes. Topic types and
+  calendar categories set `--g`, `--g-soft` (container) and `--g-on`. They are
+  derived with TonalSpot, not MCU's `customColor()`, whose containers came out
+  neon (teal `#6FF7F6`, brass `#FFE166`). They stay on the **2021** spec:
+  a family accent prints as text on its own container (a pressed chip), and
+  the 2025 accent is too light for that (3.86:1).
+- **Selected follows the component, as Material assigns it.** Pressed chips,
+  the active rail item, the current contents entry and the active search row
+  use `secondary-container`; the selected menu item uses
+  `tertiary-container` (the Expressive menu role); a selected option in a
+  connected button group is `primary`. `primary` is otherwise for the one
+  filled action in a decision area and for links.
+- **The terminal stays dark in both themes.** Code is read on its own surface
+  (`--code-bg`, `--surface-code`); those values are fixed on purpose.
+- **Accent means meaning.** A family colour marks a family; it never decorates.
+  Status is never colour alone — pair it with a label, an icon or a position.
+- **Contrast floor.** Every text role clears WCAG AA 4.5:1 on the surface it is
+  printed on, in light **and** dark; the test resolves aliases and
+  `color-mix()` to check it.
 
-The neutral foundation is Cool Paper (`#EEF1F6`) behind White Surface (`#FFFFFF`). Deep Navy Ink (`#14233A`) carries primary text; Slate Text (`#42536C`) supports secondary copy; Quiet Slate (`#626E7F`) is reserved for metadata that still meets contrast requirements. Mist Line (`#DBE1EA`) and Structural Line (`#C6CFDC`) organize the interface before shadows are considered.
+## Themes and reader choices
 
-Engineering Emerald is the primary interactive and progress color. Blueprint Indigo, Review Clay, Annotation Brass, and Systems Teal identify content families and meaningful states. Each accent should normally appear as dark text or a compact mark over its pale companion wash. Terminal colors are reserved for code and technical diagrams on the dark navy code surface.
-
-**The Accent Means Meaning Rule:** accent colors communicate interaction, completion, status, or a stable content family. Do not use them as arbitrary decoration.
-
-**The Soft Before Solid Rule:** prefer a pale wash for broad areas and reserve saturated fills for primary actions, small selected states, and high-salience markers such as today. Never place long body copy on a saturated accent.
-
-Status must never rely on color alone. Pair color with a label, icon, border, position, or shape. Maintain WCAG AA contrast for text and controls.
+Dark mode follows `prefers-color-scheme` unless the reader picked a theme in
+the drawer (Auto / Light / Dark), which sets `data-theme` on `<html>`. Text
+size (A / A+ / A++) sets `data-text`, which scales the root font size — this
+works because every font size is `rem`. Both are per-device conveniences in
+`localStorage` (`gazll:theme`, `gazll:text-size`, owned by
+`app/utils/display-prefs.js`) and are applied by an inline head script before
+first paint, so a dark reader never sees a light flash. Mermaid reads the roles
+at render time, so diagrams follow the theme too.
 
 ## Typography
 
-The system has three voices. Space Grotesk provides compact, confident hierarchy. IBM Plex Sans carries explanations and long reading. IBM Plex Mono labels metadata, filters, shortcuts, code, and small technical controls.
+Roboto Flex for everything a person reads or operates; Roboto Mono only for
+code. Both are self-hosted (`tools/fonts.mjs` copies the wght-axis subsets for
+latin, latin-ext and vietnamese from `@fontsource-variable`), which also took
+Google Fonts out of the CSP.
 
-**The Three Voices Rule:** use Space Grotesk to orient, IBM Plex Sans to explain, and IBM Plex Mono to annotate. Do not use mono for paragraphs or Space Grotesk for dense answer text.
+- Sizes are the M3 type scale in `rem`. **Emphasized** type is the same size
+  heavier (`--md-sys-typescale-emphasized-*-weight`): selected labels — the
+  current rail item, the selected menu item, the selected option — use it. Labels are `label-*` (medium weight,
+  sentence case, ~0.5px tracking); the old uppercase mono eyebrows are gone.
+- **Nothing below 11px** (`label-small`). Text at 8–10px was the least readable
+  on the site and is not coming back.
+- Long reading uses `--reading-size` / `--reading-leading` (16–17.5px, 1.76):
+  Vietnamese stacks diacritics and needs the extra leading.
 
-The display style scales responsively from `36px` to the `60px` token maximum with a tight `1.05` line height. Headlines use `30px`; component titles use `19px`; body copy starts at `16px` with a generous `1.62` line height. Labels are `10.5px`, usually uppercase, with `0.5px` tracking; do not apply uppercase to translated sentences or user-authored content.
+## Shape, spacing, elevation and motion
 
-**The 600 Is Bold Rule:** the downloaded families make weight 600 the dependable bold UI weight. Avoid synthesized weights. Use 700 only where the loaded Space Grotesk face and hierarchy genuinely require it.
-
-## Layout
-
-The primary shell is capped at `1400px`, with a `24px` desktop gutter and `14px` below `760px`. Reading columns should remain narrower than the shell; wide space belongs to navigation, comparisons, diagrams, and operational tools rather than longer line lengths.
-
-**The One Shell Rule:** header, navigation, and main content share the same horizontal anchors even when their internal grids differ. Alignment should make the interface feel authored before decoration is added.
-
-Use the spacing scale intentionally: `4–8px` inside tightly related controls, `12–18px` inside components, and `24–28px` between sections or distinct groups. Prefer a few stable gaps over one-off values.
-
-**The Shed, Don’t Wrap Rule:** the persistent header remains one row. At `999px`, `760px`, `600px`, and `420px`, remove or relocate lower-priority controls before allowing the header to wrap. Preserve the current task, language, search, and navigation access according to context.
-
-The calendar may use dedicated breakpoints near `1040px`, `900px`, `720px`, and `420px` because its information topology is denser. It should progressively move rails, compress labels, and change views instead of merely shrinking the desktop grid.
-
-## Elevation & Depth
-
-GAZLL is line-first and tonal-first. Most separation comes from paper versus surface, thin structural borders, inset states, and small changes in background tone.
-
-**The Line-First Rule:** add a border or tonal step before adding a shadow. The default surface shadow is subtle (`0 1px 2px rgba(20,35,58,.05), 0 12px 30px -18px rgba(20,35,58,.28)`). Stronger ambient shadows belong only to overlays, modals, active expandable cards, and temporarily raised interactions.
-
-The sticky header may use translucent paper and backdrop blur to preserve context while content moves beneath it. Dark code blocks use Terminal Navy and Terminal Raised as a local depth system; they should not make surrounding cards visually heavier.
-
-Motion is short and functional: approximately `120–180ms` for color, border, opacity, and small transforms. Avoid decorative entrance sequences in study flows. Under `prefers-reduced-motion: reduce`, remove nonessential animation and smooth scrolling.
-
-## Shapes
-
-Corners are moderately rounded and precise, never bubbly. Use `5–7px` for tiny technical elements, `9px` for controls, `10px` for cards and navigation items, `14px` for major surfaces, and `16px` for overlays. Keep the radius consistent among siblings.
-
-**The Purposeful Pill Rule:** `999px` is for tags, filters, statuses, and compact segmented actions only. Content cards, dialogs, text fields, and calendar cells retain visible corners.
-
-Borders are normally `1px`; a `3px` edge may indicate an active topic, question state, or progress category. Icons use simple geometry, consistent stroke weight, and current color. Prefer inline SVG or the existing icon system over emoji.
+- **Shape:** the Expressive scale adds `large-increased` (20),
+  `extra-large-increased` (32) and `extra-extra-large` (48). Buttons, search
+  and the toolbar are `full`; chips and tags `small` (8px); cards `medium`
+  (12px), `large` once opened; menus, lists and the rail edge `large`; the
+  hero, dialogs and the search view `extra-large` (28px).
+- **Shape morphs.** Shape is state in Expressive. A pressed button or icon
+  button squares to `small`, a pressed chip to `extra-small`; a selected
+  option in a connected group goes fully round; a hovered menu or list row
+  widens from `extra-small` to `medium`, a selected one to `medium`/
+  `large`; an opened card grows to `large`. Corners move on the spatial
+  spring, so they bounce slightly into place.
+- **Spacing:** the I/O 2026 system, an 8px scale with `space100` = 8px and the
+  nested units Material defines (`--md-sys-spacing-space0…900`). New padding
+  and gaps read these tokens; Material Web does not have them either (they are
+  Compose-only), so the names follow the spec's `md.sys.measurement.space*`.
+- **Elevation is tone first.** Separate with `surface-container-*` and
+  `outline-variant`; shadows (`--md-sys-elevation-level1…5`) only where MD3
+  lifts something: an open card, a hovered filled button, the pager, dialogs.
+- **State layers:** hover mixes the content colour over the container at 8%,
+  focus and pressed at 10% (`color-mix()`), never `filter: brightness`.
+- **Motion is the physics system, expressive scheme.** Springs, not easing
+  curves: spatial springs (position, size, corners) overshoot and settle,
+  effects springs (colour, opacity) never overshoot; fast for small controls,
+  default for panels (the rail, the search view, an opening card), slow for
+  full screen. CSS has no springs, so the tokens are Material's own web
+  conversion — a `cubic-bezier` plus a duration per spring
+  (`--md-sys-motion-spring-*`). The legacy easing/duration tokens remain for
+  route changes only, which is also what Material keeps them for: the page
+  cross-fades through the View Transition API with the app bar held still. A
+  scroll-driven bar runs under the header. All of it is off under
+  `prefers-reduced-motion`.
 
 ## Components
 
-Primary buttons use the emerald-to-deep-emerald treatment, white text, compact mono labeling, and a `9px` radius. There should usually be one primary action per local decision area. Ghost buttons remain white with a structural border and gain emerald emphasis on hover or focus.
+The shared skin lives in one block at the end of `styles.css` ("M3
+Expressive components"). Layout stays with the surface that owns it. Where
+Expressive retired a component, the site uses its replacement:
 
-Filter chips are compact pills. Their selected state combines an accent or wash with a clear border and semantic text; it is not communicated by color alone. Question cards use a white surface, a structural outline, and a state-colored left edge. Expansion may add the shared ambient shadow, but collapsed lists should stay visually quiet.
+| Retired in Expressive | Used here instead |
+|---|---|
+| navigation drawer | modal expanded navigation rail (`.navpanel`) |
+| segmented button | connected button group (`.md-segmented`) |
+| bottom app bar | floating toolbar (`.pager`) |
+| indeterminate circular progress | loading indicator (`.loading-block`) |
 
-Inputs and note areas use body typography, a near-white resting surface, and a clear emerald focus ring. Search overlays use a `16px` radius, a strong border, and the strongest approved ambient shadow; result rows remain individually navigable and show keyboard focus.
+- **Buttons:** round, small (40px) by default and extra-small (32px) as
+  `.btn-ghost.sm`, 16px side padding; filled (`.btn-primary`, `.pbtn.next`,
+  `.cal-primary`) and outlined (`.btn-ghost`, `.pbtn`). One filled button per
+  decision area. Icon buttons in the app bar are standard: no outline, a
+  state layer, the same press morph.
+- **Connected button group:** options 2px apart, outer corners full, inner
+  corners small; selected = `primary`, round, emphasized label.
+- **Chips:** 32px, 8px corner, outline-variant border; selected chips swap to
+  the (family) container and show a leading check, so selection is never colour
+  alone. Non-interactive tags are outlined labels, not chips.
+- **Cards:** outlined on `surface-container-lowest`; hover adds a state layer,
+  not a shadow; opening one grows its corners. The hero is a filled
+  `surface-container-low` panel at `extra-large`.
+- **App bar:** `surface`, no divider; once the page scrolls under it the bar
+  takes `surface-container` (a scroll-driven animation, no script). One row,
+  sheds controls instead of wrapping (the rule in CLAUDE.md stands). The
+  search trigger is the contained search bar.
+- **Navigation rail (expanded, modal):** `surface-container`, `large` end
+  corners, level 2, 56px items with a full-corner `secondary-container`
+  indicator. It slides on the default spatial spring and carries 24px of
+  itself past the left edge, so the overshoot never opens a gap. Display
+  choices sit in its footer as connected button groups.
+- **Menu (topic picker):** the Expressive vertical menu — `surface-container-low`,
+  `large` corner, level 2, rows 2px apart without dividers.
+- **Segmented list (search results):** each group is one `large`-cornered
+  block of `extra-small` rows 2px apart.
+- **Floating toolbar (pager):** 64px, full corner, `surface-container`,
+  level 3, 16px off the bottom edge.
+- **Progress:** determinate bars and the header ring separate the active part
+  from a `secondary-container` track with a gap; a bar ends in a 4px stop
+  indicator. The loading indicator morphs a primary shape through Material's
+  seven loading shapes while it turns.
+- **Dialogs and search view:** `surface-container-high`, 28px corner (square
+  when the search view is full screen on a phone), scrim at 32%. Text fields
+  are outlined with a 4px corner and a primary focus edge.
 
-Navigation items have generous hit targets, rounded rectangular geometry, and a persistent active cue such as a left rule plus wash. Calendar day cells use the same border, focus, and state language while allowing more compact density and multiple scheduling signals.
+**The Control Is a Control Rule** still holds: real buttons and links, visible
+focus (a 3px `secondary` ring), 44px targets where feasible, and an accessible
+name that **contains the visible label** (axe `label-content-name-mismatch`).
+A control whose label a phone hides keeps an `aria-label`; a code block that can
+scroll sideways is focusable (`tabindex="0"`, added by `renderMarkdown`); a
+shared link marks its card with `:target`, never a script-set class.
 
-**The Control Is a Control Rule:** clickable behavior must use a real button, link, input, or appropriate interactive element. Preserve keyboard order, visible focus, at least `44px` touch targets where feasible, and explicit accessible names for icon-only actions.
+## Architecture decisions
 
-The tokens above are normative, and `public/styles.css` is where they are actually
-declared — the two must agree. Illustrative component recipes were generated into
-`.impeccable/design.json`, which is gitignored tooling state rather than repo
-content, so treat this file and `styles.css` as the pair that matters.
+- **Three token layers.** MD3 reference/system tokens (`--md-sys-*`,
+  `--md-custom-*`), then the site's app tokens (`--paper`, `--ink`, `--line`,
+  `--emerald`, the `--text-*` / `--surface-*` reading roles), which are aliases
+  onto system roles and carry this site's semantics. New rules may use either;
+  the app tokens are a deliberate layer, not debt.
+- **No `@layer`.** The standalone tools' stylesheets are unlayered; layering
+  the site would let them win every conflict.
+- **The Tools follow the same roles.** `/fshare-tool` and
+  `/course-registration` declare their own token names on
+  `.static-tool-surface` only, each aliased onto a system or custom role, so
+  they switch with the site's Theme. The Fshare tool's interactive accent is
+  primary and its folders keep amber as `--md-custom-brass`; course
+  registration's warnings use brass, its success teal.
+- **No Material Web components.** `@material/web` is in maintenance mode, has
+  no Expressive build, and ships custom elements that fight SSR; Expressive is
+  implemented in plain CSS.
+- **No container queries yet.** Media queries already fit every card at the
+  widths screenshotted; add one when a component needs it, not before.
+
+## Reviewing a change
+
+`tools/screenshots.mjs` shoots twelve routes at 390/1024/1440 in light and
+dark with an axe summary — locally (see CLAUDE.md for the NAS recipe) and on
+every pull request. Look at the images: a green build has shipped a blank page
+before.
 
 ## Do's and Don'ts
 
-- **Do** make evidence, progress, and next action legible at a glance.
-- **Do** preserve EN/VI parity and allow labels and headings to expand without clipping.
-- **Do** use whitespace, alignment, borders, and typographic contrast before adding decoration.
-- **Do** keep calendar-schedule recognizably GAZLL while optimizing its denser workflow independently.
-- **Do** verify focus, hover, active, disabled, empty, loading, error, and reduced-motion states.
-- **Don’t** turn every card, heading, or icon into a different accent color.
-- **Don’t** stack shadows on ordinary nested surfaces or make the notebook feel like a floating-card dashboard.
-- **Don’t** hide essential actions behind hover-only affordances or use color as the sole state signal.
-- **Don’t** introduce new font families, arbitrary radii, or one-off spacing when an existing token fits.
-- **Don’t** force the calendar into the study page layout; share the design language, not the exact composition.
+- **Do** use roles, never raw colours, outside the generated block and the
+  terminal.
+- **Do** keep EN/VI parity and let labels grow without clipping.
+- **Do** verify hover, focus, pressed, disabled, empty, loading, error, dark
+  and reduced-motion states.
+- **Don't** add text below 11px, uppercase labels, or a new font family.
+- **Don't** add shadows to ordinary nested surfaces or use an accent as
+  decoration.
+- **Don't** hide essential actions behind hover or signal state by colour
+  alone.

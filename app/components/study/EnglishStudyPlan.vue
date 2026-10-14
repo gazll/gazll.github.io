@@ -119,8 +119,8 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="english-study-shell" @change="onPlanChange">
-    <header class="es-head">
+  <div id="english-study" data-ui="english-study" class="english-study-shell" @change="onPlanChange">
+    <header id="english-study-head" data-ui="english-study-head" class="es-head">
       <p class="es-eyebrow">English Study · 2026 operating system</p>
       <h1>{{ parsed.title }}</h1>
       <p class="es-deck">Memrise + ChatGPT Voice cho Senior Software Developer</p>
@@ -129,7 +129,7 @@ onMounted(() => {
       </div>
     </header>
 
-    <section class="es-overview pj-doc-body" aria-label="English study plan overview">
+    <section id="english-study-overview" data-ui="english-study-overview" class="es-overview pj-doc-body" aria-label="English study plan overview">
       <div v-html="overviewHtml" />
     </section>
 
@@ -154,7 +154,7 @@ onMounted(() => {
       </div>
     </details>
 
-    <div class="es-toolbar" aria-label="English study notes controls">
+    <div id="english-study-toolbar" data-ui="english-study-toolbar" class="es-toolbar" aria-label="English study notes controls">
       <p><strong>{{ parsed.sections.length }}</strong> plan notes · closed by default</p>
       <div>
         <button type="button" class="btn-ghost" @click="setAllSections(true)">Expand all</button>
@@ -162,7 +162,7 @@ onMounted(() => {
       </div>
     </div>
 
-    <section class="es-sections" aria-label="English study plan notes">
+    <section id="english-study-sections" data-ui="english-study-sections" class="es-sections" aria-label="English study plan notes">
       <details v-for="section in renderedSections" :key="section.id" class="es-note" :open="sectionIsOpen(section.id)" @toggle="onSectionToggle(section.id, $event)">
         <summary>
           <span class="es-summary-main">

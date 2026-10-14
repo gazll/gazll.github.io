@@ -288,11 +288,11 @@ onBeforeUnmount(() => stopAuth?.());
 </script>
 
 <template>
-  <div id="ivRoot" class="iv-root">
-    <section class="hero"><div class="hero-head"><div><h1>{{ labels.title }}</h1><p class="intro">{{ labels.intro }}</p></div></div></section>
+  <div id="ivRoot" data-ui="gazl-try" class="iv-root">
+    <section id="gazl-hero" data-ui="gazl-hero" class="hero"><div class="hero-head"><div><h1>{{ labels.title }}</h1><p class="intro">{{ labels.intro }}</p></div></div></section>
     <p v-if="loading" class="loading-block">{{ labels.loading }}</p>
     <div v-if="error" class="warn"><b>{{ labels.backendError }}</b> {{ error }}{{ labels.backendFallback }}</div>
-    <div class="toolbar"><span class="sectioncount">{{ companies.length }} {{ companies.length === 1 ? labels.entry : labels.entries }}<span v-if="editable"> ({{ ownCount }} {{ labels.mine }} · {{ seedCount }} {{ labels.samples }})</span> · {{ questionCount }} {{ questionCount === 1 ? labels.question : labels.questions }} <span v-if="!editable" class="ro">· {{ labels.readOnly }}</span></span><div class="tb-actions"><button v-if="companies.length" class="btn-ghost" type="button" @click="toggleAll">{{ allOpen ? labels.collapseAll : labels.expandAll }}</button><button v-if="editable" id="ivAdd" class="btn-primary" type="button" @click="resetForm()">+ {{ labels.addCompany }}</button><span v-else class="hint">{{ $auth.enabled ? labels.signIn : labels.noBackend }}</span></div></div>
+    <div id="gazl-toolbar" data-ui="gazl-toolbar" class="toolbar"><span class="sectioncount">{{ companies.length }} {{ companies.length === 1 ? labels.entry : labels.entries }}<span v-if="editable"> ({{ ownCount }} {{ labels.mine }} · {{ seedCount }} {{ labels.samples }})</span> · {{ questionCount }} {{ questionCount === 1 ? labels.question : labels.questions }} <span v-if="!editable" class="ro">· {{ labels.readOnly }}</span></span><div class="tb-actions"><button v-if="companies.length" class="btn-ghost" type="button" @click="toggleAll">{{ allOpen ? labels.collapseAll : labels.expandAll }}</button><button v-if="editable" id="ivAdd" class="btn-primary" type="button" @click="resetForm()">+ {{ labels.addCompany }}</button><span v-else class="hint">{{ $auth.enabled ? labels.signIn : labels.noBackend }}</span></div></div>
 
     <!-- Private entries: shown only when a sealed file is published. The form
          is collapsed behind one button so the public journal reads unchanged. -->
@@ -312,7 +312,7 @@ onBeforeUnmount(() => stopAuth?.());
 
     <div v-if="!loading && !companies.length" class="page"><p>{{ labels.noEntries }}</p></div>
 
-    <section v-for="group in groups" :key="group.id" class="iv-group" :aria-labelledby="`iv-group-${group.id}`">
+    <section v-for="group in groups" :key="group.id" data-ui="gazl-group" class="iv-group" :aria-labelledby="`iv-group-${group.id}`">
       <header class="iv-group-head">
         <div>
           <p>{{ group.kicker }}</p>
@@ -322,7 +322,7 @@ onBeforeUnmount(() => stopAuth?.());
         <b>{{ group.rows.length }}</b>
       </header>
 
-      <article v-for="company in group.rows" :key="company.id" class="company" :class="{ 'is-seed': !company.own, 'is-open': isOpen(company) }">
+      <article v-for="company in group.rows" :key="company.id" data-ui="gazl-entry" class="company" :class="{ 'is-seed': !company.own, 'is-open': isOpen(company) }">
         <button class="iv-co-head" type="button" :aria-expanded="isOpen(company)" :aria-controls="`iv-body-${company.id}`" @click="toggleCompany(company)">
           <span class="iv-co-text">
             <span class="iv-co-name">
@@ -375,7 +375,7 @@ onBeforeUnmount(() => stopAuth?.());
           <div v-for="(question, index) in company.questions || []" :key="questionKey(company, index)" class="qcard" :class="{ open: openQuestions.has(questionKey(company, index)) }">
             <button class="qhead" type="button" :aria-expanded="openQuestions.has(questionKey(company, index))" @click="toggleQuestion(questionKey(company, index))"><span class="qid">Q{{ index + 1 }}</span><span class="qtext">{{ question.q }}</span><span class="qmeta"><span v-if="question.round" class="qround">{{ question.round }}</span><span aria-hidden="true">›</span></span></button>
             <div class="qbody"><div class="qbody-inner"><div class="answer"><div><div class="ans-label">{{ company.kind ? labels.reviewedAnswer : labels.myAnswer }}</div><div v-html="safeMarkdown(question.a)" />
-              <details v-if="question.diagrams?.length" class="iv-diagrams"><summary>{{ labels.diagramReview }} <span>{{ question.diagrams.length }}</span></summary><div class="iv-diagram-list"><article v-for="diagram in question.diagrams" :key="diagram.title" class="iv-diagram"><ContentMermaidDiagram :source="diagram.mermaid" :title="diagram.title || diagram.phase" :lang="lang" /><div v-if="diagram.flaws?.length || diagram.upgrades?.length" class="iv-diagram-review"><section v-if="diagram.flaws?.length"><h5>{{ labels.flaws }}</h5><ul><li v-for="row in diagram.flaws" :key="row">{{ row }}</li></ul></section><section v-if="diagram.upgrades?.length"><h5>{{ labels.upgrades }}</h5><ul><li v-for="row in diagram.upgrades" :key="row">{{ row }}</li></ul></section></div><details class="iv-diagram-source"><summary>{{ labels.mermaidSource }}</summary><pre><code>{{ diagram.mermaid }}</code></pre></details></article></div></details>
+              <details v-if="question.diagrams?.length" class="iv-diagrams"><summary>{{ labels.diagramReview }} <span>{{ question.diagrams.length }}</span></summary><div class="iv-diagram-list"><article v-for="diagram in question.diagrams" :key="diagram.title" class="iv-diagram"><ContentMermaidDiagram :source="diagram.mermaid" :title="diagram.title || diagram.phase" :lang="lang" /><div v-if="diagram.flaws?.length || diagram.upgrades?.length" class="iv-diagram-review"><section v-if="diagram.flaws?.length"><h5>{{ labels.flaws }}</h5><ul><li v-for="row in diagram.flaws" :key="row">{{ row }}</li></ul></section><section v-if="diagram.upgrades?.length"><h5>{{ labels.upgrades }}</h5><ul><li v-for="row in diagram.upgrades" :key="row">{{ row }}</li></ul></section></div><details class="iv-diagram-source"><summary>{{ labels.mermaidSource }}</summary><pre tabindex="0"><code>{{ diagram.mermaid }}</code></pre></details></article></div></details>
               <div v-if="question.note" class="takeaway"><b>{{ labels.takeaway }}:</b><div v-html="safeMarkdown(question.note)" /></div>
             </div></div></div></div>
           </div>

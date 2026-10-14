@@ -98,7 +98,7 @@ onBeforeUnmount(() => { stopStore?.(); stopAuth?.(); });
 <template>
   <div>
     <div v-if="!$auth.session" class="warn"><b>{{ labels.notSigned }}:</b> {{ labels.notSignedDetail }}</div>
-    <div class="stat-row">
+    <div id="stats-summary" data-ui="stats-summary" class="stat-row">
       <div class="stat-tile"><div class="stat-label">{{ labels.reviewed }}</div><div class="stat-value">{{ done }} / {{ data.total }}</div><div class="stat-sub">{{ data.total ? Math.round(done / data.total * 100) : 0 }}% {{ labels.track }}</div></div>
       <div class="stat-tile"><div class="stat-label">{{ labels.activeDays }}</div><div class="stat-value">{{ byDay.size }}</div><div class="stat-sub">{{ loading ? labels.loading : labels.allTime }}</div></div>
       <div class="stat-tile"><div class="stat-label">{{ labels.currentStreak }}</div><div class="stat-value">{{ streak.current }}</div><div class="stat-sub">{{ labels.daysInRow }}</div></div>

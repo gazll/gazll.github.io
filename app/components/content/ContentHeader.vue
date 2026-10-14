@@ -1,9 +1,16 @@
 <script setup lang="ts">
+import { THEMES, TEXT_SIZES, applyDisplayPrefs, readDisplayPrefs, saveDisplayPrefs } from '~/utils/display-prefs.js';
+
 type TopicRow = { n: number; file: string; topic_type: string; label: string };
 type ReleaseMetadata = { version: string; revision: string; deployed_at: string };
 
 const props = defineProps<{ lang: 'en' | 'vi'; topic?: TopicRow; topics?: TopicRow[]; progressIndex?: any }>();
 const route = useRoute();
+/* GitHub Pages serves /release-notes as /release-notes/, while prerender saw
+   /release-notes: every href or aria-current built from the raw path differed
+   between server and client (NUXT_E1005 on every page). Compare and link with
+   the path the prerender used. */
+const routePath = computed(() => route.path.length > 1 ? route.path.replace(/\/+$/, '') : route.path);
 const drawerOpen = ref(false);
 const topicOpen = ref(false);
 const topicQuery = ref('');
@@ -16,6 +23,18 @@ const nuxtApp = useNuxtApp() as any;
 const isAdmin = ref(false);
 const releaseMetadata = ref<ReleaseMetadata | null>(null);
 const releaseChecked = ref(false);
+/* SSR renders the defaults; the stored choice is read on mount, so the first
+   client render matches the server and only then moves. The inline head
+   script has already painted the right theme by that point. */
+const display = reactive({ theme: 'auto', text: 'default' });
+const THEME_LABELS: Record<string, string> = { auto: 'Auto', light: 'Light', dark: 'Dark' };
+const TEXT_LABELS: Record<string, string> = { default: 'A', large: 'A+', larger: 'A++' };
+const TEXT_NAMES: Record<string, string> = { default: 'Default text size', large: 'Large text', larger: 'Larger text' };
+function setDisplay(key: 'theme' | 'text', value: string) {
+  display[key] = value;
+  applyDisplayPrefs(document.documentElement, display);
+  saveDisplayPrefs(display);
+}
 const LANGUAGE_SCROLL_KEY = 'gazll:language-scroll';
 let stopAuth: (() => void) | null = null;
 
@@ -33,7 +52,7 @@ const viLabels: Record<string, string> = {
   'Last release': 'Bản phát hành gần nhất', 'Checking release…': 'Đang kiểm tra release…',
   'Release not stamped': 'Chưa có dấu phát hành', 'Release time unavailable': 'Không có thời gian phát hành',
   'Knowledge Base': 'Kho kiến thức', topic: 'chủ đề', 'Open navigation menu': 'Mở menu điều hướng', 'Previous topic': 'Chủ đề trước',
-  'Next topic': 'Chủ đề tiếp theo', 'Search all material': 'Tìm kiếm toàn bộ nội dung', 'Search (Ctrl+K)': 'Tìm kiếm (Ctrl+K)',
+  'Next topic': 'Chủ đề tiếp theo', 'Search (Ctrl+K)': 'Tìm kiếm (Ctrl+K)',
   'Content language': 'Ngôn ngữ nội dung', 'Close menu': 'Đóng menu', 'Filter topics…': 'Lọc chủ đề…', 'Filter topics': 'Lọc chủ đề',
   Topics: 'Chủ đề', 'Nothing matches that filter.': 'Không có kết quả phù hợp.', 'Main navigation': 'Điều hướng chính',
   'Header controls': 'Điều khiển header', 'One query across every surface': 'Một truy vấn cho mọi khu vực', 'Ctrl K': 'Ctrl K',
@@ -90,8 +109,8 @@ const routeLabels: Record<string, string> = {
   '/release-notes': 'Release Notes', '/search': 'Search'
 };
 const currentLabel = computed(() => {
-  if (routeLabels[route.path]) return localize(routeLabels[route.path]);
-  const prefix = Object.keys(routeLabels).filter(key => key !== '/' && route.path.startsWith(`${key}/`)).sort((a, b) => b.length - a.length)[0];
+  if (routeLabels[routePath.value]) return localize(routeLabels[routePath.value]);
+  const prefix = Object.keys(routeLabels).filter(key => key !== '/' && routePath.value.startsWith(`${key}/`)).sort((a, b) => b.length - a.length)[0];
   return localize(routeLabels[prefix] || 'Knowledge Base');
 });
 const visibleNavGroups = computed(() => navGroups.map(group => ({
@@ -109,8 +128,8 @@ const filteredTopics = computed(() => {
 const withLang = (path: string) => ({ path, query: props.lang === 'vi' ? { lang: 'vi' } : {} });
 const topicPath = (row: TopicRow) => `/topics/${row.file.split('/').pop()!.replace(/\.json$/, '')}`;
 const isCurrent = (path: string) => path === '/'
-  ? route.path === '/' || route.path.startsWith('/topics/')
-  : route.path === path || route.path.startsWith(`${path}/`);
+  ? routePath.value === '/' || routePath.value.startsWith('/topics/')
+  : routePath.value === path || routePath.value.startsWith(`${path}/`);
 
 function setDrawer(open: boolean) {
   if (open && !drawerOpen.value && import.meta.client) {
@@ -177,7 +196,7 @@ function rememberLanguageScroll(event?: MouseEvent) {
   if (!import.meta.client || (event && (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey))) return;
   try {
     sessionStorage.setItem(LANGUAGE_SCROLL_KEY, JSON.stringify({
-      path: route.path,
+      path: routePath.value,
       lang: props.lang === 'vi' ? 'en' : 'vi',
       y: Math.max(0, Math.round(window.scrollY))
     }));
@@ -189,7 +208,7 @@ function restoreLanguageScroll() {
     const raw = sessionStorage.getItem(LANGUAGE_SCROLL_KEY);
     if (!raw) return;
     const saved = JSON.parse(raw);
-    if (saved?.path !== route.path || saved?.lang !== props.lang || !Number.isFinite(saved.y)) return;
+    if (saved?.path !== routePath.value || saved?.lang !== props.lang || !Number.isFinite(saved.y)) return;
     sessionStorage.removeItem(LANGUAGE_SCROLL_KEY);
     const y = Math.max(0, Number(saved.y));
     if (typeof window.requestAnimationFrame === 'function') window.requestAnimationFrame(() => window.scrollTo(0, y));
@@ -265,6 +284,7 @@ onMounted(() => {
   updateAdmin();
   stopAuth = nuxtApp.$auth?.onChange(updateAdmin) || null;
   void loadReleaseMetadata();
+  Object.assign(display, readDisplayPrefs());
 });
 onBeforeUnmount(() => {
   document.removeEventListener('keydown', onKeydown);
@@ -308,14 +328,14 @@ onBeforeUnmount(() => {
       </div>
 
       <nav id="header-controls" class="headright" data-ui="header-controls" :aria-label="localize('Header controls')">
-        <button id="searchTrigger" class="searchtrigger" data-ui="search-trigger" type="button" :aria-label="localize('Search all material')" :title="localize('Search (Ctrl+K)')" @click="openSearch">
+        <button id="searchTrigger" class="searchtrigger" data-ui="search-trigger" type="button" :title="localize('Search (Ctrl+K)')" @click="openSearch">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5" /><path d="M16 16l4 4" /></svg>
-          <span class="st-label">{{ localize('Search') }}</span><kbd class="st-key">{{ localize('Ctrl K') }}</kbd>
+          <span class="st-label">{{ localize('Search') }}</span><kbd class="st-key" aria-hidden="true">{{ localize('Ctrl K') }}</kbd>
         </button>
         <!-- The denominator is useful only on study pages. Avoid constructing
              the async content-index reader on tools and long-form surfaces. -->
         <ClientOnly v-if="topic"><StudyProgressRing :lang="lang" :index="progressIndex" /></ClientOnly>
-        <NuxtLink id="header-language-switch" class="langswitch hdr-lang" data-ui="language-switch" role="switch" :aria-checked="lang === 'vi'" :aria-label="languageActionLabel" :to="{ path: route.path, query: { ...route.query, lang: lang === 'vi' ? 'en' : 'vi' }, hash: route.hash || undefined }" @click="rememberLanguageScroll">
+        <NuxtLink id="header-language-switch" class="langswitch hdr-lang" data-ui="language-switch" role="switch" :aria-checked="lang === 'vi'" :aria-label="languageActionLabel" :to="{ path: routePath, query: { ...route.query, lang: lang === 'vi' ? 'en' : 'vi' }, hash: route.hash || undefined }" @click="rememberLanguageScroll">
           <span class="lang-label" data-lang="en">EN</span>
           <span class="lang-track" aria-hidden="true"><span class="lang-knob"><ContentFlagIcon :lang="lang" /></span></span>
           <span class="lang-label" data-lang="vi">VI</span>
@@ -361,7 +381,23 @@ onBeforeUnmount(() => {
       </section>
     </nav>
     <div class="np-foot">
-      <NuxtLink class="np-action np-foot-action" :aria-current="route.path === '/release-notes' ? 'page' : undefined" :to="withLang('/release-notes')">
+      <div class="np-display" role="group" aria-label="Display">
+        <div class="np-display-row">
+          <span id="np-theme-label" class="np-display-label">Theme</span>
+          <div class="md-segmented" role="group" aria-labelledby="np-theme-label">
+            <button v-for="option in THEMES" :key="option" type="button" class="md-segment"
+                    :aria-pressed="display.theme === option" @click="setDisplay('theme', option)">{{ THEME_LABELS[option] }}</button>
+          </div>
+        </div>
+        <div class="np-display-row">
+          <span id="np-text-label" class="np-display-label">Text</span>
+          <div class="md-segmented" role="group" aria-labelledby="np-text-label">
+            <button v-for="option in TEXT_SIZES" :key="option" type="button" class="md-segment"
+                    :aria-pressed="display.text === option" :aria-label="`${TEXT_LABELS[option]} ${TEXT_NAMES[option].toLowerCase()}`" @click="setDisplay('text', option)">{{ TEXT_LABELS[option] }}</button>
+          </div>
+        </div>
+      </div>
+      <NuxtLink class="np-action np-foot-action" :aria-current="routePath === '/release-notes' ? 'page' : undefined" :to="withLang('/release-notes')">
         <svg class="nv-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 3h9l3 3v15H6zM9 11h6M9 15h6" /></svg><span>Release Notes</span>
       </NuxtLink>
       <p class="np-foot-release" aria-live="polite">

@@ -42,13 +42,20 @@ export function crossRefResolver({ questions = {}, onTrack = new Set(), owners =
   return id => {
     const text = questions[id];
     if (!text) return null;
-    const label = labelFor(text[lang] || text.en || text.vi);
+    const question = text[lang] || text.en || text.vi;
+    const label = labelFor(question);
     if (!label) return null;
+    // The label is cut at LABEL_MAX; the whole question rides in the tooltip
+    // so a reader can see where a link goes without following it.
+    // Content writes `<` as `&lt;`; decode it here, since the renderer
+    // escapes the attribute again.
+    const title = String(question).replace(/[`*]/g, '').replace(/\s+/g, ' ').trim()
+      .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&amp;/g, '&');
 
-    if (onTrack.has(id)) return { href: trackHref(id), label };
+    if (onTrack.has(id)) return { href: trackHref(id), label, title };
     // Off the track: only the blueprint holding it knows the route. No owner
     // means no link, not a broken one.
     const owner = owners[id];
-    return owner ? { href: designHref(owner, id), label } : null;
+    return owner ? { href: designHref(owner, id), label, title } : null;
   };
 }

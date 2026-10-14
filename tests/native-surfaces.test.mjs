@@ -233,23 +233,24 @@ import { pathToFileURL } from 'node:url';
   test('system-design reading colors use semantic roles instead of purple body text', async () => {
     const styles = await read('public/styles.css');
 
-    for (const token of [
-      '--text-normal:#34465B', '--text-header:#14233A', '--text-meta:#536477',
-      '--text-label:#385367', '--text-high-attention:#914133', '--text-rule:#085239',
-      '--text-link:#0B5F6B', '--text-code:#E6ECF5', '--text-code-muted:#A8B7C9',
-      '--text-code-inline:#24415F', '--text-migrated:#5B4A30',
-      '--text-migrated-heading:#4A351A', '--text-migrated-accent:#795822',
-      '--surface-topbar:#DCE7F0', '--text-topbar:#14233A', '--text-topbar-muted:#536477',
-      '--text-topbar-accent:#085239', '--focus-topbar:#0B5F6B'
-    ]) assert.ok(styles.includes(token), `${token} reading role missing`);
+    // Reading roles map onto MD3 roles so they follow the theme; only the
+    // terminal text stays fixed, because code is read on its own dark surface.
+    for (const role of [
+      'text-normal', 'text-header', 'text-meta', 'text-label', 'text-high-attention', 'text-rule',
+      'text-link', 'text-code-inline', 'text-migrated', 'text-migrated-heading', 'text-migrated-accent',
+      'surface-topbar', 'text-topbar', 'text-topbar-muted', 'text-topbar-accent', 'focus-topbar'
+    ]) assert.match(styles, new RegExp(`--${role}:var\\(--md-(?:sys-color|custom)-`), `--${role} must map onto an MD3 role`);
+    for (const token of ['--text-code:#E6ECF5', '--text-code-muted:#A8B7C9']) {
+      assert.ok(styles.includes(token), `${token} terminal role missing`);
+    }
     assert.ok(styles.includes('.sd-article-body .sd-crit{color:var(--text-high-attention)}'));
     assert.ok(styles.includes('.sd-article-body .sd-scope .sd-prose:first-of-type::first-letter{color:var(--text-header)}'));
     assert.ok(styles.includes('.sd-article-body .sd-prose,.sd-article-body .sd-section>p,'));
     assert.ok(styles.includes('.sd-article-body pre code{color:var(--text-code);background:none}'));
     assert.ok(styles.includes('.sd-article-body .sd-notes{padding:20px;border:1px solid var(--line-migrated)'));
     assert.ok(styles.includes('.sd-article-body .sd-notes summary{color:var(--text-migrated-heading)'));
-    assert.ok(styles.includes('header.top{background:var(--surface-topbar);border-bottom-color:var(--line-topbar)}'));
-    assert.ok(styles.includes('.top-inner{background:var(--surface-topbar);color:var(--text-topbar)}'));
+    assert.ok(styles.includes('header.top,.top-inner{background:var(--md-sys-color-surface)'));
+    assert.ok(styles.includes('.top-inner{color:var(--text-topbar)}'));
     assert.ok(styles.includes('.top-inner .ring::after{background:var(--surface-topbar)}'));
   });
 
@@ -298,7 +299,7 @@ import { pathToFileURL } from 'node:url';
     assert.match(header, /languageActionLabel/);
     assert.match(header, /topicQuery\.value = ''/,
       'closing the topic picker should clear a stale filter');
-    assert.match(header, /aria-current="route\.path === '\/release-notes' \? 'page' : undefined"/);
+    assert.match(header, /aria-current="routePath === '\/release-notes' \? 'page' : undefined"/);
     assert.match(header, /sessionStorage\.setItem\(LANGUAGE_SCROLL_KEY/,
       'language changes should preserve the reader viewport');
   });
@@ -306,7 +307,7 @@ import { pathToFileURL } from 'node:url';
   test('search overlay keeps the see-all action in its top search panel', async () => {
     const overlay = await read('app/components/search/SearchOverlay.client.vue');
 
-    assert.match(overlay, /<div class="gs-box">[\s\S]*?<button[^>]*class="gs-more"[\s\S]*?<\/button>[\s\S]*?<\/div>\s*<div class="gs-body">/);
+    assert.match(overlay, /<div[^>]*class="gs-box">[\s\S]*?<button[^>]*class="gs-more"[\s\S]*?<\/button>[\s\S]*?<\/div>\s*<div[^>]*class="gs-body">/);
     assert.match(overlay, /role="combobox"/);
     assert.match(overlay, /aria-activedescendant/);
     assert.match(overlay, /role="listbox"/);
@@ -366,7 +367,7 @@ import { pathToFileURL } from 'node:url';
     assert.match(styles, /\.view-track \.qcard\.open \.qtop,\.view-track \.qcard\.open>\.qhead\{position:static/);
     assert.match(styles, /\.view-track \.qmeta\{grid-column:1;display:flex;flex-direction:row/,
       'mobile study actions should become a horizontal footer row');
-    assert.match(styles, /\.view-track \.qmeta>\.manual-review \.manual-review-label\{display:inline\}/,
+    assert.match(styles, /\.view-track \.qmeta>\.manual-review \.manual-review-short,[^{]*\{display:inline\}/,
       'mobile review state should keep a visible label');
     assert.match(card, /class="qcopy-short"/);
     assert.match(card, /class="qlang-current"/);

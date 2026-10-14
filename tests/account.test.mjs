@@ -832,7 +832,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
     assert.ok(uses.every(before => !before.includes('v-html')), 'diagram source must not be inserted as HTML');
     assert.match(view, /ContentMermaidDiagram/, 'the native renderer needs its mount component');
     assert.match(view, /question\.diagrams/, 'questions must render their diagrams');
-    assert.match(view, /<pre><code>{{ diagram\.mermaid }}<\/code><\/pre>/,
+    assert.match(view, /<pre tabindex="0"><code>{{ diagram\.mermaid }}<\/code><\/pre>/,
       'the editable source must use Vue text escaping');
   });
 
