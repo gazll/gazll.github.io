@@ -249,8 +249,8 @@ import { pathToFileURL } from 'node:url';
     assert.ok(styles.includes('.sd-article-body pre code{color:var(--text-code);background:none}'));
     assert.ok(styles.includes('.sd-article-body .sd-notes{padding:20px;border:1px solid var(--line-migrated)'));
     assert.ok(styles.includes('.sd-article-body .sd-notes summary{color:var(--text-migrated-heading)'));
-    assert.ok(styles.includes('header.top{background:var(--surface-topbar);border-bottom-color:var(--line-topbar)}'));
-    assert.ok(styles.includes('.top-inner{background:var(--surface-topbar);color:var(--text-topbar)}'));
+    assert.ok(styles.includes('header.top,.top-inner{background:var(--md-sys-color-surface)'));
+    assert.ok(styles.includes('.top-inner{color:var(--text-topbar)}'));
     assert.ok(styles.includes('.top-inner .ring::after{background:var(--surface-topbar)}'));
   });
 
@@ -367,7 +367,7 @@ import { pathToFileURL } from 'node:url';
     assert.match(styles, /\.view-track \.qcard\.open \.qtop,\.view-track \.qcard\.open>\.qhead\{position:static/);
     assert.match(styles, /\.view-track \.qmeta\{grid-column:1;display:flex;flex-direction:row/,
       'mobile study actions should become a horizontal footer row');
-    assert.match(styles, /\.view-track \.qmeta>\.manual-review \.manual-review-label\{display:inline\}/,
+    assert.match(styles, /\.view-track \.qmeta>\.manual-review \.manual-review-short,[^{]*\{display:inline\}/,
       'mobile review state should keep a visible label');
     assert.match(card, /class="qcopy-short"/);
     assert.match(card, /class="qlang-current"/);
