@@ -3663,7 +3663,7 @@ header.top{border-bottom:0}
   background:color-mix(in srgb,var(--md-sys-color-on-surface) var(--md-sys-state-hover-state-layer-opacity),transparent)}
 .tm-row:focus-visible{outline:3px solid var(--md-sys-color-secondary);outline-offset:-3px;border-radius:var(--md-sys-shape-corner-medium)}
 .tm-row[aria-selected="true"]{border-radius:var(--md-sys-shape-corner-medium);background:var(--md-sys-color-tertiary-container)}
-.tm-row[aria-selected="true"] :is(.tm-label,.tm-meta,.tm-pct){color:var(--md-sys-color-on-tertiary-container)}
+.tm-row[aria-selected="true"] :is(.tm-n,.tm-label,.tm-meta,.tm-pct){color:var(--md-sys-color-on-tertiary-container)}
 .tm-row[aria-selected="true"] .tm-label{font-weight:var(--md-sys-typescale-emphasized-label-weight)}
 
 /* ---- lists: search results are an Expressive segmented list. Each group
