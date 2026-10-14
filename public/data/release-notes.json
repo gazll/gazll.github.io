@@ -2,6 +2,39 @@
   "version": 1,
   "releases": [
     {
+      "date": "2026-10-08",
+      "en": {
+        "title": "A runnable Bloom filter in the 10 MB answer, and a clearer release log"
+      },
+      "vi": {
+        "title": "Bloom filter chạy được trong đáp án 10 MB, và nhật ký phát hành dễ đọc hơn"
+      },
+      "changes": [
+        {
+          "kind": "topic",
+          "target": "19-dsa-leetcode",
+          "en": {
+            "section": "The patterns that keep coming up",
+            "text": "The ten-million-key, 10 MB question now ships a complete Java Bloom filter: six probes from two hashes over one long[], measured at zero false negatives and 1.8% false positives."
+          },
+          "vi": {
+            "section": "Dạng bài hay bị hỏi",
+            "text": "Câu hỏi mười triệu key, 10 MB giờ có sẵn Bloom filter Java hoàn chỉnh: sáu vị trí từ hai hash trên một long[], đo được không có false negative và 1,8% false positive."
+          }
+        },
+        {
+          "kind": "feature",
+          "target": "release-notes",
+          "en": {
+            "text": "Release notes filter by kind with live counts, name the topic and section of each change, link to the topic or page it touched, and mark the latest release."
+          },
+          "vi": {
+            "text": "Ghi chú phát hành lọc theo loại kèm số lượng, nêu chủ đề và mục của từng thay đổi, link tới chủ đề hoặc trang bị ảnh hưởng, và đánh dấu bản mới nhất."
+          }
+        }
+      ]
+    },
+    {
       "date": "2026-10-02",
       "items_added": 10,
       "en": {

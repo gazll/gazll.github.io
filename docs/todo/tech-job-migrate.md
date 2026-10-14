@@ -14,9 +14,8 @@ zip/rar dự án cũ giữ trên NAS — repo chỉ ghi chỗ để.
 
 ## 1. Job
 
-- [ ] `Job/interview/check-key-10-trieu-bloom-filter.md` — đề phỏng vấn đã
-      chép sang text (từ `Screenshot (2).png`); viết lời giải (dàn ý: `docs/todo/interview-bloom-filter.md`; bit array +
-      hash + sort / Bloom filter) rồi đưa vào gazll.
+- [x] `Job/interview/check-key-10-trieu-bloom-filter.md` — đã vào gazll: topic 19
+      `the-patterns-that-keep-coming-up.q9` (Bloom filter + sparse index + code Java).
 - [ ] `Job/JD - Test/`, `Java_API_Test.pdf`, `JD_ Java Developer … CMC Global.pdf`
       — đề test/JD cũ: tóm tắt đề thành text, file gốc để NAS.
 - [ ] `Job/PXL_20230524_*.jpg`, `IMG_0958.JPG` — ảnh chụp đề? xem rồi chép
