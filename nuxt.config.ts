@@ -94,7 +94,7 @@ export default defineNuxtConfig({
       link: [
         { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
         // Fonts are self-hosted (tools/fonts.mjs); the Latin face is on every page.
-        { rel: 'preload', as: 'font', type: 'font/woff2', href: '/fonts/roboto-flex-latin-wght-normal.woff2', crossorigin: '' },
+        { rel: 'preload', as: 'font', type: 'font/woff2', href: '/fonts/jetbrains-mono-latin-wght-normal.woff2', crossorigin: '' },
       ]
     }
   },
