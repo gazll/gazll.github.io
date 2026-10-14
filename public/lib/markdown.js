@@ -31,7 +31,7 @@ export function renderMarkdown(md, options) {
       const target = resolveRef(id);
       const href = target && String(target.href || '');
       return target && INTERNAL_HREF.test(href)
-        ? '(<a class="xref" href="' + escapeHtml(href) + '" title="' + escapeHtml(id) + '">&#8594; ' + escapeHtml(target.label) + '</a>)'
+        ? '(<a class="xref" href="' + escapeHtml(href) + '" title="' + escapeHtml(target.title || id) + '">&#8594; ' + escapeHtml(target.label) + '</a>)'
         : whole;
     });
   }
@@ -104,7 +104,7 @@ export function renderMarkdown(md, options) {
       const linkLabel = options?.headingLinkLabel || 'Link to this section';
       html += '<h' + level + ' id="' + escapeHtml(id) + '"><a class="md-heading-anchor" data-anchor-link data-anchor-id="'
         + escapeHtml(id) + '"' + (route ? ' data-anchor-route="' + escapeHtml(route) + '"' : '')
-        + ' href="' + escapeHtml(href) + '" aria-label="' + escapeHtml(linkLabel) + '">' + inlineMd(label)
+        + ' href="' + escapeHtml(href) + '" title="' + escapeHtml(linkLabel) + '">' + inlineMd(label)
         + '</a></h' + level + '>';
       i++;
       continue;
