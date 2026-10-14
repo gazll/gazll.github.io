@@ -169,6 +169,9 @@ components"). Layout stays with the surface that owns it.
 **The Control Is a Control Rule** still holds: real buttons and links, visible
 focus (a 3px `secondary` ring), 44px targets where feasible, and an accessible
 name that **contains the visible label** (axe `label-content-name-mismatch`).
+A control whose label a phone hides keeps an `aria-label`; a code block that can
+scroll sideways is focusable (`tabindex="0"`, added by `renderMarkdown`); a
+shared link marks its card with `:target`, never a script-set class.
 
 ## Architecture decisions
 

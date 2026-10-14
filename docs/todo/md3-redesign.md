@@ -38,3 +38,4 @@ Push `preview/md3` → `preview-build.yml` đẩy bản build lên `build/previe
 
 - [x] Hydration mismatch `NUXT_E1005`: href/aria-current dựng từ route.path có dấu / cuối trên Pages — sửa bằng routePath (9016ca6).
 - Không dùng `@layer`: CSS của fshare-tool/course-registration không layer, sẽ thắng mọi xung đột và token `:root` của chúng đè lên header.
+- [x] Vòng rà soát 2: bỏ 516 khai báo bị ghi đè (ảnh 72 shot giống từng byte) + class chết; zoom sơ đồ 44px trên mobile; `:target` đánh dấu thẻ khi mở link sâu; corner `<th>` rỗng → `td.corner`; code cuộn ngang focus được; tên cho nút icon-only trên mobile; listbox search; "offline" lặp; nút EN/VI tràn 3px. Axe sạch 12 route × 2 theme + drawer/search/thẻ mở ở 390px.
