@@ -59,6 +59,7 @@ const passphrase = ref('');
 const remember = ref(false);
 const unlockError = ref('');
 const unlocking = ref(false);
+const granting = ref(false);
 const showPassphrase = ref(false);
 const hint = ref('');
 const hintShown = ref(false);
@@ -93,6 +94,7 @@ const t = computed(() => vi.value ? {
   lockedTitle: 'Lịch riêng đang khoá',
   lockedBody: 'Danh sách nhắc việc được mã hoá trong repo. Nhập passphrase để mở ngay trên trình duyệt.',
   grantedHint: 'Hoặc đăng nhập bằng tài khoản đã được cấp quyền — trang sẽ tự mở.',
+  checkingAccess: 'Đang mở bằng quyền của tài khoản này…',
   upcomingHolidays: 'Ngày lễ sắp tới', noPrivate: 'Chưa có mục nào trong lịch riêng.', category: 'Nhóm nhắc việc',
   dashboardTitle: 'Việc và tiền sắp tới', dashboardIntro: 'Mở trang này để biết tháng này phải xử lý gì trước, rồi mới đi vào lịch chi tiết.',
   cashflowTitle: 'Các khoản cần đóng', cashflowIntro: 'Khoản định kỳ được tách khỏi lịch để dễ kiểm tra số tiền và kỳ kế tiếp.',
@@ -132,6 +134,7 @@ const t = computed(() => vi.value ? {
   lockedTitle: 'Private schedule is locked',
   lockedBody: 'The reminder list ships encrypted. Enter the passphrase to open it in this browser.',
   grantedHint: 'Or sign in with an account that has been granted access — the page opens itself.',
+  checkingAccess: 'Opening with the access granted to this account…',
   upcomingHolidays: 'Upcoming holidays', noPrivate: 'Nothing in the private schedule yet.', category: 'Reminder category',
   dashboardTitle: 'What needs attention next', dashboardIntro: 'Start here to see what needs attention this month before opening the detailed calendar.',
   cashflowTitle: 'Payments to make', cashflowIntro: 'Recurring payments are separated from reminders so the amount and next due date stay visible.',
@@ -631,11 +634,15 @@ function lock() {
  * survive the row being deleted and make revocation a lie.
  */
 async function tryBackendKey() {
-  if (!locked.value || !nuxtApp.$auth?.token) return;
+  if (!locked.value || granting.value || !nuxtApp.$auth?.token) return;
+  // A granted reader should never see the passphrase box flash up while the
+  // backend answers; it only appears once the grant has been refused.
+  granting.value = true;
   try {
     const key = await grantedKey(nuxtApp.$apiCall, nuxtApp.$auth.token, 'schedule');
     if (key) await openSealed(await scopeKey(key, 'schedule'));
   } catch (error) { /* not granted, or no key configured: the passphrase box stays */ }
+  finally { granting.value = false; }
 }
 
 async function restore() {
@@ -1277,6 +1284,7 @@ onBeforeUnmount(() => stopAuth?.());
         <section v-if="locked" id="calendar-unlock" data-ui="calendar-unlock" class="cal-card cal-unlock" aria-labelledby="calendar-unlock-title">
           <h2 id="calendar-unlock-title" class="cal-kicker">{{ t.lockedTitle }}</h2>
           <p v-if="sealedMissing" class="cal-muted">{{ t.sealedMissing }}</p>
+          <p v-else-if="granting" class="cal-muted" role="status">{{ t.checkingAccess }}</p>
           <form v-else :aria-busy="unlocking" @submit.prevent="unlock">
             <label class="cal-field">
               <span>{{ t.passphrase }}</span>

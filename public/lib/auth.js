@@ -146,15 +146,19 @@ export const Auth = {
     if (usedToken && usedToken !== this.session.token) return;   // a stale response
     const exp = Number(session.exp);
     if (!Number.isFinite(exp) || exp <= Date.now()) return;
+    const before = this.session.token;
     if (typeof session.token === 'string') {
       if (!isAppSession(session.token) || session.token.length > 128) return;
       this.session.token = session.token;
     } else if (!isAppSession(this.session.token)) {
       return;
     }
+    if (this.session.token === before && this.session.exp === exp) return;
     this.session.exp = exp;
     writeAppSession(this.session);
     scheduleRenew();
+    // Only a real change is announced: every response carries an envelope,
+    // and a listener that calls the backend on change would otherwise loop.
     emit();
   },
 

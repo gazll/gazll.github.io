@@ -16,6 +16,7 @@ const APP_SESSION_PREFIX = 'gs1.';
 let sessionHooks = { adopt: null, drop: null };
 export function setSessionHooks(hooks) { sessionHooks = { ...sessionHooks, ...(hooks || {}) }; }
 const isAppSession = value => typeof value === 'string' && value.startsWith(APP_SESSION_PREFIX);
+export const AUTH_EXPIRED = /^(?:thiếu idtoken|idtoken|token|phiên đăng nhập|session expired|not signed in)/i;
 
 const isHttpsUrl = value => typeof value === 'string' && /^https:\/\//i.test(value);
 export const isConfigured = () => isHttpsUrl(SCRIPT_URL);
@@ -84,7 +85,10 @@ export async function call(action, payload = {}, idToken = null) {
   if (!body.ok) {
     const msg = body.error || 'The backend reported an unspecified error.';
     // Code.gs still answers in Vietnamese, so both wordings must match here.
-    const authExpired = /token|idToken|hết hạn|đăng nhập|expired|sign ?in/i.test(msg);
+    // Anchored on purpose: a bare /đăng nhập/ also matched the access.key
+    // refusal "Scope … không chia sẻ qua đăng nhập", and a page merely asking
+    // for a key it was not granted signed the reader out.
+    const authExpired = AUTH_EXPIRED.test(msg);
     if (authExpired && isAppSession(idToken) && typeof sessionHooks.drop === 'function') {
       try { sessionHooks.drop(idToken); } catch (e) {}
     }

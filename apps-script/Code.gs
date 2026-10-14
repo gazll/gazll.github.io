@@ -727,7 +727,9 @@ var ACTIONS = Object.assign(Object.create(null), {
     var scope = trim(p && p.scope).toLowerCase();
     if (ACCESS_SCOPES.indexOf(scope) < 0) throw publicError('Scope không hợp lệ.');
     var key = PropertiesService.getScriptProperties().getProperty(scopeProperty(scope));
-    if (!key) throw publicError('Scope ' + scope + ' không chia sẻ qua đăng nhập.');
+    // Never word a refusal with "đăng nhập": older clients read that as an
+    // expired session and signed the reader out.
+    if (!key) throw publicError('Scope ' + scope + ' chưa đặt ' + scopeProperty(scope) + ', chỉ mở bằng passphrase.');
     if (!hasAccess(user, scope)) throw publicError('Tài khoản này chưa được cấp quyền cho ' + scope + '.');
     return { key: key };
   },

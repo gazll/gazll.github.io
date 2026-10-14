@@ -301,20 +301,35 @@ async function grantedSecret(type) {
 }
 
 async function restore() {
-  if (movie.database) return;
+  if (movie.database || movie.unlocking) return;
   const saved = storedSecret();
-  const stored = saved || await grantedSecret(movie.catalogType);
-  if (!stored || movie.database) return;
   movie.unlocking = true;
-  unlockBusy(true, saved ? 'Opening with the key saved on this device…' : 'Opening with the access granted to this account…');
+  unlockBusy(true, saved ? 'Opening with the key saved on this device…' : 'Checking the access granted to this account…');
   try {
-    await openSealed(stored, movie.catalogType);
-    paintLockState();
-    renderResults();
-    renderOutput();
+    // A stale saved key must not hide a live grant: a granted account would
+    // otherwise be asked for a passphrase it was never meant to need.
+    let opened = false;
+    if (saved) {
+      try { await openSealed(saved, movie.catalogType); opened = true; } catch (error) { /* try the grant */ }
+    }
+    if (!opened) {
+      const granted = await grantedSecret(movie.catalogType);
+      if (granted && !movie.database) {
+        unlockBusy(true, 'Opening with the access granted to this account…');
+        await openSealed(granted, movie.catalogType);
+        opened = true;
+      }
+    }
+    if (opened) {
+      paintLockState();
+      renderResults();
+      renderOutput();
+    } else if (saved) {
+      setText('movieUnlockErr', 'The saved key no longer opens this catalog — enter the passphrase.');
+    }
   } catch (error) {
-    /* stale key or no file yet: stay locked, and say why the form is back */
-    setText('movieUnlockErr', 'The saved key no longer opens this catalog — enter the passphrase.');
+    /* no file yet, or the grant no longer opens it: stay locked */
+    setText('movieUnlockErr', 'The access granted to this account no longer opens this catalog — enter the passphrase.');
   } finally {
     movie.unlocking = false;
     unlockBusy(false, catalogConfig().unlockNote);

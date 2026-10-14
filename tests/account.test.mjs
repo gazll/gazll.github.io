@@ -509,6 +509,13 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
     // A stale envelope (from a request made with an older token) is ignored too.
     b.Auth.adoptSession({ exp: exp + 1 }, 'gs1.old');
     assert.equal(b.Auth.session.exp, exp);
+
+    // Every response carries an envelope; announcing an unchanged one made the
+    // pages that call the backend on change call it forever.
+    let changes = 0;
+    b.Auth.onChange(() => { changes += 1; });
+    b.Auth.adoptSession({ exp }, b.Auth.token);
+    assert.equal(changes, 0);
   });
 
   test('a stored app session restores signed with no prompt, and a Google token planted there does not', async () => {
@@ -627,6 +634,16 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
       () => apiModule.namespace.call('pull', {}, 'private-id-token'),
       /response is too large/i
     );
+
+    // Only a real auth failure may drop the session. A page asking for a key
+    // it was not granted got "… không chia sẻ qua đăng nhập" and signed out.
+    const { AUTH_EXPIRED } = apiModule.namespace;
+    for (const msg of ['Phiên đăng nhập đã hết hạn — cần đăng nhập lại.', 'Thiếu idToken — cần đăng nhập.', 'Token đã hết hạn.']) {
+      assert.equal(AUTH_EXPIRED.test(msg), true, msg);
+    }
+    for (const msg of ['Scope fshare không chia sẻ qua đăng nhập.', 'Tài khoản này chưa được cấp quyền cho schedule.', 'Action không hợp lệ.']) {
+      assert.equal(AUTH_EXPIRED.test(msg), false, msg);
+    }
   });
 
   test('an unauthenticated backend request is rejected before any action can run', async () => {
