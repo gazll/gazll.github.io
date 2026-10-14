@@ -108,7 +108,7 @@ useHead(() => ({ htmlAttrs: { lang: lang.value }, title: `${labels.value.title} 
     <main id="view-host" tabindex="-1" class="view"><div id="release-notes-page" data-ui="release-notes-page" class="page rn-page">
       <header id="release-notes-header" data-ui="release-notes-header" class="rn-head">
         <div class="rn-head-copy"><p class="eyebrow">{{ labels.eyebrow }}</p><h1>{{ labels.title }}</h1><p class="rn-intro">{{ labels.intro }}</p></div>
-        <div id="release-notes-summary" data-ui="release-summary" class="rn-summary" :aria-label="labels.summary">
+        <div id="release-notes-summary" data-ui="release-summary" class="rn-summary" role="group" :aria-label="labels.summary">
           <span><b>{{ totals.releases }}</b> {{ totals.releases === 1 ? labels.release : labels.releases }}</span>
           <span><b>{{ totals.changes }}</b> {{ totals.changes === 1 ? labels.change : labels.changes }}</span>
           <span><b>{{ totals.items }}</b> {{ labels.questions }}</span>
@@ -132,7 +132,7 @@ useHead(() => ({ htmlAttrs: { lang: lang.value }, title: `${labels.value.title} 
         <button v-if="hasReleaseFilters" class="rn-empty-clear" type="button" @click="clearReleaseFilters">{{ labels.clearFilters }}</button>
       </p>
       <div v-else id="release-notes-list" data-ui="release-list" class="rn-body"><section v-for="day in filteredDays" :id="`release-day-${day.date}`" :key="day.date" data-ui="release-day" :data-date="day.date" class="rn-day">
-        <header class="rn-dayhead"><time class="rn-date" :datetime="day.date" :aria-label="dateLabel(day.date)"><span class="rn-date-day" aria-hidden="true">{{ dateParts(day.date).day }}</span><span class="rn-date-month" aria-hidden="true">{{ dateParts(day.date).month }}</span></time><span v-if="day.releases.length > 1" class="rn-daymeta">{{ day.releases.length }} {{ day.releases.length === 1 ? labels.release : labels.releases }} · {{ day.changeCount }} {{ day.changeCount === 1 ? labels.change : labels.changes }}</span></header>
+        <header class="rn-dayhead"><time class="rn-date" :datetime="day.date"><span class="sr-only">{{ dateLabel(day.date) }}</span><span class="rn-date-day" aria-hidden="true">{{ dateParts(day.date).day }}</span><span class="rn-date-month" aria-hidden="true">{{ dateParts(day.date).month }}</span></time><span v-if="day.releases.length > 1" class="rn-daymeta">{{ day.releases.length }} {{ day.releases.length === 1 ? labels.release : labels.releases }} · {{ day.changeCount }} {{ day.changeCount === 1 ? labels.change : labels.changes }}</span></header>
         <div class="rn-day-releases">
           <section v-for="(release, releaseIndex) in day.releases" :id="`release-${day.date}-${releaseIndex + 1}`" :key="release.en.title" data-ui="release-item" class="rn-rel" :class="{ 'rn-rel-latest': isLatest(release) }">
             <header class="rn-relhead"><h2 class="rn-title">{{ release[lang]?.title || release.en.title }}</h2><span v-if="isLatest(release)" class="rn-latest">{{ labels.latest }}</span><span v-if="release.items_added && kindFilter === 'all'" class="rn-added">+{{ release.items_added }} {{ labels.questions }}</span></header>
