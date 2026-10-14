@@ -242,10 +242,24 @@
     --md-sys-typescale-label-large-size:.875rem; --md-sys-typescale-label-large-line-height:1.25rem;
     --md-sys-typescale-label-medium-size:.75rem; --md-sys-typescale-label-medium-line-height:1rem;
     --md-sys-typescale-label-small-size:.6875rem; --md-sys-typescale-label-small-line-height:1rem;
-    /* Shape scale. Buttons are full, chips small, cards medium, dialogs extra-large. */
+    /* Emphasized type (M3 Expressive): the same sizes, heavier — 500 for
+       display/headline/body/title-large, 700 for labels and small titles. */
+    --md-sys-typescale-emphasized-weight:500; --md-sys-typescale-emphasized-label-weight:700;
+    /* Shape scale, with the three Expressive steps (large-increased,
+       extra-large-increased, extra-extra-large). Buttons are full, chips small,
+       cards medium, menus and lists large, dialogs extra-large. */
     --md-sys-shape-corner-none:0; --md-sys-shape-corner-extra-small:4px; --md-sys-shape-corner-small:8px;
-    --md-sys-shape-corner-medium:12px; --md-sys-shape-corner-large:16px; --md-sys-shape-corner-extra-large:28px;
-    --md-sys-shape-corner-full:9999px;
+    --md-sys-shape-corner-medium:12px; --md-sys-shape-corner-large:16px; --md-sys-shape-corner-large-increased:20px;
+    --md-sys-shape-corner-extra-large:28px; --md-sys-shape-corner-extra-large-increased:32px;
+    --md-sys-shape-corner-extra-extra-large:48px; --md-sys-shape-corner-full:9999px;
+    /* Spacing (I/O 2026): an 8px scale, space100 = 8px, plus the nested units
+       Material defines. Padding, gaps and margins read these. */
+    --md-sys-spacing-space0:0; --md-sys-spacing-space25:2px; --md-sys-spacing-space50:4px; --md-sys-spacing-space75:6px;
+    --md-sys-spacing-space100:8px; --md-sys-spacing-space125:10px; --md-sys-spacing-space150:12px;
+    --md-sys-spacing-space175:14px; --md-sys-spacing-space200:16px; --md-sys-spacing-space250:20px;
+    --md-sys-spacing-space300:24px; --md-sys-spacing-space400:32px; --md-sys-spacing-space450:36px;
+    --md-sys-spacing-space500:40px; --md-sys-spacing-space600:48px; --md-sys-spacing-space700:56px;
+    --md-sys-spacing-space800:64px; --md-sys-spacing-space900:72px;
     /* Elevation is mostly tone (surface-container-*); shadows only where MD3 lifts. */
     --md-sys-elevation-level1:0 1px 2px color-mix(in srgb,var(--md-sys-color-shadow) 30%,transparent),0 1px 3px 1px color-mix(in srgb,var(--md-sys-color-shadow) 15%,transparent);
     --md-sys-elevation-level2:0 1px 2px color-mix(in srgb,var(--md-sys-color-shadow) 30%,transparent),0 2px 6px 2px color-mix(in srgb,var(--md-sys-color-shadow) 15%,transparent);
@@ -255,7 +269,18 @@
     /* State layers: the opacity of on-colour laid over a container. */
     --md-sys-state-hover-state-layer-opacity:8%; --md-sys-state-focus-state-layer-opacity:10%;
     --md-sys-state-pressed-state-layer-opacity:10%; --md-sys-state-dragged-state-layer-opacity:16%;
-    /* Motion. */
+    /* Motion physics, expressive scheme. Material's own web conversion of each
+       spring into a curve plus duration: spatial springs (position, size,
+       corners) overshoot and settle, effects springs (colour, opacity) never
+       do. Fast for small controls, default for panels, slow for full screen. */
+    --md-sys-motion-spring-fast-spatial:cubic-bezier(.42,1.67,.21,.9); --md-sys-motion-spring-fast-spatial-duration:350ms;
+    --md-sys-motion-spring-default-spatial:cubic-bezier(.38,1.21,.22,1); --md-sys-motion-spring-default-spatial-duration:500ms;
+    --md-sys-motion-spring-slow-spatial:cubic-bezier(.39,1.29,.35,.98); --md-sys-motion-spring-slow-spatial-duration:650ms;
+    --md-sys-motion-spring-fast-effects:cubic-bezier(.31,.94,.34,1); --md-sys-motion-spring-fast-effects-duration:150ms;
+    --md-sys-motion-spring-default-effects:cubic-bezier(.34,.8,.34,1); --md-sys-motion-spring-default-effects-duration:200ms;
+    --md-sys-motion-spring-slow-effects:cubic-bezier(.34,.88,.34,1); --md-sys-motion-spring-slow-effects-duration:300ms;
+    /* Easing and duration: the legacy system, which Material keeps for route
+       transitions only. */
     --md-sys-motion-easing-standard:cubic-bezier(.2,0,0,1);
     --md-sys-motion-easing-standard-decelerate:cubic-bezier(0,0,0,1);
     --md-sys-motion-easing-standard-accelerate:cubic-bezier(.3,0,1,1);
