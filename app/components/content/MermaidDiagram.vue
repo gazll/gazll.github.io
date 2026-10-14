@@ -40,7 +40,7 @@ onMounted(async () => {
         <button type="button" @click="copySource">{{ copied ? (lang === 'vi' ? 'Đã copy' : 'Copied') : 'Copy Mermaid' }}</button>
         <span class="sd-diagram-zoom" role="group" :aria-label="lang === 'vi' ? 'Phóng to sơ đồ' : 'Diagram zoom'">
           <button type="button" aria-label="Zoom out" @click="applyZoom(zoom - .25)">−</button>
-          <button type="button" aria-label="Reset zoom" @click="applyZoom(1)">{{ Math.round(zoom * 100) }}%</button>
+          <button type="button" :aria-label="`Reset zoom (${Math.round(zoom * 100)}%)`" @click="applyZoom(1)">{{ Math.round(zoom * 100) }}%</button>
           <button type="button" aria-label="Zoom in" @click="applyZoom(zoom + .25)">+</button>
         </span>
         <a href="https://mermaid.live/" target="_blank" rel="noopener noreferrer">{{ lang === 'vi' ? 'Mở visualizer' : 'Open visualizer' }} ↗</a>

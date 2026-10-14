@@ -47,7 +47,7 @@ const viLabels: Record<string, string> = {
   'Last release': 'Bản phát hành gần nhất', 'Checking release…': 'Đang kiểm tra release…',
   'Release not stamped': 'Chưa có dấu phát hành', 'Release time unavailable': 'Không có thời gian phát hành',
   'Knowledge Base': 'Kho kiến thức', topic: 'chủ đề', 'Open navigation menu': 'Mở menu điều hướng', 'Previous topic': 'Chủ đề trước',
-  'Next topic': 'Chủ đề tiếp theo', 'Search all material': 'Tìm kiếm toàn bộ nội dung', 'Search (Ctrl+K)': 'Tìm kiếm (Ctrl+K)',
+  'Next topic': 'Chủ đề tiếp theo', 'Search (Ctrl+K)': 'Tìm kiếm (Ctrl+K)',
   'Content language': 'Ngôn ngữ nội dung', 'Close menu': 'Đóng menu', 'Filter topics…': 'Lọc chủ đề…', 'Filter topics': 'Lọc chủ đề',
   Topics: 'Chủ đề', 'Nothing matches that filter.': 'Không có kết quả phù hợp.', 'Main navigation': 'Điều hướng chính',
   'Header controls': 'Điều khiển header', 'One query across every surface': 'Một truy vấn cho mọi khu vực', 'Ctrl K': 'Ctrl K',
@@ -323,9 +323,9 @@ onBeforeUnmount(() => {
       </div>
 
       <nav id="header-controls" class="headright" data-ui="header-controls" :aria-label="localize('Header controls')">
-        <button id="searchTrigger" class="searchtrigger" data-ui="search-trigger" type="button" :aria-label="localize('Search all material')" :title="localize('Search (Ctrl+K)')" @click="openSearch">
+        <button id="searchTrigger" class="searchtrigger" data-ui="search-trigger" type="button" :title="localize('Search (Ctrl+K)')" @click="openSearch">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5" /><path d="M16 16l4 4" /></svg>
-          <span class="st-label">{{ localize('Search') }}</span><kbd class="st-key">{{ localize('Ctrl K') }}</kbd>
+          <span class="st-label">{{ localize('Search') }}</span><kbd class="st-key" aria-hidden="true">{{ localize('Ctrl K') }}</kbd>
         </button>
         <!-- The denominator is useful only on study pages. Avoid constructing
              the async content-index reader on tools and long-form surfaces. -->
@@ -388,7 +388,7 @@ onBeforeUnmount(() => {
           <span id="np-text-label" class="np-display-label">Text</span>
           <div class="md-segmented" role="group" aria-labelledby="np-text-label">
             <button v-for="option in TEXT_SIZES" :key="option" type="button" class="md-segment"
-                    :aria-pressed="display.text === option" :aria-label="TEXT_NAMES[option]" @click="setDisplay('text', option)">{{ TEXT_LABELS[option] }}</button>
+                    :aria-pressed="display.text === option" :aria-label="`${TEXT_LABELS[option]} ${TEXT_NAMES[option].toLowerCase()}`" @click="setDisplay('text', option)">{{ TEXT_LABELS[option] }}</button>
           </div>
         </div>
       </div>
