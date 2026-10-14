@@ -122,7 +122,9 @@ const execFileAsync = promisify(execFile);
     const publicRoot = path.join(directory, 'public');
     await mkdir(path.join(publicRoot, 'lib'), { recursive: true });
     await writeFile(path.join(publicRoot, 'index.html'),
-      '<link rel="stylesheet" href="styles.css"><script type="module" src="boot.js"></script>');
+      '<link rel="stylesheet" href="styles.css"><script type="module" src="boot.js"></script>'
+      + '<script type="importmap">{"imports":{"#entry":"/_nuxt/Ab12.js"}}</script>'
+      + '<script type="module" src="/_nuxt/Ab12.js" crossorigin></script><link rel="stylesheet" href="/_nuxt/entry.Cd34.css">');
     await writeFile(path.join(publicRoot, 'boot.js'), "import('./app.js');\n");
     await writeFile(path.join(publicRoot, 'app.js'),
       "import { value } from './lib/value.js';\nimport('./lazy.js');\nimport('https://example.com/remote.js');\n");
@@ -141,6 +143,10 @@ const execFileAsync = promisify(execFile);
       const release = JSON.parse(await readFile(path.join(publicRoot, 'version.json'), 'utf8'));
       assert.match(html, /styles\.css\?v=1234567890ab/);
       assert.match(html, /boot\.js\?v=1234567890ab/);
+      // The importmap names the entry by its bare URL; a stamped <script> is a
+      // second module instance and blanks the page.
+      assert.match(html, /src="\/_nuxt\/Ab12\.js"/);
+      assert.doesNotMatch(html, /\/_nuxt\/[^"]*\?v=/);
       assert.match(boot, /app\.js\?v=1234567890ab/);
       assert.match(app, /\.\/lib\/value\.js\?v=1234567890ab/);
       assert.match(app, /\.\/lazy\.js\?v=1234567890ab/);

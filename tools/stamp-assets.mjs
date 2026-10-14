@@ -15,9 +15,15 @@ function withVersion(specifier, version, extensions) {
   return pathname + '?' + params + hash;
 }
 
+/* Nuxt content-hashes its own chunks, and since 4.6 its importmap names the
+   entry by the bare URL. A `?v=` on the entry <script> is a second URL for the
+   same module, so the browser ran it twice and the copy without a payload
+   blanked every page (2026-10-14). Those URLs are never stamped. */
+const NUXT_ASSETS = /^\/_nuxt\//;
+
 function stampHtml(source, version) {
   return source.replace(/(\b(?:src|href)=)(["'])([^"']+)(\2)/g, (whole, attribute, quote, specifier) =>
-    attribute + quote + withVersion(specifier, version, ['.js', '.css']) + quote);
+    NUXT_ASSETS.test(specifier) ? whole : attribute + quote + withVersion(specifier, version, ['.js', '.css']) + quote);
 }
 
 function stampJavaScript(source, version) {
