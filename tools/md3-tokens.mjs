@@ -34,6 +34,11 @@ async function loadMcu() {
 const { Hct, SchemeNeutral, SchemeTonalSpot, argbFromHex, hexFromArgb } = await loadMcu();
 
 export const SEED = '#0B6E4F';
+/* The 2025 colour spec is the one M3 Expressive ships: on-container roles sit
+   at tone 30 rather than 10, and dark surfaces run deeper. The custom groups
+   stay on 2021: a family accent is printed as text on its own container (a
+   pressed chip), and 2025's lighter accent drops that to 3.86:1. */
+const SPEC = '2025';
 export const CUSTOM = {
   indigo: '#3D4E8F',
   teal: '#1C7684',
@@ -62,7 +67,7 @@ const STYLES = path.resolve(import.meta.dirname, '../public/styles.css');
 const kebab = name => name.replace(/[A-Z]/g, c => '-' + c.toLowerCase());
 
 export function roles(dark) {
-  const scheme = new SchemeTonalSpot(Hct.fromInt(argbFromHex(SEED)), dark, 0);
+  const scheme = new SchemeTonalSpot(Hct.fromInt(argbFromHex(SEED)), dark, 0, SPEC, 'phone');
   const out = {};
   for (const role of ROLES) out[`md-sys-color-${kebab(role)}`] = hexFromArgb(scheme[role]).toUpperCase();
   for (const [name, value] of Object.entries(CUSTOM)) {
