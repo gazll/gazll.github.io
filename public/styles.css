@@ -3370,6 +3370,8 @@
   .view-track .qcard[data-qid] .qtop{grid-template-columns:minmax(0,1fr)}
   .view-track .qcard[data-qid] .qmeta{grid-column:1;grid-row:2;justify-content:flex-end;gap:4px;padding:4px 9px 6px;
     border-left:0;border-top:1px solid var(--line)}
+  .view-track .qcard[data-qid] .qmeta>.manual-review,.view-track .qcard[data-qid] .qmeta>.qcopy,
+  .view-track .qcard[data-qid] .qmeta>.qlangbtn{flex:none}
 }
 
 /* ---------- Release notes ----------
