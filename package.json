@@ -20,7 +20,7 @@
     "check": "node tools/check.mjs && nuxt generate"
   },
   "dependencies": {
-    "nuxt": "4.6.0"
+    "nuxt": "^4.6.1"
   },
   "devDependencies": {
     "jsdom": "^30.0.1",
