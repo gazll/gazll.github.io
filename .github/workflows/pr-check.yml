@@ -49,3 +49,18 @@ jobs:
         run: |
           node tools/stamp-assets.mjs "${{ github.sha }}" .output/public
           node tools/verify-static-artifact.mjs .output/public
+
+      # A UI change owes a screenshot (CLAUDE.md), and nobody can take one on
+      # the NAS by hand. Light/dark at three widths, plus an axe summary.
+      - name: Screenshots and axe summary
+        run: |
+          npx playwright install --with-deps chromium-headless-shell
+          mkdir -p screenshots
+          node tools/screenshots.mjs .output/public screenshots --axe | tee screenshots/summary.txt
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: screenshots
+          path: screenshots/
+          retention-days: 14
