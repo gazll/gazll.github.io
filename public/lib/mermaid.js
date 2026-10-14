@@ -13,7 +13,7 @@ function engine() {
         logLevel: 'fatal',
         suppressErrorRendering: true,
         theme: 'base',
-        fontFamily: 'IBM Plex Sans, system-ui, sans-serif',
+        fontFamily: '"Roboto Flex Variable", system-ui, sans-serif',
         themeVariables: {
           primaryColor: '#E4F1EB',
           primaryTextColor: '#14233A',
