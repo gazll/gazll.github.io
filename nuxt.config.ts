@@ -49,6 +49,8 @@ export default defineNuxtConfig({
   compatibilityDate: '2026-08-20',
   devtools: { enabled: false },
   ssr: true,
+  // TEMP (preview/md3): name the node behind NUXT_E1005; remove before merge.
+  vite: { define: { __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: 'true' } },
   /* Keep the shared stylesheet cacheable across routes instead of copying it
      into every prerendered HTML document. Vite still emits the minified,
      hashed CSS asset. */
