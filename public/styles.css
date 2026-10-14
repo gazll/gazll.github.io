@@ -1,28 +1,298 @@
+/* md3:generated:start — tools/md3-tokens.mjs writes this block; never edit it by hand */
   :root{
-    --paper:#EEF1F6; --surface:#FFFFFF; --ink:#14233A; --ink-soft:#42536C; --muted:#626E7F;
-    --line:#DBE1EA; --line-strong:#C6CFDC; --emerald:#0B6E4F; --emerald-deep:#085239;
-    --emerald-soft:#E4F1EB; --clay:#AE4536; --clay-soft:#F6E8E5; --brass:#846938;
-    --indigo:#3D4E8F; --indigo-soft:#E7EAF6;
-    --teal:#1C7684; --teal-soft:#E3F1F3;
+    color-scheme:light;
+    --md-sys-color-primary:#1E6A4F;
+    --md-sys-color-on-primary:#FFFFFF;
+    --md-sys-color-primary-container:#A8F2CF;
+    --md-sys-color-on-primary-container:#005139;
+    --md-sys-color-secondary:#4D6358;
+    --md-sys-color-on-secondary:#FFFFFF;
+    --md-sys-color-secondary-container:#CFE9D9;
+    --md-sys-color-on-secondary-container:#354B40;
+    --md-sys-color-tertiary:#3E6374;
+    --md-sys-color-on-tertiary:#FFFFFF;
+    --md-sys-color-tertiary-container:#C1E8FC;
+    --md-sys-color-on-tertiary-container:#254B5B;
+    --md-sys-color-error:#BA1A1A;
+    --md-sys-color-on-error:#FFFFFF;
+    --md-sys-color-error-container:#FFDAD6;
+    --md-sys-color-on-error-container:#93000A;
+    --md-sys-color-surface:#F5FBF5;
+    --md-sys-color-surface-dim:#D6DBD6;
+    --md-sys-color-surface-bright:#F5FBF5;
+    --md-sys-color-on-surface:#171D1A;
+    --md-sys-color-on-surface-variant:#404944;
+    --md-sys-color-surface-container-lowest:#FFFFFF;
+    --md-sys-color-surface-container-low:#EFF5EF;
+    --md-sys-color-surface-container:#EAEFEA;
+    --md-sys-color-surface-container-high:#E4EAE4;
+    --md-sys-color-surface-container-highest:#DEE4DE;
+    --md-sys-color-inverse-surface:#2C322E;
+    --md-sys-color-inverse-on-surface:#EDF2EC;
+    --md-sys-color-inverse-primary:#8CD5B3;
+    --md-sys-color-outline:#707973;
+    --md-sys-color-outline-variant:#BFC9C2;
+    --md-sys-color-shadow:#000000;
+    --md-sys-color-scrim:#000000;
+    --md-sys-color-surface-tint:#1E6A4F;
+    --md-custom-indigo:#4E5B92;
+    --md-custom-on-indigo:#FFFFFF;
+    --md-custom-indigo-container:#DCE1FF;
+    --md-custom-on-indigo-container:#364479;
+    --md-custom-teal:#006876;
+    --md-custom-on-teal:#FFFFFF;
+    --md-custom-teal-container:#9FEFFF;
+    --md-custom-on-teal-container:#004E59;
+    --md-custom-clay:#904B40;
+    --md-custom-on-clay:#FFFFFF;
+    --md-custom-clay-container:#FFDAD4;
+    --md-custom-on-clay-container:#73342A;
+    --md-custom-brass:#7B580C;
+    --md-custom-on-brass:#FFFFFF;
+    --md-custom-brass-container:#FFDEA8;
+    --md-custom-on-brass-container:#5E4200;
+    --md-custom-violet:#69548D;
+    --md-custom-on-violet:#FFFFFF;
+    --md-custom-violet-container:#EBDCFF;
+    --md-custom-on-violet-container:#503C74;
+    --md-custom-slate:#555F6A;
+    --md-custom-on-slate:#FFFFFF;
+    --md-custom-slate-container:#D9E3F0;
+    --md-custom-on-slate-container:#3E4852;
+    --md-custom-rose:#8B4A62;
+    --md-custom-on-rose:#FFFFFF;
+    --md-custom-rose-container:#FFD9E3;
+    --md-custom-on-rose-container:#6F334A;
+    --md-custom-steel:#256489;
+    --md-custom-on-steel:#FFFFFF;
+    --md-custom-steel-container:#C9E6FF;
+    --md-custom-on-steel-container:#004C6E;
+  }
+  /* Dark follows the system unless the reader picked a theme; the explicit
+     choice is data-theme on <html>, written by the theme switch. */
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --md-sys-color-primary:#8CD5B3;
+    --md-sys-color-on-primary:#003826;
+    --md-sys-color-primary-container:#005139;
+    --md-sys-color-on-primary-container:#A8F2CF;
+    --md-sys-color-secondary:#B3CCBE;
+    --md-sys-color-on-secondary:#1F352B;
+    --md-sys-color-secondary-container:#354B40;
+    --md-sys-color-on-secondary-container:#CFE9D9;
+    --md-sys-color-tertiary:#A5CCDF;
+    --md-sys-color-on-tertiary:#083544;
+    --md-sys-color-tertiary-container:#254B5B;
+    --md-sys-color-on-tertiary-container:#C1E8FC;
+    --md-sys-color-error:#FFB4AB;
+    --md-sys-color-on-error:#690005;
+    --md-sys-color-error-container:#93000A;
+    --md-sys-color-on-error-container:#FFDAD6;
+    --md-sys-color-surface:#0F1512;
+    --md-sys-color-surface-dim:#0F1512;
+    --md-sys-color-surface-bright:#353B37;
+    --md-sys-color-on-surface:#DEE4DE;
+    --md-sys-color-on-surface-variant:#BFC9C2;
+    --md-sys-color-surface-container-lowest:#0A0F0C;
+    --md-sys-color-surface-container-low:#171D1A;
+    --md-sys-color-surface-container:#1B211E;
+    --md-sys-color-surface-container-high:#252B28;
+    --md-sys-color-surface-container-highest:#303632;
+    --md-sys-color-inverse-surface:#DEE4DE;
+    --md-sys-color-inverse-on-surface:#2C322E;
+    --md-sys-color-inverse-primary:#1E6A4F;
+    --md-sys-color-outline:#8A938D;
+    --md-sys-color-outline-variant:#404944;
+    --md-sys-color-shadow:#000000;
+    --md-sys-color-scrim:#000000;
+    --md-sys-color-surface-tint:#8CD5B3;
+    --md-custom-indigo:#B7C4FF;
+    --md-custom-on-indigo:#1E2D61;
+    --md-custom-indigo-container:#364479;
+    --md-custom-on-indigo-container:#DCE1FF;
+    --md-custom-teal:#82D3E2;
+    --md-custom-on-teal:#00363E;
+    --md-custom-teal-container:#004E59;
+    --md-custom-on-teal-container:#9FEFFF;
+    --md-custom-clay:#FFB4A8;
+    --md-custom-on-clay:#561E16;
+    --md-custom-clay-container:#73342A;
+    --md-custom-on-clay-container:#FFDAD4;
+    --md-custom-brass:#EEC06D;
+    --md-custom-on-brass:#422D00;
+    --md-custom-brass-container:#5E4200;
+    --md-custom-on-brass-container:#FFDEA8;
+    --md-custom-violet:#D4BBFC;
+    --md-custom-on-violet:#39255C;
+    --md-custom-violet-container:#503C74;
+    --md-custom-on-violet-container:#EBDCFF;
+    --md-custom-slate:#BDC7D4;
+    --md-custom-on-slate:#28313B;
+    --md-custom-slate-container:#3E4852;
+    --md-custom-on-slate-container:#D9E3F0;
+    --md-custom-rose:#FFB0CA;
+    --md-custom-on-rose:#541D33;
+    --md-custom-rose-container:#6F334A;
+    --md-custom-on-rose-container:#FFD9E3;
+    --md-custom-steel:#94CDF7;
+    --md-custom-on-steel:#00344D;
+    --md-custom-steel-container:#004C6E;
+    --md-custom-on-steel-container:#C9E6FF;
+    }
+  }
+  :root[data-theme="dark"]{
+    color-scheme:dark;
+    --md-sys-color-primary:#8CD5B3;
+    --md-sys-color-on-primary:#003826;
+    --md-sys-color-primary-container:#005139;
+    --md-sys-color-on-primary-container:#A8F2CF;
+    --md-sys-color-secondary:#B3CCBE;
+    --md-sys-color-on-secondary:#1F352B;
+    --md-sys-color-secondary-container:#354B40;
+    --md-sys-color-on-secondary-container:#CFE9D9;
+    --md-sys-color-tertiary:#A5CCDF;
+    --md-sys-color-on-tertiary:#083544;
+    --md-sys-color-tertiary-container:#254B5B;
+    --md-sys-color-on-tertiary-container:#C1E8FC;
+    --md-sys-color-error:#FFB4AB;
+    --md-sys-color-on-error:#690005;
+    --md-sys-color-error-container:#93000A;
+    --md-sys-color-on-error-container:#FFDAD6;
+    --md-sys-color-surface:#0F1512;
+    --md-sys-color-surface-dim:#0F1512;
+    --md-sys-color-surface-bright:#353B37;
+    --md-sys-color-on-surface:#DEE4DE;
+    --md-sys-color-on-surface-variant:#BFC9C2;
+    --md-sys-color-surface-container-lowest:#0A0F0C;
+    --md-sys-color-surface-container-low:#171D1A;
+    --md-sys-color-surface-container:#1B211E;
+    --md-sys-color-surface-container-high:#252B28;
+    --md-sys-color-surface-container-highest:#303632;
+    --md-sys-color-inverse-surface:#DEE4DE;
+    --md-sys-color-inverse-on-surface:#2C322E;
+    --md-sys-color-inverse-primary:#1E6A4F;
+    --md-sys-color-outline:#8A938D;
+    --md-sys-color-outline-variant:#404944;
+    --md-sys-color-shadow:#000000;
+    --md-sys-color-scrim:#000000;
+    --md-sys-color-surface-tint:#8CD5B3;
+    --md-custom-indigo:#B7C4FF;
+    --md-custom-on-indigo:#1E2D61;
+    --md-custom-indigo-container:#364479;
+    --md-custom-on-indigo-container:#DCE1FF;
+    --md-custom-teal:#82D3E2;
+    --md-custom-on-teal:#00363E;
+    --md-custom-teal-container:#004E59;
+    --md-custom-on-teal-container:#9FEFFF;
+    --md-custom-clay:#FFB4A8;
+    --md-custom-on-clay:#561E16;
+    --md-custom-clay-container:#73342A;
+    --md-custom-on-clay-container:#FFDAD4;
+    --md-custom-brass:#EEC06D;
+    --md-custom-on-brass:#422D00;
+    --md-custom-brass-container:#5E4200;
+    --md-custom-on-brass-container:#FFDEA8;
+    --md-custom-violet:#D4BBFC;
+    --md-custom-on-violet:#39255C;
+    --md-custom-violet-container:#503C74;
+    --md-custom-on-violet-container:#EBDCFF;
+    --md-custom-slate:#BDC7D4;
+    --md-custom-on-slate:#28313B;
+    --md-custom-slate-container:#3E4852;
+    --md-custom-on-slate-container:#D9E3F0;
+    --md-custom-rose:#FFB0CA;
+    --md-custom-on-rose:#541D33;
+    --md-custom-rose-container:#6F334A;
+    --md-custom-on-rose-container:#FFD9E3;
+    --md-custom-steel:#94CDF7;
+    --md-custom-on-steel:#00344D;
+    --md-custom-steel-container:#004C6E;
+    --md-custom-on-steel-container:#C9E6FF;
+  }
+/* md3:generated:end */
+  /* Hand-written tokens: type, shape, elevation, motion and state, then the
+     legacy names the rest of this file still uses, mapped onto MD3 roles so
+     they follow the theme. The colour roles themselves are generated above. */
+  :root{
+    --md-ref-typeface-brand:"Roboto Flex Variable","Roboto Flex",system-ui,-apple-system,"Segoe UI",sans-serif;
+    --md-ref-typeface-plain:"Roboto Flex Variable","Roboto Flex",system-ui,-apple-system,"Segoe UI",sans-serif;
+    --md-ref-typeface-mono:"Roboto Mono Variable","Roboto Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+    /* MD3 type scale in rem, so the reader's own default font size still counts. */
+    --md-sys-typescale-display-large-size:3.5625rem; --md-sys-typescale-display-large-line-height:4rem;
+    --md-sys-typescale-display-medium-size:2.8125rem; --md-sys-typescale-display-medium-line-height:3.25rem;
+    --md-sys-typescale-display-small-size:2.25rem; --md-sys-typescale-display-small-line-height:2.75rem;
+    --md-sys-typescale-headline-large-size:2rem; --md-sys-typescale-headline-large-line-height:2.5rem;
+    --md-sys-typescale-headline-medium-size:1.75rem; --md-sys-typescale-headline-medium-line-height:2.25rem;
+    --md-sys-typescale-headline-small-size:1.5rem; --md-sys-typescale-headline-small-line-height:2rem;
+    --md-sys-typescale-title-large-size:1.375rem; --md-sys-typescale-title-large-line-height:1.75rem;
+    --md-sys-typescale-title-medium-size:1rem; --md-sys-typescale-title-medium-line-height:1.5rem;
+    --md-sys-typescale-title-small-size:.875rem; --md-sys-typescale-title-small-line-height:1.25rem;
+    --md-sys-typescale-body-large-size:1rem; --md-sys-typescale-body-large-line-height:1.5rem;
+    --md-sys-typescale-body-medium-size:.875rem; --md-sys-typescale-body-medium-line-height:1.25rem;
+    --md-sys-typescale-body-small-size:.75rem; --md-sys-typescale-body-small-line-height:1rem;
+    --md-sys-typescale-label-large-size:.875rem; --md-sys-typescale-label-large-line-height:1.25rem;
+    --md-sys-typescale-label-medium-size:.75rem; --md-sys-typescale-label-medium-line-height:1rem;
+    --md-sys-typescale-label-small-size:.6875rem; --md-sys-typescale-label-small-line-height:1rem;
+    /* Shape scale. Buttons are full, chips small, cards medium, dialogs extra-large. */
+    --md-sys-shape-corner-none:0; --md-sys-shape-corner-extra-small:4px; --md-sys-shape-corner-small:8px;
+    --md-sys-shape-corner-medium:12px; --md-sys-shape-corner-large:16px; --md-sys-shape-corner-extra-large:28px;
+    --md-sys-shape-corner-full:9999px;
+    /* Elevation is mostly tone (surface-container-*); shadows only where MD3 lifts. */
+    --md-sys-elevation-level1:0 1px 2px color-mix(in srgb,var(--md-sys-color-shadow) 30%,transparent),0 1px 3px 1px color-mix(in srgb,var(--md-sys-color-shadow) 15%,transparent);
+    --md-sys-elevation-level2:0 1px 2px color-mix(in srgb,var(--md-sys-color-shadow) 30%,transparent),0 2px 6px 2px color-mix(in srgb,var(--md-sys-color-shadow) 15%,transparent);
+    --md-sys-elevation-level3:0 1px 3px color-mix(in srgb,var(--md-sys-color-shadow) 30%,transparent),0 4px 8px 3px color-mix(in srgb,var(--md-sys-color-shadow) 15%,transparent);
+    --md-sys-elevation-level4:0 2px 3px color-mix(in srgb,var(--md-sys-color-shadow) 30%,transparent),0 6px 10px 4px color-mix(in srgb,var(--md-sys-color-shadow) 15%,transparent);
+    --md-sys-elevation-level5:0 4px 4px color-mix(in srgb,var(--md-sys-color-shadow) 30%,transparent),0 8px 12px 6px color-mix(in srgb,var(--md-sys-color-shadow) 15%,transparent);
+    /* State layers: the opacity of on-colour laid over a container. */
+    --md-sys-state-hover-state-layer-opacity:8%; --md-sys-state-focus-state-layer-opacity:10%;
+    --md-sys-state-pressed-state-layer-opacity:10%; --md-sys-state-dragged-state-layer-opacity:16%;
+    /* Motion. */
+    --md-sys-motion-easing-standard:cubic-bezier(.2,0,0,1);
+    --md-sys-motion-easing-standard-decelerate:cubic-bezier(0,0,0,1);
+    --md-sys-motion-easing-standard-accelerate:cubic-bezier(.3,0,1,1);
+    --md-sys-motion-easing-emphasized-decelerate:cubic-bezier(.05,.7,.1,1);
+    --md-sys-motion-easing-emphasized-accelerate:cubic-bezier(.3,0,.8,.15);
+    --md-sys-motion-duration-short2:100ms; --md-sys-motion-duration-short4:200ms;
+    --md-sys-motion-duration-medium2:300ms; --md-sys-motion-duration-medium4:400ms;
+
+    /* Legacy names → MD3 roles. New rules use the md-sys names directly. */
+    --paper:var(--md-sys-color-surface); --surface:var(--md-sys-color-surface-container-lowest);
+    --ink:var(--md-sys-color-on-surface); --ink-soft:var(--md-sys-color-on-surface-variant); --muted:var(--md-sys-color-on-surface-variant);
+    --line:var(--md-sys-color-outline-variant);
+    --line-strong:color-mix(in srgb,var(--md-sys-color-outline) 45%,var(--md-sys-color-outline-variant));
+    --emerald:var(--md-sys-color-primary); --emerald-deep:var(--md-sys-color-on-primary-container);
+    --emerald-soft:var(--md-sys-color-secondary-container);
+    --clay:var(--md-custom-clay); --clay-soft:var(--md-custom-clay-container); --brass:var(--md-custom-brass);
+    --indigo:var(--md-custom-indigo); --indigo-soft:var(--md-custom-indigo-container);
+    --teal:var(--md-custom-teal); --teal-soft:var(--md-custom-teal-container);
+    /* The terminal stays dark in both themes: code is read on its own surface. */
     --code-bg:#0F1D31; --code-bg-2:#16273F; --code-text:#E6ECF5; --code-dim:#8A9AB4;
     --code-green:#86D6AC; --code-blue:#8DBBEC; --code-amber:#E2B871; --code-clay:#E69185;
     /* Reading roles: neutral hierarchy carries the prose; accents only mark
        meaning, navigation, attention, and code. Keep these roles stable so a
        long article never turns into a patchwork of accent-coloured sentences. */
-    --text-normal:#34465B; --text-header:#14233A; --text-meta:#536477; --text-label:#385367;
-    --text-high-attention:#914133; --text-rule:#085239; --text-link:#0B5F6B;
-    --text-code:#E6ECF5; --text-code-muted:#A8B7C9; --text-code-inline:#24415F;
-    --surface-reading:#FFFFFF; --surface-reading-soft:#F7F9FC; --surface-reading-info:#EEF3F6;
-    --surface-reading-attention:#F8ECE8; --surface-code-inline:#E9EEF4;
+    --text-normal:var(--md-sys-color-on-surface); --text-header:var(--md-sys-color-on-surface);
+    --text-meta:var(--md-sys-color-on-surface-variant); --text-label:var(--md-sys-color-on-surface-variant);
+    --text-high-attention:var(--md-custom-on-clay-container); --text-rule:var(--md-sys-color-on-primary-container);
+    --text-link:var(--md-sys-color-primary);
+    --text-code:#E6ECF5; --text-code-muted:#A8B7C9; --text-code-inline:var(--md-sys-color-on-surface);
+    --surface-reading:var(--md-sys-color-surface-container-lowest); --surface-reading-soft:var(--md-sys-color-surface-container-low);
+    --surface-reading-info:var(--md-sys-color-surface-container); --surface-reading-attention:var(--md-custom-clay-container);
+    --surface-code-inline:var(--md-sys-color-surface-container-high);
     --surface-code:#0F1D31; --surface-code-raised:#16273F;
-    --text-migrated:#5B4A30; --text-migrated-heading:#4A351A; --text-migrated-accent:#795822;
-    --surface-migrated:#FBF7EE; --surface-migrated-soft:#FFFDF8; --surface-migrated-active:#F3E7CA;
-    --line-migrated:#E1D4B9;
-    --surface-topbar:#DCE7F0; --surface-topbar-raised:#E8F0F6; --surface-topbar-hover:#D3E1EC;
-    --text-topbar:#14233A; --text-topbar-muted:#536477; --text-topbar-accent:#085239;
-    --line-topbar:#B7C8D6; --focus-topbar:#0B5F6B;
-    --reading-size:clamp(16px,.98rem + .18vw,17.5px); --reading-leading:1.76; --reading-heading-leading:1.14;
-    --radius:14px; --shadow:0 1px 2px rgba(20,35,58,.05), 0 12px 30px -18px rgba(20,35,58,.28);
+    --text-migrated:var(--md-custom-on-brass-container); --text-migrated-heading:var(--md-sys-color-on-surface);
+    --text-migrated-accent:var(--md-custom-brass);
+    --surface-migrated:color-mix(in srgb,var(--md-custom-brass-container) 40%,var(--md-sys-color-surface-container-lowest));
+    --surface-migrated-soft:var(--md-sys-color-surface-container-lowest); --surface-migrated-active:var(--md-custom-brass-container);
+    --line-migrated:color-mix(in srgb,var(--md-custom-brass) 30%,var(--md-sys-color-outline-variant));
+    --surface-topbar:var(--md-sys-color-surface-container); --surface-topbar-raised:var(--md-sys-color-surface-container-high);
+    --surface-topbar-hover:var(--md-sys-color-surface-container-highest);
+    --text-topbar:var(--md-sys-color-on-surface); --text-topbar-muted:var(--md-sys-color-on-surface-variant);
+    --text-topbar-accent:var(--md-sys-color-primary);
+    --line-topbar:var(--md-sys-color-outline-variant); --focus-topbar:var(--md-sys-color-primary);
+    --reading-size:clamp(1rem,.98rem + .18vw,1.09375rem); --reading-leading:1.76; --reading-heading-leading:1.14;
+    --radius:var(--md-sys-shape-corner-medium); --shadow:var(--md-sys-elevation-level1);
     /* One knob for how wide the whole shell runs: header, topic bar and main
        all use it, so they stay in one column. Change it here only. */
     --shell:1400px;
@@ -146,12 +416,15 @@
   .tm-empty{margin:0;padding:16px 14px 20px;text-align:center;font-size:13px;color:var(--muted)}
   .tm-empty[hidden]{display:none}/* one accent per topic_type, reused by the picker, filter bar and hero number */
 
-  [data-topic-type="core"]        {--g:var(--indigo);      --g-soft:var(--indigo-soft);  --g-line:#cdd5ef}
-  [data-topic-type="data"]        {--g:var(--emerald-deep);--g-soft:var(--emerald-soft); --g-line:#cfe6da}
-  [data-topic-type="design"]      {--g:var(--brass);       --g-soft:#faf5e9;             --g-line:#e3d6b8}
-  [data-topic-type="platform"]    {--g:var(--clay);        --g-soft:var(--clay-soft);    --g-line:#e6c6c0}
-  [data-topic-type="algorithm"]   {--g:#5B3E8E;            --g-soft:#EFEAF7;             --g-line:#d5c9ea}
-  [data-topic-type="microservice"]{--g:var(--teal);        --g-soft:var(--teal-soft);    --g-line:#c3dee2}
+  /* Each family is an MD3 custom colour group: --g is the colour, --g-soft its
+     container, --g-on the text that goes on that container. */
+  [data-topic-type="core"]        {--g:var(--md-custom-indigo);--g-soft:var(--md-custom-indigo-container);--g-on:var(--md-custom-on-indigo-container)}
+  [data-topic-type="data"]        {--g:var(--md-sys-color-primary);--g-soft:var(--md-sys-color-primary-container);--g-on:var(--md-sys-color-on-primary-container)}
+  [data-topic-type="design"]      {--g:var(--md-custom-brass);--g-soft:var(--md-custom-brass-container);--g-on:var(--md-custom-on-brass-container)}
+  [data-topic-type="platform"]    {--g:var(--md-custom-clay);--g-soft:var(--md-custom-clay-container);--g-on:var(--md-custom-on-clay-container)}
+  [data-topic-type="algorithm"]   {--g:var(--md-custom-violet);--g-soft:var(--md-custom-violet-container);--g-on:var(--md-custom-on-violet-container)}
+  [data-topic-type="microservice"]{--g:var(--md-custom-teal);--g-soft:var(--md-custom-teal-container);--g-on:var(--md-custom-on-teal-container)}
+  [data-topic-type]{--g-line:color-mix(in srgb,var(--g) 30%,var(--md-sys-color-outline-variant))}
   .gchip{cursor:pointer;font:inherit;font-family:"IBM Plex Mono",monospace;font-size:10.5px;font-weight:600;
     letter-spacing:.6px;text-transform:uppercase;display:inline-flex;align-items:center;gap:6px;
     padding:4px 10px;border-radius:999px;border:1px solid var(--line);background:var(--surface);
@@ -822,9 +1095,9 @@
   .sd-note-actions button:focus-visible{outline:2px solid var(--indigo);outline-offset:2px}
   .content-level{display:inline-flex;align-items:center;vertical-align:middle;margin-left:7px;padding:2px 6px;border:1px solid currentColor;
     border-radius:999px;font-family:"IBM Plex Mono",monospace;font-size:9px;font-weight:600;letter-spacing:.45px;line-height:1.35;text-transform:uppercase;white-space:nowrap}
-  .level-core{color:var(--emerald-deep);background:var(--emerald-soft);border-color:#cfe6da}
-  .level-advanced{color:var(--indigo);background:var(--indigo-soft);border-color:#cdd5ef}
-  .level-extra{color:var(--brass);background:#faf5e9;border-color:#e3d6b8}
+  .level-core{color:var(--md-sys-color-on-secondary-container);background:var(--md-sys-color-secondary-container);border-color:transparent}
+  .level-advanced{color:var(--md-custom-on-indigo-container);background:var(--md-custom-indigo-container);border-color:transparent}
+  .level-extra{color:var(--md-custom-on-brass-container);background:var(--md-custom-brass-container);border-color:transparent}
   .featured-mark{display:inline-block;margin-left:5px;color:var(--brass);font-size:12px;line-height:1;vertical-align:middle}
 /* auto-fit, not a fixed 2: seven of the twenty blueprints ship a single code
    sample, and a hard two-column track left half the section empty beside it. */
@@ -1732,15 +2005,15 @@
      merging them would make renaming one silently repaint the other. Every
      pair below clears 4.5:1 on --surface, --paper and its own soft fill. */
 
-  [data-cal-cat="finance"]     {--g:var(--emerald-deep);--g-soft:var(--emerald-soft)}
-  [data-cal-cat="vehicle"]     {--g:var(--indigo);      --g-soft:var(--indigo-soft)}
-  [data-cal-cat="health"]      {--g:var(--clay);        --g-soft:var(--clay-soft)}
-  [data-cal-cat="pet"]         {--g:var(--brass);       --g-soft:#FAF5E9}
-  [data-cal-cat="home"]        {--g:var(--teal);        --g-soft:var(--teal-soft)}
-  [data-cal-cat="device"]      {--g:#41505F;            --g-soft:#E9EDF1}
-  [data-cal-cat="document"]    {--g:#5B3E8E;            --g-soft:#EFEAF7}
-  [data-cal-cat="family"]      {--g:#9A3B62;            --g-soft:#F7E9EF}
-  [data-cal-cat="subscription"]{--g:#345E7A;            --g-soft:#E6EDF2}
+  [data-cal-cat="finance"]     {--g:var(--md-sys-color-primary);--g-soft:var(--md-sys-color-primary-container)}
+  [data-cal-cat="vehicle"]     {--g:var(--md-custom-indigo);--g-soft:var(--md-custom-indigo-container)}
+  [data-cal-cat="health"]      {--g:var(--md-custom-clay);--g-soft:var(--md-custom-clay-container)}
+  [data-cal-cat="pet"]         {--g:var(--md-custom-brass);--g-soft:var(--md-custom-brass-container)}
+  [data-cal-cat="home"]        {--g:var(--md-custom-teal);--g-soft:var(--md-custom-teal-container)}
+  [data-cal-cat="device"]      {--g:var(--md-custom-slate);--g-soft:var(--md-custom-slate-container)}
+  [data-cal-cat="document"]    {--g:var(--md-custom-violet);--g-soft:var(--md-custom-violet-container)}
+  [data-cal-cat="family"]      {--g:var(--md-custom-rose);--g-soft:var(--md-custom-rose-container)}
+  [data-cal-cat="subscription"]{--g:var(--md-custom-steel);--g-soft:var(--md-custom-steel-container)}
 
   .cal{margin-top:26px}
 

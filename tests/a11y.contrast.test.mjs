@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 
 const STYLES = new URL('../public/styles.css', import.meta.url);
 
-// WCAG 2.1 relative luminance. The site's small print runs at 9–10px, so every
+// WCAG 2.1 relative luminance. The site's small print runs at 11–12px, so every
 // pair below is normal text and owes 4.5:1 — the 3:1 large-text allowance does
 // not apply to any of it.
 const AA_NORMAL = 4.5;
@@ -21,99 +21,114 @@ function contrast(foreground, background) {
   return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
 }
 
-function readTokens(css) {
-  const root = css.slice(css.indexOf(':root{'), css.indexOf('}', css.indexOf(':root{')));
+function declarations(block) {
   const tokens = new Map();
-  for (const [, name, value] of root.matchAll(/--([\w-]+)\s*:\s*(#[0-9A-Fa-f]{6})/g)) {
-    tokens.set(name, value.toUpperCase());
-  }
+  for (const [, name, value] of block.matchAll(/--([\w-]+)\s*:\s*([^;]+);/g)) tokens.set(name, value.trim());
   return tokens;
 }
 
-/* The meta rows, card tags, eyebrows and date stamps all render --muted at
-   9–10px. It sat at 3.37:1 on white and 2.98:1 on the page background, so the
-   smallest text on the site was also the least readable. */
-test('every text colour clears WCAG AA against the surface it is printed on', async () => {
-  const css = await readFile(STYLES, 'utf8');
-  const tokens = readTokens(css);
+const blockAfter = (css, opener) => {
+  const start = css.indexOf(opener);
+  assert.ok(start >= 0, `styles.css must contain ${opener}`);
+  return css.slice(start, css.indexOf('}', start));
+};
 
-  const paper = tokens.get('paper');
-  const surface = tokens.get('surface');
-  assert.ok(paper && surface, ':root must define --paper and --surface');
+/* Colour tokens are MD3 roles generated per theme (tools/md3-tokens.mjs), and
+   the names the rules use are aliases onto them — often through color-mix().
+   So a token is only measurable once resolved in a theme: dark roles override
+   light ones, and every alias is followed to a hex value. */
+function themes(css) {
+  const generated = blockAfter(css, ':root{');
+  const handStart = css.indexOf(':root{', css.indexOf('md3:generated:end'));
+  const hand = blockAfter(css.slice(handStart), ':root{');
+  const light = new Map([...declarations(hand), ...declarations(generated)]);
+  const dark = new Map([...light, ...declarations(blockAfter(css, ':root[data-theme="dark"]{'))]);
+  return { light, dark };
+}
 
-  // Body text tokens, on both page backgrounds.
-  for (const name of ['ink', 'ink-soft', 'muted', 'emerald', 'emerald-deep', 'clay', 'indigo', 'brass', 'teal']) {
-    const value = tokens.get(name);
-    assert.ok(value, '--' + name + ' must be a hex token');
-    for (const [label, background] of [['--surface', surface], ['--paper', paper]]) {
-      const ratio = contrast(value, background);
-      assert.ok(ratio >= AA_NORMAL,
-        '--' + name + ' on ' + label + ' is ' + ratio.toFixed(2) + ':1, below ' + AA_NORMAL);
-    }
-  }
-
-  // System-design reading roles stay semantic: normal and header copy use the
-  // reading surface, attention/rule/link copy uses its stable pale context,
-  // and code text is measured against the terminal surface rather than white.
-  const readingRoles = [
-    ['text-normal', surface, '--surface'],
-    ['text-header', surface, '--surface'],
-    ['text-meta', surface, '--surface'],
-    ['text-label', tokens.get('surface-reading-info'), '--surface-reading-info'],
-    ['text-high-attention', tokens.get('surface-reading-attention'), '--surface-reading-attention'],
-    ['text-rule', surface, '--surface'],
-    ['text-link', surface, '--surface'],
-    ['text-code', tokens.get('surface-code'), '--surface-code'],
-    ['text-code-muted', tokens.get('surface-code'), '--surface-code'],
-    ['text-code-inline', tokens.get('surface-code-inline'), '--surface-code-inline'],
-    ['text-migrated', tokens.get('surface-migrated'), '--surface-migrated'],
-    ['text-migrated-heading', tokens.get('surface-migrated'), '--surface-migrated'],
-    ['text-migrated-accent', tokens.get('surface-migrated-soft'), '--surface-migrated-soft'],
-    ['text-topbar', tokens.get('surface-topbar'), '--surface-topbar'],
-    ['text-topbar-muted', tokens.get('surface-topbar'), '--surface-topbar'],
-    ['text-topbar-accent', tokens.get('surface-topbar'), '--surface-topbar'],
-    ['focus-topbar', tokens.get('surface-topbar'), '--surface-topbar']
-  ];
-  for (const [name, background, label] of readingRoles) {
-    const value = tokens.get(name);
-    assert.ok(value && background, '--' + name + ' reading role tokens must exist');
-    const ratio = contrast(value, background);
-    assert.ok(ratio >= AA_NORMAL,
-      '--' + name + ' on ' + label + ' is ' + ratio.toFixed(2) + ':1, below ' + AA_NORMAL);
-  }
-
-  // The difficulty pills print their accent on their own soft fill.
-  const pills = [
-    ['level-core', tokens.get('emerald-deep'), tokens.get('emerald-soft')],
-    ['level-advanced', tokens.get('indigo'), tokens.get('indigo-soft')],
-    ['level-extra', tokens.get('brass'), '#FAF5E9']
-  ];
-  for (const [label, foreground, background] of pills) {
-    const ratio = contrast(foreground, background);
-    assert.ok(ratio >= AA_NORMAL, '.' + label + ' is ' + ratio.toFixed(2) + ':1, below ' + AA_NORMAL);
-  }
-
-  // Card tags sit on their own near-white chip rather than on the card.
-  const tagRatio = contrast(tokens.get('muted'), '#F8FAFC');
-  assert.ok(tagRatio >= AA_NORMAL, '.sd-card-tags i is ' + tagRatio.toFixed(2) + ':1, below ' + AA_NORMAL);
-
-  /* Each topic_type accent prints twice: as text on the page (an unpressed
-     filter chip, the hero's day label) and as text on its own soft fill (the
-     pressed chip). Both readings owe the same ratio. */
-  const accents = css.matchAll(/\[data-topic-type="([\w-]+)"\]\s*\{--g:([^;]+);\s*--g-soft:([^;]+);/g);
-  const resolve = value => {
-    const match = value.trim().match(/^var\(--([\w-]+)\)$/);
-    return (match ? tokens.get(match[1]) : value.trim()).toUpperCase();
+function resolver(tokens) {
+  const mix = (a, b, weight) => '#' + [1, 3, 5].map(i => Math.round(
+    parseInt(a.slice(i, i + 2), 16) * weight + parseInt(b.slice(i, i + 2), 16) * (1 - weight)
+  ).toString(16).padStart(2, '0')).join('').toUpperCase();
+  const value = raw => {
+    const text = raw.trim();
+    if (/^#[0-9A-Fa-f]{6}$/.test(text)) return text.toUpperCase();
+    const ref = text.match(/^var\(--([\w-]+)\)$/);
+    if (ref) return resolve(ref[1]);
+    const mixed = text.match(/^color-mix\(in srgb,\s*(.+?)\s+(\d+)%,\s*(.+)\)$/);
+    if (mixed) return mix(value(mixed[1]), value(mixed[3]), Number(mixed[2]) / 100);
+    throw new Error(`cannot resolve colour "${text}"`);
   };
-  let seen = 0;
-  for (const [, type, accent, soft] of accents) {
-    seen += 1;
-    const foreground = resolve(accent);
-    for (const [label, background] of [['--surface', surface], ['--paper', paper], ['its own fill', resolve(soft)]]) {
+  const resolve = name => {
+    assert.ok(tokens.has(name), `--${name} must be defined`);
+    return value(tokens.get(name));
+  };
+  return { resolve, value };
+}
+
+/* The meta rows, card tags, eyebrows and date stamps all render --muted. It
+   once sat at 3.37:1 on white and 2.98:1 on the page background, so the
+   smallest text on the site was also the least readable. Dark mode owes the
+   same floor, which is why every pair is measured in both themes. */
+test('every text colour clears WCAG AA against the surface it is printed on, in light and dark', async () => {
+  const css = await readFile(STYLES, 'utf8');
+  for (const [theme, tokens] of Object.entries(themes(css))) {
+    const { resolve, value } = resolver(tokens);
+    const check = (label, foreground, background, backgroundLabel) => {
       const ratio = contrast(foreground, background);
-      assert.ok(ratio >= AA_NORMAL,
-        type + ' accent on ' + label + ' is ' + ratio.toFixed(2) + ':1, below ' + AA_NORMAL);
+      assert.ok(ratio >= AA_NORMAL, `${theme}: ${label} on ${backgroundLabel} is ${ratio.toFixed(2)}:1, below ${AA_NORMAL}`);
+    };
+    const paper = resolve('paper');
+    const surface = resolve('surface');
+
+    for (const name of ['ink', 'ink-soft', 'muted', 'emerald', 'emerald-deep', 'clay', 'indigo', 'brass', 'teal']) {
+      check('--' + name, resolve(name), surface, '--surface');
+      check('--' + name, resolve(name), paper, '--paper');
+    }
+
+    // Reading roles stay semantic: each is measured on the surface it is
+    // printed on, and code text against the terminal rather than the page.
+    const readingRoles = [
+      ['text-normal', 'surface'], ['text-header', 'surface'], ['text-meta', 'surface'],
+      ['text-label', 'surface-reading-info'], ['text-high-attention', 'surface-reading-attention'],
+      ['text-rule', 'surface'], ['text-link', 'surface'],
+      ['text-code', 'surface-code'], ['text-code-muted', 'surface-code'], ['text-code-inline', 'surface-code-inline'],
+      ['text-migrated', 'surface-migrated'], ['text-migrated-heading', 'surface-migrated'],
+      ['text-migrated-accent', 'surface-migrated-soft'],
+      ['text-topbar', 'surface-topbar'], ['text-topbar-muted', 'surface-topbar'],
+      ['text-topbar-accent', 'surface-topbar'], ['focus-topbar', 'surface-topbar']
+    ];
+    for (const [name, background] of readingRoles) check('--' + name, resolve(name), resolve(background), '--' + background);
+
+    // Difficulty pills print their on-container colour on their container.
+    for (const [label, rule] of [['level-core', '.level-core{'], ['level-advanced', '.level-advanced{'], ['level-extra', '.level-extra{']]) {
+      const block = blockAfter(css, rule);
+      check('.' + label, value(block.match(/color:([^;]+);/)[1]), value(block.match(/background:([^;]+);/)[1]), 'its own fill');
+    }
+
+    /* Each family accent prints as text on the page (an unpressed filter chip,
+       the hero's day label) and on its own container (the pressed chip), and
+       its on-container colour prints on that container too. */
+    const families = [...css.matchAll(/\[data-(topic-type|cal-cat)="([\w-]+)"\]\s*\{--g:([^;]+);\s*--g-soft:([^;}]+)[;}]/g)];
+    let topics = 0;
+    for (const [, kind, name, accent, soft] of families) {
+      if (kind === 'topic-type') topics += 1;
+      const foreground = value(accent);
+      const fill = value(soft);
+      check(`${name} accent`, foreground, surface, '--surface');
+      check(`${name} accent`, foreground, paper, '--paper');
+      check(`${name} accent`, foreground, fill, 'its own container');
+    }
+    assert.equal(topics, 6, 'every topic_type must declare an accent pair');
+    for (const [, name, onContainer] of css.matchAll(/\[data-topic-type="([\w-]+)"\]\s*\{[^}]*--g-on:([^;}]+)/g)) {
+      const soft = css.match(new RegExp(`\\[data-topic-type="${name}"\\]\\s*\\{--g:[^;]+;\\s*--g-soft:([^;]+);`))[1];
+      check(`${name} on-container`, value(onContainer), value(soft), 'its own container');
     }
   }
-  assert.equal(seen, 6, 'every topic_type must declare an accent pair');
+});
+
+test('the generated MD3 colour block matches its seed', async () => {
+  const { block } = await import('../tools/md3-tokens.mjs');
+  const css = await readFile(STYLES, 'utf8');
+  assert.ok(css.includes(block()), 'run node tools/md3-tokens.mjs — the colour block in styles.css is stale');
 });
