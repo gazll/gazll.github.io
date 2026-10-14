@@ -3809,10 +3809,12 @@ header.top{view-transition-name:top-app-bar}
   line-height:var(--md-sys-typescale-display-large-line-height);font-weight:400;color:var(--md-sys-color-primary)}
 
 /* ---- ?ui: component names on the page (app/plugins/ui-labels.client.ts) ---- */
-html.ui-labels [data-ui]{outline:1px dashed var(--md-sys-color-tertiary);outline-offset:-1px}
-.ui-label-layer{position:absolute;top:0;left:0;width:0;height:0;z-index:2147483000}
-.ui-label{position:absolute;transform:translateY(-1px);padding:1px 6px;border:0;border-radius:var(--md-sys-shape-corner-extra-small);
-  background:var(--md-sys-color-tertiary);color:var(--md-sys-color-on-tertiary);cursor:copy;white-space:nowrap;
-  font:500 var(--md-sys-typescale-label-small-size)/1.4 var(--md-ref-typeface-mono);opacity:.92}
-.ui-label:hover{opacity:1;z-index:1}
-@media print{.ui-label-layer{display:none}}
+html.ui-labels [data-ui]{outline:1px dashed color-mix(in srgb,var(--md-sys-color-tertiary) 55%,transparent);outline-offset:-1px}
+html.ui-labels [data-ui].ui-label-active{outline:2px solid var(--md-sys-color-tertiary);outline-offset:-2px}
+.ui-label,.ui-label-hint{position:fixed;z-index:2147483000;pointer-events:none;padding:2px 8px;border-radius:var(--md-sys-shape-corner-extra-small);
+  background:var(--md-sys-color-tertiary);color:var(--md-sys-color-on-tertiary);white-space:pre;
+  font:500 var(--md-sys-typescale-label-medium-size)/1.4 var(--md-ref-typeface-mono)}
+.ui-label{transform:translateY(-100%)}
+.ui-label.inside{transform:none}
+.ui-label-hint{right:12px;bottom:12px;opacity:.9}
+@media print{.ui-label,.ui-label-hint{display:none}}

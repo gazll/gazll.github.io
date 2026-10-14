@@ -1,17 +1,18 @@
-/* `?ui` on any URL outlines every [data-ui] block and labels it with its name,
-   so the owner and an assistant can point at the same component by name
-   ("make topic-hero shorter") instead of describing it. Clicking a label
-   copies the name. `?ui=0` turns it off; the choice sticks for the session.
-   Off by default and inert for readers: nothing here runs unless asked. */
+/* `?ui` on any URL outlines every [data-ui] block; hovering one shows its name
+   (plus its position among blocks of the same name, and its #id), and a click
+   copies "name ·n" — so the owner and an assistant can point at the same
+   component by name ("make topic-hero shorter") instead of describing it.
+   One floating label rather than one per block: forty labelled cards overlap
+   into noise. `?ui=0` turns it off; the choice sticks for the session. Readers
+   never meet any of this unless they ask for it. */
 import { copyText } from '../../public/lib/clipboard.js';
 
 const KEY = 'gazll:ui-labels';
 
 export default defineNuxtPlugin(() => {
   const router = useRouter();
-  let layer: HTMLDivElement | null = null;
-  let frame = 0;
-  let observer: MutationObserver | null = null;
+  let label: HTMLDivElement | null = null;
+  let current: HTMLElement | null = null;
 
   const wanted = () => {
     const param = new URL(location.href).searchParams.get('ui');
@@ -22,48 +23,59 @@ export default defineNuxtPlugin(() => {
     } catch (error) { return param !== null && param !== '0'; }
   };
 
-  function paint() {
-    frame = 0;
-    if (!layer) return;
-    layer.textContent = '';
-    const seen = new Map<string, number>();
-    for (const node of document.querySelectorAll<HTMLElement>('[data-ui]')) {
-      const box = node.getBoundingClientRect();
-      if (!box.width || !box.height) continue;
-      const name = node.dataset.ui || '';
-      const count = (seen.get(name) || 0) + 1;
-      seen.set(name, count);
-      const label = document.createElement('button');
-      label.type = 'button';
-      label.className = 'ui-label';
-      label.textContent = count > 1 ? `${name} ·${count}` : name;
-      label.title = node.id ? `#${node.id} — click to copy` : 'click to copy';
-      label.style.top = `${box.top + scrollY}px`;
-      label.style.left = `${box.left + scrollX}px`;
-      label.addEventListener('click', () => { void copyText(name); });
-      layer.append(label);
-    }
+  const nameOf = (node: HTMLElement) => {
+    const name = node.dataset.ui || '';
+    const same = [...document.querySelectorAll<HTMLElement>(`[data-ui="${CSS.escape(name)}"]`)];
+    return same.length > 1 ? `${name} ·${same.indexOf(node) + 1}` : name;
+  };
+
+  function show(node: HTMLElement | null) {
+    if (!label || node === current) return;
+    document.querySelector('.ui-label-active')?.classList.remove('ui-label-active');
+    current = node;
+    if (!node) { label.hidden = true; return; }
+    node.classList.add('ui-label-active');
+    const box = node.getBoundingClientRect();
+    label.textContent = nameOf(node) + (node.id ? `  #${node.id}` : '');
+    label.style.top = `${Math.max(0, box.top)}px`;
+    // A block at the top edge gets its label inside, or it would sit off screen.
+    label.classList.toggle('inside', box.top < 24);
+    label.style.left = `${Math.max(0, box.left)}px`;
+    label.hidden = false;
   }
-  const schedule = () => { if (!frame) frame = requestAnimationFrame(paint); };
+  const onMove = (event: MouseEvent) => show((event.target as Element)?.closest?.('[data-ui]') as HTMLElement | null);
+  const onClick = (event: MouseEvent) => {
+    if (!current || !event.altKey) return;
+    // Alt+click copies, so ordinary clicks keep working while labels are on.
+    event.preventDefault();
+    event.stopPropagation();
+    void copyText(nameOf(current));
+  };
 
   function sync() {
     const on = wanted();
     document.documentElement.classList.toggle('ui-labels', on);
-    if (on && !layer) {
-      layer = document.createElement('div');
-      layer.className = 'ui-label-layer';
-      layer.setAttribute('aria-hidden', 'true');
-      document.body.append(layer);
-      observer = new MutationObserver(schedule);
-      observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'open', 'hidden'] });
-      addEventListener('resize', schedule);
-    } else if (!on && layer) {
-      observer?.disconnect();
-      removeEventListener('resize', schedule);
-      layer.remove();
-      layer = null;
+    if (on && !label) {
+      label = document.createElement('div');
+      label.className = 'ui-label';
+      label.hidden = true;
+      label.setAttribute('aria-hidden', 'true');
+      const hint = document.createElement('div');
+      hint.className = 'ui-label-hint';
+      hint.textContent = 'UI names on — hover a block, Alt+click to copy its name · ?ui=0 to hide';
+      hint.setAttribute('aria-hidden', 'true');
+      document.body.append(label, hint);
+      addEventListener('mousemove', onMove, { passive: true });
+      addEventListener('click', onClick, true);
+      addEventListener('scroll', () => { const node = current; current = null; show(node); }, { passive: true });
+    } else if (!on && label) {
+      removeEventListener('mousemove', onMove);
+      removeEventListener('click', onClick, true);
+      label.remove();
+      document.querySelector('.ui-label-hint')?.remove();
+      label = null;
+      show(null);
     }
-    if (on) schedule();
   }
 
   router.afterEach(() => { void nextTick(sync); });
