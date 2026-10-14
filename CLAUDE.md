@@ -165,7 +165,7 @@ tools/               check.mjs (the one entrypoint) · validate-content.mjs · a
                      keyring.mjs — scope keys: init · migrate · status · show · rotate
                      rekey.mjs — rotate the master (re-seals the keyring only)
                      md3-tokens.mjs — the generated MD3 colour block in styles.css
-                     fonts.mjs — copies the self-hosted Roboto Flex/Mono into public/fonts
+                     fonts.mjs — copies the self-hosted JetBrains Mono (+ Roboto Flex/Mono) into public/fonts
                      screenshots.mjs — light/dark shots at three widths + an axe summary
 DESIGN.md            the Material Design 3 system: roles, type, shape, motion,
                      components and why. It must agree with public/styles.css;
