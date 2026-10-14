@@ -36,6 +36,5 @@ Push `preview/md3` → `preview-build.yml` đẩy bản build lên `build/previe
 
 ## Còn mở
 
-- Hydration mismatch `NUXT_E1005` trên mọi trang (có từ trước, không còn làm trắng trang).
+- [x] Hydration mismatch `NUXT_E1005`: href/aria-current dựng từ route.path có dấu / cuối trên Pages — sửa bằng routePath (9016ca6).
 - Không dùng `@layer`: CSS của fshare-tool/course-registration không layer, sẽ thắng mọi xung đột và token `:root` của chúng đè lên header.
-- `nuxt.config.ts` đang bật TẠM `__VUE_PROD_HYDRATION_MISMATCH_DETAILS__` để tìm NUXT_E1005 — gỡ trước khi merge.
