@@ -92,7 +92,7 @@ watch(state, next => {
 
 <template>
   <div ref="authRoot" id="auth-control" data-ui="auth-control" class="authbar" @click.stop>
-    <span v-if="sync && sync !== 'idle'" class="syncstate">{{ sync }}</span>
+    <span v-if="sync && sync !== 'idle' && state !== 'offline'" class="syncstate">{{ sync }}</span>
     <span v-if="state === 'offline'" class="syncstate">Offline</span>
     <button
       v-else
