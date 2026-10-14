@@ -1102,6 +1102,10 @@ secret/              GITIGNORED. Personal setup notes and credentials
   `deployed_at` to `version.json` in the generated artifact and versions the
   standalone compatibility modules' relative ESM imports. Nuxt owns the
   application chunk hashing; do not reintroduce a hand-written bootstrap.
+  **Nothing under `/_nuxt/` is ever stamped.** Nuxt 4.6 names its entry in an
+  importmap by the bare URL; a `?v=` on the entry `<script>` made the browser
+  load the same module twice, and the copy without a payload blanked every
+  page on 2026-10-14 while CI stayed green. `tests/tooling.test.mjs` pins it.
 
 - **The nav panel is `inert` while closed.** Without it the off-screen links
   stay in the tab order — the drawer is moved by `transform`, not `display`.
