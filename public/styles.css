@@ -839,7 +839,6 @@
     .sd-diagram>figcaption{align-items:flex-start;flex-direction:column;gap:10px}
     .sd-diagram-actions{width:100%;justify-content:flex-start}
     .sd-diagram button,.sd-diagram>figcaption a{min-height:44px;display:inline-flex;align-items:center}
-    .sd-diagram-zoom button{min-width:44px}
   }
   .sd-library{max-width:1180px;margin:0 auto}
   .sd-hero{position:relative;overflow:hidden;padding:44px;border:1px solid color-mix(in srgb,var(--md-custom-indigo) 25%,var(--md-sys-color-outline-variant));border-radius:18px;
@@ -1059,6 +1058,8 @@
   .sd-diagram-zoom[hidden]{display:none!important}
   .sd-diagram-zoom button{border:0!important;border-radius:0!important;border-right:1px solid color-mix(in srgb,var(--md-custom-indigo) 25%,var(--md-sys-color-outline-variant))!important;min-width:29px;padding-left:7px;padding-right:7px}
   .sd-diagram-zoom button:last-child{border-right:0!important}
+  /* After the 29px desktop rule, or that rule wins on a phone too. */
+  @media (max-width:760px){.sd-diagram-zoom button{min-width:44px}}
   .sd-diagram button,.sd-diagram>figcaption a{font-family:var(--md-ref-typeface-plain);font-size:var(--md-sys-typescale-label-small-size);border:1px solid color-mix(in srgb,var(--md-custom-indigo) 25%,var(--md-sys-color-outline-variant));border-radius:7px;
     background:var(--surface);color:var(--indigo);padding:5px 8px;text-decoration:none;cursor:pointer}
   .sd-diagram button:hover,.sd-diagram>figcaption a:hover,.sd-diagram button.is-copied{border-color:var(--indigo);background:var(--md-sys-color-surface-container-low)}
