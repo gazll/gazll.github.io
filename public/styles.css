@@ -294,7 +294,7 @@
     --surface-migrated:color-mix(in srgb,var(--md-custom-brass-container) 40%,var(--md-sys-color-surface-container-lowest));
     --surface-migrated-soft:var(--md-sys-color-surface-container-lowest); --surface-migrated-active:var(--md-custom-brass-container);
     --line-migrated:color-mix(in srgb,var(--md-custom-brass) 30%,var(--md-sys-color-outline-variant));
-    --surface-topbar:var(--md-sys-color-surface-container); --surface-topbar-raised:var(--md-sys-color-surface-container-high);
+    --surface-topbar:var(--md-sys-color-surface); --surface-topbar-raised:var(--md-sys-color-surface-container-high);
     --surface-topbar-hover:var(--md-sys-color-surface-container-highest);
     --text-topbar:var(--md-sys-color-on-surface); --text-topbar-muted:var(--md-sys-color-on-surface-variant);
     --text-topbar-accent:var(--md-sys-color-primary);
