@@ -28,9 +28,9 @@ Push `preview/md3` → `preview-build.yml` đẩy bản build lên `build/previe
 - [x] 0 hạ tầng: preview build, screenshots + axe, pr-check (merged trên branch)
 - [x] 1 token: màu MD3 light/dark + alias, type scale, shape, motion, state
 - [x] 2 font + chữ: self-host Roboto Flex/Mono, gom cỡ chữ, bỏ chữ < 11px, rem
-- [ ] 3 component: button, chip, card, top app bar, drawer, search, dialog, segmented
-- [ ] 4 dark mode: bỏ màu viết cứng, nút theme, Mermaid/DSA/code theo token
-- [ ] 5 đọc: breakout, progress bar, scrollspy TOC, xem trước link chéo, in ấn
+- [x] 3 component: button, chip, card, top app bar, drawer, search, dialog, segmented
+- [x] 4 dark mode: bỏ màu viết cứng, nút theme, Mermaid/DSA/code theo token
+- [x] 5 đọc: breakout, progress bar, scrollspy TOC, xem trước link chéo, in ấn
 - [ ] 6 chuyển động: View Transitions, container query, empty/loading/error
 - [ ] 7 dọn: xoá alias, viết lại DESIGN.md, test contrast theo role MD3
 
