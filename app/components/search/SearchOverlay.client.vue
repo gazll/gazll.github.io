@@ -203,8 +203,10 @@ onBeforeUnmount(() => { stopHistory?.(); document.removeEventListener('keydown',
       <p v-else-if="!results.length" class="gs-empty">{{ labels.noResult.replace('{query}', query) }}</p>
       <div v-else-if="results.length" id="search-results" class="gs-result-list" role="listbox" :aria-label="labels.results">
         <template v-for="([surface, rows]) in groupedResults" :key="surface">
-          <section class="gs-group">
-            <h3>{{ surfaceLabels[surface] }} <span>{{ rows?.length }}</span></h3>
+          <!-- A listbox may own only groups and options, so the group carries the
+               name and its visible heading is hidden from the accessibility tree. -->
+          <section class="gs-group" role="group" :aria-label="surfaceLabels[surface]">
+            <h3 aria-hidden="true">{{ surfaceLabels[surface] }} <span>{{ rows?.length }}</span></h3>
             <button v-for="entry in rows" :id="resultId(entry)" :key="entry.id" type="button" role="option" class="gs-hit" :aria-selected="results.indexOf(entry) === activeIndex" :class="{ 'is-active': results.indexOf(entry) === activeIndex }" @click="follow(entry)">
               <span class="gs-hit-badge">{{ surfaceBadges[entry.surface] }}</span>
               <span class="gs-hit-main">
