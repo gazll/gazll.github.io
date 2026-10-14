@@ -3311,7 +3311,7 @@
 .view-track .qcard[data-qid] .qmeta>.manual-review .manual-review-short,
 .view-track .qcard[data-qid] .qmeta>.qcopy .qcopy-short{display:inline;font-size:var(--md-sys-typescale-label-small-size);line-height:1}
 .view-track .qcard[data-qid] .qmeta>.qlangbtn{--switch-w:26px;--switch-h:18px;--switch-knob:14px;
-  width:39px;min-width:39px;height:28px;min-height:28px;justify-content:center;gap:3px;padding:0 4px;
+  width:auto;min-width:39px;height:28px;min-height:28px;justify-content:center;gap:3px;padding:0 4px;
   border:1px solid var(--line);border-radius:7px;background:var(--surface);font-size:var(--md-sys-typescale-label-small-size)}
 .view-track .qcard[data-qid] .qmeta>.qlangbtn .lang-label{display:none}
 .view-track .qcard[data-qid] .qmeta>.qlangbtn .qlang-current{display:inline;font-family:var(--md-ref-typeface-plain);font-size:var(--md-sys-typescale-label-small-size);font-weight:600;line-height:1}
