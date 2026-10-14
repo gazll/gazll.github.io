@@ -36,8 +36,6 @@ zip/rar dự án cũ giữ trên NAS — repo chỉ ghi chỗ để.
 
 ## 3. Không còn
 
-`0_everything-doc/` (ghi chú Java, `#Note`, DDD, design pattern…) đã vào
-`#recycle` NAS ngày 2026-10-02:
-`/volume2/99_Drives/#recycle/OneDrive-minhtran0918/Workspace/0_everything-doc/`.
-Nếu cần ghi chú nào trong đó thì lấy ra **trước khi thùng rác bị dọn**.
-Lưu ý: `.git` của nó còn lịch sử chứa mật khẩu — không push, không copy `.git`.
+`0_everything-doc/` (ghi chú Java, `#Note`, DDD, design pattern…): chủ kho đã
+dọn khỏi `#recycle` NAS 2026-10-14 — kiến thức cũ, **không migrate**. Nếu cần
+tra lại, `#Note/` vẫn còn trong lịch sử git của `personal-vault` tại `7ffbfb0^`.
