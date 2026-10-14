@@ -43,9 +43,9 @@ colors:
   custom-groups: [indigo, teal, clay, brass, violet, slate, rose, steel]
   terminal: { background: "#0F1D31", raised: "#16273F", text: "#E6ECF5", muted: "#A8B7C9" }
 typography:
-  brand: "Roboto Flex (variable, self-hosted)"
-  plain: "Roboto Flex (variable, self-hosted)"
-  mono: "Roboto Mono (variable, self-hosted) — code only"
+  brand: "JetBrains Mono (variable, self-hosted)"
+  plain: "JetBrains Mono (variable, self-hosted)"
+  mono: "JetBrains Mono (variable, self-hosted)"
   scale: "M3 type scale in rem: display L/M/S 57/45/36, headline 32/28/24, title 22/16/14, body 16/14/12, label 14/12/11"
   emphasized: "500 for display/headline/body/title-large, 700 for labels and title-medium/small"
   floor: "11px (label-small); nothing smaller"
@@ -132,10 +132,16 @@ at render time, so diagrams follow the theme too.
 
 ## Typography
 
-Roboto Flex for everything a person reads or operates; Roboto Mono only for
-code. Both are self-hosted (`tools/fonts.mjs` copies the wght-axis subsets for
-latin, latin-ext and vietnamese from `@fontsource-variable`), which also took
-Google Fonts out of the CSP.
+JetBrains Mono for everything — prose, chrome and code — chosen by the owner
+over Roboto Flex: M3 lets the brand typeface change as long as the type scale
+holds, and a study site about code reads well in one monospace voice. It is
+self-hosted (`tools/fonts.mjs` copies the wght-axis subsets for latin,
+latin-ext and vietnamese from `@fontsource-variable`), which also keeps
+Google Fonts out of the CSP. Roboto Flex/Mono stay in `public/fonts`, unused
+unless a typeface token names them, so going back is one line.
+
+The Tools (`/fshare-tool`, `/course-registration`) use the same scale: every
+`font-size` there is a `--md-sys-typescale-*-size` token, never a number.
 
 - Sizes are the M3 type scale in `rem`. **Emphasized** type is the same size
   heavier (`--md-sys-typescale-emphasized-*-weight`): selected labels — the
