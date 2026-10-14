@@ -705,8 +705,7 @@
   .cs-guide-brief b{display:block;margin-bottom:7px;font-family:var(--md-ref-typeface-plain);font-size:var(--md-sys-typescale-label-small-size);letter-spacing:0.5px;text-transform:none;color:var(--emerald-deep)}
   .cs-guide-brief p{margin:0;font-size:var(--md-sys-typescale-body-medium-size);line-height:1.66;color:var(--ink-soft)}
   .cs-guide-brief p+p{margin-top:10px}
-  .cs-guide-brief .cs-guide-lead{color:var(--ink);font-weight:500}
-  .cs-guide-brief .cs-guide-thesis{padding-top:10px;border-top:1px solid color-mix(in srgb,var(--md-sys-color-primary) 25%,var(--md-sys-color-outline-variant));color:var(--emerald-deep);font-weight:500}/* A sentence the author enumerated is printed as the list it already was. */
+  /* A sentence the author enumerated is printed as the list it already was. */
   .cs-guide-depth{display:grid;grid-template-columns:1.14fr .86fr;gap:13px;margin-top:13px}
   .cs-guide-depth article{padding:18px 20px;border:1px solid color-mix(in srgb,var(--md-sys-color-primary) 25%,var(--md-sys-color-outline-variant));border-radius:11px;background:var(--surface)}
   .cs-guide-depth h3{margin:0 0 10px;font-family:var(--md-ref-typeface-brand);font-size:1.125rem;color:var(--ink)}
@@ -833,10 +832,8 @@
   .sd-group>header h2{font-family:var(--md-ref-typeface-brand);font-size:var(--md-sys-typescale-headline-small-size);line-height:1.2;margin:0 0 4px;transition:font-size .18s ease}
   .sd-group>header span{display:block;color:var(--muted);font-size:var(--md-sys-typescale-body-medium-size);max-width:760px}
   .sd-group>header>b{flex:none;display:grid;place-items:center;width:35px;height:35px;border-radius:50%;
-    background:var(--indigo-soft);color:var(--indigo);font-family:var(--md-ref-typeface-plain);font-size:var(--md-sys-typescale-label-medium-size)}/* The card the reader came back from, marked just long enough to find it. */
+    background:var(--indigo-soft);color:var(--indigo);font-family:var(--md-ref-typeface-plain);font-size:var(--md-sys-typescale-label-medium-size)}
   
-  .sd-card.is-returned,.cs-card.is-returned{border-color:var(--emerald);
-    box-shadow:0 0 0 3px var(--emerald-soft),0 16px 34px -22px color-mix(in srgb,var(--md-sys-color-shadow) 45%,transparent)}
   .sd-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
   .sd-card{min-width:0;display:grid;grid-template-columns:auto minmax(0,1fr);gap:14px 16px;align-items:start;padding:19px;
     border:1px solid var(--line);color:inherit;text-decoration:none;
@@ -1206,7 +1203,6 @@
   .section-h .topic-heading-anchor{color:inherit;text-decoration:none;cursor:pointer}
   .md-heading-anchor{color:inherit;text-decoration:none;cursor:pointer}
   .md-heading-anchor:hover{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:4px}
-  h1:hover>.heading-anchor-button,h2:hover>.heading-anchor-button,h3:hover>.heading-anchor-button,h4:hover>.heading-anchor-button,
   h1[id],h2[id],h3[id],h4[id],h5[id],h6[id]{scroll-margin-top:90px;cursor:pointer}
   .pj-heading-anchor{color:inherit;text-decoration:none;cursor:pointer}
   .pj-heading-anchor:hover{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:4px}
@@ -1717,7 +1713,6 @@
     text-decoration:none;color:inherit;transition:background .14s ease}
   .pd-row:last-child{border-bottom:none}
   .pd-row:hover{background:var(--emerald-soft)}
-  .pd-row[data-topic-type] .pd-n{color:var(--g);border-left:3px solid var(--g);padding-left:7px;margin-left:-7px}
   .pd-bar{flex:0 0 140px;height:7px;border-radius:999px;background:var(--line);overflow:hidden}
   .pd-bar.sm{flex:0 0 90px;display:inline-block;vertical-align:middle}
   .pd-fill{display:block;height:100%;border-radius:999px;
@@ -1731,7 +1726,6 @@
     background:var(--md-sys-color-surface-container-low);white-space:nowrap}
   .adtable td{padding:12px 16px;border-bottom:1px solid var(--line);color:var(--ink-soft);vertical-align:middle}
   .adtable tr:last-child td{border-bottom:none}
-  .adtable th.num,.adtable td.num{text-align:right}
   .ad-user{display:flex;align-items:center;gap:10px}
   .ad-user b{color:var(--ink);font-weight:600;display:block;line-height:1.3}
   .ad-email{font-family:var(--md-ref-typeface-plain);font-size:var(--md-sys-typescale-label-small-size);color:var(--muted);display:block}
