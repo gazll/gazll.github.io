@@ -342,115 +342,7 @@
   .da-speed:focus-visible{outline:2px solid var(--emerald);outline-offset:2px}/* The caption is the point of the step, so it gets real weight. */
 
   .da-note-box{margin:0;min-height:38px;background:var(--indigo-soft);border-left:3px solid var(--indigo);
-    border-radius:0 8px 8px 0;padding:9px 12px;font-size:13.5px;line-height:1.5;color:var(--ink)}/* ---------- Release notes: grouped by day, newest day first ----------
-     Two levels: .rn-day carries the date once, .rn-rel is one release inside
-     it. Several releases on a date therefore share a single heading. */
-
-  .rn-intro{max-width:70ch}
-  .rn-day{margin:24px 0 0}
-  .rn-day + .rn-day{border-top:1px solid var(--line);padding-top:20px}
-  .rn-dayhead{display:flex;flex-wrap:wrap;align-items:baseline;gap:7px 10px;margin-bottom:4px}
-  .rn-date{font-family:"IBM Plex Mono",monospace;font-size:11.5px;font-weight:600;letter-spacing:.4px;
-    text-transform:uppercase;color:var(--emerald);white-space:nowrap}
-  .rn-daymeta{font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--muted);white-space:nowrap}
-  .rn-daymeta::before{content:"· "}/* The rail is drawn on the list, so it spans the changes and stops with them. */
-  
-  .rn-rel{margin:12px 0 0}/* Sibling releases in one day get a light divider, not a full rule. */
-  
-  .rn-rel + .rn-rel{margin-top:16px;border-top:1px dashed var(--line);padding-top:14px}
-  .rn-relhead{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 12px;margin-bottom:10px}
-  .page .rn-title{font-size:16px;margin:0;flex:1 1 14ch;font-family:"Space Grotesk",sans-serif;
-    font-weight:600;color:var(--ink)}
-  .rn-added{font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:600;color:var(--emerald-deep);
-    background:var(--emerald-soft);border:1px solid #cfe6da;border-radius:999px;padding:3px 9px;white-space:nowrap}
-  .page .rn-changes{list-style:none;margin:0;padding:0 0 0 15px;border-left:2px solid var(--line)}
-  .page .rn-change{margin:0 0 14px;position:relative}
-  .page .rn-change:last-child{margin-bottom:0}
-  .rn-change::before{content:"";position:absolute;left:-21px;top:6px;width:9px;height:9px;border-radius:50%;
-    background:var(--surface);border:2px solid var(--line-strong)}
-  .rn-cmeta{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin-bottom:5px}
-  .rn-kind{font-family:"IBM Plex Mono",monospace;font-size:10px;font-weight:600;letter-spacing:.6px;
-    text-transform:uppercase;border-radius:6px;padding:2px 7px;border:1px solid var(--line-strong);color:var(--ink-soft)}
-  .rn-k-topic{color:var(--indigo);background:var(--indigo-soft);border-color:#cdd5ef}
-  .rn-k-content{color:var(--emerald-deep);background:var(--emerald-soft);border-color:#cfe6da}
-  .rn-k-feature{color:var(--brass);background:#faf5e9;border-color:#e3d6b8}/* data-topic-type supplies --g/--g-soft/--g-line, so a topic badge carries its own accent. */
-  
-  .rn-target{font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:600;color:var(--g,var(--ink-soft));
-    background:var(--g-soft,var(--paper));border:1px solid var(--g-line,var(--line));border-radius:6px;padding:2px 7px}
-  .page .rn-text p{margin:0;font-size:14.5px}
-  .page .rn-text p + p{margin-top:7px}/* ---------- Experience: long-form engineering case studies ---------- */
-
-  /* ---------- release notes reading pass ----------
-     Keep the date as a quiet rail and give each release its own readable
-     surface. The old list had almost no internal breathing room, especially
-     once the Vietnamese copy wrapped onto a second line. */
-
-  .rn-page{padding:clamp(30px,4vw,50px) clamp(22px,5vw,72px) 58px;overflow:hidden}
-  .rn-head{max-width:900px;padding-bottom:28px;border-bottom:1px solid var(--line-strong)}
-  .rn-page>.rn-head h1{margin:0 0 10px;font-family:"Space Grotesk",sans-serif;font-size:clamp(32px,4.5vw,52px);
-    line-height:1.05;letter-spacing:-1.2px;color:var(--ink)}
-  .rn-page .rn-intro{max-width:62ch;margin:0;color:var(--ink-soft);font-size:16px;line-height:1.68}
-  .rn-summary{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
-  .rn-summary span{display:inline-flex;align-items:baseline;gap:5px;padding:6px 10px;border:1px solid var(--line);
-    border-radius:8px;background:#F8FAFC;color:var(--muted);font-family:"IBM Plex Mono",monospace;font-size:10.5px;
-    letter-spacing:.1px;text-transform:uppercase}
-  .rn-summary b{color:var(--ink);font-size:13px;font-variant-numeric:tabular-nums}
-  .rn-body{max-width:1080px;margin:0 auto}
-  .rn-day{display:grid;grid-template-columns:154px minmax(0,1fr);gap:34px;margin:0;padding:32px 0}
-  .rn-day:first-child{padding-top:30px}
-  .rn-day + .rn-day{margin:0;border-top:1px solid var(--line);padding-top:32px}
-  .rn-dayhead{position:sticky;top:calc(var(--hdr-h,64px) + 18px);align-self:start;display:flex;flex-direction:column;
-    align-items:flex-start;gap:8px;margin:0;padding:3px 0 0}
-  .rn-date{font-size:12px;line-height:1.35;letter-spacing:.55px}
-  .rn-daymeta{white-space:normal;font-size:10.5px;line-height:1.5}
-  .rn-daymeta::before{display:none}
-  .rn-dayhead>.rn-added{margin-top:2px}
-  .rn-rel{margin:0;padding:19px 21px 21px;border:1px solid var(--line-strong);border-radius:14px;background:#FBFCFE;
-    box-shadow:0 8px 22px -24px rgba(20,35,58,.55)}
-  .rn-rel:hover{border-color:#b8c5d5}
-  .rn-rel + .rn-rel{margin-top:12px;border-top:1px solid var(--line-strong);padding-top:19px}
-  .rn-relhead{align-items:flex-start;margin-bottom:15px;padding-bottom:12px;border-bottom:1px solid var(--line)}
-  .page .rn-title{font-size:19px;line-height:1.25;letter-spacing:-.15px}
-  .page .rn-changes{padding:4px 0 0 19px;border-left:2px solid #cbd6e2}
-  .page .rn-change{margin:0 0 16px;padding:0 0 15px;border-bottom:1px solid #e7ebf0}
-  .page .rn-change:last-child{margin-bottom:0;padding-bottom:0;border-bottom:0}
-  .rn-change::before{left:-26px;top:6px;width:9px;height:9px;border-color:#b8c5d5}
-  .rn-k-topic::before{border-color:var(--indigo)}
-  .rn-k-content::before{border-color:var(--emerald)}
-  .rn-k-feature::before{border-color:var(--brass)}
-  .rn-k-change::before{border-color:var(--teal)}
-  .rn-k-fix::before{border-color:var(--clay)}
-  .rn-cmeta{gap:6px 8px;margin-bottom:6px}
-  .page .rn-text p{font-size:15px;line-height:1.68;color:var(--ink-soft)}
-
-  @media (max-width:760px){
-    .rn-page{padding:25px 16px 40px}
-    .rn-head{padding-bottom:22px}
-    .rn-page>.rn-head h1{font-size:clamp(30px,9vw,42px);letter-spacing:-.8px}
-    .rn-page .rn-intro{font-size:15px;line-height:1.62}
-    .rn-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:17px}
-    .rn-summary span{display:flex;flex-direction:column;align-items:flex-start;gap:1px;min-width:0;padding:7px 8px;font-size:9px;line-height:1.35}
-    .rn-summary b{font-size:14px}
-    .rn-day,.rn-day:first-child,.rn-day + .rn-day{display:block;padding:24px 0;margin:0}
-    .rn-day + .rn-day{border-top:1px solid var(--line)}
-    .rn-dayhead{position:static;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:5px 10px;margin-bottom:12px;padding:0}
-    .rn-dayhead>.rn-added{grid-column:2;grid-row:1;align-self:start;margin:0}
-    .rn-daymeta{grid-column:1;grid-row:2}
-    .rn-rel{padding:16px 14px 17px;border-radius:12px}
-    .rn-rel + .rn-rel{margin-top:10px;padding-top:16px}
-    .page .rn-title{font-size:17px}
-    .page .rn-changes{padding-left:16px}
-    .rn-change::before{left:-23px}
-    .page .rn-text p{font-size:14.5px;line-height:1.66}
-  }
-
-  @media (max-width:420px){
-    .rn-page{padding-inline:13px}
-    .rn-summary span{padding-inline:7px}
-    .rn-day{padding-block:20px!important}
-    .rn-rel{padding-inline:12px}
-    .page .rn-changes{padding-left:14px}
-  }
+    border-radius:0 8px 8px 0;padding:9px 12px;font-size:13.5px;line-height:1.5;color:var(--ink)}/* ---------- Experience: long-form engineering case studies ---------- */
 
   .cs-library{max-width:1180px;margin:0 auto}
   .cs-library-hero{position:relative;overflow:hidden;padding:42px 44px;border:1px solid var(--line);
@@ -2775,25 +2667,6 @@
   .top-inner .authbtn:focus-visible{outline-color:var(--focus-topbar)}
   .top-inner .st-key{background:var(--surface-topbar-raised);border-color:var(--line-topbar)}
 
-  /* ---------- release-notes full-bleed shell ----------
-     The page owns the background and separators; the header and list own the
-     reading gutter. This keeps the requested zero outer padding without
-     making text touch the viewport edge. */
-
-  .rn-page{padding:0;overflow:hidden}
-  .rn-page>.rn-head{max-width:none;padding:clamp(30px,4vw,50px) clamp(22px,5vw,72px) 28px}
-  .rn-page>.rn-body{max-width:1080px;margin:0 auto;padding:0 clamp(22px,5vw,72px) 58px}
-
-  @media (max-width:760px){
-    .rn-page>.rn-head{padding:25px 16px 22px}
-    .rn-page>.rn-body{padding:0 16px 40px}
-  }
-
-  @media (max-width:420px){
-    .rn-page>.rn-head{padding-inline:13px}
-    .rn-page>.rn-body{padding-inline:13px}
-  }
-
   /* A location cue makes a long contents rail useful without adding another
      persistent control. Keep it semantic so the cue still works without the
      accent colour. */
@@ -2812,16 +2685,6 @@
   }
   .toc-current{min-width:0;max-width:58%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
     color:var(--text-meta);font-family:"IBM Plex Mono",monospace;font-size:10px;font-weight:500;letter-spacing:.15px}
-
-  @media (max-width:760px){
-    /* On a phone the date and release are already two levels of hierarchy;
-       removing the nested card chrome gives the change list more width and
-       makes the timeline read as one continuous stream. */
-    .rn-rel{background:transparent;border-color:transparent;box-shadow:none;border-radius:0;padding-inline:0}
-    .rn-rel + .rn-rel{border-top-color:var(--line);padding-top:16px}
-    .rn-relhead{padding-bottom:10px}
-    .page .rn-changes{border-left-color:var(--line-strong)}
-  }
 
   /* ---------- mobile study focus pass ----------
      The answer is the phone user's work surface. Keep the question header
@@ -3054,34 +2917,14 @@
   .view-track .note-title-group{display:flex;align-items:center;gap:8px;min-width:0}
   .view-track .note-status{min-width:0;color:var(--text-rule);font-family:"IBM Plex Mono",monospace;font-size:9.5px;letter-spacing:.2px}
 
-  .rn-filters{display:flex;align-items:flex-end;flex-wrap:wrap;gap:9px 10px;margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
-  .rn-filter-title{flex:1 0 100%;font-family:"IBM Plex Mono",monospace;font-size:10px;font-weight:600;letter-spacing:.55px;text-transform:uppercase;color:var(--text-label)}
-  .rn-filter-field{display:flex;flex:1 1 150px;flex-direction:column;gap:4px;min-width:0;color:var(--text-meta);font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.2px}
-  .rn-filter-field select{width:100%;min-height:40px;padding:7px 28px 7px 10px;border:1px solid var(--line-strong);border-radius:9px;background:var(--surface);color:var(--text-normal);font:inherit;font-size:12px;cursor:pointer}
-  .rn-filter-field select:focus-visible,.rn-filter-clear:focus-visible{outline:2px solid var(--text-link);outline-offset:2px}
-  .rn-filter-clear{min-height:40px;padding:7px 12px;border:1px solid var(--line-strong);border-radius:9px;background:var(--surface);color:var(--text-normal);font:inherit;font-size:11px;cursor:pointer;white-space:nowrap}
-  .rn-filter-clear:hover:not(:disabled){border-color:var(--text-link);color:var(--text-link)}
-  .rn-filter-clear:disabled{opacity:.55;cursor:default}
-  .rn-empty{max-width:1080px;margin:24px auto 0;padding:22px 18px;display:flex;align-items:center;justify-content:space-between;gap:16px;border:1px solid var(--line);border-radius:12px;background:var(--surface-reading-soft);color:var(--text-normal);font-size:15px;line-height:1.6}
-  .rn-empty-clear{flex:none;min-height:40px;padding:7px 12px;border:1px solid var(--line-strong);border-radius:9px;background:var(--surface);color:var(--text-link);font:inherit;font-size:11px;font-weight:600;cursor:pointer}
-  .rn-empty-clear:hover{border-color:var(--text-link);background:var(--surface-reading-info)}
-  .rn-empty-clear:focus-visible{outline:2px solid var(--text-link);outline-offset:2px}
 
   @media (max-width:760px){
     .view-track .study-progress{display:none}
     .view-track .study-continue{min-height:44px;padding-inline:12px}
-    .rn-filters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch;gap:8px;margin-top:15px;padding-top:12px}
-    .rn-filter-title{grid-column:1/-1}
-    .rn-filter-field select,.rn-filter-clear{min-height:44px}
-    .rn-filter-clear{grid-column:1/-1}
-    .rn-empty{align-items:flex-start;flex-direction:column;margin-top:18px;padding:18px 14px}
-    .rn-empty-clear{min-height:44px;width:100%}
   }
 
   @media (max-width:420px){
     .view-track .study-continue{flex:1 1 auto}
-    .rn-filters{grid-template-columns:1fr}
-    .rn-filter-title,.rn-filter-clear{grid-column:auto}
   }
 
   /* ---------- confidence states ----------
@@ -3091,14 +2934,11 @@
   .view-track .study-complete{display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:6px 10px;border:1px solid var(--emerald-soft);
     border-radius:8px;background:var(--emerald-soft);color:var(--emerald-deep);font-family:"IBM Plex Mono",monospace;font-size:10px;font-weight:600;letter-spacing:.2px}
   .view-track .study-complete svg{width:15px;height:15px;flex:none}
-  .rn-filter-summary{margin:10px 0 0;color:var(--text-meta);font-family:"IBM Plex Mono",monospace;font-size:10.5px;line-height:1.45;letter-spacing:.1px}
-  .rn-filter-summary b{color:var(--text-header);font-variant-numeric:tabular-nums}
   .cal-inline-cancel{min-height:34px;padding-inline:8px}
   .cal-note-actions .cal-inline-cancel{border-color:transparent;background:transparent;color:var(--muted)}
   .cal-note-actions .cal-inline-cancel:hover:not(:disabled){border-color:var(--line-strong);background:var(--surface);color:var(--ink)}
   @media (max-width:760px){
     .view-track .study-complete{min-height:44px;padding-inline:12px}
-    .rn-filter-summary{margin-top:9px;font-size:10px}
     .cal-inline-cancel{min-height:44px}
   }
 
@@ -3317,107 +3157,6 @@
   .es-section-body table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;width:100%}
 }
 
-/* ---------- Release notes: final layout pass ----------
-   Keep the archive as one calm reading surface: a contained hero, a compact
-   filter row, and a two-column timeline that becomes a single column on phones. */
-.rn-page{width:100%;max-width:none;margin:0;padding:0;border:0;border-radius:0;box-shadow:none;background:transparent;overflow:visible}
-.rn-page>.rn-head{max-width:none;margin:0;padding:clamp(32px,5vw,64px) clamp(20px,6vw,88px) 28px;border-bottom:1px solid var(--line-strong);background:linear-gradient(135deg,var(--surface) 0%,var(--surface-reading-soft) 68%,var(--surface-reading-info) 100%)}
-.rn-head-copy,.rn-head>.rn-summary,.rn-head>.rn-filters{max-width:760px;margin-inline:auto}
-.rn-page>.rn-head .eyebrow{margin-bottom:10px}
-.rn-page>.rn-head h1{margin:0 0 10px;font-family:"Space Grotesk",sans-serif;font-size:clamp(34px,5vw,58px);line-height:1.04;letter-spacing:-1.4px;color:var(--text-header);overflow-wrap:anywhere}
-.rn-page .rn-intro{max-width:62ch;margin:0;color:var(--text-normal);font-size:16px;line-height:1.68;overflow-wrap:anywhere}
-.rn-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:22px}
-.rn-summary span{display:flex;align-items:baseline;gap:6px;min-width:0;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.72);color:var(--text-meta);font-family:"IBM Plex Mono",monospace;font-size:10.5px;line-height:1.35;letter-spacing:.1px;text-transform:uppercase;overflow-wrap:anywhere}
-.rn-summary b{color:var(--text-header);font-size:14px;font-variant-numeric:tabular-nums}
-.rn-filters{display:block;margin-top:24px;padding-top:18px;border-top:1px solid var(--line)}
-.rn-filter-title{display:block;margin-bottom:9px;color:var(--text-label);font-family:"IBM Plex Mono",monospace;font-size:10px;font-weight:600;letter-spacing:.55px;text-transform:uppercase}
-.rn-filter-controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;align-items:end;gap:9px}
-.rn-filter-field{display:flex;flex-direction:column;gap:4px;min-width:0;color:var(--text-meta);font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.2px}
-.rn-filter-field select{width:100%;min-height:40px;padding:7px 28px 7px 10px;border:1px solid var(--line-strong);border-radius:9px;background:var(--surface);color:var(--text-normal);font:inherit;font-size:12px;cursor:pointer}
-.rn-filter-field select:focus-visible,.rn-filter-clear:focus-visible{outline:2px solid var(--text-link);outline-offset:2px}
-.rn-filter-clear{min-height:40px;padding:7px 12px;border:1px solid var(--line-strong);border-radius:9px;background:var(--surface);color:var(--text-normal);font:inherit;font-size:11px;cursor:pointer;white-space:nowrap}
-.rn-filter-clear:hover:not(:disabled){border-color:var(--text-link);color:var(--text-link);background:var(--surface-reading-info)}
-.rn-filter-clear:disabled{opacity:.55;cursor:default}
-.rn-filter-summary{max-width:1120px;margin:0 auto;padding:14px clamp(20px,6vw,88px);border-bottom:1px solid var(--line);color:var(--text-meta);font-family:"IBM Plex Mono",monospace;font-size:10.5px;line-height:1.45;letter-spacing:.1px}
-.rn-filter-summary b{color:var(--text-header);font-variant-numeric:tabular-nums}
-.rn-body{max-width:1120px;margin:0 auto;padding:0 clamp(20px,6vw,88px) 72px}
-.rn-day{display:grid;grid-template-columns:150px minmax(0,1fr);gap:clamp(20px,4vw,52px);margin:0;padding:34px 0}
-.rn-day + .rn-day{margin:0;border-top:1px solid var(--line);padding-top:34px}
-.rn-dayhead{position:sticky;top:calc(var(--hdr-h,64px) + 16px);align-self:start;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:8px;margin:0;padding:10px 0 12px;background:var(--paper);z-index:2}
-.rn-date{display:block;font-family:"IBM Plex Mono",monospace;font-size:12px;font-weight:600;line-height:1.35;letter-spacing:.55px;text-transform:uppercase;color:var(--text-link);white-space:normal;overflow-wrap:anywhere}
-.rn-daymeta{color:var(--text-meta);font-family:"IBM Plex Mono",monospace;font-size:10.5px;line-height:1.5;white-space:normal;overflow-wrap:anywhere}
-.rn-daymeta::before{display:none}
-.rn-dayhead>.rn-added{margin-top:2px}
-.rn-day-releases{min-width:0;display:grid;gap:12px}
-.rn-rel{min-width:0;margin:0;padding:clamp(17px,2.2vw,23px);border:1px solid var(--line-strong);border-radius:16px;background:var(--surface-reading);box-shadow:0 10px 24px -24px rgba(20,35,58,.6);overflow:hidden}
-.rn-rel:hover{border-color:#aebdcd;box-shadow:0 14px 30px -26px rgba(20,35,58,.65)}
-.rn-rel + .rn-rel{margin:0;border-top:1px solid var(--line-strong);padding-top:clamp(17px,2.2vw,23px)}
-.rn-relhead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;min-width:0;margin-bottom:15px;padding-bottom:12px;border-bottom:1px solid var(--line)}
-.page .rn-title{min-width:0;margin:0;font-family:"Space Grotesk",sans-serif;font-size:19px;line-height:1.28;letter-spacing:-.15px;color:var(--text-header);overflow-wrap:anywhere}
-.rn-added{flex:none;max-width:100%;font-family:"IBM Plex Mono",monospace;font-size:10.5px;font-weight:600;line-height:1.35;color:var(--emerald-deep);background:var(--emerald-soft);border:1px solid #cfe6da;border-radius:999px;padding:4px 9px;white-space:normal;text-align:center;overflow-wrap:anywhere}
-.page .rn-changes{list-style:none;min-width:0;margin:0;padding:4px 0 0 19px;border-left:2px solid #cbd6e2}
-.page .rn-change{min-width:0;margin:0 0 16px;padding:0 0 15px;position:relative;border-bottom:1px solid #e7ebf0}
-.page .rn-change:last-child{margin-bottom:0;padding-bottom:0;border-bottom:0}
-.rn-change::before{content:"";position:absolute;left:-26px;top:6px;width:9px;height:9px;border-radius:50%;background:var(--surface-reading);border:2px solid #b8c5d5}
-.rn-k-topic::before{border-color:var(--indigo)}
-.rn-k-content::before{border-color:var(--emerald)}
-.rn-k-feature::before{border-color:var(--brass)}
-.rn-k-change::before{border-color:var(--teal)}
-.rn-k-fix::before{border-color:var(--clay)}
-.rn-cmeta{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;min-width:0;margin-bottom:7px}
-.rn-kind{font-family:"IBM Plex Mono",monospace;font-size:10px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;border-radius:6px;padding:3px 7px;border:1px solid var(--line-strong);color:var(--text-meta)}
-.rn-target{max-width:100%;font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:600;color:var(--g,var(--text-meta));background:var(--g-soft,var(--surface-reading-soft));border:1px solid var(--g-line,var(--line));border-radius:6px;padding:3px 7px;overflow-wrap:anywhere}
-.rn-text{min-width:0;overflow-wrap:anywhere}
-.page .rn-text p{margin:0 0 .9em;font-size:15px;line-height:1.7;color:var(--text-normal)}
-.page .rn-text p:last-child{margin-bottom:0}
-.rn-text ul,.rn-text ol{margin:.5em 0 .9em;padding-inline-start:1.35em}
-.rn-text li{margin:.25em 0;line-height:1.65;overflow-wrap:anywhere}
-.rn-text strong{color:var(--text-header);font-weight:600}
-.rn-empty{max-width:1120px;margin:24px auto 0;padding:22px 18px;display:flex;align-items:center;justify-content:space-between;gap:16px;border:1px solid var(--line);border-radius:12px;background:var(--surface-reading-soft);color:var(--text-normal);font-size:15px;line-height:1.6}
-.rn-empty-clear{flex:none;min-height:40px;padding:7px 12px;border:1px solid var(--line-strong);border-radius:9px;background:var(--surface);color:var(--text-link);font:inherit;font-size:11px;font-weight:600;cursor:pointer}
-.rn-empty-clear:hover{border-color:var(--text-link);background:var(--surface-reading-info)}
-.rn-empty-clear:focus-visible{outline:2px solid var(--text-link);outline-offset:2px}
-
-@media (max-width:760px){
-  .rn-page>.rn-head{padding:28px 16px 23px}
-  .rn-page>.rn-head h1{font-size:clamp(30px,9vw,42px);letter-spacing:-.8px}
-  .rn-page .rn-intro{font-size:15px;line-height:1.65}
-  .rn-summary{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:18px}
-  .rn-summary span{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:8px;font-size:9px;line-height:1.35}
-  .rn-summary b{font-size:14px}
-  .rn-filters{margin-top:19px;padding-top:14px}
-  .rn-filter-controls{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-  .rn-filter-clear{grid-column:1/-1;width:100%;min-height:44px}
-  .rn-filter-field select{min-height:44px}
-  .rn-filter-summary{padding:12px 16px;font-size:10px}
-  .rn-body{padding:0 16px 44px}
-  .rn-day,.rn-day:first-child,.rn-day + .rn-day{display:block;padding:26px 0;margin:0}
-  .rn-day + .rn-day{border-top:1px solid var(--line)}
-  .rn-dayhead{position:static;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:5px 10px;margin-bottom:12px;padding:0;background:none}
-  .rn-dayhead>.rn-added{grid-column:2;grid-row:1;align-self:start;margin:0}
-  .rn-daymeta{grid-column:1/-1;grid-row:2}
-  .rn-day-releases{gap:10px}
-  .rn-rel{padding:16px 14px;border-radius:13px}
-  .rn-rel + .rn-rel{padding-top:16px}
-  .page .rn-title{font-size:18px}
-  .page .rn-changes{padding-left:17px}
-  .rn-change::before{left:-24px}
-  .page .rn-text p{font-size:15px;line-height:1.72}
-  .rn-empty{align-items:flex-start;flex-direction:column;margin:18px 16px 0;padding:18px 14px}
-  .rn-empty-clear{width:100%;min-height:44px}
-}
-
-@media (max-width:420px){
-  .rn-page>.rn-head{padding-inline:13px}
-  .rn-summary{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .rn-summary span:last-child{grid-column:1/-1}
-  .rn-filter-controls{grid-template-columns:1fr}
-  .rn-filter-clear{grid-column:auto}
-  .rn-body{padding-inline:13px}
-  .rn-day{padding-block:21px!important}
-  .rn-rel{padding-inline:12px}
-}
-
 /* ---------- compact study question chrome ----------
    The question is the scan target. Keep its actions in a small inline rail,
    and let the difficulty chip share the same line as the prompt. */
@@ -3469,4 +3208,107 @@
   .view-track .qcard[data-qid] .qmeta>.manual-review,.view-track .qcard[data-qid] .qmeta>.qcopy{width:27px;min-width:27px;height:28px;min-height:28px}
   .view-track .qcard[data-qid] .qmeta>.qlangbtn{width:33px;min-width:33px;height:28px;min-height:28px}
   .view-track .qcard[data-qid] .qtext{font-size:14.5px}
+}
+
+/* ---------- Release notes ----------
+   One block owns the page. It used to be five stacked passes, each patching
+   the last, and the head sat in a 760px column while the list ran 1080px.
+   Head and list now share --rn-col, so their left edges meet. The kind colour
+   is one custom property pair read by the filter chip and the row badge, so a
+   chip and the rows it selects can never disagree. */
+.rn-page{--rn-col:1080px;--rn-pad:clamp(20px,6vw,88px);width:100%;max-width:none;margin:0;padding:0;border:0;border-radius:0;box-shadow:none;background:transparent;overflow:visible}
+.rn-page [data-kind]{--k:var(--ink-soft);--k-soft:var(--surface-reading-soft);--k-line:var(--line-strong)}
+.rn-page [data-kind="topic"]{--k:var(--indigo);--k-soft:var(--indigo-soft);--k-line:#cdd5ef}
+.rn-page [data-kind="content"]{--k:var(--emerald-deep);--k-soft:var(--emerald-soft);--k-line:#cfe6da}
+.rn-page [data-kind="feature"]{--k:var(--brass);--k-soft:#faf5e9;--k-line:#e3d6b8}
+.rn-page [data-kind="change"]{--k:var(--teal);--k-soft:var(--teal-soft);--k-line:#c3dee2}
+.rn-page [data-kind="fix"]{--k:var(--clay);--k-soft:var(--clay-soft);--k-line:#e6c6c0}
+
+.rn-head{padding:clamp(32px,5vw,60px) var(--rn-pad) 24px;border-bottom:1px solid var(--line-strong);background:linear-gradient(135deg,var(--surface) 0%,var(--surface-reading-soft) 68%,var(--surface-reading-info) 100%)}
+.rn-head>*{max-width:var(--rn-col);margin-inline:auto}
+.rn-head .eyebrow{margin-bottom:10px}
+.rn-head h1{margin:0 0 10px;font-family:"Space Grotesk",sans-serif;font-size:clamp(34px,5vw,56px);line-height:1.04;letter-spacing:-1.4px;color:var(--text-header);overflow-wrap:anywhere}
+.rn-page .rn-intro{max-width:62ch;margin:0;color:var(--text-normal);font-size:16px;line-height:1.68}
+.rn-summary{display:flex;flex-wrap:wrap;gap:10px 32px;margin-top:24px}
+.rn-summary span{display:flex;align-items:baseline;gap:8px;color:var(--text-meta);font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.2px;text-transform:uppercase}
+.rn-summary b{color:var(--text-header);font:600 28px/1 "Space Grotesk",sans-serif;letter-spacing:-.6px;font-variant-numeric:tabular-nums}
+
+.rn-filters{display:flex;flex-wrap:wrap;align-items:center;gap:10px 22px;margin-top:22px;padding-top:18px;border-top:1px solid var(--line)}
+.rn-filter-controls{display:flex;flex-wrap:wrap;gap:6px}
+.rn-years{padding-left:22px;border-left:1px solid var(--line-strong)}
+.rn-chip{display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:5px 12px;border:1px solid var(--line-strong);border-radius:999px;background:var(--surface);color:var(--text-normal);font:600 11px "IBM Plex Mono",monospace;cursor:pointer}
+.rn-chip[data-kind]::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--k)}
+.rn-chip b{color:var(--text-meta);font-weight:600;font-variant-numeric:tabular-nums}
+.rn-chip:hover{border-color:var(--text-link);color:var(--text-link)}
+.rn-chip.on{border-color:var(--text-header);background:var(--text-header);color:#fff}
+.rn-chip.on b{color:inherit;opacity:.78}
+.rn-chip.on::before{background:#fff}
+.rn-chip:focus-visible,.rn-filter-clear:focus-visible,.rn-empty-clear:focus-visible,.rn-target:focus-visible{outline:2px solid var(--text-link);outline-offset:2px}
+.rn-filter-clear,.rn-empty-clear{min-height:34px;padding:5px 12px;border:1px solid transparent;border-radius:999px;background:none;color:var(--text-link);font:600 11px "IBM Plex Mono",monospace;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.rn-filter-clear:hover,.rn-empty-clear:hover{background:var(--surface-reading-info)}
+
+.rn-filter-summary{max-width:calc(var(--rn-col) + 2 * var(--rn-pad));margin:0 auto;padding:14px var(--rn-pad);border-bottom:1px solid var(--line);color:var(--text-meta);font-family:"IBM Plex Mono",monospace;font-size:10.5px;line-height:1.45}
+.rn-filter-summary b{color:var(--text-header);font-variant-numeric:tabular-nums}
+.rn-body{max-width:calc(var(--rn-col) + 2 * var(--rn-pad));margin:0 auto;padding:0 var(--rn-pad) 72px}
+
+.rn-day{display:grid;grid-template-columns:128px minmax(0,1fr);gap:clamp(20px,4vw,48px);padding:34px 0}
+.rn-day + .rn-day{border-top:1px solid var(--line)}
+.rn-dayhead{position:sticky;top:calc(var(--hdr-h,64px) + 16px);align-self:start;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:8px}
+.rn-date{display:flex;flex-direction:column;gap:3px;color:var(--text-header)}
+.rn-date-day{font:600 40px/1 "Space Grotesk",sans-serif;letter-spacing:-1.2px;font-variant-numeric:tabular-nums}
+.rn-date-month{color:var(--text-link);font:600 11px "IBM Plex Mono",monospace;letter-spacing:.55px;text-transform:uppercase;white-space:nowrap}
+.rn-daymeta{color:var(--text-meta);font:10.5px/1.5 "IBM Plex Mono",monospace}
+.rn-day-releases{min-width:0;display:grid;gap:14px;align-content:start}
+
+.rn-rel{min-width:0;padding:clamp(16px,2.2vw,24px);border:1px solid var(--line-strong);border-radius:16px;background:var(--surface-reading);box-shadow:0 10px 24px -24px rgba(20,35,58,.6)}
+.rn-rel-latest{border-color:var(--emerald);box-shadow:0 0 0 3px var(--emerald-soft)}
+.rn-relhead{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding-bottom:13px;border-bottom:1px solid var(--line)}
+.page .rn-title{flex:1 1 16ch;min-width:0;margin:0;font-family:"Space Grotesk",sans-serif;font-size:19px;line-height:1.28;letter-spacing:-.15px;color:var(--text-header);overflow-wrap:anywhere}
+.rn-latest,.rn-added{flex:none;border-radius:999px;padding:3px 9px;font:600 10.5px/1.35 "IBM Plex Mono",monospace;white-space:nowrap}
+.rn-latest{background:var(--emerald);color:#fff;letter-spacing:.5px;text-transform:uppercase}
+.rn-added{border:1px solid #cfe6da;background:var(--emerald-soft);color:var(--emerald-deep)}
+
+.page .rn-changes{list-style:none;margin:0;padding:0}
+.page .rn-change{display:grid;grid-template-columns:76px minmax(0,1fr);gap:4px 16px;margin:0;padding:15px 0;border-top:1px solid var(--line)}
+.page .rn-change:first-child{border-top:0}
+.page .rn-change:last-child{padding-bottom:0}
+.rn-kind{justify-self:start;margin-top:1px;border:1px solid var(--k-line);border-radius:6px;background:var(--k-soft);color:var(--k);padding:2px 7px;font:600 10px/1.5 "IBM Plex Mono",monospace;letter-spacing:.6px;text-transform:uppercase}
+.rn-cbody{min-width:0}
+.rn-cmeta{display:flex;flex-wrap:wrap;align-items:center;gap:5px 10px;margin-bottom:6px}
+.rn-target{max-width:100%;border:1px solid var(--g-line,var(--line));border-radius:6px;background:var(--g-soft,var(--surface-reading-info));color:var(--g,var(--text-link));padding:2px 7px;font:600 11px/1.5 "IBM Plex Mono",monospace;text-decoration:none;overflow-wrap:anywhere}
+a.rn-target:hover{text-decoration:underline;text-underline-offset:3px}
+.rn-section{color:var(--text-meta);font-size:12.5px;font-weight:500;line-height:1.4}
+.rn-count{color:var(--emerald-deep);font:600 10.5px "IBM Plex Mono",monospace;white-space:nowrap}
+.rn-text{min-width:0;overflow-wrap:anywhere}
+.page .rn-text p{margin:0 0 .8em;font-size:15px;line-height:1.7}
+.page .rn-text p:last-child{margin-bottom:0}
+.rn-text ul,.rn-text ol{margin:.5em 0 .8em;padding-inline-start:1.35em}
+.rn-text li{margin:.25em 0;line-height:1.65}
+.rn-text strong{color:var(--text-header);font-weight:600}
+
+.rn-empty{max-width:var(--rn-col);margin:28px auto 0;padding:22px 18px;display:flex;align-items:center;justify-content:space-between;gap:16px;border:1px solid var(--line);border-radius:12px;background:var(--surface-reading-soft);color:var(--text-normal);font-size:15px;line-height:1.6}
+
+@media (max-width:760px){
+  .rn-page{--rn-pad:16px}
+  .rn-head{padding-top:28px;padding-bottom:20px}
+  .rn-page .rn-intro{font-size:15px;line-height:1.65}
+  .rn-summary{gap:8px 22px;margin-top:18px}
+  .rn-summary b{font-size:24px}
+  .rn-filters{margin-top:18px;padding-top:14px}
+  .rn-years{padding:10px 0 0;border-left:0;border-top:1px solid var(--line);flex-basis:100%}
+  .rn-chip,.rn-filter-clear,.rn-empty-clear{min-height:44px}
+  .rn-body{padding-bottom:44px}
+  .rn-day{display:block;padding:24px 0}
+  .rn-dayhead{position:static;flex-direction:row;flex-wrap:wrap;align-items:baseline;gap:4px 12px;margin-bottom:12px}
+  .rn-date{flex-direction:row;align-items:baseline;gap:8px}
+  .rn-date-day{font-size:30px}
+  .rn-day-releases{gap:0}
+  /* The date and the release are already two levels; a card inside the day
+     is a third, and it costs the change list 28px of width. */
+  .rn-rel{padding:16px 0;border-color:transparent;border-radius:0;background:transparent;box-shadow:none}
+  .rn-rel + .rn-rel{border-top-color:var(--line)}
+  .rn-rel-latest{border-color:transparent;box-shadow:none}
+  .page .rn-change{grid-template-columns:minmax(0,1fr)}
+  .page .rn-title{font-size:18px}
+  .rn-empty{align-items:flex-start;flex-direction:column;margin:18px 16px 0;padding:18px 14px}
 }

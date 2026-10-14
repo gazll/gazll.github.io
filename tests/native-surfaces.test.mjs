@@ -218,16 +218,16 @@ import { pathToFileURL } from 'node:url';
     assert.ok(styles.includes('.sd-article-body .sd-scope .sd-prose:first-of-type::first-letter'));
   });
 
-  test('release notes use a zero-padding shell with explicit inner reading gutters', async () => {
+  test('release notes keep head and list on one column, and one block owns the styles', async () => {
     const styles = await read('public/styles.css');
 
-    assert.ok(styles.includes('.rn-page{padding:0;overflow:hidden}'));
-    assert.ok(styles.includes('.rn-page>.rn-head{max-width:none;padding:clamp(30px,4vw,50px)'));
-    assert.ok(styles.includes('.rn-page>.rn-body{max-width:1080px;margin:0 auto;padding:0 clamp(22px,5vw,72px)'));
-    assert.ok(styles.includes('.rn-rel{background:transparent;border-color:transparent;box-shadow:none;border-radius:0;padding-inline:0}'));
-    assert.ok(styles.includes('.rn-filters{display:flex;align-items:flex-end;flex-wrap:wrap;'));
-    assert.ok(styles.includes('.rn-filter-field select{width:100%;min-height:40px;'));
-    assert.match(await read('app/pages/release-notes.vue'), /class="rn-empty-clear"/, 'empty release filters should offer a direct reset');
+    assert.ok(styles.includes('.rn-head>*{max-width:var(--rn-col);margin-inline:auto}'));
+    assert.ok(styles.includes('.rn-body{max-width:calc(var(--rn-col) + 2 * var(--rn-pad))'));
+    assert.ok(styles.includes('.rn-rel{padding:16px 0;border-color:transparent;border-radius:0;background:transparent;box-shadow:none}'));
+    assert.equal(styles.match(/^\s*\.rn-day\{/gm).length, 2, 'one desktop rule and its phone override, not stacked passes');
+    const release = await read('app/pages/release-notes.vue');
+    assert.match(release, /class="rn-empty-clear"/, 'empty release filters should offer a direct reset');
+    assert.match(release, /:aria-pressed="kindFilter === option\.kind"/, 'kind chips are toggle buttons');
   });
 
   test('system-design reading colors use semantic roles instead of purple body text', async () => {
