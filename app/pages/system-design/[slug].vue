@@ -279,7 +279,7 @@ useHead(() => ({
             <section v-if="design.diagram" id="architecture" class="sd-section">
               <h2>{{ copy.diagram_title || labels.architecture }}</h2>
               <ContentMermaidDiagram :source="design.diagram" :title="copy.diagram_title" :lang="lang" />
-              <details class="sd-mermaid-source"><summary>{{ labels.diagramSource }}</summary><pre><code>{{ design.diagram }}</code></pre></details>
+              <details class="sd-mermaid-source"><summary>{{ labels.diagramSource }}</summary><pre tabindex="0"><code>{{ design.diagram }}</code></pre></details>
             </section>
             <section id="data-model" class="sd-section sd-decision-section sd-data-decision"><h2>{{ labels.data }}</h2><div v-html="dataIntroHtml" /><div v-html="dataModelHtml" /><aside class="sd-decision-checks"><strong>{{ labels.dataChecksTitle }}</strong><ul><li v-for="check in labels.dataChecks" :key="check">{{ check }}</li></ul></aside></section>
             <section id="technology-choices" class="sd-section sd-decision-section sd-stack-decision"><h2>{{ labels.stack }}</h2><div v-html="stackIntroHtml" /><div v-html="stackHtml" /><aside class="sd-decision-checks"><strong>{{ labels.stackChecksTitle }}</strong><ul><li v-for="check in labels.stackChecks" :key="check">{{ check }}</li></ul></aside></section>

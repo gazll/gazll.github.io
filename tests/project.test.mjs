@@ -51,7 +51,7 @@ test('Markdown project documents render headings, tables and escaped fenced code
   const html = renderMarkdown('# Gateway\n\n| Path | Service |\n| --- | --- |\n| `/air` | Air |\n\n```java\n<script>alert(1)</script>\n```');
   assert.match(html, /<h1 id="gateway"><a class="md-heading-anchor"[^>]*>Gateway<\/a><\/h1>/);
   assert.match(html, /<table class="md-table">/);
-  assert.match(html, /<pre><code class="language-java">&lt;script&gt;alert\(1\)&lt;\/script&gt;<\/code><\/pre>/);
+  assert.match(html, /<pre tabindex="0"><code class="language-java">&lt;script&gt;alert\(1\)&lt;\/script&gt;<\/code><\/pre>/);
   assert.doesNotMatch(html, /<script>/);
 });
 

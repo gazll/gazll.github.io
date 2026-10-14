@@ -90,7 +90,8 @@ export function renderMarkdown(md, options) {
       while (i < lines.length && !/^```\s*$/.test(lines[i].trim())) { buf.push(lines[i]); i++; }
       if (i < lines.length) i++;
       const language = fence[1] ? ' class="language-' + escapeHtml(fence[1]) + '"' : '';
-      html += '<pre><code' + language + '>' + escapeHtml(buf.join('\n')) + '</code></pre>';
+      // Focusable because a phone scrolls it sideways, and the keyboard must too.
+      html += '<pre tabindex="0"><code' + language + '>' + escapeHtml(buf.join('\n')) + '</code></pre>';
       continue;
     }
 
