@@ -3634,7 +3634,7 @@ header.top{border-bottom:0}
 .navlink[aria-current="page"] .nv-label,.navlink[aria-current="page"] .nv-icon{color:var(--md-sys-color-on-secondary-container)}
 .navlink[aria-current="page"]::before{display:none}
 .nv-lead{border:0;background:var(--md-sys-color-primary-container)}
-.nv-lead .nv-icon,.nv-lead .nv-label{color:var(--md-sys-color-on-primary-container)}
+.nv-lead .nv-icon,.nv-lead .nv-label,.nv-lead .nv-desc{color:var(--md-sys-color-on-primary-container)}
 .nv-lead:hover{border:0;background:color-mix(in srgb,var(--md-sys-color-on-primary-container) var(--md-sys-state-hover-state-layer-opacity),var(--md-sys-color-primary-container))}
 .nv-sectitle{padding:0 16px;font-size:var(--md-sys-typescale-title-small-size);font-weight:500;letter-spacing:.1px;text-transform:none;
   color:var(--md-sys-color-on-surface-variant)}
@@ -3818,6 +3818,7 @@ header.top{view-transition-name:top-app-bar}
 /* Failure states use the error container rather than a page-specific clay. */
 .warn,.form-err{background:var(--md-sys-color-error-container);color:var(--md-sys-color-on-error-container);
   border:0;border-radius:var(--md-sys-shape-corner-medium)}
+.warn b{color:inherit}
 .cal-error{color:var(--md-sys-color-error)}
 .err-code{font-family:var(--md-ref-typeface-brand);font-size:var(--md-sys-typescale-display-large-size);
   line-height:var(--md-sys-typescale-display-large-line-height);font-weight:400;color:var(--md-sys-color-primary)}
