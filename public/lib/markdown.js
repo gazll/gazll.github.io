@@ -141,7 +141,9 @@ export function renderMarkdown(md, options) {
       const raw = buf.join('\n');
       // Table cells cite items too. <pre> and <svg> are excluded: there the id
       // is sample text or diagram content, and an <a> would be wrong markup.
-      html += /<(?:pre|svg)\b/.test(raw) ? raw : linkRefs(raw);
+      // An empty corner <th> heads nothing, and screen readers announce it as a
+      // blank column header (axe empty-table-header); it is a plain cell.
+      html += /<(?:pre|svg)\b/.test(raw) ? raw : linkRefs(raw.replace(/<th>\s*<\/th>/g, '<td class="corner"></td>'));
       continue;
     }
 

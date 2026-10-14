@@ -1329,7 +1329,7 @@
   
   table.cmp{width:100%;border-collapse:collapse;margin:8px 0 12px;font-size:var(--md-sys-typescale-body-medium-size)}
   table.cmp th,table.cmp td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
-  table.cmp th{background:var(--emerald-soft);color:var(--emerald-deep);font-weight:600;font-family:var(--md-ref-typeface-plain);font-size:var(--md-sys-typescale-label-medium-size)}
+  table.cmp th,table.cmp td.corner{background:var(--emerald-soft);color:var(--emerald-deep);font-weight:600;font-family:var(--md-ref-typeface-plain);font-size:var(--md-sys-typescale-label-medium-size)}
   table.cmp td:first-child{font-weight:500;color:var(--ink);background:var(--md-sys-color-surface-container-low)}
 
   .pager{position:sticky;bottom:0;z-index:40;margin-top:30px;backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;}
@@ -3176,7 +3176,7 @@
     color:var(--text-normal)}
   .view-track .answer-body th,.view-track .answer-body td,.cs-article-body th,.cs-article-body td,.page th,.page td{
     padding:9px 11px;border:1px solid var(--line);text-align:start;vertical-align:top;overflow-wrap:anywhere}
-  .view-track .answer-body th,.cs-article-body th,.page th{
+  .view-track .answer-body th,.cs-article-body th,.page th,.answer-body td.corner,.cs-article-body td.corner,.page td.corner{
     background:var(--surface-reading-info);color:var(--text-label);font-family:var(--md-ref-typeface-plain);
     font-size:.82em;font-weight:600;letter-spacing:.02em}
   .view-track .answer-body tr:nth-child(even) td,.cs-article-body tr:nth-child(even) td,.page tr:nth-child(even) td{
