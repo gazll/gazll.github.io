@@ -144,7 +144,9 @@ export function renderMarkdown(md, options) {
       // is sample text or diagram content, and an <a> would be wrong markup.
       // An empty corner <th> heads nothing, and screen readers announce it as a
       // blank column header (axe empty-table-header); it is a plain cell.
-      html += /<(?:pre|svg)\b/.test(raw) ? raw : linkRefs(raw.replace(/<th>\s*<\/th>/g, '<td class="corner"></td>'));
+      html += /<(?:pre|svg)\b/.test(raw)
+        ? raw.replace(/<pre(?![^>]*\btabindex=)(?=[\s>])/g, '<pre tabindex="0"')
+        : linkRefs(raw.replace(/<th>\s*<\/th>/g, '<td class="corner"></td>'));
       continue;
     }
 
