@@ -42,7 +42,7 @@ onBeforeUnmount(() => stop?.());
     <p v-if="loading">Loading all-user overview…</p>
     <div v-if="message" class="warn">{{ message }}</div>
     <template v-if="users.length">
-      <div class="stat-row">
+      <div id="admin-summary" data-ui="admin-summary" class="stat-row">
         <div class="stat-tile"><div class="stat-label">Users</div><div class="stat-value">{{ users.length }}</div></div>
         <div class="stat-tile"><div class="stat-label">Admin</div><div class="stat-value">{{ users.filter(user => user.role === 'admin').length }}</div></div>
         <div class="stat-tile"><div class="stat-label">Items reviewed</div><div class="stat-value">{{ sum('reviewed_count') }}</div></div>

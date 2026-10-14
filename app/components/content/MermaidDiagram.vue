@@ -33,7 +33,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <figure ref="root" class="sd-diagram" data-diagram-frame>
+  <figure ref="root" data-ui="mermaid-diagram" class="sd-diagram" data-diagram-frame>
     <figcaption>
       <strong>{{ title }}</strong>
       <span class="sd-diagram-actions">

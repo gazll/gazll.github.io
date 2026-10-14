@@ -42,7 +42,7 @@ useHead(() => ({
   <div>
     <ContentHeader :lang="lang" />
     <main id="view-host" tabindex="-1" class="view">
-      <div class="page err-page">
+      <div id="error-page" data-ui="error-page" class="page err-page">
         <p class="err-code">{{ error?.statusCode || 500 }}</p>
         <h1>{{ notFound ? copy.code404 : copy.codeOther }}</h1>
         <p class="err-lead">{{ notFound ? copy.lead404 : copy.leadOther }}</p>

@@ -3807,3 +3807,12 @@ header.top{view-transition-name:top-app-bar}
 .cal-error{color:var(--md-sys-color-error)}
 .err-code{font-family:var(--md-ref-typeface-brand);font-size:var(--md-sys-typescale-display-large-size);
   line-height:var(--md-sys-typescale-display-large-line-height);font-weight:400;color:var(--md-sys-color-primary)}
+
+/* ---- ?ui: component names on the page (app/plugins/ui-labels.client.ts) ---- */
+html.ui-labels [data-ui]{outline:1px dashed var(--md-sys-color-tertiary);outline-offset:-1px}
+.ui-label-layer{position:absolute;top:0;left:0;width:0;height:0;z-index:2147483000}
+.ui-label{position:absolute;transform:translateY(-1px);padding:1px 6px;border:0;border-radius:var(--md-sys-shape-corner-extra-small);
+  background:var(--md-sys-color-tertiary);color:var(--md-sys-color-on-tertiary);cursor:copy;white-space:nowrap;
+  font:500 var(--md-sys-typescale-label-small-size)/1.4 var(--md-ref-typeface-mono);opacity:.92}
+.ui-label:hover{opacity:1;z-index:1}
+@media print{.ui-label-layer{display:none}}

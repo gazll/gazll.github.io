@@ -114,21 +114,21 @@ useHead(() => ({
     <ContentHeader :lang="lang" />
     <main id="view-host" tabindex="-1" class="view">
       <div class="page gs-page">
-        <header class="gs-page-head">
+        <header id="search-head" data-ui="search-head" class="gs-page-head">
           <p class="cs-eyebrow">{{ labels.eyebrow }}</p>
           <h1>{{ labels.title }}</h1>
           <p class="gs-page-intro">{{ labels.intro }}</p>
-          <form class="gs-page-box" role="search" @submit.prevent="submitSearch">
+          <form id="search-form" data-ui="search-form" class="gs-page-box" role="search" @submit.prevent="submitSearch">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5" /><path d="M16 16l4 4" /></svg>
             <input v-model="query" class="gs-input" type="search" autofocus autocomplete="off" spellcheck="false" :placeholder="labels.placeholder" :aria-label="labels.searchAria">
           </form>
         </header>
-        <div v-if="query" class="gs-filters" role="group" :aria-label="labels.surface">
+        <div v-if="query" id="search-filters" data-ui="search-filters" class="gs-filters" role="group" :aria-label="labels.surface">
           <button v-for="item in surfaces" :key="item.id" type="button" class="gchip gs-chip" :aria-pressed="surface === item.id" @click="surface = item.id">
             {{ item.label }} <span class="gcount">{{ countFor(item.id) }}</span>
           </button>
         </div>
-        <div class="gs-page-body">
+        <div id="search-page-results" data-ui="search-page-results" class="gs-page-body">
           <section v-if="!query && recent.length" class="gs-group gs-history"><h3>{{ labels.recent }} <button type="button" class="gs-clear" @click="nuxtApp.$searchHistory?.clear()">{{ labels.clear }}</button></h3><div v-for="entry in recent" :key="entry.q" class="gs-recent-row"><button type="button" class="gs-recent" @click="query = entry.q">{{ entry.q }}</button><button type="button" class="gs-forget" :aria-label="`${labels.remove}: ${entry.q}`" @click="nuxtApp.$searchHistory?.remove(entry.q)">×</button></div></section>
           <p v-else-if="!query" class="gs-empty">{{ labels.start }}</p>
           <p v-else-if="indexFailed" class="gs-empty" role="alert">{{ labels.indexFailed }}</p>

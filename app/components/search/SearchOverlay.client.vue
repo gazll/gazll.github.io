@@ -188,17 +188,17 @@ onBeforeUnmount(() => { stopHistory?.(); document.removeEventListener('keydown',
 
 <template>
   <div class="gs-scrim" :hidden="!isOpen" aria-hidden="true" @click="close()" />
-  <section ref="overlay" class="gs-overlay" :hidden="!isOpen" role="dialog" aria-modal="true" :aria-label="labels.dialog">
-    <div class="gs-box">
+  <section ref="overlay" id="search-dialog" data-ui="search-dialog" class="gs-overlay" :hidden="!isOpen" role="dialog" aria-modal="true" :aria-label="labels.dialog">
+    <div data-ui="search-box" class="gs-box">
       <span class="gs-box-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5" /><path d="M16 16l4 4" /></svg></span>
       <input id="search-input" ref="input" v-model="query" class="gs-input" type="search" role="combobox" aria-autocomplete="list" autocomplete="off" spellcheck="false" :placeholder="labels.search" :aria-label="labels.searchAria" :aria-controls="query.trim() && results.length ? 'search-results' : undefined" :aria-expanded="Boolean(query.trim() && results.length)" :aria-activedescendant="activeResultId">
       <button v-if="query.trim()" class="gs-more" type="button" :aria-label="labels.seeAll.replace('{query}', query)" @click="showAll()"><span>{{ labels.seeAll.replace('{query}', query) }}</span><span>→</span></button>
       <button class="gs-esc" type="button" @click="close()">{{ labels.esc }}</button>
     </div>
-    <div class="gs-body">
+    <div data-ui="search-results" class="gs-body">
       <p v-if="loading" class="gs-empty">{{ labels.loading }}</p>
       <div v-else-if="loadError" class="gs-empty gs-error-state" role="alert"><span>{{ labels.error }}</span><button type="button" class="gs-retry" @click="retrySearch">{{ labels.retry }}</button></div>
-      <section v-else-if="!query.trim() && recent.length" class="gs-group gs-history"><h3>{{ labels.recent }} <button type="button" class="gs-clear" @click="$searchHistory.clear()">{{ labels.clear }}</button></h3><div v-for="entry in recent" :key="entry.q" class="gs-recent-row"><button type="button" class="gs-recent" @click="query = entry.q">{{ entry.q }}</button><button type="button" class="gs-forget" :aria-label="`${labels.remove}: ${entry.q}`" @click="$searchHistory.remove(entry.q)">×</button></div></section>
+      <section v-else-if="!query.trim() && recent.length" data-ui="search-history" class="gs-group gs-history"><h3>{{ labels.recent }} <button type="button" class="gs-clear" @click="$searchHistory.clear()">{{ labels.clear }}</button></h3><div v-for="entry in recent" :key="entry.q" class="gs-recent-row"><button type="button" class="gs-recent" @click="query = entry.q">{{ entry.q }}</button><button type="button" class="gs-forget" :aria-label="`${labels.remove}: ${entry.q}`" @click="$searchHistory.remove(entry.q)">×</button></div></section>
       <p v-else-if="!query.trim()" class="gs-empty">{{ labels.empty }}</p>
       <p v-else-if="!results.length" class="gs-empty">{{ labels.noResult.replace('{query}', query) }}</p>
       <div v-else-if="results.length" id="search-results" class="gs-result-list" role="listbox" :aria-label="labels.results">

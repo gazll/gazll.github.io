@@ -91,7 +91,7 @@ watch(state, next => {
 </script>
 
 <template>
-  <div ref="authRoot" class="authbar" @click.stop>
+  <div ref="authRoot" id="auth-control" data-ui="auth-control" class="authbar" @click.stop>
     <span v-if="sync && sync !== 'idle'" class="syncstate">{{ sync }}</span>
     <span v-if="state === 'offline'" class="syncstate">Offline</span>
     <button
@@ -115,7 +115,7 @@ watch(state, next => {
       </span>
     </button>
 
-    <div v-if="menuOpen" id="authMenu" class="authmenu" role="dialog" aria-label="Account">
+    <div v-if="menuOpen" id="authMenu" data-ui="auth-menu" class="authmenu" role="dialog" aria-label="Account">
       <template v-if="state === 'signed'">
         <div class="am-id">
           <div class="am-name">{{ who }}</div>

@@ -83,11 +83,11 @@ useHead(() => ({
 <template>
   <div><ContentHeader :lang="lang" /><main id="view-host" tabindex="-1" class="view"><div class="pj-shell pj-article">
     <div class="sd-backbar"><NuxtLink class="pj-back" :to="{ path: '/', query: lang === 'vi' ? { lang } : {} }">← {{ labels.back }}</NuxtLink></div>
-    <header class="pj-head"><p class="pj-eyebrow">Project · {{ project.status }} · {{ data.snapshot }}</p><h1>{{ project.title }}</h1><p class="pj-deck">{{ project.intro }}</p><p>{{ project.owner_note }}</p><div class="pj-meta"><span>{{ data.updated_at }}</span><code>{{ data.project.source_root }}</code></div></header>
+    <header id="project-head" data-ui="project-head" class="pj-head"><p class="pj-eyebrow">Project · {{ project.status }} · {{ data.snapshot }}</p><h1>{{ project.title }}</h1><p class="pj-deck">{{ project.intro }}</p><p>{{ project.owner_note }}</p><div class="pj-meta"><span>{{ data.updated_at }}</span><code>{{ data.project.source_root }}</code></div></header>
     <details ref="mobileToc" class="pj-toc-mobile"><summary><span>{{ labels.contents }}</span><span class="toc-current" aria-live="polite">{{ activeSectionLabel }}</span></summary><nav><a v-for="entry in toc" :key="entry[0]" :href="`#${entry[0]}`" :aria-current="activeSectionId === entry[0] ? 'location' : undefined" @click="closeMobileToc">{{ entry[1] }}</a></nav></details>
     <div class="pj-grid">
-      <aside class="pj-toc"><p>{{ labels.contents }}</p><nav><a v-for="entry in toc" :key="entry[0]" :href="`#${entry[0]}`" :aria-current="activeSectionId === entry[0] ? 'location' : undefined">{{ entry[1] }}</a></nav></aside>
-      <article class="pj-body">
+      <aside id="project-toc" data-ui="project-toc" class="pj-toc"><p>{{ labels.contents }}</p><nav><a v-for="entry in toc" :key="entry[0]" :href="`#${entry[0]}`" :aria-current="activeSectionId === entry[0] ? 'location' : undefined">{{ entry[1] }}</a></nav></aside>
+      <article id="project-body" data-ui="project-body" class="pj-body">
         <section id="project-scope" class="pj-section"><h2><a class="pj-heading-anchor" href="#project-scope">{{ labels.scope }}</a></h2><p>{{ prose.scope }}</p></section>
         <section id="project-technology" class="pj-section"><h2><a class="pj-heading-anchor" href="#project-technology">{{ prose.technologyTitle || labels.technology }}</a></h2><div class="tags"><span v-for="item in data.stack" :key="item" class="tag">{{ item }}</span></div></section>
         <section id="project-modules" class="pj-section"><h2><a class="pj-heading-anchor" href="#project-modules">{{ prose.modulesTitle || labels.modules }}</a></h2><div class="pj-module-grid"><article v-for="module in modules" :key="module.name" class="pj-module"><code>{{ module.name }}</code><p>{{ module.role }}</p></article></div></section>

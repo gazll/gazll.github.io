@@ -137,8 +137,8 @@ useHead(() => ({
 
     <main>
       <section id="view-track" tabindex="-1" class="view">
-        <div class="day-panel">
-          <section class="hero">
+        <div id="topic-content" data-ui="topic-content" class="day-panel">
+          <section id="topic-hero" data-ui="topic-hero" class="hero">
             <div class="hero-head">
               <div class="daynum" :data-topic-type="data!.row.topic_type">
                 <small>{{ data!.row.topic_type.toUpperCase() }}</small>{{ data!.row.n }}
@@ -154,14 +154,14 @@ useHead(() => ({
             </div>
           </section>
 
-          <div id="study-toolbar" class="toolbar" role="toolbar" :aria-label="pageLabels.toolbar">
+          <div id="study-toolbar" data-ui="study-toolbar" class="toolbar" role="toolbar" :aria-label="pageLabels.toolbar">
             <span class="sectioncount" aria-live="polite" aria-atomic="true">
               <span><b>{{ itemCount }}</b> {{ pageLabels.items }}</span>
               <span><b>{{ sections.length }}</b> {{ pageLabels.sections }}</span>
               <span class="study-progress"><b>{{ reviewedCount }}</b>/{{ itemCount }} {{ pageLabels.reviewed }}</span>
             </span>
             <div class="tb-actions">
-              <button v-if="nextUnreviewedId" id="study-continue" class="btn-primary study-continue" type="button" @click="continueStudy">
+              <button v-if="nextUnreviewedId" id="study-continue" data-ui="study-continue" class="btn-primary study-continue" type="button" @click="continueStudy">
                 <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 10h10M10 5l5 5-5 5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" /></svg>
                 <span>{{ pageLabels.continue }}</span>
               </button>
@@ -169,7 +169,7 @@ useHead(() => ({
                 <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m4.5 10 3.3 3.3 7.7-7.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" /></svg>
                 <span>{{ pageLabels.complete }}</span>
               </span>
-              <button class="btn-ghost" type="button" :aria-pressed="expandAll" @click="setAll(!expandAll)">
+              <button id="study-expand-all" data-ui="study-expand-all" class="btn-ghost" type="button" :aria-pressed="expandAll" @click="setAll(!expandAll)">
                 <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
                   <path v-if="expandAll" d="m5.5 12.5 4.5-4.5 4.5 4.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
                   <path v-else d="m5.5 7.5 4.5 4.5 4.5-4.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
@@ -179,7 +179,7 @@ useHead(() => ({
             </div>
           </div>
           <template v-for="(section, sectionIndex) in sections" :key="section.title">
-            <h2 :id="`${data!.stem}-section-${sectionIndex + 1}`" class="section-h">
+            <h2 :id="`${data!.stem}-section-${sectionIndex + 1}`" class="section-h" data-ui="topic-section-heading">
               <span class="section-index" aria-hidden="true">{{ String(sectionIndex + 1).padStart(2, '0') }}</span>
               <a class="topic-heading-anchor" :href="`#${data!.stem}-section-${sectionIndex + 1}`">{{ section.title }}</a><span class="sline" />
             </h2>
@@ -187,7 +187,7 @@ useHead(() => ({
           </template>
         </div>
 
-        <nav class="pager" :aria-label="pageLabels.navigation">
+        <nav id="topic-pager" data-ui="topic-pager" class="pager" :aria-label="pageLabels.navigation">
           <NuxtLink v-if="previous" class="pbtn prev" :to="`/topics/${rowSlug(previous)}?lang=${lang}`">
             <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m12.5 4.5-5.5 5.5 5.5 5.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
             <span>{{ pageLabels.previous }}</span>

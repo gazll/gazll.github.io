@@ -288,11 +288,11 @@ onBeforeUnmount(() => stopAuth?.());
 </script>
 
 <template>
-  <div id="ivRoot" class="iv-root">
-    <section class="hero"><div class="hero-head"><div><h1>{{ labels.title }}</h1><p class="intro">{{ labels.intro }}</p></div></div></section>
+  <div id="ivRoot" data-ui="gazl-try" class="iv-root">
+    <section id="gazl-hero" data-ui="gazl-hero" class="hero"><div class="hero-head"><div><h1>{{ labels.title }}</h1><p class="intro">{{ labels.intro }}</p></div></div></section>
     <p v-if="loading" class="loading-block">{{ labels.loading }}</p>
     <div v-if="error" class="warn"><b>{{ labels.backendError }}</b> {{ error }}{{ labels.backendFallback }}</div>
-    <div class="toolbar"><span class="sectioncount">{{ companies.length }} {{ companies.length === 1 ? labels.entry : labels.entries }}<span v-if="editable"> ({{ ownCount }} {{ labels.mine }} · {{ seedCount }} {{ labels.samples }})</span> · {{ questionCount }} {{ questionCount === 1 ? labels.question : labels.questions }} <span v-if="!editable" class="ro">· {{ labels.readOnly }}</span></span><div class="tb-actions"><button v-if="companies.length" class="btn-ghost" type="button" @click="toggleAll">{{ allOpen ? labels.collapseAll : labels.expandAll }}</button><button v-if="editable" id="ivAdd" class="btn-primary" type="button" @click="resetForm()">+ {{ labels.addCompany }}</button><span v-else class="hint">{{ $auth.enabled ? labels.signIn : labels.noBackend }}</span></div></div>
+    <div id="gazl-toolbar" data-ui="gazl-toolbar" class="toolbar"><span class="sectioncount">{{ companies.length }} {{ companies.length === 1 ? labels.entry : labels.entries }}<span v-if="editable"> ({{ ownCount }} {{ labels.mine }} · {{ seedCount }} {{ labels.samples }})</span> · {{ questionCount }} {{ questionCount === 1 ? labels.question : labels.questions }} <span v-if="!editable" class="ro">· {{ labels.readOnly }}</span></span><div class="tb-actions"><button v-if="companies.length" class="btn-ghost" type="button" @click="toggleAll">{{ allOpen ? labels.collapseAll : labels.expandAll }}</button><button v-if="editable" id="ivAdd" class="btn-primary" type="button" @click="resetForm()">+ {{ labels.addCompany }}</button><span v-else class="hint">{{ $auth.enabled ? labels.signIn : labels.noBackend }}</span></div></div>
 
     <!-- Private entries: shown only when a sealed file is published. The form
          is collapsed behind one button so the public journal reads unchanged. -->
@@ -312,7 +312,7 @@ onBeforeUnmount(() => stopAuth?.());
 
     <div v-if="!loading && !companies.length" class="page"><p>{{ labels.noEntries }}</p></div>
 
-    <section v-for="group in groups" :key="group.id" class="iv-group" :aria-labelledby="`iv-group-${group.id}`">
+    <section v-for="group in groups" :key="group.id" data-ui="gazl-group" class="iv-group" :aria-labelledby="`iv-group-${group.id}`">
       <header class="iv-group-head">
         <div>
           <p>{{ group.kicker }}</p>
@@ -322,7 +322,7 @@ onBeforeUnmount(() => stopAuth?.());
         <b>{{ group.rows.length }}</b>
       </header>
 
-      <article v-for="company in group.rows" :key="company.id" class="company" :class="{ 'is-seed': !company.own, 'is-open': isOpen(company) }">
+      <article v-for="company in group.rows" :key="company.id" data-ui="gazl-entry" class="company" :class="{ 'is-seed': !company.own, 'is-open': isOpen(company) }">
         <button class="iv-co-head" type="button" :aria-expanded="isOpen(company)" :aria-controls="`iv-body-${company.id}`" @click="toggleCompany(company)">
           <span class="iv-co-text">
             <span class="iv-co-name">
