@@ -3785,3 +3785,25 @@ header.top{border-bottom:1px solid var(--md-sys-color-outline-variant)}
   :is(.cs-article-body,.answer-body,.sd-article-body) a[href^="http"]::after{content:" (" attr(href) ")";font-size:.85em;color:#444;word-break:break-all}
   h1,h2,h3{break-after:avoid}
 }
+
+/* ---- motion between routes, and the waiting/failed states ---- */
+/* The app bar keeps its own transition name so it stays put while the page
+   under it cross-fades; durations are the MD3 short/medium tokens. */
+header.top{view-transition-name:top-app-bar}
+::view-transition-old(root){animation:md-fade-out var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard-accelerate) both}
+::view-transition-new(root){animation:md-fade-in var(--md-sys-motion-duration-medium2) var(--md-sys-motion-easing-emphasized-decelerate) both}
+@keyframes md-fade-out{to{opacity:0}}
+@keyframes md-fade-in{from{opacity:0;transform:translateY(8px)}}
+/* Loading: the MD3 circular indicator, drawn by the block itself. */
+.loading-block{gap:12px;align-content:center}
+.loading-block::before{content:"";width:32px;height:32px;border-radius:50%;
+  border:4px solid var(--md-sys-color-secondary-container);border-top-color:var(--md-sys-color-primary);
+  animation:md-spin 1s linear infinite}
+@keyframes md-spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion: reduce){.loading-block::before{animation:none}}
+/* Failure states use the error container rather than a page-specific clay. */
+.warn,.form-err{background:var(--md-sys-color-error-container);color:var(--md-sys-color-on-error-container);
+  border:0;border-radius:var(--md-sys-shape-corner-medium)}
+.cal-error{color:var(--md-sys-color-error)}
+.err-code{font-family:var(--md-ref-typeface-brand);font-size:var(--md-sys-typescale-display-large-size);
+  line-height:var(--md-sys-typescale-display-large-line-height);font-weight:400;color:var(--md-sys-color-primary)}
