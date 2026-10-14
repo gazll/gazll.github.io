@@ -37,5 +37,6 @@ gỡ, và một deploy xanh đã đưa `version.json` lên commit mới.
   nâng, rồi **xoá mục `GHSA-vfj7-8cjw-p6xm` khỏi `ALLOWED`**. Mục hết hạn
   2026-11-01 sẽ làm gate đỏ lại để nhắc; hết hạn mà chưa có bản vá thì đánh giá
   lại rủi ro rồi gia hạn, không gia hạn mù.
-- Nên bỏ ghim cứng `nuxt` (hoặc lên lịch nâng định kỳ) để các lần sau không phải
-  dò tay: advisory mới có thể làm CI đỏ bất cứ lúc nào mà không ai đổi gì.
+- [x] Bỏ ghim `nuxt` (`^4.6.1`) 2026-10-14; `.github/dependabot.yml` mở PR gộp
+  hằng tuần (thứ Hai), `pr-check.yml` chạy audit-gate + ba lệnh CI + generate
+  trên PR — merge PR Dependabot khi nó xanh.

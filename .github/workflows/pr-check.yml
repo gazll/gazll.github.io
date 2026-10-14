@@ -1,0 +1,51 @@
+name: Check pull request
+
+# deploy.yml runs only on main, so a Dependabot PR would otherwise merge
+# unbuilt — and the NAS cannot run `npm run generate` to check it by hand.
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install Nuxt dependencies
+        run: npm ci --legacy-peer-deps --prefer-offline --no-audit --no-fund
+
+      - name: Audit production dependencies
+        run: node tools/audit-gate.mjs
+
+      # Same three commands, same order, as deploy.yml.
+      - name: Run checks
+        run: |
+          node tools/build-content-index.mjs --check
+          node tools/stamp-content-dates.mjs --check
+          node tools/check.mjs
+
+      # Offline config: the build must not depend on repository secrets.
+      - name: Generate Nuxt static site
+        run: |
+          cp public/config.example.js public/config.js
+          npm run generate
+
+      - name: Verify deploy artifact
+        run: |
+          node tools/stamp-assets.mjs "${{ github.sha }}" .output/public
+          node tools/verify-static-artifact.mjs .output/public

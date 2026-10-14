@@ -1,0 +1,23 @@
+# A new advisory can turn the deploy red with no commit at all (2026-10-03:
+# audit-gate stopped six runs). Weekly grouped PRs keep the tree close to the
+# patched releases, so the fix is a merge rather than a hunt.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      timezone: Asia/Ho_Chi_Minh
+    open-pull-requests-limit: 3
+    groups:
+      # Nuxt, Vue and Nitro move together; split PRs would each fail alone.
+      nuxt-stack:
+        patterns: ['nuxt', '@nuxt/*', 'nitropack', 'vue', '@vue/*', 'vue-router', 'vite']
+      everything-else:
+        patterns: ['*']
+        update-types: [minor, patch]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
