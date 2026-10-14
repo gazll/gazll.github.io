@@ -1,6 +1,6 @@
 # Deploy đỏ vì `audit-gate` — advisory của dependency (2026-10-03 → 10-08)
 
-Trạng thái: **ĐANG MỞ** · xoá file này khi `braces` có bản vá, mục allowlist đã
+Trạng thái: **ĐANG MỞ — deploy đã xanh, chỉ còn chờ bản vá `braces`** · xoá file này khi `braces` có bản vá, mục allowlist đã
 gỡ, và một deploy xanh đã đưa `version.json` lên commit mới.
 
 ## Vấn đề
@@ -28,8 +28,8 @@ gỡ, và một deploy xanh đã đưa `version.json` lên commit mới.
 
 ## Còn lại
 
-- Xác nhận run CI sau commit này xanh và `https://gazll.github.io/version.json`
-  mang đúng commit. Nuxt 4.6.0 **chưa từng được build** trước đó.
+- [x] CI xanh lại từ run #203 (`6f651e0`), Nuxt 4.6.0 build được; #205 đưa
+  `version.json` lên `0ccc709` (kiểm tra 2026-10-14). `braces` vẫn 3.0.3.
 - **NAS không build được site**: `npm run generate` segfault (exit 139) sau
   "Generating types", cả trên 4.5.2 lẫn 4.6.0 (kernel 4.4). Build kiểm tra phải
   chạy trên laptop hoặc CI; `check.mjs` thì chạy được trên NAS.
