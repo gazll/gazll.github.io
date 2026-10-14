@@ -28,7 +28,7 @@
   color: var(--text);
 }
 
-button, input { font: inherit; }
+button, input, select, textarea { font: inherit; }
 
 .topbar {
   position: sticky;

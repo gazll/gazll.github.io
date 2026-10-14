@@ -25,6 +25,9 @@
   font-size:14px;padding-bottom:96px
 }
 :where(.static-tool-surface) *{box-sizing:border-box;margin:0;padding:0}
+/* Form controls do not inherit the font by default; without this they fall
+   back to the system face beside the site's Roboto Flex. */
+:where(.static-tool-surface) :is(button,input,select,textarea){font-family:inherit}
 /* Inside the Nuxt shell the tool is a div, not the document: the site's own
    body/html paint wins, so the dark tokens were being read against the
    site's light paper — headings set in var(--text) vanished. The surface
