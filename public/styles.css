@@ -1049,7 +1049,7 @@
   .sd-reference-figure figcaption{padding:10px 4px 2px;color:var(--muted);font-family:var(--md-ref-typeface-plain);font-size:var(--md-sys-typescale-label-small-size);line-height:1.55}
   .sd-notes>p{font-size:var(--md-sys-typescale-label-large-size);color:var(--muted);font-family:var(--md-ref-typeface-plain)}
   .sd-notes details{border:1px solid var(--line);border-radius:10px;background:var(--md-sys-color-surface-container-low);margin-top:9px;overflow:hidden}
-  .sd-notes details.link-target{border-color:var(--indigo);box-shadow:0 0 0 3px color-mix(in srgb,var(--md-sys-color-shadow) 12%,transparent);scroll-margin-top:90px}
+  .sd-notes details:target{border-color:var(--indigo);box-shadow:0 0 0 3px color-mix(in srgb,var(--md-sys-color-shadow) 12%,transparent);scroll-margin-top:90px}
   .sd-notes summary{cursor:pointer;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:13px 15px;color:var(--ink);font-weight:500}
   .sd-notes summary code{flex:none;font-size:var(--md-sys-typescale-label-small-size);color:var(--muted);max-width:34%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .sd-notes details>div{padding:18px;border-top:1px solid var(--line);background:var(--surface);color:var(--ink-soft)}
@@ -2761,7 +2761,7 @@
   .sd-article-body .sd-notes details{border-color:var(--line-migrated);background:var(--surface-migrated-soft)}
   .sd-article-body .sd-notes details:hover{border-color:var(--text-migrated-accent)}
   .sd-article-body .sd-notes details[open]{border-color:var(--text-migrated-accent)}
-  .sd-article-body .sd-notes details.link-target{border-color:var(--text-migrated-accent);
+  .sd-article-body .sd-notes details:target{border-color:var(--text-migrated-accent);
     box-shadow:0 0 0 3px color-mix(in srgb,var(--md-sys-color-shadow) 16%,transparent)}
   .sd-article-body .sd-notes summary{color:var(--text-migrated-heading);background:var(--surface-migrated-soft)}
   .sd-article-body .sd-notes summary:hover{background:var(--surface-migrated-active)}
@@ -3521,7 +3521,10 @@ a.rn-target:hover{text-decoration:underline;text-underline-offset:3px}
   background:color-mix(in srgb,var(--md-sys-color-on-surface) 4%,var(--md-sys-color-surface-container-lowest))}
 .qcard.open,.view-track .qcard.open{border-color:var(--md-sys-color-outline-variant);background:var(--md-sys-color-surface-container-lowest);
   box-shadow:var(--md-sys-elevation-level1)}
-.qcard.link-target{border-color:var(--md-sys-color-primary);box-shadow:0 0 0 2px var(--md-sys-color-primary)}
+/* A shared link lands on its card: the ring says which one, then fades to a
+   primary edge so it does not shout for the rest of the read. */
+.qcard:target{border-color:var(--md-sys-color-primary);animation:qcard-target 2.4s var(--md-sys-motion-easing-standard)}
+@keyframes qcard-target{from,50%{box-shadow:0 0 0 2px var(--md-sys-color-primary)}}
 .qcard.open .qtop,.qcard.open>.qhead{background:var(--md-sys-color-surface-container-lowest);border-bottom-color:var(--md-sys-color-outline-variant);
   border-radius:var(--md-sys-shape-corner-medium) var(--md-sys-shape-corner-medium) 0 0}
 .qhead:focus-visible{outline:3px solid var(--md-sys-color-secondary);outline-offset:-3px;border-radius:var(--md-sys-shape-corner-medium)}
