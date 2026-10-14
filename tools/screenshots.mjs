@@ -1,13 +1,15 @@
 #!/usr/bin/env node
 /* Screenshots + an axe pass over a generated site, for reviewing UI changes.
 
-     node tools/screenshots.mjs <.output/public | https://…> <out-dir> [--axe] [--routes /a,/b]
+     node tools/screenshots.mjs <.output/public | https://…> <out-dir> [--axe] [--routes /a,/b] [--css public/styles.css]
 
    A directory is served by a tiny static server here, so the tool needs no
    other process. Each route is shot at three widths in light and dark, cut at
    SHOT_MAX_HEIGHT so a 60-card topic page stays a reviewable image. This is a
    review aid, not a test: it never fails on a difference, only on a page that
-   does not load. `--axe` adds a summary of axe-core violations per route. */
+   does not load. `--axe` adds a summary of axe-core violations per route.
+   `--css` serves a local stylesheet in place of Nuxt's bundled entry CSS, so a
+   CSS-only change can be looked at against the last build without a rebuild. */
 import { createServer } from 'node:http';
 import { mkdir, readFile, stat, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
@@ -63,6 +65,7 @@ async function main() {
   const withAxe = rest.includes('--axe');
   const routeArg = rest[rest.indexOf('--routes') + 1];
   const routes = rest.includes('--routes') && routeArg ? routeArg.split(',') : DEFAULT_ROUTES;
+  const cssArg = rest.includes('--css') ? await readFile(rest[rest.indexOf('--css') + 1], 'utf8') : null;
   const { chromium } = await import('playwright');
   const server = /^https?:/.test(target) ? { url: target.replace(/\/$/, ''), close() {} } : await serve(path.resolve(target));
   const axeSource = withAxe ? await readFile(require.resolve('axe-core/axe.min.js'), 'utf8') : '';
@@ -74,6 +77,7 @@ async function main() {
     for (const theme of THEMES) {
       for (const width of WIDTHS) {
         const context = await browser.newContext({ viewport: { width, height: 900 }, colorScheme: theme, reducedMotion: 'reduce' });
+        if (cssArg) await context.route(/\/_nuxt\/entry\.[\w-]+\.css/, route => route.fulfill({ contentType: 'text/css', body: cssArg }));
         for (const route of routes) {
           const name = `${slug(route)}--${width}-${theme}`;
           // A tab per route: one renderer crash must not take the rest down.
