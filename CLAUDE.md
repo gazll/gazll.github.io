@@ -1350,6 +1350,18 @@ reading, so keep it out of the transcript unless it fails. Do not re-run a
 check that has already passed to confirm it again, and do not read a file back
 after editing it to verify the edit landed.
 
+**Looking at a UI change from the NAS.** The NAS cannot run the Nuxt bundler
+(`nuxt dev` and `generate` both segfault on its 4.4 kernel), so a UI branch is
+named `preview/<name>`: `preview-build.yml` generates it and force-pushes the
+static output to `build/preview/<name>`. Fetch that branch, check it out into a
+scratch directory, and shoot it with
+`. ~/.cache/ms-playwright/env.sh && node tools/screenshots.mjs <dir> <out> --axe`
+— the Chromium it needs is set up by the vault's
+`nas-system/scripts/headless-chromium/setup.sh`. Shoot the live site the same
+way for the "before". A pull request runs the same tool in `pr-check.yml` and
+uploads the shots as an artifact. Look at the images; a green build has twice
+shipped a blank or broken page.
+
 **This budget covers verification only.** Investigating content, prose, layout
 or interaction is the opposite case: reading the surrounding topic files,
 comparing EN against its `.vi.json`, opening the real page, or looking at
