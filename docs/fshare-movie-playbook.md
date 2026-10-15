@@ -174,6 +174,12 @@ node tools/fshare-x.mjs build && node tools/fshare-x.mjs seal
 node tools/fshare-movie.mjs seal
 ```
 
+Raw export vẫn nhắc tới những link đã chuyển, nên `build` đọc mọi
+`secret/fshare-x/raw/moved-from-movie-*.txt` và **không thêm lại** id nào có
+trong đó. Trước 2026-10-15 thì không như vậy: mỗi lần `build` lại đưa ~2.800
+dòng 18+ trở về catalog phim, `move-to-x` chuyển chúng đi lần nữa, và mỗi lần
+chạy lại ghi thêm một file chuyển trùng nội dung.
+
 `isAdultContent(name)` trong `movie-db.js` — dấu hiệu mạnh nhất là tên
 studio/site (Blacked, Tushy, Vixen, Dorcel, Brazzers, 1pondo, Carib, Heyzo,
 FC2-PPV, Model Media…), **mã phát hành JAV** ở đầu tên (`SSNI-757`,

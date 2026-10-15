@@ -165,6 +165,11 @@ test('build gives one row per link, groups same-title links, and never drops a r
   assert.deepEqual(kept.sourceIds, [sourceId('export.csv'), sourceId('more.txt')]);
   assert.equal(second.sources.length, 2, 'the source that vanished is still recorded');
 
+  // A link move-to-x already sent away stays away, though its raw file still names it.
+  const gone = buildCatalog([{ file: 'x.txt', text: 'https://www.fshare.vn/file/MOVEDAWAY0001', updatedAt: NOW }], {}, second, NOW,
+    new Set(['fshare-file-MOVEDAWAY0001']));
+  assert.equal(gone.links.length, 3, 'a row moved to X is not re-added by build');
+
   // A registered source keeps its own (absent) origin, and a placeholder name
   // written before the fix gives way to the real title it was hiding.
   kept.name = 'LINK FSHARE';

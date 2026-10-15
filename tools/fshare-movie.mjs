@@ -61,6 +61,7 @@ import { scopeKey } from './keyring.mjs';
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const SECRET_DIR = path.join(ROOT, 'secret', 'fshare-movie');
 export const RAW_DIR = path.join(SECRET_DIR, 'raw');
+const X_RAW_DIR = path.join(ROOT, 'secret', 'fshare-x', 'raw');
 export const SOURCES_FILE = path.join(SECRET_DIR, 'sources.json');
 export const CATALOG_FILE = path.join(SECRET_DIR, 'catalog.json');
 /** Row files beside the header: <header stem>/links-NN.json. */
@@ -199,6 +200,17 @@ async function rawFiles(directory) {
     else if (RAW_EXTENSIONS.has(path.extname(entry.name).toLowerCase())) files.push(file);
   }
   return files;
+}
+
+/** Every id a `move-to-x` transfer file holds — the X side's raw record is
+    the one list of what left this catalog. */
+async function movedToXIds() {
+  const ids = new Set();
+  for (const file of await rawFiles(X_RAW_DIR)) {
+    if (!path.basename(file).startsWith('moved-from-movie-')) continue;
+    parseRawSource(file, await readFile(file, 'utf8')).forEach((record) => ids.add(record.id));
+  }
+  return ids;
 }
 
 /* ---------- the catalog ---------- */
@@ -381,9 +393,11 @@ function sortLinks(catalog) {
  * Raw sources into the catalog. Pure over its inputs so the merge rules are
  * testable: `sources` is [{ file, text, updatedAt }], `previous` the catalog
  * on disk (or null). Rows are only ever added or enriched, never removed —
- * a raw file that disappears does not un-know a link.
+ * a raw file that disappears does not un-know a link. `movedToX` holds the
+ * ids `move-to-x` already sent to the X catalog: the raw exports still name
+ * them, and re-adding them on every build re-moved the same rows each run.
  */
-export function buildCatalog(sources, manifest = {}, previous = null, now = new Date().toISOString()) {
+export function buildCatalog(sources, manifest = {}, previous = null, now = new Date().toISOString(), movedToX = new Set()) {
   const catalog = previous ? structuredClone(previous) : emptyCatalog(now);
   const rows = new Map(catalog.links.map((row) => [row.id, row]));
   const sourceRows = new Map(catalog.sources.map((source) => [source.id, source]));
@@ -403,6 +417,7 @@ export function buildCatalog(sources, manifest = {}, previous = null, now = new 
     const linkIds = new Set();
     records.forEach((record) => {
       let row = rows.get(record.id);
+      if (!row && movedToX.has(record.id)) return;
       if (!row) { row = newLink(record, 'raw', now); rows.set(row.id, row); catalog.links.push(row); }
       if (record.name && record.name !== record.code) addName(row, record.name);
       if (!row.sourceIds.includes(id)) row.sourceIds.push(id);
@@ -1209,7 +1224,7 @@ async function main() {
     }
     const previous = existsSync(CATALOG_FILE) ? (await readCatalogSnapshot(CATALOG_FILE)).catalog : null;
     const before = previous ? previous.links.length : 0;
-    const catalog = buildCatalog(sources, await readJson(SOURCES_FILE, {}), previous);
+    const catalog = buildCatalog(sources, await readJson(SOURCES_FILE, {}), previous, undefined, await movedToXIds());
     await writeCatalogFile(CATALOG_FILE, catalog);
     out(`${rel(CATALOG_FILE)}: ${catalog.links.length} links from ${sources.length} raw file(s), ${catalog.links.length - before} new.`);
     return out(statusLine(catalog));
@@ -1286,7 +1301,7 @@ async function main() {
     const rows = catalog.links.filter((row) => moved.has(row.id));
     const total = catalog.links.length;
     const date = new Date().toISOString().slice(0, 10);
-    const transferFile = path.join(ROOT, 'secret', 'fshare-x', 'raw', `moved-from-movie-${date}.txt`);
+    const transferFile = path.join(X_RAW_DIR, `moved-from-movie-${date}.txt`);
     // Same rule as categorize: every write happens before the first out().
     if (apply && rows.length) {
       await mkdir(path.dirname(transferFile), { recursive: true });
