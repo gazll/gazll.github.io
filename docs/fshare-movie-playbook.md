@@ -351,6 +351,21 @@ repo: `/volume1/0_System/nas-state/link-catalog/runs/YYYYMMDD_<job>/logs/<job>.l
 lại đúng lệnh đó (mọi bước resumable). Xong thì đọc `audit`, rồi `seal` và
 commit tay như mục dưới.
 
+Chỉ chạy khi chủ kho bảo (quyết định 2026-10-12): không đặt lịch, không DSM
+Task Scheduler. Bên dùng catalog (thư viện phim trong personal-vault) chỉ đọc.
+
+**Các lần chạy** (log ở `nas-state/link-catalog/runs/`; trước 2026-10-16 runner
+nằm trong personal-vault `nas-operations/link-catalog/`, còn trong lịch sử git của vault):
+
+| Run | Việc | Kết quả |
+|---|---|---|
+| `20260926_validate-fshare` | validate toàn bộ (shard) + vòng lặp Telegram 2026-09-27…10-01 | vòng lặp chết khi NAS reboot 2026-10-01 |
+| `20261006_validate-fshare` | Telegram 2026-10-06 + validate toàn bộ + đóng cổng + thêm link | 408.372 link, live 296.177, `validated: OK` (2026-10-07); seal `f09af4c`…`9898615` |
+| `20261013_telegram` | Telegram (dò link cho phim hình yếu) | 4 chat, 73 dòng raw → 41 link mới (cộng cây con folder), `validated: OK`; seal chung với lần dưới (`2426f1b`) |
+| `20261015_add-links` | 153 folder dán tay + Sheet `1pdr0Wk9` gid0 | 11 folder mới (142 đã có), 149 live · 4 dead, 406.376 link, `validated: OK`; seal `2426f1b`. Phát hiện `build` thêm lại dòng đã chuyển sang X — sửa ở `d194178` |
+
+Chạy xong một job thì thêm một dòng vào bảng này cùng commit seal.
+
 ### Chạy lại định kỳ (tuần / tháng)
 
 ```bash
