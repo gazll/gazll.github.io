@@ -261,6 +261,8 @@ test('a validation run takes folders first, never-checked before stale, and hono
   assert.deepEqual(selectEntries(catalog, { now, staleMs: 30 * 86400000 }).map((row) => row.code), ['DIR00001', 'FILE0002', 'FILE0001']);
   assert.deepEqual(selectEntries(catalog, { now, only: ['dead'] }).map((row) => row.code), []);
   assert.equal(selectEntries(catalog, { now, limit: 1 }).length, 1);
+  // --codes re-crawls a named folder even when every gate is closed on it.
+  assert.deepEqual(selectEntries(catalog, { now, only: ['dead'], codes: ['FILE0001'] }).map((row) => row.code), ['FILE0001']);
   // --only uncrawled,unverified picks the completeness gaps, whatever the status says.
   dir.status = 'live'; dir.checkedAt = NOW; dir.via = 'probe';
   f1.status = 'dead'; f1.via = 'probe';

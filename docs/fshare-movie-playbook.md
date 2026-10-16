@@ -340,6 +340,7 @@ nohup sh tools/fshare-run.sh telegram     >/dev/null 2>&1 &   # crawl Telegram �
 nohup sh tools/fshare-run.sh validate-all >/dev/null 2>&1 &   # hỏi lại mọi dòng → đóng cổng → audit
 node tools/fshare-movie.mjs ingest …                             # link dán tay / Sheet, rồi:
 nohup sh tools/fshare-run.sh add          >/dev/null 2>&1 &   # build → move-to-x → đóng cổng → categorize → move-to-x → audit
+nohup sh tools/fshare-run.sh recrawl A,B  >/dev/null 2>&1 &   # liệt kê lại folder đang thêm phim → đóng cổng → categorize → move-to-x → audit
 nohup sh tools/fshare-run.sh loop         >/dev/null 2>&1 &   # telegram mỗi 14 ngày; chỉ khi chủ kho bảo, chết theo reboot
 ```
 
@@ -377,6 +378,12 @@ node tools/fshare-movie.mjs seal && git commit -am "reseal movie catalog"
 `--stale 30d` chọn thêm những dòng `checkedAt` cũ hơn 30 ngày. Mặc định
 (không `--only`) chỉ chọn `pending,unknown`; `--only all` là mọi dòng.
 `--only` nhận bốn status và hai cửa: `uncrawled`, `unverified`.
+
+Một folder kiểu "Fresh Daily Releases" vẫn `live` và đã crawl, nên không cửa
+nào chọn lại nó dù chủ folder thêm phim mỗi ngày; dán lại link chỉ `build` ra 0
+dòng mới. `validate --codes A,B` hỏi lại đúng những dòng đó, bất kể status, và
+một folder được liệt kê đệ quy nên phim mới bên dưới vào catalog dạng `live`.
+`fshare-run.sh recrawl A,B` chạy chuỗi đó: sau khi liệt kê lại thì đóng cổng → categorize → move-to-x → audit.
 
 ## Thu thập từ site
 

@@ -737,8 +737,16 @@ const parseDuration = (value) => {
 /** What `--only` accepts: the four statuses plus the two completeness gaps. */
 export const SELECTIONS = [...STATUSES, 'uncrawled', 'unverified'];
 
-/** Which rows a run looks at: folders before files, never-checked before stale. */
-export function selectEntries(catalog, { only = ['pending', 'unknown'], staleMs = 0, limit = 0, now = Date.now() } = {}) {
+/**
+ * Which rows a run looks at: folders before files, never-checked before stale.
+ * `codes` names rows outright, whatever their status: a "daily releases" folder
+ * stays live and crawled while its owner adds films, so no gate ever picks it again.
+ */
+export function selectEntries(catalog, { only = ['pending', 'unknown'], staleMs = 0, limit = 0, codes = [], now = Date.now() } = {}) {
+  if (codes.length) {
+    const named = new Set(codes);
+    return catalog.links.filter((row) => named.has(row.code));
+  }
   const wanted = new Set(only);
   const rank = { pending: 0, unknown: 1, dead: 2, live: 3 };
   const stale = (row) => staleMs > 0 && row.checkedAt && now - Date.parse(row.checkedAt) >= staleMs;
@@ -1206,7 +1214,7 @@ async function main() {
   const args = process.argv.slice(2);
   const command = ['ingest', 'build', 'status', 'audit', 'validate', 'merge', 'categorize', 'move-to-x', 'seal', 'unseal'].find((name) => args.includes(name))
     || (args.includes('--check') ? 'check' : null);
-  if (!command) die('Usage: fshare-movie.mjs ingest <…> | build | status | audit [--json] | validate [--only pending,unknown,uncrawled,unverified,dead,live|all] [--stale 30d] [--limit N] [--concurrency 4] [--no-web] [--dry-run] | merge <shard…> | categorize [--apply] | move-to-x [--apply] | seal | unseal | --check');
+  if (!command) die('Usage: fshare-movie.mjs ingest <…> | build | status | audit [--json] | validate [--only pending,unknown,uncrawled,unverified,dead,live|all] [--stale 30d] [--limit N] [--codes A,B] [--concurrency 4] [--no-web] [--dry-run] | merge <shard…> | categorize [--apply] | move-to-x [--apply] | seal | unseal | --check');
 
   if (command === 'ingest') return ingest(args.filter((arg) => arg !== 'ingest'));
 
@@ -1334,6 +1342,7 @@ async function main() {
       only: only === 'all' ? SELECTIONS : only.split(',').map((s) => s.trim()).filter((s) => SELECTIONS.includes(s)),
       staleMs: parseDuration(option(args, '--stale', '0')),
       limit: Number(option(args, '--limit', 0)) || 0,
+      codes: option(args, '--codes', '').split(',').map((s) => s.trim()).filter(Boolean),
       concurrency: Number(option(args, '--concurrency', 4)) || 4,
       web: !args.includes('--no-web'),
       dryRun,

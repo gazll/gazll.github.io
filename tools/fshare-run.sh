@@ -3,14 +3,15 @@
 #   sh tools/fshare-run.sh telegram       incremental Telegram crawl → build → close gates → categorize → move-to-x → audit
 #   sh tools/fshare-run.sh validate-all   re-check every row (files probed, folders re-listed) → close gates → audit
 #   sh tools/fshare-run.sh add            after `fshare-movie.mjs ingest …`: build → move-to-x → close gates → categorize → move-to-x → audit
+#   sh tools/fshare-run.sh recrawl A,B    re-list named folders that keep growing → close gates → categorize → move-to-x → audit
 #   sh tools/fshare-run.sh loop           `telegram` now, then every 14 days; only when the owner asks, dies with a reboot on purpose
 # Run under nohup (`nohup sh tools/fshare-run.sh validate-all >/dev/null 2>&1 &`): a validate pass is hours.
 # Never seals: the audit is read by a person first (docs/fshare-movie-playbook.md). Every step is resumable, so a
 # crashed job is restarted with the same command. Logs live outside every repo:
 #   $RUNS/YYYYMMDD_<job>/logs/<job>.log — `grep -- --- <log>` for the step marks, `tail -3` for progress.
 set -e
-JOB=${1:?usage: fshare-run.sh telegram|validate-all|add|loop}
-case $JOB in telegram|validate-all|add|loop) ;; *) echo "unknown job: $JOB" >&2; exit 2 ;; esac
+JOB=${1:?usage: fshare-run.sh telegram|validate-all|add|recrawl CODES|loop}
+case $JOB in telegram|validate-all|add|recrawl|loop) ;; *) echo "unknown job: $JOB" >&2; exit 2 ;; esac
 REPO=$(cd "$(dirname "$0")/.." && pwd)
 RUNS=${RUNS:-/volume1/0_System/nas-state/link-catalog/runs}
 DIR=${RUN_DIR:-$RUNS/$(date +%Y%m%d)_$JOB}
@@ -48,6 +49,12 @@ case $JOB in
     gates
     step "categorize"; $M categorize --apply >> "$LOG" 2>&1
     step "move-to-x 2"; $M move-to-x --apply >> "$LOG" 2>&1 ;;
+  recrawl)
+    CODES=${2:?usage: fshare-run.sh recrawl CODE,CODE}
+    step "recrawl $CODES"; $M validate --codes "$CODES" --concurrency 4 >> "$LOG" 2>&1
+    gates
+    step "categorize"; $M categorize --apply >> "$LOG" 2>&1
+    step "move-to-x"; $M move-to-x --apply >> "$LOG" 2>&1 ;;
   loop)
     PID=$RUNS/loop.pid
     [ -f "$PID" ] && kill -0 "$(cat "$PID")" 2>/dev/null && { echo "already running (pid $(cat "$PID"))"; exit 0; }
