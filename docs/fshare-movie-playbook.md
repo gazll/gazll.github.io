@@ -330,28 +330,26 @@ nên tách ra file phụ hoặc bỏ. Chưa làm vì chưa cần.
 
 ### Chạy dài trên NAS
 
-Một đợt validate là vài giờ. Chạy trong `screen`/`tmux` hoặc `nohup`, qua
-một wrapper `sh` có `set -e` để một bước hỏng thì chuỗi dừng ngay chứ
-không `seal` đè lên kết quả dở; mỗi bước ghi mốc `started`/`finished` vào
-một log để biết đang ở đâu mà không cần đọc từng dòng tiến độ:
+Một đợt validate là vài giờ. Mọi job dài đi qua **một** runner,
+`tools/fshare-run.sh`: `set -e` để một bước hỏng thì chuỗi dừng ngay, mỗi
+bước ghi một dòng mốc giờ vào log, và **không bao giờ `seal`** — `audit` phải
+đọc bằng mắt trước.
 
 ```sh
-#!/bin/sh
-set -e
-cd /volume1/0_System/project/gazll.github.io
-LOG=/tmp/validate-run.log
-step() { echo "--- $1 · $(date -u +%FT%TZ) ---" >> "$LOG"; }
-step "uncrawled";  node tools/fshare-movie.mjs validate --only uncrawled  --concurrency 4 >> "$LOG" 2>&1
-step "unverified"; node tools/fshare-movie.mjs validate --only unverified --concurrency 4 >> "$LOG" 2>&1
-step "unknown";    node tools/fshare-movie.mjs validate --only unknown    --concurrency 4 >> "$LOG" 2>&1
-step "audit";      node tools/fshare-movie.mjs audit >> "$LOG" 2>&1
-step "done"
+nohup sh tools/fshare-run.sh telegram     >/dev/null 2>&1 &   # crawl Telegram → build → đóng cổng → categorize → move-to-x → audit
+nohup sh tools/fshare-run.sh validate-all >/dev/null 2>&1 &   # hỏi lại mọi dòng → đóng cổng → audit
+node tools/fshare-movie.mjs ingest …                             # link dán tay / Sheet, rồi:
+nohup sh tools/fshare-run.sh add          >/dev/null 2>&1 &   # build → move-to-x → đóng cổng → categorize → move-to-x → audit
+nohup sh tools/fshare-run.sh loop         >/dev/null 2>&1 &   # telegram mỗi 14 ngày; chỉ khi chủ kho bảo, chết theo reboot
 ```
 
-`nohup sh run.sh &` rồi `grep -- --- /tmp/validate-run.log` cho mốc,
-`tail -3` cho tiến độ. Mọi bước đều resumable: chết giữa chừng thì chạy lại
-đúng wrapper đó, không cần sửa gì. Không tự động `seal` trong wrapper —
-`audit` phải đọc bằng mắt trước.
+"Đóng cổng" là validate `pending,unknown,uncrawled,unverified` lặp tới khi
+`status` báo `validated: OK` (thường 2–3 lượt, tối đa 5; quá 5 thì job dừng
+với mốc `gates still open` — thường do Fshare chặn IP). Log nằm ngoài mọi
+repo: `/volume1/0_System/nas-state/link-catalog/runs/YYYYMMDD_<job>/logs/<job>.log`
+— `grep -- --- <log>` cho mốc, `tail -3` cho tiến độ. Chết giữa chừng thì chạy
+lại đúng lệnh đó (mọi bước resumable). Xong thì đọc `audit`, rồi `seal` và
+commit tay như mục dưới.
 
 ### Chạy lại định kỳ (tuần / tháng)
 
