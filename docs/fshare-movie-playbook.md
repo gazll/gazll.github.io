@@ -366,6 +366,7 @@ nằm trong personal-vault `nas-operations/link-catalog/`, còn trong lịch s�
 | `20261015_add-links` | 153 folder dán tay + Sheet `1pdr0Wk9` gid0 | 11 folder mới (142 đã có), 149 live · 4 dead, 406.376 link, `validated: OK`; seal `2426f1b`. Phát hiện `build` thêm lại dòng đã chuyển sang X — sửa ở `d194178` |
 | `20261016_recrawl`, `…recrawl-2` | liệt kê lại 4 folder hutapa đã có (`YSUJXSX1ZO36`, `GFFKDV16HPRJ`, `MBDNV9ACO2XC`, `MABFVXSUM82B`) bằng `validate --codes` mới | +26 folder, +281 file mới (bộ NF WEB-DL), 406.676 link, live 294.481, `validated: OK` |
 | `20261020_recrawl` | `recrawl GFFKDV16HPRJ` | +7 folder, +60 file mới, ~1.300 link cũ không còn trong listing được hỏi lại; 406.743 link, live 294.419, `validated: OK` |
+| `20261020_validate-all`, `20261020_telegram` | validate toàn bộ (conc 4 → 12, resume bằng `STALE`) + Telegram + 11 lượt đóng cổng | 90.994 file chết hỏi lại: 5 sống lại → rule `isSettledDeadFile` (`22d7218`); fshare.vn 503 sau ~9h ở conc 12, đóng cổng nốt ở conc 4 → 2; 430 file phim mới, 6.028 dòng 18+ sang X (đã có sẵn bên X); 407.139 link, live 267.258, `validated: OK` |
 
 Chạy xong một job thì thêm một dòng vào bảng này cùng commit seal.
 
