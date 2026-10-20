@@ -365,6 +365,7 @@ nằm trong personal-vault `nas-operations/link-catalog/`, còn trong lịch s�
 | `20261013_telegram` | Telegram (dò link cho phim hình yếu) | 4 chat, 73 dòng raw → 41 link mới (cộng cây con folder), `validated: OK`; seal chung với lần dưới (`2426f1b`) |
 | `20261015_add-links` | 153 folder dán tay + Sheet `1pdr0Wk9` gid0 | 11 folder mới (142 đã có), 149 live · 4 dead, 406.376 link, `validated: OK`; seal `2426f1b`. Phát hiện `build` thêm lại dòng đã chuyển sang X — sửa ở `d194178` |
 | `20261016_recrawl`, `…recrawl-2` | liệt kê lại 4 folder hutapa đã có (`YSUJXSX1ZO36`, `GFFKDV16HPRJ`, `MBDNV9ACO2XC`, `MABFVXSUM82B`) bằng `validate --codes` mới | +26 folder, +281 file mới (bộ NF WEB-DL), 406.676 link, live 294.481, `validated: OK` |
+| `20261020_recrawl` | `recrawl GFFKDV16HPRJ` | +7 folder, +60 file mới, ~1.300 link cũ không còn trong listing được hỏi lại; 406.743 link, live 294.419, `validated: OK` |
 
 Chạy xong một job thì thêm một dòng vào bảng này cùng commit seal.
 
