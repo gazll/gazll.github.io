@@ -324,6 +324,13 @@ export const isUncrawled = (row) => row.kind === 'folder' && (row.status === 'li
     is the API answering, not the proxy failing, so it needs no second one. */
 export const isUnverifiedDead = (row) => row.status === 'dead' && row.via !== 'web' && row.via !== 'listing' && row.web?.status !== 'dead';
 
+/**
+ * A dead file is settled once it has its second opinion: no run asks about it again. Fshare does not
+ * restore a deleted code, and re-probing ~90k of them was most of a full run's requests. A folder stays
+ * re-checkable — an empty one can be filled again — and a listing that names a dead file still revives it.
+ */
+export const isSettledDeadFile = (row) => row.kind === 'file' && row.status === 'dead' && !isUnverifiedDead(row);
+
 export const EMPTY_LISTING = 'empty listing';
 
 /**
@@ -678,8 +685,11 @@ function applyResult(row, result, now) {
   if (result.probe && typeof result.probe === 'object') row.probe = remoteMetadata(result.probe);
   // The second opinion travels with a dead result and is what `isUnverifiedDead`
   // reads; a row that came back live has nothing left to confirm.
+  // An inconclusive second opinion (fshare.vn 503s under load) never erases a conclusive one: the
+  // 2026-10-20 full re-check turned 90,855 confirmed-dead files back into unverified rows that way.
+  const keepVerdict = result.status === 'dead' && row.web?.status === 'dead' && result.web?.status !== 'dead';
   if (result.status === 'live') delete row.web;
-  else if (result.web && typeof result.web === 'object') row.web = { status: result.web.status, error: result.web.error || '', checkedAt: now };
+  else if (result.web && typeof result.web === 'object' && !keepVerdict) row.web = { status: result.web.status, error: result.web.error || '', checkedAt: now };
   if (result.remote && Object.keys(result.remote).length) {
     row.remote = { ...(row.remote || {}), ...remoteMetadata(result.remote) };
   }
@@ -752,7 +762,7 @@ export function selectEntries(catalog, { only = ['pending', 'unknown'], staleMs 
   const stale = (row) => staleMs > 0 && row.checkedAt && now - Date.parse(row.checkedAt) >= staleMs;
   const gap = (row) => (wanted.has('uncrawled') && isUncrawled(row)) || (wanted.has('unverified') && isUnverifiedDead(row));
   const entries = catalog.links
-    .filter((row) => wanted.has(row.status) || stale(row) || gap(row))
+    .filter((row) => !isSettledDeadFile(row) && (wanted.has(row.status) || stale(row) || gap(row)))
     .sort((a, b) => (a.kind === b.kind ? 0 : a.kind === 'folder' ? -1 : 1) || rank[a.status] - rank[b.status]);
   return limit > 0 ? entries.slice(0, limit) : entries;
 }
@@ -878,6 +888,7 @@ async function validate(catalog, options) {
     const absent = new Set();
     listed.forEach((parentId) => childrenOf.get(parentId)?.forEach((child) => { if (!seenChildren.has(child.id)) absent.add(child); }));
     absent.forEach((child) => {
+      if (isSettledDeadFile(child)) return;
       if (child.kind === 'file' ? !probed.has(child.code) : !crawled.has(child.code)) { queue.push(child); total++; }
     });
   };

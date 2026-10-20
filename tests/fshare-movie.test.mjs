@@ -271,6 +271,10 @@ test('a validation run takes folders first, never-checked before stale, and hono
   dir.children = { crawledAt: NOW };
   f1.web = { status: 'dead' };
   assert.deepEqual(selectEntries(catalog, { now, only: ['uncrawled', 'unverified'] }), []);
+  // A confirmed-dead file is settled: no selection asks about it again; a dead folder still is.
+  assert.deepEqual(selectEntries(catalog, { now, only: ['pending', 'unknown', 'dead', 'live'], staleMs: 1 }).map((row) => row.code).includes('FILE0001'), false);
+  dir.status = 'dead';
+  assert.deepEqual(selectEntries(catalog, { now, only: ['dead'] }).map((row) => row.code), ['DIR00001']);
 });
 
 test('the listing cache fetches each folder once per run and follows every page', async () => {

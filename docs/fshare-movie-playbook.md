@@ -373,13 +373,22 @@ Chạy xong một job thì thêm một dòng vào bảng này cùng commit seal.
 
 ```bash
 node tools/fshare-movie.mjs validate --stale 30d        # + pending/unknown như thường lệ
-node tools/fshare-movie.mjs validate --only dead --stale 90d   # thỉnh thoảng hỏi lại link chết
+node tools/fshare-movie.mjs validate --only dead --stale 90d   # hỏi lại folder chết/rỗng (file chết thì không)
 node tools/fshare-movie.mjs seal && git commit -am "reseal movie catalog"
 ```
 
 `--stale 30d` chọn thêm những dòng `checkedAt` cũ hơn 30 ngày. Mặc định
 (không `--only`) chỉ chọn `pending,unknown`; `--only all` là mọi dòng.
 `--only` nhận bốn status và hai cửa: `uncrawled`, `unverified`.
+
+**File chết đã có ý kiến thứ hai thì không bao giờ hỏi lại** (`isSettledDeadFile`),
+kể cả với `--only all`. Lần chạy full 2026-10-20 hỏi lại cả 90.994 file chết như
+vậy: chỉ 5 file sống lại, còn fshare.vn bắt đầu trả 503 cho IP của NAS sau
+khoảng 9 giờ ở concurrency 12. Folder chết hoặc rỗng vẫn được hỏi lại và crawl
+lại, vì chủ có thể mở public hoặc thêm phim. Một file chết xuất hiện lại trong
+listing của folder sống thì vẫn được đánh dấu sống, vì việc đó không tốn thêm
+request. Một ý kiến thứ hai không kết luận được (503) cũng không bao giờ xoá
+một kết luận `dead` đã có.
 
 Một folder kiểu "Fresh Daily Releases" vẫn `live` và đã crawl, nên không cửa
 nào chọn lại nó dù chủ folder thêm phim mỗi ngày; dán lại link chỉ `build` ra 0

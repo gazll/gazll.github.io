@@ -275,6 +275,9 @@ function candidateRows(catalog, options) {
     const status = VALID_STATUSES.has(sourceRow.status) ? sourceRow.status : 'pending';
     if (!wantedStatuses.has(status)) return;
     if (options.kind !== kind) return;
+    // A dead file is never asked about again (isSettledDeadFile in fshare-movie.mjs); an unverified
+    // one gets its second opinion from `validate --only unverified`, not from a shard.
+    if (kind === 'file' && status === 'dead') return;
 
     const id = rowIdentity({ ...sourceRow, kind, code });
     const identity = `${kind}:${code}`;
