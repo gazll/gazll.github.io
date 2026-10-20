@@ -8,6 +8,8 @@
 # Run under nohup (`nohup sh tools/fshare-run.sh validate-all >/dev/null 2>&1 &`): a validate pass is hours.
 # Never seals: the audit is read by a person first (docs/fshare-movie-playbook.md). Every step is resumable, so a
 # crashed job is restarted with the same command. Logs live outside every repo:
+# CONC (default 4) sets request concurrency; 12 ran a full pass in ~18h on 2026-10-06 with no block.
+# STALE=<n>m resumes a stopped validate-all: only rows not checked in the last n minutes are asked again.
 #   $RUNS/YYYYMMDD_<job>/logs/<job>.log — `grep -- --- <log>` for the step marks, `tail -3` for progress.
 set -e
 JOB=${1:?usage: fshare-run.sh telegram|validate-all|add|recrawl CODES|loop}
@@ -19,6 +21,7 @@ LOG=$DIR/logs/$JOB.log
 mkdir -p "$DIR/logs"
 cd "$REPO"
 M="node tools/fshare-movie.mjs"
+CONC=${CONC:-4}
 step() { echo "--- $1 · $(date -u +%FT%TZ) ---" >> "$LOG"; }
 
 # The four gates (pending, unknown, uncrawled folders, unverified dead) usually close in two or three passes:
@@ -27,7 +30,7 @@ step() { echo "--- $1 · $(date -u +%FT%TZ) ---" >> "$LOG"; }
 gates() {
   for i in 1 2 3 4 5; do
     $M status 2>&1 | grep -q 'validated: OK' && return 0
-    step "gates $i"; $M validate --only pending,unknown,uncrawled,unverified --concurrency 4 >> "$LOG" 2>&1
+    step "gates $i"; $M validate --only pending,unknown,uncrawled,unverified --concurrency $CONC >> "$LOG" 2>&1
   done
   $M status 2>&1 | grep -q 'validated: OK' || { step "gates still open after 5 passes"; return 1; }
 }
@@ -40,7 +43,11 @@ case $JOB in
     step "categorize"; $M categorize --apply >> "$LOG" 2>&1
     step "move-to-x"; $M move-to-x --apply >> "$LOG" 2>&1 ;;
   validate-all)
-    step "all"; $M validate --only all --concurrency 4 >> "$LOG" 2>&1
+    if [ -n "$STALE" ]; then
+      step "all, resumed (rows unchecked for $STALE) · conc $CONC"; $M validate --only pending,unknown,uncrawled,unverified --stale "$STALE" --concurrency $CONC >> "$LOG" 2>&1
+    else
+      step "all · conc $CONC"; $M validate --only all --concurrency $CONC >> "$LOG" 2>&1
+    fi
     gates ;;
   add)
     step "build"; $M build >> "$LOG" 2>&1
@@ -51,7 +58,7 @@ case $JOB in
     step "move-to-x 2"; $M move-to-x --apply >> "$LOG" 2>&1 ;;
   recrawl)
     CODES=${2:?usage: fshare-run.sh recrawl CODE,CODE}
-    step "recrawl $CODES"; $M validate --codes "$CODES" --concurrency 4 >> "$LOG" 2>&1
+    step "recrawl $CODES"; $M validate --codes "$CODES" --concurrency $CONC >> "$LOG" 2>&1
     gates
     step "categorize"; $M categorize --apply >> "$LOG" 2>&1
     step "move-to-x"; $M move-to-x --apply >> "$LOG" 2>&1 ;;
