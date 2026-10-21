@@ -886,7 +886,7 @@ onBeforeUnmount(() => stopAuth?.());
               <h2>{{ t.dashboardTitle }}</h2>
               <p>{{ t.dashboardIntro }}</p>
             </div>
-            <div class="cal-dashboard-actions">
+            <div v-if="!locked" class="cal-dashboard-actions">
               <button type="button" class="cal-dashboard-action" @click="setView('tasks')">{{ t.tasks }}</button>
               <button type="button" class="cal-dashboard-action is-primary" @click="setView('cashflow')">{{ t.cashflow }}</button>
             </div>

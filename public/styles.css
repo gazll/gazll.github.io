@@ -2364,6 +2364,9 @@
     .cal-selected-inline{display:block}
     .cal-selected-rail{display:none}
     .cal-today-card.is-selected-today{display:none}
+    /* The rail stacks straight under the view here, so its unlock form already
+       says "locked"; the view's own placeholder repeated it a second time. */
+    .cal[data-private="locked"] .cal-locked{display:none}
   }
   @media (max-width:900px){
     .cal-cell-events{display:none}
@@ -2938,7 +2941,7 @@
     .cal-today-strip-label{grid-column:1/-1;font-family:var(--md-ref-typeface-plain);font-size:var(--md-sys-typescale-label-small-size);letter-spacing:0.5px;
       text-transform:none;color:var(--emerald-deep)}
     .cal-today-strip-main strong{font-family:var(--md-ref-typeface-brand);font-size:1.125rem;line-height:1.1;color:var(--ink)}
-    .cal-today-strip-meta{min-width:0;font-size:var(--md-sys-typescale-body-small-size);color:var(--emerald-deep);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .cal-today-strip-meta{min-width:0;font-size:var(--md-sys-typescale-body-small-size);color:var(--emerald-deep)}
     .cal-today-strip-holiday{grid-column:1/-1;min-width:0;font-size:var(--md-sys-typescale-label-small-size);color:var(--clay);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .cal-today-strip-action{flex:none;min-height:38px;padding:7px 12px;border:1px solid var(--emerald);border-radius:8px;background:var(--surface);
       color:var(--emerald-deep);font:inherit;font-size:var(--md-sys-typescale-body-small-size);font-weight:600;cursor:pointer}
