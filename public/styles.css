@@ -3862,3 +3862,18 @@ html.ui-labels [data-ui].ui-label-active{outline:2px solid var(--md-sys-color-te
 .ui-label.inside{transform:none}
 .ui-label-hint{right:12px;bottom:12px;opacity:.9;white-space:normal;max-width:calc(100vw - 24px)}
 @media print{.ui-label,.ui-label-hint{display:none}}
+
+/* ---------- touch targets ----------
+   DESIGN.md asks for 44px targets where feasible. On a mouse the compact
+   rails stay as designed (every one clears WCAG 2.2's 24px); on a touch
+   screen, where a thumb is the pointer, every control below reaches 44px. */
+@media (pointer:coarse){
+  .cal-tab,.cal-lock,.cal-today,.cal-step,.cal-linkbtn,.cal-password>button,.cal-next li>button,
+  .cs-back,.sd-diagram button,.sd-diagram>figcaption a,.sd-code-frame button,
+  .sd-research-pack footer a,.sd-note-actions button,.manual-review,
+  .view-track .toolbar .btn-ghost,.note-toggle,.pbtn{min-height:44px}
+  .cs-back,.sd-diagram>figcaption a,.sd-research-pack footer a,.cal-linkbtn{display:inline-flex;align-items:center}
+  .sd-toc-toggle{min-width:44px;min-height:44px}
+  .view-track .qcard[data-qid] .qmeta>.manual-review,.view-track .qcard[data-qid] .qmeta>.qcopy{min-width:44px;height:44px;min-height:44px}
+  .view-track .qcard[data-qid] .qmeta>.qlangbtn{height:44px;min-height:44px}
+}
