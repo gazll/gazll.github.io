@@ -3206,7 +3206,8 @@
     padding:9px 11px;border:1px solid var(--line);text-align:start;vertical-align:top;overflow-wrap:anywhere}
   .view-track .answer-body th,.cs-article-body th,.page th,.answer-body td.corner,.cs-article-body td.corner,.page td.corner{
     background:var(--surface-reading-info);color:var(--text-label);font-family:var(--md-ref-typeface-plain);
-    font-size:.82em;font-weight:600;letter-spacing:.02em}
+    font-size:max(.82em,var(--md-sys-typescale-label-small-size));font-weight:600;letter-spacing:.02em}/* max(): .82em of
+     a phone's 13px table text came to 10.7px, under DESIGN.md's 11px floor. */
   .view-track .answer-body tr:nth-child(even) td,.cs-article-body tr:nth-child(even) td,.page tr:nth-child(even) td{
     background:var(--surface-reading-soft)}
 
