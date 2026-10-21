@@ -337,7 +337,7 @@ bước ghi một dòng mốc giờ vào log, và **không bao giờ `seal`** �
 
 ```sh
 nohup sh tools/fshare-run.sh telegram     >/dev/null 2>&1 &   # crawl Telegram → build → đóng cổng → categorize → move-to-x → audit
-nohup sh tools/fshare-run.sh validate-all >/dev/null 2>&1 &   # hỏi lại mọi dòng → đóng cổng → audit
+nohup sh tools/fshare-run.sh validate-all >/dev/null 2>&1 &   # hỏi lại mọi dòng (trừ file chết) → đóng cổng → audit; CONC=8 mặc định
 node tools/fshare-movie.mjs ingest …                             # link dán tay / Sheet, rồi:
 nohup sh tools/fshare-run.sh add          >/dev/null 2>&1 &   # build → move-to-x → đóng cổng → categorize → move-to-x → audit
 nohup sh tools/fshare-run.sh recrawl A,B  >/dev/null 2>&1 &   # liệt kê lại folder đang thêm phim → đóng cổng → categorize → move-to-x → audit
@@ -630,6 +630,54 @@ sau đọc trước khi chạy:
    vào commit crawl và che một bug thật của `stamp-content-dates`.
 9. **Todo nằm trong `docs/todo/`, xoá khi đóng.** Kinh nghiệm thì nằm ở đây
    và ở CLAUDE.md; file todo không phải nơi giữ bài học.
+
+## Bài học 2026-10-20 → 21
+
+Một lần validate toàn bộ (413k link) và một lần crawl Telegram, mất khoảng 15
+giờ, gồm cả 11 lượt đóng cổng. Đọc lại phần này trước lần chạy full sau:
+
+1. **Hỏi lại file chết là phí.** Hỏi lại 90.994 file chết đã có ý kiến thứ
+   hai thì chỉ 5 file sống lại. Từ giờ không hỏi lại các file đó
+   (`isSettledDeadFile`). Folder chết hoặc rỗng thì vẫn hỏi lại: trong 21.313
+   folder có 42 folder sống lại.
+2. **API chịu được concurrency 12, fshare.vn thì không.** Validate ở mức 12
+   chạy được khoảng 18 dòng/s (mức 4 chỉ được 4–5 dòng/s). Nhưng khoảng 4 giờ
+   sau khi lên 12 (9 giờ tính từ lúc bắt đầu), trang `fshare.vn` bắt đầu trả 503
+   cho phần lớn lượt hỏi ý kiến thứ hai, trong khi API vẫn trả lời bình thường.
+   Đây là throttle chứ không phải chặn hẳn: ở mức 4 rồi 2, cổng vẫn đóng dần
+   qua các lượt 23.660 → 14.184 → 6.325 → 3.609 → 3.044 → 2.655 → 143.
+   Từ giờ ý kiến thứ hai có giới hạn riêng (`--web-concurrency`, mặc định 4).
+   Khi gặp 503 thì cả nhóm dừng 1 phút (lần sau gấp đôi, tối đa 10 phút) rồi hỏi
+   lại (`createWebGate`). Runner giờ mặc định `CONC=8`. Lần full sau: chạy ở mức
+   8 rồi so số `unknown` với lần này. Nếu vẫn gặp 503 thì hạ `WEB_CONC` trước,
+   vì API không phải chỗ nghẽn.
+3. **Ý kiến thứ hai không kết luận được (503) từng xoá kết luận `dead` đã có.**
+   Khi hỏi lại file chết, 503 đã ghi đè `web.status: dead`, nên 90.855 dòng đã
+   xác nhận quay lại thành `unverified`. Đóng cổng vì thế phải hỏi lại hơn 100k
+   dòng. `applyResult` giờ giữ kết luận cũ. Dữ liệu được khôi phục từ ảnh chụp
+   trước khi chạy: `runs/20261020_validate-all/dead-before-20261020.tsv` cùng
+   script khôi phục. **Trước một lần chạy lớn, luôn chụp danh sách dead**, vì
+   `.bak` chỉ giữ một thế hệ.
+4. **Dừng giữa chừng không mất gì; chạy lại thì đừng làm lại từ đầu.** SIGINT
+   vào tiến trình node con: lượt chạy lưu checkpoint rồi thoát. Kill shell
+   runner trước để `gates` không tự chạy tiếp. `STALE=<phút>` chỉ chọn những
+   dòng chưa hỏi trong lượt đang dở: 161k dòng thay vì 424k.
+5. **Tổng trong log là độ dài hàng đợi, không phải số request.** Log báo
+   593.272 trong khi catalog có 413k dòng: file vắng khỏi listing được xếp thêm
+   vào cuối hàng đợi, và đa số bị bỏ qua ngay khi tới lượt. Khoảng 187k file
+   được xác nhận sống chỉ nhờ listing của folder, không tốn request riêng.
+6. **Đếm phim mới sau `move-to-x`, không phải trước.** Catalog đã tăng
+   6.274 dòng và live tăng khoảng 6.300, nhưng phần lớn là folder 18+ sống lại.
+   Sau `move-to-x` chỉ còn 430 file phim mới. Báo con số sau bước đó.
+7. **Folder "daily releases" không tự được crawl lại.** Folder đã crawl và vẫn
+   `live` thì không cửa nào chọn lại. Dán lại link chỉ ra 0 dòng mới. Dùng
+   `fshare-run.sh recrawl CODE` (`validate --codes`).
+8. **Runner dừng sau 5 lượt đóng cổng.** Lần này cần 11 lượt. Khi thấy
+   `gates still open` thì đọc `status`: nếu số còn lại vẫn giảm, chạy tiếp vài
+   lượt ở concurrency thấp hơn, rồi tự chạy categorize → move-to-x → audit
+   (runner đã dừng trước các bước đó).
+9. **NAS không có `pgrep`.** Một vòng chờ viết bằng `pgrep` sẽ thoát ngay.
+   Chờ bằng mốc `---` trong log, hoặc dùng `ps -eo pid,args | grep`.
 
 ## Những thứ dễ hỏng
 
