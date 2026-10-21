@@ -57,7 +57,8 @@ onMounted(async () => {
         <a href="https://mermaid.live/" target="_blank" rel="noopener noreferrer">{{ lang === 'vi' ? 'Mở visualizer' : 'Open visualizer' }} ↗</a>
       </span>
     </figcaption>
-    <div class="sd-diagram-viewport">
+    <!-- A diagram wider than the column scrolls, so keyboards must reach it. -->
+    <div class="sd-diagram-viewport" tabindex="0" role="region" :aria-label="title">
       <pre class="mermaid" data-mermaid-diagram>{{ source }}</pre>
     </div>
     <p class="sd-mermaid-status" data-mermaid-status hidden>Diagram renderer unavailable. The editable Mermaid source remains below.</p>
