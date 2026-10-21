@@ -3871,7 +3871,8 @@ html.ui-labels [data-ui].ui-label-active{outline:2px solid var(--md-sys-color-te
   .cal-tab,.cal-lock,.cal-today,.cal-step,.cal-linkbtn,.cal-password>button,.cal-next li>button,
   .cs-back,.sd-diagram button,.sd-diagram>figcaption a,.sd-code-frame button,
   .sd-research-pack footer a,.sd-note-actions button,.manual-review,
-  .view-track .toolbar .btn-ghost,.note-toggle,.pbtn{min-height:44px}
+  .view-track .toolbar .btn-ghost,.note-toggle,.view-track .pbtn,.btn-primary,.btn-ghost,
+  .content-sort button,.cal-primary,.cal-today-strip-action,.cal-password input{min-height:44px}
   .cs-back,.sd-diagram>figcaption a,.sd-research-pack footer a,.cal-linkbtn{display:inline-flex;align-items:center}
   .sd-toc-toggle{min-width:44px;min-height:44px}
   .view-track .qcard[data-qid] .qmeta>.manual-review,.view-track .qcard[data-qid] .qmeta>.qcopy{min-width:44px;height:44px;min-height:44px}
