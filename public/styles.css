@@ -630,10 +630,10 @@
 
   .cs-library{max-width:1180px;margin:0 auto}
   .cs-library-hero{position:relative;overflow:hidden;padding:42px 44px;border:1px solid var(--line);
-    border-radius:18px;background:linear-gradient(135deg,var(--md-sys-color-surface-container-lowest) 0%,var(--md-sys-color-surface-container-low) 58%,var(--emerald-soft) 100%);
+    border-radius:18px;background:var(--md-sys-color-surface-container-low);
     box-shadow:var(--shadow);margin-bottom:34px}
-  .cs-library-hero::after{content:"";position:absolute;width:min(34%,380px);aspect-ratio:1;right:-58px;top:-82px;
-    border:1px solid color-mix(in srgb,var(--md-sys-color-primary) 16%,transparent);border-radius:50%;box-shadow:0 0 0 34px color-mix(in srgb,var(--md-sys-color-shadow) 4%,transparent),0 0 0 68px color-mix(in srgb,var(--md-sys-color-shadow) 2.5%,transparent)}
+  /* No gradient wash or ring ornament on library heroes: they decorated every
+     library the same way and said nothing about its subject. */
   .cs-eyebrow{font-family:var(--md-ref-typeface-plain);font-size:var(--md-sys-typescale-label-small-size);font-weight:600;letter-spacing:0.5px;
     text-transform:none;color:var(--emerald);margin:0 0 10px}
   .cs-library-hero h1,.cs-article-head h1{font-family:var(--md-ref-typeface-brand);color:var(--ink);
@@ -838,9 +838,7 @@
   }
   .sd-library{max-width:1180px;margin:0 auto}
   .sd-hero{position:relative;overflow:hidden;padding:44px;border:1px solid color-mix(in srgb,var(--md-custom-indigo) 25%,var(--md-sys-color-outline-variant));border-radius:18px;
-    background:linear-gradient(135deg,var(--md-sys-color-surface-container-lowest) 0%,var(--md-sys-color-surface-container-low) 55%,var(--indigo-soft) 100%);box-shadow:var(--shadow);margin-bottom:34px}
-  .sd-hero::after{content:"";position:absolute;width:min(38%,420px);aspect-ratio:1;right:-80px;top:-110px;border-radius:24%;
-    border:1px solid color-mix(in srgb,var(--md-custom-indigo) 16%,transparent);transform:rotate(25deg);box-shadow:0 0 0 40px color-mix(in srgb,var(--md-sys-color-shadow) 3.5%,transparent),0 0 0 80px color-mix(in srgb,var(--md-sys-color-shadow) 2%,transparent)}
+    background:var(--md-sys-color-surface-container-low);box-shadow:var(--shadow);margin-bottom:34px}
   .sd-hero h1,.sd-article-head h1{position:relative;font-family:var(--md-ref-typeface-brand);color:var(--ink);
     font-size:clamp(2.25rem,5vw,3.75rem);letter-spacing:-1.4px;line-height:1.05;margin:0 0 16px;max-width:850px}
   .sd-hero>p:not(.cs-eyebrow),.sd-article-head>p:not(.cs-eyebrow){position:relative;max-width:800px;margin:0;color:var(--ink-soft);font-size:1.0625rem;line-height:1.7}
