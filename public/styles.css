@@ -1602,7 +1602,7 @@
   .syncstate.s-error::before{background:var(--clay)}
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}/* ---------- account: the avatar opens the account/sign-in control ---------- */
 
-  .authbar{position:relative;display:flex;align-items:center;flex:none}
+  .authbar{position:relative;display:flex;align-items:center;gap:8px;flex:none}
   .authbtn{position:relative;width:44px;height:44px;padding:0;cursor:pointer;touch-action:manipulation;
     -webkit-tap-highlight-color:transparent;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;transition:.16s ease}
   .authbtn:hover{border-color:var(--emerald);transform:translateY(-1px)}
