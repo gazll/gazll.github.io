@@ -20,6 +20,7 @@ const passphrase = ref('');
 const remember = ref(false);
 const unlocking = ref(false);
 const unlockError = ref('');
+const passphraseInput = ref<HTMLInputElement | null>(null);
 const companies = ref<any[]>([]);
 const source = ref<'seed' | 'remote'>('seed');
 const loading = ref(true);
@@ -64,7 +65,7 @@ const labels = computed(() => props.lang === 'vi' ? {
   kindLabels: { playbook: 'Playbook học tập', 'community-report': 'Báo cáo cộng đồng' },
   deleteConfirm: (name: string) => `Xóa “${name}” và toàn bộ câu hỏi bên dưới?`, deleteFailed: 'Không thể xóa:', saveFailed: 'Không thể lưu:',
   privateBadge: 'Riêng tư', privateMine: 'riêng tư', unlockPrivate: 'Mở mục riêng tư', lockPrivate: 'Khoá mục riêng tư',
-  passphrase: 'Passphrase', rememberDevice: 'Nhớ trên thiết bị này', open: 'Mở', opening: 'Đang mở…',
+  passphrase: 'Passphrase', passphraseMissing: 'Nhập passphrase để mở.', rememberDevice: 'Nhớ trên thiết bị này', open: 'Mở', opening: 'Đang mở…',
   privateIntro: 'Các mục theo công ty được mã hoá trong repo; mở bằng passphrase chủ.'
 } : {
   title: 'Gazl Try — interview journal', intro: 'Interview experiences · preparation playbooks · technically reviewed answers.',
@@ -93,7 +94,7 @@ const labels = computed(() => props.lang === 'vi' ? {
   kindLabels: { playbook: 'Learning playbook', 'community-report': 'Community report' },
   deleteConfirm: (name: string) => `Delete “${name}” and every question under it?`, deleteFailed: 'Could not delete:', saveFailed: 'Could not save:',
   privateBadge: 'Private', privateMine: 'private', unlockPrivate: 'Open private entries', lockPrivate: 'Lock private entries',
-  passphrase: 'Passphrase', rememberDevice: 'Remember on this device', open: 'Open', opening: 'Opening…',
+  passphrase: 'Passphrase', passphraseMissing: 'Enter the passphrase to open them.', rememberDevice: 'Remember on this device', open: 'Open', opening: 'Opening…',
   privateIntro: 'Company entries ship encrypted in the repository; open them with the master passphrase.'
 });
 const resultLabels = computed(() => labels.value.resultLabels);
@@ -236,7 +237,9 @@ async function openSealed(secret: string) {
 }
 
 async function unlockPrivate() {
-  if (!passphrase.value || unlocking.value) return;
+  if (unlocking.value) return;
+  // The button stays enabled so an empty submit says what is missing.
+  if (!passphrase.value) { unlockError.value = labels.value.passphraseMissing; passphraseInput.value?.focus(); return; }
   unlocking.value = true;
   unlockError.value = '';
   try {
@@ -303,9 +306,9 @@ onBeforeUnmount(() => stopAuth?.());
         <button v-else class="btn-ghost sm" type="button" :aria-expanded="unlockOpen" aria-controls="iv-unlock" @click="unlockOpen = !unlockOpen">{{ labels.unlockPrivate }}</button>
       </div>
       <form v-if="!unlocked && unlockOpen" id="iv-unlock" class="iv-unlock" :aria-busy="unlocking" @submit.prevent="unlockPrivate">
-        <label class="f"><span>{{ labels.passphrase }}</span><input v-model="passphrase" type="password" autocomplete="off" spellcheck="false" :disabled="unlocking"></label>
+        <label class="f"><span>{{ labels.passphrase }}</span><input ref="passphraseInput" v-model="passphrase" type="password" autocomplete="off" spellcheck="false" :disabled="unlocking" @input="unlockError = ''"></label>
         <label class="iv-remember"><input v-model="remember" type="checkbox" :disabled="unlocking"> {{ labels.rememberDevice }}</label>
-        <button class="btn-primary" type="submit" :disabled="!passphrase || unlocking">{{ unlocking ? labels.opening : labels.open }}</button>
+        <button class="btn-primary" type="submit" :disabled="unlocking">{{ unlocking ? labels.opening : labels.open }}</button>
         <p v-if="unlockError" class="form-err" role="alert">{{ unlockError }}</p>
       </form>
     </section>

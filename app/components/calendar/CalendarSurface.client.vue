@@ -88,7 +88,7 @@ const t = computed(() => vi.value ? {
   overview: 'Tổng quan', tasks: 'Việc cần làm', cashflow: 'Dòng tiền', month: 'Tháng', year: 'Năm', todayLabel: 'Hôm nay',
   prev: 'Trước', next: 'Sau', dayOff: 'Nghỉ lễ', workday: 'Đi làm bù',
   lunarShort: 'ÂL', unlock: 'Mở lịch riêng', lock: 'Khoá lại', forgot: 'Quên passphrase?', hintLabel: 'Gợi ý',
-  passphrase: 'Passphrase', rememberDevice: 'Nhớ trên thiết bị này',
+  passphrase: 'Passphrase', passphraseMissing: 'Nhập passphrase để mở lịch.', rememberDevice: 'Nhớ trên thiết bị này',
   signInFirst: 'Cần đăng nhập để dùng hộp chờ.', signInForInbox: 'Hộp chờ cần đăng nhập; lịch riêng thì không.',
   sealedMissing: 'Chưa có file lịch riêng. Chạy `node tools/schedule-seal.mjs init` rồi `seal`.',
   lockedTitle: 'Lịch riêng đang khoá',
@@ -128,7 +128,7 @@ const t = computed(() => vi.value ? {
   overview: 'Overview', tasks: 'Tasks', cashflow: 'Cash flow', month: 'Month', year: 'Year', todayLabel: 'Today',
   prev: 'Previous', next: 'Next', dayOff: 'Public holiday', workday: 'Make-up workday',
   lunarShort: 'Lunar', unlock: 'Open private schedule', lock: 'Lock again', forgot: 'Forgot the passphrase?', hintLabel: 'Hint',
-  passphrase: 'Passphrase', rememberDevice: 'Remember on this device',
+  passphrase: 'Passphrase', passphraseMissing: 'Enter the passphrase to open the schedule.', rememberDevice: 'Remember on this device',
   signInFirst: 'Sign in to use the inbox.', signInForInbox: 'The inbox needs sign-in; the schedule itself does not.',
   sealedMissing: 'No sealed schedule yet. Run `node tools/schedule-seal.mjs init`, then `seal`.',
   lockedTitle: 'Private schedule is locked',
@@ -589,7 +589,9 @@ async function revealHint() {
 }
 
 async function unlock() {
-  if (!passphrase.value || unlocking.value) return;
+  if (unlocking.value) return;
+  // The button stays enabled so an empty submit says what is missing.
+  if (!passphrase.value) { unlockError.value = t.value.passphraseMissing; unlockInput.value?.focus(); return; }
   unlocking.value = true;
   unlockError.value = '';
   try {
@@ -1289,12 +1291,12 @@ onBeforeUnmount(() => stopAuth?.());
             <label class="cal-field">
               <span>{{ t.passphrase }}</span>
               <span class="cal-password">
-                <input ref="unlockInput" v-model="passphrase" :type="showPassphrase ? 'text' : 'password'" autocomplete="off" spellcheck="false" :disabled="unlocking">
+                <input ref="unlockInput" v-model="passphrase" :type="showPassphrase ? 'text' : 'password'" autocomplete="off" spellcheck="false" :disabled="unlocking" @input="unlockError = ''">
                 <button type="button" :disabled="unlocking" @click="showPassphrase = !showPassphrase">{{ showPassphrase ? ux.hide : ux.show }}</button>
               </span>
             </label>
             <label class="cal-check"><input v-model="remember" type="checkbox" :disabled="unlocking">{{ t.rememberDevice }}</label>
-            <button type="submit" class="cal-primary" :disabled="!passphrase || unlocking">{{ unlocking ? ux.opening : t.unlock }}</button>
+            <button type="submit" class="cal-primary" :disabled="unlocking">{{ unlocking ? ux.opening : t.unlock }}</button>
             <p v-if="unlockError" class="cal-error" role="alert">{{ unlockError }}</p>
             <button v-if="!hintShown" type="button" class="cal-linkbtn" @click="revealHint">{{ t.forgot }}</button>
             <p v-else-if="hint" class="cal-hint"><span>{{ t.hintLabel }}</span>{{ hint }}</p>
