@@ -7,10 +7,21 @@ const root = useTemplateRef<HTMLElement>('root');
 const zoom = ref(1);
 const copied = ref(false);
 
+/* 100% means readable, not "fits the column". Shrinking a 1,600px-wide
+   flowchart into a 1,000px column left its 16px labels at ~10px, so the base
+   width keeps labels at READABLE of their authored size and lets the viewport
+   scroll sideways instead. A diagram narrower than that still fills the column. */
+const READABLE = .85;
 function applyZoom(next: number) {
   zoom.value = Math.min(2, Math.max(.5, next));
-  const svg = root.value?.querySelector<SVGElement>('svg');
-  if (svg) svg.style.width = `${zoom.value * 100}%`;
+  const svg = root.value?.querySelector<SVGSVGElement>('svg');
+  const pre = svg?.parentElement;
+  if (!svg || !pre) return;
+  const style = getComputedStyle(pre);
+  const column = pre.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+  const natural = svg.viewBox?.baseVal?.width || column;
+  svg.style.maxWidth = 'none';
+  svg.style.width = `${Math.round(Math.max(column, natural * READABLE) * zoom.value)}px`;
 }
 
 async function copySource() {
