@@ -955,8 +955,10 @@
      every list, not only the section's own: the markup carries no space after
      the colon, so an inline label reads as one run-on word. */
   
+  /* inherit, not a token: a fixed 14px label sat above 17.5px reading text
+     in the same bullet, so the heading read smaller than what it introduced. */
   .sd-article-body .sd-row-label{display:block;margin-bottom:3px;font-family:var(--md-ref-typeface-brand);
-    font-size:var(--md-sys-typescale-body-medium-size);font-weight:600;color:var(--ink)}/* The negative top margin above pulls the bullets under the lead paragraph
+    font-size:inherit;font-weight:600;color:var(--ink)}/* The negative top margin above pulls the bullets under the lead paragraph
      that introduces them; inside a card the lead has no bottom margin to
      absorb, so the list spaces itself normally. */
   
