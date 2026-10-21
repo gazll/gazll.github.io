@@ -102,6 +102,21 @@ const itemPairs = computed(() => {
   return pairs;
 });
 const expandAll = ref(false);
+
+/* The floating pager covered a card row on every screen of a long topic. It
+   tucks away while reading downwards and returns on any scroll up or near the
+   end, where it is the next thing to do; the header's stepper stays meanwhile. */
+const pagerTucked = ref(false);
+let lastScrollY = 0;
+function trackPager() {
+  const y = window.scrollY;
+  if (Math.abs(y - lastScrollY) < 6) return;
+  const nearEnd = window.innerHeight + y >= document.documentElement.scrollHeight - 200;
+  pagerTucked.value = y > lastScrollY && y > 240 && !nearEnd;
+  lastScrollY = y;
+}
+onMounted(() => { lastScrollY = window.scrollY; window.addEventListener('scroll', trackPager, { passive: true }); });
+onBeforeUnmount(() => window.removeEventListener('scroll', trackPager));
 const expandToken = ref(0);
 function setAll(open: boolean) {
   expandAll.value = open;
@@ -187,7 +202,7 @@ useHead(() => ({
           </template>
         </div>
 
-        <nav id="topic-pager" data-ui="topic-pager" class="pager" :aria-label="pageLabels.navigation">
+        <nav id="topic-pager" data-ui="topic-pager" class="pager" :class="{ 'is-tucked': pagerTucked }" :aria-label="pageLabels.navigation">
           <NuxtLink v-if="previous" class="pbtn prev" :aria-label="pageLabels.previous" :to="`/topics/${rowSlug(previous)}?lang=${lang}`">
             <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m12.5 4.5-5.5 5.5 5.5 5.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
             <span>{{ pageLabels.previous }}</span>

@@ -226,7 +226,8 @@ Expressive retired a component, the site uses its replacement:
 - **Segmented list (search results):** each group is one `large`-cornered
   block of `extra-small` rows 2px apart.
 - **Floating toolbar (pager):** 64px, full corner, `surface-container`,
-  level 3, 16px off the bottom edge.
+  level 3, 16px off the bottom edge. It tucks below the edge while the reader
+  scrolls down and returns on any scroll up or near the end of the topic.
 - **Progress:** determinate bars and the header ring separate the active part
   from a `secondary-container` track with a gap; a bar ends in a 4px stop
   indicator. The loading indicator morphs a primary shape through Material's

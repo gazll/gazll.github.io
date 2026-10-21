@@ -3540,6 +3540,12 @@ a.rn-target:hover{text-decoration:underline;text-underline-offset:3px}
 .pager,.view-track .pager{min-height:64px;padding:var(--md-sys-spacing-space100);gap:var(--md-sys-spacing-space50);
   background:var(--md-sys-color-surface-container);border:0;border-radius:var(--md-sys-shape-corner-full);
   box-shadow:var(--md-sys-elevation-level3);bottom:var(--md-sys-spacing-space200);backdrop-filter:none}
+/* Only while it floats: below 760px the pager is static and must not move. */
+@media (min-width:761px){
+  .pager{transition:transform var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard)}
+  .pager.is-tucked:not(:focus-within){transform:translateY(calc(100% + var(--md-sys-spacing-space200) + 8px))}
+}
+@media (prefers-reduced-motion:reduce){ .pager{transition:none} }
 
 /* ---- chips: 32px, small corner; selected = secondary container + check.
    A press squares the corners further, to extra-small. ---- */
