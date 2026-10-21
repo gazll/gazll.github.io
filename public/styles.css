@@ -1059,7 +1059,9 @@
   .sd-diagram-viewport{max-height:min(72vh,760px);overflow:auto;overscroll-behavior:contain;background:var(--md-sys-color-surface-container-lowest);touch-action:pan-x pan-y;cursor:grab}
   .sd-diagram-viewport:focus-visible{outline:2px solid var(--indigo);outline-offset:-3px}
   .sd-diagram-viewport>.mermaid{margin:0;padding:24px 18px;min-height:180px;display:grid;place-items:center;overflow:visible;background:var(--md-sys-color-surface-container-lowest);white-space:pre;box-sizing:border-box}
-  .sd-diagram-viewport>.mermaid[data-processed]{display:block;min-height:0}/* useMaxWidth keeps the SVG responsive, but its intrinsic width is the text
+  .sd-diagram-viewport>.mermaid[data-processed]{display:block;min-height:0;width:max-content;min-width:100%}/* max-content: a diagram wider than the column must grow the scroll area
+     to the right, or its overflow is centred out past the left edge where no
+     scrollbar reaches. *//* useMaxWidth keeps the SVG responsive, but its intrinsic width is the text
      extent — without a floor a short flowchart renders as a thin strip. */
   
   .sd-diagram-viewport>.mermaid svg{display:block;width:100%;min-width:0;max-width:none;height:auto}

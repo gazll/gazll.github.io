@@ -18,7 +18,8 @@ function applyZoom(next: number) {
   const pre = svg?.parentElement;
   if (!svg || !pre) return;
   const style = getComputedStyle(pre);
-  const column = pre.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+  // The viewport, not the <pre>: the <pre> grows to fit the diagram it holds.
+  const column = (pre.parentElement?.clientWidth || pre.clientWidth) - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
   const natural = svg.viewBox?.baseVal?.width || column;
   svg.style.maxWidth = 'none';
   svg.style.width = `${Math.round(Math.max(column, natural * READABLE) * zoom.value)}px`;
