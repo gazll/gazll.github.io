@@ -3377,6 +3377,12 @@
     border-left:0;border-top:1px solid var(--line)}
   .view-track .qcard[data-qid] .qmeta>.manual-review,.view-track .qcard[data-qid] .qmeta>.qcopy,
   .view-track .qcard[data-qid] .qmeta>.qlangbtn{flex:none}
+  /* That strip under every closed card doubled each card's height for three
+     27px targets. A phone has no hover to reveal them, so they wait for the
+     card to open (or take focus) and then come at full thumb size. */
+  .view-track .qcard[data-qid]:not(.open):not(:focus-within) .qmeta{display:none}
+  .view-track .qcard[data-qid] .qmeta>.manual-review,.view-track .qcard[data-qid] .qmeta>.qcopy{width:44px;min-width:44px;height:44px;min-height:44px}
+  .view-track .qcard[data-qid] .qmeta>.qlangbtn{min-width:52px;height:44px;min-height:44px}
 }
 
 /* ---------- Release notes ----------
