@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 
 import {
-  auditCatalog, buildCatalog, createListingFetcher, markEmptyFolders, parseCsv, parseRawSource, probeFile, probeFileOnWeb,
+  auditCatalog, buildCatalog, createListingFetcher, createWebGate, markEmptyFolders, parseCsv, parseRawSource, probeFile, probeFileOnWeb,
   probeFolderOnWeb, mergeShardResults, projectCatalog, readCatalogSnapshot, recountChildren, selectEntries, shardFile, shardOf,
   sourceId, isUnverifiedDead, writeCatalogFile, EMPTY_LISTING, SHARDS
 } from '../tools/fshare-movie.mjs';
@@ -303,6 +303,25 @@ test('the listing cache fetches each folder once per run and follows every page'
   assert.deepEqual(crawl.files.map((f) => [f.linkcode, f.parent]), [['FILE0001', 'ROOT0001'], ['FILE0001', 'SUB00001']]);
   assert.equal(crawl.files[0].remote.size, 5, 'file size is retained in the remote snapshot');
   assert.equal(crawl.files[0].remote.type, 1, 'file type is retained in the remote snapshot');
+});
+
+test('second opinions share a small limit, and a fshare.vn 503 pauses them all and retries', async () => {
+  let clock = 0; let inFlight = 0; let peak = 0; const pauses = [];
+  const answers = [503, 503, 200];
+  const fetcher = async () => {
+    inFlight++; peak = Math.max(peak, inFlight);
+    await Promise.resolve();
+    inFlight--;
+    return { ok: true, status: answers.length ? answers.shift() : 200 };
+  };
+  const gate = createWebGate(fetcher, { limit: 2, sleep: async (ms) => { pauses.push(ms); clock += ms; }, now: () => clock });
+  const first = await gate('u');
+  assert.equal(first.status, 200, 'retried through two 503s');
+  assert.deepEqual(pauses, [60000, 120000], 'the pause doubles while fshare.vn keeps refusing');
+  await Promise.all(Array.from({ length: 6 }, () => gate('u')));
+  assert.equal(peak, 2);
+  const stuck = createWebGate(async () => ({ ok: false, status: 503 }), { attempts: 2, sleep: async (ms) => { clock += ms; }, now: () => clock });
+  assert.equal((await stuck('u')).status, 503, 'gives up after its attempts; the row stays unknown for the next pass');
 });
 
 test('a file probe says dead only on 404 and asks fshare.vn for the second opinion by title', async () => {

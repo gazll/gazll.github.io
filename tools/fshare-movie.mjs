@@ -83,6 +83,9 @@ const CHECKPOINT_MS = 60000;
 const REQUEST_TIMEOUT_MS = 20000;
 const LISTING_PAGE_CONCURRENCY = 4;
 const FOLDER_CONCURRENCY = 8;
+const WEB_CONCURRENCY = 4;
+const WEB_PAUSE_MS = 60000;
+const WEB_PAUSE_MAX_MS = 600000;
 const RAW_EXTENSIONS = new Set(['.csv', '.txt', '.md', '.json']);
 
 const out = (line) => process.stdout.write(`${line}\n`);
@@ -620,6 +623,43 @@ async function webPage(kind, code, fetcher) {
   return { title, ownPage, forwardedTo };
 }
 
+/**
+ * fshare.vn, not the API, is what throttles. On 2026-10-20 it began answering 503 about four hours into
+ * a concurrency-12 run and kept at it for hours, while the API went on answering. So second opinions get
+ * their own, smaller limit, and a 503 pauses all of them (1 min, doubling to 10) and retries, instead of
+ * every worker piling on and filing the row as unknown for the next pass.
+ */
+export function createWebGate(fetcher, { limit = WEB_CONCURRENCY, attempts = 3, log = () => {}, sleep = wait, now = Date.now } = {}) {
+  let active = 0;
+  let pausedUntil = 0;
+  let pauseMs = 0;
+  const waiting = [];
+  const acquire = () => (active < limit ? (active++, Promise.resolve()) : new Promise((resolve) => waiting.push(resolve)));
+  const release = () => { const next = waiting.shift(); if (next) next(); else active--; };
+  return async (url, init) => {
+    await acquire();
+    try {
+      for (let attempt = 1; ; attempt++) {
+        for (let left = pausedUntil - now(); left > 0; left = pausedUntil - now()) await sleep(left);
+        const response = await fetcher(url, init);
+        if (response.status !== 503) {
+          if (response.ok) pauseMs = 0;
+          return response;
+        }
+        // Answers already in flight when a pause began do not escalate it.
+        if (now() >= pausedUntil) {
+          pauseMs = Math.min(pauseMs ? pauseMs * 2 : WEB_PAUSE_MS, WEB_PAUSE_MAX_MS);
+          pausedUntil = now() + pauseMs;
+          log(`fshare.vn answered 503 — pausing second opinions for ${pauseMs / 1000}s`);
+        }
+        if (attempt >= attempts) return response;
+      }
+    } finally {
+      release();
+    }
+  };
+}
+
 /** Same file under a (lightly) different name: equal, or one letters-and-digits stem containing the
     other — "X06.mkv" ↔ "X06_ZeroPhim.mkv", "Y.mkv" ↔ "Y(1).mkv". Stems under 6 characters never match. */
 const nameStem = (value) => String(value || '').trim().toLowerCase().replace(/\.[a-z0-9]{2,4}$/, '').replace(/\(\d+\)/g, '').replace(/[^a-z0-9]+/g, '');
@@ -769,7 +809,7 @@ export function selectEntries(catalog, { only = ['pending', 'unknown'], staleMs 
 
 async function validate(catalog, options) {
   const {
-    concurrency = 4, web = true, dryRun = false, fetcher = fetch, log = out,
+    concurrency = 4, webConcurrency = WEB_CONCURRENCY, web = true, dryRun = false, fetcher = fetch, log = out,
     onCheckpoint = async () => {}
   } = options;
   const entries = selectEntries(catalog, options);
@@ -777,6 +817,7 @@ async function validate(catalog, options) {
 
   const rows = new Map(catalog.links.map((row) => [row.id, row]));
   const fetchPages = createListingFetcher(fetcher);
+  const webFetcher = createWebGate(fetcher, { limit: webConcurrency, log });
   const crawled = new Set();   // folders listed this run, by any ancestor
   const probed = new Set();    // files answered this run
   const queue = entries.slice();
@@ -814,7 +855,7 @@ async function validate(catalog, options) {
     // Only a proxy "dead" earns the slower page fetch: it is the answer that
     // deletes a row from what the site shows, so it gets the second opinion.
     if (web && result.status === 'dead') {
-      const second = await probeFileOnWeb(row.code, fetcher, [row.name, ...(row.aliases || [])]);
+      const second = await probeFileOnWeb(row.code, webFetcher, [row.name, ...(row.aliases || [])]);
       // A forward to some other file's page is not a death certificate: the code still resolves on
       // fshare.vn, so the row is unknown (retried next run), not dead-awaiting-a-second-opinion.
       if (second.status === 'unknown' && second.forwardedTo) result = { status: 'unknown', error: second.error, via: 'web', web: second };
@@ -855,7 +896,7 @@ async function validate(catalog, options) {
     });
     for (const target of deadFolders) {
       if (!web) continue;
-      const second = await probeFolderOnWeb(target.code, fetcher);
+      const second = await probeFolderOnWeb(target.code, webFetcher);
       // fshare.vn showing a folder the proxy 404s on is a listing nobody has
       // read: unknown, retried next run, never a live row with no children.
       const result = second.status === 'live'
@@ -1225,7 +1266,7 @@ async function main() {
   const args = process.argv.slice(2);
   const command = ['ingest', 'build', 'status', 'audit', 'validate', 'merge', 'categorize', 'move-to-x', 'seal', 'unseal'].find((name) => args.includes(name))
     || (args.includes('--check') ? 'check' : null);
-  if (!command) die('Usage: fshare-movie.mjs ingest <…> | build | status | audit [--json] | validate [--only pending,unknown,uncrawled,unverified,dead,live|all] [--stale 30d] [--limit N] [--codes A,B] [--concurrency 4] [--no-web] [--dry-run] | merge <shard…> | categorize [--apply] | move-to-x [--apply] | seal | unseal | --check');
+  if (!command) die('Usage: fshare-movie.mjs ingest <…> | build | status | audit [--json] | validate [--only pending,unknown,uncrawled,unverified,dead,live|all] [--stale 30d] [--limit N] [--codes A,B] [--concurrency 4] [--web-concurrency 4] [--no-web] [--dry-run] | merge <shard…> | categorize [--apply] | move-to-x [--apply] | seal | unseal | --check');
 
   if (command === 'ingest') return ingest(args.filter((arg) => arg !== 'ingest'));
 
@@ -1355,6 +1396,7 @@ async function main() {
       limit: Number(option(args, '--limit', 0)) || 0,
       codes: option(args, '--codes', '').split(',').map((s) => s.trim()).filter(Boolean),
       concurrency: Number(option(args, '--concurrency', 4)) || 4,
+      webConcurrency: Number(option(args, '--web-concurrency', WEB_CONCURRENCY)) || WEB_CONCURRENCY,
       web: !args.includes('--no-web'),
       dryRun,
       onCheckpoint: saveCatalog
