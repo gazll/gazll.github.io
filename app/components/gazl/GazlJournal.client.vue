@@ -21,6 +21,8 @@ const remember = ref(false);
 const unlocking = ref(false);
 const unlockError = ref('');
 const passphraseInput = ref<HTMLInputElement | null>(null);
+// Blur only complains about a field someone typed in and then emptied.
+const passphraseTouched = ref(false);
 const companies = ref<any[]>([]);
 const source = ref<'seed' | 'remote'>('seed');
 const loading = ref(true);
@@ -306,7 +308,7 @@ onBeforeUnmount(() => stopAuth?.());
         <button v-else class="btn-ghost sm" type="button" :aria-expanded="unlockOpen" aria-controls="iv-unlock" @click="unlockOpen = !unlockOpen">{{ labels.unlockPrivate }}</button>
       </div>
       <form v-if="!unlocked && unlockOpen" id="iv-unlock" class="iv-unlock" :aria-busy="unlocking" @submit.prevent="unlockPrivate">
-        <label class="f"><span>{{ labels.passphrase }}</span><input ref="passphraseInput" v-model="passphrase" type="password" autocomplete="off" spellcheck="false" :disabled="unlocking" @input="unlockError = ''"></label>
+        <label class="f"><span>{{ labels.passphrase }}</span><input ref="passphraseInput" v-model="passphrase" type="password" autocomplete="off" spellcheck="false" :disabled="unlocking" :aria-invalid="unlockError ? 'true' : undefined" @input="unlockError = ''; passphraseTouched = true" @blur="passphraseTouched && !passphrase && (unlockError = labels.passphraseMissing)"></label>
         <label class="iv-remember"><input v-model="remember" type="checkbox" :disabled="unlocking"> {{ labels.rememberDevice }}</label>
         <button class="btn-primary" type="submit" :disabled="unlocking">{{ unlocking ? labels.opening : labels.open }}</button>
         <p v-if="unlockError" class="form-err" role="alert">{{ unlockError }}</p>

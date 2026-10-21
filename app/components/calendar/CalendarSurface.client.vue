@@ -65,6 +65,8 @@ const hint = ref('');
 const hintShown = ref(false);
 const authState = ref('loading');
 const unlockInput = ref<HTMLInputElement | null>(null);
+// Blur only complains about a field someone typed in and then emptied.
+const passphraseTouched = ref(false);
 const selectedInline = ref<HTMLElement | null>(null);
 
 const inbox = ref<any[]>([]);
@@ -1291,7 +1293,7 @@ onBeforeUnmount(() => stopAuth?.());
             <label class="cal-field">
               <span>{{ t.passphrase }}</span>
               <span class="cal-password">
-                <input ref="unlockInput" v-model="passphrase" :type="showPassphrase ? 'text' : 'password'" autocomplete="off" spellcheck="false" :disabled="unlocking" @input="unlockError = ''">
+                <input ref="unlockInput" v-model="passphrase" :type="showPassphrase ? 'text' : 'password'" autocomplete="off" spellcheck="false" :disabled="unlocking" :aria-invalid="unlockError ? 'true' : undefined" @input="unlockError = ''; passphraseTouched = true" @blur="passphraseTouched && !passphrase && (unlockError = t.passphraseMissing)">
                 <button type="button" :disabled="unlocking" @click="showPassphrase = !showPassphrase">{{ showPassphrase ? ux.hide : ux.show }}</button>
               </span>
             </label>
