@@ -640,9 +640,10 @@
     letter-spacing:-1px;line-height:1.08}
   .cs-library-hero h1{position:relative;font-size:clamp(2.125rem,4.5vw,3.5rem);margin:0 0 14px;max-width:720px}
   .cs-library-hero>p:not(.cs-eyebrow){position:relative;max-width:680px;margin:0;color:var(--ink-soft);font-size:1.0625rem;line-height:1.65}
-  .cs-library-stats{position:relative;display:flex;gap:10px;flex-wrap:wrap;margin-top:25px}
-  .cs-library-stats span{font-family:var(--md-ref-typeface-plain);font-size:var(--md-sys-typescale-label-small-size);color:var(--ink-soft);padding:6px 10px;
-    border:1px solid var(--line);background:color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 72%,transparent);border-radius:999px}
+  /* Plain text, not pills: the counts are facts about the library, not
+     filters, and a pill reads as something to press. */
+  .cs-library-stats{position:relative;display:flex;gap:8px 24px;flex-wrap:wrap;margin-top:24px}
+  .cs-library-stats span{font-family:var(--md-ref-typeface-plain);font-size:var(--md-sys-typescale-label-medium-size);color:var(--ink-soft)}
   .cs-library-stats b{color:var(--emerald-deep)}
 
   .cs-category{margin-top:30px}
