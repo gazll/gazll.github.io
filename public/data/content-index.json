@@ -81,6 +81,7 @@
         "02-java-8-25-java-vs-go.release-timeline.q6",
         "02-java-8-25-java-vs-go.release-timeline.q7",
         "02-java-8-25-java-vs-go.release-timeline.q8",
+        "02-java-8-25-java-vs-go.release-timeline.q9",
         "02-java-8-25-java-vs-go.java-vs-go-2025-2026.q1",
         "02-java-8-25-java-vs-go.java-vs-go-2025-2026.q2",
         "02-java-8-25-java-vs-go.java-vs-go-2025-2026.q3",
@@ -98,6 +99,7 @@
         "02-java-8-25-java-vs-go.release-timeline.q6",
         "02-java-8-25-java-vs-go.release-timeline.q7",
         "02-java-8-25-java-vs-go.release-timeline.q8",
+        "02-java-8-25-java-vs-go.release-timeline.q9",
         "02-java-8-25-java-vs-go.java-vs-go-2025-2026.q1",
         "02-java-8-25-java-vs-go.java-vs-go-2025-2026.q2",
         "02-java-8-25-java-vs-go.java-vs-go-2025-2026.q3",
@@ -1307,6 +1309,10 @@
     "02-java-8-25-java-vs-go.release-timeline.q8": {
       "en": "How do you read Java release notes without accidentally shipping a preview or vendor-specific feature?",
       "vi": "Đọc release note Java thế nào để không vô tình ship feature preview hoặc feature riêng của vendor?"
+    },
+    "02-java-8-25-java-vs-go.release-timeline.q9": {
+      "en": "Java 26 and 27 shipped after the Java 25 LTS. What changed that matters in production, and should a service on 25 move?",
+      "vi": "Java 26 và 27 ra sau Java 25 LTS. Thay đổi nào ảnh hưởng tới production, và service đang chạy 25 có nên chuyển không?"
     },
     "02-java-8-25-java-vs-go.java-vs-go-2025-2026.q1": {
       "en": "Virtual Threads vs Goroutines — how do the models differ?",

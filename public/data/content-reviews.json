@@ -43,14 +43,18 @@
     ]
   },
   "01-java-core-jvm.concurrency.q2": {
-    "reviewed_at": "2026-08-12",
+    "reviewed_at": "2026-10-25",
     "target_versions": [
-      "JDK 25"
+      "JDK 25",
+      "JDK 26",
+      "JDK 27"
     ],
     "claim_type": "normative",
     "sources": [
       "https://openjdk.org/jeps/506",
-      "https://openjdk.org/jeps/505"
+      "https://openjdk.org/jeps/505",
+      "https://openjdk.org/jeps/525",
+      "https://openjdk.org/jeps/533"
     ]
   },
   "01-java-core-jvm.language-fundamentals.q8": {
@@ -294,14 +298,17 @@
     ]
   },
   "02-java-8-25-java-vs-go.release-timeline.q6": {
-    "reviewed_at": "2026-08-01",
+    "reviewed_at": "2026-10-25",
     "target_versions": [
-      "JDK 25"
+      "JDK 25",
+      "JDK 27"
     ],
     "claim_type": "normative",
     "sources": [
       "https://openjdk.org/projects/jdk/25/",
-      "https://openjdk.org/jeps/506"
+      "https://openjdk.org/jeps/506",
+      "https://openjdk.org/jeps/534",
+      "https://openjdk.org/jeps/533"
     ]
   },
   "02-java-8-25-java-vs-go.release-timeline.q7": {
@@ -3861,6 +3868,28 @@
       "https://openjdk.org/jeps/441",
       "https://openjdk.org/jeps/440",
       "https://www.slf4j.org/manual.html"
+    ]
+  },
+  "02-java-8-25-java-vs-go.release-timeline.q9": {
+    "reviewed_at": "2026-10-25",
+    "target_versions": [
+      "JDK 26",
+      "JDK 27",
+      "Oracle Java SE support roadmap"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://openjdk.org/projects/jdk/26/",
+      "https://openjdk.org/projects/jdk/27/",
+      "https://openjdk.org/jeps/523",
+      "https://openjdk.org/jeps/534",
+      "https://openjdk.org/jeps/500",
+      "https://openjdk.org/jeps/517",
+      "https://openjdk.org/jeps/516",
+      "https://openjdk.org/jeps/527",
+      "https://openjdk.org/jeps/536",
+      "https://openjdk.org/jeps/533",
+      "https://www.oracle.com/java/technologies/java-se-support-roadmap.html"
     ]
   }
 }
