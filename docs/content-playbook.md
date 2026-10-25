@@ -170,9 +170,14 @@ Cần ngăn cách thì dùng một dòng comment:
 <span class="c">    </span>
 ```
 
-**c. `:::tip` và `:::warn` chỉ nhận MỘT đoạn văn.** Renderer nối mọi dòng
-bên trong bằng dấu cách rồi chạy inline — list, bảng, `<pre>` đặt trong đó
-sẽ bẹp thành một dòng. **Chỉ `:::deep` mới render đệ quy đầy đủ.**
+**c. List không lồng được, và một cặp ngoặc chỉ chứa một cross-ref.**
+Renderer không có list lồng nhau: dòng `   - ` thụt vào dưới `1.` thành một
+item ngang hàng của list số, đánh số tiếp 7, 8, 9. Cần danh sách con thì kết
+thúc list, viết một dòng `**Nhãn:**` rồi mở list mới. Cross-ref cũng vậy:
+`(a.b.q1; c.d.q2)` không thành link mà hiện nguyên id — viết
+`(a.b.q1), (c.d.q2)`; validator từ chối dạng gộp. (`:::tip`/`:::warn` từng
+chỉ nhận một đoạn văn; renderer giờ giữ dòng trắng và list bên trong mọi
+callout như ở thân bài.)
 
 **d. SVG `<marker id>` phải độc nhất toàn site.** Mọi card mở ra dùng chung
 một DOM, nên `url(#ar6)` trỏ vào diagram nào render trước. Đặt tên theo id
@@ -249,7 +254,7 @@ hoặc một callout. Run dài là thứ làm câu trả lời "dính" lại, kh
 | > 300 ký tự / run | `--dense` gọi là **wall**, cần tách |
 | > 120 ký tự / ô bảng không có `<br>` | ô bảng đang chứa văn xuôi, tách bằng `<b>Nhãn:</b> … <br>` |
 
-Phân bố hiện tại (7254 run): p50 119 · p90 224 · p95 253 · p99 288 · max 300.
+Phân bố ngày 2026-10-25 (6281 run của bản EN): p50 143 · p90 243 · p95 265 · p99 292 · max 300.
 
 Cách tách, theo thứ tự nên thử:
 
@@ -260,10 +265,9 @@ Cách tách, theo thứ tự nên thử:
   §2.3b: dòng trắng trong `<pre>` sẽ cắt đứt khối HTML, nên phải dùng nhãn
   chứ không phải dòng trắng.
 
-> **`:::tip` và `:::warn` không tách được bằng dòng trắng.** Renderer nối mọi
-> dòng bên trong thành một đoạn (§2.3c), nên một `:::warn` 400 ký tự vẫn hiện
-> ra là một khối liền. Chỉ có hai cách: viết ngắn lại, hoặc đưa phần giải
-> thích ra ngoài box. `:::deep` thì render đệ quy nên tách bình thường.
+Callout tách được như thân bài: dòng trắng và list bên trong `:::tip`,
+`:::warn`, `:::deep` đều được giữ. Tách xong vẫn phải đọc lại — một callout
+bốn đoạn thường là dấu hiệu nó đang làm việc của thân bài.
 
 Sửa EN thì **sửa cả VI**: `--dense` in số theo dạng `EN/VI`, hai bên lệch
 nhau là biết đã quên một bên.
@@ -538,7 +542,7 @@ sạch dấu vết.
 - [ ] `id` không đổi, chỉ thêm vào cuối
 - [ ] `<` viết thành `&lt;`, kể cả trong inline code
 - [ ] Không có dòng trắng trong `<pre>`/`<table>`/`<figure>`
-- [ ] `:::tip`/`:::warn` chỉ chứa một đoạn văn — và đủ ngắn để đọc liền (§2.6)
+- [ ] Không có list lồng nhau; mỗi cross-ref nằm trong một cặp ngoặc riêng (§2.3c)
 - [ ] Không có run nào > 300 ký tự; ô bảng dài đã tách bằng `<br>`
 - [ ] SVG marker id đặt theo id mục
 - [ ] **Đã sửa cả `.json` và `.vi.json`**
