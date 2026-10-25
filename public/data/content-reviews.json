@@ -538,27 +538,31 @@
     ]
   },
   "13-security-oauth2.oauth2-oidc.q2": {
-    "reviewed_at": "2026-08-01",
+    "reviewed_at": "2026-10-25",
     "target_versions": [
-      "OAuth 2.1 draft-15",
-      "OAuth 2.0 Security BCP"
+      "OAuth 2.1 draft-16",
+      "RFC 9700 OAuth 2.0 Security BCP",
+      "RFC 9207 OAuth 2.0 Authorization Server Issuer Identification"
     ],
     "claim_type": "normative",
     "sources": [
-      "https://datatracker.ietf.org/doc/draft-ietf-oauth-v2-1/history/",
-      "https://www.rfc-editor.org/rfc/rfc9700.html"
+      "https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-16",
+      "https://www.rfc-editor.org/rfc/rfc9700.html",
+      "https://www.rfc-editor.org/rfc/rfc9207.html"
     ]
   },
   "13-security-oauth2.oauth2-oidc.q1": {
-    "reviewed_at": "2026-08-01",
+    "reviewed_at": "2026-10-25",
     "target_versions": [
-      "OAuth 2.1 draft-15",
-      "OAuth 2.0 Security BCP"
+      "OAuth 2.1 draft-16",
+      "RFC 9700 OAuth 2.0 Security BCP",
+      "RFC 10017 OAuth 2.0 for Browser-Based Applications"
     ],
     "claim_type": "normative",
     "sources": [
-      "https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-15",
-      "https://www.rfc-editor.org/rfc/rfc9700.html"
+      "https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-16",
+      "https://www.rfc-editor.org/rfc/rfc9700.html",
+      "https://www.rfc-editor.org/rfc/rfc10017.html"
     ]
   },
   "13-security-oauth2.jwt-tokens.q1": {
@@ -1666,9 +1670,9 @@
     ]
   },
   "13-security-oauth2.jwt-tokens.q4": {
-    "reviewed_at": "2026-08-19",
+    "reviewed_at": "2026-10-25",
     "target_versions": [
-      "draft-ietf-oauth-browser-based-apps-27 (OAuth 2.0 for Browser-Based Applications) — Internet-Draft in the RFC Editor queue, intended BCP; not yet an RFC at review time",
+      "RFC 10017 OAuth 2.0 for Browser-Based Applications (BCP 212, August 2026)",
       "RFC 9700 OAuth 2.0 Security Best Current Practice",
       "RFC 6750 OAuth 2.0 Bearer Token Usage",
       "RFC 8252 OAuth 2.0 for Native Apps",
@@ -1676,7 +1680,7 @@
     ],
     "claim_type": "normative",
     "sources": [
-      "https://datatracker.ietf.org/doc/draft-ietf-oauth-browser-based-apps/",
+      "https://www.rfc-editor.org/rfc/rfc10017.html",
       "https://www.rfc-editor.org/rfc/rfc9700.html",
       "https://www.rfc-editor.org/rfc/rfc6750.html",
       "https://www.rfc-editor.org/rfc/rfc8252.html",

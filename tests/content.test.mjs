@@ -400,13 +400,13 @@ import { randomUUID } from 'node:crypto';
     assert.match(vi.a, /không nơi nào trong ba chỗ đó cho chính JWT/);
     assert.equal((en.a.match(/<svg\b/g) || []).length, 1);
     assert.equal((vi.a.match(/<svg\b/g) || []).length, 1);
-    // "OAuth 2.0 for Browser-Based Applications" is still an Internet-Draft in the
-    // RFC Editor queue. It had been cited here as "RFC 10017", a number that does
-    // not exist — so pin the draft, and pin that no rfc-editor.org URL claims it.
-    assert.ok(REVIEWS[id]?.sources.includes('https://datatracker.ietf.org/doc/draft-ietf-oauth-browser-based-apps/'),
-      'the browser-apps BCP must be cited as the draft it currently is');
-    assert.ok(REVIEWS[id].target_versions.some(version => /draft-ietf-oauth-browser-based-apps/.test(version)),
-      'the provenance record must name the draft, not an unassigned RFC number');
+    // "OAuth 2.0 for Browser-Based Applications" sat in the RFC Editor queue as a
+    // draft until August 2026, when it was published as RFC 10017 (BCP 212). The
+    // record cites the RFC now; citing the draft would understate its status.
+    assert.ok(REVIEWS[id]?.sources.includes('https://www.rfc-editor.org/rfc/rfc10017.html'),
+      'the browser-apps BCP is RFC 10017 since August 2026 — cite the RFC');
+    assert.ok(REVIEWS[id].target_versions.some(version => /RFC 10017/.test(version)),
+      'the provenance record must name RFC 10017');
     for (const source of REVIEWS[id].sources) {
       const rfc = source.match(/rfc-editor\.org\/rfc\/rfc(\d+)/);
       assert.ok(!rfc || Number(rfc[1]) <= HIGHEST_VERIFIED_RFC,
