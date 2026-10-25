@@ -39,9 +39,14 @@ const prose = (s) => String(s)
   .replace(/\[\[[a-z]:([^\]]*)\]\]/g, '$1');
 
 /* Structural features that must exist equally in both languages. */
+/* A GFM pipe table (markdown.js renders it) is a table like any <table>: the
+   header row is the line directly above its |---| separator. */
+const GFM_TABLE = /(?:^|\n)[ \t]*\|.*\|[ \t]*\n[ \t]*\|[ \t:|-]+\|[ \t]*(?:\n[ \t]*\|.*\|[ \t]*)*/g;
+const tables = (a) => (a.match(/<table/g) || []).length + (a.match(GFM_TABLE) || []).length;
+
 const shape = (a) => ({
   pre: (a.match(/<pre>/g) || []).length,
-  table: (a.match(/<table/g) || []).length,
+  table: tables(a),
   svg: (a.match(/<svg/g) || []).length,
   deep: (a.match(/^:::deep/gm) || []).length,
   tip: (a.match(/^:::tip/gm) || []).length,
@@ -49,7 +54,7 @@ const shape = (a) => ({
   ref: (a.match(/\[\[/g) || []).length
 });
 
-const hasExplanatoryEvidence = (a) => /<pre>|<table\b|<figure\b/i.test(a);
+const hasExplanatoryEvidence = (a) => /<pre>|<table\b|<figure\b/i.test(a) || tables(a) > 0;
 const visibleWordCount = (s) => (prose(s).match(/\S+/g) || []).length;
 
 const VI_DIACRITIC = /[àáảãạâầấẩẫậăằắẳẵặèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ]/i;
@@ -107,7 +112,7 @@ head('coverage by topic type');
 for (const t of [...new Set(items.map(i => i.type))].filter(Boolean)) {
   const r = items.filter(i => i.type === t);
   const pct = (n) => `${String(n).padStart(3)} (${String(Math.round(n / r.length * 100)).padStart(2)}%)`;
-  console.log(`${t.padEnd(13)} items=${String(r.length).padStart(3)}  code=${pct(r.filter(i => i.a.includes('<pre>')).length)}  table=${pct(r.filter(i => i.a.includes('<table')).length)}  figure=${pct(r.filter(i => i.a.includes('<figure')).length)}`);
+  console.log(`${t.padEnd(13)} items=${String(r.length).padStart(3)}  code=${pct(r.filter(i => i.a.includes('<pre>')).length)}  table=${pct(r.filter(i => tables(i.a) > 0).length)}  figure=${pct(r.filter(i => i.a.includes('<figure')).length)}`);
 }
 
 if (flag('--gaps')) {
@@ -177,7 +182,7 @@ if (flag('--dense')) {
     const out = [];
     let box = null, buf = [];
     const flush = () => { const t = seen(buf.join(' ')); if (t) out.push({ t, box }); buf = []; };
-    for (const line of String(a).replace(/<(pre|table|svg|figure)[\s\S]*?<\/\1>/g, '\n\n').split('\n')) {
+    for (const line of String(a).replace(/<(pre|table|svg|figure)[\s\S]*?<\/\1>/g, '\n\n').replace(GFM_TABLE, '\n\n').split('\n')) {
       const open = /^:::(deep|tip|warn)\b/.exec(line);
       if (open) { flush(); box = open[1]; continue; }        // the label is a heading, not prose
       if (line.trim() === ':::') { flush(); box = null; continue; }
@@ -188,9 +193,13 @@ if (flag('--dense')) {
     return out;
   };
 
-  const widestCell = (a) => Math.max(0, ...[...String(a).matchAll(/<t[dh][^>]*>([\s\S]*?)<\/t[dh]>/g)]
-    .filter(m => !/<br|<li/i.test(m[1]))          // a cell already broken up is fine
-    .map(m => seen(m[1]).length));
+  const pipeCells = (a) => (String(a).match(GFM_TABLE) || [])
+    .flatMap(t => t.split('\n').filter(l => l.trim() && !/^[ \t]*\|[ \t:|-]+\|[ \t]*$/.test(l)))
+    .flatMap(l => l.trim().replace(/^\||\|$/g, '').split('|'));
+  const widestCell = (a) => Math.max(0, ...[...String(a).matchAll(/<t[dh][^>]*>([\s\S]*?)<\/t[dh]>/g)].map(m => m[1])
+    .concat(pipeCells(a))
+    .filter(c => !/<br|<li/i.test(c))          // a cell already broken up is fine
+    .map(c => seen(c).length));
 
   const measure = (a) => {
     const r = runs(a);
