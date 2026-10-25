@@ -348,20 +348,23 @@
     ]
   },
   "03-spring-boot-deep-build.auto-configuration-build.q11": {
-    "reviewed_at": "2026-09-12",
+    "reviewed_at": "2026-10-25",
     "target_versions": [
       "Spring Boot 4.1",
       "Spring Framework 7.0",
       "Jakarta EE 11",
       "Jackson 3",
-      "JDK 25"
+      "JDK 25",
+      "Spring Boot support generations as of 2026-10-25"
     ],
     "claim_type": "normative",
     "sources": [
       "https://docs.spring.io/spring-boot/system-requirements.html",
       "https://spring.io/blog/2025/11/13/spring-framework-7-0-general-availability/",
       "https://spring.io/blog/2025/10/07/introducing-jackson-3-support-in-spring/",
-      "https://spring.io/blog/2025/11/12/null-safe-applications-with-spring-boot-4/"
+      "https://spring.io/blog/2025/11/12/null-safe-applications-with-spring-boot-4/",
+      "https://api.spring.io/projects/spring-boot/generations",
+      "https://spring.io/projects/spring-boot#support"
     ]
   },
   "03-spring-boot-deep-build.auto-configuration-build.q12": {
