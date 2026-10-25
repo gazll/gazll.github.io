@@ -282,6 +282,16 @@ secret/              GITIGNORED. Personal setup notes and credentials
   interview journal is the opposite: `renderUser` escapes first, so write a
   plain `<` there and never an entity.)
 
+- **A cross-reference is one id in its own parentheses, and lists do not nest.**
+  `markdown.js` links `(topic-key.section-slug.qN)` and nothing else:
+  `(a.b.q1; c.d.q2)` rendered as two raw ids in both languages and the second
+  was never validated, and the retired course numbering (`see Day 16`,
+  `(Days 5–6)`, `Day 4 (section 4.4)`) was plain text nobody could click. Write
+  `(a.b.q1), (c.d.q2)`; `validate-content.mjs` rejects the grouped form since
+  2026-10-25. The renderer also has no nested lists — a `   - ` line under
+  `6.` becomes items 7, 8, 9 of the numbered list — so end the list, write a
+  `**Label:**` line and open a new one.
+
 - **Gazl Try is two groups, and `kind` is the only thing that decides which.**
   An entry that carries a `kind` (`playbook`, `community-report`) was
   synthesised across many interviews and answers *what do these have in
@@ -1243,6 +1253,28 @@ Item *answers* live in the topic file and arrive with that topic's route.
   `docs/content-playbook.md` §1.4 and §2.5 for the claim types and the
   provenance rule for benchmark numbers.
 
+  "Current" is the calendar date, not what an editor or a model already knows.
+  On 2026-10-25 the corpus still treated Java 25 as the newest release while
+  JDK 26 (March) and 27 (September) had shipped — 27 made G1 the default in
+  every environment and compact object headers the default — and OAuth 2.1 had
+  moved from draft-15 to draft-16. Read the release pages themselves
+  (`openjdk.org/projects/jdk/N`, the JEP, `rfc-editor.org`, the datatracker
+  API's `rev`) before calling a version current, and say "as of <date>" in the
+  prose when the fact will move.
+
+- **No paragraph runs past 300 characters, and the corpus is held at zero.**
+  `node tools/audit-content.mjs --dense` measures it per run (a paragraph, a
+  bullet, or one callout line) and per table cell (120 without a `<br>`). The
+  invariant had silently regressed to 146 of 510 items before the 2026-10-25
+  pass brought it back to zero. Fix a wall with structure, not by cutting
+  content: a blank line at the idea boundary, a `**Lead-in:**` plus a list for
+  an enumeration, one labelled line per field for `Field: …; field: …` runs
+  (topic 11's 21 "Case metadata" lines), `<br>` inside a long cell. Bullets
+  follow the corpus style — fragments without a trailing `;`, full sentences
+  with a full stop — and the EN and VI answers get the same shape, not just the
+  same counts. `--dense` counts GFM pipe tables as tables since that pass; it
+  used to measure a whole pipe table as one paragraph.
+
 - **One owner per mechanism, pointers everywhere else.** Duplicated *mechanism*
   — the same parameter table, the same trap list, the same example — is the
   thing to avoid: fix one copy and the other is now wrong. Duplicated *context*
@@ -1331,6 +1363,15 @@ an existing file over creating one. A new `tests/*.test.mjs` is picked up from
 disk automatically, which makes growth frictionless and therefore worth
 resisting. When a change genuinely needs no new coverage, say so rather than
 adding a test to look thorough.
+
+**A test that pins an outside fact must say when it was checked.** The content
+suite once asserted that any RFC above 9999 was invented and that the
+browser-apps BCP must be cited as a draft; both were true when written and both
+became false in August 2026, when RFC 10017 was published — so the test was
+holding the content to the wrong state. Such a bound is now
+`HIGHEST_VERIFIED_RFC` with the date it was verified, raised by whoever opens
+a newer RFC. Write external-status assertions the same way: a dated bound, and
+a message that says what to check before changing it.
 
 ## Running the checks cheaply
 
@@ -1503,6 +1544,17 @@ cd public && python -m http.server 8080
 A push that lands but leaves the site unchanged is the signature of this
 failure, so confirm the deploy rather than assuming it: the run's conclusion,
 and `https://gazll.github.io/version.json` carrying the commit you pushed.
+The NAS has no `gh`, but the repository is public, so the unauthenticated API
+answers both questions:
+`curl -s "https://api.github.com/repos/gazll/gazll.github.io/actions/runs?per_page=3"`
+for the run, and `…/actions/runs/<id>/jobs` for the step that failed (the logs
+themselves need a token). A red run is not always the push: `audit-gate.mjs`
+runs first and turns red when the advisory database changes, as it did on
+2026-10-25 for `undici` with no dependency edit at all. Run
+`node tools/audit-gate.mjs` locally, update inside the existing ranges
+(`npm update <pkg> --legacy-peer-deps`), and drop an `ALLOWED` entry the gate
+reports as no longer seen — a withdrawn advisory (braces, 2026-10-23) clears
+itself that way.
 
 `check.mjs` discovers modules and test files from disk, so a new
 `tests/*.test.mjs` is picked up locally **and** in CI without editing
