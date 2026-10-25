@@ -2,6 +2,47 @@
   "version": 1,
   "releases": [
     {
+      "date": "2026-10-25",
+      "en": {
+        "title": "Every answer broken into readable runs, and cross-references that link"
+      },
+      "vi": {
+        "title": "Mọi câu trả lời được tách đoạn dễ đọc, và cross-reference bấm được"
+      },
+      "changes": [
+        {
+          "kind": "content",
+          "target": "all-topics",
+          "en": {
+            "text": "146 answers across 24 topics had a paragraph over 300 characters; none do now. Enumerations became lists, chained clauses became short paragraphs, and both languages keep the same shape."
+          },
+          "vi": {
+            "text": "146 câu trả lời ở 24 topic có đoạn dài quá 300 ký tự; giờ không còn câu nào. Chuỗi liệt kê thành list, mệnh đề nối dài thành đoạn ngắn, và hai ngôn ngữ giữ cùng cấu trúc."
+          }
+        },
+        {
+          "kind": "content",
+          "target": "system-design",
+          "en": {
+            "text": "Each big prompt in topic 11 lists its workload, freshness, duplicate tolerance and recovery owner on separate lines, and state graphs show one path per line."
+          },
+          "vi": {
+            "text": "Mỗi big prompt ở topic 11 ghi workload, freshness, duplicate tolerance và recovery owner thành từng dòng riêng, còn state graph tách mỗi path một dòng."
+          }
+        },
+        {
+          "kind": "fix",
+          "target": "all-topics",
+          "en": {
+            "text": "Pointers written as \"Day 7\" or \"(a; b)\" rendered as plain text; each now links to the question that owns the explanation, and the validator rejects the grouped form."
+          },
+          "vi": {
+            "text": "Các pointer viết kiểu \"Day 7\" hoặc \"(a; b)\" từng hiện thành chữ thường; giờ mỗi pointer link tới câu hỏi sở hữu phần giải thích, và validator từ chối dạng gộp."
+          }
+        }
+      ]
+    },
+    {
       "date": "2026-10-08",
       "en": {
         "title": "A runnable Bloom filter in the 10 MB answer, and a clearer release log"
