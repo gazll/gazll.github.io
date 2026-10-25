@@ -141,11 +141,17 @@ for (const [mid, where] of markers) {
 
 // Cross-references written as "(topic-key.section-slug.qN)" must point at a real item.
 const REF_RE = /\(([a-z0-9-]+\.[a-z0-9-]+\.q\d+)\)/g;
+// markdown.js links one id per pair of parentheses; "(a.b.q1; c.d.q2)" is never
+// linked and was never checked, so it rendered as raw ids.
+const GROUPED_REF_RE = /\(([a-z0-9-]+\.[a-z0-9-]+\.q\d+)\s*[;,]/g;
+const groupedRef = (id, a) => [...String(a).matchAll(GROUPED_REF_RE)]
+  .map(m => `${id}: cross-ref (${m[1]}; …) shares its parentheses — give each id its own so it links`);
 for (const it of items) {
   for (const m of String(it.a).matchAll(REF_RE)) {
     const target = m[1];
     if (!seen.has(target)) err(it.id, `cross-ref (${target}) points at no item`);
   }
+  errs.push(...groupedRef(it.id, it.a));
 }
 
 /* ---------- data/meta.json + topics/NN-slug.vi.json ----------
@@ -178,6 +184,7 @@ for (const { row, content } of topics) {
       for (const m of String(it.a).matchAll(REF_RE)) {
         if (!seen.has(m[1])) errs.push(`${it.id}.vi: cross-ref (${m[1]}) points at no item`);
       }
+      errs.push(...groupedRef(`${it.id}.vi`, it.a));
     }
   }
   if (!Array.isArray(viFile.sections) || viFile.sections.length !== content.sections.length) {
