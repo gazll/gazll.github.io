@@ -1,6 +1,6 @@
 # Deploy đỏ vì `audit-gate` — advisory của dependency (2026-10-03 → 10-08)
 
-Trạng thái: **ĐANG MỞ — deploy đã xanh, chỉ còn chờ bản vá `braces`** · xoá file này khi `braces` có bản vá, mục allowlist đã
+Trạng thái: **ĐANG MỞ — `braces` đã xong (advisory bị rút 2026-10-23), chờ một deploy xanh** · xoá file này khi `braces` có bản vá, mục allowlist đã
 gỡ, và một deploy xanh đã đưa `version.json` lên commit mới.
 
 ## Vấn đề
@@ -40,3 +40,16 @@ gỡ, và một deploy xanh đã đưa `version.json` lên commit mới.
 - [x] Bỏ ghim `nuxt` (`^4.6.1`) 2026-10-14; `.github/dependabot.yml` mở PR gộp
   hằng tuần (thứ Hai), `pr-check.yml` chạy audit-gate + ba lệnh CI + generate
   trên PR — merge PR Dependabot khi nó xanh.
+
+## 2026-10-25
+
+- GitHub **rút** GHSA-vfj7-8cjw-p6xm ngày 2026-10-23 (`withdrawn_at`), nên
+  `braces` 3.0.3 không còn bị báo; mục đó đã gỡ khỏi `ALLOWED`. Không có bản vá
+  nào — advisory bị rút, chứ không phải được sửa.
+- Deploy `a6178c1` đỏ ở audit-gate vì advisory mới của `undici` (GHSA-xjj6-…,
+  cùng hai advisory khác, vá ở 8.12.2) và `@nuxt/nitro-server` (vá ở 4.6.2).
+  `npm update nuxt undici` lên nuxt 4.6.2 / undici 8.12.3, trong range sẵn có.
+- `node-forge` (GHSA-86w9-…) vẫn trong `ALLOWED` tới 2026-11-01; gate sẽ đỏ
+  để nhắc khi hết hạn.
+- [ ] Deploy xanh đưa `version.json` lên commit mới → xoá file này.
+
