@@ -1143,13 +1143,16 @@
     ]
   },
   "08-message-queue.reliability-delivery-semantics.q9": {
-    "reviewed_at": "2026-08-10",
+    "reviewed_at": "2026-10-25",
     "target_versions": [
-      "Apache Kafka 3.x consumer configs"
+      "Apache Kafka 4.3 consumer configs",
+      "KIP-848 consumer rebalance protocol (GA in 4.0)"
     ],
     "claim_type": "normative",
     "sources": [
-      "https://kafka.apache.org/documentation/#consumerconfigs"
+      "https://kafka.apache.org/43/configuration/consumer-configs/",
+      "https://kafka.apache.org/43/getting-started/upgrade/",
+      "https://cwiki.apache.org/confluence/display/KAFKA/KIP-848%3A+The+Next+Generation+of+the+Consumer+Rebalance+Protocol"
     ]
   },
   "08-message-queue.reliability-delivery-semantics.q10": {
@@ -3890,6 +3893,20 @@
       "https://openjdk.org/jeps/536",
       "https://openjdk.org/jeps/533",
       "https://www.oracle.com/java/technologies/java-se-support-roadmap.html"
+    ]
+  },
+  "08-message-queue.the-two-models.q3": {
+    "reviewed_at": "2026-10-25",
+    "target_versions": [
+      "Apache Kafka 4.2-4.4 share groups",
+      "KIP-932 Queues for Kafka",
+      "KIP-1191 dead-letter queues for share groups"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://kafka.apache.org/43/getting-started/upgrade/",
+      "https://cwiki.apache.org/confluence/display/KAFKA/KIP-932%3A+Queues+for+Kafka",
+      "https://downloads.apache.org/kafka/4.4.0/RELEASE_NOTES.html"
     ]
   }
 }
