@@ -39,6 +39,11 @@ import { randomUUID } from 'node:crypto';
   const MANIFEST = JSON.parse(await readFile(path.join(pub, 'data/manifest.json'), 'utf8'));
   const META = JSON.parse(await readFile(path.join(pub, 'data/meta.json'), 'utf8'));
   const REVIEWS = JSON.parse(await readFile(path.join(pub, 'data/content-reviews.json'), 'utf8'));
+  /* The newest RFC opened on rfc-editor.org (RFC 10017, BCP 212, August 2026;
+     checked 2026-10-25). It catches an invented or mistyped number: a citation
+     past it fails until someone opens the RFC and raises this bound. The fixed
+     9999 it replaces stopped being true when RFC numbers passed 10000. */
+  const HIGHEST_VERIFIED_RFC = 10017;
   const INDEX = JSON.parse(await readFile(path.join(pub, 'data/content-index.json'), 'utf8'));
   const TRACK_ROWS = MANIFEST.topics.filter(row => !row.surface || row.surface === 'track');
   const PARTIAL_SYSTEM_DESIGN_IDS = MANIFEST.topics.flatMap(row => row.system_design_items || []);
@@ -404,30 +409,27 @@ import { randomUUID } from 'node:crypto';
       'the provenance record must name the draft, not an unassigned RFC number');
     for (const source of REVIEWS[id].sources) {
       const rfc = source.match(/rfc-editor\.org\/rfc\/rfc(\d+)/);
-      assert.ok(!rfc || Number(rfc[1]) <= 9999,
-        `${source}: RFC numbers above 9999 are not published — verify before citing`);
+      assert.ok(!rfc || Number(rfc[1]) <= HIGHEST_VERIFIED_RFC,
+        `${source}: RFC ${rfc?.[1]} is past the newest one verified — open it before citing`);
     }
   });
 
   test('every provenance record cites a source that could exist', () => {
     // content-reviews.json is what separates a checked claim from an inherited
-    // one, so a citation that cannot be read is worse than no entry at all. The
-    // highest published RFC is in the 9xxx range; a five-digit number is either a
-    // typo or invented, which is exactly how "RFC 10017" got shipped once.
-    const HIGHEST_PLAUSIBLE_RFC = 9999;
+    // one, so a citation that cannot be read is worse than no entry at all.
     for (const [id, review] of Object.entries(REVIEWS)) {
       assert.ok(Array.isArray(review.sources) && review.sources.length,
         `${id}: a reviewed claim needs at least one source`);
       for (const source of review.sources) {
         assert.ok(source.startsWith('https://'), `${id}: "${source}" must be https`);
         const rfc = source.match(/rfc-editor\.org\/(?:rfc\/rfc|info\/rfc)(\d+)/);
-        assert.ok(!rfc || Number(rfc[1]) <= HIGHEST_PLAUSIBLE_RFC,
-          `${id}: RFC ${rfc?.[1]} is not a published number — cite the draft instead`);
+        assert.ok(!rfc || Number(rfc[1]) <= HIGHEST_VERIFIED_RFC,
+          `${id}: RFC ${rfc?.[1]} is past the newest one verified — open it, then raise the bound`);
       }
       for (const version of review.target_versions || []) {
         const rfc = String(version).match(/\bRFC\s+(\d+)/);
-        assert.ok(!rfc || Number(rfc[1]) <= HIGHEST_PLAUSIBLE_RFC,
-          `${id}: target_versions names RFC ${rfc?.[1]}, which is not published`);
+        assert.ok(!rfc || Number(rfc[1]) <= HIGHEST_VERIFIED_RFC,
+          `${id}: target_versions names RFC ${rfc?.[1]}, past the newest one verified`);
       }
     }
   });
