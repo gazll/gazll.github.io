@@ -492,7 +492,7 @@
         ]
       },
       "created_at": "2026-07-31",
-      "updated_at": "2026-10-25"
+      "updated_at": "2026-10-26"
     },
     "14": {
       "topic_type": "platform",
@@ -528,7 +528,7 @@
         ]
       },
       "created_at": "2026-07-31",
-      "updated_at": "2026-10-25"
+      "updated_at": "2026-10-26"
     },
     "15": {
       "topic_type": "core",
@@ -752,7 +752,7 @@
         ]
       },
       "created_at": "2026-07-31",
-      "updated_at": "2026-10-25"
+      "updated_at": "2026-10-26"
     },
     "21": {
       "topic_type": "platform",
@@ -926,7 +926,7 @@
         "label": "Microservices at Scale — Technical Mastery Track"
       },
       "created_at": "2026-07-31",
-      "updated_at": "2026-10-25"
+      "updated_at": "2026-10-26"
     },
     "26": {
       "topic_type": "core",
