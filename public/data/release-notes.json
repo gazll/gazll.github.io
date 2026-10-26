@@ -3,6 +3,57 @@
   "releases": [
     {
       "date": "2026-10-26",
+      "en": {
+        "title": "Tables and figures where the platform and microservice answers compared in prose"
+      },
+      "vi": {
+        "title": "Bảng và hình cho những câu platform và microservice vốn so sánh bằng văn xuôi"
+      },
+      "changes": [
+        {
+          "kind": "content",
+          "target": "25-microservice",
+          "en": {
+            "text": "Breaker states, the two bulkheads, outbox polling vs CDC, RabbitMQ vs Kafka backpressure and replica reads are now tables; the RabbitMQ row drops the retired lazy-queue advice."
+          },
+          "vi": {
+            "text": "Các state của breaker, hai loại bulkhead, outbox polling so với CDC, backpressure RabbitMQ so với Kafka và đọc replica giờ là bảng; dòng RabbitMQ bỏ lời khuyên lazy queue đã lỗi thời."
+          }
+        },
+        {
+          "kind": "content",
+          "target": "13-security-oauth2",
+          "en": {
+            "text": "Authorization Code + PKCE has a sequence figure showing which steps cross the browser and why a stolen code fails without the verifier."
+          },
+          "vi": {
+            "text": "Authorization Code + PKCE có hình sequence cho thấy bước nào đi qua browser và vì sao code bị lấy vẫn thất bại nếu thiếu verifier."
+          }
+        },
+        {
+          "kind": "content",
+          "target": "20-observability-sre",
+          "en": {
+            "text": "Trace propagation has a figure of one trace across an HTTP hop (parent–child) and a queue hop (span link)."
+          },
+          "vi": {
+            "text": "Phần trace propagation có hình một trace đi qua hop HTTP (parent–child) và hop qua queue (span link)."
+          }
+        },
+        {
+          "kind": "content",
+          "target": "14-devops-k8s-best-practices",
+          "en": {
+            "text": "Graceful shutdown draws the example's preStop, drain phase and margin on one 35-second clock, beside endpoint removal."
+          },
+          "vi": {
+            "text": "Graceful shutdown vẽ preStop, pha drain và margin của ví dụ trên cùng một đồng hồ 35 giây, cạnh việc gỡ endpoint."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-10-26",
       "items_added": 1,
       "en": {
         "title": "Version claims checked against what shipped by October 2026"
