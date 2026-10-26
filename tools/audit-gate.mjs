@@ -21,9 +21,10 @@ const BLOCKING = new Set(['high', 'critical']);
    is installed — the gate does not need it then. */
 const ALLOWED = Object.freeze({
   'GHSA-86w9-cpqp-85rv': {
-    until: '2026-11-01',
-    why: 'node-forge <= 1.4.0, no patched version. Reached only via nuxt -> @nuxt/cli -> listhen, '
-      + 'which uses it to make the self-signed certificate for `nuxt dev --https`. The prerendered '
+    until: '2026-12-01',
+    why: 'node-forge <= 1.4.0, no patched version (re-checked 2026-10-26: 1.4.0 is still the latest, '
+      + 'and listhen 1.10.1 / nitropack 2.13.5 still depend on it). Reached only via '
+      + 'nuxt -> nitropack -> listhen, which uses it to make the self-signed certificate for `nuxt dev --https`. The prerendered '
       + 'site does not contain it, and nothing here verifies RSA PKCS#1 v1.5 signatures with it.'
   }
 });
