@@ -42,7 +42,7 @@ const questionCount = computed(() => companies.value.reduce((total, company) => 
 const safeMarkdown = (value: string) => renderMarkdown(escapeHtml(value));
 const labels = computed(() => props.lang === 'vi' ? {
   title: 'Gazl Try — nhật ký phỏng vấn', intro: 'Trải nghiệm phỏng vấn · playbook chuẩn bị · câu trả lời đã review kỹ thuật.',
-  loading: 'Đang tải nhật ký phỏng vấn…', backendError: 'Không thể đọc backend:', backendFallback: ' — đang hiển thị sample trong repository.',
+  loading: 'Đang tải nhật ký phỏng vấn…', backendError: 'Chưa tải được các mục của bạn:', backendFallback: ' — tạm hiển thị sample trong repository; tải lại trang để thử lần nữa.',
   entry: 'mục', entries: 'mục', question: 'câu hỏi', questions: 'câu hỏi', mine: 'của tôi', samples: 'sample', readOnly: 'chỉ đọc',
   signIn: 'Đăng nhập Google để thêm hoặc sửa mục.', noBackend: 'Chưa cấu hình backend — sample chỉ đọc.', noEntries: 'Chưa có mục phỏng vấn nào.', noQuestions: 'Chưa có câu hỏi nào được ghi lại.',
   addCompany: 'Thêm công ty', sample: 'Sample', edit: 'Sửa', remove: 'Xóa', saveToJournal: 'Lưu vào nhật ký', saving: 'Đang lưu…',
@@ -65,13 +65,13 @@ const labels = computed(() => props.lang === 'vi' ? {
   answered: 'Cách tôi trả lời', improve: 'Điểm rút ra / cần cải thiện', removeQuestion: 'Xóa câu hỏi', cancel: 'Hủy', save: 'Lưu',
   resultLabels: { pending: 'Đang chờ', passed: 'Đạt', offer: 'Offer', failed: 'Từ chối' },
   kindLabels: { playbook: 'Playbook học tập', 'community-report': 'Báo cáo cộng đồng' },
-  deleteConfirm: (name: string) => `Xóa “${name}” và toàn bộ câu hỏi bên dưới?`, deleteFailed: 'Không thể xóa:', saveFailed: 'Không thể lưu:',
+  deleteConfirm: (name: string) => `Xóa “${name}” và toàn bộ câu hỏi bên dưới?`, deleteFailed: (name: string) => `Chưa xoá được “${name}”; mục này vẫn còn nguyên. Thử lại sau giây lát.`, saveFailed: (name: string) => `Chưa lưu được “${name}” vào nhật ký của bạn. Thử lại sau giây lát.`,
   privateBadge: 'Riêng tư', privateMine: 'riêng tư', unlockPrivate: 'Mở mục riêng tư', lockPrivate: 'Khoá mục riêng tư',
   passphrase: 'Passphrase', passphraseMissing: 'Nhập passphrase để mở.', rememberDevice: 'Nhớ trên thiết bị này', open: 'Mở', opening: 'Đang mở…',
   privateIntro: 'Các mục theo công ty được mã hoá trong repo; mở bằng passphrase chủ.'
 } : {
   title: 'Gazl Try — interview journal', intro: 'Interview experiences · preparation playbooks · technically reviewed answers.',
-  loading: 'Loading the interview journal…', backendError: 'Could not read from the backend:', backendFallback: ' — showing repository samples instead.',
+  loading: 'Loading the interview journal…', backendError: 'Your own entries could not be loaded:', backendFallback: ' — showing the repository samples for now; reload the page to try again.',
   entry: 'entry', entries: 'entries', question: 'question', questions: 'questions', mine: 'mine', samples: 'samples', readOnly: 'read-only',
   signIn: 'Sign in with Google to add or edit entries.', noBackend: 'No backend configured — sample entries are read-only.', noEntries: 'No interview entries yet.', noQuestions: 'No questions recorded yet.',
   addCompany: 'Add company', sample: 'Sample', edit: 'Edit', remove: 'Delete', saveToJournal: 'Save to my journal', saving: 'Saving…',
@@ -94,7 +94,7 @@ const labels = computed(() => props.lang === 'vi' ? {
   answered: 'How I answered', improve: 'Takeaway / what to improve', removeQuestion: 'Remove question', cancel: 'Cancel', save: 'Save',
   resultLabels: { pending: 'Pending', passed: 'Passed', offer: 'Offer', failed: 'Rejected' },
   kindLabels: { playbook: 'Learning playbook', 'community-report': 'Community report' },
-  deleteConfirm: (name: string) => `Delete “${name}” and every question under it?`, deleteFailed: 'Could not delete:', saveFailed: 'Could not save:',
+  deleteConfirm: (name: string) => `Delete “${name}” and every question under it?`, deleteFailed: (name: string) => `“${name}” was not deleted; nothing was removed. Try again in a moment.`, saveFailed: (name: string) => `“${name}” was not saved to your journal. Try again in a moment.`,
   privateBadge: 'Private', privateMine: 'private', unlockPrivate: 'Open private entries', lockPrivate: 'Lock private entries',
   passphrase: 'Passphrase', passphraseMissing: 'Enter the passphrase to open them.', rememberDevice: 'Remember on this device', open: 'Open', opening: 'Opening…',
   privateIntro: 'Company entries ship encrypted in the repository; open them with the master passphrase.'
@@ -203,7 +203,7 @@ async function remove(company: any) {
   if (!window.confirm(labels.value.deleteConfirm(company.name))) return;
   busy.value = company.id;
   try { await $apiCall('interviews.delete', { id: company.id }, $auth.token); await load(); }
-  catch (reason: any) { window.alert(`${labels.value.deleteFailed} ${reason?.message || reason}`); }
+  catch (reason: any) { window.alert(`${labels.value.deleteFailed(company.name)}\n\n${reason?.message || reason}`); }
   finally { busy.value = ''; }
 }
 
@@ -212,7 +212,7 @@ async function importSeed(company: any) {
   busy.value = company.id;
   const copy = seedImport(company, labels.value.source);
   try { await $apiCall('interviews.save', { company: copy }, $auth.token); await load(); }
-  catch (reason: any) { window.alert(`${labels.value.saveFailed} ${reason?.message || reason}`); }
+  catch (reason: any) { window.alert(`${labels.value.saveFailed(company.name)}\n\n${reason?.message || reason}`); }
   finally { busy.value = ''; }
 }
 
