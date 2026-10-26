@@ -2,6 +2,91 @@
   "version": 1,
   "releases": [
     {
+      "date": "2026-10-26",
+      "items_added": 1,
+      "en": {
+        "title": "Version claims checked against what shipped by October 2026"
+      },
+      "vi": {
+        "title": "Đối chiếu các claim phiên bản với những gì đã phát hành tới tháng 10/2026"
+      },
+      "changes": [
+        {
+          "kind": "topic",
+          "target": "02-java-8-25-java-vs-go",
+          "count": 1,
+          "en": {
+            "section": "Release timeline",
+            "text": "Added JDK 26 and 27: what each made final, the previews still open, and why the next LTS is Java 29 in September 2027."
+          },
+          "vi": {
+            "section": "Dòng thời gian các phiên bản",
+            "text": "Thêm JDK 26 và 27: mỗi bản chốt final những gì, preview nào còn mở, và vì sao LTS kế tiếp là Java 29 vào tháng 9/2027."
+          }
+        },
+        {
+          "kind": "content",
+          "target": "01-java-core-jvm",
+          "en": {
+            "text": "The structured-concurrency example notes that the preview API changed in JDK 26 and 27, so the JDK 25 code no longer compiles there."
+          },
+          "vi": {
+            "text": "Ví dụ structured concurrency ghi rõ preview API đã đổi ở JDK 26 và 27, nên code JDK 25 không còn compile trên các bản đó."
+          }
+        },
+        {
+          "kind": "content",
+          "target": "13-security-oauth2",
+          "en": {
+            "text": "OAuth 2.1 now cites draft-16, which drops the PKCE plain method and requires the iss response parameter; browser apps cite the published RFC 10017."
+          },
+          "vi": {
+            "text": "OAuth 2.1 giờ dẫn draft-16, bản bỏ PKCE plain và bắt buộc tham số iss trong response; browser app dẫn RFC 10017 đã xuất bản."
+          }
+        },
+        {
+          "kind": "content",
+          "target": "08-message-queue",
+          "en": {
+            "text": "Added the KIP-848 consumer rebalance protocol (GA in Kafka 4.0, client default still classic) and share groups, production-ready in 4.2."
+          },
+          "vi": {
+            "text": "Thêm consumer rebalance protocol KIP-848 (GA từ Kafka 4.0, default phía client vẫn là classic) và share group, production-ready từ 4.2."
+          }
+        },
+        {
+          "kind": "content",
+          "target": "03-spring-boot-deep-build",
+          "en": {
+            "text": "Spring Boot support windows updated: 3.5 OSS support ended in June 2026, 4.0 ends in December, and 4.2 is planned for November."
+          },
+          "vi": {
+            "text": "Cập nhật thời hạn hỗ trợ Spring Boot: OSS cho 3.5 đã hết tháng 6/2026, 4.0 hết tháng 12, và 4.2 dự kiến ra tháng 11."
+          }
+        },
+        {
+          "kind": "content",
+          "target": "05-db-core-index-lock",
+          "en": {
+            "text": "The MySQL baseline names 9.7 as the newer LTS line beside 8.4, and the switch to calendar versions after it."
+          },
+          "vi": {
+            "text": "Baseline MySQL ghi 9.7 là dòng LTS mới hơn bên cạnh 8.4, và việc chuyển sang calendar version sau đó."
+          }
+        },
+        {
+          "kind": "content",
+          "target": "system-design",
+          "en": {
+            "text": "The API gateway blueprint pins Spring Cloud Gateway 5.0.4 on the 2025.1.4 release train."
+          },
+          "vi": {
+            "text": "Blueprint API gateway pin Spring Cloud Gateway 5.0.4 trên release train 2025.1.4."
+          }
+        }
+      ]
+    },
+    {
       "date": "2026-10-25",
       "en": {
         "title": "Every answer broken into readable runs, and cross-references that link"
