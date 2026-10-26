@@ -1903,6 +1903,8 @@
   .gs-chip[aria-pressed="true"]{color:var(--emerald-deep);border-color:var(--emerald);background:var(--emerald-soft)}
   .gs-count{margin:0 0 10px;font-family:var(--md-ref-typeface-plain);font-size:var(--md-sys-typescale-label-small-size);letter-spacing:.3px;color:var(--muted)}
   .gs-page-body .gs-group{margin-bottom:18px}
+  /* The page aligns its states with the chips above; only the overlay insets them. */
+  .gs-page-body .gs-empty{margin:10px 0 14px}
   .gs-page-body .gs-hit{border-color:var(--line);background:var(--surface);margin-bottom:6px}
   .gs-page-body .gs-hit-snippet{-webkit-line-clamp:3}/* No keyboard cursor on this surface, so the ↵ hint would be a lie. */
   
