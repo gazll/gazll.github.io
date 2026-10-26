@@ -336,7 +336,7 @@
     ]
   },
   "03-spring-boot-deep-build.auto-configuration-build.q9": {
-    "reviewed_at": "2026-09-12",
+    "reviewed_at": "2026-10-26",
     "target_versions": [
       "Spring Boot 4.1",
       "HikariCP 7.x configuration"
@@ -369,7 +369,7 @@
     ]
   },
   "03-spring-boot-deep-build.auto-configuration-build.q12": {
-    "reviewed_at": "2026-08-01",
+    "reviewed_at": "2026-10-26",
     "target_versions": [
       "Spring Boot 4.1",
       "HikariCP 7.x configuration"
@@ -399,7 +399,7 @@
     ]
   },
   "03-spring-boot-deep-build.auto-configuration-build.q14": {
-    "reviewed_at": "2026-09-12",
+    "reviewed_at": "2026-10-26",
     "target_versions": [
       "HikariCP 7.x",
       "MySQL Connector/J 9.x",
@@ -615,7 +615,7 @@
     ]
   },
   "13-security-oauth2.designing-the-auth-system.q3": {
-    "reviewed_at": "2026-08-01",
+    "reviewed_at": "2026-10-26",
     "target_versions": [
       "OWASP Top 10:2025",
       "OWASP API Security Top 10:2023"
@@ -623,11 +623,13 @@
     "claim_type": "normative",
     "sources": [
       "https://owasp.org/Top10/",
-      "https://owasp.org/API-Security/editions/2023/en/0x11-t10/"
+      "https://owasp.org/API-Security/editions/2023/en/0x11-t10/",
+      "https://owasp.org/Top10/2025/",
+      "https://owasp.org/API-Security/"
     ]
   },
   "13-security-oauth2.designing-the-auth-system.q4": {
-    "reviewed_at": "2026-08-01",
+    "reviewed_at": "2026-10-26",
     "target_versions": [
       "Kubernetes current documentation",
       "OWASP Top 10:2025"
@@ -635,7 +637,8 @@
     "claim_type": "heuristic",
     "sources": [
       "https://kubernetes.io/docs/concepts/configuration/secret/",
-      "https://owasp.org/Top10/"
+      "https://owasp.org/Top10/",
+      "https://owasp.org/Top10/2025/"
     ]
   },
   "13-security-oauth2.designing-the-auth-system.q5": {
@@ -1003,17 +1006,18 @@
     ]
   },
   "25-microservice.05-caching-pitfalls.q7": {
-    "reviewed_at": "2026-08-18",
+    "reviewed_at": "2026-10-26",
     "target_versions": [
       "Redis Open Source 8.x eviction policies"
     ],
     "claim_type": "heuristic",
     "sources": [
-      "https://redis.io/docs/latest/develop/reference/eviction/"
+      "https://redis.io/docs/latest/develop/reference/eviction/",
+      "https://github.com/redis/redis/releases/tag/8.10.2"
     ]
   },
   "25-microservice.05-caching-pitfalls.q8": {
-    "reviewed_at": "2026-08-18",
+    "reviewed_at": "2026-10-26",
     "target_versions": [
       "Redis Open Source 8.x",
       "hash field expiration since Redis 7.4",
@@ -1024,11 +1028,12 @@
       "https://redis.io/docs/latest/commands/hexpire/",
       "https://redis.io/docs/latest/develop/data-types/streams/",
       "https://redis.io/docs/latest/develop/data-types/probabilistic/hyperloglogs/",
-      "https://redis.io/docs/latest/develop/pubsub/"
+      "https://redis.io/docs/latest/develop/pubsub/",
+      "https://github.com/redis/redis/releases/tag/8.10.2"
     ]
   },
   "25-microservice.05-caching-pitfalls.q9": {
-    "reviewed_at": "2026-08-18",
+    "reviewed_at": "2026-10-26",
     "target_versions": [
       "Redis Open Source 8.x",
       "WAITAOF since Redis 7.2",
@@ -1038,7 +1043,8 @@
     "sources": [
       "https://redis.io/docs/latest/commands/waitaof/",
       "https://redis.io/docs/latest/operate/oss_and_stack/reference/cluster-spec/",
-      "https://redis.io/docs/latest/develop/programmability/eval-intro/"
+      "https://redis.io/docs/latest/develop/programmability/eval-intro/",
+      "https://github.com/redis/redis/releases/tag/8.10.2"
     ]
   },
   "25-microservice.06-hot-partition-db-bottleneck.q2": {
@@ -1172,7 +1178,7 @@
     ]
   },
   "13-security-oauth2.secure-coding-at-the-boundary.q3": {
-    "reviewed_at": "2026-08-10",
+    "reviewed_at": "2026-10-26",
     "target_versions": [
       "OWASP Top 10:2025",
       "Jackson 2.x/3.x"
@@ -1180,17 +1186,19 @@
     "claim_type": "normative",
     "sources": [
       "https://cheatsheetseries.owasp.org/cheatsheets/Deserialization_Cheat_Sheet.html",
-      "https://cheatsheetseries.owasp.org/cheatsheets/XML_External_Entity_Prevention_Cheat_Sheet.html"
+      "https://cheatsheetseries.owasp.org/cheatsheets/XML_External_Entity_Prevention_Cheat_Sheet.html",
+      "https://owasp.org/Top10/2025/"
     ]
   },
   "13-security-oauth2.secure-coding-at-the-boundary.q4": {
-    "reviewed_at": "2026-08-10",
+    "reviewed_at": "2026-10-26",
     "target_versions": [
       "OWASP Top 10:2025"
     ],
     "claim_type": "normative",
     "sources": [
-      "https://cheatsheetseries.owasp.org/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.html"
+      "https://cheatsheetseries.owasp.org/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.html",
+      "https://owasp.org/Top10/2025/"
     ]
   },
   "18-query-optimization.rewriting-the-query-reshaping-the-model.q5": {
@@ -2151,7 +2159,7 @@
     ]
   },
   "20-observability-sre.slos-alerting-incidents.q5": {
-    "reviewed_at": "2026-08-23",
+    "reviewed_at": "2026-10-26",
     "target_versions": [
       "Google SRE current SLO guidance",
       "OpenTelemetry Semantic Conventions 1.44.0 at review",
@@ -2163,7 +2171,8 @@
       "https://sre.google/sre-book/monitoring-distributed-systems/",
       "https://opentelemetry.io/docs/specs/semconv/messaging/messaging-spans/",
       "https://prometheus.io/docs/prometheus/latest/configuration/recording_rules/",
-      "https://prometheus.io/docs/prometheus/latest/configuration/alerting_rules/"
+      "https://prometheus.io/docs/prometheus/latest/configuration/alerting_rules/",
+      "https://github.com/open-telemetry/semantic-conventions/releases/tag/v1.44.0"
     ]
   },
   "20-observability-sre.slos-alerting-incidents.q6": {
@@ -2489,7 +2498,7 @@
     ]
   },
   "20-observability-sre.the-three-pillars-how-to-measure.q1": {
-    "reviewed_at": "2026-09-12",
+    "reviewed_at": "2026-10-26",
     "target_versions": [
       "OpenTelemetry Semantic Conventions 1.44.0 at review",
       "OpenTelemetry current signals and sampling documentation",
@@ -2501,7 +2510,8 @@
       "https://opentelemetry.io/docs/specs/semconv/",
       "https://opentelemetry.io/docs/concepts/sampling/",
       "https://sre.google/sre-book/monitoring-distributed-systems/",
-      "https://sre.google/sre-book/service-level-objectives/"
+      "https://sre.google/sre-book/service-level-objectives/",
+      "https://github.com/open-telemetry/semantic-conventions/releases/tag/v1.44.0"
     ]
   },
   "21-linux-production-debug.diagnosing-the-system.q1": {
