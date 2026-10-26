@@ -416,15 +416,17 @@
     ]
   },
   "05-db-core-index-lock.transactions-mvcc-locking.q1": {
-    "reviewed_at": "2026-08-01",
+    "reviewed_at": "2026-10-25",
     "target_versions": [
       "MySQL 8.4 LTS",
+      "MySQL 9.7 LTS",
       "InnoDB"
     ],
     "claim_type": "normative",
     "sources": [
       "https://dev.mysql.com/doc/refman/8.4/en/mysql-releases.html",
-      "https://dev.mysql.com/doc/refman/8.4/en/innodb-transaction-isolation-levels.html"
+      "https://dev.mysql.com/doc/refman/8.4/en/innodb-transaction-isolation-levels.html",
+      "https://dev.mysql.com/doc/refman/9.7/en/mysql-releases.html"
     ]
   },
   "07-sql-nosql-db-engines.engine-by-engine.q4": {
