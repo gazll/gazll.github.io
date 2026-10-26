@@ -1262,6 +1262,15 @@ Item *answers* live in the topic file and arrive with that topic's route.
   API's `rev`) before calling a version current, and say "as of <date>" in the
   prose when the fact will move.
 
+  A version bump is not a find-and-replace of the number. Moving the RabbitMQ
+  records from 4.3 to 4.4 meant reading the 4.4.0 release notes' breaking
+  changes (AMQP 1.0 legacy headers, OAuth discovery, `hash_password` — none
+  touching acks, confirms or DLX) before restamping, and it turned up a claim
+  that needed changing (classic-queue lazy mode is a no-op) and an item with no
+  review record at all (topic 08's retry/DLQ answer, which gained quorum-queue
+  delayed retry). Re-read each claim a record covers, and look for neighbours
+  that make the same kind of claim without one.
+
 - **No paragraph runs past 300 characters, and the corpus is held at zero.**
   `node tools/audit-content.mjs --dense` measures it per run (a paragraph, a
   bullet, or one callout line) and per table cell (120 without a `<br>`). The
@@ -1274,6 +1283,35 @@ Item *answers* live in the topic file and arrive with that topic's route.
   with a full stop — and the EN and VI answers get the same shape, not just the
   same counts. `--dense` counts GFM pipe tables as tables since that pass; it
   used to measure a whole pipe table as one paragraph.
+
+- **A table or a figure earns its place by structure, not by being missing.**
+  The 2026-10-26 depth pass added tables and SVG figures to the platform and
+  microservice topics; five lessons from it:
+
+  1. **A table needs parallel rows.** Four or more rows answering the same
+     columns (Lens / Signal / Measures, Parameter / What it bounds / Set it
+     from) read better as a table; three points that are not the same kind of
+     thing make a thin table, and topic 25's sync/async item stayed prose for
+     that reason.
+  2. **Converting is a review.** Laying RED/USE out in columns exposed that
+     `active/max` had been labelled *saturation* — it is utilization, and
+     saturation is the queue (`hikaricp_connections_pending`). Read every cell
+     against its column header, not just the prose it came from.
+  3. **Write tables as `<table class="cmp">`, with `<code>`, not backticks.**
+     A raw HTML block is not Markdown, so a backtick inside a cell prints as a
+     backtick. Cells keep the 120-character cap; a long one gets a `<br>`.
+  4. **SVG `<text>` does not wrap, and the Vietnamese label is the long one.**
+     Render both languages before committing — the Kubernetes figure (topic
+     14) had three labels running past their boxes in VI only. Shoot it on a
+     dark background too: a figure carries its own light panel `<rect>`, so
+     it stays legible in the dark theme.
+  5. **A figure goes right after the paragraph it illustrates**, and its
+     caption says the mechanism in sentences (what writes, what watches, what
+     happens on failure); a caption that repeats the labels adds nothing.
+
+  The coverage that pass reached (platform 51% of items with a table, 7% with
+  a figure) is a snapshot; `node tools/validate-content.mjs --stats` is the
+  number.
 
 - **One owner per mechanism, pointers everywhere else.** Duplicated *mechanism*
   — the same parameter table, the same trap list, the same example — is the
