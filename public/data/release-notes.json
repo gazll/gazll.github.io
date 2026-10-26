@@ -76,6 +76,16 @@
         },
         {
           "kind": "content",
+          "target": "26-testing-strategy",
+          "en": {
+            "text": "The Testcontainers examples use the 2.x PostgreSQLContainer, which moved package and is no longer generic; the 1.x class is deprecated."
+          },
+          "vi": {
+            "text": "Ví dụ Testcontainers dùng PostgreSQLContainer của 2.x, đã đổi package và không còn generic; class của 1.x đã deprecated."
+          }
+        },
+        {
+          "kind": "content",
           "target": "system-design",
           "en": {
             "text": "The API gateway blueprint pins Spring Cloud Gateway 5.0.4 on the 2025.1.4 release train."
