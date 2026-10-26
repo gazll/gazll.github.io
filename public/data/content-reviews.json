@@ -114,14 +114,15 @@
     ]
   },
   "03-spring-boot-deep-build.auto-configuration-build.q10": {
-    "reviewed_at": "2026-09-12",
+    "reviewed_at": "2026-10-26",
     "target_versions": [
       "Spring Boot 4.1.x",
-      "Testcontainers for Java current documentation"
+      "Testcontainers for Java 2.0.5"
     ],
     "claim_type": "normative",
     "sources": [
-      "https://docs.spring.io/spring-boot/reference/testing/testcontainers.html"
+      "https://docs.spring.io/spring-boot/reference/testing/testcontainers.html",
+      "https://github.com/testcontainers/testcontainers-java/releases/tag/2.0.5"
     ]
   },
   "03-spring-boot-deep-build.auto-configuration-build.q17": {
@@ -1223,13 +1224,15 @@
     ]
   },
   "26-testing-strategy.integration-tests-that-tell-the-truth.q1": {
-    "reviewed_at": "2026-08-10",
+    "reviewed_at": "2026-10-26",
     "target_versions": [
-      "Testcontainers for Java 1.x"
+      "Testcontainers for Java 2.0.5",
+      "PostgreSQL 18"
     ],
     "claim_type": "heuristic",
     "sources": [
-      "https://java.testcontainers.org/features/reuse/"
+      "https://java.testcontainers.org/features/reuse/",
+      "https://github.com/testcontainers/testcontainers-java/releases/tag/2.0.5"
     ]
   },
   "26-testing-strategy.integration-tests-that-tell-the-truth.q3": {
