@@ -3,6 +3,7 @@ const props = defineProps<{ total: number }>();
 const { $auth, $apiCall } = useNuxtApp() as any;
 const users = ref<any[]>([]);
 const message = ref('');
+const failed = ref(false);
 const loading = ref(false);
 let stop: (() => void) | null = null;
 const sum = (field: string) => users.value.reduce((total, user) => total + (Number(user[field]) || 0), 0);
@@ -26,11 +27,13 @@ async function load() {
   }
   loading.value = true;
   message.value = '';
+  failed.value = false;
   try {
     const data = await $apiCall('admin.overview', {}, $auth.token);
     users.value = data.users || [];
   } catch (error: any) {
-    message.value = error.message || String(error);
+    message.value = `The overview could not be loaded: ${error.message || String(error)}`;
+    failed.value = true;
   } finally { loading.value = false; }
 }
 onMounted(() => { stop = $auth.onChange(load); load(); });
@@ -40,7 +43,7 @@ onBeforeUnmount(() => stop?.());
 <template>
   <div>
     <p v-if="loading">Loading all-user overview…</p>
-    <div v-if="message" class="warn">{{ message }}</div>
+    <div v-if="message" class="warn gs-error-state"><span>{{ message }}</span><button v-if="failed" type="button" class="gs-retry" @click="load">Try again</button></div>
     <template v-if="users.length">
       <div id="admin-summary" data-ui="admin-summary" class="stat-row">
         <div class="stat-tile"><div class="stat-label">Users</div><div class="stat-value">{{ users.length }}</div></div>
