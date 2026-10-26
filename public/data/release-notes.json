@@ -4,6 +4,67 @@
     {
       "date": "2026-10-26",
       "en": {
+        "title": "RabbitMQ 4.4 retries, and more tables and figures for platform answers"
+      },
+      "vi": {
+        "title": "Retry của RabbitMQ 4.4, thêm bảng và hình cho các câu platform"
+      },
+      "changes": [
+        {
+          "kind": "content",
+          "target": "08-message-queue",
+          "en": {
+            "text": "The retry/DLQ answer adds quorum-queue delayed retry (RabbitMQ 4.3) and delayed delivery (4.4), and why the delivery limit still needs a DLX."
+          },
+          "vi": {
+            "text": "Câu retry/DLQ thêm delayed retry của quorum queue (RabbitMQ 4.3) và delayed delivery (4.4), cùng lý do delivery limit vẫn cần DLX."
+          }
+        },
+        {
+          "kind": "content",
+          "target": "20-observability-sre",
+          "en": {
+            "text": "RED and USE are one table with a Java-service example per signal; the pool query now measures saturation with pending, not active/max."
+          },
+          "vi": {
+            "text": "RED và USE gộp thành một bảng, mỗi signal có ví dụ cho Java service; query pool giờ đo saturation bằng pending thay vì active/max."
+          }
+        },
+        {
+          "kind": "content",
+          "target": "25-microservice",
+          "en": {
+            "text": "HikariCP parameters are a table of what each one bounds and what sets its value."
+          },
+          "vi": {
+            "text": "Các parameter HikariCP thành bảng: mỗi cái giới hạn gì và đặt giá trị theo đâu."
+          }
+        },
+        {
+          "kind": "content",
+          "target": "14-devops-k8s-best-practices",
+          "en": {
+            "text": "Kubernetes architecture has a figure of components acting through the API server; Service, Ingress, ConfigMap and Secret are a table."
+          },
+          "vi": {
+            "text": "Kiến trúc Kubernetes có hình các thành phần hoạt động qua API server; Service, Ingress, ConfigMap và Secret thành bảng."
+          }
+        },
+        {
+          "kind": "content",
+          "target": "21-linux-production-debug",
+          "en": {
+            "text": "The first-minute checklist adds a table of which reading points to which resource, with links to the drill-down answers."
+          },
+          "vi": {
+            "text": "Checklist phút đầu thêm bảng con số nào chỉ về tài nguyên nào, kèm link tới các câu đào sâu."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-10-26",
+      "en": {
         "title": "Tables and figures where the platform and microservice answers compared in prose"
       },
       "vi": {
