@@ -3926,5 +3926,19 @@
       "https://cwiki.apache.org/confluence/display/KAFKA/KIP-932%3A+Queues+for+Kafka",
       "https://downloads.apache.org/kafka/4.4.0/RELEASE_NOTES.html"
     ]
+  },
+  "25-microservice.04-messaging-event-driven-at-scale.q1": {
+    "reviewed_at": "2026-10-26",
+    "target_versions": [
+      "RabbitMQ 4.4 (lazy mode removed in 3.12)",
+      "Apache Kafka 4.x consumer"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://www.rabbitmq.com/docs/lazy-queues",
+      "https://www.rabbitmq.com/docs/quorum-queues",
+      "https://www.rabbitmq.com/docs/classic-queues",
+      "https://kafka.apache.org/documentation/#consumerconfigs"
+    ]
   }
 }
