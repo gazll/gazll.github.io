@@ -58,7 +58,7 @@ jobs:
           mkdir -p screenshots
           node tools/screenshots.mjs .output/public screenshots --axe | tee screenshots/summary.txt
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: screenshots
