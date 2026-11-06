@@ -4,20 +4,20 @@
     {
       "date": "2026-11-06",
       "en": {
-        "title": "Oracle in one picture"
+        "title": "Oracle at a glance"
       },
       "vi": {
-        "title": "Oracle trong một hình"
+        "title": "Tổng quan Oracle"
       },
       "changes": [
         {
           "kind": "content",
           "target": "07-sql-nosql-db-engines",
           "en": {
-            "text": "New card: one diagram and a short summary of buffer cache, undo, redo, SCN, MVCC and isolation, each part pointing to its detail card."
+            "text": "New card: a step-by-step diagram of a SELECT through a B-tree index and heap table, plus a short summary of buffer cache, undo, redo, SCN, MVCC and isolation, each part pointing to its detail card."
           },
           "vi": {
-            "text": "Thêm một câu: một sơ đồ và phần tóm tắt ngắn về buffer cache, undo, redo, SCN, MVCC và isolation, mỗi phần trỏ tới câu chi tiết."
+            "text": "Thêm một câu: sơ đồ từng bước của lệnh SELECT qua B-tree index và heap table, cùng phần tóm tắt ngắn về buffer cache, undo, redo, SCN, MVCC và isolation, mỗi phần trỏ tới câu chi tiết."
           }
         }
       ]

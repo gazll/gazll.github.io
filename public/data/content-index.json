@@ -1689,8 +1689,8 @@
       "vi": "Làm sao để search, cache hoặc OLAP projection có thể rebuild và biết mình đang stale đến mức nào?"
     },
     "07-sql-nosql-db-engines.engine-by-engine.q11": {
-      "en": "Oracle in one picture: how do buffer cache, undo, redo, SCN, MVCC and isolation serve a SELECT and a SELECT FOR UPDATE?",
-      "vi": "Oracle trong một hình: buffer cache, undo, redo, SCN, MVCC và isolation phục vụ SELECT và SELECT FOR UPDATE ra sao?"
+      "en": "Oracle at a glance: how do buffer cache, undo, redo, SCN, MVCC and isolation serve a SELECT and a SELECT FOR UPDATE?",
+      "vi": "Tổng quan Oracle: buffer cache, undo, redo, SCN, MVCC và isolation phục vụ SELECT và SELECT FOR UPDATE ra sao?"
     },
     "08-message-queue.the-two-models.q1": {
       "en": "The RabbitMQ model: exchange, queue, binding, routing key?",
