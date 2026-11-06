@@ -3954,5 +3954,21 @@
       "https://www.rabbitmq.com/docs/dlx",
       "https://github.com/rabbitmq/rabbitmq-server/blob/main/release-notes/4.4.0.md"
     ]
+  },
+  "07-sql-nosql-db-engines.engine-by-engine.q11": {
+    "reviewed_at": "2026-11-06",
+    "target_versions": [
+      "Oracle AI Database Concepts 26ai",
+      "Oracle AI Database SQL Language Reference 26ai"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.oracle.com/en/database/oracle/oracle-database/26/cncpt/data-concurrency-and-consistency.html",
+      "https://docs.oracle.com/en/database/oracle/oracle-database/26/cncpt/transactions.html",
+      "https://docs.oracle.com/en/database/oracle/oracle-database/26/cncpt/process-architecture.html",
+      "https://docs.oracle.com/en/database/oracle/oracle-database/26/cncpt/memory-architecture.html",
+      "https://docs.oracle.com/en/database/oracle/oracle-database/26/sqlrf/SELECT.html",
+      "https://docs.oracle.com/en/error-help/db/ora-01555/"
+    ]
   }
 }
