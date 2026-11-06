@@ -2,6 +2,27 @@
   "version": 1,
   "releases": [
     {
+      "date": "2026-11-06",
+      "en": {
+        "title": "Oracle in one picture"
+      },
+      "vi": {
+        "title": "Oracle trong một hình"
+      },
+      "changes": [
+        {
+          "kind": "content",
+          "target": "07-sql-nosql-db-engines",
+          "en": {
+            "text": "New card: one diagram and a short summary of buffer cache, undo, redo, SCN, MVCC and isolation, each part pointing to its detail card."
+          },
+          "vi": {
+            "text": "Thêm một câu: một sơ đồ và phần tóm tắt ngắn về buffer cache, undo, redo, SCN, MVCC và isolation, mỗi phần trỏ tới câu chi tiết."
+          }
+        }
+      ]
+    },
+    {
       "date": "2026-10-26",
       "en": {
         "title": "RabbitMQ 4.4 retries, and more tables and figures for platform answers"
