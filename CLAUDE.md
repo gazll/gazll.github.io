@@ -98,7 +98,7 @@ public/
   course-registration/ standalone course-registration browser tool
 vendor/mermaid-11.16.1/  pinned upstream build; version lives in the directory name
   data/
-    manifest.json       ordered list of every topic (n, topic_type, file, optional surface) — 27 rows
+    manifest.json       ordered list of every topic (n, topic_type, file, optional surface)
     meta.json            label/title/intro/tags/key/topic_type per topic, VI + EN in one file
     topics/NN-slug.json     complete English base, one file per topic (one file per manifest row;
                          `node tools/validate-content.mjs` prints the live item count — do not
@@ -234,7 +234,7 @@ secret/              GITIGNORED. Personal setup notes and credentials
   `/api/content/item-index`, **not** the topic that happens to be open — one
   route serves one topic, so deriving the denominator from what is in memory
   would shrink the ring to that topic. The index is generated from the
-  same rules `_apply()` applies, dropping everything routed to another surface
+  manifest's `surface` and `system_design_items` by `tools/build-content-index.mjs`, dropping everything routed to another surface
   — so the denominator is smaller than what `data/topics/` holds.
   `validate-content.mjs` prints both numbers so the split stays visible; read
   them from it rather than from here, because a written-down count goes stale
@@ -243,7 +243,7 @@ secret/              GITIGNORED. Personal setup notes and credentials
   (the whole topic, 10, 11 and 27), or a row listing individual ids in
   `system_design_items` (the OTA/whiteboard overlap in topic 16). Either way
   the item keeps its id and its `data/topics/` file — **the ids are stored
-  Sheet keys**, so a reader's existing `progress` rows for those 59 items stay
+  Sheet keys**, so a reader's existing `progress` rows for those items stay
   in the Sheet, simply uncounted. Never "clean up" by deleting the source
   items. Moving items between surfaces silently changes every reader's ring,
   so it belongs in `data/release-notes.json`.
@@ -259,7 +259,7 @@ secret/              GITIGNORED. Personal setup notes and credentials
   bar. Every item needs a `difficulty` the same way (`core` · `advanced` · `extra`,
   `DIFFICULTIES` in `lib/constants.js`) — it drives the ESSENTIAL/ADVANCED/EXTRA
   badge. `lib/constants.js`'s `label` is UI chrome (always English, per the
-  "interface is always English" rule above); its `vi` field is reference
+  "shell stays English" rule above); its `vi` field is reference
   only and nothing renders it.
 
 - **Raw HTML blocks in a topic's `data/topics/NN-slug.json` end at the first
@@ -351,7 +351,7 @@ secret/              GITIGNORED. Personal setup notes and credentials
   `lib/dsa-player.js` fills it. `<figure>` and not `<div>`: `div` is not in
   `validate-content.mjs`'s `KNOWN` tag list, so a `<div>` placeholder fails
   validation. Every path that replaces card markup must call `stopDsaPlayers`
-  first and `mountDsaPlayers` after — `renderDay`, "Expand all", collapsing a
+  first and `mountDsaPlayers` after — `QuestionCard.vue`'s render, "Expand all", collapsing a
   card, and the per-card language switch all do. Skip the stop and the
   `setInterval` keeps stepping a detached node. The per-card switch flips one
   card without touching the page language, which is why `mountDsaPlayers` takes
@@ -810,14 +810,14 @@ secret/              GITIGNORED. Personal setup notes and credentials
   `app/components/content/CollectionArticle.vue` owns the
   reading chrome the libraries share — heading TOC, its persisted collapse state
   (`gazll:article-toc`) and the figure lightbox — so its hooks mean *article*,
-  not *case study*. Adding a subject is a directory plus one `createCollection`
-  line, never a second copy of either file. **Other Knowledge is not Study Track**: its
+  not *case study*. Adding a subject is a directory plus one `COLLECTIONS`
+  entry, never a second copy of either file. **Other Knowledge is not Study Track**: its
   articles have no `item_id`, no difficulty progress and no notes, and they
   never move the progress ring. They are all first-party, so a row must carry
   `first_party: true` and **neither** `company` nor `source_url` — the test
   asserts the absence, exactly as the case-study rule does. A new surface is
   also invisible to search until it is fed into `buildEntries`, and an empty
-  collection makes that silent; `tests/knowledge.test.mjs` pins it.
+  collection makes that silent; `tests/libraries.test.mjs` pins it.
 
 - **A library card's kicker names the thing; the meta row times it.** Both
   libraries use the same two-part card: `.sd-card-kicker` / `.cs-card-kicker`
@@ -831,7 +831,7 @@ secret/              GITIGNORED. Personal setup notes and credentials
   production case has one. The meta row is shared CSS between the two
   libraries on purpose, `·` separators via `>*+*::before` — the old
   `.content-updated` mixed a `border-left` divider into a line that already
-  separated with `·`, and it is gone. `tests/system-design.test.mjs` pins all
+  separated with `·`, and it is gone. `tests/libraries.test.mjs` pins all
   of it, including that `.sd-case-art` keeps an **explicit width**. It had
   none, so its `auto` grid track was sized from the cover's own intrinsic
   width — a wide diagram can take the column and leave `minmax(0,1fr)` at
@@ -908,7 +908,7 @@ secret/              GITIGNORED. Personal setup notes and credentials
   and `#/project` onto the filesystem routes once, on entry, with `replace:true`
   so it adds no history entry. Deleting it turns every existing bookmark into a
   404 — that is a separate promise from "the view registry is gone", and
-  `tests/legacy-removal.test.mjs` pins both halves.
+  `tests/native-surfaces.test.mjs` pins both halves.
 
 - **Route metadata belongs to Nuxt pages.** Keep titles and descriptions in
   `useHead`/`useSeoMeta` where a page needs them. The removed hash-router
@@ -927,7 +927,7 @@ secret/              GITIGNORED. Personal setup notes and credentials
   a publisher's 2020 "join us" CTA, addressed to our reader as if we were
   hiring) and a **`http://` link** — `upgrade-insecure-requests` rewrites it, so
   a host without TLS becomes a link that cannot succeed. Both are asserted in
-  `tests/case-studies.test.mjs`. What a body *should* keep is the original's
+  `tests/libraries.test.mjs`. What a body *should* keep is the original's
   own citations, even to a blog or a video: that is the article's provenance,
   not ours. When such a source is dead, unlink it and leave the URL as `<code>`
   — the citation survives, the broken promise does not. Same reason `alt` text
@@ -986,7 +986,7 @@ secret/              GITIGNORED. Personal setup notes and credentials
   never print a `data_model` / `stack` / `tradeoffs` row with `{{ row }}` — the
   Nuxt migration did exactly that and 350 of 588 rows lost their name/detail
   split, the longest running 914 characters as one unbroken block.
-  `tests/system-design.test.mjs` pins the span cap, the text-preservation
+  `tests/libraries.test.mjs` pins the span cap, the text-preservation
   round-trip and `.sd-comparison-wrap`. These five decisions were made together against a real
   blueprint (`scaling-1m-to-10m-requests`) and each one replaced something that
   had already been tried and read badly. Changing one in isolation reintroduces
@@ -999,14 +999,14 @@ secret/              GITIGNORED. Personal setup notes and credentials
      the rest. `comparisonTable()` now emits `.sd-decision-row`: name on its own
      line with a number chip, detail beneath it, indented under a left rule and
      free to use the full width. **`.sd-comparison-wrap` is kept as the outer
-     class on purpose** — `tests/system-design.test.mjs` pins it.
+     class on purpose** — `tests/libraries.test.mjs` pins it.
   2. **A `:` or `—` in a catalog row is a structural break, not punctuation.**
      `splitDecision()` splits there, and both halves render on their own line.
      Never render the raw string — the label runs straight into the body text,
      which is the "dính chữ" this replaced. The same split drives the trade-off
      cards (`<strong>` + `<p>`), so they match.
   3. **Three tones, and they must stay rare.** `emphasize()` in
-     `app/pages/system-design/[slug].vue` is the only thing that colours body text:
+     `app/utils/design-prose.js` is the only thing that colours body text:
      `.sd-crit` clay = the cost or what breaks, `.sd-note` emerald = the rule
      that settles a choice, `.sd-num` ink-bold = quantities. The patterns are
      **narrow multi-word phrases, deliberately not keyword lists** — an earlier
@@ -1032,8 +1032,8 @@ secret/              GITIGNORED. Personal setup notes and credentials
      grid column, and `--sd-gutter` — the body card's own horizontal padding,
      declared once on `.sd-article` so the two cannot drift — reaches the text
      inside it. Padding only to the grid column is the bug this replaced: the
-     title started 58px left of the first paragraph under it. The desktop TOC collapses to a 44px icon rail
-     rather than unmounting — the grid column keeps its place, so collapsing
+     title started 58px left of the first paragraph under it. Collapsed, the desktop TOC keeps a 44px grid track
+     rather than unmounting (its links float, see the floating-panel rule below) — the grid column keeps its place, so collapsing
      never reflows the body mid-read, and `--sd-rail` drives the head padding
      and the grid together. State persists in `gazll:system-design-toc` (the native surfaces use the
   `gazll:` prefix; the retained browser modules keep their older `gazl.` keys,
@@ -1055,7 +1055,7 @@ secret/              GITIGNORED. Personal setup notes and credentials
      deletes source text) and a bullet list never renders without the lead
      line that introduces it, or the reader gets clauses with no sentence.
      The **only** character a transform may consume is the `;` it replaced with
-     a bullet; `tests/prose.test.mjs` and both view tests compare the rendered
+     a bullet; `tests/libraries.test.mjs` compares the rendered
      text back to the source with that one normalisation.
   6. **A blueprint answers its own failure review; the view never invents one.**
      `failure_review` is **required** in both languages and
@@ -1176,13 +1176,13 @@ secret/              GITIGNORED. Personal setup notes and credentials
   you do while reading.
 
 - **A silent sign-in attempt must always end.** `Auth.connecting` is only true
-  while an attempt is genuinely in flight; `SILENT_MS` and the
+  while an attempt is genuinely in flight; `PROMPT_MS` and the
   `prompt()` notification each end it, and the resting state afterwards is
   `stale` — a still badge plus a real sign-in button. Do not reintroduce
   "has a hint and no token ⇒ connecting": FedCM suppressing the prompt is
   routine, and that spelling left the header spinner running forever with no
   way in. `Auth.state` is the single value the UI switches on.
-  `tests/auth.state.test.mjs` pins all of it.
+  `tests/account.test.mjs` pins all of it.
 
 ## The VI/EN language split
 
@@ -1225,9 +1225,9 @@ Item *answers* live in the topic file and arrive with that topic's route.
   `key` is the topic's filename stem (without `.json`) — the id-reference
   the file names are built from, kept here so lookups do not need to parse
   paths, and the prefix every item ID in that topic starts with.
-- **`_apply()` must keep cloning the source.** Overlaying in place would
-  overwrite one language's strings with the other's, and switching back
-  would then show the wrong text.
+- **The switch picks a whole file, never overlays one.** `TopicPage.vue` reads
+  `vi` or `en` as returned; merging one language into the other in place
+  would overwrite strings, and switching back would show the wrong text.
 - **Content is validated, not trusted.** `validate-content.mjs` checks the
   manifest/meta contract, topic types and difficulties, item schemas and IDs,
   matching bilingual section/item sequences, markup safety, duplicate IDs,
@@ -1244,7 +1244,7 @@ Item *answers* live in the topic file and arrive with that topic's route.
   interview material for people who will be asked what they would do *now*, so
   a claim is worth what its source is worth: the spec, the RFC, the project's
   own reference docs, the vendor's own limits page — not a blog rewrite of
-  them. The research-source allowlist in `tests/system-design.test.mjs` is a
+  them. The research-source allowlist in `tests/libraries.test.mjs` is a
   whitelist of origins, **not a limit on research**: when the best source for
   something lives on a host that is not in it yet, add the origin rather than
   settle for a weaker source. Every version-bound claim gets an entry in
@@ -1377,7 +1377,7 @@ Item *answers* live in the topic file and arrive with that topic's route.
 
 ## Testing
 
-**Be sparing with new tests.** The suite is ten files grouped by subject, not
+**Be sparing with new tests.** The suite is grouped by subject, not
 one file per module, and it is already the slowest part of `check.mjs`. A test
 earns its place by pinning a decision that would otherwise be silently undone
 — the ones this file documents: the contrast floor, the `source_url` absence on
@@ -1393,8 +1393,8 @@ So before writing one, ask what would break without it. Do not add a test that:
   its next line computes fails only when the code changes on purpose, which is
   the cost without the benefit.
 - **covers a change already covered.** Extend an existing case in the subject's
-  file instead — a new `describe` block with one assertion is how ten files
-  become thirty.
+  file instead — a new `describe` block with one assertion is how the suite
+  doubles.
 
 Prefer strengthening an existing assertion over adding a new one, and adding to
 an existing file over creating one. A new `tests/*.test.mjs` is picked up from
