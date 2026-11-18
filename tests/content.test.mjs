@@ -82,10 +82,11 @@ import { randomUUID } from 'node:crypto';
   });
 
   test('English is the default language and every Study Track topic loads, including microservice', async () => {
-    const payload = await route('content/topic/[slug]', { slug: META.topics['1'].key });
+    const payload = await route('content/topic/[slug]/[lang]', { slug: META.topics['1'].key, lang: 'en' });
     assert.equal(payload.rows.length, TRACK_ROWS.length, 'the picker lists exactly the Study Track');
     assert.equal(payload.rows.find(row => row.n === 25)?.topic_type, 'microservice');
-    assert.ok(payload.en.sections.length, 'the requested topic arrives complete in English');
+    assert.equal(payload.lang, 'en');
+    assert.ok(payload.body.sections.length, 'the requested topic arrives complete in English');
   });
 
   test('every topic exposes Git-derived written and updated dates', async () => {
@@ -95,13 +96,13 @@ import { randomUUID } from 'node:crypto';
       assert.match(metadata.updated_at, ISO_DATE, row.file + ': updated_at');
       assert.ok(metadata.created_at <= metadata.updated_at, row.file + ': dates are reversed');
     }
-    const payload = await route('content/topic/[slug]', { slug: META.topics['1'].key });
+    const payload = await route('content/topic/[slug]/[lang]', { slug: META.topics['1'].key, lang: 'en' });
     assert.match(payload.meta.created_at, ISO_DATE);
     assert.match(payload.meta.updated_at, ISO_DATE);
   });
 
   test('moved System Design sources leave the Study Track but remain available by immutable item id', async () => {
-    const payload = await route('content/topic/[slug]', { slug: META.topics['16'].key });
+    const payload = await route('content/topic/[slug]/[lang]', { slug: META.topics['16'].key, lang: 'en' });
     const listed = new Set(payload.rows.map(row => row.n));
     assert.equal(listed.has(10), false);
     assert.equal(listed.has(11), false);
@@ -145,34 +146,39 @@ import { randomUUID } from 'node:crypto';
     }
   });
 
-  test('both languages of a topic arrive together, so the header switch never refetches', async () => {
+  test('each language arrives on its own route, untouched, so a page ships only the one it shows', async () => {
     const key = META.topics['1'].key;
-    const payload = await route('content/topic/[slug]', { slug: key });
+    const [en, vi] = await Promise.all(['en', 'vi'].map(lang => route('content/topic/[slug]/[lang]', { slug: key, lang })));
     const enBase = TOPIC_FILES.get('data/topics/' + key + '.json');
     const viBase = TOPIC_VI_FILES.get('data/topics/' + key + '.vi.json');
 
-    assert.equal(payload.en.sections[0].title, enBase.sections[0].title);
-    assert.equal(payload.vi.sections[0].title, viBase.sections[0].title);
-    assert.equal(payload.en.sections[0].items[0].a, enBase.sections[0].items[0].a);
-    assert.equal(payload.vi.sections[0].items[0].a, viBase.sections[0].items[0].a);
+    assert.deepEqual(en.body, enBase);
+    assert.deepEqual(vi.body, viBase);
+    // The other language is what the page payload no longer carries.
+    assert.ok(!('en' in en) && !('vi' in en), 'a page payload must not embed the second language');
+    await assert.rejects(() => route('content/topic/[slug]/[lang]', { slug: key, lang: 'fr' }), /unknown language/i);
   });
 
   test('one route serves one topic; the rest are metadata until asked for', async () => {
-    const payload = await route('content/topic/[slug]', { slug: META.topics['1'].key });
+    const payload = await route('content/topic/[slug]/[lang]', { slug: META.topics['1'].key, lang: 'en' });
     // Every row for the picker, but only the requested topic's answers.
     assert.equal(payload.rows.length, TRACK_ROWS.length);
     assert.equal(payload.stem, META.topics['1'].key);
     assert.ok(!('sections' in payload.rows[1]), 'an unopened topic must stay a metadata shell');
     assert.equal(Object.keys(payload.topicMeta).length, Object.keys(META.topics).length);
+    // The picker reads labels only; intros and tags of 27 other topics stay home.
+    assert.deepEqual(Object.keys(payload.topicMeta['2'].en), ['label']);
   });
 
   test('technical review provenance is carried per immutable item id', async () => {
-    // The route ships the review map whole and the view joins it onto the item,
-    // so the contract to hold is that every reviewed id is a real item and the
-    // map reaches the page keyed by that id.
-    const payload = await route('content/topic/[slug]', { slug: META.topics['1'].key });
-    const [id, review] = Object.entries(REVIEWS)[0];
-    assert.equal(payload.reviews[id].reviewed_at, review.reviewed_at);
+    // The route ships this topic's review dates keyed by item id and the view
+    // joins them onto the item; every reviewed id must be a real item.
+    const key = META.topics['1'].key;
+    const payload = await route('content/topic/[slug]/[lang]', { slug: key, lang: 'en' });
+    const [id, review] = Object.entries(REVIEWS).find(([candidate]) => candidate.startsWith(key + '.'));
+    assert.equal(payload.reviewedAt[id], review.reviewed_at);
+    assert.ok(Object.keys(payload.reviewedAt).every(candidate => candidate.startsWith(key + '.')),
+      'only the requested topic\'s reviews ride in its payload');
 
     const owner = TOPIC_FILES.get('data/topics/' + id.split('.')[0] + '.json');
     assert.ok(owner, `${id} names no topic file`);
@@ -180,27 +186,27 @@ import { randomUUID } from 'node:crypto';
       `${id} is reviewed but no longer exists`);
 
     const view = await readFile(path.join(root, 'app/components/study/TopicPage.vue'), 'utf8');
-    assert.match(view, /reviews\[item\.id\]\?\.reviewed_at/);
+    assert.match(view, /reviewedAt\[item\.id\]/);
   });
 
   test('a missing .vi.json degrades to the English base instead of throwing', async () => {
     // Every companion exists today, so the guard is proven on a topic renamed
     // out from under the route rather than by deleting a real file.
-    const missing = await route('content/topic/[slug]', { slug: META.topics['1'].key });
-    assert.ok(missing.vi, 'the real pair still loads');
+    const missing = await route('content/topic/[slug]/[lang]', { slug: META.topics['1'].key, lang: 'en' });
+    assert.equal(missing.hasVi, true, 'the real pair still loads');
 
-    await assert.rejects(() => route('content/topic/[slug]', { slug: 'no-such-topic' }),
+    await assert.rejects(() => route('content/topic/[slug]/[lang]', { slug: 'no-such-topic', lang: 'en' }),
       /not found/i, 'an unknown topic is a 404, never a half-rendered page');
   });
 
-  test('the payload carries both languages untouched, so neither can overwrite the other', async () => {
+  test('the two languages come from separate sources, so neither can overwrite the other', async () => {
     const key = META.topics['17'].key;
-    const payload = await route('content/topic/[slug]', { slug: key });
+    const [payload, vi] = await Promise.all(['en', 'vi'].map(lang => route('content/topic/[slug]/[lang]', { slug: key, lang })));
     const meta = payload.topicMeta['17'];
     assert.ok(meta.en.label && meta.vi.label);
     assert.notEqual(meta.en.label, meta.vi.label, 'topic 17 is translated; a shared object would collapse them');
     // The route hands over the sources; nothing overlays one onto the other.
-    assert.notEqual(payload.en.sections[0].items[0].a, payload.vi.sections[0].items[0].a);
+    assert.notEqual(payload.body.sections[0].items[0].a, vi.body.sections[0].items[0].a);
   });
 
 /* Three surfaces need content-index.json during SSR — the progress ring's

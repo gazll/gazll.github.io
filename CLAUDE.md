@@ -1192,13 +1192,17 @@ secret/              GITIGNORED. Personal setup notes and credentials
 
 English is the **default and base** language. Every base topic file is
 complete English, and every `.vi.json` companion is complete Vietnamese.
-**Both languages of a topic always arrive together, and one route serves one
-topic.** `/api/content/topic/<stem>` returns the picker rows, that topic's
-metadata, the review map, and the topic's base file **and** its `.vi.json`
-companion. Because a topic never arrives in one language alone, the header
-switch selects already-loaded text and never refetches. If a `.vi.json`
-companion cannot be read, the route returns `vi: null` and VI mode displays
-that topic's English base instead of failing.
+**One route serves one topic in one language.**
+`/api/content/topic/<stem>/<en|vi>` returns the picker rows (labels only), that
+topic's metadata, its own review dates, and `body` — the base file or its
+`.vi.json` companion. Both used to ride in every page payload, so an English
+reader downloaded the whole Vietnamese topic too; since 2026-11-18 the page
+embeds the language it renders and `TopicPage.vue`'s `loadLanguage` fetches the
+other once, on the first header switch or per-card switch that asks for it.
+Both language routes are prerendered (`topicApiRoutes` in `nuxt.config.ts`) —
+a query string cannot be a static file. If a `.vi.json` companion cannot be
+read, the VI route returns the English base with `hasVi: false` and the card
+switch hides, instead of failing.
 
 Anything that reaches across topics reads them on the server, where the whole
 corpus is on disk: the search index walks every topic file at prerender, and a

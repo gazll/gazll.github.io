@@ -17,7 +17,7 @@ globalThis.createError ??= options => Object.assign(
 
 const root = path.resolve(import.meta.dirname, '..');
 
-/** `route('content/topic/[slug]', { slug: '01-java-core-jvm' })` */
+/** `route('content/topic/[slug]/[lang]', { slug: '01-java-core-jvm', lang: 'en' })` */
 export async function route(file, params = {}) {
   const url = pathToFileURL(path.join(root, 'server/api', `${file}.get.ts`)).href;
   const handler = (await import(url)).default;

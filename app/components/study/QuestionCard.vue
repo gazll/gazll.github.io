@@ -8,6 +8,9 @@ import { safeDecodeURIComponent } from '~/utils/uri.js';
 const props = defineProps<{
   item: { id: string, q: string, a: string, difficulty?: string, reviewed_at?: string }
   pair?: Record<'en' | 'vi', any>
+  /* Present when the topic has a Vietnamese companion; fetches a language the
+     page has not loaded yet, so a card can switch before the page does. */
+  loadLanguage?: (language: 'en' | 'vi') => Promise<void>
   lang: 'en' | 'vi'
   sourceOwners?: Record<string, string>
   /* Built once per page from data/content-index.json — see lib/cross-ref.js.
@@ -139,9 +142,11 @@ async function toggle() {
   await setOpen(!open.value);
 }
 
-function switchLanguage() {
+async function switchLanguage() {
+  const target = localLang.value === 'vi' ? 'en' : 'vi';
+  try { await props.loadLanguage?.(target); } catch (error) { return; }
   const previousTop = card.value?.getBoundingClientRect().top ?? null;
-  localLang.value = localLang.value === 'vi' ? 'en' : 'vi';
+  localLang.value = target;
   if (languageTimer) clearTimeout(languageTimer);
   void nextTick(() => {
     /* Localized answers can have very different heights. Keeping this card's
@@ -218,7 +223,7 @@ async function copyLink() {
           <span class="qcopy-short" aria-hidden="true">{{ copied ? shortUiLabels.copied : shortUiLabels.link }}</span>
         </button>
         <span class="sr-only" role="status" aria-live="polite">{{ languageAnnouncement || (copied ? uiLabels.copied : '') }}</span>
-        <button v-if="pair?.vi" class="langswitch qlangbtn" type="button" role="switch" :aria-checked="localLang === 'vi'" :aria-label="languageActionLabel" :title="languageActionLabel" @click="switchLanguage">
+        <button v-if="loadLanguage" class="langswitch qlangbtn" type="button" role="switch" :aria-checked="localLang === 'vi'" :aria-label="languageActionLabel" :title="languageActionLabel" @click="switchLanguage">
           <span class="lang-label" data-lang="en">EN</span><span class="lang-track" aria-hidden="true"><span class="lang-knob"><ContentFlagIcon :lang="localLang" /></span></span><span class="lang-label" data-lang="vi">VI</span><span class="qlang-current" aria-hidden="true">{{ localLang.toUpperCase() }}</span>
         </button>
       </div>

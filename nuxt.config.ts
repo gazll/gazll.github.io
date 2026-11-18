@@ -23,6 +23,9 @@ function contentRoutes() {
   const caseRoutes = caseStudies.articles.map((row: { slug: string }) => `/case-studies/${row.slug}`);
   const photoRoutes = photography.articles.map((row: { slug: string }) => `/photography/${row.slug}`);
   const homelabRoutes = homelab.articles.map((row: { slug: string }) => `/homelab/${row.slug}`);
+  // A page embeds one language; the other is fetched from these on a switch.
+  const topicApiRoutes = ['first', ...topicRoutes.map((route: string) => route.slice('/topics/'.length))]
+    .flatMap((slug: string) => [`/api/content/topic/${slug}/en`, `/api/content/topic/${slug}/vi`]);
   const talkRoutes = presentations.topics.map((row: { slug: string }) => `/presentations/${row.slug}`);
 
   /* EN only, and deliberately so — this is a decision, not a gap.
@@ -43,7 +46,7 @@ function contentRoutes() {
   return [
     '/', '/search', '/api/content/search-index/en', '/api/content/search-index/vi', '/api/content/item-index', '/api/content/english-study', '/gazl-try', '/stats', '/admin', '/english-study', '/system-design', '/case-studies',
     '/project', '/project/calebzone', '/presentations', '/photography', '/homelab', '/release-notes', '/fshare-tool',
-    '/course-registration', '/calendar', ...topicRoutes, ...designRoutes, ...caseRoutes, ...photoRoutes, ...homelabRoutes, ...talkRoutes
+    '/course-registration', '/calendar', ...topicRoutes, ...designRoutes, ...caseRoutes, ...photoRoutes, ...homelabRoutes, ...talkRoutes, ...topicApiRoutes
   ];
 }
 
