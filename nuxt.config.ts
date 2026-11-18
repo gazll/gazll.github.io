@@ -52,7 +52,9 @@ export default defineNuxtConfig({
   devtools: { enabled: false },
   // Route changes cross-fade through the View Transition API where the browser
   // has it; the plugin skips it under prefers-reduced-motion.
-  experimental: { viewTransition: true },
+  // Prefetch a link's payload on hover/focus/touch, not when it scrolls into
+  // view: the header's home link alone pulled topic 01's 117KB on every page.
+  experimental: { viewTransition: true, defaults: { nuxtLink: { prefetchOn: { visibility: false, interaction: true } } } },
   ssr: true,
   /* Keep the shared stylesheet cacheable across routes instead of copying it
      into every prerendered HTML document. Vite still emits the minified,
