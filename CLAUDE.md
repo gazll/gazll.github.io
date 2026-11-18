@@ -79,6 +79,7 @@ public/
     reading-position.js  sticky group heads (returning to a card is router.options.ts)
     clipboard.js     copyText with an execCommand fallback for local HTTP previews
     dsa-anim.js      DSA step-frame model + pure SVG frame renderer (no DOM)
+    talk.js          a presentation talk's `## ` sections and Mermaid fences (pure)
     api.js           transport to Apps Script
     auth.js          Google Identity Services + the header avatar state machine
     store.js         offline-first progress, notes, study log
@@ -126,6 +127,8 @@ vendor/mermaid-11.16.1/  pinned upstream build; version lives in the directory n
     projects/calebzone/samples/     sanitized Java/XML/YAML implementation samples
     photography/     Other Knowledge collection: manifest, meta, NN-slug[.vi].json, articles/
     homelab/         the same shape for NAS / Home Server
+    presentations/board.json  weekly-talk topics: open · preparing · done, edited by PR
+    presentations/talks/<slug>.md  one talk; the page owns the frame, the file only content
     interviews.json     seed entries, merged under everyone's own Sheet rows
     interviews/private.enc.json  the operator's own company entries (JDs, what was
                          asked), AES-256-GCM under scope key `interviews`. The
@@ -179,6 +182,7 @@ docs/README.md       what each group under docs/ is for, and its lifecycle
 docs/content-playbook.md  how to add/update study content end to end
 docs/schedule-playbook.md  the calendar, the sealed schedule, and how to recover it
 docs/fshare-movie-playbook.md  the movie link catalog: raw → catalog → validate → seal
+docs/presentation-playbook.md  how a member claims a topic and writes a talk (VI)
 docs/english-speaking-os-complete-2026.md  NOT documentation — shipped data.
                      server/api/content/english-study.get.ts reads this exact
                      path, so moving or renaming it breaks /english-study

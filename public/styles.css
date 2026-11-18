@@ -3881,3 +3881,39 @@ html.ui-labels [data-ui].ui-label-active{outline:2px solid var(--md-sys-color-te
   .view-track .qcard[data-qid] .qmeta>.manual-review,.view-track .qcard[data-qid] .qmeta>.qcopy{min-width:44px;height:44px;min-height:44px}
   .view-track .qcard[data-qid] .qmeta>.qlangbtn{height:44px;min-height:44px}
 }
+
+/* ---------- presentations ----------
+   The board reuses the release-notes head; the talk page reuses the project
+   article shell (pj-*), so only cards, kind pills and talk figures live here.
+   A talk's kind is a pill pair already contrast-tested on its own container. */
+.pt-page [data-kind="current"],.pt-talk[data-kind="current"]{--k:var(--md-custom-on-teal-container);--k-soft:var(--md-custom-teal-container)}
+.pt-page [data-kind="new"],.pt-talk[data-kind="new"]{--k:var(--md-custom-on-indigo-container);--k-soft:var(--md-custom-indigo-container)}
+.pt-kind{display:inline-block;padding:2px 9px;border-radius:999px;background:var(--k-soft);color:var(--k);font:600 var(--md-sys-typescale-label-small-size)/1.5 var(--md-ref-typeface-plain)}
+.pt-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}
+.pt-action{display:inline-flex;align-items:center;min-height:36px;padding:0 14px;border:1px solid var(--line-strong);border-radius:999px;color:var(--text-header);background:var(--surface);font:600 var(--md-sys-typescale-label-medium-size) var(--md-ref-typeface-plain);text-decoration:none}
+.pt-action:hover{border-color:var(--indigo);color:var(--indigo)}
+.pt-body{max-width:var(--rn-col);margin:0 auto;padding:28px var(--rn-pad) 64px;box-sizing:content-box}
+.pt-section{margin:0 0 44px}
+.pt-section-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--line-strong)}
+.pt-section-head h2{margin:0;font-family:var(--md-ref-typeface-brand);font-size:var(--md-sys-typescale-headline-small-size);color:var(--text-header)}
+.pt-section-head p,.pt-empty{margin:0;color:var(--text-meta);font-size:var(--md-sys-typescale-body-medium-size)}
+.pt-group+.pt-group{margin-top:22px}
+.pt-page .pt-group-head{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline;margin:0 0 10px;font:600 var(--md-sys-typescale-title-small-size) var(--md-ref-typeface-plain);color:var(--text-header)}
+.pt-group-head span{color:var(--text-meta);font-weight:500}
+.pt-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:12px}
+.pt-card{padding:16px 18px;border:1px solid var(--line);border-left:4px solid var(--k-soft);border-radius:12px;background:var(--surface)}
+.pt-kicker{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin:0 0 8px;color:var(--text-meta);font:500 var(--md-sys-typescale-label-small-size) var(--md-ref-typeface-plain)}
+.pt-card h3{margin:0;font-family:var(--md-ref-typeface-brand);font-size:1.125rem;line-height:1.35}
+.pt-card h3 a{color:var(--text-header);text-decoration:none}
+.pt-card h3 a:hover{text-decoration:underline;text-underline-offset:3px}
+.pt-page .pt-answers{margin:14px 0 6px;color:var(--text-meta);font:600 var(--md-sys-typescale-label-small-size) var(--md-ref-typeface-plain)}
+.pt-outline{margin:0;padding-left:18px;color:var(--text-normal);font-size:var(--md-sys-typescale-body-medium-size);line-height:1.55}
+.pt-talk .pj-eyebrow .pt-kind{margin-right:2px}
+.pt-agenda{margin:0;padding-left:24px;font-size:var(--md-sys-typescale-body-large-size);line-height:1.7;color:var(--text-normal)}
+.pt-talk .pt-empty{margin-top:14px}
+.pt-talk .pt-md{border-top:0;padding:0;background:transparent;overflow:visible}
+.pt-talk .pt-md+.sd-diagram,.pt-talk .sd-diagram+.pt-md{margin-top:18px}
+.pt-talk .pt-md figure{margin:1.2em 0;padding:10px;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface-reading-soft)}
+.pt-talk .pt-md figure img{display:block;width:100%;height:auto;border-radius:calc(var(--radius) - 2px)}
+.pt-talk .pt-md figcaption{margin:.6em .25em 0;color:var(--text-label);font-size:.85em;line-height:1.5}
+@media (max-width:760px){.pt-talk .pt-md table{display:block;overflow-x:auto}}

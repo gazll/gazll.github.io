@@ -2,6 +2,27 @@
   "version": 1,
   "releases": [
     {
+      "date": "2026-11-18",
+      "en": {
+        "title": "Weekly presentations"
+      },
+      "vi": {
+        "title": "Thuyết trình hàng tuần"
+      },
+      "changes": [
+        {
+          "kind": "feature",
+          "target": "presentations",
+          "en": {
+            "text": "New page under Experience: a board of weekly team talks (up next, open topics to claim, presented) and a fixed reading frame for each talk, written as Markdown by pull request."
+          },
+          "vi": {
+            "text": "Trang mới trong Experience: bảng chủ đề thuyết trình hàng tuần (sắp trình bày, chủ đề còn trống, đã trình bày) và khung đọc cố định cho từng bài, viết bằng Markdown qua pull request."
+          }
+        }
+      ]
+    },
+    {
       "date": "2026-11-06",
       "en": {
         "title": "Oracle at a glance"
