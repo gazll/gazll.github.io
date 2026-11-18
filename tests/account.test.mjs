@@ -120,12 +120,14 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
         for (const t of live) { t.done = true; t.fn(); }
       },
       tellPrompt(moment) { if (promptCallback) promptCallback(moment); },
-      signInWith(claims) { credentialCallback({ credential: jwt(claims) }); },
+      // A credential only arrives after an explicit prompt, which is what loads GIS.
+      async signInWith(claims) { await mod.namespace.Auth.signIn(); credentialCallback({ credential: jwt(claims) }); },
       fireVisibility(state = 'visible') {
         document.visibilityState = state;
         for (const fn of listeners.visibilitychange || []) fn();
       },
       advance(ms) { skew += ms; },
+      get gisInitialized() { return credentialCallback !== null; },
       get promptCalls() { return promptCalls; },
       get renderCalls() { return renderCalls; }
     };
@@ -168,7 +170,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
     await b.Auth.signIn();
     assert.equal(b.Auth.state, 'connecting');
 
-    b.signInWith(validClaims);
+    await b.signInWith(validClaims);
 
     assert.equal(b.Auth.state, 'signed');
     assert.equal(b.Auth.connecting, false);
@@ -181,6 +183,8 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
     assert.equal(b.Auth.state, 'anon');
     assert.equal(b.Auth.connecting, false);
+    // GIS is ~100KB; a reader who never clicks sign-in must not download it.
+    assert.equal(b.gisInitialized, false);
   });
 
   test('returning to the tab never starts an automatic sign-in', async () => {
@@ -197,7 +201,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
   test('a signed-in reader is never re-prompted on tab focus', async () => {
     const b = await loadAuth({ storedProfile: HINT });
     await b.Auth.init();
-    b.signInWith(validClaims);
+    await b.signInWith(validClaims);
     const after = b.promptCalls;
 
     b.advance(61_000);
@@ -252,7 +256,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
   test('signing out drops the face and leaves nothing spinning', async () => {
     const b = await loadAuth({ storedProfile: HINT });
     await b.Auth.init();
-    b.signInWith(validClaims);
+    await b.signInWith(validClaims);
 
     b.Auth.signOut();
 
@@ -264,7 +268,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
   test('an expired token reads as stale rather than signed', async () => {
     const b = await loadAuth({ storedProfile: HINT });
     await b.Auth.init();
-    b.signInWith({ ...validClaims, exp: Math.floor(Date.now() / 1000) - 10 });
+    await b.signInWith({ ...validClaims, exp: Math.floor(Date.now() / 1000) - 10 });
 
     assert.equal(b.Auth.token, null);
     assert.equal(b.Auth.expired, true);
@@ -352,7 +356,8 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
     return {
       Auth: auth.namespace.Auth,
       consoleCalls,
-      credential(response) {
+      async credential(response) {
+        await auth.namespace.Auth.signIn();
         assert.ok(credentialCallback, 'GIS credential callback was registered');
         credentialCallback(response);
       },
@@ -471,7 +476,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
       name: 'New User',
       exp: Math.floor(Date.now() / 1000) + 3600
     });
-    browser.credential({ credential: newToken });
+    await browser.credential({ credential: newToken });
 
     assert.equal(browser.Auth.token, newToken);
     assert.equal(browser.storage.has('gazl.session'), false);
@@ -489,7 +494,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
     const googleToken = jwt({ sub: 'u1', email: 'u@example.com', name: 'Reader', exp: Math.floor(Date.now() / 1000) + 3600 });
     const b = await loadAuth({ storedProfile: hint });
     await b.Auth.init();
-    b.credential({ credential: googleToken });
+    await b.credential({ credential: googleToken });
     assert.equal(b.storage.has('gazl.auth'), false, 'a Google token is never written to storage');
 
     // The backend's envelope trades it for an app session — that one is stored.
@@ -572,7 +577,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
   test('signing out clears the profile hint, not just the in-memory session', async () => {
     const browser = await loadAuth();
     await browser.Auth.init();
-    browser.credential({
+    await browser.credential({
       credential: jwt({ sub: 'u', email: 'u@example.com', name: 'U', exp: Math.floor(Date.now() / 1000) + 3600 })
     });
     assert.equal(browser.storage.has('gazl.profile'), true);
@@ -589,7 +594,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
     const browser = await loadAuth();
     await browser.Auth.init();
 
-    browser.credential({ credential: 'private-malformed-token' });
+    await browser.credential({ credential: 'private-malformed-token' });
 
     assert.deepEqual(browser.consoleCalls, []);
   });
