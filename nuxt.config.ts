@@ -85,7 +85,7 @@ export default defineNuxtConfig({
           `connect-src 'self' https://fshare.annnekkk.com https://accounts.google.com/gsi/ https://script.google.com https://script.googleusercontent.com${__impeccableLiveDev}`,
           "frame-src https://accounts.google.com/gsi/",
           "form-action 'none'",
-          "worker-src 'none'",
+          "worker-src 'self'",
           'upgrade-insecure-requests'
         ].join('; ') },
         { property: 'og:type', content: 'website' },

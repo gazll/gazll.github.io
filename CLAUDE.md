@@ -62,6 +62,7 @@ app/                  Nuxt application: filesystem routes, native components and
 public/
   version.json       local "dev" release metadata copied into the generated artifact
   styles.css         shared visual tokens and compatibility-tool styles
+  sw.js              service worker: caches ONLY content-addressed URLs (/_nuxt/, vendor/)
   config.js          GITIGNORED. Generated at deploy time from repo variables
   config.example.js  template to copy for local dev
   lib/
@@ -1125,6 +1126,23 @@ secret/              GITIGNORED. Personal setup notes and credentials
   importmap by the bare URL; a `?v=` on the entry `<script>` made the browser
   load the same module twice, and the copy without a payload blanked every
   page on 2026-10-14 while CI stayed green. `tests/tooling.test.mjs` pins it.
+
+- **The service worker caches forever, so it caches only what cannot change.**
+  `public/sw.js` answers `/_nuxt/*` (hashed names) and `vendor/mermaid-*`
+  (version in the directory name) from its own cache; it exists because Pages
+  serves everything with `max-age=600`, so a returning reader paid a round trip
+  per chunk. HTML, `_payload.json`, `/api/…`, `/data/…`, fonts and
+  `/_nuxt/builds/` (latest.json changes per deploy) must stay network-only — a
+  cached one would outlive every later deploy. `tests/tooling.test.mjs` pins the
+  list. To retire the worker, ship one that unregisters itself; deleting the
+  file leaves installed copies running. CSP carries `worker-src 'self'` for it.
+
+- **A card's answer is rendered on first open, never prerendered.**
+  `QuestionCard.vue`'s `rendered` flag: the payload already carries every
+  answer, and printing all of them behind `hidden` doubled a topic page's HTML.
+  Find-in-page therefore cannot see a card nobody opened — accepted on
+  2026-11-19 for slow connections. Anything that opens a card (hash, Expand
+  all) goes through `setOpen`, which sets the flag before mounting DSA players.
 
 - **The nav panel is `inert` while closed.** Without it the off-screen links
   stay in the tab order — the drawer is moved by `transform`, not `display`.

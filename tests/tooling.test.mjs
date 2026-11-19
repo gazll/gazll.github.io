@@ -181,3 +181,29 @@ const execFileAsync = promisify(execFile);
     assert.ok(stampAt < uploadAt, 'deploy assets must be stamped before the Pages upload');
   });
 }
+
+// ---- the service worker ----
+{
+  /* It caches forever, so the one thing that must never drift is WHICH URLs it
+     answers: a stale HTML page or payload would outlive every later deploy. */
+  test('the service worker answers only content-addressed URLs', async () => {
+    const vm = await import('node:vm');
+    const { readFile } = await import('node:fs/promises');
+    const listeners = {};
+    const self = { location: { origin: 'https://gazll.github.io' }, addEventListener: (type, fn) => { listeners[type] = fn; } };
+    vm.runInNewContext(await readFile(new URL('../public/sw.js', import.meta.url), 'utf8'), { self, URL, caches: { open: () => new Promise(() => {}) }, fetch() {} });
+    const answers = (path, method = 'GET') => {
+      let answered = false;
+      listeners.fetch({ request: { method, url: 'https://gazll.github.io' + path }, respondWith: () => { answered = true; } });
+      return answered;
+    };
+    for (const path of ['/_nuxt/BItMiP0k.js', '/_nuxt/entry.-6luO1Ah.css', '/vendor/mermaid-11.16.1/mermaid.esm.min.mjs']) {
+      assert.equal(answers(path), true, `${path} is content-addressed and should be cached`);
+    }
+    for (const path of ['/', '/topics/01-java-core-jvm/', '/_payload.json', '/api/content/topic/first/vi', '/data/meta.json',
+      '/_nuxt/builds/latest.json', '/_nuxt/builds/meta/x.json', '/version.json', '/fonts/a.woff2', '/lib/auth.js', '/_nuxt/a.js?v=1']) {
+      assert.equal(answers(path), false, `${path} can change between deploys and must go to the network`);
+    }
+    assert.equal(answers('/_nuxt/a.js', 'POST'), false);
+  });
+}
