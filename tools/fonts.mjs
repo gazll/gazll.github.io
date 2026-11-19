@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-/* Self-hosted JetBrains Mono (the site's typeface) plus Roboto Flex + Roboto
-   Mono, copied out of @fontsource-variable.
+/* Self-hosted Quicksand (headings), Nunito (prose) and JetBrains Mono (code),
+   plus Roboto Flex + Roboto Mono, copied out of @fontsource-variable.
 
      node tools/fonts.mjs           copy the files and rewrite the @font-face block
      node tools/fonts.mjs --check   fail if public/fonts or the block is stale
@@ -19,7 +19,7 @@ const ROOT = path.resolve(import.meta.dirname, '..');
 const OUT = path.join(ROOT, 'public/fonts');
 const STYLES = path.join(ROOT, 'public/styles.css');
 const SUBSETS = ['latin', 'latin-ext', 'vietnamese'];
-const FAMILIES = ['@fontsource-variable/jetbrains-mono', '@fontsource-variable/roboto-flex', '@fontsource-variable/roboto-mono'];
+const FAMILIES = ['@fontsource-variable/quicksand', '@fontsource-variable/nunito', '@fontsource-variable/jetbrains-mono', '@fontsource-variable/roboto-flex', '@fontsource-variable/roboto-mono'];
 const START = '/* fonts:generated:start — tools/fonts.mjs writes this block; never edit it by hand */';
 const END = '/* fonts:generated:end */';
 
