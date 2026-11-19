@@ -21,6 +21,11 @@ const props = defineProps<{
 }>();
 
 const open = ref(false);
+/* The answer is rendered on first open, not prerendered behind `hidden`: the
+   payload already carries every answer, and printing all of them into the HTML
+   too doubled a topic page's weight. The cost is that find-in-page cannot see a
+   card that was never opened (2026-11-19, asked for slow connections). */
+const rendered = ref(false);
 const localLang = ref<'en' | 'vi'>(props.lang);
 const copied = ref(false);
 const languageAnnouncement = ref('');
@@ -99,6 +104,7 @@ async function setOpen(next: boolean) {
   if (open.value === next) return;
   open.value = next;
   if (open.value) {
+    rendered.value = true;
     await nextTick();
     const dsaPlayerUrl = new URL('/lib/dsa-player.js', window.location.origin).href;
     dsaPlayer ||= await import(/* @vite-ignore */ dsaPlayerUrl);
@@ -234,7 +240,7 @@ async function copyLink() {
           <div v-if="reviewedFact" class="content-dates qreview">
             <ContentDateStamp :fact="reviewedFact" :lang="localLang" />
           </div>
-          <div :id="`question-${item.id}-answer-body`" class="answer-body" data-ui="answer-body" v-html="answer" />
+          <div :id="`question-${item.id}-answer-body`" class="answer-body" data-ui="answer-body" v-if="rendered" v-html="answer" />
           <div class="notebox" :class="{ 'has-note': noteBody.trim(), 'is-open': noteOpen }">
             <div class="note-head">
               <span class="note-title-group"><span :id="`question-${item.id}-notes-label`" class="note-label">{{ uiLabels.notes }}</span><span class="note-status" role="status" aria-live="polite">{{ noteSaving ? uiLabels.saving : noteSaved ? uiLabels.saved : '' }}</span></span>
