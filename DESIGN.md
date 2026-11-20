@@ -141,6 +141,11 @@ latin-ext and vietnamese from `@fontsource-variable`), which also keeps
 Google Fonts out of the CSP. Roboto Flex/Mono stay in `public/fonts`, unused
 unless a typeface token names them, so going back is one line.
 
+Weights were raised one step on 2026-11-20, again the owner's pick from a
+comparison: body text 550 (400 read too thin in Nunito and Quicksand),
+medium 600, bold and headings 700. Quicksand stops at 700, so headings are at
+its heaviest.
+
 The Tools (`/fshare-tool`, `/course-registration`) use the same scale: every
 `font-size` there is a `--md-sys-typescale-*-size` token, never a number.
 
