@@ -62,6 +62,7 @@ app/                  Nuxt application: filesystem routes, native components and
 public/
   version.json       local "dev" release metadata copied into the generated artifact
   styles.css         shared visual tokens and compatibility-tool styles
+  sw.js              service worker: caches ONLY content-addressed URLs (/_nuxt/, vendor/)
   config.js          GITIGNORED. Generated at deploy time from repo variables
   config.example.js  template to copy for local dev
   lib/
@@ -79,6 +80,7 @@ public/
     reading-position.js  sticky group heads (returning to a card is router.options.ts)
     clipboard.js     copyText with an execCommand fallback for local HTTP previews
     dsa-anim.js      DSA step-frame model + pure SVG frame renderer (no DOM)
+    talk.js          a presentation talk's `## ` sections and Mermaid fences (pure)
     api.js           transport to Apps Script
     auth.js          Google Identity Services + the header avatar state machine
     store.js         offline-first progress, notes, study log
@@ -126,6 +128,8 @@ vendor/mermaid-11.16.1/  pinned upstream build; version lives in the directory n
     projects/calebzone/samples/     sanitized Java/XML/YAML implementation samples
     photography/     Other Knowledge collection: manifest, meta, NN-slug[.vi].json, articles/
     homelab/         the same shape for NAS / Home Server
+    presentations/board.json  weekly-talk topics: open · preparing · done, edited by PR
+    presentations/talks/<slug>.md  one talk; the page owns the frame, the file only content
     interviews.json     seed entries, merged under everyone's own Sheet rows
     interviews/private.enc.json  the operator's own company entries (JDs, what was
                          asked), AES-256-GCM under scope key `interviews`. The
@@ -165,7 +169,7 @@ tools/               check.mjs (the one entrypoint) · validate-content.mjs · a
                      keyring.mjs — scope keys: init · migrate · status · show · rotate
                      rekey.mjs — rotate the master (re-seals the keyring only)
                      md3-tokens.mjs — the generated MD3 colour block in styles.css
-                     fonts.mjs — copies the self-hosted JetBrains Mono (+ Roboto Flex/Mono) into public/fonts
+                     fonts.mjs — copies the self-hosted Quicksand, Nunito, JetBrains Mono (+ Roboto Flex/Mono) into public/fonts
                      screenshots.mjs — light/dark shots at three widths + an axe summary
 DESIGN.md            the Material Design 3 system: roles, type, shape, motion,
                      components and why. It must agree with public/styles.css;
@@ -179,6 +183,7 @@ docs/README.md       what each group under docs/ is for, and its lifecycle
 docs/content-playbook.md  how to add/update study content end to end
 docs/schedule-playbook.md  the calendar, the sealed schedule, and how to recover it
 docs/fshare-movie-playbook.md  the movie link catalog: raw → catalog → validate → seal
+docs/presentation-playbook.md  how a member claims a topic and writes a talk (VI)
 docs/english-speaking-os-complete-2026.md  NOT documentation — shipped data.
                      server/api/content/english-study.get.ts reads this exact
                      path, so moving or renaming it breaks /english-study
@@ -1122,6 +1127,23 @@ secret/              GITIGNORED. Personal setup notes and credentials
   load the same module twice, and the copy without a payload blanked every
   page on 2026-10-14 while CI stayed green. `tests/tooling.test.mjs` pins it.
 
+- **The service worker caches forever, so it caches only what cannot change.**
+  `public/sw.js` answers `/_nuxt/*` (hashed names) and `vendor/mermaid-*`
+  (version in the directory name) from its own cache; it exists because Pages
+  serves everything with `max-age=600`, so a returning reader paid a round trip
+  per chunk. HTML, `_payload.json`, `/api/…`, `/data/…`, fonts and
+  `/_nuxt/builds/` (latest.json changes per deploy) must stay network-only — a
+  cached one would outlive every later deploy. `tests/tooling.test.mjs` pins the
+  list. To retire the worker, ship one that unregisters itself; deleting the
+  file leaves installed copies running. CSP carries `worker-src 'self'` for it.
+
+- **A card's answer is rendered on first open, never prerendered.**
+  `QuestionCard.vue`'s `rendered` flag: the payload already carries every
+  answer, and printing all of them behind `hidden` doubled a topic page's HTML.
+  Find-in-page therefore cannot see a card nobody opened — accepted on
+  2026-11-19 for slow connections. Anything that opens a card (hash, Expand
+  all) goes through `setOpen`, which sets the flag before mounting DSA players.
+
 - **The nav panel is `inert` while closed.** Without it the off-screen links
   stay in the tab order — the drawer is moved by `transform`, not `display`.
   `close()` blurs first, because focus inside a subtree that then becomes
@@ -1188,13 +1210,17 @@ secret/              GITIGNORED. Personal setup notes and credentials
 
 English is the **default and base** language. Every base topic file is
 complete English, and every `.vi.json` companion is complete Vietnamese.
-**Both languages of a topic always arrive together, and one route serves one
-topic.** `/api/content/topic/<stem>` returns the picker rows, that topic's
-metadata, the review map, and the topic's base file **and** its `.vi.json`
-companion. Because a topic never arrives in one language alone, the header
-switch selects already-loaded text and never refetches. If a `.vi.json`
-companion cannot be read, the route returns `vi: null` and VI mode displays
-that topic's English base instead of failing.
+**One route serves one topic in one language.**
+`/api/content/topic/<stem>/<en|vi>` returns the picker rows (labels only), that
+topic's metadata, its own review dates, and `body` — the base file or its
+`.vi.json` companion. Both used to ride in every page payload, so an English
+reader downloaded the whole Vietnamese topic too; since 2026-11-18 the page
+embeds the language it renders and `TopicPage.vue`'s `loadLanguage` fetches the
+other once, on the first header switch or per-card switch that asks for it.
+Both language routes are prerendered (`topicApiRoutes` in `nuxt.config.ts`) —
+a query string cannot be a static file. If a `.vi.json` companion cannot be
+read, the VI route returns the English base with `hasVi: false` and the card
+switch hides, instead of failing.
 
 Anything that reaches across topics reads them on the server, where the whole
 corpus is on disk: the search index walks every topic file at prerender, and a

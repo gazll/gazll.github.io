@@ -8,6 +8,9 @@ import { safeDecodeURIComponent } from '~/utils/uri.js';
 const props = defineProps<{
   item: { id: string, q: string, a: string, difficulty?: string, reviewed_at?: string }
   pair?: Record<'en' | 'vi', any>
+  /* Present when the topic has a Vietnamese companion; fetches a language the
+     page has not loaded yet, so a card can switch before the page does. */
+  loadLanguage?: (language: 'en' | 'vi') => Promise<void>
   lang: 'en' | 'vi'
   sourceOwners?: Record<string, string>
   /* Built once per page from data/content-index.json — see lib/cross-ref.js.
@@ -18,6 +21,11 @@ const props = defineProps<{
 }>();
 
 const open = ref(false);
+/* The answer is rendered on first open, not prerendered behind `hidden`: the
+   payload already carries every answer, and printing all of them into the HTML
+   too doubled a topic page's weight. The cost is that find-in-page cannot see a
+   card that was never opened (2026-11-19, asked for slow connections). */
+const rendered = ref(false);
 const localLang = ref<'en' | 'vi'>(props.lang);
 const copied = ref(false);
 const languageAnnouncement = ref('');
@@ -96,6 +104,7 @@ async function setOpen(next: boolean) {
   if (open.value === next) return;
   open.value = next;
   if (open.value) {
+    rendered.value = true;
     await nextTick();
     const dsaPlayerUrl = new URL('/lib/dsa-player.js', window.location.origin).href;
     dsaPlayer ||= await import(/* @vite-ignore */ dsaPlayerUrl);
@@ -139,9 +148,11 @@ async function toggle() {
   await setOpen(!open.value);
 }
 
-function switchLanguage() {
+async function switchLanguage() {
+  const target = localLang.value === 'vi' ? 'en' : 'vi';
+  try { await props.loadLanguage?.(target); } catch (error) { return; }
   const previousTop = card.value?.getBoundingClientRect().top ?? null;
-  localLang.value = localLang.value === 'vi' ? 'en' : 'vi';
+  localLang.value = target;
   if (languageTimer) clearTimeout(languageTimer);
   void nextTick(() => {
     /* Localized answers can have very different heights. Keeping this card's
@@ -218,7 +229,7 @@ async function copyLink() {
           <span class="qcopy-short" aria-hidden="true">{{ copied ? shortUiLabels.copied : shortUiLabels.link }}</span>
         </button>
         <span class="sr-only" role="status" aria-live="polite">{{ languageAnnouncement || (copied ? uiLabels.copied : '') }}</span>
-        <button v-if="pair?.vi" class="langswitch qlangbtn" type="button" role="switch" :aria-checked="localLang === 'vi'" :aria-label="languageActionLabel" :title="languageActionLabel" @click="switchLanguage">
+        <button v-if="loadLanguage" class="langswitch qlangbtn" type="button" role="switch" :aria-checked="localLang === 'vi'" :aria-label="languageActionLabel" :title="languageActionLabel" @click="switchLanguage">
           <span class="lang-label" data-lang="en">EN</span><span class="lang-track" aria-hidden="true"><span class="lang-knob"><ContentFlagIcon :lang="localLang" /></span></span><span class="lang-label" data-lang="vi">VI</span><span class="qlang-current" aria-hidden="true">{{ localLang.toUpperCase() }}</span>
         </button>
       </div>
@@ -229,7 +240,7 @@ async function copyLink() {
           <div v-if="reviewedFact" class="content-dates qreview">
             <ContentDateStamp :fact="reviewedFact" :lang="localLang" />
           </div>
-          <div :id="`question-${item.id}-answer-body`" class="answer-body" data-ui="answer-body" v-html="answer" />
+          <div :id="`question-${item.id}-answer-body`" class="answer-body" data-ui="answer-body" v-if="rendered" v-html="answer" />
           <div class="notebox" :class="{ 'has-note': noteBody.trim(), 'is-open': noteOpen }">
             <div class="note-head">
               <span class="note-title-group"><span :id="`question-${item.id}-notes-label`" class="note-label">{{ uiLabels.notes }}</span><span class="note-status" role="status" aria-live="polite">{{ noteSaving ? uiLabels.saving : noteSaved ? uiLabels.saved : '' }}</span></span>

@@ -49,6 +49,7 @@ const viLabels: Record<string, string> = {
   'Plan and register course sets': 'Lập kế hoạch và đăng ký nhóm môn', Calendar: 'Lịch',
   'Lunar dates, holidays and reminders': 'Lịch âm, ngày lễ và nhắc việc', 'Release Notes': 'Ghi chú phát hành', Search: 'Tìm kiếm',
   'English speaking system and 26-week roadmap': 'Hệ thống luyện nói và lộ trình 26 tuần',
+  Presentations: 'Thuyết trình', 'Weekly team talks and topic board': 'Thuyết trình hàng tuần và bảng chủ đề',
   'Last release': 'Bản phát hành gần nhất', 'Checking release…': 'Đang kiểm tra release…',
   'Release not stamped': 'Chưa có dấu phát hành', 'Release time unavailable': 'Không có thời gian phát hành',
   'Knowledge Base': 'Kho kiến thức', topic: 'chủ đề', 'Open navigation menu': 'Mở menu điều hướng', 'Previous topic': 'Chủ đề trước',
@@ -90,6 +91,7 @@ const navGroups = [
   ] },
   { label: 'Experience', links: [
     { to: '/english-study', label: 'English Study', desc: 'English speaking system and 26-week roadmap', icon: ['M4 5h16v14H4z', 'M8 9h8M8 13h5', 'M8 17h3'] },
+    { to: '/presentations', label: 'Presentations', desc: 'Weekly team talks and topic board', icon: ['M4 4.5h16v11H4z', 'M12 15.5v4M8 19.5h8', 'M8 12l3-3 2 2 3-3.5'] },
     { to: '/project', label: 'Project', desc: 'Selected work and experience', icon: ['M4 6.5h6l2 2h8V18H4z', 'M4 6.5V5h6l2 3.5'] },
     { to: '/photography', label: 'Photography', desc: 'Field notes and visual stories', icon: ['M3 8.5h4L8.5 6h7L17 8.5h4V19H3z', 'M8.5 13a3.5 3.5 0 1 0 7 0 3.5 3.5 0 1 0-7 0'] },
     { to: '/homelab', label: 'NAS / Home Server', desc: 'Self-hosting and infrastructure', icon: ['M4 5h16v5H4zM4 14h16v5H4z', 'M7.5 7.5h.01M7.5 16.5h.01'] },
@@ -103,7 +105,7 @@ const navGroups = [
 
 const routeLabels: Record<string, string> = {
   '/': 'Study Track', '/english-study': 'English Study', '/gazl-try': 'Gazl Try', '/stats': 'Stats', '/admin': 'Admin',
-  '/system-design': 'System Design', '/case-studies': 'Case Studies', '/project': 'Project',
+  '/system-design': 'System Design', '/case-studies': 'Case Studies', '/project': 'Project', '/presentations': 'Presentations',
   '/photography': 'Photography', '/homelab': 'NAS / Home Server', '/fshare-tool': 'Fshare Bulk Copy',
   '/course-registration': 'Course Registration', '/calendar': 'Calendar',
   '/release-notes': 'Release Notes', '/search': 'Search'

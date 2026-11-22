@@ -11,7 +11,7 @@
    Needs the `jsdom` devDependency. CI does not run this — like the images, the
    diagrams are content and are checked when they change.
 */
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { JSDOM } from 'jsdom';
 
@@ -31,10 +31,16 @@ const mermaid = (await import(pathToFileURL(
   ROOT + 'public/vendor/mermaid-11.16.1/mermaid.esm.min.mjs').href)).default;
 mermaid.initialize({ startOnLoad: false, securityLevel: 'strict', htmlLabels: false, logLevel: 'fatal' });
 
+const { talkSections } = await import(pathToFileURL(ROOT + 'public/lib/talk.js').href);
+const TALKS = ROOT + 'public/data/presentations/talks/';
+const talkDiagrams = readdirSync(TALKS).filter(file => file.endsWith('.md')).flatMap(file =>
+  talkSections(readFileSync(TALKS + file, 'utf8')).flatMap(section => section.blocks)
+    .filter(block => block.kind === 'mermaid').map((block, index) => [`talk ${file} #${index + 1}`, block.text]));
 const catalog = JSON.parse(readFileSync(ROOT + 'public/data/system-design/catalog.json', 'utf8'));
 const diagrams = [
   ...catalog.designs.map(d => [`design ${d.slug}`, d.diagram]),
-  ...Object.entries(catalog.case_overviews || {}).map(([slug, o]) => [`case ${slug}`, o.diagram])
+  ...Object.entries(catalog.case_overviews || {}).map(([slug, o]) => [`case ${slug}`, o.diagram]),
+  ...talkDiagrams
 ].filter(([, source]) => String(source || '').trim());
 
 let failed = 0;

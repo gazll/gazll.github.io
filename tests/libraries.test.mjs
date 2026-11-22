@@ -1128,3 +1128,57 @@ import { crossRefResolver, trackItemIds } from '../public/lib/cross-ref.js';
     assert.ok(total > 500, `expected the material to be densely cross-referenced, found ${total}`);
   });
 }
+
+// ---- presentations ----
+/* Members add topics and talks by pull request, so this is the gate a PR
+   from a fork passes: the board's states stay coherent and a talk cannot
+   break the page frame or carry active markup. */
+{
+  const root = path.resolve(import.meta.dirname, '..');
+  const dir = path.join(root, 'public/data/presentations');
+  const { TALK_KINDS, TALK_STATUSES, talkSections } = await import(pathToFileURL(path.join(root, 'public/lib/talk.js')).href);
+  const board = JSON.parse(await readFile(path.join(dir, 'board.json'), 'utf8'));
+  const talks = (await readdir(path.join(dir, 'talks'))).filter(file => file.endsWith('.md'));
+
+  test('the presentation board is coherent and every talk file has a row', () => {
+    const slugs = new Set();
+    for (const topic of board.topics) {
+      const at = `board.json "${topic.slug}"`;
+      assert.match(topic.slug, /^[a-z0-9]+(?:-[a-z0-9]+)*$/, `${at}: slug must be kebab-case`);
+      assert.ok(!slugs.has(topic.slug), `${at}: duplicate slug`);
+      slugs.add(topic.slug);
+      assert.ok(TALK_KINDS.includes(topic.kind), `${at}: kind must be one of ${TALK_KINDS}`);
+      assert.ok(TALK_STATUSES.includes(topic.status), `${at}: status must be one of ${TALK_STATUSES}`);
+      assert.ok(String(topic.title || '').trim(), `${at}: title is required`);
+      assert.ok(Array.isArray(topic.outline) && topic.outline.length && topic.outline.every(line => String(line).trim()),
+        `${at}: outline lists the questions the talk answers`);
+      if (topic.status === 'open') {
+        assert.ok(!topic.presenter && !topic.date, `${at}: an open topic has no presenter or date yet`);
+      } else {
+        assert.ok(String(topic.presenter || '').trim(), `${at}: a ${topic.status} topic names its presenter`);
+        assert.match(String(topic.date), /^\d{4}-\d{2}-\d{2}$/, `${at}: date is YYYY-MM-DD`);
+      }
+      if (topic.status === 'done') assert.ok(talks.includes(`${topic.slug}.md`), `${at}: a presented topic keeps its talk`);
+    }
+    for (const file of talks) assert.ok(slugs.has(file.slice(0, -3)), `talks/${file} has no row in board.json`);
+  });
+
+  test('a talk stays inside the page frame and carries no active markup', async () => {
+    for (const file of talks) {
+      const slug = file.slice(0, -3);
+      const md = await readFile(path.join(dir, 'talks', file), 'utf8');
+      const prose = md.replace(/^```[\s\S]*?^```/gm, '');
+      assert.ok(!/^#\s/m.test(prose), `${file}: no "# " heading, the title comes from board.json`);
+      assert.ok(!/<(?:script|style|iframe|object|embed)\b|\son[a-z]+\s*=|javascript:|http:\/\//i.test(prose),
+        `${file}: scripts, styles, frames, event handlers and http:// links are not allowed`);
+      for (const [, url] of prose.matchAll(/(?:src|href)="(\/assets\/[^"]+)"/g)) {
+        assert.ok(url.startsWith(`/assets/presentations/${slug}/`), `${file}: ${url} belongs under /assets/presentations/${slug}/`);
+        await access(path.join(root, 'public', url));
+      }
+      for (const [, tag] of prose.matchAll(/<img\b([^>]*)>/g)) assert.match(tag, /\balt="[^"]+"/, `${file}: every image needs alt text`);
+      for (const block of talkSections(md).flatMap(section => section.blocks).filter(block => block.kind === 'mermaid')) {
+        assert.match(block.text.trim(), /^(?:flowchart|graph)\b/, `${file}: only Mermaid flowcharts are vendored`);
+      }
+    }
+  });
+}

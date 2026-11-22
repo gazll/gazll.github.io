@@ -6,13 +6,31 @@ const props = defineProps<{ slug?: string }>();
 const route = useRoute();
 const lang = computed<'en' | 'vi'>(() => route.query.lang === 'vi' ? 'vi' : 'en');
 
-const { data, error } = await useAsyncData(`topic:${props.slug || 'first'}`, async () => {
-  return $fetch<any>(`/api/content/topic/${props.slug || 'first'}`);
-});
+const topicSlug = props.slug || 'first';
+const fetchTopic = (language: 'en' | 'vi') => $fetch<any>(`/api/content/topic/${topicSlug}/${language}`);
+// Keyed without the language: hydrating ?lang=vi reuses the prerendered (EN)
+// payload, so the first paint matches the HTML, and VI follows on mount.
+const { data, error } = await useAsyncData(`topic:${topicSlug}`, () => fetchTopic(lang.value));
 
 if (error.value) throw error.value;
 
-const source = computed(() => lang.value === 'vi' && data.value?.vi ? data.value.vi : data.value?.en);
+/* Each language is fetched once, when something first asks for it: the page
+   switch below, or one card's own EN/VI switch (loadLanguage). */
+const bodies = shallowReactive<Record<string, any>>({ [data.value!.lang]: data.value!.body });
+const extraRefs = shallowReactive<Record<string, any>>({});
+const loading: Record<string, Promise<void> | undefined> = {};
+function loadLanguage(language: 'en' | 'vi') {
+  if (bodies[language]) return Promise.resolve();
+  return loading[language] ||= fetchTopic(language).then(other => {
+    Object.assign(extraRefs, other.crossRefs);
+    bodies[language] = other.body;
+  }).finally(() => { loading[language] = undefined; });
+}
+// A failed fetch leaves the loaded language on screen; the next switch retries.
+onMounted(() => { loadLanguage(lang.value).catch(() => {}); });
+watch(lang, language => { loadLanguage(language).catch(() => {}); });
+
+const source = computed(() => bodies[lang.value] || bodies[data.value!.lang]);
 const metadata = computed(() => {
   const entry = data.value!.meta;
   return entry[lang.value] || entry.en || entry.vi || {};
@@ -23,7 +41,7 @@ const sections = computed(() => (source.value?.sections || []).map((section: any
   ...section,
   items: section.items
     .filter((item: any) => !moved.value.has(item.id))
-    .map((item: any) => ({ ...item, reviewed_at: data.value?.reviews[item.id]?.reviewed_at || '' }))
+    .map((item: any) => ({ ...item, reviewed_at: data.value?.reviewedAt[item.id] || '' }))
 })).filter((section: any) => section.items.length));
 const itemCount = computed(() => sections.value.reduce((sum: number, section: any) => sum + section.items.length, 0));
 const reviewedCount = computed(() => {
@@ -74,7 +92,7 @@ const pageLabels = computed(() => lang.value === 'vi' ? {
 const resolveRef = computed(() => crossRefResolver({
   // Older prerendered pages can still use `/api/content/item-index`; new
   // payloads carry only the cross-references needed by this topic.
-  questions: data.value?.crossRefs || {},
+  questions: { ...data.value?.crossRefs, ...extraRefs },
   onTrack: trackItemIds({ topics: data.value?.progressIndex?.topics || [] }),
   owners: data.value?.sourceOwners || {},
   lang: lang.value
@@ -93,9 +111,9 @@ const headerTopic = computed(() => headerTopics.value.find((row: any) => row.n =
 const itemPairs = computed(() => {
   const pairs: Record<string, any> = {};
   for (const language of ['en', 'vi']) {
-    for (const section of data.value?.[language]?.sections || []) {
+    for (const section of bodies[language]?.sections || []) {
       for (const item of section.items || []) (pairs[item.id] ||= {})[language] = {
-        ...item, reviewed_at: data.value?.reviews[item.id]?.reviewed_at || ''
+        ...item, reviewed_at: data.value?.reviewedAt[item.id] || ''
       };
     }
   }
@@ -198,7 +216,7 @@ useHead(() => ({
               <span class="section-index" aria-hidden="true">{{ String(sectionIndex + 1).padStart(2, '0') }}</span>
               <a class="topic-heading-anchor" :href="`#${data!.stem}-section-${sectionIndex + 1}`">{{ section.title }}</a><span class="sline" />
             </h2>
-            <StudyQuestionCard v-for="item in section.items" :key="item.id" :item="item" :pair="itemPairs[item.id]" :lang="lang" :source-owners="data!.sourceOwners" :resolve-ref="resolveRef" :force-open="expandAll" :force-token="expandToken" />
+            <StudyQuestionCard v-for="item in section.items" :key="item.id" :item="item" :pair="itemPairs[item.id]" :load-language="data!.hasVi ? loadLanguage : undefined" :lang="lang" :source-owners="data!.sourceOwners" :resolve-ref="resolveRef" :force-open="expandAll" :force-token="expandToken" />
           </template>
         </div>
 

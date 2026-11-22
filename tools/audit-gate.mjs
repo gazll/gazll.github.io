@@ -19,7 +19,12 @@ const BLOCKING = new Set(['high', 'critical']);
 /* Each entry: the GHSA id, why it does not reach the deployed site, and the
    date the exception stops counting. Remove the entry once a patched version
    is installed — the gate does not need it then. */
-const ALLOWED = Object.freeze({});
+const ALLOWED = Object.freeze({
+  // ReDoS on crafted extglobs; no patched picomatch exists (<= 4.0.7, checked 2026-11-18).
+  // It runs only inside the build (Vite, Nitro, devtools) on globs this repo's config
+  // writes; the deployed site is static files and ships none of it.
+  'GHSA-fc5q-39xc-vjpf': { until: '2026-12-18' }
+});
 
 const out = (line) => process.stdout.write(`${line}\n`);
 

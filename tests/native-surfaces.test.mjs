@@ -126,12 +126,13 @@ import { pathToFileURL } from 'node:url';
   test('topic pages feed the native header all picker labels and navigation rows', async () => {
     const [page, endpoint] = await Promise.all([
       read('app/components/study/TopicPage.vue'),
-      read('server/api/content/topic/[slug].get.ts')
+      read('server/api/content/topic/[slug]/[lang].get.ts')
     ]);
 
     assert.match(page, /:topic="headerTopic"/);
     assert.match(page, /:topics="headerTopics"/);
-    assert.match(endpoint, /topicMeta: meta\.topics/);
+    assert.match(endpoint, /topicMeta/);
+    assert.match(endpoint, /label: entry\.en\?\.label/);
   });
 
   test('collection indexes keep the card layout contract after the Nuxt migration', async () => {

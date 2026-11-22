@@ -36,7 +36,7 @@ const isLatest = (release: any) => !!latest.value && release.date === latest.val
 // Retired view names (boot, language, all-topics) stay unlinked: no route answers them.
 const SURFACE_ROUTES: Record<string, string> = {
   'system-design': '/system-design', 'case-studies': '/case-studies', calendar: '/calendar',
-  search: '/search', interviews: '/gazl-try', 'release-notes': '/release-notes'
+  search: '/search', interviews: '/gazl-try', 'release-notes': '/release-notes', presentations: '/presentations'
 };
 const withLang = (to: string) => lang.value === 'vi' ? `${to}?lang=vi` : to;
 function targetOf(change: any) {
@@ -89,7 +89,7 @@ const labels = computed(() => lang.value === 'vi' ? {
   summary: 'Tóm tắt phát hành', latest: 'Mới nhất', question: 'câu hỏi',
   filterBy: 'Lọc nhật ký', year: 'Năm', kind: 'Loại', allYears: 'Tất cả năm', allKinds: 'Tất cả', clearFilters: 'Xoá bộ lọc', noMatches: 'Không có thay đổi phù hợp.', days: 'ngày',
   kinds: { topic: 'Chủ đề', content: 'Nội dung', feature: 'Tính năng', change: 'Thay đổi', fix: 'Sửa lỗi' },
-  surfaces: { 'system-design': 'System Design', 'case-studies': 'Case Studies', calendar: 'Lịch', search: 'Tìm kiếm', interviews: 'Gazl Try', 'release-notes': 'Ghi chú phát hành', 'all-topics': 'Tất cả chủ đề', language: 'Ngôn ngữ', boot: 'Khởi động' }
+  surfaces: { presentations: 'Thuyết trình', 'system-design': 'System Design', 'case-studies': 'Case Studies', calendar: 'Lịch', search: 'Tìm kiếm', interviews: 'Gazl Try', 'release-notes': 'Ghi chú phát hành', 'all-topics': 'Tất cả chủ đề', language: 'Ngôn ngữ', boot: 'Khởi động' }
 } : {
   eyebrow: 'What changed', title: 'Release Notes', intro: 'The latest content and product changes, newest first.',
   questions: 'new questions', release: 'release', releases: 'releases', change: 'change', changes: 'changes', day: 'day',
@@ -97,7 +97,7 @@ const labels = computed(() => lang.value === 'vi' ? {
   summary: 'Release summary', latest: 'Latest', question: 'question',
   filterBy: 'Filter archive', year: 'Year', kind: 'Kind', allYears: 'All years', allKinds: 'All', clearFilters: 'Clear filters', noMatches: 'No changes match these filters.', days: 'days',
   kinds: { topic: 'Topic', content: 'Content', feature: 'Feature', change: 'Change', fix: 'Fix' },
-  surfaces: { 'system-design': 'System Design', 'case-studies': 'Case Studies', calendar: 'Calendar', search: 'Search', interviews: 'Gazl Try', 'release-notes': 'Release Notes', 'all-topics': 'All topics', language: 'Language', boot: 'Startup' }
+  surfaces: { presentations: 'Presentations', 'system-design': 'System Design', 'case-studies': 'Case Studies', calendar: 'Calendar', search: 'Search', interviews: 'Gazl Try', 'release-notes': 'Release Notes', 'all-topics': 'All topics', language: 'Language', boot: 'Startup' }
 });
 useHead(() => ({ htmlAttrs: { lang: lang.value }, title: `${labels.value.title} — GAZLL`, meta: [{ name: 'description', content: labels.value.intro }], link: [{ rel: 'canonical', href: 'https://gazll.github.io/release-notes' }] }));
 </script>

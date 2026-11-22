@@ -204,15 +204,9 @@ async function initializeAuth() {
   }
   Auth.ready = true;
   emit();
-
-  try {
-    await initializeGis();
-    scheduleRenew();
-  } catch (e) {
-    Auth.error = 'Could not load Google sign-in.';
-    endPrompt();
-    emit();
-  }
+  // GIS (~100KB) loads on the first sign-in or button render, never on page
+  // load: most readers never sign in, and a stored app session needs no Google.
+  scheduleRenew();
 }
 
 /* ---------- explicit sign-in, always bounded ---------- */

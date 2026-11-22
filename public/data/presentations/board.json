@@ -1,0 +1,68 @@
+{
+  "topics": [
+    {
+      "slug": "air-paygent-payment-at-x",
+      "kind": "current",
+      "title": "Air + Paygent: luồng thanh toán vé máy bay trên hệ thống X",
+      "presenter": "calebzone",
+      "status": "preparing",
+      "date": "2026-11-20",
+      "outline": [
+        "Flow thế nào: từ lúc giữ chỗ đến lúc xuất vé, hệ thống mình và Paygent mỗi bên làm gì",
+        "DB transaction thế nào: commit ở đâu, lời gọi Paygent nằm trong hay ngoài transaction",
+        "Chịu tải đang thế nào; lên 10 / 50 rps thì sao; khi sập thì đang xảy ra gì",
+        "Security thế nào: block booking, xử lý exception"
+      ]
+    },
+    {
+      "slug": "kafka-vs-rabbitmq-for-x",
+      "kind": "new",
+      "title": "Kafka vs RabbitMQ: áp vào hệ thống X thì được gì, mất gì",
+      "presenter": "calebzone",
+      "status": "preparing",
+      "date": "2026-11-20",
+      "outline": [
+        "Áp vào hệ thống hiện tại thì được gì",
+        "Cải thiện được gì so với hôm nay",
+        "Tệ đi ở đâu",
+        "Cần xem xét những gì trước khi chọn"
+      ]
+    },
+    {
+      "slug": "saga-pattern-at-x",
+      "kind": "new",
+      "title": "Saga pattern và áp vào hệ thống hiện tại",
+      "status": "open",
+      "outline": [
+        "Choreography và orchestration khác nhau ở đâu",
+        "Luồng nào của X thật ra là một saga (giữ chỗ → thanh toán → xuất vé)",
+        "Bước bù (compensation) của từng bước là gì, và bước nào không bù được",
+        "Cần gì để chạy được: outbox, idempotency, theo dõi trạng thái saga"
+      ]
+    },
+    {
+      "slug": "event-driven-patterns-at-x",
+      "kind": "new",
+      "title": "Event-driven architecture patterns và áp vào hệ thống hiện tại",
+      "status": "open",
+      "outline": [
+        "Event notification, event-carried state transfer, event sourcing, CQRS: mỗi cái giải bài gì",
+        "Chỗ nào của X đang gọi đồng bộ mà nên là event",
+        "Contract của event: schema, version, ai sở hữu",
+        "Cái giá: eventual consistency, debug, vận hành"
+      ]
+    },
+    {
+      "slug": "payment-another-module-at-x",
+      "kind": "current",
+      "title": "Thanh toán của một module khác: hệ thống mình + partner",
+      "status": "open",
+      "outline": [
+        "Flow thế nào",
+        "DB transaction thế nào",
+        "Chịu tải đang thế nào; lên 10 / 50 rps thì sao; khi sập thì đang xảy ra gì",
+        "Security thế nào: block booking, xử lý exception"
+      ]
+    }
+  ]
+}

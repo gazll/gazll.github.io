@@ -14,6 +14,7 @@ function contentRoutes() {
   const caseStudies = json('./public/data/case-studies/manifest.json');
   const photography = json('./public/data/photography/manifest.json');
   const homelab = json('./public/data/homelab/manifest.json');
+  const presentations = json('./public/data/presentations/board.json');
 
   const topicRoutes = manifest.topics
     .filter((topic: { surface?: string }) => topic.surface !== 'system-design')
@@ -22,6 +23,10 @@ function contentRoutes() {
   const caseRoutes = caseStudies.articles.map((row: { slug: string }) => `/case-studies/${row.slug}`);
   const photoRoutes = photography.articles.map((row: { slug: string }) => `/photography/${row.slug}`);
   const homelabRoutes = homelab.articles.map((row: { slug: string }) => `/homelab/${row.slug}`);
+  // A page embeds one language; the other is fetched from these on a switch.
+  const topicApiRoutes = ['first', ...topicRoutes.map((route: string) => route.slice('/topics/'.length))]
+    .flatMap((slug: string) => [`/api/content/topic/${slug}/en`, `/api/content/topic/${slug}/vi`]);
+  const talkRoutes = presentations.topics.map((row: { slug: string }) => `/presentations/${row.slug}`);
 
   /* EN only, and deliberately so — this is a decision, not a gap.
 
@@ -40,8 +45,8 @@ function contentRoutes() {
      Revisit only if the site goes public and search indexing starts to matter. */
   return [
     '/', '/search', '/api/content/search-index/en', '/api/content/search-index/vi', '/api/content/item-index', '/api/content/english-study', '/gazl-try', '/stats', '/admin', '/english-study', '/system-design', '/case-studies',
-    '/project', '/project/calebzone', '/photography', '/homelab', '/release-notes', '/fshare-tool',
-    '/course-registration', '/calendar', ...topicRoutes, ...designRoutes, ...caseRoutes, ...photoRoutes, ...homelabRoutes
+    '/project', '/project/calebzone', '/presentations', '/photography', '/homelab', '/release-notes', '/fshare-tool',
+    '/course-registration', '/calendar', ...topicRoutes, ...designRoutes, ...caseRoutes, ...photoRoutes, ...homelabRoutes, ...talkRoutes, ...topicApiRoutes
   ];
 }
 
@@ -50,7 +55,9 @@ export default defineNuxtConfig({
   devtools: { enabled: false },
   // Route changes cross-fade through the View Transition API where the browser
   // has it; the plugin skips it under prefers-reduced-motion.
-  experimental: { viewTransition: true },
+  // Prefetch a link's payload on hover/focus/touch, not when it scrolls into
+  // view: the header's home link alone pulled topic 01's 117KB on every page.
+  experimental: { viewTransition: true, defaults: { nuxtLink: { prefetchOn: { visibility: false, interaction: true } } } },
   ssr: true,
   /* Keep the shared stylesheet cacheable across routes instead of copying it
      into every prerendered HTML document. Vite still emits the minified,
@@ -78,7 +85,7 @@ export default defineNuxtConfig({
           `connect-src 'self' https://fshare.annnekkk.com https://accounts.google.com/gsi/ https://script.google.com https://script.googleusercontent.com${__impeccableLiveDev}`,
           "frame-src https://accounts.google.com/gsi/",
           "form-action 'none'",
-          "worker-src 'none'",
+          "worker-src 'self'",
           'upgrade-insecure-requests'
         ].join('; ') },
         { property: 'og:type', content: 'website' },
