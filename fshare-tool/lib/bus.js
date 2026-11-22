@@ -1,0 +1,1 @@
+const t=new Map;export function on(e,o){return t.has(e)||t.set(e,new Set),t.get(e).add(o),()=>t.get(e).delete(o)}export function emit(e,o){const n=t.get(e);if(n)for(const t of Array.from(n))t(o)}export const EV={SELECTION:"selection",HISTORY:"history",CONFIG:"config"};

@@ -1,0 +1,94 @@
+<p>A booking system created two airline records for one passenger and flight, only milliseconds apart. The first investigation blamed a crawler and blocked its User-Agent. Alerts stopped for two and a half years. Then the same defect returned as a <code>HEAD</code> request.</p>
+<p>The real bug never lived in the request's identity. It lived in a check-then-act window shared by every request. This incident shows how a plausible diagnosis can produce convincing metrics while leaving the violated invariant untouched.</p>
+
+<h2 id="context">1. The invariant and the unsafe boundary</h2>
+<p>The OTA had a Python web tier behind a load balancer and a Java booking backend. The backend stored booking state in <code>SESSION_INFO</code> and called a GDS to create the airline PNR and the OTA itinerary number, or ITN. One booking intent must create exactly one PNR and one ITN.</p>
+<p>Session state moved through <code>Init → Booking → Complete</code> or <code>Error</code>. The browser called <code>/reservation/book</code>; the backend read <code>Init</code>, changed it to <code>Booking</code>, then started an asynchronous GDS call.</p>
+<p>The endpoint accepted both <code>POST</code> and <code>GET</code> because a 3-D Secure payment redirect returned through a GET URL. That made a state-changing action fetchable by browsers, link scanners and security software. Method filtering could reduce accidental calls, but correctness still had to survive duplicate requests from any source.</p>
+
+<h2 id="evidence">2. What the evidence actually said</h2>
+<p><strong>Evidence boundary:</strong> the 2 ms arrival gap, 25 ms read/write window, 117 blocked requests and 33-day quiet period are observations from this incident. They are useful for constructing a deterministic regression test, not universal thresholds for tuning a booking system.</p>
+<p>A scheduled query—not an exception or customer report—detected the incident:</p>
+<pre><code>SELECT session_id, COUNT(itn_no)
+FROM itinerary_tracking
+WHERE tracked_at &gt;= &lt;15 minutes ago&gt;
+GROUP BY session_id
+HAVING COUNT(itn_no) &gt; 1;</code></pre>
+<p>The grouping key matters. The alert did not mean “the same passenger booked twice.” It meant <strong>one session produced multiple ITNs</strong>, a strong signal of duplicate execution inside one booking intent.</p>
+<p>The incidents were rare—usually zero to two per month—but expensive. Airlines may cancel both duplicate reservations, churning can trigger Agency Debit Memos, and double ticketing creates manual refunds. Overnight incidents were worse because intervention depended on business hours.</p>
+<p>Because staging could not reproduce the race, the team reconstructed both requests from compressed logs across every backend instance, joined them by transaction key, and placed their timelines side by side. That revealed the useful evidence: the requests arrived 2 ms apart and both crossed a 25 ms read/write window.</p>
+
+<h2 id="race">3. The guard was check-then-act</h2>
+<figure>
+  <img src="assets/case-studies/12-duplicate-booking-race-condition/01-race-window.svg" alt="Two requests read Init before either writes Booking, then both create separate bookings inside a 25 millisecond race window." width="880" height="460" loading="lazy">
+  <figcaption>Both requests read <code>Init</code>; neither write had become visible when the other checked.</figcaption>
+</figure>
+<pre><code>if (BOOKING_PROCESSED.equals(productInfo.getBookingStatus())) {
+    return FAILED;
+}
+if (BOOKING_COMPLETED.equals(productInfo.getBookingStatus())) {
+    return FAILED;
+}
+
+productInfo.setBookingStatus(BOOKING_PROCESSED);
+sessionTable.update(...);
+new BookingThread(...).start();</code></pre>
+<p>This guard stopped requests that arrived after the status update. It could not stop two requests that read before either update committed. The code looked sequential; production execution was not.</p>
+<p>The requests also landed on different application instances. A Java <code>synchronized</code> block or local cache lock could never protect the invariant. The database row was the only shared point through which both requests passed.</p>
+
+<h2 id="false-fix">4. A convincing false fix</h2>
+<p>Seven of nine investigated pairs contained the token <code>google-bot</code> in their User-Agent. The incident was named “Googlebot crawling the booking page,” and the proposed fix followed the name.</p>
+<p>The same evidence contradicted that diagnosis. The source IPs belonged to consumer networks, not verified Google ranges. The User-Agent did not match Google's documented crawler format. Most importantly, it appeared beside the real user's mobile request immediately after the 3-D Secure redirect. A later duplicate was even rejected by the backend guard, but the web tier logged the error and continued.</p>
+<p>The released patch blocked that User-Agent at nginx and added client-side suppression. Monitoring then showed 117 blocked requests over 33 days and zero duplicate alerts. Those numbers were real, but proved only that one observed trigger had been removed. They did not prove that booking creation had become atomic.</p>
+<p>This is the diagnostic trap: when the cause is named by appearance—“Googlebot”—the solution targets appearance. A correctness fix must target the invariant every duplicate must cross.</p>
+
+<h2 id="recurrence">5. Same mechanism, different costume</h2>
+<p>Two and a half years later, two requests arrived 23 ms apart with the user's normal browser User-Agent. This time the duplicate was a <code>HEAD</code> request. Framework routing treated HEAD like GET, so the metadata probe executed the booking handler.</p>
+<p>The costume changed from a suspicious User-Agent to an unexpected HTTP method. The underlying mechanism was identical: both requests read the same session state, passed the same guard and started separate bookings.</p>
+<p>The existing optimistic-lock token also could not adjudicate the race. It reused an update timestamp with one-second resolution. Requests 23 ms apart observed the same rounded value, so both updates matched. Increasing precision would make collision less likely, not impossible; probability reduction is not a correctness guarantee.</p>
+
+<h2 id="correct-fix">6. Move the decision into one atomic write</h2>
+<p><strong>What the CAS proves:</strong> an integer version plus affected-row count adjudicates one shared session row. It does not make a GDS, PSP or ticketing side effect atomic. Persist the intent before the external call, reuse the same provider key on retry, and keep an ambiguous response in <code>UNKNOWN</code> until inquiry or reconciliation.</p>
+<p>The permanent fix introduced an integer <code>VERSION</code> column. Every session update incremented it, and the booking transition matched the version previously read:</p>
+<figure>
+  <img src="assets/case-studies/12-duplicate-booking-race-condition/02-conditional-write.svg" alt="Check-then-act compared with a conditional update whose affected-row count lets the database select one winner." width="880" height="420" loading="lazy">
+  <figcaption>The database, not an earlier application read, decides which request wins.</figcaption>
+</figure>
+<pre><code>UPDATE SESSION_INFO
+   SET VALUE   = ?,
+       UPD_DT  = ?,
+       VERSION = VERSION + 1
+ WHERE TRANSACTION_KEY    = ?
+   AND AUTHENTICATION_KEY = ?
+   AND VERSION            = ?;</code></pre>
+<pre><code>int count = jdbcManager.updateBySqlFile(sqlFileName, sessionInfo).execute();
+if (count != 1) {
+    return FAILED; // another request won the transition
+}</code></pre>
+<p>Now check and act are one statement. Two contenders may read the same version, but only one can update it. The winner changes the version; the loser's predicate matches zero rows. The affected-row count is the atomic decision.</p>
+<p>The web tier separately routed <code>HEAD</code> to a handler returning <code>405 Method Not Allowed</code> with <code>Allow: GET, POST</code>. That removed a known accidental trigger and improved HTTP semantics. It was defense in depth, not the concurrency guarantee.</p>
+
+<h2 id="verification">7. Verify the invariant, rollout and rollback</h2>
+<p><strong>Regression matrix:</strong> include two simultaneous calls, five duplicate calls, a retry after an ambiguous timeout, duplicate and out-of-order callbacks, two different sessions for one passenger, and an unauthorized attempt to mutate another session. The last case is a BOLA/ownership test; a correct version predicate must not be mistaken for authorization.</p>
+<p>The schema migration used <code>VERSION INT DEFAULT 0 NOT NULL</code>, so existing live sessions received a valid token without a separate backfill. Execution plans before and after the predicate were compared to confirm the hot update kept the same access path.</p>
+<p>Tests asserted outcomes, not implementation details: two concurrent booking calls produced one success and one failure; five produced exactly one success; ordinary updates incremented the version; and HEAD never reached the booking API. A controlled delay widened the 23 ms window, turning a probabilistic race into a deterministic integration test.</p>
+<p>The change crossed five repositories, four product lines, twelve screens and a shared session table. The team ran 17 unit tests and 39 integration scenarios, monitored rejection and booking signals after release, and prepared revert changes in advance. The additive database column stayed during rollback because old code safely ignored it.</p>
+
+<h2 id="limits">8. What this fix guarantees—and what it does not</h2>
+<p>The local version is not a distributed lock and does not prevent two sessions from creating the same external booking. That boundary needs a business idempotency key and a unique constraint at the correct scope, plus a reconciliation path for late GDS/PSP results. A timeout should remain visible as pending or unknown until the external authority answers.</p>
+<p>The version check works because both duplicate requests share one session row. Duplicates from two sessions, devices or expired sessions can bypass that boundary. The stronger API design is an idempotency key created per booking intent and protected by a unique constraint; every retry then returns the original outcome instead of creating another booking.</p>
+<p>A state-changing command should also not be hidden behind a fetchable GET. The 3-D Secure redirect can land on an idempotent confirmation endpoint, which then submits or resumes the booking command under the same intent key.</p>
+<p>The technical lesson is compact: identify the invariant, find the shared serialization point, and let one atomic write choose the winner. Edge filters reduce noise. They cannot replace database-enforced correctness.</p>
+
+<h2 id="takeaways">9. Review checklist</h2>
+<ol>
+  <li><strong>Check-then-act is not mutual exclusion.</strong> Ask what can write between the read and the action.</li>
+  <li><strong>A timestamp is a poor version token.</strong> Its resolution and clock semantics create collisions a monotonic integer avoids.</li>
+  <li><strong>Quiet alerts do not prove the invariant.</strong> Measure both rejected duplicates and successful normal transitions.</li>
+  <li><strong>Multi-instance locks need shared arbitration.</strong> Local synchronization cannot protect work routed to another process.</li>
+  <li><strong>Test races deterministically.</strong> Inject a barrier or delay, then assert exactly one committed side effect.</li>
+  <li><strong>Record the boundary.</strong> Optimistic locking protects one row; idempotency protects one business intent.</li>
+</ol>
+
+<h2 id="anonymisation">10. Anonymisation note</h2>
+<p>This write-up is based on a real production incident. Company, brand, person, ticket, host, IP, booking and internal URL identifiers were removed. The code, SQL and timelines were shortened while preserving the concurrency behavior.</p>

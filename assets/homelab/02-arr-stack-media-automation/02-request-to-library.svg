@@ -1,0 +1,148 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 760" width="900" height="760" role="img" aria-label="The *arr stack end to end: a request becomes a library entry across the control, processing and data layers, with the hardlink and the release-name subtitle match shown explicitly">
+  <defs>
+    <marker id="arrHl02" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#9AA7B8"/>
+    </marker>
+    <marker id="arrHl02Brass" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#846938"/>
+    </marker>
+    <marker id="arrHl02Clay" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#AE4536"/>
+    </marker>
+  </defs>
+
+  <rect width="900" height="760" fill="#F8FAFC"/>
+  <text x="450" y="36" text-anchor="middle" font-family="'Space Grotesk',sans-serif" font-size="20" font-weight="600" fill="#14233A">One request, three layers, one file on disk</text>
+  <text x="450" y="57" text-anchor="middle" font-family="'IBM Plex Sans',system-ui,sans-serif" font-size="11.5" fill="#42536C">Nine containers, but only three things to understand: who asks, who fetches, and where it lands.</text>
+
+  <!-- ============ layer bands ============ -->
+  <rect x="96" y="80" width="788" height="118" rx="12" fill="#F2F4FA" stroke="#DBE1EA"/>
+  <rect x="96" y="228" width="788" height="196" rx="12" fill="#F1F7F4" stroke="#DBE1EA"/>
+  <rect x="96" y="454" width="788" height="230" rx="12" fill="#FBF8F1" stroke="#DBE1EA"/>
+
+  <g font-family="'IBM Plex Mono',monospace" font-size="9.5" letter-spacing="1" text-anchor="middle">
+    <text x="48" y="146" fill="#3D4E8F">CONTROL</text>
+    <text x="48" y="160" font-size="8" fill="#7E8DA3">who asks</text>
+    <text x="48" y="322" fill="#085239">PROCESSING</text>
+    <text x="48" y="336" font-size="8" fill="#7E8DA3">who fetches</text>
+    <text x="48" y="562" fill="#846938">DATA</text>
+    <text x="48" y="576" font-size="8" fill="#7E8DA3">where it lands</text>
+  </g>
+  <g font-family="'IBM Plex Mono',monospace" font-size="11" font-weight="600" text-anchor="middle">
+    <circle cx="48" cy="100" r="12" fill="#E7EAF6" stroke="#3D4E8F"/><text x="48" y="104" fill="#3D4E8F">1</text>
+    <circle cx="48" cy="248" r="12" fill="#E4F1EB" stroke="#085239"/><text x="48" y="252" fill="#085239">2</text>
+    <circle cx="48" cy="474" r="12" fill="#FAF2E4" stroke="#846938"/><text x="48" y="478" fill="#846938">3</text>
+  </g>
+
+  <!-- ============ 1. control ============ -->
+  <g font-family="'IBM Plex Sans',system-ui,sans-serif" font-size="12.5" font-weight="600" text-anchor="middle">
+    <rect x="116" y="128" width="112" height="52" rx="10" fill="#FFFFFF" stroke="#C6CFDC"/>
+    <text x="172" y="151" fill="#14233A">You / family</text>
+    <text x="172" y="167" font-size="9.5" font-weight="400" fill="#42536C">browse and ask</text>
+
+    <rect x="292" y="128" width="164" height="52" rx="10" fill="#E7EAF6" stroke="#3D4E8F"/>
+    <text x="374" y="151" fill="#3D4E8F">Jellyseerr / Seerr</text>
+    <text x="374" y="167" font-size="9.5" font-weight="400" fill="#42536C">discover · request · status</text>
+
+    <rect x="546" y="128" width="146" height="52" rx="10" fill="#E7EAF6" stroke="#3D4E8F"/>
+    <text x="619" y="151" fill="#3D4E8F">Radarr</text>
+    <text x="619" y="167" font-size="9.5" font-weight="400" fill="#42536C">one film</text>
+
+    <rect x="716" y="128" width="146" height="52" rx="10" fill="#E7EAF6" stroke="#3D4E8F"/>
+    <text x="789" y="151" fill="#3D4E8F">Sonarr</text>
+    <text x="789" y="167" font-size="9.5" font-weight="400" fill="#42536C">a series, episode by episode</text>
+  </g>
+
+  <!-- ============ 2. processing ============ -->
+  <g font-family="'IBM Plex Sans',system-ui,sans-serif" font-size="12.5" font-weight="600" text-anchor="middle">
+    <rect x="116" y="266" width="164" height="56" rx="10" fill="#E4F1EB" stroke="#085239"/>
+    <text x="198" y="289" fill="#085239">Prowlarr</text>
+    <text x="198" y="305" font-size="9.5" font-weight="400" fill="#42536C">every indexer, configured once</text>
+
+    <rect x="372" y="266" width="164" height="56" rx="10" fill="#E4F1EB" stroke="#085239"/>
+    <text x="454" y="289" fill="#085239">qBittorrent</text>
+    <text x="454" y="305" font-size="9.5" font-weight="400" fill="#42536C">magnet in, bytes to /downloads</text>
+
+    <rect x="628" y="266" width="164" height="56" rx="10" fill="#E4F1EB" stroke="#085239"/>
+    <text x="710" y="289" fill="#085239">Bazarr</text>
+    <text x="710" y="305" font-size="9.5" font-weight="400" fill="#42536C">subtitle providers</text>
+
+    <rect x="628" y="356" width="164" height="52" rx="10" fill="#FFFFFF" stroke="#085239" stroke-dasharray="5 4"/>
+    <text x="710" y="378" fill="#085239">Lingarr · optional</text>
+    <text x="710" y="394" font-size="9.5" font-weight="400" fill="#42536C">machine translation, EN to VI</text>
+  </g>
+
+  <!-- the constraint prose keeps having to explain -->
+  <rect x="116" y="348" width="420" height="62" rx="10" fill="#F6E8E5" stroke="#AE4536"/>
+  <text x="134" y="369" font-family="'IBM Plex Mono',monospace" font-size="9" letter-spacing="0.8" fill="#AE4536">THE MATCH IS ON THE RELEASE, NOT THE TITLE</text>
+  <text x="134" y="387" font-family="'IBM Plex Sans',system-ui,sans-serif" font-size="11" fill="#42536C">Bazarr matches the file name Prowlarr returned. Same film,</text>
+  <text x="134" y="402" font-family="'IBM Plex Sans',system-ui,sans-serif" font-size="11" fill="#42536C">a different release means different timing, so no subtitle.</text>
+
+  <!-- ============ 3. data ============ -->
+  <rect x="116" y="474" width="472" height="192" rx="12" fill="#FFFFFF" stroke="#846938"/>
+  <text x="136" y="498" font-family="'IBM Plex Sans',system-ui,sans-serif" font-size="12.5" font-weight="600" fill="#846938">Storage — one filesystem, one mount into every container</text>
+
+  <rect x="136" y="512" width="196" height="44" rx="9" fill="#F6E8E5" stroke="#AE4536"/>
+  <text x="234" y="531" text-anchor="middle" font-family="'IBM Plex Mono',monospace" font-size="10.5" fill="#AE4536">/data/downloads</text>
+  <text x="234" y="546" text-anchor="middle" font-family="'IBM Plex Sans',system-ui,sans-serif" font-size="9.5" fill="#42536C">still seeding, keeps ratio</text>
+
+  <rect x="368" y="512" width="200" height="44" rx="9" fill="#E4F1EB" stroke="#085239"/>
+  <text x="468" y="531" text-anchor="middle" font-family="'IBM Plex Mono',monospace" font-size="10.5" fill="#085239">/data/media/movies · /tv</text>
+  <text x="468" y="546" text-anchor="middle" font-family="'IBM Plex Sans',system-ui,sans-serif" font-size="9.5" fill="#42536C">renamed, what the player scans</text>
+
+  <g stroke="#846938" stroke-width="1.6" fill="none" marker-end="url(#arrHl02Brass)">
+    <path d="M234 556 V586"/>
+    <path d="M468 556 V586"/>
+  </g>
+  <rect x="206" y="590" width="296" height="50" rx="9" fill="#FAF2E4" stroke="#846938"/>
+  <text x="354" y="610" text-anchor="middle" font-family="'IBM Plex Sans',system-ui,sans-serif" font-size="12" font-weight="600" fill="#846938">Two names, one inode</text>
+  <text x="354" y="627" text-anchor="middle" font-family="'IBM Plex Sans',system-ui,sans-serif" font-size="10" fill="#42536C">Import is a hardlink: the film occupies the disk once.</text>
+  <text x="354" y="656" text-anchor="middle" font-family="'IBM Plex Mono',monospace" font-size="9" fill="#AE4536">two volume mounts = two filesystems = a silent copy</text>
+
+  <g font-family="'IBM Plex Sans',system-ui,sans-serif" font-size="12.5" font-weight="600" text-anchor="middle">
+    <rect x="646" y="490" width="196" height="56" rx="10" fill="#FAF2E4" stroke="#846938"/>
+    <text x="744" y="513" fill="#846938">Jellyfin or Plex</text>
+    <text x="744" y="529" font-size="9.5" font-weight="400" fill="#42536C">scans the library, transcodes</text>
+
+    <rect x="646" y="580" width="196" height="52" rx="10" fill="#FFFFFF" stroke="#C6CFDC"/>
+    <text x="744" y="602" fill="#14233A">TV · phone · browser</text>
+    <text x="744" y="618" font-size="9.5" font-weight="400" fill="#42536C">stream</text>
+  </g>
+
+  <!-- ============ edges ============ -->
+  <g stroke="#9AA7B8" stroke-width="1.5" fill="none" marker-end="url(#arrHl02)">
+    <path d="M228 154 H284"/>
+    <path d="M456 154 H538"/>
+    <path d="M374 128 V104 H789 V120"/>
+    <path d="M619 180 V210 H198 V258"/>
+    <path d="M789 180 V222 H710 V258"/>
+    <path d="M280 294 H364"/>
+    <path d="M536 294 H620"/>
+    <path d="M454 322 V336 H580 V466"/>
+    <path d="M710 322 V348"/>
+    <path d="M588 534 H638"/>
+    <path d="M744 546 V572"/>
+  </g>
+
+  <!-- import, then the status that closes the loop -->
+  <g stroke="#AE4536" stroke-width="1.6" fill="none" marker-end="url(#arrHl02Clay)" stroke-dasharray="6 4">
+    <path d="M116 534 H86 V154 H284"/>
+  </g>
+  <text x="256" y="192" text-anchor="middle" font-family="'IBM Plex Mono',monospace" font-size="9" fill="#AE4536">imported → status + Telegram</text>
+
+  <g font-family="'IBM Plex Mono',monospace" font-size="9" fill="#7E8DA3" text-anchor="middle">
+    <text x="256" y="148">request</text>
+    <text x="497" y="148">film or series</text>
+    <text x="322" y="288">magnet</text>
+    <text x="578" y="288">release name</text>
+    <text x="614" y="445">writes the file</text>
+    <text x="752" y="336">no VI subtitle</text>
+    <text x="613" y="528">scan</text>
+    <text x="300" y="248">search every indexer</text>
+  </g>
+
+  <!-- ============ exposure warning ============ -->
+  <rect x="96" y="700" width="788" height="52" rx="12" fill="#FFFFFF" stroke="#AE4536" stroke-dasharray="5 4"/>
+  <text x="490" y="721" text-anchor="middle" font-family="'IBM Plex Mono',monospace" font-size="9" letter-spacing="0.8" fill="#AE4536">EXPOSE THE REQUEST PORTAL AND THE PLAYER — NOTHING ELSE</text>
+  <text x="490" y="739" text-anchor="middle" font-family="'IBM Plex Sans',system-ui,sans-serif" font-size="11.5" fill="#42536C">Everything in the processing layer is unauthenticated admin access to your filesystem. Keep it on the LAN or behind a tunnel.</text>
+</svg>

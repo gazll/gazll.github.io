@@ -1,0 +1,3976 @@
+{
+  "01-java-core-jvm.memory-execution-model.q1": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Java SE 25 JLS"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.oracle.com/javase/specs/jls/se25/html/jls-17.html#jls-17.4.5"
+    ]
+  },
+  "01-java-core-jvm.memory-execution-model.q3": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "JDK 25"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://openjdk.org/jeps/439",
+      "https://openjdk.org/jeps/189"
+    ]
+  },
+  "01-java-core-jvm.memory-execution-model.q5": {
+    "reviewed_at": "2026-08-01",
+    "target_versions": [
+      "JDK 25",
+      "GraalVM Native Image current documentation"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://github.com/openjdk/jmh",
+      "https://www.graalvm.org/latest/reference-manual/native-image/optimizations-and-performance/PGO/"
+    ]
+  },
+  "01-java-core-jvm.concurrency.q1": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "JDK 21-25"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://openjdk.org/jeps/491"
+    ]
+  },
+  "01-java-core-jvm.concurrency.q2": {
+    "reviewed_at": "2026-10-25",
+    "target_versions": [
+      "JDK 25",
+      "JDK 26",
+      "JDK 27"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://openjdk.org/jeps/506",
+      "https://openjdk.org/jeps/505",
+      "https://openjdk.org/jeps/525",
+      "https://openjdk.org/jeps/533"
+    ]
+  },
+  "01-java-core-jvm.language-fundamentals.q8": {
+    "reviewed_at": "2026-08-17",
+    "target_versions": [
+      "JVMS SE 25",
+      "JDK 21+ exception message format"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.oracle.com/javase/specs/jvms/se25/html/jvms-5.html#jvms-5.3"
+    ]
+  },
+  "01-java-core-jvm.collections-data-structures.q6": {
+    "reviewed_at": "2026-08-17",
+    "target_versions": [
+      "Java SE 25 API"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/HashMap.html",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html"
+    ]
+  },
+  "01-java-core-jvm.language-fundamentals.q2": {
+    "reviewed_at": "2026-10-02",
+    "target_versions": [
+      "Java SE 25",
+      "JEP 280 (Java 9)"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://openjdk.org/jeps/280",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/StringBuffer.html"
+    ]
+  },
+  "01-java-core-jvm.language-fundamentals.q10": {
+    "reviewed_at": "2026-10-02",
+    "target_versions": [
+      "Java SE 25 JLS"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.12.4.5"
+    ]
+  },
+  "01-java-core-jvm.collections-data-structures.q8": {
+    "reviewed_at": "2026-10-02",
+    "target_versions": [
+      "Java SE 25 API"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Arrays.html",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Comparator.html",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/math/BigDecimal.html"
+    ]
+  },
+  "03-spring-boot-deep-build.auto-configuration-build.q10": {
+    "reviewed_at": "2026-10-26",
+    "target_versions": [
+      "Spring Boot 4.1.x",
+      "Testcontainers for Java 2.0.5"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.spring.io/spring-boot/reference/testing/testcontainers.html",
+      "https://github.com/testcontainers/testcontainers-java/releases/tag/2.0.5"
+    ]
+  },
+  "03-spring-boot-deep-build.auto-configuration-build.q17": {
+    "reviewed_at": "2026-10-02",
+    "target_versions": [
+      "Spring Framework 7.0",
+      "Spring Framework 6.1.2+ (setReadOnlyDataSource)"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/jdbc/datasource/LazyConnectionDataSourceProxy.html",
+      "https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/jdbc/datasource/lookup/AbstractRoutingDataSource.html"
+    ]
+  },
+  "03-spring-boot-deep-build.auto-configuration-build.q18": {
+    "reviewed_at": "2026-10-02",
+    "target_versions": [
+      "Spring Boot 4.0",
+      "Quartz 2.x clustering documentation"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.spring.io/spring-boot/reference/features/task-execution-and-scheduling.html",
+      "https://docs.spring.io/spring-boot/reference/io/quartz.html",
+      "https://www.quartz-scheduler.org/documentation/quartz-2.3.0/configuration/ConfigJDBCJobStoreClustering.html"
+    ]
+  },
+  "04-rest-grpc-webflux.reactive-webflux.q1": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Reactor Core current reference",
+      "Spring Framework WebFlux current reference"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://projectreactor.io/docs/core/release/reference/#_backpressure",
+      "https://docs.spring.io/spring-framework/reference/web/webflux/new-framework.html"
+    ]
+  },
+  "04-rest-grpc-webflux.reactive-webflux.q2": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Java 21+",
+      "Spring Boot 3.2+",
+      "Spring Framework 6.2+ / 7.0.x",
+      "Vert.x 5.1.x"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://docs.spring.io/spring-framework/reference/6.2/web/webflux/new-framework.html",
+      "https://docs.spring.io/spring-boot/reference/features/spring-application.html",
+      "https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-3.2-Release-Notes/89447cb70329ffb695302ee2726b723391df762f",
+      "https://openjdk.org/jeps/444",
+      "https://vertx.io/docs/vertx-core/java/"
+    ]
+  },
+  "15-network-i-o-models.realtime-event-driven.q2": {
+    "reviewed_at": "2026-10-26",
+    "target_versions": [
+      "Java 21+",
+      "Spring Boot 3.2+",
+      "Vert.x 5.1.x",
+      "Apache Kafka 4.1",
+      "RabbitMQ 4.4"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://openjdk.org/jeps/444",
+      "https://vertx.io/docs/vertx-core/java/",
+      "https://kafka.apache.org/41/design/design/",
+      "https://www.rabbitmq.com/tutorials/amqp-concepts",
+      "https://www.rabbitmq.com/docs/confirms",
+      "https://github.com/rabbitmq/rabbitmq-server/blob/main/release-notes/4.4.0.md"
+    ]
+  },
+  "05-db-core-index-lock.transactions-mvcc-locking.q4": {
+    "reviewed_at": "2026-08-12",
+    "target_versions": [
+      "MySQL 8.4 / InnoDB"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://dev.mysql.com/doc/refman/8.4/en/innodb-deadlocks.html",
+      "https://dev.mysql.com/doc/refman/8.4/en/innodb-error-handling.html"
+    ]
+  },
+  "05-db-core-index-lock.transactions-mvcc-locking.q7": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "MySQL 8.4 / InnoDB",
+      "PostgreSQL 18 current documentation",
+      "RocksDB current documentation",
+      "Apache Cassandra current documentation",
+      "Google Cloud Bigtable overview",
+      "ByteByteGo visual (CC BY-NC-ND 4.0)"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://dev.mysql.com/doc/refman/8.4/en/innodb-physical-structure.html",
+      "https://www.postgresql.org/docs/current/btree.html",
+      "https://www.postgresql.org/docs/current/storage-page-layout.html",
+      "https://github.com/facebook/rocksdb/wiki/RocksDB-Overview",
+      "https://github.com/facebook/rocksdb/wiki/Indexing-SST-Files-for-Better-Lookup-Performance",
+      "https://cassandra.apache.org/doc/stable/cassandra/architecture/storage-engine.html",
+      "https://docs.cloud.google.com/bigtable/docs/overview",
+      "https://source.wiredtiger.com/develop/arch-btree.html",
+      "https://www.cockroachlabs.com/blog/value-separation-pebble-optimization/",
+      "https://github.com/ByteByteGoHq/system-design-101/blob/main/data/guides/b-tree-vs.md",
+      "https://creativecommons.org/licenses/by-nc-nd/4.0/"
+    ]
+  },
+  "05-db-core-index-lock.indexes-what-they-really-are.q7": {
+    "reviewed_at": "2026-08-17",
+    "target_versions": [
+      "RFC 9562",
+      "PostgreSQL 16+",
+      "MySQL 8.0+"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://www.rfc-editor.org/rfc/rfc9562.html",
+      "https://www.postgresql.org/docs/current/runtime-config-wal.html",
+      "https://dev.mysql.com/doc/refman/8.0/en/miscellaneous-functions.html"
+    ]
+  },
+  "06-db-scaling.replication-consistency.q2": {
+    "reviewed_at": "2026-08-23",
+    "target_versions": [
+      "PostgreSQL 18 current replication documentation",
+      "Application-level LSN/session visibility contract"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://www.postgresql.org/docs/current/warm-standby.html",
+      "https://www.postgresql.org/docs/current/functions-admin.html",
+      "https://www.postgresql.org/docs/current/logical-replication.html"
+    ]
+  },
+  "06-db-scaling.replication-consistency.q4": {
+    "reviewed_at": "2026-08-17",
+    "target_versions": [
+      "Apache Cassandra 4.1/5.0",
+      "ScyllaDB 6.x"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://cassandra.apache.org/doc/latest/",
+      "https://docs.scylladb.com/"
+    ]
+  },
+  "01-java-core-jvm.collections-data-structures.q5": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "JDK 25",
+      "HotSpot 64-bit with compressed oops"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/HashMap.html",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/ConcurrentHashMap.html",
+      "https://github.com/openjdk/jdk/blob/master/src/java.base/share/classes/java/util/HashMap.java",
+      "https://github.com/openjdk/jdk/blob/master/src/java.base/share/classes/java/util/concurrent/ConcurrentHashMap.java"
+    ]
+  },
+  "02-java-8-25-java-vs-go.release-timeline.q5": {
+    "reviewed_at": "2026-08-01",
+    "target_versions": [
+      "JDK 21-25"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://openjdk.org/jeps/441",
+      "https://openjdk.org/jeps/444",
+      "https://openjdk.org/jeps/491"
+    ]
+  },
+  "02-java-8-25-java-vs-go.release-timeline.q6": {
+    "reviewed_at": "2026-10-25",
+    "target_versions": [
+      "JDK 25",
+      "JDK 27"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://openjdk.org/projects/jdk/25/",
+      "https://openjdk.org/jeps/506",
+      "https://openjdk.org/jeps/534",
+      "https://openjdk.org/jeps/533"
+    ]
+  },
+  "02-java-8-25-java-vs-go.release-timeline.q7": {
+    "reviewed_at": "2026-08-01",
+    "target_versions": [
+      "JDK 25",
+      "vendor support policies"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://www.oracle.com/java/technologies/java-se-support-roadmap.html"
+    ]
+  },
+  "03-spring-boot-deep-build.auto-configuration-build.q1": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Spring Boot 4",
+      "Spring Framework 7"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://spring.io/blog/2025/11/20/spring-boot-4-0-0-available-now/",
+      "https://spring.io/blog/2025/11/13/spring-framework-7-0-general-availability/"
+    ]
+  },
+  "03-spring-boot-deep-build.auto-configuration-build.q9": {
+    "reviewed_at": "2026-10-26",
+    "target_versions": [
+      "Spring Boot 4.1",
+      "HikariCP 7.x configuration"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://docs.spring.io/spring-boot/reference/data/sql.html",
+      "https://github.com/brettwooldridge/HikariCP",
+      "https://docs.spring.io/spring-boot/reference/actuator/metrics.html"
+    ]
+  },
+  "03-spring-boot-deep-build.auto-configuration-build.q11": {
+    "reviewed_at": "2026-10-25",
+    "target_versions": [
+      "Spring Boot 4.1",
+      "Spring Framework 7.0",
+      "Jakarta EE 11",
+      "Jackson 3",
+      "JDK 25",
+      "Spring Boot support generations as of 2026-10-25"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.spring.io/spring-boot/system-requirements.html",
+      "https://spring.io/blog/2025/11/13/spring-framework-7-0-general-availability/",
+      "https://spring.io/blog/2025/10/07/introducing-jackson-3-support-in-spring/",
+      "https://spring.io/blog/2025/11/12/null-safe-applications-with-spring-boot-4/",
+      "https://api.spring.io/projects/spring-boot/generations",
+      "https://spring.io/projects/spring-boot#support"
+    ]
+  },
+  "03-spring-boot-deep-build.auto-configuration-build.q12": {
+    "reviewed_at": "2026-10-26",
+    "target_versions": [
+      "Spring Boot 4.1",
+      "HikariCP 7.x configuration"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.spring.io/spring-boot/reference/data/sql.html",
+      "https://docs.spring.io/spring-boot/api/java/org/springframework/boot/jdbc/autoconfigure/DataSourceAutoConfiguration.html",
+      "https://github.com/brettwooldridge/HikariCP"
+    ]
+  },
+  "03-spring-boot-deep-build.auto-configuration-build.q13": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "MySQL 8.4 LTS",
+      "PostgreSQL 18",
+      "Oracle AI Database 26ai"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://dev.mysql.com/doc/refman/8.4/en/memory-use.html",
+      "https://dev.mysql.com/doc/refman/8.4/en/sys-memory-by-thread-by-current-bytes.html",
+      "https://www.postgresql.org/docs/18/connect-estab.html",
+      "https://www.postgresql.org/docs/18/runtime-config-connection.html",
+      "https://www.postgresql.org/docs/18/runtime-config-resource.html",
+      "https://docs.oracle.com/en/database/oracle/oracle-database/26/admin/managing-processes.html"
+    ]
+  },
+  "03-spring-boot-deep-build.auto-configuration-build.q14": {
+    "reviewed_at": "2026-10-26",
+    "target_versions": [
+      "HikariCP 7.x",
+      "MySQL Connector/J 9.x",
+      "pgJDBC current",
+      "Oracle JDBC/UCP 26ai"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://github.com/brettwooldridge/HikariCP",
+      "https://dev.mysql.com/doc/connector-j/en/connector-j-connp-props-networking.html",
+      "https://jdbc.postgresql.org/documentation/use/",
+      "https://docs.oracle.com/en/database/oracle/oracle-database/26/jjdbc/JDBC-troubleshooting.html",
+      "https://docs.oracle.com/en/database/oracle/oracle-database/26/jjucp/fast-connection-failover.html",
+      "https://docs.spring.io/spring-boot/reference/actuator/metrics.html"
+    ]
+  },
+  "05-db-core-index-lock.transactions-mvcc-locking.q1": {
+    "reviewed_at": "2026-10-25",
+    "target_versions": [
+      "MySQL 8.4 LTS",
+      "MySQL 9.7 LTS",
+      "InnoDB"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://dev.mysql.com/doc/refman/8.4/en/mysql-releases.html",
+      "https://dev.mysql.com/doc/refman/8.4/en/innodb-transaction-isolation-levels.html",
+      "https://dev.mysql.com/doc/refman/9.7/en/mysql-releases.html"
+    ]
+  },
+  "07-sql-nosql-db-engines.engine-by-engine.q4": {
+    "reviewed_at": "2026-08-12",
+    "target_versions": [
+      "MongoDB current documentation"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://www.mongodb.com/docs/manual/reference/read-concern/",
+      "https://www.mongodb.com/docs/manual/core/write-operations-atomicity/",
+      "https://www.mongodb.com/docs/manual/data-modeling/embedding/"
+    ]
+  },
+  "07-sql-nosql-db-engines.engine-by-engine.q2": {
+    "reviewed_at": "2026-08-01",
+    "target_versions": [
+      "MySQL 8.4 LTS release model"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://dev.mysql.com/doc/refman/8.4/en/mysql-releases.html"
+    ]
+  },
+  "07-sql-nosql-db-engines.engine-by-engine.q5": {
+    "reviewed_at": "2026-08-01",
+    "target_versions": [
+      "MongoDB 8.x documentation"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://www.mongodb.com/docs/manual/reference/read-concern/",
+      "https://www.mongodb.com/docs/manual/core/read-preference/"
+    ]
+  },
+  "07-sql-nosql-db-engines.the-big-picture.q4": {
+    "reviewed_at": "2026-08-03",
+    "target_versions": [
+      "Gilbert–Lynch CAP model (2002)",
+      "Brewer CAP clarification"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://dl.acm.org/doi/10.1145/564585.564601",
+      "https://sites.cs.ucsb.edu/~rich/class/cs293b-cloud/papers/brewer-cap.pdf"
+    ]
+  },
+  "07-sql-nosql-db-engines.engine-by-engine.q8": {
+    "reviewed_at": "2026-08-03",
+    "target_versions": [
+      "Oracle Database Concepts 21c/26ai",
+      "Oracle RAC and Data Guard 26ai",
+      "MySQL 8.4 InnoDB"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://docs.oracle.com/en/database/oracle/oracle-database/21/cncpt/introduction-to-oracle-database.html",
+      "https://docs.oracle.com/en/database/oracle/oracle-database/26/racad/introduction-to-oracle-rac.html",
+      "https://docs.oracle.com/en/database/oracle/oracle-database/26/haovw/oracle-data-guard.html",
+      "https://docs.oracle.com/en/database/oracle/oracle-database/21/sqlrf/COMMIT.html",
+      "https://dev.mysql.com/doc/refman/8.4/en/innodb-introduction.html",
+      "https://dev.mysql.com/doc/refman/8.4/en/innodb-redo-log.html",
+      "https://dev.mysql.com/doc/refman/8.4/en/innodb-recovery.html",
+      "https://dev.mysql.com/doc/refman/8.4/en/innodb-parameters.html",
+      "https://dev.mysql.com/doc/refman/8.4/en/replication-options-binary-log.html",
+      "https://docs.oracle.com/en/database/oracle/oracle-database/26/sbydb/oracle-data-guard-protection-modes.html",
+      "https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/data-concurrency-and-consistency.html",
+      "https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/process-architecture.html",
+      "https://dev.mysql.com/doc/refman/8.4/en/innodb-transaction-isolation-levels.html",
+      "https://dev.mysql.com/doc/refman/8.0/en/create-table-check-constraints.html",
+      "https://dev.mysql.com/doc/refman/8.4/en/innodb-doublewrite-buffer.html"
+    ]
+  },
+  "08-message-queue.reliability-delivery-semantics.q1": {
+    "reviewed_at": "2026-08-01",
+    "target_versions": [
+      "Apache Kafka 4.1",
+      "RabbitMQ current documentation"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://kafka.apache.org/documentation/#semantics",
+      "https://www.rabbitmq.com/docs/confirms"
+    ]
+  },
+  "08-message-queue.reliability-delivery-semantics.q2": {
+    "reviewed_at": "2026-08-23",
+    "target_versions": [
+      "RabbitMQ current documentation",
+      "RabbitMQ quorum queues and streams documentation"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://www.rabbitmq.com/docs/confirms",
+      "https://www.rabbitmq.com/docs/quorum-queues",
+      "https://www.rabbitmq.com/docs/streams",
+      "https://www.rabbitmq.com/tutorials/tutorial-seven-java"
+    ]
+  },
+  "08-message-queue.reliability-delivery-semantics.q3": {
+    "reviewed_at": "2026-08-01",
+    "target_versions": [
+      "Apache Kafka 4.1"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://kafka.apache.org/41/configuration/producer-configs/",
+      "https://kafka.apache.org/documentation/#replication"
+    ]
+  },
+  "08-message-queue.reliability-delivery-semantics.q4": {
+    "reviewed_at": "2026-08-01",
+    "target_versions": [
+      "Apache Kafka 4.1",
+      "RabbitMQ current documentation"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://kafka.apache.org/41/configuration/producer-configs/",
+      "https://www.rabbitmq.com/docs/consumers#single-active-consumer"
+    ]
+  },
+  "13-security-oauth2.oauth2-oidc.q2": {
+    "reviewed_at": "2026-10-25",
+    "target_versions": [
+      "OAuth 2.1 draft-16",
+      "RFC 9700 OAuth 2.0 Security BCP",
+      "RFC 9207 OAuth 2.0 Authorization Server Issuer Identification"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-16",
+      "https://www.rfc-editor.org/rfc/rfc9700.html",
+      "https://www.rfc-editor.org/rfc/rfc9207.html"
+    ]
+  },
+  "13-security-oauth2.oauth2-oidc.q1": {
+    "reviewed_at": "2026-10-25",
+    "target_versions": [
+      "OAuth 2.1 draft-16",
+      "RFC 9700 OAuth 2.0 Security BCP",
+      "RFC 10017 OAuth 2.0 for Browser-Based Applications"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-16",
+      "https://www.rfc-editor.org/rfc/rfc9700.html",
+      "https://www.rfc-editor.org/rfc/rfc10017.html"
+    ]
+  },
+  "13-security-oauth2.jwt-tokens.q1": {
+    "reviewed_at": "2026-08-01",
+    "target_versions": [
+      "JWT access-token profile",
+      "OAuth 2.0 Security BCP"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://www.rfc-editor.org/rfc/rfc9068.html",
+      "https://www.rfc-editor.org/rfc/rfc9700.html"
+    ]
+  },
+  "13-security-oauth2.jwt-tokens.q3": {
+    "reviewed_at": "2026-08-01",
+    "target_versions": [
+      "OAuth 2.0 Security BCP",
+      "DPoP RFC 9449"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://www.rfc-editor.org/rfc/rfc9700.html",
+      "https://www.rfc-editor.org/rfc/rfc9449.html"
+    ]
+  },
+  "13-security-oauth2.designing-the-auth-system.q2": {
+    "reviewed_at": "2026-08-01",
+    "target_versions": [
+      "RFC 8705",
+      "RFC 9449"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://www.rfc-editor.org/rfc/rfc8705.html",
+      "https://www.rfc-editor.org/rfc/rfc9449.html"
+    ]
+  },
+  "13-security-oauth2.designing-the-auth-system.q3": {
+    "reviewed_at": "2026-10-26",
+    "target_versions": [
+      "OWASP Top 10:2025",
+      "OWASP API Security Top 10:2023"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://owasp.org/Top10/",
+      "https://owasp.org/API-Security/editions/2023/en/0x11-t10/",
+      "https://owasp.org/Top10/2025/",
+      "https://owasp.org/API-Security/"
+    ]
+  },
+  "13-security-oauth2.designing-the-auth-system.q4": {
+    "reviewed_at": "2026-10-26",
+    "target_versions": [
+      "Kubernetes current documentation",
+      "OWASP Top 10:2025"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://kubernetes.io/docs/concepts/configuration/secret/",
+      "https://owasp.org/Top10/",
+      "https://owasp.org/Top10/2025/"
+    ]
+  },
+  "13-security-oauth2.designing-the-auth-system.q5": {
+    "reviewed_at": "2026-08-01",
+    "target_versions": [
+      "WebAuthn Level 3",
+      "OWASP Authentication guidance current"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://www.w3.org/TR/webauthn-3/",
+      "https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html"
+    ]
+  },
+  "14-devops-k8s-best-practices.docker-kubernetes.q6": {
+    "reviewed_at": "2026-08-01",
+    "target_versions": [
+      "Kubernetes current documentation"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/"
+    ]
+  },
+  "14-devops-k8s-best-practices.ci-cd-2026-best-practices.q6": {
+    "reviewed_at": "2026-08-12",
+    "target_versions": [
+      "Kubernetes current documentation",
+      "Spring Boot 4.1.x"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/",
+      "https://docs.spring.io/spring-boot/reference/web/graceful-shutdown.html"
+    ]
+  },
+  "15-network-i-o-models.threading-network-programming.q1": {
+    "reviewed_at": "2026-08-12",
+    "target_versions": [
+      "Spring Boot 3.2-4.x",
+      "JDK 21-25"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://docs.spring.io/spring-boot/reference/features/spring-application.html#features.spring-application.virtual-threads",
+      "https://openjdk.org/jeps/491",
+      "https://openjdk.org/jeps/444"
+    ]
+  },
+  "16-project-concurrency-whiteboard.technical-storytelling-fundamentals.q3": {
+    "reviewed_at": "2026-08-01",
+    "target_versions": [
+      "JDK 25"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://openjdk.org/jeps/505",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/ConcurrentHashMap.html"
+    ]
+  },
+  "17-rest-api-design.contracts-errors-lifecycle.q5": {
+    "reviewed_at": "2026-08-01",
+    "target_versions": [
+      "HTTP Semantics RFC 9110",
+      "HTTP Caching RFC 9111",
+      "RateLimit Internet-Draft 11"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://www.rfc-editor.org/rfc/rfc9110.html",
+      "https://www.rfc-editor.org/rfc/rfc9111.html",
+      "https://datatracker.ietf.org/doc/html/draft-ietf-httpapi-ratelimit-headers-11"
+    ]
+  },
+  "18-query-optimization.measure-first-reading-the-execution-plan.q5": {
+    "reviewed_at": "2026-08-01",
+    "target_versions": [
+      "PostgreSQL 18",
+      "SQL Server 2022-2025"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://www.postgresql.org/docs/current/runtime-config-query.html",
+      "https://www.postgresql.org/docs/current/sql-explain.html",
+      "https://learn.microsoft.com/en-us/sql/relational-databases/performance/parameter-sensitive-plan-optimization"
+    ]
+  },
+  "18-query-optimization.measure-first-reading-the-execution-plan.q6": {
+    "reviewed_at": "2026-08-18",
+    "target_versions": [
+      "PostgreSQL 18"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://www.postgresql.org/docs/18/sql-explain.html",
+      "https://www.postgresql.org/docs/18/runtime-config-resource.html",
+      "https://www.postgresql.org/docs/18/pgbuffercache.html",
+      "https://github.com/postgres/postgres/blob/REL_18_STABLE/src/backend/storage/buffer/README"
+    ]
+  },
+  "18-query-optimization.measure-first-reading-the-execution-plan.q7": {
+    "reviewed_at": "2026-08-18",
+    "target_versions": [
+      "PostgreSQL 18"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://www.postgresql.org/docs/18/runtime-config-resource.html",
+      "https://www.postgresql.org/docs/18/runtime-config-wal.html",
+      "https://www.postgresql.org/docs/18/runtime-config-query.html",
+      "https://www.postgresql.org/docs/18/monitoring-stats.html"
+    ]
+  },
+  "18-query-optimization.rewriting-the-query-reshaping-the-model.q1": {
+    "reviewed_at": "2026-08-01",
+    "target_versions": [
+      "PostgreSQL 18",
+      "MySQL 8.4 LTS"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://www.postgresql.org/docs/current/indexes-expressional.html",
+      "https://dev.mysql.com/doc/refman/8.4/en/optimization-indexes.html"
+    ]
+  },
+  "18-query-optimization.rewriting-the-query-reshaping-the-model.q7": {
+    "reviewed_at": "2026-10-02",
+    "target_versions": [
+      "PostgreSQL 18",
+      "MySQL 8.4"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://www.postgresql.org/docs/current/queries-table-expressions.html",
+      "https://www.postgresql.org/docs/current/functions-subquery.html",
+      "https://dev.mysql.com/doc/refman/8.4/en/semijoins-antijoins.html"
+    ]
+  },
+  "20-observability-sre.the-three-pillars-how-to-measure.q2": {
+    "reviewed_at": "2026-08-01",
+    "target_versions": [
+      "OpenTelemetry messaging semantic conventions current"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://opentelemetry.io/docs/specs/semconv/messaging/messaging-spans/"
+    ]
+  },
+  "20-observability-sre.slos-alerting-incidents.q4": {
+    "reviewed_at": "2026-08-01",
+    "target_versions": [
+      "OpenTelemetry logs data model current",
+      "SLF4J 2.x"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://opentelemetry.io/docs/specs/otel/logs/data-model/",
+      "https://www.slf4j.org/apidocs/org/slf4j/MDC.html"
+    ]
+  },
+  "21-linux-production-debug.jvm-network-deep-dive-on-prod.q3": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "async-profiler 4.x",
+      "Java SE 21 diagnostic-tools documentation",
+      "JFR and Native Memory Tracking for Java SE 21"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://github.com/async-profiler/async-profiler/blob/master/README.md",
+      "https://docs.oracle.com/en/java/javase/21/docs/specs/man/jfr.html",
+      "https://docs.oracle.com/en/java/javase/21/vm/native-memory-tracking.html",
+      "https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html"
+    ]
+  },
+  "22-low-level-design-ood.patterns-in-interview-code.q5": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "JUnit 5 current guide",
+      "jqwik current guide",
+      "OpenJDK jcstress current"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://docs.junit.org/current/user-guide/",
+      "https://jqwik.net/docs/current/user-guide.html",
+      "https://openjdk.org/projects/code-tools/jcstress/"
+    ]
+  },
+  "22-low-level-design-ood.the-lld-framework-classic-problems.q5": {
+    "reviewed_at": "2026-10-02",
+    "target_versions": [
+      "PostgreSQL 18 (RETURNING OLD/NEW)"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://www.postgresql.org/docs/current/sql-insert.html",
+      "https://www.rfc-editor.org/rfc/rfc9457.html"
+    ]
+  },
+  "22-low-level-design-ood.patterns-in-interview-code.q7": {
+    "reviewed_at": "2026-10-02",
+    "target_versions": [
+      "Java SE 25 JLS (memory model)"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.oracle.com/javase/specs/jls/se25/html/jls-17.html#jls-17.4.5",
+      "https://docs.oracle.com/javase/specs/jls/se25/html/jls-12.html#jls-12.4.2"
+    ]
+  },
+  "22-low-level-design-ood.patterns-in-interview-code.q8": {
+    "reviewed_at": "2026-10-02",
+    "target_versions": [
+      "Java SE 25 API",
+      "Spring Framework 7.0 / JSpecify 1.0"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Optional.html",
+      "https://docs.spring.io/spring-framework/reference/core/null-safety.html",
+      "https://google.github.io/styleguide/javaguide.html"
+    ]
+  },
+  "25-microservice.01-cascading-failure-retry-storm.q2": {
+    "reviewed_at": "2026-08-01",
+    "target_versions": [
+      "gRPC current documentation",
+      "Resilience4j current documentation"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://grpc.io/docs/guides/deadlines/",
+      "https://resilience4j.readme.io/docs/timeout"
+    ]
+  },
+  "25-microservice.01-cascading-failure-retry-storm.q3": {
+    "reviewed_at": "2026-08-01",
+    "target_versions": [
+      "Resilience4j current documentation"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://resilience4j.readme.io/docs/circuitbreaker"
+    ]
+  },
+  "25-microservice.01-cascading-failure-retry-storm.q4": {
+    "reviewed_at": "2026-08-01",
+    "target_versions": [
+      "Resilience4j current documentation",
+      "JDK 25"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://resilience4j.readme.io/docs/bulkhead",
+      "https://resilience4j.readme.io/docs/timeout"
+    ]
+  },
+  "25-microservice.01-cascading-failure-retry-storm.q5": {
+    "reviewed_at": "2026-08-01",
+    "target_versions": [
+      "Resilience4j current documentation",
+      "HTTP current semantics"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://resilience4j.readme.io/docs/retry",
+      "https://www.rfc-editor.org/rfc/rfc9110.html"
+    ]
+  },
+  "25-microservice.01-cascading-failure-retry-storm.q6": {
+    "reviewed_at": "2026-08-01",
+    "target_versions": [
+      "Netflix concurrency-limits current",
+      "HTTP current semantics"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://github.com/Netflix/concurrency-limits",
+      "https://www.rfc-editor.org/rfc/rfc9110.html"
+    ]
+  },
+  "25-microservice.02-pool-exhaustion-connection-thread.q3": {
+    "reviewed_at": "2026-08-01",
+    "target_versions": [
+      "HikariCP current documentation"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://github.com/brettwooldridge/HikariCP"
+    ]
+  },
+  "25-microservice.02-pool-exhaustion-connection-thread.q2": {
+    "reviewed_at": "2026-08-01",
+    "target_versions": [
+      "PgBouncer current documentation",
+      "RDS Proxy current documentation"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://www.pgbouncer.org/features.html",
+      "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-proxy.html"
+    ]
+  },
+  "25-microservice.02-pool-exhaustion-connection-thread.q5": {
+    "reviewed_at": "2026-08-01",
+    "target_versions": [
+      "JDK 21-25"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://openjdk.org/jeps/491"
+    ]
+  },
+  "25-microservice.03-distributed-data-consistency.q5": {
+    "reviewed_at": "2026-08-01",
+    "target_versions": [
+      "Apache Kafka 4.1"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://kafka.apache.org/41/streams/developer-guide/config-streams/"
+    ]
+  },
+  "25-microservice.04-messaging-event-driven-at-scale.q4": {
+    "reviewed_at": "2026-08-01",
+    "target_versions": [
+      "JDK 25"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/ConcurrentSkipListMap.html"
+    ]
+  },
+  "25-microservice.04-messaging-event-driven-at-scale.q2": {
+    "reviewed_at": "2026-08-12",
+    "target_versions": [
+      "Apache Kafka 4.1"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://kafka.apache.org/41/configuration/producer-configs/"
+    ]
+  },
+  "25-microservice.05-caching-pitfalls.q3": {
+    "reviewed_at": "2026-08-01",
+    "target_versions": [
+      "Redis Open Source current documentation"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://redis.io/docs/latest/develop/data-types/probabilistic/bloom-filter/"
+    ]
+  },
+  "25-microservice.05-caching-pitfalls.q5": {
+    "reviewed_at": "2026-08-18",
+    "target_versions": [
+      "Spring Framework 6.2 cache abstraction",
+      "Caffeine 3.x"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.spring.io/spring-framework/reference/integration/cache.html",
+      "https://github.com/ben-manes/caffeine/wiki/Population"
+    ]
+  },
+  "25-microservice.05-caching-pitfalls.q7": {
+    "reviewed_at": "2026-10-26",
+    "target_versions": [
+      "Redis Open Source 8.x eviction policies"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://redis.io/docs/latest/develop/reference/eviction/",
+      "https://github.com/redis/redis/releases/tag/8.10.2"
+    ]
+  },
+  "25-microservice.05-caching-pitfalls.q8": {
+    "reviewed_at": "2026-10-26",
+    "target_versions": [
+      "Redis Open Source 8.x",
+      "hash field expiration since Redis 7.4",
+      "XAUTOCLAIM since Redis 6.2"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://redis.io/docs/latest/commands/hexpire/",
+      "https://redis.io/docs/latest/develop/data-types/streams/",
+      "https://redis.io/docs/latest/develop/data-types/probabilistic/hyperloglogs/",
+      "https://redis.io/docs/latest/develop/pubsub/",
+      "https://github.com/redis/redis/releases/tag/8.10.2"
+    ]
+  },
+  "25-microservice.05-caching-pitfalls.q9": {
+    "reviewed_at": "2026-10-26",
+    "target_versions": [
+      "Redis Open Source 8.x",
+      "WAITAOF since Redis 7.2",
+      "Redis Cluster specification"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://redis.io/docs/latest/commands/waitaof/",
+      "https://redis.io/docs/latest/operate/oss_and_stack/reference/cluster-spec/",
+      "https://redis.io/docs/latest/develop/programmability/eval-intro/",
+      "https://github.com/redis/redis/releases/tag/8.10.2"
+    ]
+  },
+  "25-microservice.06-hot-partition-db-bottleneck.q2": {
+    "reviewed_at": "2026-08-01",
+    "target_versions": [
+      "PostgreSQL 18 documentation"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://www.postgresql.org/docs/current/warm-standby.html"
+    ]
+  },
+  "25-microservice.07-observability-debugging.q2": {
+    "reviewed_at": "2026-08-01",
+    "target_versions": [
+      "Prometheus current documentation"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://prometheus.io/docs/practices/histograms/"
+    ]
+  },
+  "25-microservice.07-observability-debugging.q3": {
+    "reviewed_at": "2026-08-01",
+    "target_versions": [
+      "OpenTelemetry current documentation",
+      "Kubernetes current documentation"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://opentelemetry.io/docs/concepts/sampling/",
+      "https://kubernetes.io/docs/concepts/configuration/liveness-readiness-startup-probes/"
+    ]
+  },
+  "25-microservice.08-operational-concerns.q2": {
+    "reviewed_at": "2026-08-01",
+    "target_versions": [
+      "Kubernetes current documentation"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://kubernetes.io/docs/concepts/workloads/management/",
+      "https://kubernetes.io/docs/tasks/run-application/update-deployment-rolling/"
+    ]
+  },
+  "25-microservice.08-operational-concerns.q3": {
+    "reviewed_at": "2026-08-01",
+    "target_versions": [
+      "Kubernetes autoscaling/v2 current documentation"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://kubernetes.io/docs/concepts/workloads/autoscaling/horizontal-pod-autoscale/"
+    ]
+  },
+  "01-java-core-jvm.language-fundamentals.q6": {
+    "reviewed_at": "2026-08-10",
+    "target_versions": [
+      "Java SE 25 API — java.time",
+      "PostgreSQL 16"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/package-summary.html",
+      "https://www.postgresql.org/docs/current/datatype-datetime.html"
+    ]
+  },
+  "01-java-core-jvm.language-fundamentals.q7": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Java SE 25 API — Clock, System"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/Clock.html",
+      "https://www.postgresql.org/docs/current/functions-datetime.html"
+    ]
+  },
+  "03-spring-boot-deep-build.ioc-container-transactions.q5": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Spring Framework 6.x"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.spring.io/spring-framework/reference/data-access/transaction/event.html"
+    ]
+  },
+  "03-spring-boot-deep-build.ioc-container-transactions.q6": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Spring Framework 6.x"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.spring.io/spring-framework/reference/integration/cache.html"
+    ]
+  },
+  "03-spring-boot-deep-build.bean-lifecycle-request-flow.q3": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Jackson 2.x/3.x",
+      "Spring Boot 3.x"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.spring.io/spring-boot/reference/features/json.html"
+    ]
+  },
+  "08-message-queue.reliability-delivery-semantics.q9": {
+    "reviewed_at": "2026-10-25",
+    "target_versions": [
+      "Apache Kafka 4.3 consumer configs",
+      "KIP-848 consumer rebalance protocol (GA in 4.0)"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://kafka.apache.org/43/configuration/consumer-configs/",
+      "https://kafka.apache.org/43/getting-started/upgrade/",
+      "https://cwiki.apache.org/confluence/display/KAFKA/KIP-848%3A+The+Next+Generation+of+the+Consumer+Rebalance+Protocol"
+    ]
+  },
+  "08-message-queue.reliability-delivery-semantics.q10": {
+    "reviewed_at": "2026-08-10",
+    "target_versions": [
+      "Confluent Schema Registry compatibility types"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.confluent.io/platform/current/schema-registry/fundamentals/schema-evolution.html"
+    ]
+  },
+  "13-security-oauth2.secure-coding-at-the-boundary.q3": {
+    "reviewed_at": "2026-10-26",
+    "target_versions": [
+      "OWASP Top 10:2025",
+      "Jackson 2.x/3.x"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://cheatsheetseries.owasp.org/cheatsheets/Deserialization_Cheat_Sheet.html",
+      "https://cheatsheetseries.owasp.org/cheatsheets/XML_External_Entity_Prevention_Cheat_Sheet.html",
+      "https://owasp.org/Top10/2025/"
+    ]
+  },
+  "13-security-oauth2.secure-coding-at-the-boundary.q4": {
+    "reviewed_at": "2026-10-26",
+    "target_versions": [
+      "OWASP Top 10:2025"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://cheatsheetseries.owasp.org/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.html",
+      "https://owasp.org/Top10/2025/"
+    ]
+  },
+  "18-query-optimization.rewriting-the-query-reshaping-the-model.q5": {
+    "reviewed_at": "2026-08-10",
+    "target_versions": [
+      "PostgreSQL 16"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://www.postgresql.org/docs/current/sql-select.html#SQL-FOR-UPDATE-SHARE"
+    ]
+  },
+  "05-db-core-index-lock.modelling-the-schema.q1": {
+    "reviewed_at": "2026-08-10",
+    "target_versions": [
+      "PostgreSQL 16"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://www.postgresql.org/docs/current/ddl-constraints.html"
+    ]
+  },
+  "07-sql-nosql-db-engines.engine-by-engine.q9": {
+    "reviewed_at": "2026-08-10",
+    "target_versions": [
+      "Elasticsearch 8.x"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-reindex.html"
+    ]
+  },
+  "26-testing-strategy.integration-tests-that-tell-the-truth.q1": {
+    "reviewed_at": "2026-10-26",
+    "target_versions": [
+      "Testcontainers for Java 2.0.5",
+      "PostgreSQL 18"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://java.testcontainers.org/features/reuse/",
+      "https://github.com/testcontainers/testcontainers-java/releases/tag/2.0.5"
+    ]
+  },
+  "26-testing-strategy.integration-tests-that-tell-the-truth.q3": {
+    "reviewed_at": "2026-08-10",
+    "target_versions": [
+      "Spring Framework 6.x test context"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.spring.io/spring-framework/reference/testing/testcontext-framework/ctx-management/caching.html"
+    ]
+  },
+  "05-db-core-index-lock.modelling-the-schema.q2": {
+    "reviewed_at": "2026-08-10",
+    "target_versions": [
+      "PostgreSQL 16",
+      "RFC 9562 (UUIDv7)"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://www.rfc-editor.org/rfc/rfc9562.html",
+      "https://www.postgresql.org/docs/current/indexes-partial.html"
+    ]
+  },
+  "10-system-design-rate-limit.rate-limiting-in-depth.q4": {
+    "reviewed_at": "2026-08-12",
+    "target_versions": [
+      "Redis 7.x and later scripting semantics"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://redis.io/docs/latest/develop/programmability/eval-intro/",
+      "https://redis.io/docs/latest/develop/programmability/lua-api/"
+    ]
+  },
+  "11-system-design-cases.the-big-prompts.q15": {
+    "reviewed_at": "2026-10-26",
+    "target_versions": [
+      "AWS Prescriptive Guidance current transactional-outbox and Saga patterns",
+      "Apache Kafka 4.1 producer and consumer semantics",
+      "Kubernetes current Service and DNS discovery model",
+      "Redis current cache-aside guidance",
+      "Elasticsearch current near-real-time search model",
+      "RabbitMQ 4.4 reliability and dead-lettering guidance",
+      "PostgreSQL current transaction semantics"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html",
+      "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/saga-patterns.html",
+      "https://kafka.apache.org/41/javadoc/org/apache/kafka/clients/producer/KafkaProducer.html",
+      "https://kafka.apache.org/41/javadoc/org/apache/kafka/clients/consumer/KafkaConsumer.html",
+      "https://kubernetes.io/docs/concepts/services-networking/service/",
+      "https://redis.io/docs/latest/develop/use-cases/cache-aside/",
+      "https://www.elastic.co/docs/manage-data/data-store/near-real-time-search",
+      "https://www.rabbitmq.com/docs/reliability",
+      "https://www.rabbitmq.com/docs/dlx",
+      "https://www.postgresql.org/docs/current/tutorial-transactions.html",
+      "https://github.com/rabbitmq/rabbitmq-server/blob/main/release-notes/4.4.0.md"
+    ]
+  },
+  "11-system-design-cases.the-big-prompts.q16": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "AWS Prescriptive Guidance current transactional-outbox and Saga patterns",
+      "Apache Kafka 4.1 producer semantics",
+      "Stripe API current idempotency contract",
+      "PostgreSQL current transaction semantics"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html",
+      "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/saga-patterns.html",
+      "https://kafka.apache.org/41/javadoc/org/apache/kafka/clients/producer/KafkaProducer.html",
+      "https://docs.stripe.com/api/idempotent_requests",
+      "https://www.postgresql.org/docs/current/tutorial-transactions.html"
+    ]
+  },
+  "16-project-concurrency-whiteboard.presenting-dissecting-the-ota-project.q2": {
+    "reviewed_at": "2026-08-12",
+    "target_versions": [
+      "PostgreSQL 18"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://www.postgresql.org/docs/current/transaction-iso.html",
+      "https://www.postgresql.org/docs/current/dml-returning.html"
+    ]
+  },
+  "17-rest-api-design.contracts-errors-lifecycle.q4": {
+    "reviewed_at": "2026-08-12",
+    "target_versions": [
+      "RFC 9745",
+      "RFC 8594"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://www.rfc-editor.org/rfc/rfc9745.html",
+      "https://www.rfc-editor.org/rfc/rfc8594.html"
+    ]
+  },
+  "18-query-optimization.measure-first-reading-the-execution-plan.q1": {
+    "reviewed_at": "2026-08-12",
+    "target_versions": [
+      "PostgreSQL 18"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://www.postgresql.org/docs/current/using-explain.html"
+    ]
+  },
+  "20-observability-sre.the-three-pillars-how-to-measure.q3": {
+    "reviewed_at": "2026-08-12",
+    "target_versions": [
+      "Prometheus current PromQL"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://prometheus.io/docs/prometheus/latest/querying/functions/"
+    ]
+  },
+  "27-api-gateway-identity-edge.gateway-configuration-that-matters.q2": {
+    "reviewed_at": "2026-10-25",
+    "target_versions": [
+      "Spring Cloud Gateway 5.0.4"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.spring.io/spring-cloud-gateway/reference/spring-cloud-gateway-server-webflux/http-timeouts-configuration.html",
+      "https://docs.spring.io/spring-cloud-gateway/reference/configprops.html"
+    ]
+  },
+  "27-api-gateway-identity-edge.gateway-configuration-that-matters.q1": {
+    "reviewed_at": "2026-10-25",
+    "target_versions": [
+      "Spring Cloud Gateway 5.0.4",
+      "Spring Cloud 2025.1.4 (Oakwood)",
+      "Spring Boot 4.1.x",
+      "JDK 25 LTS"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.spring.io/spring-cloud-gateway/reference/index.html",
+      "https://docs.spring.io/spring-cloud-gateway/reference/spring-cloud-gateway-server-webflux/starter.html",
+      "https://spring.io/projects/spring-cloud",
+      "https://openjdk.org/projects/jdk/25/"
+    ]
+  },
+  "27-api-gateway-identity-edge.gateway-configuration-that-matters.q3": {
+    "reviewed_at": "2026-10-25",
+    "target_versions": [
+      "Spring Cloud Gateway 5.0.4",
+      "Resilience4j 2.4.0"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.spring.io/spring-cloud-gateway/reference/spring-cloud-gateway-server-webflux/gatewayfilter-factories/circuitbreaker-filter.html",
+      "https://docs.spring.io/spring-cloud-gateway/reference/spring-cloud-gateway-server-webflux/gatewayfilter-factories/requestratelimiter-factory.html",
+      "https://github.com/resilience4j/resilience4j/releases",
+      "https://central.sonatype.com/artifact/io.github.resilience4j/resilience4j-spring-boot4/2.4.0"
+    ]
+  },
+  "27-api-gateway-identity-edge.gateway-configuration-that-matters.q4": {
+    "reviewed_at": "2026-10-25",
+    "target_versions": [
+      "Spring Cloud Gateway 5.0.4",
+      "Spring Boot 4.1.x",
+      "Netty 4.x"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.spring.io/spring-cloud-gateway/reference/configprops.html",
+      "https://docs.spring.io/spring-cloud-gateway/reference/spring-cloud-gateway-server-webflux/starter.html"
+    ]
+  },
+  "27-api-gateway-identity-edge.identity-at-the-edge.q1": {
+    "reviewed_at": "2026-08-12",
+    "target_versions": [
+      "RFC 9700 (OAuth 2.0 Security BCP)",
+      "Spring Security current OAuth2 Resource Server reference"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://www.rfc-editor.org/rfc/rfc9700.html",
+      "https://docs.spring.io/spring-security/reference/reactive/oauth2/resource-server/index.html"
+    ]
+  },
+  "27-api-gateway-identity-edge.identity-at-the-edge.q2": {
+    "reviewed_at": "2026-08-12",
+    "target_versions": [
+      "RFC 8725 (JWT Best Current Practices)",
+      "OpenID Connect Discovery 1.0 incorporating errata set 2",
+      "Spring Security current Resource Server JWT reference"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://www.rfc-editor.org/rfc/rfc8725.html",
+      "https://openid.net/specs/openid-connect-discovery-1_0.html",
+      "https://docs.spring.io/spring-security/reference/reactive/oauth2/resource-server/jwt.html"
+    ]
+  },
+  "27-api-gateway-identity-edge.identity-at-the-edge.q4": {
+    "reviewed_at": "2026-08-12",
+    "target_versions": [
+      "RFC 9700 (OAuth 2.0 Security BCP)",
+      "RFC 8725 (JWT Best Current Practices)",
+      "OpenID Connect Discovery 1.0 incorporating errata set 2"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://www.rfc-editor.org/rfc/rfc9700.html",
+      "https://www.rfc-editor.org/rfc/rfc8725.html",
+      "https://openid.net/specs/openid-connect-discovery-1_0.html"
+    ]
+  },
+  "09-distributed-tx-fintech.distributed-transaction-patterns.q1": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "PostgreSQL current two-phase transaction reference",
+      "AWS Prescriptive Guidance current Saga pattern"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://www.postgresql.org/docs/current/sql-prepare-transaction.html",
+      "https://docs.aws.amazon.com/prescriptive-guidance/latest/modernization-data-persistence/saga-pattern.html"
+    ]
+  },
+  "09-distributed-tx-fintech.distributed-transaction-patterns.q2": {
+    "reviewed_at": "2026-08-19",
+    "target_versions": [
+      "AWS Prescriptive Guidance current Saga pattern",
+      "AWS Prescriptive Guidance current Saga orchestration pattern"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://docs.aws.amazon.com/prescriptive-guidance/latest/modernization-data-persistence/saga-pattern.html",
+      "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/saga-orchestration.html"
+    ]
+  },
+  "09-distributed-tx-fintech.distributed-transaction-patterns.q3": {
+    "reviewed_at": "2026-08-19",
+    "target_versions": [
+      "AWS Prescriptive Guidance current Transactional Outbox pattern",
+      "Apache Kafka 4.2 design documentation"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html",
+      "https://kafka.apache.org/42/design/design/"
+    ]
+  },
+  "09-distributed-tx-fintech.distributed-transaction-patterns.q4": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Apache Seata 2.1 TCC mode"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://seata.apache.org/docs/v2.1/user/mode/tcc/"
+    ]
+  },
+  "09-distributed-tx-fintech.distributed-transaction-patterns.q5": {
+    "reviewed_at": "2026-08-19",
+    "target_versions": [
+      "AWS Prescriptive Guidance current Saga pattern",
+      "AWS Prescriptive Guidance current Transactional Outbox pattern"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://docs.aws.amazon.com/prescriptive-guidance/latest/modernization-data-persistence/saga-pattern.html",
+      "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html"
+    ]
+  },
+  "09-distributed-tx-fintech.distributed-transaction-patterns.q6": {
+    "reviewed_at": "2026-08-19",
+    "target_versions": [
+      "Redis current distributed locks reference",
+      "PostgreSQL current constraints reference"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://redis.io/docs/latest/develop/clients/patterns/distributed-locks/",
+      "https://www.postgresql.org/docs/current/ddl-constraints.html"
+    ]
+  },
+  "09-distributed-tx-fintech.correctness-where-money-is-involved.q1": {
+    "reviewed_at": "2026-08-23",
+    "target_versions": [
+      "Stripe API current idempotent request behavior",
+      "Stripe PaymentIntent current lifecycle guidance",
+      "Stripe current webhook guidance",
+      "Adyen current API idempotency guidance",
+      "AWS Builders' Library current idempotent API guidance"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://docs.stripe.com/api/idempotent_requests",
+      "https://docs.stripe.com/payments/paymentintents/lifecycle?locale=en-GB",
+      "https://docs.stripe.com/webhooks?lang=node",
+      "https://docs.adyen.com/development-resources/api-idempotency",
+      "https://aws.amazon.com/builders-library/making-retries-safe-with-idempotent-APIs/"
+    ]
+  },
+  "09-distributed-tx-fintech.correctness-where-money-is-involved.q2": {
+    "reviewed_at": "2026-08-23",
+    "target_versions": [
+      "Stripe API current idempotent request behavior",
+      "Adyen current API idempotency guidance",
+      "AWS Builders' Library current idempotent API guidance",
+      "PostgreSQL current unique constraints reference"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.stripe.com/api/idempotent_requests",
+      "https://docs.adyen.com/development-resources/api-idempotency",
+      "https://aws.amazon.com/builders-library/making-retries-safe-with-idempotent-APIs/",
+      "https://www.postgresql.org/docs/current/ddl-constraints.html"
+    ]
+  },
+  "09-distributed-tx-fintech.correctness-where-money-is-involved.q3": {
+    "reviewed_at": "2026-08-19",
+    "target_versions": [
+      "TigerBeetle current financial accounting reference"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://docs.tigerbeetle.com/coding/financial-accounting/"
+    ]
+  },
+  "09-distributed-tx-fintech.correctness-where-money-is-involved.q4": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Java SE 25 BigDecimal",
+      "PostgreSQL current numeric types reference"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/math/BigDecimal.html",
+      "https://www.postgresql.org/docs/current/datatype-numeric.html"
+    ]
+  },
+  "09-distributed-tx-fintech.correctness-where-money-is-involved.q5": {
+    "reviewed_at": "2026-08-19",
+    "target_versions": [
+      "PostgreSQL current transaction isolation reference",
+      "PostgreSQL current explicit locking reference",
+      "PostgreSQL current constraints reference"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://www.postgresql.org/docs/current/transaction-iso.html",
+      "https://www.postgresql.org/docs/current/explicit-locking.html",
+      "https://www.postgresql.org/docs/current/ddl-constraints.html"
+    ]
+  },
+  "09-distributed-tx-fintech.correctness-where-money-is-involved.q6": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Apache Kafka 4.2 delivery semantics",
+      "Stripe PaymentIntents current status guidance",
+      "PostgreSQL current transaction isolation reference"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://kafka.apache.org/42/design/design/",
+      "https://docs.stripe.com/payments/payment-intents/verifying-status",
+      "https://www.postgresql.org/docs/current/transaction-iso.html"
+    ]
+  },
+  "01-java-core-jvm.memory-execution-model.q2": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "HotSpot C2 current escape-analysis behavior"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.oracle.com/en/java/javase/17/vm/java-hotspot-virtual-machine-performance-enhancements.html"
+    ]
+  },
+  "01-java-core-jvm.memory-execution-model.q6": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Java SE 25 JVM Specification",
+      "Oracle JDK 25 Native Memory Tracking",
+      "Java 21 virtual threads",
+      "Java 22 Foreign Function and Memory API"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.oracle.com/javase/specs/jvms/se25/html/jvms-2.html",
+      "https://docs.oracle.com/en/java/javase/25/troubleshoot/troubleshooting-guide.pdf",
+      "https://openjdk.org/jeps/444",
+      "https://openjdk.org/jeps/454"
+    ]
+  },
+  "25-microservice.05-caching-pitfalls.q10": {
+    "reviewed_at": "2026-08-19",
+    "target_versions": [
+      "Redis Open Source current key-eviction reference",
+      "Caffeine 3.2.4 and current design reference",
+      "Memcached current maintained-LRU design",
+      "MySQL 8.4 InnoDB buffer pool",
+      "PostgreSQL 18 buffer replacement",
+      "Linux kernel current Multi-Gen LRU documentation",
+      "OpenZFS current ARC documentation"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://redis.io/docs/latest/develop/reference/eviction/",
+      "https://github.com/ben-manes/caffeine/wiki/Design",
+      "https://github.com/ben-manes/caffeine/wiki/Eviction",
+      "https://github.com/memcached/memcached/blob/master/doc/new_lru.txt",
+      "https://dev.mysql.com/doc/refman/8.4/en/innodb-performance-midpoint_insertion.html",
+      "https://wiki.postgresql.org/wiki/Multiple_Buffer_Pools",
+      "https://docs.kernel.org/mm/multigen_lru.html",
+      "https://openzfs.github.io/openzfs-docs/Basic%20Concepts/Pool%20Structure/Caching.html",
+      "https://www.usenix.org/conference/fast-03/presentation/arc-self-tuning-low-overhead-replacement-cache",
+      "https://arxiv.org/abs/1512.00727",
+      "https://doxygen.postgresql.org/buf__internals_8h_source.html",
+      "https://static.usenix.org/publications/library/proceedings/usenix05/tech/general/full_papers/jiang/jiang_html/html.html"
+    ]
+  },
+  "25-microservice.05-caching-pitfalls.q11": {
+    "reviewed_at": "2026-08-19",
+    "target_versions": [
+      "RFC 9111 HTTP Caching",
+      "Caffeine current statistics reference",
+      "Redis Open Source current INFO reference",
+      "MySQL 8.4 InnoDB buffer pool"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://www.rfc-editor.org/rfc/rfc9111.html",
+      "https://github.com/ben-manes/caffeine/wiki/Statistics",
+      "https://redis.io/docs/latest/commands/info/",
+      "https://dev.mysql.com/doc/refman/8.4/en/memory-use.html"
+    ]
+  },
+  "25-microservice.05-caching-pitfalls.q12": {
+    "reviewed_at": "2026-08-19",
+    "target_versions": [
+      "Redis Open Source current expiration and replication semantics",
+      "Caffeine current time-based expiration semantics",
+      "Memcached current text protocol expiration semantics"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://redis.io/docs/latest/commands/expire/",
+      "https://redis.io/docs/latest/commands/getex/",
+      "https://redis.io/docs/latest/commands/set/",
+      "https://redis.io/docs/latest/operate/oss_and_stack/management/replication/",
+      "https://github.com/ben-manes/caffeine/wiki/Eviction",
+      "https://github.com/memcached/memcached/blob/master/doc/protocol.txt"
+    ]
+  },
+  "13-security-oauth2.jwt-tokens.q4": {
+    "reviewed_at": "2026-10-25",
+    "target_versions": [
+      "RFC 10017 OAuth 2.0 for Browser-Based Applications (BCP 212, August 2026)",
+      "RFC 9700 OAuth 2.0 Security Best Current Practice",
+      "RFC 6750 OAuth 2.0 Bearer Token Usage",
+      "RFC 8252 OAuth 2.0 for Native Apps",
+      "OWASP Session Management and CSRF guidance current at review"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://www.rfc-editor.org/rfc/rfc10017.html",
+      "https://www.rfc-editor.org/rfc/rfc9700.html",
+      "https://www.rfc-editor.org/rfc/rfc6750.html",
+      "https://www.rfc-editor.org/rfc/rfc8252.html",
+      "https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html",
+      "https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html"
+    ]
+  },
+  "01-java-core-jvm.language-fundamentals.q9": {
+    "reviewed_at": "2026-08-21",
+    "target_versions": [
+      "Java SE 25 JLS",
+      "Java SE 25 JVMS"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.4.8",
+      "https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.4.9",
+      "https://docs.oracle.com/javase/specs/jvms/se25/html/jvms-6.html#jvms-6.5.invokevirtual"
+    ]
+  },
+  "05-db-core-index-lock.transactions-mvcc-locking.q8": {
+    "reviewed_at": "2026-08-21",
+    "target_versions": [
+      "MySQL 8.4 LTS",
+      "InnoDB",
+      "PostgreSQL 18"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://dev.mysql.com/doc/refman/8.4/en/mysql-acid.html",
+      "https://dev.mysql.com/doc/refman/8.4/en/innodb-redo-log.html",
+      "https://www.postgresql.org/docs/18/storage-file-layout.html",
+      "https://www.postgresql.org/docs/18/transaction-iso.html"
+    ]
+  },
+  "05-db-core-index-lock.transactions-mvcc-locking.q9": {
+    "reviewed_at": "2026-08-22",
+    "target_versions": [
+      "MySQL 8.4 / InnoDB",
+      "PostgreSQL 18"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://dev.mysql.com/doc/refman/8.4/en/innodb-transaction-isolation-levels.html",
+      "https://www.postgresql.org/docs/18/sql-set-transaction.html"
+    ]
+  },
+  "08-message-queue.the-two-models.q4": {
+    "reviewed_at": "2026-08-22",
+    "target_versions": [
+      "RabbitMQ 4.x documentation",
+      "Apache Kafka 4.x documentation"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://www.rabbitmq.com/tutorials/tutorial-three-javascript",
+      "https://www.rabbitmq.com/docs/next/confirms",
+      "https://kafka.apache.org/documentation/#intro_consumers"
+    ]
+  },
+  "03-spring-boot-deep-build.auto-configuration-build.q15": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "HikariCP current documentation",
+      "Spring Boot 4.1.x",
+      "PostgreSQL 18"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://github.com/brettwooldridge/HikariCP",
+      "https://docs.spring.io/spring-boot/reference/data/sql.html",
+      "https://docs.spring.io/spring-framework/reference/data-access/transaction/declarative/tx-propagation.html",
+      "https://www.postgresql.org/docs/18/sql-set.html"
+    ]
+  },
+  "28-distributed-lock-lease.the-protocol-before-the-product.q1": {
+    "reviewed_at": "2026-08-22",
+    "target_versions": [
+      "Redis current distributed-lock guidance",
+      "PostgreSQL current explicit-locking guidance",
+      "MySQL 8.4 InnoDB locking reads"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://redis.io/docs/latest/develop/clients/patterns/distributed-locks/",
+      "https://www.postgresql.org/docs/current/explicit-locking.html",
+      "https://dev.mysql.com/doc/refman/8.4/en/innodb-locking-reads.html"
+    ]
+  },
+  "28-distributed-lock-lease.the-protocol-before-the-product.q2": {
+    "reviewed_at": "2026-08-22",
+    "target_versions": [
+      "Redis current distributed-lock guidance",
+      "PostgreSQL current explicit-locking guidance"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://redis.io/docs/latest/develop/clients/patterns/distributed-locks/",
+      "https://www.postgresql.org/docs/current/explicit-locking.html"
+    ]
+  },
+  "28-distributed-lock-lease.the-protocol-before-the-product.q3": {
+    "reviewed_at": "2026-08-22",
+    "target_versions": [
+      "Kubernetes current Lease API",
+      "etcd v3.7 election documentation"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://kubernetes.io/docs/concepts/architecture/leases/",
+      "https://etcd.io/docs/v3.7/tasks/operator/how-to-conduct-elections/"
+    ]
+  },
+  "28-distributed-lock-lease.the-protocol-before-the-product.q4": {
+    "reviewed_at": "2026-08-22",
+    "target_versions": [
+      "Redis current distributed-lock guidance",
+      "Kubernetes current Lease API"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://redis.io/docs/latest/develop/clients/patterns/distributed-locks/",
+      "https://kubernetes.io/docs/concepts/architecture/leases/"
+    ]
+  },
+  "28-distributed-lock-lease.choose-the-authority-before-the-mechanism.q1": {
+    "reviewed_at": "2026-08-22",
+    "target_versions": [
+      "PostgreSQL current explicit-locking guidance",
+      "MySQL 8.4 InnoDB locking reads"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://www.postgresql.org/docs/current/explicit-locking.html",
+      "https://dev.mysql.com/doc/refman/8.4/en/innodb-locking-reads.html"
+    ]
+  },
+  "28-distributed-lock-lease.choose-the-authority-before-the-mechanism.q2": {
+    "reviewed_at": "2026-08-22",
+    "target_versions": [
+      "PostgreSQL current explicit-locking guidance",
+      "MySQL 8.4 InnoDB locking reads"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://www.postgresql.org/docs/current/explicit-locking.html",
+      "https://dev.mysql.com/doc/refman/8.4/en/innodb-locking-reads.html"
+    ]
+  },
+  "28-distributed-lock-lease.choose-the-authority-before-the-mechanism.q3": {
+    "reviewed_at": "2026-08-22",
+    "target_versions": [
+      "PostgreSQL current advisory-lock documentation"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://www.postgresql.org/docs/current/explicit-locking.html",
+      "https://www.postgresql.org/docs/current/functions-admin.html"
+    ]
+  },
+  "28-distributed-lock-lease.choose-the-authority-before-the-mechanism.q4": {
+    "reviewed_at": "2026-08-22",
+    "target_versions": [
+      "Redis current SET command",
+      "Redis current distributed-lock guidance"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://redis.io/docs/latest/commands/set/",
+      "https://redis.io/docs/latest/develop/clients/patterns/distributed-locks/"
+    ]
+  },
+  "28-distributed-lock-lease.choose-the-authority-before-the-mechanism.q5": {
+    "reviewed_at": "2026-08-22",
+    "target_versions": [
+      "Kubernetes current Lease API",
+      "etcd v3.7 election documentation",
+      "ZooKeeper current recipes"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://kubernetes.io/docs/concepts/architecture/leases/",
+      "https://etcd.io/docs/v3.7/tasks/operator/how-to-conduct-elections/",
+      "https://zookeeper.apache.org/doc/r3.9.4/recipes.html"
+    ]
+  },
+  "28-distributed-lock-lease.design-for-expiry-and-stale-work.q1": {
+    "reviewed_at": "2026-08-22",
+    "target_versions": [
+      "Redis current distributed-lock guidance",
+      "Spring Integration current distributed-lock API"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://redis.io/docs/latest/develop/clients/patterns/distributed-locks/",
+      "https://docs.spring.io/spring-integration/reference/distributed-locks.html"
+    ]
+  },
+  "28-distributed-lock-lease.design-for-expiry-and-stale-work.q2": {
+    "reviewed_at": "2026-08-22",
+    "target_versions": [
+      "Redis current distributed-lock guidance",
+      "Spring Integration current renewable-lock API"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://redis.io/docs/latest/develop/clients/patterns/distributed-locks/",
+      "https://docs.spring.io/spring-integration/reference/distributed-locks.html"
+    ]
+  },
+  "28-distributed-lock-lease.design-for-expiry-and-stale-work.q3": {
+    "reviewed_at": "2026-08-22",
+    "target_versions": [
+      "Redis current distributed-lock guidance",
+      "PostgreSQL current conditional-write and locking guidance"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://redis.io/docs/latest/develop/clients/patterns/distributed-locks/",
+      "https://www.postgresql.org/docs/current/explicit-locking.html"
+    ]
+  },
+  "28-distributed-lock-lease.design-for-expiry-and-stale-work.q4": {
+    "reviewed_at": "2026-08-22",
+    "target_versions": [
+      "Redis current distributed-lock guidance",
+      "PostgreSQL current transaction guidance"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://redis.io/docs/latest/develop/clients/patterns/distributed-locks/",
+      "https://www.postgresql.org/docs/current/transaction-iso.html"
+    ]
+  },
+  "28-distributed-lock-lease.apply-operate-and-test-it.q1": {
+    "reviewed_at": "2026-08-22",
+    "target_versions": [
+      "Kubernetes current Lease API",
+      "PostgreSQL current explicit-locking guidance",
+      "Spring Integration current distributed-lock API"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://kubernetes.io/docs/concepts/architecture/leases/",
+      "https://www.postgresql.org/docs/current/explicit-locking.html",
+      "https://docs.spring.io/spring-integration/reference/distributed-locks.html"
+    ]
+  },
+  "28-distributed-lock-lease.apply-operate-and-test-it.q2": {
+    "reviewed_at": "2026-08-22",
+    "target_versions": [
+      "Redis current distributed-lock guidance",
+      "PostgreSQL current transaction guidance"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://redis.io/docs/latest/develop/clients/patterns/distributed-locks/",
+      "https://www.postgresql.org/docs/current/transaction-iso.html"
+    ]
+  },
+  "28-distributed-lock-lease.apply-operate-and-test-it.q3": {
+    "reviewed_at": "2026-08-22",
+    "target_versions": [
+      "Kubernetes current Lease API",
+      "Redis current distributed-lock guidance",
+      "OpenTelemetry current metrics guidance"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://kubernetes.io/docs/concepts/architecture/leases/",
+      "https://redis.io/docs/latest/develop/clients/patterns/distributed-locks/",
+      "https://opentelemetry.io/docs/specs/otel/metrics/"
+    ]
+  },
+  "28-distributed-lock-lease.apply-operate-and-test-it.q4": {
+    "reviewed_at": "2026-08-22",
+    "target_versions": [
+      "Redis current distributed-lock guidance",
+      "PostgreSQL current explicit-locking guidance",
+      "Kubernetes current Lease API"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://redis.io/docs/latest/develop/clients/patterns/distributed-locks/",
+      "https://www.postgresql.org/docs/current/explicit-locking.html",
+      "https://kubernetes.io/docs/concepts/architecture/leases/"
+    ]
+  },
+  "10-system-design-rate-limit.surviving-high-load.q2": {
+    "reviewed_at": "2026-08-23",
+    "target_versions": [
+      "Google SRE current overload guidance",
+      "Envoy current circuit-breaking guidance"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://sre.google/sre-book/handling-overload/",
+      "https://sre.google/sre-book/addressing-cascading-failures/",
+      "https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/",
+      "https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/upstream/circuit_breaking"
+    ]
+  },
+  "10-system-design-rate-limit.rate-limiting-in-depth.q5": {
+    "reviewed_at": "2026-08-23",
+    "target_versions": [
+      "RFC 6585",
+      "RFC 9110",
+      "Envoy current rate-limit filter documentation"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://www.rfc-editor.org/rfc/rfc6585.html",
+      "https://www.rfc-editor.org/rfc/rfc9110.html",
+      "https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/rate_limit_filter"
+    ]
+  },
+  "11-system-design-cases.the-big-prompts.q2": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Apple UserNotifications current provider documentation",
+      "Firebase Cloud Messaging current documentation"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://developer.apple.com/documentation/usernotifications/sending-notification-requests-to-apns?changes=_3_4",
+      "https://firebase.google.com/docs/cloud-messaging",
+      "https://firebase.google.com/docs/cloud-messaging/customize-messages/collapsible-message-types",
+      "https://firebase.google.com/docs/cloud-messaging/customize-messages/setting-message-lifespan?authuser=2"
+    ]
+  },
+  "11-system-design-cases.the-big-prompts.q10": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "AWS S3 current presigned URL and multipart-upload documentation",
+      "Google Cloud Storage current resumable-upload documentation"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://docs.aws.amazon.com/AmazonS3/latest/userguide/using-presigned-url.html",
+      "https://docs.aws.amazon.com/AmazonS3/latest/userguide/mpuoverview.html",
+      "https://docs.aws.amazon.com/AmazonS3/latest/userguide/checking-object-integrity-upload.html",
+      "https://docs.cloud.google.com/storage/docs/resumable-uploads?authuser=09",
+      "https://docs.cloud.google.com/storage/docs/access-control/signed-urls?authuser=09"
+    ]
+  },
+  "11-system-design-cases.the-big-prompts.q1": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Stripe current idempotent request, PaymentIntent and webhook guidance",
+      "Adyen current API idempotency guidance",
+      "AWS current transactional outbox guidance"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://docs.stripe.com/api/idempotent_requests",
+      "https://docs.stripe.com/payments/paymentintents/lifecycle?locale=en-GB",
+      "https://docs.stripe.com/webhooks?lang=node",
+      "https://docs.adyen.com/development-resources/api-idempotency",
+      "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html"
+    ]
+  },
+  "11-system-design-cases.the-big-prompts.q11": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Stripe current idempotent request, PaymentIntent and webhook guidance",
+      "Adyen current API idempotency guidance",
+      "AWS Builders' Library current idempotent API guidance"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.stripe.com/api/idempotent_requests",
+      "https://docs.stripe.com/payments/paymentintents/lifecycle?locale=en-GB",
+      "https://docs.stripe.com/webhooks?lang=node",
+      "https://docs.adyen.com/development-resources/api-idempotency",
+      "https://aws.amazon.com/builders-library/making-retries-safe-with-idempotent-APIs/"
+    ]
+  },
+  "11-system-design-cases.the-big-prompts.q14": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "PostgreSQL current transaction isolation and conditional-write guidance",
+      "Stripe current PaymentIntent and webhook guidance",
+      "AWS current Saga and transactional outbox guidance"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://www.postgresql.org/docs/current/transaction-iso.html",
+      "https://docs.stripe.com/payments/paymentintents/lifecycle?locale=en-GB",
+      "https://docs.stripe.com/webhooks?lang=node",
+      "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/saga-patterns.html",
+      "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html"
+    ]
+  },
+  "05-db-core-index-lock.modelling-the-schema.q3": {
+    "reviewed_at": "2026-08-23",
+    "target_versions": [
+      "PostgreSQL 18 current logical-decoding documentation",
+      "Debezium stable architecture documentation",
+      "Elasticsearch current near-real-time search documentation"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://www.postgresql.org/docs/current/logicaldecoding.html",
+      "https://debezium.io/documentation/reference/stable/architecture.html",
+      "https://www.elastic.co/docs/manage-data/data-store/near-real-time-search"
+    ]
+  },
+  "06-db-scaling.sharding-partitioning.q8": {
+    "reviewed_at": "2026-08-23",
+    "target_versions": [
+      "Apache Cassandra current data-modeling and topology documentation",
+      "MongoDB current sharding documentation"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://cassandra.apache.org/doc/latest/cassandra/developing/data-modeling/intro.html",
+      "https://cassandra.apache.org/doc/latest/cassandra/managing/operating/topo_changes.html",
+      "https://www.mongodb.com/docs/manual/sharding/"
+    ]
+  },
+  "07-sql-nosql-db-engines.engine-by-engine.q10": {
+    "reviewed_at": "2026-08-23",
+    "target_versions": [
+      "Debezium stable architecture and outbox documentation",
+      "Elasticsearch current near-real-time and reindex documentation",
+      "Apache Kafka current delivery-semantics documentation"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://debezium.io/documentation/reference/stable/architecture.html",
+      "https://debezium.io/documentation/reference/stable/transformations/outbox-event-router.html",
+      "https://www.elastic.co/docs/manage-data/data-store/near-real-time-search",
+      "https://www.elastic.co/docs/api/doc/elasticsearch/operation/operation-reindex",
+      "https://kafka.apache.org/documentation/#semantics"
+    ]
+  },
+  "18-query-optimization.rewriting-the-query-reshaping-the-model.q6": {
+    "reviewed_at": "2026-08-23",
+    "target_versions": [
+      "PostgreSQL 18 current EXPLAIN and materialized-view documentation",
+      "Debezium stable architecture documentation",
+      "Elasticsearch current reindex documentation"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://www.postgresql.org/docs/current/using-explain.html",
+      "https://www.postgresql.org/docs/current/rules-materializedviews.html",
+      "https://debezium.io/documentation/reference/stable/architecture.html",
+      "https://www.elastic.co/docs/api/doc/elasticsearch/operation/operation-reindex"
+    ]
+  },
+  "20-observability-sre.slos-alerting-incidents.q5": {
+    "reviewed_at": "2026-10-26",
+    "target_versions": [
+      "Google SRE current SLO guidance",
+      "OpenTelemetry Semantic Conventions 1.44.0 at review",
+      "Prometheus current alerting and recording-rule documentation"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://sre.google/sre-book/service-level-objectives/",
+      "https://sre.google/sre-book/monitoring-distributed-systems/",
+      "https://opentelemetry.io/docs/specs/semconv/messaging/messaging-spans/",
+      "https://prometheus.io/docs/prometheus/latest/configuration/recording_rules/",
+      "https://prometheus.io/docs/prometheus/latest/configuration/alerting_rules/",
+      "https://github.com/open-telemetry/semantic-conventions/releases/tag/v1.44.0"
+    ]
+  },
+  "20-observability-sre.slos-alerting-incidents.q6": {
+    "reviewed_at": "2026-08-23",
+    "target_versions": [
+      "OpenTelemetry Collector current resiliency and internal-telemetry documentation",
+      "Prometheus current alerting documentation",
+      "Google SRE current distributed-monitoring guidance"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://opentelemetry.io/docs/collector/resiliency/",
+      "https://opentelemetry.io/docs/collector/internal-telemetry/",
+      "https://opentelemetry.io/docs/collector/troubleshooting/",
+      "https://prometheus.io/docs/prometheus/latest/configuration/alerting_rules/",
+      "https://sre.google/sre-book/monitoring-distributed-systems/"
+    ]
+  },
+  "21-linux-production-debug.jvm-network-deep-dive-on-prod.q5": {
+    "reviewed_at": "2026-08-23",
+    "target_versions": [
+      "Java SE 21 diagnostic-tools documentation",
+      "Linux kernel current PSI and cgroup-v2 documentation",
+      "async-profiler current project documentation"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://docs.oracle.com/en/java/javase/21/troubleshoot/diagnostic-tools.html",
+      "https://docs.oracle.com/en/java/javase/21/docs/specs/man/jfr.html",
+      "https://github.com/async-profiler/async-profiler/blob/master/README.md",
+      "https://docs.kernel.org/accounting/psi.html",
+      "https://docs.kernel.org/admin-guide/cgroup-v2.html",
+      "https://man7.org/linux/man-pages/man8/tcpdump.8.html"
+    ]
+  },
+  "26-testing-strategy.testing-what-usually-breaks.q6": {
+    "reviewed_at": "2026-08-23",
+    "target_versions": [
+      "Pact current specification",
+      "Testcontainers current documentation",
+      "Google SRE current testing-for-reliability guidance"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://docs.pact.io/implementation_guides/pact_specification",
+      "https://testcontainers.com/guides/",
+      "https://docs.aws.amazon.com/fis/latest/userguide/run-experiment.html",
+      "https://sre.google/sre-book/testing-reliability/"
+    ]
+  },
+  "26-testing-strategy.testing-what-usually-breaks.q7": {
+    "reviewed_at": "2026-08-23",
+    "target_versions": [
+      "AWS Backup current restore-testing documentation",
+      "PostgreSQL 18 current backup and PITR documentation",
+      "Kubernetes current rolling-update and rollback documentation"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://docs.aws.amazon.com/aws-backup/latest/devguide/restore-testing.html",
+      "https://www.postgresql.org/docs/current/backup.html",
+      "https://www.postgresql.org/docs/current/continuous-archiving.html",
+      "https://kubernetes.io/docs/tasks/run-application/update-deployment-rolling/",
+      "https://sre.google/sre-book/testing-reliability/"
+    ]
+  },
+  "16-project-concurrency-whiteboard.whiteboard-dsa.q5": {
+    "reviewed_at": "2026-08-28",
+    "target_versions": [
+      "Crowther et al., Nature 525 (2015)"
+    ],
+    "claim_type": "example",
+    "sources": [
+      "https://www.nature.com/articles/nature14967"
+    ]
+  },
+  "27-api-gateway-identity-edge.the-edge-in-four-sizes.q1": {
+    "reviewed_at": "2026-10-25",
+    "target_versions": [
+      "Spring Cloud Gateway 5.0.4",
+      "Envoy current circuit-breaking guidance",
+      "RFC 9110"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://docs.spring.io/spring-cloud-gateway/reference/spring-cloud-gateway-server-webflux/http-client.html",
+      "https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/upstream/circuit_breaking",
+      "https://www.rfc-editor.org/rfc/rfc9110.html"
+    ]
+  },
+  "27-api-gateway-identity-edge.identity-at-the-edge.q3": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "RFC 7662",
+      "RFC 8725",
+      "SPIFFE current concepts and Workload API"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://www.rfc-editor.org/rfc/rfc7662.html",
+      "https://www.rfc-editor.org/rfc/rfc8725.html",
+      "https://spiffe.io/docs/latest/spiffe/concepts/",
+      "https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/jwt_authn_filter"
+    ]
+  },
+  "27-api-gateway-identity-edge.authorization-without-a-bottleneck.q2": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "OPA current HTTP API authorization and policy-performance guidance",
+      "Cedar 4.5 documentation",
+      "Envoy current external-authorization guidance"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://www.openpolicyagent.org/docs/http-api-authorization",
+      "https://www.openpolicyagent.org/docs/policy-performance",
+      "https://docs.cedarpolicy.com/",
+      "https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/ext_authz_filter"
+    ]
+  },
+  "27-api-gateway-identity-edge.introducing-a-gateway-into-a-running-system.q2": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Gateway API current introduction and overview",
+      "Spring Cloud Gateway 5.0.x Actuator API",
+      "Envoy current HTTP routing guidance"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://gateway-api.sigs.k8s.io/docs/introduction/",
+      "https://gateway-api.sigs.k8s.io/docs/concepts/api-overview/",
+      "https://docs.spring.io/spring-cloud-gateway/reference/spring-cloud-gateway-server-webflux/actuator-api.html",
+      "https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/http/http_routing.html"
+    ]
+  },
+  "27-api-gateway-identity-edge.internal-calls-sync-async-or-neither.q3": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "RFC 9110",
+      "RFC 9457",
+      "Envoy current HTTP routing guidance"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://www.rfc-editor.org/rfc/rfc9110.html",
+      "https://www.rfc-editor.org/rfc/rfc9457.html",
+      "https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/http/http_routing.html"
+    ]
+  },
+  "10-system-design-rate-limit.framework-building-blocks.q2": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Google SRE current overload guidance",
+      "Envoy current circuit-breaking guidance",
+      "RFC 9110"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://sre.google/sre-book/handling-overload/",
+      "https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/upstream/circuit_breaking",
+      "https://www.rfc-editor.org/rfc/rfc9110.html"
+    ]
+  },
+  "10-system-design-rate-limit.rate-limiting-in-depth.q1": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "RFC 2697",
+      "RFC 2698",
+      "Redis current programmability and Cluster documentation"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://datatracker.ietf.org/doc/rfc2697",
+      "https://datatracker.ietf.org/doc/html/rfc2698",
+      "https://redis.io/docs/latest/develop/interact/programmability/eval-intro/",
+      "https://redis.io/docs/latest/develop/interact/programmability/lua-api/",
+      "https://redis.io/docs/latest/operate/oss_and_stack/management/scaling/"
+    ]
+  },
+  "10-system-design-rate-limit.framework-building-blocks.q3": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Google SRE current overload guidance",
+      "RFC 9110"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://sre.google/sre-book/handling-overload/",
+      "https://www.rfc-editor.org/rfc/rfc9110.html"
+    ]
+  },
+  "10-system-design-rate-limit.rate-limiting-in-depth.q6": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Redis current Cluster and replication documentation",
+      "Envoy current rate-limit filter documentation",
+      "Google SRE current overload guidance"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://redis.io/docs/latest/operate/oss_and_stack/management/scaling/",
+      "https://redis.io/docs/latest/operate/oss_and_stack/management/replication/",
+      "https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/rate_limit_filter",
+      "https://sre.google/sre-book/handling-overload/"
+    ]
+  },
+  "13-security-oauth2.jwt-tokens.q2": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "RFC 7662",
+      "RFC 8705",
+      "RFC 9068",
+      "RFC 9449"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://www.rfc-editor.org/rfc/rfc7662.html",
+      "https://www.rfc-editor.org/rfc/rfc8705.html",
+      "https://www.rfc-editor.org/rfc/rfc9068.html",
+      "https://www.rfc-editor.org/rfc/rfc9449.html"
+    ]
+  },
+  "13-security-oauth2.protecting-the-data-you-store.q1": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "OWASP Secrets Management Cheat Sheet current",
+      "OWASP Session Management Cheat Sheet current",
+      "OWASP API Security Top 10:2023"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html",
+      "https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html",
+      "https://owasp.org/API-Security/editions/2023/en/0x04-release-notes/"
+    ]
+  },
+  "13-security-oauth2.protecting-the-data-you-store.q7": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "RFC 8414",
+      "RFC 9700",
+      "Spring Security resource-server JWT reference",
+      "Keycloak current Server Administration Guide"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://www.rfc-editor.org/rfc/rfc8414.html",
+      "https://www.rfc-editor.org/rfc/rfc9700.html",
+      "https://docs.spring.io/spring-security/reference/servlet/oauth2/resource-server/jwt.html",
+      "https://www.keycloak.org/docs/latest/server_admin/"
+    ]
+  },
+  "13-security-oauth2.keycloak-in-practice.q1": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Keycloak current Server Administration Guide",
+      "OpenID Connect Discovery 1.0"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://www.keycloak.org/docs/latest/server_admin/",
+      "https://openid.net/specs/openid-connect-discovery-1_0.html"
+    ]
+  },
+  "13-security-oauth2.keycloak-in-practice.q2": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Spring Security current resource-server reference",
+      "Spring Boot current OAuth2 reference",
+      "Keycloak current Server Administration Guide"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://docs.spring.io/spring-security/reference/servlet/oauth2/resource-server/jwt.html",
+      "https://docs.spring.io/spring-boot/reference/security/oauth2.html",
+      "https://www.keycloak.org/docs/latest/server_admin/"
+    ]
+  },
+  "13-security-oauth2.keycloak-in-practice.q3": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Keycloak current Server Administration Guide",
+      "Spring Security current resource-server reference"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://www.keycloak.org/docs/latest/server_admin/",
+      "https://docs.spring.io/spring-security/reference/servlet/oauth2/resource-server/jwt.html"
+    ]
+  },
+  "13-security-oauth2.keycloak-in-practice.q4": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "RFC 8693",
+      "Keycloak current Server Administration Guide"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://www.rfc-editor.org/rfc/rfc8693.html",
+      "https://www.keycloak.org/docs/latest/server_admin/"
+    ]
+  },
+  "13-security-oauth2.keycloak-in-practice.q5": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Keycloak current Server Administration Guide"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://www.keycloak.org/docs/latest/server_admin/"
+    ]
+  },
+  "13-security-oauth2.keycloak-in-practice.q6": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Keycloak current Server Administration Guide",
+      "OpenID Connect Discovery 1.0"
+    ],
+    "claim_type": "example",
+    "sources": [
+      "https://www.keycloak.org/docs/latest/server_admin/",
+      "https://openid.net/specs/openid-connect-discovery-1_0.html"
+    ]
+  },
+  "20-observability-sre.the-three-pillars-how-to-measure.q1": {
+    "reviewed_at": "2026-10-26",
+    "target_versions": [
+      "OpenTelemetry Semantic Conventions 1.44.0 at review",
+      "OpenTelemetry current signals and sampling documentation",
+      "Google SRE current monitoring and SLO guidance"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://opentelemetry.io/docs/concepts/signals/",
+      "https://opentelemetry.io/docs/specs/semconv/",
+      "https://opentelemetry.io/docs/concepts/sampling/",
+      "https://sre.google/sre-book/monitoring-distributed-systems/",
+      "https://sre.google/sre-book/service-level-objectives/",
+      "https://github.com/open-telemetry/semantic-conventions/releases/tag/v1.44.0"
+    ]
+  },
+  "21-linux-production-debug.diagnosing-the-system.q1": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Linux kernel current PSI and cgroup-v2 documentation",
+      "Java SE 21 diagnostic-tools documentation"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://docs.kernel.org/accounting/psi.html",
+      "https://docs.kernel.org/admin-guide/cgroup-v2.html",
+      "https://docs.kernel.org/filesystems/proc.html",
+      "https://docs.oracle.com/en/java/javase/21/troubleshoot/diagnostic-tools.html",
+      "https://netflixtechblog.com/linux-performance-analysis-in-60-000-milliseconds-accc10403c55"
+    ]
+  },
+  "21-linux-production-debug.diagnosing-the-system.q2": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Linux kernel current PSI and cgroup-v2 documentation",
+      "Linux procfs and man-pages current"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://docs.kernel.org/accounting/psi.html",
+      "https://docs.kernel.org/admin-guide/cgroup-v2.html",
+      "https://man7.org/linux/man-pages/man5/proc_loadavg.5.html",
+      "https://man7.org/linux/man-pages/man5/proc_stat.5.html"
+    ]
+  },
+  "21-linux-production-debug.diagnosing-the-system.q3": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Linux IP Sysctl current documentation",
+      "Linux tcp(7)/ss(8) current documentation",
+      "systemd current execution-limit documentation"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://docs.kernel.org/networking/ip-sysctl.html",
+      "https://man7.org/linux/man-pages/man7/tcp.7.html",
+      "https://man7.org/linux/man-pages/man8/ss.8.html",
+      "https://man7.org/linux/man-pages/man5/systemd.exec.5.html"
+    ]
+  },
+  "21-linux-production-debug.diagnosing-the-system.q4": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Java SE 21 diagnostic-tools documentation",
+      "Java SE 21 Native Memory Tracking",
+      "Linux current cgroup-v2 and memory-management documentation"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://docs.oracle.com/en/java/javase/21/troubleshoot/diagnostic-tools.html",
+      "https://docs.oracle.com/en/java/javase/21/vm/native-memory-tracking.html",
+      "https://docs.kernel.org/admin-guide/cgroup-v2.html",
+      "https://docs.kernel.org/accounting/psi.html"
+    ]
+  },
+  "21-linux-production-debug.jvm-network-deep-dive-on-prod.q1": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Java SE 21 jcmd/jstack documentation",
+      "Java SE 21 diagnostic-tools documentation"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html",
+      "https://docs.oracle.com/en/java/javase/21/docs/specs/man/jstack.html",
+      "https://docs.oracle.com/en/java/javase/21/troubleshoot/diagnostic-tools.html"
+    ]
+  },
+  "21-linux-production-debug.jvm-network-deep-dive-on-prod.q2": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Java SE 21 jcmd and heap-dump documentation",
+      "Java SE 21 diagnostic-tools documentation"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html",
+      "https://docs.oracle.com/en/java/javase/21/troubleshoot/diagnostic-tools.html"
+    ]
+  },
+  "21-linux-production-debug.jvm-network-deep-dive-on-prod.q4": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Linux tcp(7)/ss(8)/tcpdump(8) current documentation",
+      "Linux kernel networking documentation"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://man7.org/linux/man-pages/man7/tcp.7.html",
+      "https://man7.org/linux/man-pages/man8/ss.8.html",
+      "https://man7.org/linux/man-pages/man8/tcpdump.8.html",
+      "https://docs.kernel.org/networking/"
+    ]
+  },
+  "14-devops-k8s-best-practices.docker-kubernetes.q1": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Docker Build current documentation",
+      "SLSA v1.0",
+      "Sigstore Cosign current documentation"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://docs.docker.com/build/building/best-practices/",
+      "https://docs.docker.com/build/building/secrets/",
+      "https://slsa.dev/spec/v1.0/levels",
+      "https://docs.sigstore.dev/cosign/signing/signing_with_containers/"
+    ]
+  },
+  "14-devops-k8s-best-practices.docker-kubernetes.q2": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Kubernetes v1.36 documentation"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://kubernetes.io/docs/concepts/architecture/",
+      "https://kubernetes.io/docs/concepts/architecture/nodes/"
+    ]
+  },
+  "14-devops-k8s-best-practices.docker-kubernetes.q3": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Kubernetes v1.36 StatefulSet documentation"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/"
+    ]
+  },
+  "14-devops-k8s-best-practices.docker-kubernetes.q5": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Kubernetes v1.36 Ingress and Gateway API documentation"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://kubernetes.io/docs/concepts/services-networking/ingress/",
+      "https://kubernetes.io/docs/concepts/services-networking/gateway/"
+    ]
+  },
+  "14-devops-k8s-best-practices.web-server-networking-observability.q2": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "OpenTelemetry Collector current documentation",
+      "Kubernetes v1.36 logging documentation"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://opentelemetry.io/docs/collector/",
+      "https://opentelemetry.io/docs/collector/resiliency/",
+      "https://kubernetes.io/docs/concepts/cluster-administration/logging/"
+    ]
+  },
+  "14-devops-k8s-best-practices.ci-cd-2026-best-practices.q1": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Kubernetes v1.36 Deployment and resource-management documentation",
+      "SLSA v1.0",
+      "Sigstore Cosign current documentation"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://kubernetes.io/docs/concepts/workloads/controllers/deployment/",
+      "https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/",
+      "https://slsa.dev/spec/v1.0/levels",
+      "https://docs.sigstore.dev/cosign/signing/signing_with_containers/"
+    ]
+  },
+  "14-devops-k8s-best-practices.ci-cd-2026-best-practices.q2": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Istio current security and traffic-management documentation",
+      "Linkerd current automatic-mTLS documentation"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://istio.io/latest/docs/ops/best-practices/security/",
+      "https://istio.io/latest/docs/concepts/traffic-management/",
+      "https://linkerd.io/docs/features/automatic-mtls/"
+    ]
+  },
+  "14-devops-k8s-best-practices.ci-cd-2026-best-practices.q3": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Kubernetes v1.36",
+      "Spring Boot 4.1.x",
+      "Docker current",
+      "Istio current"
+    ],
+    "claim_type": "example",
+    "sources": [
+      "https://kubernetes.io/docs/",
+      "https://docs.spring.io/spring-boot/reference/",
+      "https://docs.docker.com/",
+      "https://istio.io/latest/docs/"
+    ]
+  },
+  "14-devops-k8s-best-practices.ci-cd-2026-best-practices.q7": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "PostgreSQL 18 current documentation",
+      "MySQL 8.4 current documentation",
+      "Flyway current documentation",
+      "gh-ost current documentation"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://www.postgresql.org/docs/current/sql-altertable.html",
+      "https://www.postgresql.org/docs/current/sql-createindex.html",
+      "https://dev.mysql.com/doc/refman/8.4/en/alter-table.html",
+      "https://documentation.red-gate.com/flyway/flyway-concepts/migrations/versioned-migrations",
+      "https://github.com/github/gh-ost"
+    ]
+  },
+  "26-testing-strategy.what-a-test-is-for.q1": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Practical Test Pyramid guidance",
+      "Test Shapes guidance",
+      "Google CI feedback-latency research"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://martinfowler.com/articles/practical-test-pyramid.html",
+      "https://martinfowler.com/articles/2021-test-shapes.html",
+      "https://research.google/pubs/advances-in-continuous-integration-testing-at-google/"
+    ]
+  },
+  "26-testing-strategy.what-a-test-is-for.q3": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Microservice testing guidance",
+      "Pact current specification",
+      "Testcontainers current documentation"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://martinfowler.com/articles/microservice-testing/",
+      "https://docs.pact.io/implementation_guides/pact_specification",
+      "https://testcontainers.com/guides/"
+    ]
+  },
+  "26-testing-strategy.integration-tests-that-tell-the-truth.q2": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Spring Framework current test transaction reference",
+      "JUnit 6.0.1",
+      "PostgreSQL 18 current transaction-isolation documentation"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.spring.io/spring-framework/reference/testing/testcontext-framework/tx.html",
+      "https://docs.junit.org/6.0.1/api/org.junit.jupiter.api/org/junit/jupiter/api/Assertions.html",
+      "https://www.postgresql.org/docs/current/transaction-iso.html"
+    ]
+  },
+  "26-testing-strategy.testing-what-usually-breaks.q1": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "JUnit 6.0.1",
+      "Spring Framework current testing reference",
+      "Non-deterministic test guidance"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://docs.junit.org/current/user-guide/junit-user-guide-6.0.1.pdf",
+      "https://docs.spring.io/spring-framework/reference/testing/testcontext-framework/tx.html",
+      "https://martinfowler.com/articles/nonDeterminism.html"
+    ]
+  },
+  "26-testing-strategy.testing-what-usually-breaks.q2": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "OpenJDK jcstress current project",
+      "jqwik 1.10.1",
+      "Non-deterministic test guidance"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://openjdk.org/projects/code-tools/jcstress/",
+      "https://jqwik.net/docs/current/user-guide.html",
+      "https://martinfowler.com/articles/nonDeterminism.html"
+    ]
+  },
+  "26-testing-strategy.testing-what-usually-breaks.q3": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Testcontainers current documentation",
+      "PostgreSQL 18 current transaction-isolation documentation",
+      "Non-deterministic test guidance"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://testcontainers.com/guides/",
+      "https://www.postgresql.org/docs/current/transaction-iso.html",
+      "https://martinfowler.com/articles/nonDeterminism.html"
+    ]
+  },
+  "26-testing-strategy.testing-what-usually-breaks.q4": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "wrk2 current project",
+      "Gatling current reference"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://github.com/giltene/wrk2",
+      "https://gatling.io/docs/gatling/reference/current/"
+    ]
+  },
+  "26-testing-strategy.testing-what-usually-breaks.q5": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Non-deterministic test guidance",
+      "Google Research flaky-test study",
+      "jqwik 1.10.1"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://martinfowler.com/articles/nonDeterminism.html",
+      "https://research.google/pubs/de-flake-your-tests-automatically-locating-root-causes-of-flaky-tests-in-code-at-google/",
+      "https://jqwik.net/docs/current/user-guide.html"
+    ]
+  },
+  "19-dsa-leetcode.the-solving-framework-core-patterns.q1": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "MIT 6.006 Spring 2020",
+      "Interview framework heuristic"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/pages/lecture-notes/",
+      "https://live.ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/d9265b3b33d238ff914b0223ac8e7628_MIT6_006S20_r10.pdf"
+    ]
+  },
+  "19-dsa-leetcode.the-solving-framework-core-patterns.q2": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "LeetCode current problem statements",
+      "MIT 6.006 Spring 2020"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://leetcode.com/problems/longest-substring-without-repeating-characters/",
+      "https://leetcode.com/problems/minimum-window-substring/",
+      "https://leetcode.com/problems/sliding-window-maximum/"
+    ]
+  },
+  "19-dsa-leetcode.the-solving-framework-core-patterns.q3": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "LeetCode 30 current problem statement"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://leetcode.com/problems/substring-with-concatenation-of-all-words/"
+    ]
+  },
+  "19-dsa-leetcode.the-solving-framework-core-patterns.q4": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "MIT 6.006 Spring 2020",
+      "Princeton Algorithms course material"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://live.ocw.mit.edu/courses/6-006-introduction-to-algorithms-fall-2011/8f89fd0ad2e9af6dbe075dd503e81d18_MIT6_006F11_lec13_orig.pdf",
+      "https://algs4.cs.princeton.edu/lectures/keynote/41UndirectedGraphs.pdf",
+      "https://algs4.cs.princeton.edu/lectures/keynote/44ShortestPaths-2x2.pdf"
+    ]
+  },
+  "19-dsa-leetcode.the-patterns-that-keep-coming-up.q1": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "LeetCode current problem statements"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://leetcode.com/problems/subarray-sum-equals-k/",
+      "https://leetcode.com/problems/longest-substring-without-repeating-characters/",
+      "https://leetcode.com/problems/minimum-window-substring/"
+    ]
+  },
+  "19-dsa-leetcode.the-patterns-that-keep-coming-up.q2": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "LeetCode 347",
+      "Java SE 25 PriorityQueue API",
+      "Selection research"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://leetcode.com/problems/top-k-frequent-elements/",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/PriorityQueue.html",
+      "https://doi.org/10.1145/366622.366647",
+      "https://www.sciencedirect.com/science/article/pii/S0022000073800339"
+    ]
+  },
+  "19-dsa-leetcode.the-patterns-that-keep-coming-up.q3": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "LeetCode 410 current problem statement",
+      "MIT 6.006 Spring 2020"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://leetcode.com/problems/split-array-largest-sum/",
+      "https://live.ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/d9265b3b33d238ff914b0223ac8e7628_MIT6_006S20_r10.pdf"
+    ]
+  },
+  "19-dsa-leetcode.the-patterns-that-keep-coming-up.q4": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Princeton Algorithms course material",
+      "MIT 6.006 Spring 2020"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://algs4.cs.princeton.edu/lectures/keynote/41UndirectedGraphs.pdf",
+      "https://algs4.cs.princeton.edu/lectures/keynote/44ShortestPaths-2x2.pdf",
+      "https://live.ocw.mit.edu/courses/6-006-introduction-to-algorithms-fall-2011/8f89fd0ad2e9af6dbe075dd503e81d18_MIT6_006F11_lec13_orig.pdf"
+    ]
+  },
+  "19-dsa-leetcode.the-patterns-that-keep-coming-up.q5": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "MIT 6.006 Spring 2020",
+      "LeetCode current problem statements"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/pages/lecture-notes/",
+      "https://leetcode.com/problems/coin-change/",
+      "https://leetcode.com/problems/subsets/"
+    ]
+  },
+  "19-dsa-leetcode.the-patterns-that-keep-coming-up.q6": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "LeetCode current problem statements",
+      "Java SE 25 Deque APIs"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://leetcode.com/problems/daily-temperatures/",
+      "https://leetcode.com/problems/merge-intervals/",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Deque.html",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/ArrayDeque.html"
+    ]
+  },
+  "19-dsa-leetcode.the-patterns-that-keep-coming-up.q7": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "LeetCode current problem statements",
+      "Java SE 25 String/Character APIs"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://leetcode.com/problems/validate-binary-search-tree/",
+      "https://leetcode.com/problems/number-of-islands/",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html",
+      "https://unicode.org/reports/tr29/"
+    ]
+  },
+  "19-dsa-leetcode.the-patterns-that-keep-coming-up.q8": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Java SE 25 JLS and collection APIs"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://docs.oracle.com/javase/specs/jls/se25/jls25.pdf",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/math/BigInteger.html",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/BitSet.html"
+    ]
+  },
+  "19-dsa-leetcode.fifteen-patterns-visualized.q1": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "MIT 6.006 Spring 2020"
+    ],
+    "claim_type": "example",
+    "sources": [
+      "https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/pages/lecture-notes/"
+    ]
+  },
+  "19-dsa-leetcode.fifteen-patterns-visualized.q3": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Java SE 25 Arrays API",
+      "MIT 6.006 Spring 2020"
+    ],
+    "claim_type": "example",
+    "sources": [
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Arrays.html",
+      "https://leetcode.com/problems/split-array-largest-sum/"
+    ]
+  },
+  "19-dsa-leetcode.fifteen-patterns-visualized.q4": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Java SE 25 String/Character APIs"
+    ],
+    "claim_type": "example",
+    "sources": [
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Character.html"
+    ]
+  },
+  "19-dsa-leetcode.fifteen-patterns-visualized.q5": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "MIT 6.006 Spring 2020"
+    ],
+    "claim_type": "example",
+    "sources": [
+      "https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/pages/lecture-notes/"
+    ]
+  },
+  "19-dsa-leetcode.fifteen-patterns-visualized.q6": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "LeetCode 739",
+      "Java SE 25 Deque APIs"
+    ],
+    "claim_type": "example",
+    "sources": [
+      "https://leetcode.com/problems/daily-temperatures/",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Deque.html"
+    ]
+  },
+  "19-dsa-leetcode.fifteen-patterns-visualized.q7": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "LeetCode 560 current problem statement"
+    ],
+    "claim_type": "example",
+    "sources": [
+      "https://leetcode.com/problems/subarray-sum-equals-k/"
+    ]
+  },
+  "19-dsa-leetcode.fifteen-patterns-visualized.q8": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "LeetCode 56 current problem statement"
+    ],
+    "claim_type": "example",
+    "sources": [
+      "https://leetcode.com/problems/merge-intervals/"
+    ]
+  },
+  "19-dsa-leetcode.fifteen-patterns-visualized.q10": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "LeetCode 347",
+      "Java SE 25 PriorityQueue API"
+    ],
+    "claim_type": "example",
+    "sources": [
+      "https://leetcode.com/problems/top-k-frequent-elements/",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/PriorityQueue.html"
+    ]
+  },
+  "19-dsa-leetcode.fifteen-patterns-visualized.q11": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "LeetCode 78 current problem statement"
+    ],
+    "claim_type": "example",
+    "sources": [
+      "https://leetcode.com/problems/subsets/",
+      "https://leetcode.com/problems/coin-change/"
+    ]
+  },
+  "19-dsa-leetcode.fifteen-patterns-visualized.q12": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "LeetCode 98 current problem statement",
+      "Princeton Algorithms course material"
+    ],
+    "claim_type": "example",
+    "sources": [
+      "https://leetcode.com/problems/validate-binary-search-tree/",
+      "https://algs4.cs.princeton.edu/lectures/keynote/41UndirectedGraphs.pdf"
+    ]
+  },
+  "19-dsa-leetcode.fifteen-patterns-visualized.q13": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "MIT 6.006 Spring 2020",
+      "Princeton Algorithms course material"
+    ],
+    "claim_type": "example",
+    "sources": [
+      "https://live.ocw.mit.edu/courses/6-006-introduction-to-algorithms-fall-2011/8f89fd0ad2e9af6dbe075dd503e81d18_MIT6_006F11_lec13_orig.pdf",
+      "https://algs4.cs.princeton.edu/lectures/keynote/41UndirectedGraphs.pdf"
+    ]
+  },
+  "19-dsa-leetcode.fifteen-patterns-visualized.q14": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "MIT 6.006 BFS material"
+    ],
+    "claim_type": "example",
+    "sources": [
+      "https://live.ocw.mit.edu/courses/6-006-introduction-to-algorithms-fall-2011/8f89fd0ad2e9af6dbe075dd503e81d18_MIT6_006F11_lec13_orig.pdf",
+      "https://algs4.cs.princeton.edu/lectures/keynote/41UndirectedGraphs.pdf"
+    ]
+  },
+  "19-dsa-leetcode.fifteen-patterns-visualized.q15": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "MIT 6.006 Spring 2020 dynamic-programming material"
+    ],
+    "claim_type": "example",
+    "sources": [
+      "https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/pages/lecture-notes/",
+      "https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/28461a74f81101874a13d9679a40584d_MIT6_006S20_lec16.pdf"
+    ]
+  },
+  "19-dsa-leetcode.the-patterns-that-keep-coming-up.q9": {
+    "reviewed_at": "2026-10-02",
+    "target_versions": [
+      "Binary fuse filters (Graf & Lemire, 2022)"
+    ],
+    "claim_type": "example",
+    "sources": [
+      "https://arxiv.org/abs/2201.01174",
+      "https://www.eecs.harvard.edu/~michaelm/postscripts/rsa2008.pdf"
+    ]
+  },
+  "04-rest-grpc-webflux.protocols.q2": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "gRPC current guides",
+      "Protocol Buffers current language and encoding guides"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://grpc.io/docs/guides/performance/",
+      "https://grpc.io/docs/what-is-grpc/core-concepts/",
+      "https://protobuf.dev/programming-guides/proto3/",
+      "https://protobuf.dev/programming-guides/encoding/"
+    ]
+  },
+  "04-rest-grpc-webflux.protocols.q3": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "gRPC current core concepts, deadlines, flow-control, and retry guides"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://grpc.io/docs/what-is-grpc/core-concepts/",
+      "https://grpc.io/docs/guides/deadlines/",
+      "https://grpc.io/docs/guides/flow-control/",
+      "https://grpc.io/docs/guides/retry/"
+    ]
+  },
+  "04-rest-grpc-webflux.protocols.q4": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "RFC 9110",
+      "WHATWG Server-sent events",
+      "WebSocket Protocol RFC 6455"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://www.rfc-editor.org/rfc/rfc9110.html",
+      "https://html.spec.whatwg.org/multipage/server-sent-events.html",
+      "https://www.rfc-editor.org/rfc/rfc6455.html"
+    ]
+  },
+  "04-rest-grpc-webflux.protocols.q5": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "PostgreSQL current documentation",
+      "Elasticsearch current pagination documentation"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://www.postgresql.org/docs/current/queries-limit.html",
+      "https://www.elastic.co/guide/en/elasticsearch/reference/current/paginate-search-results.html"
+    ]
+  },
+  "04-rest-grpc-webflux.protocols.q6": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "GraphQL specification October 2021",
+      "GraphQL specification release index",
+      "DataLoader current reference"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://spec.graphql.org/October2021/",
+      "https://spec.graphql.org/",
+      "https://github.com/graphql/dataloader"
+    ]
+  },
+  "04-rest-grpc-webflux.reactive-webflux.q4": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "WHATWG Server-sent events",
+      "WebSocket Protocol RFC 6455",
+      "HTTP/2 RFC 9113"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://html.spec.whatwg.org/multipage/server-sent-events.html",
+      "https://www.rfc-editor.org/rfc/rfc6455.html",
+      "https://www.rfc-editor.org/rfc/rfc9113.html"
+    ]
+  },
+  "04-rest-grpc-webflux.reactive-webflux.q5": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "OpenAPI Specification latest",
+      "Protocol Buffers current guide",
+      "Pact current documentation"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://spec.openapis.org/oas/latest.html",
+      "https://protobuf.dev/programming-guides/proto3/",
+      "https://docs.pact.io/"
+    ]
+  },
+  "04-rest-grpc-webflux.protocols.q1": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "RFC 9110",
+      "RFC 4918",
+      "RFC 9457"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://www.rfc-editor.org/rfc/rfc9110.html",
+      "https://www.rfc-editor.org/rfc/rfc4918.html",
+      "https://www.rfc-editor.org/rfc/rfc9457.html"
+    ]
+  },
+  "22-low-level-design-ood.the-lld-framework-classic-problems.q1": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "GoF Design Patterns",
+      "current LLD teaching scope"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://www.oreilly.com/library/view/design-patterns-elements/0201633612/"
+    ]
+  },
+  "22-low-level-design-ood.the-lld-framework-classic-problems.q2": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Java SE 25 HashMap",
+      "Java SE 25 LinkedHashMap",
+      "Java SE 25 ConcurrentHashMap"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/HashMap.html",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/LinkedHashMap.html",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/ConcurrentHashMap.html"
+    ]
+  },
+  "22-low-level-design-ood.the-lld-framework-classic-problems.q3": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Java SE 25 Clock API",
+      "Redis current rate-limiter guidance"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/Clock.html",
+      "https://redis.io/docs/latest/develop/use-cases/rate-limiter/"
+    ]
+  },
+  "22-low-level-design-ood.patterns-in-interview-code.q1": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "GoF Design Patterns",
+      "YAGNI guidance"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://www.oreilly.com/library/view/design-patterns-elements/0201633612/",
+      "https://martinfowler.com/bliki/Yagni.html"
+    ]
+  },
+  "22-low-level-design-ood.patterns-in-interview-code.q2": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "GoF Design Patterns",
+      "YAGNI guidance"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://www.oreilly.com/library/view/design-patterns-elements/0201633612/",
+      "https://martinfowler.com/bliki/Yagni.html"
+    ]
+  },
+  "22-low-level-design-ood.patterns-in-interview-code.q4": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Redis current expiration documentation",
+      "Caffeine current eviction documentation"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://redis.io/docs/latest/commands/expire/",
+      "https://github.com/ben-manes/caffeine/wiki/Eviction"
+    ]
+  },
+  "15-network-i-o-models.web-protocols.q1": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "RFC 8446 TLS 1.3",
+      "RFC 9001 QUIC-TLS"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://www.rfc-editor.org/rfc/rfc8446.html",
+      "https://www.rfc-editor.org/rfc/rfc9001.html"
+    ]
+  },
+  "15-network-i-o-models.web-protocols.q2": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "RFC 9112 HTTP/1.1",
+      "RFC 9113 HTTP/2",
+      "RFC 9114 HTTP/3",
+      "RFC 9000 QUIC"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://www.rfc-editor.org/rfc/rfc9112.html",
+      "https://www.rfc-editor.org/rfc/rfc9113.html",
+      "https://www.rfc-editor.org/rfc/rfc9114.html",
+      "https://www.rfc-editor.org/rfc/rfc9000.html"
+    ]
+  },
+  "15-network-i-o-models.realtime-event-driven.q1": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "WHATWG Server-sent events",
+      "RFC 6455 WebSocket",
+      "RFC 9113 HTTP/2"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://html.spec.whatwg.org/multipage/server-sent-events.html",
+      "https://www.rfc-editor.org/rfc/rfc6455.html",
+      "https://www.rfc-editor.org/rfc/rfc9113.html"
+    ]
+  },
+  "15-network-i-o-models.realtime-event-driven.q3": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Java 21+",
+      "Spring Boot current servlet/web references",
+      "Spring WebFlux current reference",
+      "Go current net/http/net references"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://openjdk.org/jeps/444",
+      "https://docs.spring.io/spring-boot/reference/web/servlet.html",
+      "https://docs.spring.io/spring-framework/reference/web/webflux/new-framework.html",
+      "https://pkg.go.dev/net/http",
+      "https://pkg.go.dev/net"
+    ]
+  },
+  "15-network-i-o-models.threading-network-programming.q2": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Java SE 25 NIO",
+      "Linux epoll current man-pages",
+      "RFC 9293 TCP",
+      "RFC 768 UDP"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/channels/package-summary.html",
+      "https://man7.org/linux/man-pages/man7/epoll.7.html",
+      "https://www.rfc-editor.org/rfc/rfc9293.html",
+      "https://www.rfc-editor.org/rfc/rfc768.html"
+    ]
+  },
+  "15-network-i-o-models.threading-network-programming.q3": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "RFC 9112 HTTP/1.1",
+      "gRPC current keepalive guide",
+      "Linux socket/tcp man-pages"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://www.rfc-editor.org/rfc/rfc9112.html",
+      "https://grpc.io/docs/guides/keepalive/",
+      "https://man7.org/linux/man-pages/man7/socket.7.html",
+      "https://man7.org/linux/man-pages/man7/tcp.7.html"
+    ]
+  },
+  "15-network-i-o-models.threading-network-programming.q4": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "gRPC current core concepts",
+      "gRPC current flow-control guide",
+      "Protocol Buffers current proto3 guide"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://grpc.io/docs/what-is-grpc/core-concepts/",
+      "https://grpc.io/docs/guides/flow-control/",
+      "https://protobuf.dev/programming-guides/proto3/"
+    ]
+  },
+  "15-network-i-o-models.threading-network-programming.q5": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "gRPC current deadlines/retry guides",
+      "RFC 9457 Problem Details",
+      "RFC 6585 429"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://grpc.io/docs/guides/deadlines/",
+      "https://grpc.io/docs/guides/retry/",
+      "https://www.rfc-editor.org/rfc/rfc9457.html",
+      "https://www.rfc-editor.org/rfc/rfc6585.html"
+    ]
+  },
+  "15-network-i-o-models.threading-network-programming.q6": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Spring Boot current servlet reference",
+      "Java SE 25 NIO",
+      "Linux socket/epoll man-pages"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://docs.spring.io/spring-boot/reference/web/servlet.html",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/channels/package-summary.html",
+      "https://man7.org/linux/man-pages/man7/epoll.7.html",
+      "https://man7.org/linux/man-pages/man7/socket.7.html"
+    ]
+  },
+  "23-java-concurrency-coding.classic-synchronisation-problems.q1": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Java SE 25 BlockingQueue",
+      "Java SE 25 wait/notify"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/BlockingQueue.html",
+      "https://docs.oracle.com/javase/specs/jls/se25/html/jls-17.html"
+    ]
+  },
+  "23-java-concurrency-coding.classic-synchronisation-problems.q2": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Java SE 25 locks and synchronizers"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/Semaphore.html",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/locks/ReentrantLock.html"
+    ]
+  },
+  "23-java-concurrency-coding.classic-synchronisation-problems.q3": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Java SE 25 ReentrantLock",
+      "Java SE 25 Semaphore"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/locks/ReentrantLock.html",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/Semaphore.html"
+    ]
+  },
+  "23-java-concurrency-coding.classic-synchronisation-problems.q4": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Java SE 25 ReadWriteLock",
+      "Java SE 25 StampedLock"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/locks/ReadWriteLock.html",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/locks/StampedLock.html"
+    ]
+  },
+  "23-java-concurrency-coding.async-the-modern-toolkit.q1": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Java SE 25 CompletableFuture",
+      "Java SE 25 ExecutorService"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/CompletableFuture.html",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/ExecutorService.html"
+    ]
+  },
+  "23-java-concurrency-coding.async-the-modern-toolkit.q2": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Java SE 25 CountDownLatch",
+      "Java SE 25 CyclicBarrier",
+      "Java SE 25 Phaser",
+      "Java SE 25 Semaphore"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/CountDownLatch.html",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/CyclicBarrier.html",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/Phaser.html",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/Semaphore.html"
+    ]
+  },
+  "23-java-concurrency-coding.async-the-modern-toolkit.q3": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Java SE 25 atomic package",
+      "Java SE 25 AtomicStampedReference",
+      "Java SE 25 LongAdder"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/atomic/package-summary.html",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/atomic/AtomicStampedReference.html",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/atomic/LongAdder.html"
+    ]
+  },
+  "23-java-concurrency-coding.async-the-modern-toolkit.q4": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "JDK 21 virtual threads",
+      "JDK 24 monitor pinning",
+      "JDK 25 StructuredTaskScope preview"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://openjdk.org/jeps/444",
+      "https://openjdk.org/jeps/491",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/StructuredTaskScope.html"
+    ]
+  },
+  "23-java-concurrency-coding.async-the-modern-toolkit.q5": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Java SE 25 JLS volatile",
+      "Java SE 25 LongAdder",
+      "jcstress current project"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.oracle.com/javase/specs/jls/se25/html/jls-17.html",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/atomic/LongAdder.html",
+      "https://openjdk.org/projects/code-tools/jcstress/"
+    ]
+  },
+  "23-java-concurrency-coding.async-the-modern-toolkit.q6": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Java SE 25 ExecutorService",
+      "Java SE 25 CompletableFuture",
+      "JDK 25 StructuredTaskScope preview"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/ExecutorService.html",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/CompletableFuture.html",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/StructuredTaskScope.html"
+    ]
+  },
+  "03-spring-boot-deep-build.ioc-container-transactions.q2": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Spring Framework current transaction annotation reference",
+      "Spring AOP proxying current reference"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.spring.io/spring-framework/reference/data-access/transaction/declarative/annotations.html",
+      "https://docs.spring.io/spring-framework/reference/core/aop/proxying.html"
+    ]
+  },
+  "03-spring-boot-deep-build.ioc-container-transactions.q3": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Spring Framework current transaction propagation reference"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.spring.io/spring-framework/reference/data-access/transaction/declarative/tx-propagation.html"
+    ]
+  },
+  "01-java-core-jvm.memory-execution-model.q4": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "JDK 25 collector-specific logging",
+      "JDK 21 jcmd/JFR diagnostics"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://docs.oracle.com/en/java/javase/25/gctuning/garbage-first-garbage-collector.html",
+      "https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html",
+      "https://docs.oracle.com/en/java/javase/21/docs/specs/man/jfr.html"
+    ]
+  },
+  "01-java-core-jvm.concurrency.q3": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Java SE 25 ConcurrentHashMap",
+      "JDK 25 implementation"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/ConcurrentHashMap.html",
+      "https://github.com/openjdk/jdk/blob/master/src/java.base/share/classes/java/util/concurrent/ConcurrentHashMap.java"
+    ]
+  },
+  "01-java-core-jvm.concurrency.q5": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Java SE 25 CompletableFuture",
+      "Topic 15/17 retry and timeout contracts"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/CompletableFuture.html",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/Future.html"
+    ]
+  },
+  "01-java-core-jvm.language-fundamentals.q1": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Java SE 25 Object contract"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html#equals(java.lang.Object)",
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html#hashCode()"
+    ]
+  },
+  "01-java-core-jvm.collections-data-structures.q1": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Java SE 25 HashMap",
+      "JDK 25 implementation"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/HashMap.html",
+      "https://github.com/openjdk/jdk/blob/master/src/java.base/share/classes/java/util/HashMap.java"
+    ]
+  },
+  "03-spring-boot-deep-build.auto-configuration-build.q4": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Maven current build documentation",
+      "Gradle current build-performance documentation"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html",
+      "https://docs.gradle.org/current/userguide/performance.html",
+      "https://docs.gradle.org/current/userguide/core_dependency_management.html"
+    ]
+  },
+  "11-system-design-cases.the-big-prompts.q3": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "RFC 9110 HTTP Semantics",
+      "RFC 9111 HTTP Caching",
+      "RFC 9457 Problem Details"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://www.rfc-editor.org/rfc/rfc9110.html",
+      "https://www.rfc-editor.org/rfc/rfc9111.html",
+      "https://www.rfc-editor.org/rfc/rfc9457.html"
+    ]
+  },
+  "11-system-design-cases.the-big-prompts.q4": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Apache Cassandra current data-modeling guidance",
+      "Elasticsearch current pagination guidance"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://cassandra.apache.org/doc/latest/cassandra/developing/data-modeling/intro.html",
+      "https://www.elastic.co/docs/reference/elasticsearch/rest-apis/paginate-search-results"
+    ]
+  },
+  "11-system-design-cases.the-big-prompts.q5": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Redis current rate-limit guidance",
+      "Redis current replication and lock guidance",
+      "RFC 6585"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://redis.io/learn/develop/java/spring/rate-limiting/fixed-window",
+      "https://redis.io/docs/latest/operate/oss_and_stack/management/replication/",
+      "https://redis.io/docs/latest/develop/clients/patterns/distributed-locks/",
+      "https://www.rfc-editor.org/rfc/rfc6585.html"
+    ]
+  },
+  "11-system-design-cases.the-big-prompts.q6": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Redis current sorted-set and replication documentation"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://redis.io/docs/latest/develop/data-types/sorted-sets/",
+      "https://redis.io/docs/latest/operate/oss_and_stack/management/replication/"
+    ]
+  },
+  "11-system-design-cases.the-big-prompts.q7": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Redis current cache-aside and eviction documentation"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://redis.io/docs/latest/develop/use-cases/cache-aside/",
+      "https://redis.io/docs/latest/develop/reference/eviction/"
+    ]
+  },
+  "11-system-design-cases.the-big-prompts.q8": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Apache Kafka current design documentation",
+      "RabbitMQ current reliability documentation"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://kafka.apache.org/42/design/design/",
+      "https://www.rabbitmq.com/docs/reliability",
+      "https://www.rabbitmq.com/docs/confirms"
+    ]
+  },
+  "11-system-design-cases.the-big-prompts.q9": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "OpenSearch current autocomplete documentation",
+      "RFC 9457 Problem Details"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://docs.opensearch.org/latest/search-plugins/searching-data/autocomplete/",
+      "https://www.rfc-editor.org/rfc/rfc9457.html"
+    ]
+  },
+  "11-system-design-cases.the-big-prompts.q12": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "OpenAPI current specification",
+      "Pact current contract-testing documentation",
+      "Testcontainers current documentation"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://spec.openapis.org/oas/",
+      "https://docs.pact.io/",
+      "https://testcontainers.com/guides/getting-started-with-testcontainers-for-java/"
+    ]
+  },
+  "11-system-design-cases.the-big-prompts.q13": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "PostgreSQL current transaction documentation",
+      "Apache Kafka current design documentation",
+      "AWS current Saga guidance"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://www.postgresql.org/docs/current/tutorial-transactions.html",
+      "https://kafka.apache.org/42/design/design/",
+      "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/saga-patterns.html"
+    ]
+  },
+  "11-system-design-cases.the-big-prompts.q17": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Google SRE current cascading-failure guidance",
+      "OpenTelemetry current semantic conventions"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://sre.google/sre-book/addressing-cascading-failures/",
+      "https://opentelemetry.io/docs/specs/semconv/messaging/messaging-spans/"
+    ]
+  },
+  "11-system-design-cases.the-big-prompts.q18": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Apache Kafka current design documentation",
+      "RabbitMQ current reliability and confirms documentation",
+      "Redis current cache-aside guidance"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://kafka.apache.org/42/design/design/",
+      "https://www.rabbitmq.com/docs/reliability",
+      "https://www.rabbitmq.com/docs/confirms",
+      "https://redis.io/docs/latest/develop/use-cases/cache-aside/"
+    ]
+  },
+  "11-system-design-cases.the-big-prompts.q19": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Redis current rate-limit guidance",
+      "PostgreSQL current transaction documentation",
+      "Google SRE current cascading-failure guidance"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://redis.io/learn/develop/java/spring/rate-limiting/fixed-window",
+      "https://www.postgresql.org/docs/current/tutorial-transactions.html",
+      "https://sre.google/sre-book/addressing-cascading-failures/"
+    ]
+  },
+  "11-system-design-cases.the-big-prompts.q20": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "Redis current replication documentation",
+      "Stripe current idempotency and webhook documentation",
+      "AWS current transactional-outbox guidance"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://redis.io/docs/latest/operate/oss_and_stack/management/replication/",
+      "https://docs.stripe.com/api/idempotent_requests",
+      "https://docs.stripe.com/webhooks?lang=node",
+      "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html"
+    ]
+  },
+  "11-system-design-cases.the-big-prompts.q21": {
+    "reviewed_at": "2026-09-12",
+    "target_versions": [
+      "OpenAPI current specification",
+      "RFC 9457 Problem Details",
+      "OAuth 2.0 Security Best Current Practice RFC 9700"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://spec.openapis.org/oas/",
+      "https://www.rfc-editor.org/rfc/rfc9457.html",
+      "https://www.rfc-editor.org/rfc/rfc9700.html"
+    ]
+  },
+  "12-architecture-patterns.patterns-principles.q7": {
+    "reviewed_at": "2026-10-02",
+    "target_versions": [
+      "Java 21 (JEP 441, JEP 440)"
+    ],
+    "claim_type": "heuristic",
+    "sources": [
+      "https://openjdk.org/jeps/441",
+      "https://openjdk.org/jeps/440",
+      "https://www.slf4j.org/manual.html"
+    ]
+  },
+  "02-java-8-25-java-vs-go.release-timeline.q9": {
+    "reviewed_at": "2026-10-25",
+    "target_versions": [
+      "JDK 26",
+      "JDK 27",
+      "Oracle Java SE support roadmap"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://openjdk.org/projects/jdk/26/",
+      "https://openjdk.org/projects/jdk/27/",
+      "https://openjdk.org/jeps/523",
+      "https://openjdk.org/jeps/534",
+      "https://openjdk.org/jeps/500",
+      "https://openjdk.org/jeps/517",
+      "https://openjdk.org/jeps/516",
+      "https://openjdk.org/jeps/527",
+      "https://openjdk.org/jeps/536",
+      "https://openjdk.org/jeps/533",
+      "https://www.oracle.com/java/technologies/java-se-support-roadmap.html"
+    ]
+  },
+  "08-message-queue.the-two-models.q3": {
+    "reviewed_at": "2026-10-25",
+    "target_versions": [
+      "Apache Kafka 4.2-4.4 share groups",
+      "KIP-932 Queues for Kafka",
+      "KIP-1191 dead-letter queues for share groups"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://kafka.apache.org/43/getting-started/upgrade/",
+      "https://cwiki.apache.org/confluence/display/KAFKA/KIP-932%3A+Queues+for+Kafka",
+      "https://downloads.apache.org/kafka/4.4.0/RELEASE_NOTES.html"
+    ]
+  },
+  "25-microservice.04-messaging-event-driven-at-scale.q1": {
+    "reviewed_at": "2026-10-26",
+    "target_versions": [
+      "RabbitMQ 4.4 (lazy mode removed in 3.12)",
+      "Apache Kafka 4.x consumer"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://www.rabbitmq.com/docs/lazy-queues",
+      "https://www.rabbitmq.com/docs/quorum-queues",
+      "https://www.rabbitmq.com/docs/classic-queues",
+      "https://kafka.apache.org/documentation/#consumerconfigs"
+    ]
+  },
+  "08-message-queue.reliability-delivery-semantics.q5": {
+    "reviewed_at": "2026-10-26",
+    "target_versions": [
+      "RabbitMQ 4.4 (quorum queue delayed retry since 4.3, delayed delivery since 4.4)"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://www.rabbitmq.com/docs/quorum-queues",
+      "https://www.rabbitmq.com/docs/dlx",
+      "https://github.com/rabbitmq/rabbitmq-server/blob/main/release-notes/4.4.0.md"
+    ]
+  },
+  "07-sql-nosql-db-engines.engine-by-engine.q11": {
+    "reviewed_at": "2026-11-06",
+    "target_versions": [
+      "Oracle AI Database Concepts 26ai",
+      "Oracle AI Database SQL Language Reference 26ai"
+    ],
+    "claim_type": "normative",
+    "sources": [
+      "https://docs.oracle.com/en/database/oracle/oracle-database/26/cncpt/data-concurrency-and-consistency.html",
+      "https://docs.oracle.com/en/database/oracle/oracle-database/26/cncpt/transactions.html",
+      "https://docs.oracle.com/en/database/oracle/oracle-database/26/cncpt/process-architecture.html",
+      "https://docs.oracle.com/en/database/oracle/oracle-database/26/cncpt/logical-storage-structures.html",
+      "https://docs.oracle.com/en/database/oracle/oracle-database/26/cncpt/indexes-and-index-organized-tables.html",
+      "https://docs.oracle.com/en/database/oracle/oracle-database/26/cncpt/memory-architecture.html",
+      "https://docs.oracle.com/en/database/oracle/oracle-database/26/sqlrf/SELECT.html",
+      "https://docs.oracle.com/en/error-help/db/ora-01555/"
+    ]
+  }
+}

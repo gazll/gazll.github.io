@@ -1,0 +1,22 @@
+{
+  "body_file": "data/case-studies/articles/18-some-simple-economics-of-agi.html",
+  "guide": {
+    "title": "An editorial note on why agentic scale moves the bottleneck from execution to verification, and why observability, provenance and practice become production infrastructure.",
+    "problem": "Agentic systems can produce plans, code and decisions faster than a human team can inspect them. The paper asks what happens when the cost of measurable execution falls rapidly while the time, experience and accountability required to verify outcomes remain scarce.",
+    "core_idea": "The useful lens is not whether an agent sounds intelligent, but whether its output is cheap to produce and cheap enough to verify. A widening measurability gap turns unchecked output into latent risk, makes the comfortable human-in-the-loop unstable, and shifts defensibility toward verification infrastructure, ground truth, provenance and the ability to underwrite consequences.",
+    "outcome": "This synthesis translates the paper into an engineering operating model: define intent before delegation, make traces and failure feedback legible, separate execution from adversarial verification, bound blast radius, and preserve a practice loop so future experts can still judge out-of-distribution failures. It is a design lens, not a prediction that AGI arrives on a fixed timetable.",
+    "takeaways": [
+      "Raw agent throughput is not realized value. The useful quantity is the share of work that can be checked, explained and responsibly stood behind.",
+      "Easy verification does not require understanding every internal step. It does require reliable outcome checks and enough provenance to know what produced the result.",
+      "The Missing Junior Loop is an operational risk: removing all routine practice can save cost today while shrinking the future supply of people who can verify unusual failures.",
+      "AI checking AI can be useful for coverage, but correlated models, data and incentives can create false confidence. Independence must be designed rather than assumed.",
+      "Observability, adversarial evaluation, rollback, provenance and liability are production inputs for agentic systems, not paperwork added after deployment."
+    ],
+    "review_lenses": [
+      "Measurability: which parts of the workflow have explicit acceptance criteria, and which outcomes still depend on tacit context or human judgment?",
+      "Verification: what evidence lets a reviewer check the result without replaying the entire process, and how long does the feedback loop take?",
+      "Independence: does the checker use meaningfully different assumptions, data, model path or human accountability from the agent that produced the result?",
+      "Succession: where do juniors and operators acquire real failure experience once routine execution is delegated, and what simulation replaces that learning loop?"
+    ]
+  }
+}

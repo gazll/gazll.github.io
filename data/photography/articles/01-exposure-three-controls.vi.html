@@ -1,0 +1,54 @@
+<p>Gần như mọi bài nhập môn nhiếp ảnh đều vẽ cùng một tam giác rồi dừng ở đó: shutter, aperture, ISO, ba đỉnh, cân bằng chúng lại. Tam giác đó mô tả đúng phần số học và mô tả rất tệ phần quyết định. Nó ngụ ý ba control là ba con đường tương đương dẫn tới cùng một chỗ, trong khi thực tế mỗi cái mua ánh sáng bằng một loại tiền hoàn toàn khác nhau.</p>
+<p>Bài này viết như một hướng dẫn ra quyết định, không phải danh sách thông số. Những con số phụ thuộc vào cảm biến, ống kính hay body cụ thể đều được nói rõ là như vậy.</p>
+
+<h2 id="1-the-stop-is-the-shared-unit">1. Stop là đơn vị chung</h2>
+<p>Một <b>stop</b> là gấp đôi hoặc giảm một nửa lượng sáng. Chính định nghĩa duy nhất đó khiến ba control đổi được cho nhau, vì cả ba đều được hiệu chỉnh theo nó.</p>
+<p>Tốc độ màn trập là rõ nhất: 1/125 giây cho vào gấp đôi lượng sáng so với 1/250 giây. ISO đọc tương tự — ISO 400 hơn ISO 200 một stop. Khẩu độ là chỗ dãy số trông lạ, vì f-number là tỉ số giữa tiêu cự và đường kính đồng tử vào, mà diện tích thì tỉ lệ với bình phương đường kính. Nên dãy stop nguyên được nhân với căn bậc hai của hai sau mỗi bước:</p>
+<!-- separator: a blank line here would truncate the block -->
+<table>
+<thead><tr><th>Control</th><th>Nhiều sáng hơn một stop</th><th>Ít sáng hơn một stop</th></tr></thead>
+<tbody>
+<tr><td>Màn trập</td><td>1/125 → 1/60 s</td><td>1/125 → 1/250 s</td></tr>
+<tr><td>Khẩu độ</td><td>f/4 → f/2.8</td><td>f/4 → f/5.6</td></tr>
+<tr><td>ISO</td><td>200 → 400</td><td>200 → 100</td></tr>
+</tbody>
+</table>
+<p>Vì đơn vị là chung nên một stop lấy đi ở control này có thể trả lại bằng control khác, và khung hình vẫn giữ nguyên độ sáng. Đó là phần hữu ích của tam giác. Phần gây hại là nó ngụ ý các khung hình vì thế tương đương nhau. Không hề: độ sáng là thuộc tính duy nhất ba control cùng chia sẻ, còn mỗi cái lại đổi thêm một thuộc tính thứ hai mà hai cái kia không chạm tới được.</p>
+
+<h2 id="2-shutter-speed-buys-light-with-motion">2. Màn trập mua ánh sáng bằng chuyển động</h2>
+<p>Màn trập quyết định cảm biến tích luỹ trong bao lâu, nên nó quyết định mọi thứ đang chuyển động đi được bao xa ngang khung hình trong lúc phơi. Đây là quyết định về chủ thể, và thường nên được quyết trước tiên.</p>
+<p>Có hai loại chuyển động, độc lập với nhau. <b>Chuyển động của chủ thể</b> là thứ đang động trong cảnh; một người đi bộ cần tốc độ rất khác một người đạp xe. <b>Chuyển động của máy</b> là rung tay bạn, và nó tăng theo tiêu cự, vì ống kính dài phóng đại cả chuyển động góc cùng với mọi thứ khác. Quy tắc ngón tay cái cũ — giữ ít nhất 1/tiêu-cự — được viết cho phim 35&nbsp;mm và là điểm khởi đầu, không phải một đặc tả: nó không nói gì về đôi tay của bạn, và nó có trước công nghệ chống rung.</p>
+<p>Chống rung đáng được nói chính xác, vì nó thường xuyên bị thổi phồng. Chống rung trên body và trên ống kính chỉ triệt tiêu chuyển động <i>của máy</i>. Chúng cho phép bạn cầm tay chụp cảnh tĩnh ở tốc độ chậm hơn nhiều so với bình thường, và chúng không làm được gì cho một chủ thể đang tự chuyển động. Người chạy bị nhoè ở 1/15&nbsp;giây thì bật chống rung vẫn nhoè.</p>
+<p>Chọn tốc độ chậm một cách có chủ đích là kỹ thuật, không phải lỗi — nước chảy, vệt đèn, một chiếc xe được lia nét trên nền kéo vệt. Điểm mấu chốt là tốc độ được chọn theo điều nó làm với chuyển động, rồi mới đối chiếu lại với phơi sáng.</p>
+
+<h2 id="3-aperture-buys-light-with-depth-of-field">3. Khẩu độ mua ánh sáng bằng độ sâu trường ảnh</h2>
+<p>Khẩu độ là một cái lỗ, và kích thước của nó quyết định độ nét rơi nhanh thế nào ở phía trước và phía sau mặt phẳng bạn lấy nét. Mở to để lấy sáng thì vùng nét chấp nhận được hẹp lại; khép nhỏ để có chiều sâu thì ánh sáng tụt xuống.</p>
+<p>Độ sâu trường ảnh không phải thuộc tính của riêng khẩu độ. Nó phụ thuộc đồng thời vào f-number, tiêu cự, khoảng cách tới chủ thể và khổ cảm biến — đó là lý do một chiếc điện thoại ở f/1.8 và một máy full-frame ở f/1.8 cho hậu cảnh trông khác hẳn nhau. Khoảng cách chi phối mạnh hơn nhiều người tưởng: tiến lại gần chủ thể làm hẹp độ sâu trường ảnh rất nhanh, ở bất kỳ khẩu nào.</p>
+<p>Cả hai đầu của dải khẩu đều lấy đi độ phân giải, vì hai lý do không liên quan tới nhau:</p>
+<ul>
+<li><b>Mở hết cỡ</b>, ống kính đang dùng phần rìa ngoài của khối thuỷ tinh, nơi quang sai nặng nhất. Mềm góc, tối góc và quang sai màu dọc — viền xanh lục và hồng tím trên các cạnh nằm ngoài vùng nét — đều mạnh nhất ở đây.</li>
+<li><b>Khép quá sâu</b>, nhiễu xạ trở thành giới hạn. Ánh sáng bẻ cong quanh mép một khe hẹp, và qua một ngưỡng nhất định thì mọi điểm trong ảnh đều bị nhoè nhẹ bất kể ống kính tốt tới đâu. F-number mà hiện tượng này bắt đầu thấy được phụ thuộc vào kích thước điểm ảnh, nên cảm biến độ phân giải cao sẽ lộ sớm hơn.</li>
+</ul>
+<p>Phần lớn ống kính nét nhất ở đâu đó khoảng giữa, thường cách khẩu lớn nhất hai đến ba stop. Đó là xu hướng, không phải định luật — câu trả lời đáng tin duy nhất cho một ống kính cụ thể là tự test nó.</p>
+
+<h2 id="4-iso-does-not-collect-light">4. ISO không thu ánh sáng</h2>
+<p>Đây là control hay bị hiểu nhầm nhất, vì nó đứng cạnh hai control thật sự thay đổi lượng sáng tới cảm biến, còn nó thì hoàn toàn không làm điều đó.</p>
+<p>Màn trập và khẩu độ mang tính vật lý: chúng đổi số photon được thu. ISO được áp lên một tín hiệu đã thu xong — trước đây là khuếch đại analog trước khi số hoá, nay thường là kết hợp giữa khuếch đại analog và digital. Tăng ISO làm khung hình tối sáng lên, nhưng nó không thể thêm thông tin chưa bao giờ được ghi lại.</p>
+<p>Hệ quả thực tế là <b>nhiễu đến từ việc thiếu sáng, không phải từ ISO</b>. Khi tăng ISO bạn đang khuếch đại một tín hiệu yếu, và phần nhiễu vốn luôn nằm trong tín hiệu đó được khuếch đại theo. Đó là lý do chụp thiếu sáng ở ISO thấp rồi kéo sáng sau thường không đẹp hơn, và nhiều khi tệ hơn, so với việc phơi đúng ở ISO cao ngay từ đầu.</p>
+<p>Nhiều cảm biến hiện đại gần như <b>ISO-invariant</b> ở trên mức base, nghĩa là một tấm chụp ISO 800 và một tấm chụp ISO 200 rồi kéo lên hai stop trong raw cho kết quả rất giống nhau. Mức độ đúng của điều này khác nhau theo thế hệ cảm biến, nên đáng tự test trên body của mình thay vì mặc định. Ở đâu nó đúng, thứ tự ưu tiên đổi: giữ vùng sáng ngay khi chụp, kéo vùng tối lại khi hậu kỳ.</p>
+
+<h2 id="5-what-the-meter-is-actually-telling-you">5. Máy đo sáng thực ra đang nói gì</h2>
+<p>Máy đo sáng phản xạ — loại nằm trong mọi chiếc máy ảnh — đo ánh sáng dội <i>ra</i> từ cảnh và trả lời một câu hỏi hẹp: mức phơi nào sẽ khiến cảnh này trung bình ra một tông giữa? Nó giả định thế giới phản xạ trung bình khoảng xám giữa, một phỏng đoán hợp lý và vẫn chỉ là phỏng đoán.</p>
+<p>Giả định đó vỡ bất cứ khi nào cảnh bị chi phối bởi thứ sáng hơn hoặc tối hơn xám giữa rất nhiều. Chụp một cánh đồng tuyết, máy đo cố kéo toàn bộ màu trắng đó về xám nên nó thiếu sáng: tuyết của bạn ra xỉn và đục. Chụp một con mèo đen trên phông đen thì ngược lại, nó dư sáng cho tới khi màu đen thành xám bùn. Cách sửa trong cả hai trường hợp là bù trừ phơi sáng — dương cho tuyết, âm cho con mèo — tức là nói cho máy đo biết giả định của nó sai.</p>
+<p><b>Histogram</b> là công cụ trung thực hơn màn hình sau lưng máy, thứ mà bạn chỉnh được độ sáng và hiển thị phụ thuộc vào thứ ánh sáng bạn đang đứng trong đó. Hãy đọc nó để tìm clipping chứ không phải để ngắm hình dáng: các điểm ảnh dồn sát mép phải là vùng sáng đã cháy, không còn chi tiết để cứu, và không bản hậu kỳ nào mang chúng trở lại. Vùng tối dễ tính hơn — thường vẫn còn thông tin cứu được ở dưới đó, nhất là với raw.</p>
+<p>Một lưu ý hay làm người ta mắc bẫy: khi chụp raw, cả histogram lẫn cảnh báo cháy sáng đều được tính từ ảnh JPEG xem trước nhúng bên trong, theo picture style hiện tại của máy. Raw nói chung còn giữ nhiều dư địa vùng sáng hơn ảnh xem trước đó gợi ý.</p>
+
+<h2 id="6-an-order-that-holds-up">6. Một thứ tự đứng vững được</h2>
+<p>Thay vì cân ba thứ cùng lúc, hãy quyết chúng theo thứ tự cái nào bạn ít sẵn lòng đánh đổi nhất:</p>
+<ol>
+<li><b>Chuyển động phải trông thế nào?</b> Đóng băng, kéo vệt, hay lia. Điều đó chốt tốc độ màn trập, hoặc ít nhất chốt một ngưỡng sàn.</li>
+<li><b>Cái gì phải nét?</b> Một con mắt, hay toàn bộ phong cảnh. Điều đó chốt khẩu độ.</li>
+<li><b>ISO nhận phần còn lại.</b> Nó là biến số cuối cùng, và cảm biến hiện đại xử lý nó tốt hơn thói quen của phần lớn người chụp vẫn giả định.</li>
+<li><b>Xem máy đo, rồi ghi đè nó</b> nếu cảnh sáng hơn hoặc tối hơn mức trung bình nhiều. Xác nhận bằng histogram, không phải bằng độ sáng màn hình.</li>
+</ol>
+<p>Khi bước 1 và bước 2 không thể cùng thoả — ánh sáng đơn giản là không có — thì các lựa chọn trung thực là: thêm sáng, mở khẩu thêm, chấp nhận nhoè chuyển động, hoặc chấp nhận nhiễu. Nhận ra mình đang chọn cái nào trong số đó mới chính là kỹ năng. Tam giác sẽ không chọn thay bạn.</p>

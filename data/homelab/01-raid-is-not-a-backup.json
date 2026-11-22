@@ -1,0 +1,14 @@
+{
+  "body_file": "data/homelab/articles/01-raid-is-not-a-backup.html",
+  "guide": {
+    "title": "Redundancy is an availability feature. Backup is a recovery feature. They fail in different directions and neither substitutes for the other.",
+    "summary": "A RAIDZ pool survives losing one, two or three drives depending on its parity level, and that is genuinely valuable — a failed disk becomes a scheduled errand instead of an outage. But every threat that reaches the filesystem reaches every copy in the array at once: an accidental delete, an encrypting worm, a bad cable corrupting writes, a house fire. The list of things RAID does not cover is longer than the list it does.",
+    "points": [
+      "RAIDZ1/2/3 tolerate one, two and three simultaneous drive failures. The number is parity, not safety.",
+      "Resilver reads every remaining disk end to end, which is the heaviest and longest sustained load the array ever sees — and it happens while redundancy is already reduced.",
+      "ZFS detects silent corruption because it checksums data and metadata; traditional RAID only knows a drive is gone, not that it returned the wrong bytes.",
+      "Snapshots protect against mistakes, not against losing the pool. They live on the same disks as the data.",
+      "3-2-1 is the rule the other four points imply: three copies, two media, one off-site."
+    ]
+  }
+}

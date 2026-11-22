@@ -1,0 +1,318 @@
+{
+  "version": 1,
+  "slug": "calebzone",
+  "snapshot": "Local working-tree snapshot",
+  "project": {
+    "name": "CalebZone",
+    "title": "CalebZone — implementation SRS",
+    "intro": "A living software-requirements and implementation record for the CalebZone Java/Spring modular backend. The page joins the intended architecture with evidence from the current source tree, API contracts, gateway configuration and operational notes.",
+    "status": "Active implementation",
+    "source_root": "calebzone/",
+    "owner_note": "Source documents are preserved in their original language. Configuration samples are sanitized before publishing."
+  },
+  "locales": {
+    "vi": {
+      "project": {
+        "title": "CalebZone — SRS triển khai",
+        "intro": "Bản ghi software requirements và implementation cho backend Java/Spring dạng modular của CalebZone. Trang này nối intended architecture với bằng chứng từ source tree hiện tại, API contract, gateway configuration và operational notes.",
+        "status": "Đang triển khai",
+        "owner_note": "Tài liệu source được giữ nguyên ngôn ngữ gốc. Các sample configuration đã được loại secret trước khi publish."
+      },
+      "prose": {
+        "scope": "Trang này là companion hướng implementation cho phần System Design mang tính khái niệm. Nó ghi lại CalebZone cần làm gì, các module tách boundary ra sao, và repository hiện tại đang chứng minh hoặc còn qualify decision nào.",
+        "technologyTitle": "Technology baseline",
+        "modulesTitle": "Module ownership",
+        "architecture": "Gateway là client-facing edge và north-south policy boundary. Các service hướng domain tự giữ use case của mình, còn adapter phụ trách Redis, persistence và external provider.",
+        "diagramTitle": "CalebZone runtime topology",
+        "editableSource": "editable source",
+        "requirements": "Các requirement dưới đây là contract triển khai được rút ra từ source, configuration và tài liệu hiện tại; chúng không tự động đồng nghĩa với việc mọi phần đã ship hoàn chỉnh.",
+        "evidence": "Các sample này được copy từ working tree CalebZone hiện tại để SRS có thể đối chiếu với implementation detail thay vì chỉ đọc prose. Gateway sample cố ý không chứa secret.",
+        "documents": "Các tài liệu source bên dưới được giữ như reading material có thể mở/đóng. Heading, table và fenced code block được render tại chỗ; source path luôn hiển thị trên mỗi entry."
+      },
+      "modules": [
+        {
+          "name": "core",
+          "role": "Shared domain primitive, error model, validation, search specification và exception handling dùng chung."
+        },
+        {
+          "name": "auth",
+          "role": "Authentication, user, role, permission, JWT issuance và các security-specific API."
+        },
+        {
+          "name": "air",
+          "role": "Flight-search bounded context với hexagonal port, Redis cache, persistence và Sabre integration."
+        },
+        {
+          "name": "ai-recognition",
+          "role": "Flight/search recognition service với reactive infrastructure và security/configuration pattern dùng chung."
+        },
+        {
+          "name": "gateway",
+          "role": "Reactive edge: routing, JWT verification, identity forwarding, rate limiting, retry, circuit breaker và observability."
+        }
+      ],
+      "requirements": [
+        "Expose một client-facing gateway ở port 8080 và route traffic auth, air, AI tới các service độc lập.",
+        "Cho phép các authentication và operational endpoint đã chỉ định là public; mọi exchange khác phải yêu cầu JWT authentication.",
+        "Propagate request id và verified identity context tới downstream service, không xem identity header do client gửi là trusted.",
+        "Bảo vệ downstream capacity bằng Redis-backed rate limit, retry có bound và circuit breaker theo từng service.",
+        "Trả về error contract ổn định gồm trace id, error category, localized message và field-level validation detail.",
+        "Giữ flight-search use case độc lập với Sabre, Redis và persistence thông qua port-in/port-out boundary."
+      ],
+      "architecture": {
+        "decisions": [
+          "Gateway là boundary north-south cho policy và resilience; mỗi service vẫn sở hữu domain behavior của mình.",
+          "Module air dùng pragmatic hexagonal shape: web adapter gọi input port, application service orchestration output port, adapter sở hữu external protocol.",
+          "Core sở hữu error vocabulary và response construction dùng chung; auth và air mở rộng cho behavior và message riêng của module.",
+          "Redis là disposable control/cache state, không phải source of truth cho invariant của flight hoặc user.",
+          "Project local hiện chứa cả intended behavior đã document và implementation gap; SRS giữ hai sự thật này hiển thị thay vì ngầm coi mọi checklist item đã shipped."
+        ]
+      }
+    }
+  },
+  "stack": [
+    "Java 21",
+    "Spring Boot 3.5.7",
+    "Spring Cloud Gateway 2025.0.1",
+    "Spring Security OAuth2 Resource Server",
+    "WebFlux / Reactor Netty",
+    "Redis",
+    "Resilience4j",
+    "Prometheus / Micrometer",
+    "PostgreSQL or MySQL integrations",
+    "Sabre GDS adapter"
+  ],
+  "modules": [
+    {
+      "name": "core",
+      "role": "Shared domain primitives, error model, validation, search specifications and reusable exception handling."
+    },
+    {
+      "name": "auth",
+      "role": "Authentication, users, roles, permissions, JWT issuance and security-specific APIs."
+    },
+    {
+      "name": "air",
+      "role": "Flight search bounded context with hexagonal ports, Redis cache, persistence and Sabre integration."
+    },
+    {
+      "name": "ai-recognition",
+      "role": "Flight/search recognition service with reactive infrastructure and shared security/configuration patterns."
+    },
+    {
+      "name": "gateway",
+      "role": "Reactive edge: routing, JWT verification, identity forwarding, rate limiting, retries, circuit breakers and observability."
+    }
+  ],
+  "requirements": [
+    "Expose one client-facing gateway on port 8080 and route auth, air and AI traffic to independent services.",
+    "Allow explicitly public authentication and operational endpoints while requiring JWT authentication for all other exchanges.",
+    "Propagate a request id and verified identity context to downstream services without treating client-supplied identity headers as trusted.",
+    "Protect downstream capacity with Redis-backed rate limits, bounded retries and service-scoped circuit breakers.",
+    "Return a stable error contract with trace id, error category, localized message and field-level validation details.",
+    "Keep the flight search use case independent from Sabre, Redis and persistence through port-in/port-out boundaries."
+  ],
+  "architecture": {
+    "diagram": "flowchart TB\n  C[Client] --> G[Gateway :8080]\n  G --> A[Auth :8081]\n  G --> F[Air :8082]\n  G --> AI[AI Recognition :8083]\n  G -. rate limit .-> R[(Redis :6479)]\n  F --> S[Sabre GDS]\n  F --> D[(Flight data store)]\n  A --> U[(User store)]\n  G --> M[Prometheus / Actuator]",
+    "decisions": [
+      "The gateway is the north-south policy and resilience boundary; each service still owns its domain behavior.",
+      "The air module follows a pragmatic hexagonal shape: web adapters call an input port, the application service orchestrates output ports, and adapters own external protocols.",
+      "Core owns the reusable error vocabulary and response construction; auth and air extend it for module-specific behavior and messages.",
+      "Redis is disposable control/cache state, not the source of truth for flight or user invariants.",
+      "The local project currently contains both documented intended behavior and implementation gaps; this SRS keeps those facts visible instead of silently treating every checklist item as shipped."
+    ]
+  },
+  "documents": [
+    {
+      "id": "repository-readme",
+      "title": "Repository overview",
+      "category": "Overview",
+      "source": "README.md",
+      "file": "projects/calebzone/docs/01-repository-readme.md",
+      "created_at": "2026-08-12",
+      "updated_at": "2026-08-12"
+    },
+    {
+      "id": "api-spec",
+      "title": "RealWorld API specification",
+      "category": "API contract",
+      "source": "doc/README.md",
+      "file": "projects/calebzone/docs/02-realworld-api-spec.md",
+      "created_at": "2026-08-12",
+      "updated_at": "2026-08-12"
+    },
+    {
+      "id": "architecture-investigate",
+      "title": "DDD, layered, hexagonal and clean architecture investigation",
+      "category": "Architecture",
+      "source": "doc/architecture_investigate.md",
+      "file": "projects/calebzone/docs/03-architecture-investigate.md",
+      "created_at": "2026-08-12",
+      "updated_at": "2026-08-12"
+    },
+    {
+      "id": "air-architecture",
+      "title": "Air module architecture",
+      "category": "Architecture",
+      "source": "air/ARCHITECTURE.md",
+      "file": "projects/calebzone/docs/04-air-architecture.md",
+      "created_at": "2026-08-12",
+      "updated_at": "2026-08-12"
+    },
+    {
+      "id": "gateway-architecture",
+      "title": "Gateway architecture overview",
+      "category": "Gateway",
+      "source": "gateway/ARCHITECTURE_OVERVIEW.md",
+      "file": "projects/calebzone/docs/05-gateway-architecture.md",
+      "created_at": "2026-08-12",
+      "updated_at": "2026-08-12"
+    },
+    {
+      "id": "gateway-api",
+      "title": "Gateway API documentation",
+      "category": "Gateway",
+      "source": "gateway/API_DOCUMENTATION.md",
+      "file": "projects/calebzone/docs/06-gateway-api.md",
+      "created_at": "2026-08-12",
+      "updated_at": "2026-08-12"
+    },
+    {
+      "id": "gateway-readme",
+      "title": "Gateway README",
+      "category": "Gateway",
+      "source": "gateway/README.md",
+      "file": "projects/calebzone/docs/07-gateway-readme.md",
+      "created_at": "2026-08-12",
+      "updated_at": "2026-08-12"
+    },
+    {
+      "id": "gateway-readme-en",
+      "title": "Gateway README (English)",
+      "category": "Gateway",
+      "source": "gateway/README_EN.md",
+      "file": "projects/calebzone/docs/08-gateway-readme-en.md",
+      "created_at": "2026-08-12",
+      "updated_at": "2026-08-12"
+    },
+    {
+      "id": "gateway-implementation",
+      "title": "Gateway implementation summary",
+      "category": "Implementation",
+      "source": "gateway/IMPLEMENTATION_SUMMARY_NEW.md",
+      "file": "projects/calebzone/docs/09-gateway-implementation.md",
+      "created_at": "2026-08-12",
+      "updated_at": "2026-08-12"
+    },
+    {
+      "id": "gateway-quick-start",
+      "title": "Gateway quick start",
+      "category": "Operations",
+      "source": "gateway/QUICK_START.md",
+      "file": "projects/calebzone/docs/10-gateway-quick-start.md",
+      "created_at": "2026-08-12",
+      "updated_at": "2026-08-12"
+    },
+    {
+      "id": "gateway-checklist",
+      "title": "Gateway development checklist",
+      "category": "Operations",
+      "source": "gateway/DEVELOPMENT_CHECKLIST.md",
+      "file": "projects/calebzone/docs/11-gateway-checklist.md",
+      "created_at": "2026-08-12",
+      "updated_at": "2026-08-12"
+    },
+    {
+      "id": "exception-i18n",
+      "title": "Exception handling and i18n guide",
+      "category": "Cross-cutting",
+      "source": "doc/EXCEPTION_HANDLING_I18N.md",
+      "file": "projects/calebzone/docs/12-exception-i18n.md",
+      "created_at": "2026-08-12",
+      "updated_at": "2026-08-12"
+    },
+    {
+      "id": "exception-summary",
+      "title": "Exception handling implementation summary",
+      "category": "Cross-cutting",
+      "source": "doc/IMPLEMENTATION_SUMMARY.md",
+      "file": "projects/calebzone/docs/13-exception-summary.md",
+      "created_at": "2026-08-12",
+      "updated_at": "2026-08-12"
+    }
+  ],
+  "samples": [
+    {
+      "id": "root-pom",
+      "title": "Maven module and version baseline",
+      "language": "xml",
+      "focus": "Five-module build, Java 21 and shared dependency management.",
+      "source": "pom.xml",
+      "file": "projects/calebzone/samples/01-root-pom.xml",
+      "created_at": "2026-08-12",
+      "updated_at": "2026-08-12"
+    },
+    {
+      "id": "gateway-routes",
+      "title": "Gateway route definitions",
+      "language": "java",
+      "focus": "Path predicates, retries, circuit breakers and downstream URIs.",
+      "source": "gateway/src/main/java/com/calebzone/gateway/config/GatewayRoutesConfig.java",
+      "file": "projects/calebzone/samples/02-gateway-routes.java",
+      "created_at": "2026-08-12",
+      "updated_at": "2026-08-12"
+    },
+    {
+      "id": "gateway-security",
+      "title": "Gateway JWT security boundary",
+      "language": "java",
+      "focus": "Public endpoint allow-list and reactive JWT decoder.",
+      "source": "gateway/src/main/java/com/calebzone/gateway/config/SecurityConfig.java",
+      "file": "projects/calebzone/samples/03-gateway-security.java",
+      "created_at": "2026-08-12",
+      "updated_at": "2026-08-12"
+    },
+    {
+      "id": "identity-forwarding",
+      "title": "Verified identity forwarding",
+      "language": "java",
+      "focus": "Copying claims to downstream headers after Spring Security authentication.",
+      "source": "gateway/src/main/java/com/calebzone/gateway/filter/factory/AuthenticationFilter.java",
+      "file": "projects/calebzone/samples/04-identity-forwarding.java",
+      "created_at": "2026-08-12",
+      "updated_at": "2026-08-12"
+    },
+    {
+      "id": "gateway-config",
+      "title": "Gateway development configuration",
+      "language": "yaml",
+      "focus": "Ports, Redis rate limits, retry policy and service URLs.",
+      "source": "gateway/src/main/resources/application-dev.yml",
+      "file": "projects/calebzone/samples/05-gateway-config.yml",
+      "created_at": "2026-08-12",
+      "updated_at": "2026-08-12"
+    },
+    {
+      "id": "flight-use-case",
+      "title": "Flight search application service",
+      "language": "java",
+      "focus": "Input use case plus cache and external supplier output ports.",
+      "source": "air/src/main/java/com/calebzone/air/application/search/service/SearchFlightsService.java",
+      "file": "projects/calebzone/samples/06-flight-use-case.java",
+      "created_at": "2026-08-12",
+      "updated_at": "2026-08-12"
+    },
+    {
+      "id": "problem-details",
+      "title": "Shared RFC 7807-style error handling",
+      "language": "java",
+      "focus": "Localized messages, field errors and trace id enrichment.",
+      "source": "core/src/main/java/com/calebzone/core/exception/GlobalExceptionHandler.java",
+      "file": "projects/calebzone/samples/07-problem-details.java",
+      "created_at": "2026-08-12",
+      "updated_at": "2026-08-12"
+    }
+  ],
+  "created_at": "2026-08-12",
+  "updated_at": "2026-08-12"
+}

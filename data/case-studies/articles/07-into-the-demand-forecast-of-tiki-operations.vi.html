@@ -1,0 +1,83 @@
+<p>Nổi tiếng với khả năng giao hàng nhanh và dịch vụ khách hàng, việc lựa chọn sản phẩm đa dạng là một phần còn thiếu mà Tiki đã nỗ lực trong vài năm qua. Chúng tôi đã mở Marketplace để có nhiều người bán hơn và do đó có nhiều lựa chọn hơn. Hoạt động kinh doanh Bán lẻ của chúng tôi - nơi Tiki mua và quản lý inventory của riêng chúng tôi - cũng đang phát triển nhanh chóng, kéo theo đó là một thách thức thú vị: chúng tôi nên mua bao nhiêu inventory tại bất kỳ thời điểm nào? Và chúng ta nên đặt bao nhiêu trong số đó vào mỗi kho của mình? Ngoài ra, làm thế nào để thực hiện tất cả những phỏng đoán đó cho hàng triệu sản phẩm?</p>
+<p>Việc inventory quá ít sẽ dẫn đến tình trạng hết hàng, khách hàng có thể xem sản phẩm được niêm yết nhưng không thể mua hàng. Có quá nhiều chúng sẽ giải quyết được vấn đề đó nhưng lại dẫn đến lãng phí tiền mặt. Việc có đúng lượng inventory tại kho “nhầm” (quá xa khách hàng) cũng không phải là lý tưởng vì nó sẽ làm tăng thời gian giao hàng của chúng tôi.</p>
+<p>Vì vậy, có lượng inventory “tối ưu” (đúng quantity ở đúng warehouse) cho hàng triệu product — quy trình mà chúng tôi gọi là <em>inventory replenishment</em> — là chìa khóa để làm hài lòng khách hàng mà vẫn có business model bền vững. Chúng tôi mong muốn đạt được điều đó với Demand Forecast platform.</p>
+<h2 id="problem-statement">Problem statement</h2>
+<p>Inventory replenishment là một process quan trọng trong mọi commercial business. Tại <strong>TIKI</strong>, trước đây team bán hàng xử lý việc này thủ công dựa trên kinh nghiệm (hay nói đúng hơn là intuition) về product và market trend. Cách đó hiệu quả khi có ít product/warehouse và optimization cost chưa phải priority. Nhưng khi business scale, với yêu cầu cao hơn về customer satisfaction và <strong>sustainability</strong>, mỗi seller phải xử lý catalog lớn hơn, nhiều product hơn và target inventory/profit chặt chẽ hơn. Khi đó, manual approach không còn hiệu quả và software solution bắt đầu tạo ra giá trị.</p>
+<p>Nền tảng Demand Forecast kết hợp Machine Learning với các phương pháp time-series forecast cổ điển để phân tích pattern trong historical data và dự đoán nhu cầu tương lai.</p>
+<p>Với nền tảng kỹ thuật về data processing và machine learning, forecast có thể áp dụng cho hàng triệu product với nhiều signal khác nhau (historical demand, promotion sắp tới, page view...). Chúng tôi muốn xây dựng một platform đủ linh hoạt để data scientist thêm signal, chạy experiment trên kho data lớn, tìm signal hiệu quả nhất và tích hợp vào Forecast model để liên tục cải thiện accuracy.</p>
+<h2 id="our-approach">Our approach</h2>
+<h3 id="forecasting-methods">Forecasting methods</h3>
+<p>Ban đầu, để giới hạn scope, chúng tôi coi demand forecast là một time-series forecasting problem. Điều đó có nghĩa là chỉ tập trung vào demand time series và dùng nó để forecast nhu cầu tương lai mà chưa xét các yếu tố khác.</p>
+<p>Chúng tôi thu thập demand time series từ historical data và cluster theo pattern. Kết quả cho thấy phải xử lý nhiều dạng time series khác nhau, nên chúng tôi dùng nhiều classical time-series method. Hiện công cụ sử dụng 6 phương pháp, trong đó có <strong>theta</strong>, <strong>INNAR, Croston,…</strong></p>
+<p>Sau giai đoạn đầu, chúng tôi nhận thấy nhiều yếu tố ảnh hưởng đến product demand, đặc biệt là promotion. Các phương pháp cổ điển khó thực hiện feature engineering, nên chúng tôi nghiên cứu và áp dụng <strong>DeepAR</strong> — một probabilistic forecast model dùng recurrent neural network, có thể tích hợp nhiều signal để cải thiện accuracy.</p>
+<p>Vì công cụ forecast có nhiều model, chúng tôi dùng một model competition để chọn model tốt nhất cho từng product. 20% time series của mỗi product được dùng để evaluation tất cả model và chọn model có accuracy tốt nhất.</p>
+<figure class="cs-figure">
+  <button type="button" data-zoom-image aria-label="Mở hình 1 ở kích thước đầy đủ">
+    <img src="assets/case-studies/07-into-the-demand-forecast-of-tiki-operations/01-figure.webp" width="844" height="1033" loading="lazy" decoding="async" alt="Model competition process để chọn model tốt nhất cho mỗi SKU">
+  </button>
+  <figcaption><em>Model competition process để chọn model tốt nhất cho mỗi SKU.</em></figcaption>
+</figure>
+<h3 id="evaluation">Evaluation</h3>
+<p>Chúng tôi dùng các forecast metric như <strong>Mean Absolute Error (MAE)</strong>, <strong>Mean Absolute Percentage Error (MAPE)</strong>; metric chính là <strong>Symmetric Mean Absolute Percentage Error (SMAPE)</strong>.</p>
+<p><strong>SMAPE</strong> được dùng rộng rãi, trong đó có <strong>M4 Forecasting Competition</strong>. SMAPE có nhiều biến thể; chúng tôi dùng công thức sau:</p>
+<figure class="cs-figure">
+  <button type="button" data-zoom-image aria-label="Mở hình 2 ở kích thước đầy đủ">
+    <img src="assets/case-studies/07-into-the-demand-forecast-of-tiki-operations/02-figure.webp" width="289" height="91" loading="lazy" decoding="async" alt="Hình 2 để evaluation">
+  </button>
+  <figcaption>Hình 2 · Evaluation</figcaption>
+</figure>
+<p>So với <strong>MAPE</strong>, <strong>SMAPE</strong> có cả lower bound và upper bound, cho kết quả trong khoảng 0% đến 100%.</p>
+<p>Nó cũng đưa ra các kết quả khác nhau cho việc forecast trên và dưới, điều này có ý nghĩa khi ánh xạ tới tác động được tạo ra đối với doanh nghiệp và khách hàng.</p>
+<figure class="cs-figure">
+  <button type="button" data-zoom-image aria-label="Mở hình 3 ở kích thước đầy đủ">
+    <img src="assets/case-studies/07-into-the-demand-forecast-of-tiki-operations/03-figure.webp" width="556" height="81" loading="lazy" decoding="async" alt="Ví dụ về các kết quả khác nhau về forecast trên và dưới của SMAPE.">
+  </button>
+  <figcaption><em>Ví dụ về các kết quả khác nhau về forecast trên và dưới của SMAPE.</em></figcaption>
+</figure>
+<p>Do nhu cầu business, chúng tôi cung cấp forecast hàng tuần. Cuối mỗi tuần, chúng tôi thu thập forecast và actual demand, rồi dùng <strong>SMAPE</strong> để tính accuracy của forecast tool. Forecast tool cho kết quả chính xác hơn tới 60%.</p>
+<h3 id="feature-engineering">Feature engineering</h3>
+<p>Cùng với việc nghiên cứu thêm các phương pháp forecast, chúng tôi coi feature engineering là một trong những process quan trọng nhất để nâng cao accuracy của Forecast tool.</p>
+<p>Chúng tôi có một khái niệm gọi là <strong>Signal group</strong>: tập hợp các signal được dùng cho forecast hoặc experiment.</p>
+<p>Chúng tôi bắt đầu với các ý tưởng, hay cách gọi chính xác hơn là các hypothesis.</p>
+<p><em>Giả sử tôi nghĩ rằng traffic của trang Chi tiết sản phẩm sẽ ảnh hưởng đến nhu cầu.</em></p>
+<p>Sau đó, data analytics team sẽ khai thác data warehouse để tìm insight và validate các idea.</p>
+<p>Với signal mới, chúng tôi chạy ETL để thêm signal vào Signal group. Experiment được dùng để validate trước khi signal mới được đưa vào production.</p>
+<h3 id="experimental-process">Experimental process</h3>
+<p>Hãy tưởng tượng chúng ta có rất nhiều idea để cải thiện accuracy của forecast result.</p>
+<p>Những thay đổi từ ý tưởng có thể là:</p>
+<ul>
+  <li>Thêm/xóa phương pháp khỏi danh sách phương pháp forecast</li>
+  <li>Thêm/xóa signal khỏi Signal group</li>
+  <li>Thay đổi logic/target của model competition</li>
+  <li>…</li>
+</ul>
+<p>Chúng tôi đã xây dựng một quy trình và nền tảng để hỗ trợ chúng tôi linh hoạt thử nghiệm các thay đổi của mình một cách nhanh chóng và dễ dàng.</p>
+<p>Mỗi experiment được gắn một <strong>tag</strong>. Version đang chạy trong production có tag <strong>“Official”</strong>.</p>
+<p>Forecast tool có thể chạy nhiều tag, gồm tag <strong>“Official”</strong> và các experiment tag. Bằng cách benchmark kết quả giữa các tag theo các key metric, chúng tôi biết thay đổi nào cải thiện target metric và quyết định có deploy vào production hay không.</p>
+<figure class="cs-figure">
+  <button type="button" data-zoom-image aria-label="Mở hình 4 ở kích thước đầy đủ">
+    <img src="assets/case-studies/07-into-the-demand-forecast-of-tiki-operations/04-figure.webp" width="697" height="460" loading="lazy" decoding="async" alt="Tổng quan experimental process của Demand Forecast">
+  </button>
+  <figcaption><em>Tổng quan experimental process của Demand Forecast</em></figcaption>
+</figure>
+<h2 id="future-plan">Future plan</h2>
+<h3 id="products-segmentation">Product segmentation</h3>
+<p>Như đã nói, chúng tôi group product theo demand. Ý tưởng tiếp theo là cluster product theo các similarity khác như trend hoặc sales volume.</p>
+<p>Chia product thành các cluster giúp phân tích và troubleshoot dễ hơn. Chúng tôi có thể dành riêng model/approach cho từng cluster.</p>
+<figure class="cs-figure">
+  <button type="button" data-zoom-image aria-label="Mở hình 5 ở kích thước đầy đủ">
+    <img src="assets/case-studies/07-into-the-demand-forecast-of-tiki-operations/05-figure.webp" width="300" height="272" loading="lazy" decoding="async" alt="Product segmentation by similarity">
+  </button>
+  <figcaption><em>Product segmentation by similarity</em></figcaption>
+</figure>
+<h3 id="forecast-by-regions">Forecast by region</h3>
+<p><strong>TIKI</strong> ngày càng mở thêm warehouse để hỗ trợ business growth. Demand forecast hiện tại là demand tổng của product trên toàn network và được phân bổ về các region theo một số rule.</p>
+<p>Việc tăng số warehouse làm process phức tạp hơn và giảm accuracy. Ý tưởng của chúng tôi là dùng delivery address của order để trích xuất demand theo cluster, rồi forecast demand cho từng cluster một cách có hệ thống.</p>
+<p>Challenge của regional forecast là feature engineering, vì các yếu tố tác động tới demand hiếm khi có thể chia theo region, như promotion hoặc coupon (hiện chưa có promotion target theo region).</p>
+<h3 id="automate-inventory-replenishment-process">Automate inventory replenishment</h3>
+<p>Sau khi tính forecast theo khu vực, dựa trên historical performance của forecast tool, chúng tôi xác định threshold để chọn những product có forecast performance tốt và đưa chúng vào inventory replenishment system nhằm tự động purchase, giảm manual effort.</p>
+<h3 id="apply-forecast-result-into-human-resource-planning">Apply forecast to workforce planning</h3>
+<p>Hiện chúng tôi cung cấp forecast hàng tuần. Bằng cách tối ưu tốc độ của feature engineering, chúng tôi dự định cung cấp daily forecast; điều này giúp warehouse planning tốt hơn về workforce, tối ưu labor cost mà vẫn duy trì service quality.</p>
+<p><strong>Ranh giới đo lường.</strong> Cải thiện forecast và kết quả “up to 60%” trong bài là quan sát lịch sử từ nguồn first-party, không phải guarantee có thể tái lập chỉ từ bài viết. Muốn tái lập cần baseline, target (sales quan sát hay demand ẩn), forecast origin/horizon/cadence, split theo thời gian hoặc rolling, công thức metric và quy ước zero, weighting theo series/segment, uncertainty và leakage check. Stockout, promotion, availability và regional allocation có thể censor hoặc làm target đổi nghĩa. Vì vậy forecast phải qua fresh backtest và gate bằng outcome vận hành như service level, stockout, excess inventory, labour cost và operator override trước khi tự động replenishment hoặc workforce action.</p>
+<h2 id="conclusion">Kết luận</h2>
+<p>Demand forecast là một bài toán thú vị về AI/ML/toán học, có ứng dụng thực tế trong inventory replenishment và allocation. Làm tốt bài toán này là lợi thế then chốt để e-commerce company làm hài lòng khách hàng với service tốt và cost tối ưu. Đây vẫn là một hành trình, và Tiki đã đạt được một số tiến bộ đáng kể.</p>

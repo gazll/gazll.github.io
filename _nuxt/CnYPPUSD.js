@@ -1,0 +1,1 @@
+import{E as e,J as t}from"./uVeQ-LDk.js";import{t as n}from"./CWguHREp.js";import{t as r}from"./BDNMzG2s.js";var i={};function a(r,i){let a=n;return t(),e(a,{collection:`case-studies`})}var o=r(i,[[`render`,a]]);export{o as default};

@@ -1,0 +1,22 @@
+{
+  "body_file": "data/case-studies/articles/16-shopify-mysql-inventory-reservations.vi.html",
+  "guide": {
+    "title": "Hãy đọc đây là case về state locality và contention design—không phải bằng chứng MySQL luôn thắng Redis.",
+    "problem": "Shopify từng giữ inventory reservation ngắn hạn trong Redis còn inventory ledger có thẩm quyền nằm ở MySQL. Reserve rất nhanh, nhưng claim một order đã trả tiền phải đổi hai store mà không có chung ACID boundary; counter cũng không biểu diễn multi-location và kéo theo chi phí vận hành cluster riêng.",
+    "core_idea": "Đưa reservation về cạnh ledger và thay một quantity row nóng bằng bounded pool gồm các row đại diện cho unit có thể giữ. SELECT FOR UPDATE SKIP LOCKED cho concurrent checkout lấy row khác nhau; inline replenishment, READ COMMITTED, composite primary key và lock ordering nhất quán xử lý các edge case do model này tạo ra.",
+    "outcome": "Shopify báo cáo đạt target peak 2025 sau khi còn tìm ra throughput ceiling thật ở database connection usage ngoài reservation query. Việc dọn checkout path bỏ 50% primary read và 33% primary transaction; trong flash sale volume cao, writer CPU dưới 50% và reader CPU dưới 16%.",
+    "takeaways": [
+      "Redis không bị loại vì chậm. Nó xử lý counter concurrency tốt; vấn đề kiến trúc là temporary reservation và authoritative ledger không thể nằm trong một local transaction, tạo failure window dẫn đến oversell hoặc undersell.",
+      "SKIP LOCKED không biến một hot counter thành parallel. Parallelism đến từ việc đổi data model thành các unit row có thể lock độc lập; SKIP LOCKED sau đó mới giúp transaction bỏ qua row đang thuộc checkout khác.",
+      "Cap 1.000 row là capacity suy ra từ workload, không phải hằng số phổ quát. Nó cân bằng khả năng hấp thụ burst với table/scan size và phải được tính lại từ peak reservation rate, refill latency, inventory distribution cùng database headroom.",
+      "Database correctness vẫn cần hiểu engine: READ COMMITTED tránh gap lock ở empty range, composite clustered key giảm lock mỗi unit, table ordering nhất quán bỏ một deadlock cycle và UNION ALL giảm round trip cho cart.",
+      "Database CPU thấp không có nghĩa end-to-end capacity còn dư. SQL tag theo caller ở application và ProxySQL làm lộ long connection hold ở phần checkout khác, cho thấy phải đo connection occupancy cùng query latency và CPU."
+    ],
+    "review_lenses": [
+      "Atomicity: reserve, release, expiry và claim transition nào phải commit cùng ledger, và invariant nào còn đúng nếu crash tại mọi transaction boundary?",
+      "Contention: concurrency của item-location nóng nhất là bao nhiêu, có bao nhiêu unit lock độc lập và chuyện gì xảy ra khi demand vượt cả stock lẫn pool capacity?",
+      "Database behavior: kiểm chứng isolation semantics, query plan, lock count, deadlock retry và empty-pool insertion trên đúng MySQL version cùng schema.",
+      "Operations: attribute connection hold time theo caller, test độ an toàn với neighbor dùng chung database, chạy shadow comparison và giữ rollback path rõ ràng khi cutover dần."
+    ]
+  }
+}

@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Fshare Bulk Copy</title>
+<link rel="stylesheet" href="style.css?v=55db1dd5e5c5"/>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="logo">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+    Fshare Bulk Copy
+  </div>
+  <div class="tool-tabs" role="tablist" aria-label="Fshare tools">
+    <button class="tool-tab on" id="folderTab" role="tab" aria-selected="true" aria-controls="homeView">Browse</button>
+    <button class="tool-tab" id="movieTab" role="tab" aria-selected="false" aria-controls="movieView">Movie search</button>
+    <button class="tool-tab" id="batchTab" role="tab" aria-selected="false" aria-controls="batchView">Bulk crawl</button>
+  </div>
+  <div class="search-wrap" id="navFolderSearch">
+    <input type="text" id="navInput" placeholder="Paste an Fshare folder URL or link code..."/>
+    <button class="btn" id="navBtn">Browse</button>
+  </div>
+  <div class="nav-actions">
+    <button class="icon-btn" id="syncBtn" style="display:none"></button>
+  </div>
+</nav>
+
+<div id="homeView">
+  <div class="hero-wrap">
+    <div class="hero-card">
+      <div style="font-size:3rem;margin-bottom:16px">📁</div>
+      <h1>Fshare Folder — Bulk Link Copy</h1>
+      <p>Browse a folder, tick individual files or crawl the whole tree recursively, then copy every link at once.</p>
+      <div class="hero-form">
+        <input type="text" id="heroInput" placeholder="https://www.fshare.vn/folder/LINKCODE"/>
+        <button class="btn" id="heroBtn">Browse</button>
+      </div>
+      <div class="hint">Your selection survives paging and drilling into subfolders.</div>
+      <div class="err" id="homeError"></div>
+
+      <div class="batch-actions" style="justify-content:center;margin-top:6px">
+        <button class="btn2" id="goBatchBtn">📋 Bulk-crawl many folders →</button>
+      </div>
+
+      <div class="hist-wrap" id="histWrap" style="display:none">
+        <div class="hist-head">
+          <span>Recently opened</span>
+          <button class="tp-more" id="histClear">Clear history</button>
+        </div>
+        <div id="histList"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="movieView">
+  <main class="movie-page">
+    <header class="movie-intro">
+      <div class="movie-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5M8.5 11h5M11 8.5v5"/>
+        </svg>
+      </div>
+      <div>
+        <h1>Movie catalog</h1>
+        <p>Every file the community shared, checked against Fshare and kept with its history. Results are files, grouped under the folder that holds them — search by the film, the folder, or the release name.</p>
+      </div>
+      <div class="movie-db-meta" id="movieDbMeta" role="status" aria-live="polite">Locked</div>
+    </header>
+
+    <!-- The catalog ships encrypted: the passphrase is the gate, exactly as
+         it is for the private schedule, and it is the same passphrase. -->
+    <form class="movie-unlock" id="movieUnlock" aria-labelledby="movieUnlockTitle">
+      <div>
+        <h2 id="movieUnlockTitle">Open the <span id="movieUnlockType">Movie</span> catalog</h2>
+        <p id="movieUnlockNote">The link database is sealed in the repository. Enter the passphrase to open it in this browser.</p>
+      </div>
+      <label class="movie-search-field" for="moviePassphrase">
+        <span>Passphrase</span>
+        <input id="moviePassphrase" type="password" autocomplete="off" spellcheck="false"/>
+      </label>
+      <label class="movie-check"><input type="checkbox" id="movieRemember"/> Remember on this device</label>
+      <button class="btn" id="movieUnlockBtn" type="submit">Open</button>
+      <div class="err" id="movieUnlockErr" role="alert"></div>
+    </form>
+
+    <div class="movie-body" id="movieBody" hidden>
+      <section class="movie-search-panel" id="movieSearchPanel" aria-label="Movie catalog filters">
+        <div class="movie-type-switch" id="movieTypeSwitch" role="group" aria-label="Search dataset">
+          <span class="movie-type-label">Dataset</span>
+          <button class="btn2 on" id="movieTypeMovie" data-movie-type="movie" type="button" aria-pressed="true">Movie</button>
+          <button class="btn2" id="movieTypeSoftware" data-movie-type="software" type="button" aria-pressed="false">Software</button>
+          <button class="btn2" id="movieTypeMusic" data-movie-type="music" type="button" aria-pressed="false">Music</button>
+          <button class="btn2" id="movieTypeDocument" data-movie-type="document" type="button" aria-pressed="false">Document</button>
+          <button class="btn2" id="movieTypeX" data-movie-type="x" type="button" aria-pressed="false">X</button>
+          <span class="movie-type-description" id="movieTypeDescription">Validated movie files</span>
+          <button class="btn2 movie-lock" id="movieLockBtn" type="button">Lock</button>
+        </div>
+        <label class="movie-search-field" for="movieSearchInput">
+          <span id="movieSearchLabel">Search files by name, folder, alias or link code</span>
+          <input id="movieSearchInput" type="search" autocomplete="off" placeholder="Try: Dune 2021, anime, 4K..."/>
+        </label>
+        <!-- Every catalog is searched across all its sources; the select stays
+             for the code that reads it, out of sight. -->
+        <label class="movie-filter-field" for="movieSourceSelect" hidden>
+          <span>Source</span>
+          <select id="movieSourceSelect"><option value="all">All sources</option></select>
+        </label>
+        <label class="movie-check movie-show-dead" id="movieStatusFilter"><input type="checkbox" id="movieShowDead"/> <span id="movieStatusLabel">Show dead &amp; unknown</span></label>
+        <button class="btn2" id="movieClearSearch" type="button">Clear</button>
+        <span class="movie-search-hint" aria-hidden="true"><kbd>Enter</kbd> search now · <kbd>Esc</kbd> clear</span>
+      </section>
+
+      <section class="movie-progress" id="movieProgress" hidden aria-live="polite">
+        <div class="movie-progress-head">
+          <span id="movieProgressText">Checking...</span>
+          <button class="btn2" id="movieCancelBtn" type="button">Stop</button>
+        </div>
+        <div class="movie-progress-track"><i id="movieProgressFill"></i></div>
+        <div class="movie-progress-detail" id="movieProgressDetail"></div>
+      </section>
+
+      <div class="movie-grid">
+        <section class="movie-results-panel" aria-labelledby="movieResultsTitle">
+          <div class="movie-panel-head">
+            <div>
+              <h2 id="movieResultsTitle">Files, by folder</h2>
+              <p id="movieResultCount">Locked</p>
+            </div>
+            <div class="movie-panel-actions">
+              <button class="btn2" id="movieSelectVisible" type="button" disabled>Select visible</button>
+              <button class="btn2" id="movieClearSelection" type="button" disabled>Clear selection</button>
+              <button class="btn2" id="movieCopySelected" type="button" disabled>Copy selected</button>
+              <button class="btn" id="movieValidateBtn" type="button" disabled>Re-check Fshare now</button>
+            </div>
+          </div>
+          <div class="movie-results" id="movieResults" aria-live="polite"></div>
+        </section>
+
+        <!-- Hidden until a re-check runs: an empty "Working files" beside the
+             results is a second column explaining a feature nobody has used yet. -->
+        <aside class="movie-output-panel" id="movieOutputPanel" aria-labelledby="movieOutputTitle" hidden>
+          <div class="movie-panel-head movie-output-head">
+            <div>
+              <h2 id="movieOutputTitle">Working files</h2>
+              <p id="movieOutputCount">No checks yet</p>
+            </div>
+            <span class="movie-output-badge">files only</span>
+          </div>
+          <div class="movie-output-note" id="movieOutputNote">Files confirmed live by a re-check in this browser. Folders are crawled, never listed. A re-check here does not update the catalog — run the tool to persist it.</div>
+          <div class="movie-output-list" id="movieOutputList"></div>
+          <div class="movie-output-actions">
+            <button class="btn2" id="movieCopyOutput" type="button" disabled>Copy links</button>
+            <button class="btn2" id="movieDownloadOutput" type="button" disabled>Download JSON</button>
+            <button class="btn2" id="movieClearOutput" type="button" disabled>Clear output</button>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div id="batchView">
+  <div class="page">
+    <div class="batch-card">
+      <h2>Bulk-crawl many folders</h2>
+      <p>Paste as many Fshare folder links as you like — one per line, or a messy blob of text; the codes are picked out automatically. Each folder is crawled recursively and every file inside lands in the same selection basket.</p>
+      <textarea id="batchInput" spellcheck="false" placeholder="https://www.fshare.vn/folder/AAAAAAAAAAA&#10;https://www.fshare.vn/folder/BBBBBBBBBBB&#10;CCCCCCCCCCC"></textarea>
+      <div class="batch-actions">
+        <button class="btn" id="batchRun">Start crawling</button>
+        <button class="btn2" id="batchBack">← Back home</button>
+        <label style="font-size:.8rem;color:var(--text2);display:flex;align-items:center;gap:6px">
+          <input type="checkbox" id="batchDeep" checked/> Include subfolders
+        </label>
+        <span class="batch-hint" id="batchHint"></span>
+      </div>
+    </div>
+    <div class="bres" id="batchResults" style="display:none"></div>
+  </div>
+</div>
+
+<div id="folderView">
+  <div class="page">
+    <div id="folderHeader" class="folder-header"></div>
+
+    <div class="sticky-controls">
+    <div class="toolbar">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <div class="sort-wrap">
+        <span class="seg" id="viewSeg">
+          <button data-view="table" class="on">Table</button>
+          <button data-view="tree">Tree</button>
+        </span>
+        <span id="perPageLabel">Show:</span>
+        <select id="perPageSelect" title="Rows per page (Table view only)">
+          <option value="50">50</option>
+          <option value="100">100</option>
+          <option value="200">200</option>
+          <option value="500">500</option>
+          <option value="1000">1000</option>
+          <option value="0">All</option>
+        </select>
+        <span>Sort:</span>
+        <select id="sortSelect">
+          <option value="type,name">Type + Name</option>
+          <option value="name">Name A-Z</option>
+          <option value="-name">Name Z-A</option>
+          <option value="-size">Size (largest first)</option>
+          <option value="size">Size (smallest first)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="bulkbar">
+      <span class="lbl">Quick select</span>
+      <button class="btn2" id="expandAllBtn">Expand all ↓</button>
+      <button class="btn2" id="collapseAllBtn">Collapse</button>
+      <button class="btn2" id="selDeepBtn">Crawl whole tree ↓</button>
+      <button class="btn2" id="selNoneBtn">Clear selection</button>
+      <span class="lbl" style="margin-left:4px">Rows</span>
+      <span class="seg" id="densitySeg" role="group" aria-label="Row height">
+        <button type="button" data-d="0" title="Taller rows, easier to read">Normal</button>
+        <button type="button" data-d="1" title="Shorter rows, more of them on screen">Compact</button>
+      </span>
+      <span class="cache-badge" id="cacheBadge" title="Folder listings kept locally"></span>
+      <button class="btn2" id="refreshBtn" title="Re-fetch this folder, ignoring the cache">↻ Refresh</button>
+      <button class="btn2" id="helpBtn" title="Keyboard shortcuts">⌨ Shortcuts</button>
+    </div>
+
+    <div class="bulkbar">
+      <span class="lbl">Filter</span>
+      <input type="text" id="filterInput" class="filter-input"
+             placeholder="Type a name, .mkv for extension, &gt;1gb for size, -sample to exclude"/>
+      <button class="btn2" id="filterClear" style="display:none">Clear filter</button>
+      <button class="btn2" id="selMatchBtn" style="display:none">Select all matches</button>
+      <span id="extChips" class="chips"></span>
+    </div>
+    </div><!-- /sticky-controls -->
+
+    <div class="loadbar" id="loadBar" style="display:none">
+      <div class="lb-row">
+        <span class="lb-text" id="lbText">Loading…</span>
+        <button class="btn2" id="lbStop">Stop</button>
+      </div>
+      <div class="lb-track" id="lbTrack" role="progressbar" aria-label="Folder load progress"
+           aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="lbFill"></i></div>
+    </div>
+
+    <div class="stats-bar" id="statsBar"></div>
+    <div id="paginationTop" class="pagination"></div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th class="num-col">#</th>
+          <th class="chk-col"><input type="checkbox" id="chkAll" title="Select/clear every file on this page"/></th>
+          <th class="name-col">Name</th>
+          <th class="size-col">Size</th>
+          <th class="date-col">Last modified</th>
+          <th class="act-col">Action</th>
+        </tr></thead>
+        <tbody id="fileList"></tbody>
+      </table>
+    </div>
+
+    <div class="tree-wrap" id="treeWrap">
+      <div class="tree-stick">
+        <div class="tree-head">
+          <span class="th-left">
+            <input type="checkbox" id="treeChkAll" class="th-chk"
+                   title="Select every file currently shown in the tree"
+                   aria-label="Select every file currently shown in the tree"/>
+            <span>Folder tree — click ▸ to load a level</span>
+          </span>
+          <span id="treeStat"></span>
+        </div>
+        <div class="tree-prog" id="treeProg">
+          <div class="tp-row">
+            <span class="tp-label" id="tpLabel"></span>
+            <button class="tp-more" id="tpMore">Load the rest ↓</button>
+            <span class="tp-pct" id="tpPct">0%</span>
+          </div>
+          <div class="tp-bar"><i id="tpBar"></i></div>
+        </div>
+      </div>
+      <div id="treeBody" role="tree" aria-label="Folder tree"></div>
+    </div>
+
+    <div id="paginationBot" class="pagination"></div>
+    <div class="pg-info" id="pgInfo"></div>
+  </div>
+</div>
+
+<!-- selection tray -->
+<div class="tray" id="tray">
+  <div class="tray-in">
+    <div>
+      <div class="tray-count" id="trayCount">0 files</div>
+      <div class="tray-sub" id="traySub"></div>
+    </div>
+    <div class="tray-actions">
+      <select id="fmtSelect" title="Format used for copy and export">
+        <option value="link">Link only</option>
+        <option value="name-link">Name — link</option>
+        <option value="link-name">Link — name</option>
+        <option value="md">Markdown list</option>
+        <option value="full">Name | Size | Link</option>
+        <option value="folder-link">[Folder] link</option>
+        <option value="folder-name-link">[Folder] Name — link</option>
+        <option value="csv">CSV (Excel)</option>
+        <option value="json">JSON</option>
+      </select>
+      <input type="number" id="chunkInput" class="chunk-input" min="1" max="10000"
+             title="Links per file when exporting in batches"/>
+      <button class="btn2" id="chunkBtn" title="Split into several .txt files">Export in batches</button>
+      <button class="btn2" id="viewBtn">Open basket</button>
+      <button class="btn2" id="txtBtn">Download .txt</button>
+      <button class="btn" id="copyAllBtn">Copy all links</button>
+    </div>
+  </div>
+</div>
+
+<!-- scan progress -->
+<div class="ov" id="scanOv">
+  <div class="ov-card">
+    <h3 id="scanTitle" aria-live="polite">Crawling folder…</h3>
+    <div class="ov-line">Folders scanned: <b id="scDone">0</b> / <b id="scTotal">0</b></div>
+    <div class="ov-line">Files found: <b id="scFiles">0</b></div>
+    <div class="ov-line" id="scNow" style="color:var(--muted)"></div>
+    <div class="bar"><i id="scBar"></i></div>
+    <div class="ov-line" id="scEta" style="color:var(--blue)"></div>
+    <div class="ov-line" id="scCache" style="color:var(--green)"></div>
+    <div class="ov-line" id="scErr" style="color:var(--red)"></div>
+    <div class="ov-foot"><button class="btn2" id="scanCancel">Stop</button></div>
+  </div>
+</div>
+
+<!-- selection basket -->
+<div class="modal" id="listModal" role="dialog" aria-modal="true" aria-labelledby="listTitle">
+  <div class="modal-card">
+    <h3 id="listTitle">Selection basket</h3>
+
+    <div class="bk-bar">
+      <input type="text" id="bkSearch" class="filter-input" placeholder="Search inside the basket..."/>
+      <select id="bkSort" title="Sort the basket">
+        <option value="add">Order added</option>
+        <option value="name">Name A-Z</option>
+        <option value="-size">Largest first</option>
+        <option value="size">Smallest first</option>
+        <option value="folder">By folder</option>
+      </select>
+      <button class="btn2" id="bkDup" title="Show only files whose name repeats">Duplicates: 0</button>
+      <button class="btn2" id="bkMode">Text view</button>
+    </div>
+
+    <div id="bkList" class="bk-list"></div>
+    <textarea id="listArea" spellcheck="false" readonly style="display:none"></textarea>
+
+    <div class="modal-foot">
+      <span class="bk-total" id="bkTotal"></span>
+      <button class="btn2" id="listClose">Close</button>
+      <button class="btn2" id="bkRemoveShown">Remove shown rows</button>
+      <button class="btn2" id="listTxt">Download .txt</button>
+      <button class="btn2" id="bkChunk">Export in batches</button>
+      <button class="btn" id="listCopy">Copy</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="helpModal" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+  <div class="modal-card" style="max-width:520px">
+    <h3 id="helpTitle">Keyboard shortcuts</h3>
+    <div class="keys">
+      <kbd>/</kbd><span>Jump to the filter box</span>
+      <kbd>Esc</kbd><span>Clear filter, close dialog, stop a crawl</span>
+      <kbd>Ctrl</kbd><span>+ <kbd>A</kbd> — select every file shown</span>
+      <kbd>Ctrl</kbd><span>+ <kbd>D</kbd> — clear the selection</span>
+      <kbd>Ctrl</kbd><span>+ <kbd>C</kbd> — copy the whole basket (when no text is highlighted)</span>
+      <kbd>Shift</kbd><span>+ click a checkbox — select the range between two clicks</span>
+      <kbd>E</kbd><span>Expand all (Tree view)</span>
+      <kbd>B</kbd><span>Open the basket</span>
+      <kbd>T</kbd><span>Switch Table / Tree</span>
+      <kbd>?</kbd><span>This panel</span>
+    </div>
+    <div class="modal-foot"><button class="btn" id="helpClose">Close</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module" src="app.js?v=55db1dd5e5c5"></script>
+</body>
+</html>

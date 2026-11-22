@@ -1,0 +1,1 @@
+import{E as e,J as t,P as n,gt as r}from"./uVeQ-LDk.js";import{u as i}from"./DkE3prRO.js";import{t as a}from"./Bz1NZ7ik.js";var o=n({__name:`[slug]`,setup(n){let o=i();return(n,i)=>{let s=a;return t(),e(s,{collection:`photography`,slug:String(r(o).params.slug)},null,8,[`slug`])}}});export{o as default};

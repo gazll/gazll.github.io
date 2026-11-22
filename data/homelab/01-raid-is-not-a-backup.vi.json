@@ -1,0 +1,14 @@
+{
+  "body_file": "data/homelab/articles/01-raid-is-not-a-backup.vi.html",
+  "guide": {
+    "title": "Redundancy là tính năng về availability. Backup là tính năng về recovery. Chúng hỏng theo hai hướng khác nhau và không cái nào thay được cái nào.",
+    "summary": "Một pool RAIDZ sống sót khi mất một, hai hoặc ba ổ tuỳ mức parity, và điều đó thật sự có giá trị — ổ chết trở thành việc vặt có lịch thay vì một sự cố. Nhưng mọi mối đe doạ chạm tới filesystem thì chạm tới toàn bộ bản sao trong array cùng lúc: xoá nhầm, worm mã hoá, một sợi cáp lỗi làm hỏng dữ liệu ghi, một đám cháy. Danh sách những thứ RAID không lo được dài hơn danh sách nó lo được.",
+    "points": [
+      "RAIDZ1/2/3 chịu được một, hai và ba ổ chết đồng thời. Con số đó là parity, không phải mức an toàn.",
+      "Resilver đọc hết toàn bộ các ổ còn lại từ đầu tới cuối — tải nặng nhất và kéo dài nhất mà array từng chịu, lại diễn ra đúng lúc redundancy đã giảm.",
+      "ZFS phát hiện được hỏng dữ liệu âm thầm vì nó checksum cả data lẫn metadata; RAID truyền thống chỉ biết một ổ đã mất, không biết ổ đó trả về sai byte.",
+      "Snapshot chống sai lầm, không chống mất pool. Chúng nằm trên đúng những cái ổ chứa dữ liệu.",
+      "3-2-1 là quy tắc mà bốn ý trên dẫn tới: ba bản sao, hai loại phương tiện, một bản đặt ngoài nhà."
+    ]
+  }
+}

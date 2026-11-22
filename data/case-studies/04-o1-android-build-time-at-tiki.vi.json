@@ -1,0 +1,22 @@
+{
+  "body_file": "data/case-studies/articles/04-o1-android-build-time-at-tiki.vi.html",
+  "guide": {
+    "title": "Mấu chốt là thu hẹp dependency graph của bản build cục bộ, không chỉ compile cùng một graph nhanh hơn.",
+    "problem": "Một thay đổi ở data module dùng chung làm invalid gần như mọi feature module, biến vòng lặp edit–compile–run thông thường thành một lần build kéo dài từ năm đến tám phút. Với mười đến hai mươi lần build mỗi ngày, latency này trở thành cost năng suất lớn và lặp lại.",
+    "core_idea": "Một Gradle property tùy biến chỉ include feature đang được phát triển. Các tham chiếu đến feature bị loại khỏi build được thay bằng fake source set nhỏ, còn deep link mở thẳng màn hình mục tiêu trong debug APK đã rút gọn.",
+    "outcome": "Bài gốc cho biết thời gian build giảm xấp xỉ một nửa, còn khoảng một đến hai phút. Debug APK cũng nhỏ hơn vì các feature không liên quan không được đưa vào bản build cục bộ.",
+    "takeaways": [
+      "Tối ưu từng task trong một dependency graph khổng lồ có giới hạn. Loại hẳn công việc không liên quan khỏi graph thường đem lại cải thiện lớn hơn việc tinh chỉnh từng compiler.",
+      "Module hóa feature không tự động làm build nhanh; hướng dependency quyết định liệu một thay đổi ở shared module có còn fan-out sang mọi feature hay không.",
+      "Fake source là một compatibility boundary ở compile time. Nó chỉ an toàn khi contract giữa app shell và feature module được giữ nhỏ, rõ và có kiểm chứng.",
+      "APK rút gọn cần một đường điều hướng thay thế. Deep link giữ được vòng lặp phát triển ngay cả khi home screen hoặc routing module thông thường bị loại khỏi build.",
+      "Cách làm này tối ưu local feature development, không tối ưu release build. CI vẫn phải build và test toàn bộ graph để bắt lỗi tích hợp thật."
+    ],
+    "review_lenses": [
+      "Contract drift: Làm thế nào để declaration giả fail fast khi interface thật của feature thay đổi, thay vì để lỗi chỉ xuất hiện ở runtime hoặc lúc release?",
+      "Phạm vi test: Những kiểm tra nào chạy được trên graph rút gọn ở máy local, và những kiểm tra nào bắt buộc phải chạy trên full graph trong CI?",
+      "Dependency hygiene: Theo dõi bao nhiêu tham chiếu từ app shell đang buộc phải có fake implementation; sự tăng lên của con số này là một tín hiệu kiến trúc.",
+      "Developer ergonomics: Việc chọn feature có dễ khám phá không, và lệnh build có cảnh báo đủ rõ rằng APK tạo ra là bản không đầy đủ hay không?"
+    ]
+  }
+}

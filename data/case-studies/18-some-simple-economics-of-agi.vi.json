@@ -1,0 +1,22 @@
+{
+  "body_file": "data/case-studies/articles/18-some-simple-economics-of-agi.vi.html",
+  "guide": {
+    "title": "Một note editorial về việc agentic scale chuyển bottleneck từ execution sang verification, và vì sao observability, provenance cùng practice trở thành production infrastructure.",
+    "problem": "Agentic system có thể tạo plan, code và decision nhanh hơn khả năng team con người kiểm tra chúng. Paper đặt câu hỏi điều gì xảy ra khi chi phí execution đo được giảm nhanh, còn thời gian, kinh nghiệm và trách nhiệm cần cho verification vẫn khan hiếm.",
+    "core_idea": "Lăng kính hữu ích không phải agent nghe có thông minh hay không, mà là output có rẻ để tạo ra và đủ rẻ để verify hay không. Measurability gap mở rộng biến output chưa kiểm chứng thành latent risk, làm human-in-the-loop quen thuộc trở nên mong manh, và chuyển lợi thế sang verification infrastructure, ground truth, provenance cùng năng lực đứng ra chịu trách nhiệm cho hậu quả.",
+    "outcome": "Bản synthesis chuyển luận điểm của paper thành operating model cho engineering: định nghĩa intent trước khi giao việc, làm trace và failure feedback trở nên nhìn thấy được, tách execution khỏi adversarial verification, giới hạn blast radius, và giữ practice loop để expert tương lai vẫn phán đoán được failure ngoài distribution. Đây là design lens, không phải dự báo AGI đến vào một mốc cố định.",
+    "takeaways": [
+      "Agent throughput thô không đồng nghĩa realized value. Đại lượng hữu ích là phần work có thể được kiểm tra, giải thích và có người chịu trách nhiệm.",
+      "Easy verification không cần hiểu mọi bước bên trong agent. Nó cần outcome check đáng tin và đủ provenance để biết kết quả được tạo ra thế nào.",
+      "Missing Junior Loop là operational risk: xóa hết routine practice có thể tiết kiệm hôm nay nhưng làm mỏng nguồn expert có khả năng verify failure bất thường về sau.",
+      "AI kiểm tra AI vẫn hữu ích để tăng coverage, nhưng model, data và incentive tương quan có thể tạo false confidence. Independence phải được thiết kế, không được giả định.",
+      "Observability, adversarial evaluation, rollback, provenance và liability là production input của agentic system, không phải giấy tờ bổ sung sau deployment."
+    ],
+    "review_lenses": [
+      "Measurability: phần nào của workflow có acceptance criteria rõ, và outcome nào vẫn phụ thuộc tacit context hoặc human judgment?",
+      "Verification: evidence nào cho phép reviewer kiểm tra kết quả mà không replay toàn bộ process, và feedback loop mất bao lâu?",
+      "Independence: checker có assumption, data, model path hoặc human accountability khác đáng kể so với agent tạo output không?",
+      "Succession: junior và operator sẽ tích lũy failure experience ở đâu khi routine execution được giao cho agent, và simulation nào thay thế learning loop đó?"
+    ]
+  }
+}

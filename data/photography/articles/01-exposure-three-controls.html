@@ -1,0 +1,54 @@
+<p>Almost every introduction to photography draws the same triangle and stops there: shutter, aperture, ISO, three corners, balance them. The triangle is a fair picture of the arithmetic and a poor picture of the decision. It suggests the three controls are equivalent routes to the same place, when in practice each one buys light with a completely different currency.</p>
+<p>This is written as a decision guide rather than a settings list. Numbers that depend on a particular sensor, lens or body are called out as such.</p>
+
+<h2 id="1-the-stop-is-the-shared-unit">1. The stop is the shared unit</h2>
+<p>A <b>stop</b> is a doubling or a halving of light. That single definition is what makes the three controls tradeable against one another, because all of them are calibrated in it.</p>
+<p>Shutter speed is the most obvious: 1/125 s admits twice the light of 1/250 s. ISO reads the same way — ISO 400 is one stop above ISO 200. Aperture is where the sequence looks strange, because f-numbers are a ratio of focal length to entrance-pupil diameter, and area scales with the square of diameter. The whole-stop series is therefore multiplied by the square root of two each step:</p>
+<!-- separator: a blank line here would truncate the block -->
+<table>
+<thead><tr><th>Control</th><th>One stop <i>more</i> light</th><th>One stop <i>less</i> light</th></tr></thead>
+<tbody>
+<tr><td>Shutter</td><td>1/125 → 1/60 s</td><td>1/125 → 1/250 s</td></tr>
+<tr><td>Aperture</td><td>f/4 → f/2.8</td><td>f/4 → f/5.6</td></tr>
+<tr><td>ISO</td><td>200 → 400</td><td>200 → 100</td></tr>
+</tbody>
+</table>
+<p>Because the unit is shared, any stop taken from one control can be given back by another and the frame keeps the same brightness. That is the useful part of the triangle. The unhelpful part is the implication that this makes the frames equivalent. It does not: brightness is the one property the three controls hold in common, and each of them changes a second property that the other two cannot touch.</p>
+
+<h2 id="2-shutter-speed-buys-light-with-motion">2. Shutter speed buys light with motion</h2>
+<p>The shutter decides how long the sensor accumulates, so it decides how far anything moving travels across the frame during the exposure. This is a decision about the subject, and it should usually be made first.</p>
+<p>Two motions matter and they are independent. <b>Subject motion</b> is whatever moves in the scene; a person walking needs a very different speed from a cyclist. <b>Camera motion</b> is your own shake, and it scales with focal length, because a longer lens magnifies angular movement along with everything else. The old rule of thumb — hold at least 1/focal-length — was written for 35&nbsp;mm film and is a starting point, not a specification: it says nothing about your hands, and it predates stabilisation.</p>
+<p>Stabilisation is worth being precise about, because it is routinely oversold. In-body and in-lens stabilisation counteract <i>camera</i> movement only. They will let you hand-hold a static scene at a far slower speed than you otherwise could, and they will do exactly nothing for a subject that is itself moving. A blurred runner at 1/15&nbsp;s is blurred with stabilisation on.</p>
+<p>Choosing a slow shutter deliberately is a technique, not a failure — flowing water, light trails, a panned car sharp against a streaked background. The point is that the speed is chosen for what it does to motion, and only then checked against exposure.</p>
+
+<h2 id="3-aperture-buys-light-with-depth-of-field">3. Aperture buys light with depth of field</h2>
+<p>The aperture is a hole, and its size sets how steeply focus falls off in front of and behind the plane you focused on. Open it up for light and the zone of acceptable sharpness narrows; close it down for depth and the light drops.</p>
+<p>Depth of field is not a property of the aperture alone. It depends on the f-number, the focal length, the subject distance and the sensor format together, which is why a phone at f/1.8 and a full-frame camera at f/1.8 produce completely different-looking backgrounds. Distance dominates more than people expect: moving closer to your subject narrows depth of field sharply, at any aperture.</p>
+<p>Both ends of the aperture range cost resolution, for unrelated reasons:</p>
+<ul>
+<li><b>Wide open</b>, the lens is using the outer edges of its glass, where optical aberrations are worst. Corner softness, vignetting and longitudinal chromatic aberration — the green and magenta fringing on out-of-focus edges — are all at their strongest here.</li>
+<li><b>Stopped far down</b>, diffraction becomes the limit. Light bends around the edge of a small opening, and past a certain point every point in the image is smeared slightly no matter how good the lens is. The f-number where this becomes visible depends on pixel pitch, so a dense sensor shows it earlier.</li>
+</ul>
+<p>Most lenses are at their sharpest somewhere in the middle, often two or three stops from wide open. That is a tendency, not a law — the only reliable answer for a specific lens is to test it.</p>
+
+<h2 id="4-iso-does-not-collect-light">4. ISO does not collect light</h2>
+<p>This is the control most often misunderstood, because it sits alongside two controls that genuinely change how much light reaches the sensor, and it does not do that at all.</p>
+<p>Shutter and aperture are physical: they change the number of photons captured. ISO is applied to a signal that has already been captured — historically an analogue gain before digitisation, now often a combination of analogue and digital gain. Raising ISO makes a dark frame brighter, but it cannot add information that was never recorded.</p>
+<p>The practical consequence is that <b>noise comes from having too little light, not from ISO</b>. When you raise ISO you are amplifying a weak signal, and the noise that was always in that signal gets amplified with it. Which is why underexposing at low ISO and brightening later usually looks no better, and often worse, than exposing correctly at high ISO in the first place.</p>
+<p>Many modern sensors are close to <b>ISO-invariant</b> above their base setting, meaning a shot taken at ISO 800 and one taken at ISO 200 then pushed two stops in raw end up looking very similar. How true this is varies by sensor generation, so it is worth testing on your own body rather than assuming it. Where it holds, it changes the priority: protect highlights in camera, recover shadows in the edit.</p>
+
+<h2 id="5-what-the-meter-is-actually-telling-you">5. What the meter is actually telling you</h2>
+<p>A reflective meter — the one inside every camera — measures light coming <i>off</i> the scene and answers a narrow question: what exposure would make this average out to a mid-tone? It assumes the world reflects roughly mid-grey on average, which is a reasonable guess and a guess nonetheless.</p>
+<p>The assumption breaks whenever a scene is dominated by something much brighter or much darker than mid-grey. Photograph a snowfield and the meter, trying to make all that white average out to grey, underexposes: your snow comes out dull and murky. Photograph a black cat against a black backdrop and it does the reverse, overexposing until the black turns muddy grey. The fix in both cases is exposure compensation — positive for the snow, negative for the cat — which is to say, telling the meter its assumption is wrong.</p>
+<p>The <b>histogram</b> is a more honest instrument than the rear screen, whose brightness you can change and whose appearance depends on the light you are standing in. Read it for clipping rather than for shape: pixels stacked against the right edge are blown highlights with no recoverable detail, and no edit brings them back. Shadows are more forgiving — there is usually recoverable information down there, especially in raw.</p>
+<p>One caveat that catches people out: when shooting raw, both the histogram and the highlight blinkies are computed from the embedded JPEG preview, using the camera's current picture style. Raw generally holds a little more highlight headroom than that preview suggests.</p>
+
+<h2 id="6-an-order-that-holds-up">6. An order that holds up</h2>
+<p>Rather than balancing three things at once, decide them in the order of what you are least willing to give up:</p>
+<ol>
+<li><b>What must the motion look like?</b> Frozen, streaked, or panned. That sets a shutter speed, or at least a floor.</li>
+<li><b>What must be sharp?</b> One eye, or the whole landscape. That sets an aperture.</li>
+<li><b>ISO takes whatever is left.</b> It is the variable of last resort, and modern sensors handle it better than most people's habits assume.</li>
+<li><b>Check the meter, then override it</b> if the scene is much lighter or darker than average. Confirm on the histogram, not the screen brightness.</li>
+</ol>
+<p>When steps 1 and 2 cannot both be satisfied — the light is simply not there — the honest options are to add light, open up further, accept the motion blur, or accept the noise. Recognising which of those you are choosing is the whole skill. The triangle will not choose for you.</p>

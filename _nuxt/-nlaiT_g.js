@@ -1,0 +1,1 @@
+var e={"<":`\\u003c`,">":`\\u003e`,"&":`\\u0026`,"\u2028":`\\u2028`,"\u2029":`\\u2029`};function t(t){return(JSON.stringify(t)??`null`).replace(/[<>&\u2028\u2029]/g,t=>e[t])}export{t};

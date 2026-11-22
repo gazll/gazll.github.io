@@ -1,0 +1,427 @@
+<p>Trong Tiki Search, chúng tôi liên tục bổ sung feature mới vào ranking formula để mang đến search quality tốt hơn. Để kiểm chứng feature mới, chúng tôi dùng A/B test: chạy song song formula cũ và mới, rank result cho các subset user khác nhau, rồi tính riêng các key metric trên từng subset để quyết định formula mới có thực sự tốt hơn hay không.</p>
+<p>Trong bài viết này, chúng tôi sẽ giải thích chi tiết về quá trình đưa ra quyết định này - làm thế nào để hiểu rằng thứ hạng mới “thực sự” tốt hơn thứ hạng cũ và cách ước tính xác suất mắc sai lầm trong quyết định này.</p>
+<p>Chúng tôi sẽ không đề cập architecture của toàn bộ A/B testing system ở đây — cách setup experiment, split user, track event… Có nhiều tài liệu về các chủ đề này. Bài viết chỉ tập trung vào cách interpret test result và đưa ra business decision từ đó.</p>
+<p>Với tất cả những gì đã nói, hãy chuyển sang chủ đề.</p>
+<h2 id="naive-approach">Naive approach</h2>
+<p>Phần lớn metric dùng để estimate search quality ở Tiki là rate metric, được tính bằng cách chia một value cho value khác. Ví dụ phổ biến nhất là Click-Through Rate (CTR) = clicks chia cho impressions trong một context nhất định. Các rate metric khác có thể là purchase rate hoặc non-clicked query rate. Phần còn lại tập trung vào CTR, nhưng approach này cũng áp dụng cho các rate metric khác.</p>
+<p>Trong bài viết này, event “view” là một impression của một product trong search result. Event “click” là một click vào một result đã được impression trước đó. CTR của một customer được tính bằng tổng “click” event chia cho tổng “view” event của họ.</p>
+<p>Một approach đơn giản để diễn giải kết quả A/B test là so sánh trực tiếp CTR average của ranking formula cũ và mới rồi coi CTR lớn hơn là “người chiến thắng”. Tuy nhiên, CTR thu được có thể khác ngay cả khi không thay đổi ranking formula. Những customer khác nhau có hành vi click khác nhau và với quy trình “ngẫu nhiên” như vậy, chúng tôi sẽ không bao giờ có cùng CTR average cho cùng một ranking formula.</p>
+<p>Trong lịch sử, chúng tôi đã thấy sự khác biệt về CTR average lên tới 2–3% ngay cả khi công thức xếp hạng đằng sau cả hai biến thể thử nghiệm đều giống nhau. Sự khác biệt được cho là nhỏ này thực sự có thể kiếm thêm rất nhiều tiền cho công ty, nếu nó “thực sự” ở đó, vì vậy chúng tôi muốn quá trình thử nghiệm của mình nhạy cảm với những thay đổi thực sự thậm chí còn nhỏ hơn thế và loại bỏ tất cả các trường hợp cải tiến không “thực sự” ở đó. Điều này có nghĩa là không thể sử dụng phương pháp so sánh CTR trực tiếp.</p>
+<h2 id="statistical-tests">Statistical Tests</h2>
+<p>Có một số cách đã biết để giải quyết vấn đề so sánh này, được gọi là <em>statistical tests</em>.</p>
+<p>Giả sử distribution CTR của ranking model cũ giống distribution CTR của ranking model mới; đây là null hypothesis (H0). Alternative hypothesis (H1) cho rằng chúng khác nhau. Statistical test tính toán trên hai distribution và trả về p-value, ước tính khả năng quan sát được khác biệt như vậy nếu H0 đúng. Phần này có thể hơi khó hiểu về lý thuyết, nên chúng tôi sẽ minh họa bằng ví dụ.</p>
+<p>Các statistical test phổ biến nhất trong ngành là:</p>
+<ul>
+  <li><a href="https://en.wikipedia.org/wiki/Student%27s_t-test" target="_blank" rel="noopener noreferrer">T-test</a></li>
+  <li><a href="https://en.wikipedia.org/wiki/Mann%E2%80%93Whitney_U_test" target="_blank" rel="noopener noreferrer">Mann–Whitney U-test</a></li>
+  <li>sửa đổi của hai điều trên</li>
+</ul>
+<p>T-test là một <em>parametric test</em>; nó yêu cầu dữ liệu có normal distribution để áp dụng (normal distribution được xác định bởi hai parameter — <code>mu</code> và <code>sigma</code>, nên mới có tên là “parametric”), nhưng vẫn có thể hoạt động tương đối tốt với một số distribution khác có hình dạng gần normal.</p>
+<p>Mann–Whitney U-test là một <em>non-parametric test</em> và có thể áp dụng cho một tập distribution rộng hơn nhiều.</p>
+<p>Phần còn lại của bài viết trả lời cách chọn statistical test phù hợp cho problem cụ thể và cách interpret result chính xác.</p>
+<h2 id="ctr-distribution">CTR Distribution</h2>
+<p>Đây là cách distribution CTR điển hình trong Tiki Search:</p>
+<figure class="cs-figure">
+  <button type="button" data-zoom-image aria-label="Mở hình 1 ở kích thước đầy đủ">
+    <img src="assets/case-studies/02-a-b-testing-in-tiki-search/01-figure.webp" width="640" height="480" loading="lazy" decoding="async" alt="Hình 1 về CTR distribution">
+  </button>
+  <figcaption>Hình 1 · CTR Distribution</figcaption>
+</figure>
+<p>Đây là density graph với các CTR value trên trục x và số user có CTR value đó ở mức average trên trục y. Các peak khoảng 0,25, 0,20… là user chỉ tạo vài impression trước khi click vào nội dung cần tìm rồi không quay lại trong experiment period; số “view” thấp khiến CTR của họ trông cao.</p>
+<p>Lưu ý chúng tôi chia CTR theo user trong distribution, vì hầu hết statistical test giả định các observation độc lập (và chúng tôi giả định các user Tiki khác nhau hành động độc lập). Có thể dùng search session thay user, nhưng nếu cùng user search hai lần thì observation thứ hai có thể phụ thuộc session đầu tiên (ví dụ search “rau” vì không tìm thấy gì cho “dưa chuột”), khiến statistical test khó áp dụng hơn.</p>
+<p>Bắt đầu với một ý tưởng đơn giản: model CTR distribution ở trên và generate N distribution tương tự. Gọi nhóm này là A1. Generate thêm N distribution với cùng parameter và gọi là A2. Cuối cùng generate N distribution thứ ba, thay đổi parameter bằng một uplift coefficient cố định để average của nhóm thứ ba cao hơn A1 và A2 một chút. Đây là nhóm B.</p>
+<p>Dùng A1 và A2 để kiểm tra false-positive rate (FPR) của statistical test có dưới threshold yêu cầu hay không. Dùng A1 và B để kiểm tra sensitivity của test có đủ cao với error probability chấp nhận được hay không.</p>
+<p>FPR là xác suất reject H0 khi H0 thực sự đúng (điều xấu). Sensitivity là xác suất reject H0 khi H0 thực sự sai (điều tốt).</p>
+<h2 id="modelling-the-ctr-distribution">Modeling distribution CTR</h2>
+<p>Khó model CTR distribution trực tiếp vì các peak do user có ít “view” tạo ra. Thay vào đó, hãy model gián tiếp bắt đầu từ “views”. Đây là views distribution điển hình trong Tiki Search:</p>
+<figure class="cs-figure">
+  <button type="button" data-zoom-image aria-label="Mở hình 2 ở kích thước đầy đủ">
+    <img src="assets/case-studies/02-a-b-testing-in-tiki-search/02-figure.webp" width="640" height="480" loading="lazy" decoding="async" alt="Hình 2 về CTR distribution modeling">
+  </button>
+  <figcaption>Hình 2 · CTR distribution modeling</figcaption>
+</figure>
+<p>Distribution này “đẹp” hơn CTR nên có thể model bằng log-normal distribution. Đây là Python code:</p>
+<pre><code>import matplotlib.pyplot as plt
+import numpy as np
+import seaborn as sns
+from scipy import stats</code></pre>
+<pre><code>mu = 5
+sigma2 = 1.3
+N = 1000000
+views = np.absolute(np.exp(stats.norm(mu, sigma2).rvs(N)).astype(np.int64) + 1)</code></pre>
+<pre><code>p00 = np.percentile(views, 0)
+p99 = np.percentile(views, 99)
+ax = sns.histplot(views, bins=np.linspace(p00, p99, 50))
+ax.set_title(&#39;Views, P99 = {}&#39;.format(p99))
+ax.set(xlabel = &#39;Views&#39;)
+plt.tight_layout()
+plt.show()</code></pre>
+<figure class="cs-figure">
+  <button type="button" data-zoom-image aria-label="Mở hình 3 ở kích thước đầy đủ">
+    <img src="assets/case-studies/02-a-b-testing-in-tiki-search/03-figure.webp" width="640" height="480" loading="lazy" decoding="async" alt="Hình 3 về CTR distribution modeling">
+  </button>
+  <figcaption>Hình 3 · CTR distribution modeling</figcaption>
+</figure>
+<p>Tuyệt vời! Nó trông rất giống real distribution của chúng tôi! :)</p>
+<p>Bây giờ cần generate clicks distribution. Giả định đơn giản nhất là mỗi user có cùng “ground-truth” probability để click product trong search result khi các result giống nhau. Dùng probability đó để generate simulated click event. Tuy nhiên, giả định này khác xa thực tế: user có click behavior khác nhau — một số cần xem nhiều result trước khi click, số khác click ngay nếu result đầu tiên relevant. Điều này phụ thuộc cả query context lẫn user context.</p>
+<p>Có thể estimate ground-truth CTR distribution bằng historical CTR, nhưng chỉ lấy user đã tạo đủ “view” để CTR quan sát gần ground truth hơn. Đây là distribution tương ứng trong Tiki Search:</p>
+<figure class="cs-figure">
+  <button type="button" data-zoom-image aria-label="Mở hình 4 ở kích thước đầy đủ">
+    <img src="assets/case-studies/02-a-b-testing-in-tiki-search/04-figure.webp" width="640" height="480" loading="lazy" decoding="async" alt="Hình 4 về CTR distribution modeling">
+  </button>
+  <figcaption>Hình 4 · CTR distribution modeling</figcaption>
+</figure>
+<p>Cách tốt để simulate là dùng beta distribution. Nó nằm trong khoảng 0–1 và expectation được biểu diễn bằng hai parameter <code>alpha</code> và <code>beta</code>. Chúng tôi sẽ dùng fact này ở phần sau. Nếu muốn hiểu trực quan hơn vì sao beta distribution phù hợp, hãy đọc <a href="https://towardsdatascience.com/beta-distribution-intuition-examples-and-derivation-cf00f4db57af" target="_blank" rel="noopener noreferrer">bài blog này</a>. Đây là công thức expectation:</p>
+<figure class="cs-figure">
+  <button type="button" data-zoom-image aria-label="Mở hình 5 ở kích thước đầy đủ">
+    <img src="assets/case-studies/02-a-b-testing-in-tiki-search/05-figure.webp" width="170" height="62" loading="lazy" decoding="async" alt="Hình 5 về CTR distribution modeling">
+  </button>
+  <figcaption>Hình 5 · CTR distribution modeling</figcaption>
+</figure>
+<p>Hãy viết mã để làm điều đó:</p>
+<pre><code># expectation of our ground truth CTR, we will use it later to simulate B group
+success_rate = 0.02
+beta = 100
+alpha = success_rate * beta / (1 - success_rate)
+N = 1000000
+success_rate = stats.beta(alpha, beta).rvs(N)</code></pre>
+<pre><code>p00 = np.percentile(success_rate, 0)
+p99 = np.percentile(success_rate, 99)
+ax = sns.histplot(success_rate, bins=np.linspace(p00, p99, 50))
+ax.set_title(&#39;CTR, P99 = {}&#39;.format(p99))
+ax.set(xlabel = &#39;CTR&#39;)
+plt.tight_layout()
+plt.show()</code></pre>
+<figure class="cs-figure">
+  <button type="button" data-zoom-image aria-label="Mở hình 6 ở kích thước đầy đủ">
+    <img src="assets/case-studies/02-a-b-testing-in-tiki-search/06-figure.webp" width="640" height="480" loading="lazy" decoding="async" alt="Hình 6 về CTR distribution modeling">
+  </button>
+  <figcaption>Hình 6 · CTR distribution modeling</figcaption>
+</figure>
+<p>Lưu ý chúng tôi chọn parameter cho hai simulation trên để gần real distribution; phần sau sẽ thay đổi chúng để cho thấy statistical test nào tốt hơn trong từng condition.</p>
+<p>Bây giờ đã có views và ground-truth CTR, hãy generate clicks distribution. Có thể simulate clicks như <code>views</code> experiment với xác suất thành công <code>success_rate</code>, dùng binomial distribution:</p>
+<pre><code>clicks = scipy.stats.binom(n=views, p=success_rate).rvs()</code></pre>
+<p>Cuối cùng, hãy viết function generate data cho A/A và A/B test. Với A1 và A2, dùng cùng setting cho <code>views</code> và <code>success_rate</code> distribution. Với B, thay đổi parameter để expectation của <code>success_rate</code> có <code>uplift</code> nhất định; user trong distribution đó có xu hướng click nhiều hơn A1/A2. Đây là thay đổi mà statistical test cần detect.</p>
+<pre><code>import os
+import math
+import numpy as np
+import seaborn as sns
+from scipy import stats
+from matplotlib import pyplot as plt
+from matplotlib.axes import Axes</code></pre>
+<pre><code># generate A1, A2 and B groups with given settings
+def generate(N=20000, experiments=2000, mu=5, sigma2=1.3, \
+        success_rate=0.02, uplift=0.03, beta=100):
+    # generate {experiments} number of views distributions each containing {N} users
+    views_a_1 = np.absolute(np.exp(stats.norm(mu, sigma2).rvs(experiments * N)) \
+        .astype(np.int64).reshape(experiments, N) + 1)
+    views_a_2 = np.absolute(np.exp(stats.norm(mu, sigma2).rvs(experiments * N)) \
+        .astype(np.int64).reshape(experiments, N) + 1)
+    views_b = np.absolute(np.exp(stats.norm(mu, sigma2).rvs(experiments * N)) \
+        .astype(np.int64).reshape(experiments, N) + 1)</code></pre>
+<pre><code>    # ground truth CTR for groups A1 and A2
+    alpha_a = success_rate * beta / (1 - success_rate)
+    success_rate_a_1 = stats.beta(alpha_a, beta).rvs(experiments * N) \
+        .reshape(experiments, N)
+    success_rate_a_2 = stats.beta(alpha_a, beta).rvs(experiments * N) \
+        .reshape(experiments, N)</code></pre>
+<pre><code>    # ground truth CTR for group B (with uplift)
+    alpha_b = success_rate * (1 + uplift) * beta / (1 - success_rate * (1 + uplift))
+    success_rate_b = stats.beta(alpha_b, beta).rvs(experiments * N) \
+        .reshape(experiments, N)</code></pre>
+<pre><code>    # clicks distribution
+    clicks_a_1 = stats.binom(n=views_a_1, p=success_rate_a_1).rvs()
+    clicks_a_2 = stats.binom(n=views_a_2, p=success_rate_a_2).rvs()
+    clicks_b = stats.binom(n=views_b, p=success_rate_b).rvs()</code></pre>
+<pre><code>    return views_a_1, views_a_2, views_b, \
+        success_rate_a_1, success_rate_a_2, success_rate_b, \
+        clicks_a_1, clicks_a_2, clicks_b</code></pre>
+<p>Với real-world test, chúng tôi dùng implementation có sẵn trong package <code>scipy.stats</code>.</p>
+<pre><code># T-Test implementation
+def t_test(a, b):
+    result = list(map(lambda x: stats.ttest_ind(x[0], x[1]).pvalue, zip(a, b)))
+    return np.array(result)</code></pre>
+<pre><code># Mann-Whitney U-Test implementation
+def mannwhitney(a, b):
+    result = list(map(lambda x: stats.mannwhitneyu(x[0], x[1], \
+        alternative=&#39;two-sided&#39;).pvalue, zip(a, b)))
+    return np.array(result)</code></pre>
+<p>Và chúng ta cũng hãy xác định một hàm mà sau này chúng ta sẽ sử dụng để vẽ đồ thị.</p>
+<pre><code>colors = sns.color_palette(&quot;deep&quot;)</code></pre>
+<pre><code>def plot_cdf(data: np.ndarray, label: str, ax: Axes, color: str = colors[0], linewidth=3):
+    sorted_data = np.sort(data)
+    position = stats.rankdata(sorted_data, method=&#39;ordinal&#39;)
+    cdf = position / data.shape[0]
+    sorted_data = np.hstack((sorted_data, 1))
+    cdf = np.hstack((cdf, 1))
+    return ax.plot(sorted_data, cdf, color=color, linestyle=&#39;solid&#39;, \
+        label=label, linewidth=linewidth)</code></pre>
+<p>Trước tiên, hãy so sánh test A1/A2 và xem p-value của chúng tôi trông như thế nào trong cả T-test và Mann–Whitney U-test:</p>
+<pre><code>views_a_1, views_a_2, views_b, \
+    success_rate_a_1, success_rate_a_2, success_rate_b, \
+    clicks_a_1, clicks_a_2, clicks_b = generate()</code></pre>
+<pre><code>ctrs_a_1 = clicks_a_1.astype(np.float) / views_a_1
+ctrs_a_2 = clicks_a_2.astype(np.float) / views_a_2
+ctrs_b = clicks_b.astype(np.float) / views_b</code></pre>
+<pre><code>p_values_t_test = t_test(ctrs_a_1, ctrs_a_2)
+p_values_mannwhitney = mannwhitney(ctrs_a_1, ctrs_a_2)</code></pre>
+<pre><code>def plot_pvalues(p_values, title):
+    fig, axes = plt.subplots(ncols=1, nrows=1)
+    p_values_distr = sns.histplot(p_values, bins=np.linspace(0, 1, 20), \
+        kde=False, ax=axes, stat=&#39;probability&#39;)
+    axes.set_xlim((0, 1))
+    axes.set_title(title)
+    axes.set(xlabel = &#39;p-value&#39;)
+    plt.tight_layout()
+    plt.show()</code></pre>
+<pre><code>plot_pvalues(p_values_t_test, &#39;p-values in A/A test (T-Test)&#39;)
+plot_pvalues(p_values_mannwhitney, &#39;p-values in A/A test (Mann-Whitney)&#39;)</code></pre>
+<figure class="cs-figure cs-figure-wide">
+  <button type="button" data-zoom-image aria-label="Mở hình 7 ở kích thước đầy đủ">
+    <img src="assets/case-studies/02-a-b-testing-in-tiki-search/07-figure.webp" width="1280" height="480" loading="lazy" decoding="async" alt="Hình 7 về CTR distribution modeling">
+  </button>
+  <figcaption>Hình 7 · CTR distribution modeling</figcaption>
+</figure>
+<p>Và đây là cách biểu đồ CDF (hàm distribution tích lũy) của distribution p-value:</p>
+<pre><code>def plot_pvalues_cdf(p_values, title):
+    fig, ax = plt.subplots()
+    gr = ax.grid(True)
+    xlim = ax.set_xlim(-0.05,1.02)
+    ylim = ax.set_ylim(-0.02,1.02)
+    ax.axvline(0.05, color=&#39;k&#39;, alpha=0.5)
+    ax.set_xlabel(r&#39;$\alpha$&#39;)
+    ax.set_ylabel(&#39;Sensitivity&#39;)
+    ax.set_title(title)
+    cdf = plot_cdf(p_values, &#39;&#39;, ax)
+    plt.show()</code></pre>
+<pre><code>plot_pvalues_cdf(p_values_t_test, &#39;p-values CDF in A/A test (T-Test)&#39;)
+plot_pvalues_cdf(p_values_mannwhitney, &#39;p-values CDF in A/A test (Mann-Whitney)&#39;)</code></pre>
+<figure class="cs-figure cs-figure-wide">
+  <button type="button" data-zoom-image aria-label="Mở hình 8 ở kích thước đầy đủ">
+    <img src="assets/case-studies/02-a-b-testing-in-tiki-search/08-figure.webp" width="1280" height="480" loading="lazy" decoding="async" alt="Hình 8 về CTR distribution modeling">
+  </button>
+  <figcaption>Hình 8 · CTR distribution modeling</figcaption>
+</figure>
+<p>Trong cả hai test, p-value có khả năng nằm ở mọi vị trí từ 0 đến 1 như nhau. Nghĩa là nếu FPR threshold là 5%, test chỉ reject H0 nhầm trong khoảng 5% trường hợp. Các trường hợp còn lại có p-value &gt; 5%, nên chúng tôi accept H0.</p>
+<p>Bây giờ chúng ta hãy xem p-value trong test A1/B:</p>
+<pre><code>p_values_t_test = t_test(ctrs_a_1, ctrs_b)
+p_values_mannwhitney = mannwhitney(ctrs_a_1, ctrs_b)</code></pre>
+<pre><code>plot_pvalues(p_values_t_test, &#39;p-values in A/B test (T-Test)&#39;)
+plot_pvalues(p_values_mannwhitney, &#39;p-values in A/B test (Mann-Whitney)&#39;)</code></pre>
+<pre><code>plot_pvalues_cdf(p_values_t_test, &#39;p-values CDF in A/B test (T-Test)&#39;)
+plot_pvalues_cdf(p_values_mannwhitney, &#39;p-values CDF in A/B test (Mann-Whitney)&#39;)</code></pre>
+<figure class="cs-figure cs-figure-wide">
+  <button type="button" data-zoom-image aria-label="Mở hình 9 ở kích thước đầy đủ">
+    <img src="assets/case-studies/02-a-b-testing-in-tiki-search/09-figure.webp" width="1280" height="480" loading="lazy" decoding="async" alt="Hình 9 về CTR distribution modeling">
+  </button>
+  <figcaption>Hình 9 · CTR distribution modeling</figcaption>
+</figure>
+<p>Và cả đồ thị CDF:</p>
+<figure class="cs-figure cs-figure-wide">
+  <button type="button" data-zoom-image aria-label="Mở hình 10 ở kích thước đầy đủ">
+    <img src="assets/case-studies/02-a-b-testing-in-tiki-search/10-figure.webp" width="1280" height="480" loading="lazy" decoding="async" alt="Hình 10 về CTR distribution modeling">
+  </button>
+  <figcaption>Hình 10 · CTR distribution modeling</figcaption>
+</figure>
+<p>Chúng ta có thể thấy rằng cả hai test đều có sensitivity tương đối tốt dưới ngưỡng FPR chấp nhận được, nhưng Mann–Whitney U-test cho thấy sensitivity tốt hơn T-test với các cài đặt ở trên.</p>
+<p>Bây giờ hãy điều chỉnh <code>views</code> và <code>success_rate</code> distribution để simulation các user behavior khác nhau, rồi xem tác động lên sensitivity và FPR của hai test. Dùng parameter <code>sigma2</code> để điều chỉnh <code>views</code> và <code>beta</code> để điều chỉnh <code>success_rate</code>. Để minh họa, chúng tôi hiển thị thông tin quan trọng trong một summary screen rồi ghép thành animated GIF.</p>
+<pre><code>def plot_summary(data, ground_truth_ctr, views, sigma2, beta):
+    cdf_h1_title = &#39;p-value if H1 is correct (Sensitivity)&#39;
+    cdf_h0_title = &#39;p-value if H0 is correct (FPR)&#39;</code></pre>
+<pre><code>    # create layout
+    fig = plt.figure(constrained_layout=False, figsize=(3 * 3.5, 3.5 * 3), dpi = 100)
+    gs = fig.add_gridspec(4, 3)</code></pre>
+<pre><code>    # fill the layout
+    ax_h1 = fig.add_subplot(gs[:2, :2]) # sensitivity in A/B
+    ax_h0 = fig.add_subplot(gs[0, 2]) # FPR in A/A
+    ax_views = fig.add_subplot(gs[1, 2]) # views in A/A
+    ax_clicks = fig.add_subplot(gs[2, 2]) # ctr in A/A
+    ax_powers = fig.add_subplot(gs[2, :2]) # sensitivity at alpha = 0.05
+    ax_fpr = fig.add_subplot(gs[3, :2]) # FPR at alpha = 0.05
+    ax_hint = fig.add_subplot(gs[3, 2]) # current parameters hint</code></pre>
+<pre><code>    # adjustments
+    fig.subplots_adjust(left=0.2, wspace=0.3, hspace=0.4)</code></pre>
+<pre><code>    # diagonals at h1 and h0 for simpler comparison
+    ax_h1.plot(np.linspace(0, 1, 10000), np.linspace(0, 1, 10000), &#39;k&#39;, alpha=0.1)
+    ax_h0.plot(np.linspace(0, 1, 10000), np.linspace(0, 1, 10000), &#39;k&#39;, alpha=0.1)</code></pre>
+<pre><code>    ax_h1.set_title(cdf_h1_title)
+    ax_h0.set_title(cdf_h0_title)</code></pre>
+<pre><code>    ax_h1.axvline(0.05, color=&#39;k&#39;, alpha=0.5)</code></pre>
+<pre><code>    # plot cdf for all
+    for title, (ab_pvals, aa_pvals, color) in data.items():
+        plot_cdf(ab_pvals, title, ax_h1, color, linewidth=3)
+        plot_cdf(aa_pvals, title, ax_h0, color, linewidth=1.5)</code></pre>
+<pre><code>    ax_h1.grid(True)
+    ax_h0.grid(True)</code></pre>
+<pre><code>    ax_powers.set_title(&#39;Sensitivity&#39;)
+    ax_fpr.set_title(r&#39;False Positive rate at $\alpha = 0.05$&#39;)
+    tests_powers = []
+    tests_fprs = []
+    tests_labels = []
+    tests_colours = []</code></pre>
+<pre><code>    for title, (ab_pvals,aa_pvals, color) in data.items():
+        tests_labels.append(title)
+        tests_colours.append(color)
+        tests_powers.append(np.mean(ab_pvals &lt; 0.05))
+        tests_fprs.append(np.mean(aa_pvals &lt; 0.05))
+    ax_powers.barh(np.array(tests_labels), np.array(tests_powers), color=np.array(tests_colours))
+    ax_fpr.barh(np.array(tests_labels), np.array(tests_fprs), color=np.array(tests_colours))</code></pre>
+<pre><code>    views_p99 = np.percentile(views[:100].ravel(), 99)
+    sns.histplot(views.ravel(),
+                 bins=np.linspace(0, views_p99, 100),
+                 ax=ax_views,
+                 kde=False,
+                 stat=&#39;probability&#39;).set(ylabel=None)
+    ax_views.set_title(f&#39;Views, P99 = {views_p99:7.1f}&#39;)</code></pre>
+<pre><code>    success_rate_p99 = np.percentile(ground_truth_ctr[:100].ravel(), 99)
+    sns.histplot(ground_truth_ctr[:10].ravel(),
+                 bins=np.linspace(0, success_rate_p99, 100),
+                 ax=ax_clicks,
+                 kde=False,
+                 stat=&#39;probability&#39;).set(ylabel=None)
+    success_rate_std = ground_truth_ctr[:100].flatten().std()
+    ax_clicks.set_title(f&#39;Ground truth CTR, std = {success_rate_std:2.3f}&#39;)</code></pre>
+<pre><code>    ax_hint.axis(&#39;off&#39;)
+    ax_hint.text(0.5, 0.5, f&#39;sigma2 = {sigma2}\nbeta = {beta}&#39;, \
+        ha=&#39;center&#39;, va=&#39;center&#39;, size=&#39;xx-large&#39;)</code></pre>
+<pre><code>    plt.close()
+    return fig</code></pre>
+<pre><code>def plot_all(N=20000, experiments=2000, mu=5, sigma2=1.3, success_rate=0.02, uplift=0.03, beta=100):
+    views_a_1, views_a_2, views_b, \
+    success_rate_a_1, success_rate_a_2, success_rate_b, \
+    clicks_a_1, clicks_a_2, clicks_b = generate(N=N, experiments=experiments, mu=mu, \
+        sigma2=sigma2, success_rate=success_rate, uplift=uplift, beta=beta)
+    titles = [
+        &#39;t-test&#39;,
+        &#39;Mann-Whitney&#39;
+    ]</code></pre>
+<pre><code>    ctrs_a_1 = clicks_a_1.astype(np.float) / views_a_1
+    ctrs_a_2 = clicks_a_2.astype(np.float) / views_a_2
+    ctrs_b = clicks_b.astype(np.float) / views_b</code></pre>
+<pre><code>    # debug print
+    print(success_rate_a_1[0])</code></pre>
+<pre><code>    p_values_ab = [
+        t_test(ctrs_a_1, ctrs_b),
+        mannwhitney(ctrs_a_1, ctrs_b)
+    ]</code></pre>
+<pre><code>    p_values_aa = [
+        t_test(ctrs_a_1, ctrs_a_2),
+        mannwhitney(ctrs_a_1, ctrs_a_2)
+    ]</code></pre>
+<pre><code>    views_target = views_b
+    ground_truth_ctr_target = success_rate_b
+    color = colors[0]</code></pre>
+<pre><code>    test_data = {}
+    for i,j in enumerate(titles):
+        test_data[j] = (p_values_ab[i],p_values_aa[i],colors[i])
+    pict = plot_summary(test_data, ground_truth_ctr_target, views_target, sigma2, beta)
+    name = f&#39;exp={experiments}_N={N}_uplift={uplift}_sr={success_rate}_beta={beta}_sigma2={sigma2}.png&#39;
+    pict.savefig(f&#39;{name}&#39;)
+    return f&#39;{name}&#39;</code></pre>
+<p>Đây là cách kết quả thay đổi đối với các <code>sigma2</code> giá trị:</p>
+<pre><code>sigma_list = [0.1, 0.2, 0.3, 0.4, 0.5, 0.8, 1.0, 1.3, 1.5, 1.8, 2.0, 2.5, 3.0, 4.0, 4.5]</code></pre>
+<pre><code>for sigma2 in sigma_list:
+    plot_all(sigma2 = sigma2)</code></pre>
+<figure class="cs-figure cs-figure-wide">
+  <button type="button" data-zoom-image aria-label="Mở hình 11 ở kích thước đầy đủ">
+    <img src="assets/case-studies/02-a-b-testing-in-tiki-search/11-figure.webp" width="1050" height="1050" loading="lazy" decoding="async" alt="Hình 11 về CTR distribution modeling">
+  </button>
+  <figcaption>Hình 11 · CTR distribution modeling</figcaption>
+</figure>
+<p>Và đây là những thay đổi khác nhau <code>beta</code> giá trị:</p>
+<pre><code>beta_list = [1, 5, 10, 20, 40, 80, 100, 150, 300, 500, 1000, 2000, 10000]</code></pre>
+<pre><code>for beta in beta_list:
+    plot_all(beta = beta)</code></pre>
+<figure class="cs-figure cs-figure-wide">
+  <button type="button" data-zoom-image aria-label="Mở hình 12 ở kích thước đầy đủ">
+    <img src="assets/case-studies/02-a-b-testing-in-tiki-search/12-figure.webp" width="1050" height="1050" loading="lazy" decoding="async" alt="Hình 12 về CTR distribution modeling">
+  </button>
+  <figcaption>Hình 12 · CTR distribution modeling</figcaption>
+</figure>
+<p>Mann–Whitney U-test cho thấy sensitivity tốt hơn trong tất cả các trường hợp trên, sự khác biệt đặc biệt cao khi <code>views</code> distribution dịch chuyển nhiều sang trái. Một điều thú vị khác cần lưu ý là nếu distribution CTR thực tế được dịch chuyển sang trái, performance của cả hai test đều tương đối thấp (nhưng Mann–Whitney U-test vẫn vượt trội hơn T-test).</p>
+<p>Hãy cùng thảo luận về cách chúng ta có thể cải thiện nó hơn nữa!</p>
+<h2 id="bucketing">Bucketing</h2>
+<p>Bucketing là một approach phổ biến để cải thiện statistical test. Thay vì lấy từng user riêng lẻ và so sánh CTR distribution, chúng tôi group user thành các bucket rồi so sánh distribution giữa các bucket. Mỗi user chỉ thuộc một bucket. Có thể hash từng user ID với salt rồi chia hash theo số bucket; trong simulation này chúng tôi chia data trực tiếp vì đây vốn là random simulation.</p>
+<p>Hãy viết một function để bucketize một distribution và các wrapper áp dụng hai statistical test cho distribution đó:</p>
+<pre><code>def bucketize(ctrs_0, weights_0, ctrs_1, weights_1, bucket_size=10):
+    n_experiments, n_users = ctrs_0.shape
+    n_buckets = math.ceil(n_users / bucket_size)
+    values_0 = np.zeros((n_experiments, n_buckets))
+    values_1 = np.zeros((n_experiments, n_buckets))
+    for b in np.arange(n_buckets):
+        ind = np.arange(b * n_users / n_buckets, b * n_users / n_buckets + n_users / n_buckets).astype(np.int)
+        values_0[:, b] = np.sum(ctrs_0[:, ind] * weights_0[:, ind], axis=1) / np.sum(weights_0[:, ind], axis=1)
+        values_1[:, b] = np.sum(ctrs_1[:, ind] * weights_1[:, ind], axis=1) / np.sum(weights_1[:, ind], axis=1)
+    return values_0, values_1</code></pre>
+<pre><code>def t_test_buckets(ctrs_0, weights_0, ctrs_1, weights_1, bucket_size=10):
+    return t_test(*bucketize(ctrs_0, weights_0, ctrs_1, weights_1, bucket_size))</code></pre>
+<pre><code>def mannwhitney_buckets(ctrs_0, weights_0, ctrs_1, weights_1, bucket_size=10):
+    return mannwhitney(*bucketize(ctrs_0, weights_0, ctrs_1, weights_1, bucket_size))</code></pre>
+<p>Chúng tôi dùng range tương tự của <code>sigma2</code> và <code>beta</code>, rồi vẽ một loạt chart để so sánh bucketing với các test thông thường. Thay đổi <code>plot_all</code> để hỗ trợ bucketed variant khá đơn giản, nên code <code>plot_all_buckets</code> được để trong <a href="https://github.com/bachan/articles/tree/master/ab_testing_in_tiki_search_1" target="_blank" rel="noopener noreferrer">repository này</a>.</p>
+<pre><code>for sigma2 in sigma_list:
+    plot_all_buckets(sigma2 = sigma2)</code></pre>
+<figure class="cs-figure cs-figure-wide">
+  <button type="button" data-zoom-image aria-label="Mở hình 13 ở kích thước đầy đủ">
+    <img src="assets/case-studies/02-a-b-testing-in-tiki-search/13-figure.webp" width="1050" height="1050" loading="lazy" decoding="async" alt="Hình 13 cho Bucketing">
+  </button>
+  <figcaption>Hình 13 · Bucketing</figcaption>
+</figure>
+<p>Và đây là những thay đổi cho <code>beta</code>:</p>
+<pre><code>for beta in beta_list:
+    plot_all_buckets(beta = beta)</code></pre>
+<figure class="cs-figure cs-figure-wide">
+  <button type="button" data-zoom-image aria-label="Mở hình 14 ở kích thước đầy đủ">
+    <img src="assets/case-studies/02-a-b-testing-in-tiki-search/14-figure.webp" width="1050" height="1050" loading="lazy" decoding="async" alt="Hình 14 cho Bucketing">
+  </button>
+  <figcaption>Hình 14 · Bucketing</figcaption>
+</figure>
+<p>Mặc dù trong hầu hết các trường hợp, bucketing không hoạt động tốt hơn Mann–Whitney U-test và đôi khi còn tệ hơn T-test, có thể thấy rằng với distribution CTR thực tế “thường xuyên” hơn khi <code>beta</code> cao, nó cho performance tốt nhất trong số tất cả các test. Hãy thử simulation các distribution trong đó sự cải thiện bằng cách gộp sẽ được thấy rõ hơn.</p>
+<pre><code>plot_all_buckets(N=20000, experiments=2000, mu=5, sigma2=4.5, success_rate=0.02, uplift=0.03, beta=1000, bucket_size=10)
+plot_all_buckets(N=50000, experiments=2000, mu=1, sigma2=4.5, success_rate=0.02, uplift=0.03, beta=1000, bucket_size=10)
+plot_all_buckets(N=20000, experiments=2000, mu=1, sigma2=4.5, success_rate=0.02, uplift=0.03, beta=1000, bucket_size=10)</code></pre>
+<figure class="cs-figure cs-figure-wide">
+  <button type="button" data-zoom-image aria-label="Mở hình 15 ở kích thước đầy đủ">
+    <img src="assets/case-studies/02-a-b-testing-in-tiki-search/15-figure.webp" width="1050" height="1050" loading="lazy" decoding="async" alt="Hình 15 cho Bucketing">
+  </button>
+  <figcaption>Hình 15 · Bucketing</figcaption>
+</figure>
+<p>Chúng tôi sẽ để lại câu hỏi vì sao bucket feature có hiệu quả sau bài viết này. Cách chọn bucket size phụ thuộc nhiều vào real distribution; cách tốt nhất là chạy simulation tương tự trên distribution của riêng bạn và đo kết quả.</p>
+<h2 id="the-real-data">Dữ liệu thực</h2>
+<p>Tất cả test trên được chạy trên simulated distribution, nhưng chúng tôi có thể tạo bất kỳ số lượng A/A test nào từ real data. Chỉ cần đảm bảo user split độc lập với các experiment đang chạy, để ranking phía sau giống hệt nhau; hoặc chỉ lấy subset user chưa tham gia experiment nào.</p>
+<p>Đây là biểu đồ p-value cho A/A test trên 2000 distribution ngẫu nhiên được tạo từ dữ liệu thực của chúng tôi:</p>
+<figure class="cs-figure cs-figure-wide">
+  <button type="button" data-zoom-image aria-label="Mở hình 16 ở kích thước đầy đủ">
+    <img src="assets/case-studies/02-a-b-testing-in-tiki-search/16-figure.webp" width="1280" height="480" loading="lazy" decoding="async" alt="Hình 16 cho dữ liệu thực">
+  </button>
+  <figcaption>Hình 16 · Dữ liệu thực</figcaption>
+</figure>
+<p>Và đây là biểu đồ CDF cho nó:</p>
+<figure class="cs-figure cs-figure-wide">
+  <button type="button" data-zoom-image aria-label="Mở hình 17 ở kích thước đầy đủ">
+    <img src="assets/case-studies/02-a-b-testing-in-tiki-search/17-figure.webp" width="1280" height="480" loading="lazy" decoding="async" alt="Hình 17 cho dữ liệu thực">
+  </button>
+  <figcaption>Hình 17 · Dữ liệu thực</figcaption>
+</figure>
+<p>Với A/B test trên real data, chúng tôi không thể tính sensitivity trực tiếp vì không biết effect thật (nếu biết thì đã không cần A/B test). Các simulation ở trên giúp ước lượng sensitivity của từng test trên nhiều distribution shape khác nhau, nên có thể chọn test có sensitivity tốt nhất trên simulation gần với production nhất. Đồng thời có thể kiểm tra lại bằng cách xem A/A test trên real data còn cho FPR chấp nhận được hay không.</p>
+<h2 id="conclusion">Kết luận</h2>
+<p>Điểm chính của bài viết không phải đưa ra một câu trả lời duy nhất hay “silver bullet”. Chúng tôi trình bày technique để bạn áp dụng trên distribution của riêng mình, rồi tìm statistical test có sensitivity tốt nhất với false-positive rate chấp nhận được cho domain cụ thể.</p>
+<p>Đây là kỹ thuật một lần nữa:</p>
+<ul>
+  <li>vẽ real views distribution và estimate ground-truth CTR;</li>
+  <li>tìm simulation phù hợp cho các distribution thực của bạn;</li>
+  <li>tạo càng nhiều A/A và A/B test với các simulation đó;</li>
+  <li>tính toán sensitivity và FPR cho từng statistical test bằng cách sử dụng các simulation đó.</li>
+</ul>
+<p>Nếu không thể simulation test, ít nhất hãy kiểm tra statistical test trên A/A test của real data và đảm bảo false-positive rate nằm trong giới hạn. User bị split sai giữa các variant không hiếm trong A/B test production; A/A test là một cách để phát hiện vấn đề này.</p>
+<p><strong>Ranh giới diễn giải.</strong> Bài này trình bày một phân tích lịch sử của Tiki Search, không phải causal result có thể áp dụng sang nơi khác nếu thiếu experiment contract. Mọi quyết định hiện tại phải khai báo randomization unit (user, session hay query), denominator của exposure và analysis, policy identity/cross-device, cách xử lý bot và event thiếu, kiểm tra sample-ratio mismatch, số metric/look/slice, effect size và confidence interval, power/MDE cùng long-term guardrail. A/A calibration và simulation thực tế có thể kiểm tra false-positive behavior; chúng không sửa được assignment bias, treatment spillover hay outcome không đầy đủ.</p>
+<h2 id="what-s-next">Tiếp theo là gì?</h2>
+<p>Có một số điều chúng tôi muốn để lại sau bài viết này.</p>
+<p>Trước hết, cần chạy experiment bao lâu để nhận ra thay đổi X% trong distribution với FPR chấp nhận được? Phương pháp thường dùng là <em>Minimum Detectable Effect</em> (MDE); chúng tôi sẽ trình bày chi tiết hơn trong bài viết sau. Cũng có constraint từ product: hành vi customer vào Thứ Hai khác Thứ Bảy, nên experiment duration có thể cần dài hơn.</p>
+<p>Điều thứ hai là cách làm việc với metric không phải rate. Ví dụ, chúng tôi muốn tối ưu <em>average order value</em> từ search hoặc tăng tỷ lệ user mua hàng trị giá ít nhất 100 nghìn đồng. Chúng tôi sẽ làm rõ trong bài viết tiếp theo.</p>
+<p>Thứ ba, có một technique phổ biến khác cho statistical test là bootstrapping. Nó phức tạp hơn một chút về computation và implementation, nhưng có thể là lựa chọn tốt nhất cho một số distribution. Nó có sẵn trong package <code>scipy.stats</code>.</p>
+<p>Ngoài những điều này, chúng tôi đã cố gắng đề cập nhiều nhất có thể về quá trình đưa ra quyết định về kết quả A/B test mà chúng tôi sử dụng trong Tiki Search. Hy vọng nó hữu ích và dễ hiểu.</p>
+<h2 id="references">Tài liệu tham khảo</h2>
+<p>Ý tưởng experiment và phần lớn code được lấy từ <a href="https://youtu.be/ObzlKVCiBqI" target="_blank" rel="noopener noreferrer">workshop này</a>. Workshop bằng tiếng Nga nhưng có Jupyter notebook với đầy đủ code.</p>
+<p>Mã đầy đủ cho bài viết này cũng có sẵn trong <a href="https://github.com/bachan/articles/tree/master/ab_testing_in_tiki_search_1" target="_blank" rel="noopener noreferrer">kho lưu trữ này</a>.</p>
+<h2 id="were-hiring">Chúng tôi đang tuyển dụng!</h2>
+<p>Nhóm Tiki Search đang tích cực tuyển dụng kỹ sư; ngoài A/B test, vai trò này còn có nhiều thách thức khác mà nhóm đang phải đối mặt. Nếu bạn muốn tham gia, vui lòng đăng ký!</p>

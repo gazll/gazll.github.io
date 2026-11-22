@@ -1,0 +1,1 @@
+import{P as e}from"./uVeQ-LDk.js";import{y as t}from"./DkE3prRO.js";var n=e({__name:`[...slug]`,setup(e){throw t({statusCode:404,statusMessage:`Page not found`})}});export{n as default};

@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "categories": [
+    {
+      "id": "fundamentals"
+    },
+    {
+      "id": "gear"
+    },
+    {
+      "id": "post-processing"
+    }
+  ],
+  "articles": [
+    {
+      "n": 1,
+      "file": "photography/01-exposure-three-controls.json",
+      "slug": "exposure-three-controls",
+      "category": "fundamentals",
+      "level": "core",
+      "featured": true,
+      "first_party": true,
+      "read_minutes": 8,
+      "original_language": "en",
+      "cover_image": "assets/photography/01-exposure-three-controls/01-exposure-triangle.svg",
+      "cover_fit": "contain",
+      "created_at": "2026-08-20",
+      "updated_at": "2026-08-20"
+    }
+  ]
+}

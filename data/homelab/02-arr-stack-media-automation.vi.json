@@ -1,0 +1,15 @@
+{
+  "body_file": "data/homelab/articles/02-arr-stack-media-automation.vi.html",
+  "guide": {
+    "title": "Stack này là chín container làm ba việc. Hai chi tiết cấu hình quyết định nó có chạy đúng hay không, và cả hai đều hỏng một cách âm thầm.",
+    "summary": "Một cổng yêu cầu biến \"tôi muốn xem phim này\" thành một mục wanted; một trình quản lý indexer cùng một download client biến mục đó thành file; một dịch vụ phụ đề tìm bản text khớp đúng bản phát hành; và tầng control xếp kết quả vào thư viện mà media server đọc được. Mọi thứ đều mã nguồn mở và chạy trong container, nên nó chạy trên NAS hay trên một cái desktop cũ đều được. Thứ phân biệt một thiết lập chạy thật với một thiết lập chỉ trông như đang chạy là mount một gốc duy nhất và một mức chất lượng thành thật.",
+    "points": [
+      "Ba tầng: control quyết định thư viện nên có gì, processing đi lấy về, data lưu trữ và phát lại. Không gì đi xuyên tầng ngoài những điểm bàn giao đó.",
+      "Hardlink là một mục thư mục thứ hai trỏ tới cùng inode, nên bản đang seed và bản trong thư viện chỉ chiếm đĩa một lần — nhưng chỉ trong phạm vi một filesystem.",
+      "Hãy mount đúng thư mục cha vào mọi container. Hai volume mount riêng trông y hệt nhau trên host nhưng là hai filesystem bên trong container, nên hardlink thất bại và bước import lặng lẽ trở thành copy.",
+      "Timing của phụ đề thuộc về bản phát hành, không thuộc về tựa phim. Một phụ đề không khớp không phải \"gần đúng nên cứ đưa ra\"; nó sẽ chạy lệch tiếng, nên loại nó là đúng.",
+      "Chỉ mở ra ngoài cổng yêu cầu phim và media server. Radarr, Sonarr, Prowlarr, Bazarr và download client là quyền quản trị trên filesystem của bạn.",
+      "Dịch máy không thấy được cảnh phim nên không chọn được đại từ tiếng Việt cho đúng — chia batch khoảng hai mươi dòng và giữ prompt thật ngắn để tránh timeout."
+    ]
+  }
+}

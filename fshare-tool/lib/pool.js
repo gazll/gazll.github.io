@@ -1,0 +1,1 @@
+export function runPool(e,n,o,r){return new Promise(t=>{let i=0,l=!1;const s=()=>{if(!l)if(r&&r())0===i&&(l=!0,t());else{for(;i<e;){const e=n();if(null==e)break;i++,Promise.resolve().then(()=>o(e)).catch(()=>{}).then(()=>{i--,s()})}0===i&&(l=!0,t())}};s()})}

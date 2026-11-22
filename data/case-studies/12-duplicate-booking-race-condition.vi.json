@@ -1,0 +1,22 @@
+{
+  "body_file": "data/case-studies/articles/12-duplicate-booking-race-condition.vi.html",
+  "guide": {
+    "title": "Một case race condition về sửa invariant bị vi phạm, không chạy theo lớp ngụy trang mới của request.",
+    "problem": "Hai request đến cách nhau vài mili-giây, cùng đọc booking session là available rồi cùng tạo airline record. Guard là check-then-act trên window 25 ms; optimistic-lock timestamp chỉ có resolution một giây.",
+    "core_idea": "Biến state transition thành conditional database write với column VERSION monotonic. Đúng một request update expected version; affected-row count xác định winner mà không để lại gap giữa check và act.",
+    "outcome": "User-Agent block dập một trigger và khiến alert im hai năm rưỡi, nhưng race quay lại dưới dạng HEAD. Final fix kết hợp database-enforced optimistic locking, explicit HEAD rejection và deterministic concurrency test.",
+    "takeaways": [
+      "Check-then-act không phải mutual exclusion: hai request có thể đọc cùng state trước khi write nào visible, dù code trông hoàn toàn đúng khi đọc tuần tự.",
+      "Timestamp có resolution thô hơn request arrival không phải version token đáng tin; precision cao hơn chỉ giảm probability chứ không tạo guarantee.",
+      "Chặn User-Agent hay HTTP method chỉ bỏ một trigger đã biết, không bỏ race. Correctness phải nằm ở shared database transition mà mọi contender đi qua.",
+      "Affected-row count biến optimistic locking thành quyết định rõ ràng: một conditional update thành công, mọi contender thua thấy zero updated row.",
+      "Row version bảo vệ một session, không bảo vệ toàn booking intent. Retry qua session khác vẫn cần idempotency key đứng sau unique constraint."
+    ],
+    "review_lenses": [
+      "Invariant: business effect nào phải xảy ra đúng một lần, và shared row hay unique key nào có thể atomic adjudicate nó?",
+      "Concurrency: read/write gap nằm đâu, và request có thể tới đó qua process, method, retry hoặc device khác nhau không?",
+      "Evidence: alert im có chứng minh invariant hay chỉ cho thấy một observed trigger không còn tạo signature cũ?",
+      "Verification: barrier hoặc injected delay có thể reproduce race tất định và assert đúng một committed side effect không? Bản sửa chỉ là sửa một race cục bộ — chưa phải \"hết trùng\" — cho tới khi bạn chỉ ra được: framework version nào đã route HEAD sang handler GET, isolation, index hay predicate nào của database enforce unique hay conditional write, GDS có idempotent hay tra được theo booking reference ổn định không, retry có thể sống lâu hơn intent key bao lâu, GET/HEAD bị chặn ở CDN, proxy, framework và service, và một test hai instance ép cả hai request qua cùng session với crash sau khi provider đã chấp nhận."
+    ]
+  }
+}

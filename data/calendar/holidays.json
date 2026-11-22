@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "note": "Yearly ministry notices only. The eleven statutory days off are computed from Bộ luật Lao động 2019 Điều 112 in lib/vn-holidays.js and must not be repeated here. What CANNOT be computed goes in this file: the extra days a given Tết is granted, the Saturdays worked in exchange, and which side of 02/09 the second National Day falls on. Add a year when its notice is published; an absent year simply falls back to the statutory rules.",
+  "defaults": {
+    "national_day_extra": "before",
+    "why": "Điều 112 grants 02/09 plus one adjacent day without fixing which side. Recent notices have used both, so the default is an assumption and every year with a published notice should state its own."
+  },
+  "shape": {
+    "national_day_extra": "before | after",
+    "extra": "[{ date, id, kind: compensatory|statutory, vi, en, source }] — days off the notice adds",
+    "workdays": "[YYYY-MM-DD] — Saturdays worked to pay for the extra days",
+    "source": "the notice this year's rows came from, e.g. Thông báo .../TB-BLĐTBXH"
+  },
+  "years": {}
+}

@@ -1,0 +1,543 @@
+{
+  "version": 1,
+  "library": {
+    "en": {
+      "eyebrow": "Technical · Production stories",
+      "title": "Engineering Case Studies",
+      "intro": "Long-form accounts of real systems, the constraints behind them, and the trade-offs teams made in production."
+    },
+    "vi": {
+      "eyebrow": "Technical · Production stories",
+      "title": "Engineering Case Studies",
+      "intro": "Các bài viết chuyên sâu về real system, constraint phía sau và trade-off team kỹ thuật đã chọn trong production."
+    }
+  },
+  "categories": {
+    "systems-architecture": {
+      "en": {
+        "label": "Systems & Architecture at Scale",
+        "description": "Production architectures shaped by correctness, traffic, integration and operational constraints."
+      },
+      "vi": {
+        "label": "Systems & Architecture at Scale",
+        "description": "Production architecture được định hình bởi correctness, traffic, integration và operational constraint."
+      }
+    },
+    "data-ml-experimentation": {
+      "en": {
+        "label": "Data, ML & Experimentation",
+        "description": "How teams turn data, statistical methods and machine learning into production decisions."
+      },
+      "vi": {
+        "label": "Data, ML & Experimentation",
+        "description": "Cách team biến data, statistical methods và machine learning thành production decisions."
+      }
+    },
+    "mobile-developer-productivity": {
+      "en": {
+        "label": "Mobile & Developer Productivity",
+        "description": "Platform choices and engineering practices that change how product teams ship."
+      },
+      "vi": {
+        "label": "Mobile & Developer Productivity",
+        "description": "Platform choices và engineering practices thay đổi cách product team ship software."
+      }
+    },
+    "engineering-evolution": {
+      "en": {
+        "label": "Engineering Evolution",
+        "description": "Stories about growing a technology organization and deciding what comes next."
+      },
+      "vi": {
+        "label": "Engineering Evolution",
+        "description": "Những câu chuyện về engineering organization growth và quyết định bước tiếp theo."
+      }
+    },
+    "production-incidents": {
+      "en": {
+        "label": "Production Incidents",
+        "description": "First-party incident write-ups: what the logs actually showed, which fix was chosen, and what the wrong diagnosis cost."
+      },
+      "vi": {
+        "label": "Production Incidents",
+        "description": "Bài viết sự cố first-party: log thật sự cho thấy gì, chọn bản vá nào, và chẩn đoán sai phải trả giá ra sao."
+      }
+    },
+    "distributed-systems-patterns": {
+      "en": {
+        "label": "Distributed Systems Patterns",
+        "description": "Concrete workflows for consistency, messaging, retries and failure recovery across service boundaries."
+      },
+      "vi": {
+        "label": "Distributed Systems Patterns",
+        "description": "Workflow cụ thể cho consistency, messaging, retry và phục hồi lỗi qua ranh giới service."
+      }
+    }
+  },
+  "articles": {
+    "1": {
+      "key": "01-arcturus-inventory-processing-system",
+      "en": {
+        "title": "Arcturus — Inventory Processing System",
+        "excerpt": "How Tiki rebuilt inventory processing around an ordered command queue, in-memory state and asynchronous persistence to survive peak-sale traffic without overselling.",
+        "tags": [
+          "Inventory",
+          "Eventual consistency",
+          "Kafka",
+          "L-Max Disruptor",
+          "High concurrency"
+        ]
+      },
+      "vi": {
+        "title": "Arcturus — Hệ thống xử lý inventory",
+        "excerpt": "Cách Tiki rebuild Inventory Processing System quanh ordered command queue, in-memory state và async persistence để chịu peak-sale traffic mà không oversell.",
+        "tags": [
+          "Inventory",
+          "Eventual consistency",
+          "Kafka",
+          "L-Max Disruptor",
+          "High concurrency"
+        ]
+      }
+    },
+    "2": {
+      "key": "02-a-b-testing-in-tiki-search",
+      "en": {
+        "title": "A/B testing in Tiki Search",
+        "excerpt": "How Tiki Search simulates realistic CTR distributions to compare statistical tests, control false positives and choose an experiment decision method for its own data.",
+        "tags": [
+          "A/B testing",
+          "Search ranking",
+          "Statistical tests",
+          "CTR",
+          "Bucketing"
+        ]
+      },
+      "vi": {
+        "title": "A/B testing trong Tiki Search",
+        "excerpt": "Cách Tiki Search mô phỏng realistic CTR distributions để so sánh statistical tests, control false positives và chọn decision method phù hợp với data thực tế.",
+        "tags": [
+          "A/B testing",
+          "Search ranking",
+          "Statistical tests",
+          "CTR",
+          "Bucketing"
+        ]
+      }
+    },
+    "3": {
+      "key": "03-tiki-scale-in-10-years",
+      "en": {
+        "title": "TIKI @ Scale in 10 Years.",
+        "excerpt": "A ten-year journey developing Tiki's product, architecture, team, and technology organization — from online bookstore to multi-service commerce platform.",
+        "tags": [
+          "Engineering growth",
+          "Organization",
+          "Architecture evolution",
+          "E-commerce",
+          "Company history"
+        ]
+      },
+      "vi": {
+        "title": "TIKI @ Scale in 10 Years.",
+        "excerpt": "Hành trình 10 năm phát triển product, architecture, team và engineering organization của Tiki — từ online bookstore đến multi-service commerce platform.",
+        "tags": [
+          "Engineering growth",
+          "Organization",
+          "Architecture evolution",
+          "E-commerce",
+          "Company history"
+        ]
+      }
+    },
+    "4": {
+      "key": "04-o1-android-build-time-at-tiki",
+      "en": {
+        "title": "O(1) Android build time at Tiki",
+        "excerpt": "How Tiki's Android team excludes unrelated feature modules, supplies fake source sets and uses deep links to keep local build time independent of project size.",
+        "tags": [
+          "Android",
+          "Gradle",
+          "Build performance",
+          "Modularization",
+          "Developer experience"
+        ]
+      },
+      "vi": {
+        "title": "O(1) Android build time tại Tiki",
+        "excerpt": "Cách Android team của Tiki exclude feature module không liên quan khỏi build, cung cấp fake source set và dùng deep link để local build time không tăng theo project scale.",
+        "tags": [
+          "Android",
+          "Gradle",
+          "Build performance",
+          "Modularization",
+          "Developer experience"
+        ]
+      }
+    },
+    "5": {
+      "key": "05-scale-and-whats-next",
+      "en": {
+        "title": "SCALE, AND WHAT'S NEXT",
+        "excerpt": "A candid look at scale in operations: from picking, inventory, delivery to finance — and why the next frontier is often determined by people, process and quality.",
+        "tags": [
+          "Scaling",
+          "Engineering culture",
+          "Leadership",
+          "Organization design",
+          "Career growth"
+        ]
+      },
+      "vi": {
+        "title": "SCALE, AND WHAT’S NEXT",
+        "excerpt": "Góc nhìn thẳng thắn về scale trong operations: từ picking, inventory, delivery đến finance — và vì sao constraint tiếp theo thường nằm ở people, process và decision quality.",
+        "tags": [
+          "Scaling",
+          "Engineering culture",
+          "Leadership",
+          "Organization design",
+          "Career growth"
+        ]
+      }
+    },
+    "6": {
+      "key": "06-tai-sao-tiki-chon-react-native",
+      "en": {
+        "title": "Why did Tiki choose React-Native?",
+        "excerpt": "Why did Tiki combine Native modules with cross-platform development, and why did React Native fit the architecture, testing needs, and team capacity at that time.",
+        "tags": [
+          "React Native",
+          "Mobile architecture",
+          "Cross-platform",
+          "Native apps",
+          "Multi-modules"
+        ]
+      },
+      "vi": {
+        "title": "Vì sao Tiki chọn React Native?",
+        "excerpt": "Vì sao Tiki kết hợp Native module với cross-platform development, và vì sao React Native phù hợp với architecture, experimentation needs và team capability tại thời điểm đó.",
+        "tags": [
+          "React Native",
+          "Mobile architecture",
+          "Cross-platform",
+          "Native application",
+          "Multi-module"
+        ]
+      }
+    },
+    "7": {
+      "key": "07-into-the-demand-forecast-of-tiki-operations",
+      "en": {
+        "title": "Into The Demand Forecast of Tiki Operations",
+        "excerpt": "How Tiki Operations frames product demand forecasting, engineers calendar and sales features, evaluates error and turns forecasts into replenishment and workforce decisions.",
+        "tags": [
+          "Demand forecasting",
+          "Operations",
+          "Time series",
+          "Feature engineering",
+          "Inventory planning"
+        ]
+      },
+      "vi": {
+        "title": "Bên trong bài toán demand forecasting của Tiki Operations",
+        "excerpt": "Cách Tiki Operations định hình product-demand forecasting, build feature từ calendar và sales data, đánh giá error rồi biến forecast thành replenishment và workforce decisions.",
+        "tags": [
+          "Demand forecasting",
+          "Operations",
+          "Time series",
+          "Feature engineering",
+          "Inventory planning"
+        ]
+      }
+    },
+    "8": {
+      "key": "08-applying-machine-learning-to-solve-brand-logo-detection-problem",
+      "en": {
+        "title": "Applying Machine Learning to Solve Brand/Logo Detection Problem",
+        "excerpt": "How Tiki built a two-stage logo-detection pipeline with YOLO v3 localization and ResNet classification to identify branded products in marketplace photos.",
+        "tags": [
+          "Machine learning",
+          "Computer vision",
+          "Logo detection",
+          "YOLO v3",
+          "Synthetic data"
+        ]
+      },
+      "vi": {
+        "title": "Ứng dụng Machine Learning cho bài toán brand/logo detection",
+        "excerpt": "Cách Tiki build two-stage logo-detection pipeline, dùng YOLO v3 để localization và ResNet để classification sản phẩm có brand trong marketplace image.",
+        "tags": [
+          "Machine learning",
+          "Computer vision",
+          "Logo detection",
+          "YOLO v3",
+          "Synthetic data"
+        ]
+      }
+    },
+    "9": {
+      "key": "09-pegasus-catalog-product-api-architecture",
+      "en": {
+        "title": "Pegasus — Catalog Product API Architecture.",
+        "excerpt": "How Tiki redesigned its catalog product API around denormalized documents, read-optimized storage, cache layers and asynchronous data synchronization.",
+        "tags": [
+          "Catalog",
+          "API architecture",
+          "MongoDB",
+          "Caching",
+          "Data synchronization"
+        ]
+      },
+      "vi": {
+        "title": "Pegasus — Catalog Product API architecture",
+        "excerpt": "Cách Tiki redesign Catalog Product API quanh denormalized document, read-optimized storage, multi-tier cache và async data propagation.",
+        "tags": [
+          "Catalog",
+          "API architecture",
+          "MongoDB",
+          "Caching",
+          "Data propagation"
+        ]
+      }
+    },
+    "10": {
+      "key": "10-xac-thuc-va-phan-quyen-trong-microservices",
+      "en": {
+        "title": "Authentication and authorization in Microservices",
+        "excerpt": "Practical analysis of authentication and authorization in microservices: JWT, opaque tokens, OAuth 2, enforcement at the edge and access control at each service.",
+        "tags": [
+          "Microservices",
+          "Authentication",
+          "Authorization",
+          "JWT",
+          "OAuth 2"
+        ]
+      },
+      "vi": {
+        "title": "Authentication và authorization trong Microservices",
+        "excerpt": "Phân tích thực tế về authentication và authorization trong microservices: JWT, opaque token, OAuth 2, edge enforcement và resource access control ở từng service.",
+        "tags": [
+          "Microservices",
+          "Authentication",
+          "Authorization",
+          "JWT",
+          "OAuth 2"
+        ]
+      }
+    },
+    "11": {
+      "key": "11-how-to-handle-hot-deals-at-the-peak-time",
+      "en": {
+        "title": "How to handle hot deals at the peak time",
+        "excerpt": "How Tiki protects hot-deal inventory and checkout at peak traffic with queuing, throttling, inventory reservation and an asynchronous order workflow.",
+        "tags": [
+          "Flash sale",
+          "Peak traffic",
+          "Queueing",
+          "Inventory reservation",
+          "Checkout"
+        ]
+      },
+      "vi": {
+        "title": "Cách xử lý hot deal ở peak time",
+        "excerpt": "Cách Tiki bảo vệ hot-deal inventory và checkout ở peak traffic bằng queue, throttling, inventory hold và async order workflow.",
+        "tags": [
+          "Flash sale",
+          "Peak traffic",
+          "Queue",
+          "Inventory hold",
+          "Checkout"
+        ]
+      }
+    },
+    "12": {
+      "key": "12-duplicate-booking-race-condition",
+      "en": {
+        "title": "Fixing one race condition twice",
+        "excerpt": "A booking endpoint created two itineraries 25 ms apart. The first fix blocked a User-Agent and the alerts stopped for two and a half years — until the same mechanism returned wearing a HEAD request.",
+        "tags": [
+          "Race condition",
+          "Optimistic locking",
+          "Check-then-act",
+          "Idempotency",
+          "HTTP semantics",
+          "Incident review"
+        ]
+      },
+      "vi": {
+        "title": "Hai lần sửa một race condition",
+        "excerpt": "Một endpoint đặt chỗ tạo hai hành trình cách nhau 25 ms. Bản vá đầu chặn một User-Agent và alert im suốt hai năm rưỡi — cho tới khi đúng cơ chế đó quay lại dưới dạng một request HEAD.",
+        "tags": [
+          "Race condition",
+          "Optimistic locking",
+          "Check-then-act",
+          "Idempotency",
+          "HTTP semantics",
+          "Incident review"
+        ]
+      }
+    },
+    "13": {
+      "key": "13-how-discord-stores-trillions-of-messages",
+      "en": {
+        "title": "How Discord stores trillions of messages",
+        "excerpt": "How Discord moved message storage from MongoDB to Cassandra and then ScyllaDB, while using Rust data services, request coalescing and a verified online migration to control hot partitions and operational toil.",
+        "tags": [
+          "ScyllaDB",
+          "Cassandra",
+          "Hot partitions",
+          "Request coalescing",
+          "Online migration",
+          "Rust"
+        ]
+      },
+      "vi": {
+        "title": "Discord lưu trữ hàng nghìn tỷ tin nhắn như thế nào?",
+        "excerpt": "Cách Discord chuyển message storage từ MongoDB sang Cassandra rồi ScyllaDB, đồng thời dùng Rust data service, request coalescing và migration online có kiểm chứng để kiểm soát hot partition cùng operational toil.",
+        "tags": [
+          "ScyllaDB",
+          "Cassandra",
+          "Hot partition",
+          "Request coalescing",
+          "Online migration",
+          "Rust"
+        ]
+      }
+    },
+    "14": {
+      "key": "14-small-business-cloud-cost-shock",
+      "en": {
+        "title": "Complex infrastructure for a small business: the cloud-cost shock",
+        "excerpt": "A pre-revenue exam platform reached a reported $312 monthly AWS bill after applying enterprise patterns too early. The useful question is not cloud versus one server, but which risks the business can afford at each stage.",
+        "tags": [
+          "FinOps",
+          "AWS",
+          "Right-sizing",
+          "Architecture fitness",
+          "Fixed-cost floor",
+          "Bare metal"
+        ]
+      },
+      "vi": {
+        "title": "Hạ tầng phức tạp cho business bé: cú sốc chi phí cloud",
+        "excerpt": "Một nền tảng thi chưa có doanh thu nhận bill AWS 312 USD/tháng sau khi áp dụng enterprise pattern quá sớm. Câu hỏi đúng không phải cloud hay một server, mà là business đủ sức trả cho rủi ro nào ở từng giai đoạn.",
+        "tags": [
+          "FinOps",
+          "AWS",
+          "Right-sizing",
+          "Architecture fitness",
+          "Fixed-cost floor",
+          "Bare metal"
+        ]
+      }
+    },
+    "15": {
+      "key": "15-transactional-outbox-order-workflow",
+      "en": {
+        "title": "From dual write to a reliable order workflow",
+        "excerpt": "Service A must update its database and notify Service B without losing either change. Transactional Outbox closes the atomicity gap; idempotency and a Saga finish the production design.",
+        "tags": [
+          "Transactional Outbox",
+          "Idempotency",
+          "At-least-once",
+          "Saga",
+          "Message queue",
+          "Order workflow"
+        ]
+      },
+      "vi": {
+        "title": "Từ dual write đến một order workflow đáng tin cậy",
+        "excerpt": "Service A phải cập nhật database và báo Service B mà không làm mất bên nào. Transactional Outbox đóng atomicity gap; idempotency và Saga hoàn thiện thiết kế production.",
+        "tags": [
+          "Transactional Outbox",
+          "Idempotency",
+          "At-least-once",
+          "Saga",
+          "Message queue",
+          "Order workflow"
+        ]
+      }
+    },
+    "16": {
+      "key": "16-shopify-mysql-inventory-reservations",
+      "en": {
+        "title": "How Shopify replaced Redis with MySQL for inventory reservations",
+        "excerpt": "How Shopify colocated temporary reservations with its inventory ledger, then used bounded per-unit rows, SKIP LOCKED and connection attribution to preserve correctness at flash-sale scale.",
+        "tags": [
+          "MySQL",
+          "Redis",
+          "SKIP LOCKED",
+          "Inventory reservation",
+          "Flash sale",
+          "Database concurrency"
+        ]
+      },
+      "vi": {
+        "title": "Shopify thay Redis bằng MySQL cho inventory reservation như thế nào?",
+        "excerpt": "Cách Shopify đưa temporary reservation về cùng inventory ledger, rồi dùng bounded per-unit rows, SKIP LOCKED và connection attribution để giữ correctness ở quy mô flash sale.",
+        "tags": [
+          "MySQL",
+          "Redis",
+          "SKIP LOCKED",
+          "Inventory reservation",
+          "Flash sale",
+          "Database concurrency"
+        ]
+      }
+    },
+    "17": {
+      "key": "17-ssh-server-hardening-lessons",
+      "en": {
+        "title": "Four SSH compromises and the security boundary they missed",
+        "excerpt": "An operator moved from passwords to a custom port, a firewall, an IP allowlist and finally a private bastion. The useful lesson is not that each control was useless, but that every incident crossed a different security boundary.",
+        "tags": [
+          "OpenSSH",
+          "Linux hardening",
+          "Bastion host",
+          "Incident response",
+          "Supply chain",
+          "Defense in depth"
+        ]
+      },
+      "vi": {
+        "title": "Bốn lần SSH bị xâm nhập và security boundary còn thiếu",
+        "excerpt": "Một operator đi từ password sang đổi port, firewall, IP allowlist rồi private bastion. Bài học đúng không phải từng control đều vô dụng, mà là mỗi incident đã đi qua một security boundary khác nhau.",
+        "tags": [
+          "OpenSSH",
+          "Linux hardening",
+          "Bastion host",
+          "Incident response",
+          "Supply chain",
+          "Defense in depth"
+        ]
+      }
+    },
+    "18": {
+      "key": "18-some-simple-economics-of-agi",
+      "en": {
+        "title": "When execution becomes cheap, verification becomes scarce",
+        "excerpt": "A side note on Some Simple Economics of AGI: agentic output can scale faster than human verification, so observability, provenance, independent checks and synthetic practice become production infrastructure.",
+        "tags": [
+          "AGI economics",
+          "Agentic systems",
+          "Verification",
+          "Observability",
+          "Provenance",
+          "Human augmentation"
+        ]
+      },
+      "vi": {
+        "title": "Khi execution rẻ đi, verification trở thành nút thắt",
+        "excerpt": "Một note ngoài lề từ Some Simple Economics of AGI: agentic output có thể scale nhanh hơn năng lực verify của con người, nên observability, provenance, independent check và synthetic practice trở thành production infrastructure.",
+        "tags": [
+          "AGI economics",
+          "Agentic systems",
+          "Verification",
+          "Observability",
+          "Provenance",
+          "Human augmentation"
+        ]
+      }
+    }
+  }
+}

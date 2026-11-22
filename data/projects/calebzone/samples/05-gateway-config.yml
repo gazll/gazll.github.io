@@ -1,0 +1,125 @@
+server:
+  port: 8080
+
+spring:
+  data:
+    redis:
+      host: localhost
+      port: 6479
+      password:
+      connect-timeout: 60
+  cloud:
+    gateway:
+      routes:
+        # Auth Service Routes - Public endpoints
+        - id: auth-service-public
+          uri: http://localhost:8081
+          predicates:
+            - Path=/auth/api/login,/auth/api/register,/auth/api/users/login,/auth/api/users,/auth/api/profiles/**
+            - Method=GET,POST
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 200
+                redis-rate-limiter.burstCapacity: 400
+                redis-rate-limiter.requestedTokens: 1
+                key-resolver: "#{@userKeyResolver}"
+
+        # Auth Service Routes - Protected endpoints
+        - id: auth-service-protected
+          uri: http://localhost:8081
+          predicates:
+            - Path=/auth/api/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 100
+                redis-rate-limiter.burstCapacity: 200
+                redis-rate-limiter.requestedTokens: 1
+                key-resolver: "#{@userKeyResolver}"
+            - name: Retry
+              args:
+                retries: 2
+                statuses: BAD_GATEWAY,SERVICE_UNAVAILABLE
+                methods: GET,POST,PUT,DELETE
+                backoff:
+                  firstBackoff: 100ms
+                  maxBackoff: 500ms
+                  factor: 2
+
+        # Air Service Routes
+        - id: air-service
+          uri: http://localhost:8082
+          predicates:
+            - Path=/air/api/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 100
+                redis-rate-limiter.burstCapacity: 200
+                redis-rate-limiter.requestedTokens: 1
+                key-resolver: "#{@userKeyResolver}"
+            - name: Retry
+              args:
+                retries: 2
+                statuses: BAD_GATEWAY,SERVICE_UNAVAILABLE
+
+        # AI Recognition Service Routes
+        - id: ai-recognition-service
+          uri: http://localhost:8083
+          predicates:
+            - Path=/ai/api/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 50
+                redis-rate-limiter.burstCapacity: 100
+                redis-rate-limiter.requestedTokens: 1
+                key-resolver: "#{@userKeyResolver}"
+            - name: Retry
+              args:
+                retries: 2
+                statuses: BAD_GATEWAY,SERVICE_UNAVAILABLE
+
+# Service URLs configuration
+services:
+  auth:
+    url: http://localhost:8081
+  air:
+    url: http://localhost:8082
+  ai-recognition:
+    url: http://localhost:8083
+
+# Logging for dev environment
+logging:
+  level:
+    root: INFO
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.security: DEBUG
+    com.calebzone.gateway: DEBUG
+    reactor.netty: DEBUG
+
+# Gateway custom properties
+gateway:
+  services:
+    auth:
+      url: http://localhost:8081
+      healthPath: /actuator/health
+      connectTimeout: 5000
+      readTimeout: 10000
+    air:
+      url: http://localhost:8082
+      healthPath: /actuator/health
+      connectTimeout: 5000
+      readTimeout: 10000
+    ai-recognition:
+      url: http://localhost:8083
+      healthPath: /actuator/health
+      connectTimeout: 5000
+      readTimeout: 30000
+  rate-limit:
+    enabled: true
+    defaultReplenishRate: 100
+    defaultBurstCapacity: 200
+  security:
+    enabled: true

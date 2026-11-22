@@ -1,0 +1,2204 @@
+{
+  "version": 1,
+  "releases": [
+    {
+      "date": "2026-11-18",
+      "en": {
+        "title": "Weekly presentations"
+      },
+      "vi": {
+        "title": "Thuyết trình hàng tuần"
+      },
+      "changes": [
+        {
+          "kind": "feature",
+          "target": "presentations",
+          "en": {
+            "text": "New page under Experience: a board of weekly team talks (up next, open topics to claim, presented) and a fixed reading frame for each talk, written as Markdown by pull request."
+          },
+          "vi": {
+            "text": "Trang mới trong Experience: bảng chủ đề thuyết trình hàng tuần (sắp trình bày, chủ đề còn trống, đã trình bày) và khung đọc cố định cho từng bài, viết bằng Markdown qua pull request."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-11-06",
+      "en": {
+        "title": "Oracle at a glance"
+      },
+      "vi": {
+        "title": "Tổng quan Oracle"
+      },
+      "changes": [
+        {
+          "kind": "content",
+          "target": "07-sql-nosql-db-engines",
+          "en": {
+            "text": "New card: a step-by-step diagram of a SELECT through a B-tree index and heap table, plus a short summary of buffer cache, undo, redo, SCN, MVCC and isolation, each part pointing to its detail card."
+          },
+          "vi": {
+            "text": "Thêm một câu: sơ đồ từng bước của lệnh SELECT qua B-tree index và heap table, cùng phần tóm tắt ngắn về buffer cache, undo, redo, SCN, MVCC và isolation, mỗi phần trỏ tới câu chi tiết."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-10-26",
+      "en": {
+        "title": "RabbitMQ 4.4 retries, and more tables and figures for platform answers"
+      },
+      "vi": {
+        "title": "Retry của RabbitMQ 4.4, thêm bảng và hình cho các câu platform"
+      },
+      "changes": [
+        {
+          "kind": "content",
+          "target": "08-message-queue",
+          "en": {
+            "text": "The retry/DLQ answer adds quorum-queue delayed retry (RabbitMQ 4.3) and delayed delivery (4.4), and why the delivery limit still needs a DLX."
+          },
+          "vi": {
+            "text": "Câu retry/DLQ thêm delayed retry của quorum queue (RabbitMQ 4.3) và delayed delivery (4.4), cùng lý do delivery limit vẫn cần DLX."
+          }
+        },
+        {
+          "kind": "content",
+          "target": "20-observability-sre",
+          "en": {
+            "text": "RED and USE are one table with a Java-service example per signal; the pool query now measures saturation with pending, not active/max."
+          },
+          "vi": {
+            "text": "RED và USE gộp thành một bảng, mỗi signal có ví dụ cho Java service; query pool giờ đo saturation bằng pending thay vì active/max."
+          }
+        },
+        {
+          "kind": "content",
+          "target": "25-microservice",
+          "en": {
+            "text": "HikariCP parameters are a table of what each one bounds and what sets its value."
+          },
+          "vi": {
+            "text": "Các parameter HikariCP thành bảng: mỗi cái giới hạn gì và đặt giá trị theo đâu."
+          }
+        },
+        {
+          "kind": "content",
+          "target": "14-devops-k8s-best-practices",
+          "en": {
+            "text": "Kubernetes architecture has a figure of components acting through the API server; Service, Ingress, ConfigMap and Secret are a table."
+          },
+          "vi": {
+            "text": "Kiến trúc Kubernetes có hình các thành phần hoạt động qua API server; Service, Ingress, ConfigMap và Secret thành bảng."
+          }
+        },
+        {
+          "kind": "content",
+          "target": "21-linux-production-debug",
+          "en": {
+            "text": "The first-minute checklist adds a table of which reading points to which resource, with links to the drill-down answers."
+          },
+          "vi": {
+            "text": "Checklist phút đầu thêm bảng con số nào chỉ về tài nguyên nào, kèm link tới các câu đào sâu."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-10-26",
+      "en": {
+        "title": "Tables and figures where the platform and microservice answers compared in prose"
+      },
+      "vi": {
+        "title": "Bảng và hình cho những câu platform và microservice vốn so sánh bằng văn xuôi"
+      },
+      "changes": [
+        {
+          "kind": "content",
+          "target": "25-microservice",
+          "en": {
+            "text": "Breaker states, the two bulkheads, outbox polling vs CDC, RabbitMQ vs Kafka backpressure and replica reads are now tables; the RabbitMQ row drops the retired lazy-queue advice."
+          },
+          "vi": {
+            "text": "Các state của breaker, hai loại bulkhead, outbox polling so với CDC, backpressure RabbitMQ so với Kafka và đọc replica giờ là bảng; dòng RabbitMQ bỏ lời khuyên lazy queue đã lỗi thời."
+          }
+        },
+        {
+          "kind": "content",
+          "target": "13-security-oauth2",
+          "en": {
+            "text": "Authorization Code + PKCE has a sequence figure showing which steps cross the browser and why a stolen code fails without the verifier."
+          },
+          "vi": {
+            "text": "Authorization Code + PKCE có hình sequence cho thấy bước nào đi qua browser và vì sao code bị lấy vẫn thất bại nếu thiếu verifier."
+          }
+        },
+        {
+          "kind": "content",
+          "target": "20-observability-sre",
+          "en": {
+            "text": "Trace propagation has a figure of one trace across an HTTP hop (parent–child) and a queue hop (span link)."
+          },
+          "vi": {
+            "text": "Phần trace propagation có hình một trace đi qua hop HTTP (parent–child) và hop qua queue (span link)."
+          }
+        },
+        {
+          "kind": "content",
+          "target": "14-devops-k8s-best-practices",
+          "en": {
+            "text": "Graceful shutdown draws the example's preStop, drain phase and margin on one 35-second clock, beside endpoint removal."
+          },
+          "vi": {
+            "text": "Graceful shutdown vẽ preStop, pha drain và margin của ví dụ trên cùng một đồng hồ 35 giây, cạnh việc gỡ endpoint."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-10-26",
+      "items_added": 1,
+      "en": {
+        "title": "Version claims checked against what shipped by October 2026"
+      },
+      "vi": {
+        "title": "Đối chiếu các claim phiên bản với những gì đã phát hành tới tháng 10/2026"
+      },
+      "changes": [
+        {
+          "kind": "topic",
+          "target": "02-java-8-25-java-vs-go",
+          "count": 1,
+          "en": {
+            "section": "Release timeline",
+            "text": "Added JDK 26 and 27: what each made final, the previews still open, and why the next LTS is Java 29 in September 2027."
+          },
+          "vi": {
+            "section": "Dòng thời gian các phiên bản",
+            "text": "Thêm JDK 26 và 27: mỗi bản chốt final những gì, preview nào còn mở, và vì sao LTS kế tiếp là Java 29 vào tháng 9/2027."
+          }
+        },
+        {
+          "kind": "content",
+          "target": "01-java-core-jvm",
+          "en": {
+            "text": "The structured-concurrency example notes that the preview API changed in JDK 26 and 27, so the JDK 25 code no longer compiles there."
+          },
+          "vi": {
+            "text": "Ví dụ structured concurrency ghi rõ preview API đã đổi ở JDK 26 và 27, nên code JDK 25 không còn compile trên các bản đó."
+          }
+        },
+        {
+          "kind": "content",
+          "target": "13-security-oauth2",
+          "en": {
+            "text": "OAuth 2.1 now cites draft-16, which drops the PKCE plain method and requires the iss response parameter; browser apps cite the published RFC 10017."
+          },
+          "vi": {
+            "text": "OAuth 2.1 giờ dẫn draft-16, bản bỏ PKCE plain và bắt buộc tham số iss trong response; browser app dẫn RFC 10017 đã xuất bản."
+          }
+        },
+        {
+          "kind": "content",
+          "target": "08-message-queue",
+          "en": {
+            "text": "Added the KIP-848 consumer rebalance protocol (GA in Kafka 4.0, client default still classic) and share groups, production-ready in 4.2."
+          },
+          "vi": {
+            "text": "Thêm consumer rebalance protocol KIP-848 (GA từ Kafka 4.0, default phía client vẫn là classic) và share group, production-ready từ 4.2."
+          }
+        },
+        {
+          "kind": "content",
+          "target": "03-spring-boot-deep-build",
+          "en": {
+            "text": "Spring Boot support windows updated: 3.5 OSS support ended in June 2026, 4.0 ends in December, and 4.2 is planned for November."
+          },
+          "vi": {
+            "text": "Cập nhật thời hạn hỗ trợ Spring Boot: OSS cho 3.5 đã hết tháng 6/2026, 4.0 hết tháng 12, và 4.2 dự kiến ra tháng 11."
+          }
+        },
+        {
+          "kind": "content",
+          "target": "05-db-core-index-lock",
+          "en": {
+            "text": "The MySQL baseline names 9.7 as the newer LTS line beside 8.4, and the switch to calendar versions after it."
+          },
+          "vi": {
+            "text": "Baseline MySQL ghi 9.7 là dòng LTS mới hơn bên cạnh 8.4, và việc chuyển sang calendar version sau đó."
+          }
+        },
+        {
+          "kind": "content",
+          "target": "26-testing-strategy",
+          "en": {
+            "text": "The Testcontainers examples use the 2.x PostgreSQLContainer, which moved package and is no longer generic; the 1.x class is deprecated."
+          },
+          "vi": {
+            "text": "Ví dụ Testcontainers dùng PostgreSQLContainer của 2.x, đã đổi package và không còn generic; class của 1.x đã deprecated."
+          }
+        },
+        {
+          "kind": "content",
+          "target": "system-design",
+          "en": {
+            "text": "The API gateway blueprint pins Spring Cloud Gateway 5.0.4 on the 2025.1.4 release train."
+          },
+          "vi": {
+            "text": "Blueprint API gateway pin Spring Cloud Gateway 5.0.4 trên release train 2025.1.4."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-10-25",
+      "en": {
+        "title": "Every answer broken into readable runs, and cross-references that link"
+      },
+      "vi": {
+        "title": "Mọi câu trả lời được tách đoạn dễ đọc, và cross-reference bấm được"
+      },
+      "changes": [
+        {
+          "kind": "content",
+          "target": "all-topics",
+          "en": {
+            "text": "146 answers across 24 topics had a paragraph over 300 characters; none do now. Enumerations became lists, chained clauses became short paragraphs, and both languages keep the same shape."
+          },
+          "vi": {
+            "text": "146 câu trả lời ở 24 topic có đoạn dài quá 300 ký tự; giờ không còn câu nào. Chuỗi liệt kê thành list, mệnh đề nối dài thành đoạn ngắn, và hai ngôn ngữ giữ cùng cấu trúc."
+          }
+        },
+        {
+          "kind": "content",
+          "target": "system-design",
+          "en": {
+            "text": "Each big prompt in topic 11 lists its workload, freshness, duplicate tolerance and recovery owner on separate lines, and state graphs show one path per line."
+          },
+          "vi": {
+            "text": "Mỗi big prompt ở topic 11 ghi workload, freshness, duplicate tolerance và recovery owner thành từng dòng riêng, còn state graph tách mỗi path một dòng."
+          }
+        },
+        {
+          "kind": "fix",
+          "target": "all-topics",
+          "en": {
+            "text": "Pointers written as \"Day 7\" or \"(a; b)\" rendered as plain text; each now links to the question that owns the explanation, and the validator rejects the grouped form."
+          },
+          "vi": {
+            "text": "Các pointer viết kiểu \"Day 7\" hoặc \"(a; b)\" từng hiện thành chữ thường; giờ mỗi pointer link tới câu hỏi sở hữu phần giải thích, và validator từ chối dạng gộp."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-10-08",
+      "en": {
+        "title": "A runnable Bloom filter in the 10 MB answer, and a clearer release log"
+      },
+      "vi": {
+        "title": "Bloom filter chạy được trong đáp án 10 MB, và nhật ký phát hành dễ đọc hơn"
+      },
+      "changes": [
+        {
+          "kind": "topic",
+          "target": "19-dsa-leetcode",
+          "en": {
+            "section": "The patterns that keep coming up",
+            "text": "The ten-million-key, 10 MB question now ships a complete Java Bloom filter: six probes from two hashes over one long[], measured at zero false negatives and 1.8% false positives."
+          },
+          "vi": {
+            "section": "Dạng bài hay bị hỏi",
+            "text": "Câu hỏi mười triệu key, 10 MB giờ có sẵn Bloom filter Java hoàn chỉnh: sáu vị trí từ hai hash trên một long[], đo được không có false negative và 1,8% false positive."
+          }
+        },
+        {
+          "kind": "feature",
+          "target": "release-notes",
+          "en": {
+            "text": "Release notes filter by kind with live counts, name the topic and section of each change, link to the topic or page it touched, and mark the latest release."
+          },
+          "vi": {
+            "text": "Ghi chú phát hành lọc theo loại kèm số lượng, nêu chủ đề và mục của từng thay đổi, link tới chủ đề hoặc trang bị ảnh hưởng, và đánh dấu bản mới nhất."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-10-02",
+      "items_added": 10,
+      "en": {
+        "title": "Old Java and architecture notes, rewritten where the track had a gap"
+      },
+      "vi": {
+        "title": "Viết lại ghi chú Java và kiến trúc cũ ở những chỗ track còn thiếu"
+      },
+      "changes": [
+        {
+          "kind": "topic",
+          "target": "01-java-core-jvm",
+          "count": 1,
+          "en": {
+            "section": "Language fundamentals",
+            "text": "Added pass-by-value and references to Topic 01, and StringBuffer and invokedynamic concatenation to the String item."
+          },
+          "vi": {
+            "section": "Nền tảng ngôn ngữ",
+            "text": "Thêm pass-by-value và reference vào Topic 01, cùng StringBuffer và phép nối chuỗi qua invokedynamic vào mục String."
+          }
+        },
+        {
+          "kind": "topic",
+          "target": "01-java-core-jvm",
+          "count": 1,
+          "en": {
+            "section": "Collections & data structures",
+            "text": "Added Comparable vs Comparator, which sort algorithm runs, and how a broken comparator fails."
+          },
+          "vi": {
+            "section": "Collections & Data Structures",
+            "text": "Thêm Comparable và Comparator, thuật toán sort nào chạy, và comparator sai hỏng ra sao."
+          }
+        },
+        {
+          "kind": "topic",
+          "target": "03-spring-boot-deep-build",
+          "count": 2,
+          "en": {
+            "section": "Auto-configuration & build",
+            "text": "Added read-only routing to a replica with LazyConnectionDataSourceProxy, and @Scheduled triggers against Quartz clustering."
+          },
+          "vi": {
+            "section": "Auto-configuration & build",
+            "text": "Thêm route transaction read-only sang replica bằng LazyConnectionDataSourceProxy, và các trigger của @Scheduled so với Quartz cluster."
+          }
+        },
+        {
+          "kind": "topic",
+          "target": "12-architecture-patterns",
+          "count": 1,
+          "en": {
+            "section": "Patterns & principles",
+            "text": "Added a map of the 23 GoF patterns by who writes them today: the platform, your code, or a language feature."
+          },
+          "vi": {
+            "section": "Patterns & nguyên tắc",
+            "text": "Thêm bản đồ 23 mẫu GoF theo ai viết chúng hôm nay: nền tảng, code của bạn, hay một tính năng ngôn ngữ."
+          }
+        },
+        {
+          "kind": "topic",
+          "target": "18-query-optimization",
+          "count": 1,
+          "en": {
+            "section": "Rewriting the query & reshaping the model",
+            "text": "Added INNER vs LEFT JOIN, the WHERE filter that turns one into the other, and why NOT IN fails on NULL."
+          },
+          "vi": {
+            "section": "Viết lại query & chỉnh mô hình",
+            "text": "Thêm INNER và LEFT JOIN, điều kiện WHERE biến loại này thành loại kia, và vì sao NOT IN hỏng với NULL."
+          }
+        },
+        {
+          "kind": "topic",
+          "target": "19-dsa-leetcode",
+          "count": 1,
+          "en": {
+            "section": "The patterns that keep coming up",
+            "text": "Added membership for ten million keys in 10 MB: Bloom and binary fuse filters sized by arithmetic."
+          },
+          "vi": {
+            "section": "Dạng bài hay bị hỏi",
+            "text": "Thêm bài kiểm tra tồn tại cho mười triệu key trong 10 MB: Bloom và binary fuse filter tính bằng số học."
+          }
+        },
+        {
+          "kind": "topic",
+          "target": "22-low-level-design-ood",
+          "count": 1,
+          "en": {
+            "section": "The LLD framework & classic problems",
+            "text": "Added a Q&A take-home with voting: the uniqueness constraint, the relative score update, and how to scope three days."
+          },
+          "vi": {
+            "section": "Khung LLD & bài kinh điển",
+            "text": "Thêm bài home test hỏi đáp có vote: constraint duy nhất, cập nhật score tương đối, và cách chia ba ngày."
+          }
+        },
+        {
+          "kind": "topic",
+          "target": "22-low-level-design-ood",
+          "count": 2,
+          "en": {
+            "section": "Patterns in interview code",
+            "text": "Added thread-safe singletons and double-checked locking, and what team coding conventions should enforce."
+          },
+          "vi": {
+            "section": "Pattern trong code phỏng vấn",
+            "text": "Thêm singleton thread-safe và double-checked locking, và coding convention của team nên ép điều gì."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-09-12",
+      "en": {
+        "title": "Every design topic now says what would change its answer"
+      },
+      "vi": {
+        "title": "Mỗi topic thiết kế nay nói rõ điều gì làm câu trả lời đổi"
+      },
+      "changes": [
+        {
+          "kind": "content",
+          "target": "system-design",
+          "en": {
+            "section": "Study Track",
+            "text": "Fourteen topics open with a \"What would change this answer\" deep dive — the assumptions an interviewer can ask you to justify, and the measurement that would falsify each; six case-study guides close with the same test in their operations lens."
+          },
+          "vi": {
+            "section": "Study Track",
+            "text": "Mười bốn topic mở đầu bằng khối \"Điều gì làm câu trả lời này đổi\" — các giả định người phỏng vấn có thể bắt bạn biện minh và phép đo bác bỏ từng giả định; sáu guide case study khép lại bằng cùng phép thử ở lens vận hành."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-09-12",
+      "en": {
+        "title": "Research follow-ups applied across seventeen topics"
+      },
+      "vi": {
+        "title": "Áp dụng các đề xuất từ hồ sơ nghiên cứu vào mười bảy topic"
+      },
+      "changes": [
+        {
+          "kind": "content",
+          "target": "system-design",
+          "en": {
+            "section": "Study Track",
+            "text": "About two hundred answers across seventeen topics were qualified against their research records: implementation details labelled, speed and pause claims scoped to a named collector or build, each big-prompt in topic 11 given case metadata and a failure matrix."
+          },
+          "vi": {
+            "section": "Study Track",
+            "text": "Khoảng hai trăm câu trả lời ở mười bảy topic được đối chiếu với hồ sơ nghiên cứu: chi tiết implementation được ghi rõ, claim tốc độ và pause giới hạn theo collector hoặc build, mỗi big-prompt ở topic 11 có metadata của case và failure matrix."
+          }
+        },
+        {
+          "kind": "content",
+          "target": "system-design",
+          "en": {
+            "section": "Case Studies",
+            "text": "The Discord, cloud-cost, transactional-outbox and authn/authz case-study guides were rewritten around the source each one cites, with reported numbers kept source-scoped."
+          },
+          "vi": {
+            "section": "Case Studies",
+            "text": "Guide của bốn case study Discord, cloud-cost, transactional outbox và authn/authz được viết lại bám theo nguồn bài trích dẫn, số liệu giữ đúng phạm vi nguồn."
+          }
+        },
+        {
+          "kind": "change",
+          "target": "system-design",
+          "en": {
+            "section": "Technically reviewed",
+            "text": "120 more version-bound claims carry a review date and primary sources in content-reviews.json (287 in all); four case studies gained a review date. The research records behind this were folded in and retired — git history keeps every source ledger."
+          },
+          "vi": {
+            "section": "Đã kiểm chứng kỹ thuật",
+            "text": "Thêm 120 claim ghim version có ngày kiểm chứng và nguồn chính thức trong content-reviews.json (tổng 287); bốn case study có ngày kiểm chứng. Hồ sơ nghiên cứu đã gộp vào nội dung và gỡ — git history giữ toàn bộ ledger nguồn."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-09-12",
+      "en": {
+        "title": "Gateway versions re-verified, flash-sale diagram carries its mechanism"
+      },
+      "vi": {
+        "title": "Kiểm lại version gateway, sơ đồ flash-sale mang cơ chế lên cạnh"
+      },
+      "changes": [
+        {
+          "kind": "content",
+          "target": "27-api-gateway-identity-edge",
+          "en": {
+            "section": "Gateway configuration that matters",
+            "text": "Spring Cloud Gateway pinned to 5.0.3 on the 2025.1.3 train and Resilience4j 2.4.0 confirmed current against Maven Central; the four version-bound claims and the blueprint carry a fresh review date."
+          },
+          "vi": {
+            "section": "Gateway configuration that matters",
+            "text": "Spring Cloud Gateway ghim 5.0.3 trên release train 2025.1.3, Resilience4j 2.4.0 xác nhận còn hiện hành theo Maven Central; bốn claim ghim version và blueprint có ngày kiểm chứng mới."
+          }
+        },
+        {
+          "kind": "content",
+          "target": "system-design",
+          "en": {
+            "section": "Flash-sale booking inventory bottleneck",
+            "text": "The diagram now names the mechanism on its edges — conditional UPDATE, admission rate, hold TTL, outbox partitioning, the no-lock-while-PSP-answers rule — and capacity opens with the 250 rps peak (1M req/day) baseline the launch window jumps from."
+          },
+          "vi": {
+            "section": "Flash-sale booking inventory bottleneck",
+            "text": "Sơ đồ nay ghi cơ chế lên cạnh — UPDATE có điều kiện, admission rate, TTL của hold, partition outbox, quy tắc không giữ lock khi chờ PSP — và capacity mở đầu bằng baseline 250 rps peak (1M req/day) mà launch window nhảy lên từ đó."
+          }
+        },
+        {
+          "kind": "change",
+          "target": "system-design",
+          "en": {
+            "section": "Technically reviewed",
+            "text": "The three foundations blueprints — design review framework, traffic and caching building blocks, surviving high load — were re-read end to end and carry a review date; a review stamp no longer moves the updated date."
+          },
+          "vi": {
+            "section": "Đã kiểm chứng kỹ thuật",
+            "text": "Ba blueprint foundations — design review framework, traffic and caching building blocks, surviving high load — được đọc lại toàn bộ và có ngày kiểm chứng; ngày kiểm chứng không còn làm đổi ngày cập nhật."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-09-12",
+      "en": {
+        "title": "From blocking Spring to event-driven Java"
+      },
+      "vi": {
+        "title": "Từ Spring blocking đến Java event-driven"
+      },
+      "changes": [
+        {
+          "kind": "content",
+          "target": "15-network-i-o-models",
+          "en": {
+            "section": "Realtime & event-driven",
+            "text": "Added a sync/async versus blocking/non-blocking map, an outbox-to-broker-to-ack flow, and Kafka/RabbitMQ listener semantics."
+          },
+          "vi": {
+            "section": "Realtime & event-driven",
+            "text": "Thêm bản đồ sync/async và blocking/non-blocking, luồng outbox-to-broker-to-ack cùng semantics của listener Kafka/RabbitMQ."
+          }
+        },
+        {
+          "kind": "content",
+          "target": "04-rest-grpc-webflux",
+          "en": {
+            "section": "Reactive / WebFlux",
+            "text": "Refined the WebFlux, Vert.x and Virtual Threads matrix with Spring Boot 3.2+/Java 21+ MVC configuration, backpressure, and downstream-bound guidance."
+          },
+          "vi": {
+            "section": "Reactive / WebFlux",
+            "text": "Tinh chỉnh ma trận WebFlux, Vert.x và Virtual Threads với cấu hình MVC Spring Boot 3.2+/Java 21+, backpressure và giới hạn downstream."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-09-12",
+      "en": {
+        "title": "B+Tree and LSM now show their physical work"
+      },
+      "vi": {
+        "title": "B+Tree và LSM được giải thích từ tầng vật lý"
+      },
+      "changes": [
+        {
+          "kind": "content",
+          "target": "05-db-core-index-lock",
+          "en": {
+            "section": "Transactions, MVCC, locking",
+            "text": "Expanded the B+Tree versus LSM card with physical CRUD paths: page traversal and splits, WAL/undo, memtable/SSTable flush, compaction, tombstones, amplification and backpressure. Added an attributed ByteByteGo diagram and a local read/write schematic."
+          },
+          "vi": {
+            "section": "Transaction, MVCC, locking",
+            "text": "Mở rộng thẻ B+Tree và LSM với luồng CRUD ở tầng vật lý: duyệt page và page split, WAL/undo, memtable/SSTable, compaction, tombstone, amplification và backpressure. Thêm diagram ByteByteGo có attribution cùng sơ đồ read/write nội bộ."
+          }
+        },
+        {
+          "kind": "content",
+          "target": "07-sql-nosql-db-engines",
+          "en": {
+            "section": "The big picture",
+            "text": "Clarified that SQL/NoSQL is a logical model boundary, while B+Tree/LSM is a storage-engine choice, with a link to the deeper physical walkthrough."
+          },
+          "vi": {
+            "section": "Bức tranh chung",
+            "text": "Làm rõ SQL/NoSQL là ranh giới về model logic, còn B+Tree/LSM là lựa chọn của storage engine, kèm liên kết tới phần walkthrough vật lý chi tiết."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-22",
+      "en": {
+        "title": "A calendar, and the reminders behind it"
+      },
+      "vi": {
+        "title": "Một cuốn lịch, và những mốc cần nhớ phía sau"
+      },
+      "changes": [
+        {
+          "kind": "feature",
+          "target": "calendar",
+          "en": {
+            "text": "Added /calendar: Vietnamese solar and lunar dates with can-chi pillars, the eleven statutory holidays computed from the 2019 labour code, and month, year and agenda views covering five years ahead."
+          },
+          "vi": {
+            "text": "Thêm /calendar: lịch dương và âm kèm can chi, mười một ngày nghỉ lễ tính theo Bộ luật Lao động 2019, cùng ba chế độ xem tháng, năm và danh sách sắp tới trong vòng năm năm."
+          }
+        },
+        {
+          "kind": "feature",
+          "target": "calendar",
+          "en": {
+            "text": "A private reminder tracker layers onto the same calendar: annual fees, servicing intervals, vaccinations and lunar anniversaries, each resolved to its next date and grouped by how urgent it is."
+          },
+          "vi": {
+            "text": "Lịch nhắc việc riêng chồng lên cùng cuốn lịch đó: phí thường niên, chu kỳ bảo dưỡng, tiêm phòng và ngày giỗ theo âm lịch, mỗi mục tự tính ra mốc kế tiếp và xếp nhóm theo mức gấp."
+          }
+        },
+        {
+          "kind": "change",
+          "target": "calendar",
+          "en": {
+            "text": "The reminder list ships encrypted, because this repository is public. The plaintext stays in gitignored secret/, and tools/schedule-seal.mjs runs both ways so any commit can be recovered with the passphrase alone."
+          },
+          "vi": {
+            "text": "Danh sách nhắc việc được mã hoá trước khi commit, vì repo này là public. Bản gốc nằm trong secret/ đã gitignore, và tools/schedule-seal.mjs chạy được hai chiều nên chỉ cần passphrase là khôi phục lại được từ bất kỳ commit nào."
+          }
+        },
+        {
+          "kind": "feature",
+          "target": "calendar",
+          "en": {
+            "text": "Added a Things tab: what the household owns, grouped so a NAS keeps its drives and UPS, with the warranty end derived from the purchase date."
+          },
+          "vi": {
+            "text": "Thêm tab Đồ đạc: những gì trong nhà, gom nhóm để NAS giữ ổ cứng và UPS của nó, hạn bảo hành tính ra từ ngày mua."
+          }
+        },
+        {
+          "kind": "feature",
+          "target": "calendar",
+          "en": {
+            "text": "Each item carries a service log, so a four-year-old pair of earbuds whose battery was changed in June reports a two-month-old battery rather than a four-year-old one."
+          },
+          "vi": {
+            "text": "Mỗi món có lịch sử thay thế riêng, nên đôi tai nghe bốn năm tuổi vừa thay pin hồi tháng 6 sẽ báo pin hai tháng chứ không phải bốn năm."
+          }
+        },
+        {
+          "kind": "feature",
+          "target": "calendar",
+          "en": {
+            "text": "Trip checklists with tick boxes. The list is content and ships sealed; ticking is per-trip state, so it stays in the browser and syncs to the Sheet instead of needing a commit."
+          },
+          "vi": {
+            "text": "Checklist chuẩn bị cho mỗi chuyến đi, có ô tick. Danh sách là nội dung nên nằm trong file mã hoá; còn tick là trạng thái từng chuyến nên lưu ở trình duyệt và đồng bộ qua Sheet, không phải commit."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-21",
+      "en": {
+        "title": "The diagrams caught up with the pages"
+      },
+      "vi": {
+        "title": "Diagram đuổi kịp phần chữ"
+      },
+      "changes": [
+        {
+          "kind": "content",
+          "target": "system-design",
+          "en": {
+            "text": "Updated all System Design diagrams to match their written architectures."
+          },
+          "vi": {
+            "text": "Cập nhật toàn bộ diagram System Design để khớp với kiến trúc trong phần chữ."
+          }
+        },
+        {
+          "kind": "fix",
+          "target": "system-design",
+          "en": {
+            "text": "Added Mermaid syntax validation to the content check pipeline."
+          },
+          "vi": {
+            "text": "Thêm kiểm tra cú pháp Mermaid vào pipeline validation nội dung."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-21",
+      "en": {
+        "title": "Five cards that explained without ever showing"
+      },
+      "vi": {
+        "title": "Năm thẻ chỉ giải thích mà chưa bao giờ cho xem"
+      },
+      "changes": [
+        {
+          "kind": "content",
+          "target": "20-observability-sre",
+          "en": {
+            "section": "SLOs, alerting & incidents",
+            "text": "Added practical SLI, SLO, SLA, error-budget and burn-rate examples."
+          },
+          "vi": {
+            "section": "SLO, cảnh báo & sự cố",
+            "text": "Bổ sung ví dụ thực tế về SLI, SLO, SLA, error budget và burn rate."
+          }
+        },
+        {
+          "kind": "content",
+          "target": "25-microservice",
+          "en": {
+            "section": "05 · Caching Pitfalls",
+            "text": "Added cache sizing guidance and health checks for Microservices."
+          },
+          "vi": {
+            "section": "05 · Caching Pitfalls",
+            "text": "Bổ sung hướng dẫn sizing cache và health check cho Microservices."
+          }
+        },
+        {
+          "kind": "content",
+          "target": "10-system-design-rate-limit",
+          "en": {
+            "section": "Framework & building blocks",
+            "text": "Added a cache-aside race timeline and cache protection patterns."
+          },
+          "vi": {
+            "section": "Khung & building blocks",
+            "text": "Bổ sung timeline race của cache-aside và các pattern bảo vệ cache."
+          }
+        },
+        {
+          "kind": "content",
+          "target": "13-security-oauth2",
+          "en": {
+            "section": "JWT & tokens",
+            "text": "Added an access-token and refresh-token comparison with rotation guidance."
+          },
+          "vi": {
+            "section": "JWT & token",
+            "text": "Bổ sung so sánh access token và refresh token cùng hướng dẫn rotation."
+          }
+        },
+        {
+          "kind": "content",
+          "target": "18-query-optimization",
+          "en": {
+            "section": "Rewriting the query & reshaping the model",
+            "text": "Added application configuration examples for connection pools, batching and timeouts."
+          },
+          "vi": {
+            "section": "Viết lại query & chỉnh mô hình",
+            "text": "Bổ sung ví dụ cấu hình connection pool, batching và timeout cho tầng ứng dụng."
+          }
+        },
+        {
+          "kind": "fix",
+          "target": "all-topics",
+          "en": {
+            "text": "Fixed unavailable font weights in the site UI."
+          },
+          "vi": {
+            "text": "Sửa các font weight không tồn tại trong giao diện."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-21",
+      "en": {
+        "title": "One case study weighed nine megabytes"
+      },
+      "vi": {
+        "title": "Một case study nặng chín megabyte"
+      },
+      "changes": [
+        {
+          "kind": "fix",
+          "target": "case-studies",
+          "en": {
+            "text": "Replaced large animated GIFs in the Tiki search case study with smaller WebP files."
+          },
+          "vi": {
+            "text": "Thay GIF động lớn trong case study Tiki search bằng WebP nhẹ hơn."
+          }
+        },
+        {
+          "kind": "change",
+          "target": "case-studies",
+          "en": {
+            "text": "Added generated thumbnails for case-study library covers."
+          },
+          "vi": {
+            "text": "Thêm thumbnail sinh riêng cho ảnh bìa trong thư viện case study."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-21",
+      "en": {
+        "title": "Half of every search download was the language you were not reading"
+      },
+      "vi": {
+        "title": "Một nửa lượng tải của search là ngôn ngữ bạn không đọc"
+      },
+      "changes": [
+        {
+          "kind": "change",
+          "target": "search",
+          "en": {
+            "text": "Split the search index by language to reduce the initial download."
+          },
+          "vi": {
+            "text": "Tách search index theo ngôn ngữ để giảm dung lượng tải ban đầu."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-21",
+      "en": {
+        "title": "The skip link did not skip anything"
+      },
+      "vi": {
+        "title": "Skip link không hề bỏ qua được gì"
+      },
+      "changes": [
+        {
+          "kind": "fix",
+          "target": "all-topics",
+          "en": {
+            "text": "Fixed skip-to-content focus and sticky-header positioning across reader surfaces."
+          },
+          "vi": {
+            "text": "Sửa focus của link bỏ qua tới nội dung và vị trí dưới sticky header trên các trang đọc."
+          }
+        },
+        {
+          "kind": "change",
+          "target": "system-design",
+          "en": {
+            "text": "Added validation coverage for System Design traffic calculations, tier verdicts and emphasis markup."
+          },
+          "vi": {
+            "text": "Thêm validation cho phép tính traffic, verdict theo tier và markup nhấn mạnh trong System Design."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-21",
+      "en": {
+        "title": "Search could not see System Design at all"
+      },
+      "vi": {
+        "title": "Search hoàn toàn không nhìn thấy System Design"
+      },
+      "changes": [
+        {
+          "kind": "fix",
+          "target": "search",
+          "en": {
+            "text": "Added System Design body content to the search index."
+          },
+          "vi": {
+            "text": "Đưa nội dung thân bài System Design vào search index."
+          }
+        },
+        {
+          "kind": "fix",
+          "target": "system-design",
+          "en": {
+            "text": "Fixed Vietnamese quantity highlighting and number-word rendering in blueprint prose."
+          },
+          "vi": {
+            "text": "Sửa lỗi tô sáng số-lượng và hiển thị số dính chữ trong prose blueprint tiếng Việt."
+          }
+        },
+        {
+          "kind": "change",
+          "target": "system-design",
+          "en": {
+            "text": "Added authored failure reviews to all System Design blueprints."
+          },
+          "vi": {
+            "text": "Bổ sung failure review do người viết cho toàn bộ blueprint System Design."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-21",
+      "en": {
+        "title": "Thirteen blueprints stop asking questions and start answering them"
+      },
+      "vi": {
+        "title": "Mười ba blueprint thôi đặt câu hỏi và bắt đầu trả lời"
+      },
+      "changes": [
+        {
+          "kind": "content",
+          "target": "system-design",
+          "en": {
+            "text": "Rewrote 13 System Design blueprints with complete capacity, examples and failure reviews."
+          },
+          "vi": {
+            "text": "Viết lại 13 blueprint System Design với capacity, ví dụ và failure review đầy đủ."
+          }
+        },
+        {
+          "kind": "content",
+          "target": "system-design",
+          "en": {
+            "text": "Added concrete traffic, cache, URL-shortener and concurrency trade-offs to the blueprints."
+          },
+          "vi": {
+            "text": "Bổ sung trade-off cụ thể về traffic, cache, URL shortener và concurrency cho các blueprint."
+          }
+        },
+        {
+          "kind": "change",
+          "target": "system-design",
+          "en": {
+            "text": "Recalculated reading times for every System Design blueprint."
+          },
+          "vi": {
+            "text": "Tính lại thời lượng đọc cho toàn bộ blueprint System Design."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-21",
+      "items_added": 2,
+      "en": {
+        "title": "Two base cards, and a 404 that knows where it is"
+      },
+      "vi": {
+        "title": "Hai thẻ kiến thức nền, và trang 404 biết nó đang ở đâu"
+      },
+      "changes": [
+        {
+          "kind": "topic",
+          "target": "01-java-core-jvm",
+          "en": {
+            "text": "Added an OOP fundamentals card to Topic 01.",
+            "section": "Language fundamentals"
+          },
+          "vi": {
+            "text": "Thêm card nền tảng OOP vào Topic 01.",
+            "section": "Nền tảng ngôn ngữ"
+          },
+          "count": 1
+        },
+        {
+          "kind": "topic",
+          "target": "05-db-core-index-lock",
+          "en": {
+            "text": "Added a dedicated ACID card to Topic 05.",
+            "section": "Transactions, MVCC, locking"
+          },
+          "vi": {
+            "text": "Thêm card riêng về ACID vào Topic 05.",
+            "section": "Transaction, MVCC, locking"
+          },
+          "count": 1
+        },
+        {
+          "kind": "fix",
+          "target": "all-topics",
+          "en": {
+            "text": "Added a native error page with navigation and loading states for Stats and Admin."
+          },
+          "vi": {
+            "text": "Thêm trang lỗi native có điều hướng và loading state cho Stats và Admin."
+          }
+        },
+        {
+          "kind": "change",
+          "target": "all-topics",
+          "en": {
+            "text": "Enlarged the header search control and improved its shortcut hint."
+          },
+          "vi": {
+            "text": "Tăng kích thước nút search trên header và cải thiện gợi ý phím tắt."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-21",
+      "en": {
+        "title": "The OTA blueprint gets its saga and outbox internals"
+      },
+      "vi": {
+        "title": "Blueprint OTA có phần ruột saga và outbox"
+      },
+      "changes": [
+        {
+          "kind": "content",
+          "target": "system-design",
+          "en": {
+            "text": "Added saga, outbox and idempotency examples to the OTA booking blueprint."
+          },
+          "vi": {
+            "text": "Bổ sung ví dụ saga, outbox và idempotency cho blueprint OTA booking."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-20",
+      "en": {
+        "title": "The panel sheds rows, and the *arr stack joins NAS"
+      },
+      "vi": {
+        "title": "Panel bớt dòng, và *arr stack vào mục NAS"
+      },
+      "changes": [
+        {
+          "kind": "change",
+          "target": "all-topics",
+          "en": {
+            "text": "Simplified the navigation panel and regrouped its links."
+          },
+          "vi": {
+            "text": "Đơn giản hóa navigation panel và sắp xếp lại các liên kết."
+          }
+        },
+        {
+          "kind": "content",
+          "target": "all-topics",
+          "en": {
+            "text": "Added a bilingual NAS article about automating a home media library."
+          },
+          "vi": {
+            "text": "Thêm bài viết song ngữ về tự động hóa thư viện media tại nhà trên NAS."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-20",
+      "en": {
+        "title": "Other Knowledge joins the site, and the panel is regrouped"
+      },
+      "vi": {
+        "title": "Other Knowledge lên site, và panel được sắp lại"
+      },
+      "changes": [
+        {
+          "kind": "feature",
+          "target": "all-topics",
+          "en": {
+            "text": "Regrouped navigation into Technical, Reference, Experience and Tools."
+          },
+          "vi": {
+            "text": "Gom navigation thành Technical, Reference, Experience và Tools."
+          }
+        },
+        {
+          "kind": "content",
+          "target": "all-topics",
+          "en": {
+            "text": "Added bilingual Photography and Homelab knowledge articles."
+          },
+          "vi": {
+            "text": "Thêm các bài kiến thức Photography và Homelab song ngữ."
+          }
+        },
+        {
+          "kind": "change",
+          "target": "search",
+          "en": {
+            "text": "Added Other Knowledge articles to the global search index."
+          },
+          "vi": {
+            "text": "Đưa các bài Other Knowledge vào global search index."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-20",
+      "en": {
+        "title": "Library cards say one thing per slot, and the small print is readable"
+      },
+      "vi": {
+        "title": "Card thư viện mỗi ô một ý, và chữ nhỏ đọc được"
+      },
+      "changes": [
+        {
+          "kind": "fix",
+          "target": "system-design",
+          "en": {
+            "text": "Simplified System Design card metadata into readable fields."
+          },
+          "vi": {
+            "text": "Đơn giản hóa metadata trên card System Design thành các trường dễ đọc."
+          }
+        },
+        {
+          "kind": "fix",
+          "target": "all-topics",
+          "en": {
+            "text": "Fixed text contrast to meet WCAG AA across page backgrounds."
+          },
+          "vi": {
+            "text": "Sửa độ tương phản chữ để đạt WCAG AA trên các nền trang."
+          }
+        },
+        {
+          "kind": "fix",
+          "target": "search",
+          "en": {
+            "text": "Restored visible keyboard focus for topic and global search fields."
+          },
+          "vi": {
+            "text": "Khôi phục trạng thái focus bàn phím cho ô lọc topic và search."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-19",
+      "en": {
+        "title": "Gazl Try: an evidence-led interview playbook"
+      },
+      "vi": {
+        "title": "Gazl Try: playbook phỏng vấn dựa trên evidence"
+      },
+      "changes": [
+        {
+          "kind": "content",
+          "target": "interviews",
+          "en": {
+            "text": "Added an 11-card bilingual Gazl Try interview playbook covering OCB, MoMo, FPT, 7‑Eleven, Pizza Hut, GHN and Abbott."
+          },
+          "vi": {
+            "text": "Thêm playbook phỏng vấn Gazl Try song ngữ gồm 11 card, bao phủ OCB, MoMo, FPT, 7‑Eleven, Pizza Hut, GHN và Abbott."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-19",
+      "en": {
+        "title": "JWT storage: choose the browser architecture before the API"
+      },
+      "vi": {
+        "title": "Lưu JWT: chọn browser architecture trước storage API"
+      },
+      "changes": [
+        {
+          "kind": "topic",
+          "target": "13-security-oauth2",
+          "en": {
+            "text": "Added a browser JWT-storage architecture guide with BFF, XSS and CSRF coverage."
+          },
+          "vi": {
+            "text": "Thêm hướng dẫn kiến trúc lưu JWT trên browser, gồm BFF, XSS và CSRF."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-19",
+      "en": {
+        "title": "SSH hardening from repeated compromise to testable controls"
+      },
+      "vi": {
+        "title": "SSH hardening: từ repeated compromise tới control kiểm thử được"
+      },
+      "changes": [
+        {
+          "kind": "content",
+          "target": "case-studies",
+          "en": {
+            "text": "Added a bilingual SSH hardening case study covering four compromise patterns."
+          },
+          "vi": {
+            "text": "Thêm case study SSH hardening song ngữ về bốn kiểu compromise."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-19",
+      "en": {
+        "title": "Cache expiration: deadlines, cleanup, and safe TTL policy"
+      },
+      "vi": {
+        "title": "Cache expiration: deadline, cleanup và TTL policy an toàn"
+      },
+      "changes": [
+        {
+          "kind": "topic",
+          "target": "25-microservice",
+          "en": {
+            "text": "Added a cache expiration and TTL policy item to Topic 25."
+          },
+          "vi": {
+            "text": "Thêm item về expiration và chính sách TTL cache vào Topic 25."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-19",
+      "en": {
+        "title": "Cache eviction: working sets, admission, and real engine behavior"
+      },
+      "vi": {
+        "title": "Cache eviction: working set, admission và hành vi thật của từng engine"
+      },
+      "changes": [
+        {
+          "kind": "topic",
+          "target": "25-microservice",
+          "en": {
+            "text": "Added a cache eviction and admission item to Topic 25."
+          },
+          "vi": {
+            "text": "Thêm item về eviction và admission cache vào Topic 25."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-19",
+      "en": {
+        "title": "Cache economics and the JVM memory map"
+      },
+      "vi": {
+        "title": "Kinh tế học của cache và bản đồ bộ nhớ JVM"
+      },
+      "changes": [
+        {
+          "kind": "topic",
+          "target": "25-microservice",
+          "en": {
+            "text": "Added cache economics and AMAT guidance to Topic 25."
+          },
+          "vi": {
+            "text": "Thêm nội dung cache economics và AMAT vào Topic 25."
+          }
+        },
+        {
+          "kind": "topic",
+          "target": "01-java-core-jvm",
+          "en": {
+            "text": "Added a JVM specification-versus-process-memory item to Topic 01."
+          },
+          "vi": {
+            "text": "Thêm item phân biệt vùng nhớ JVM theo specification và process memory vào Topic 01."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-18",
+      "en": {
+        "title": "Two architecture journeys: trillion-message scale and the pre-revenue cloud bill"
+      },
+      "vi": {
+        "title": "Hai hành trình kiến trúc: hàng nghìn tỷ message và cloud bill trước doanh thu"
+      },
+      "changes": [
+        {
+          "kind": "content",
+          "target": "case-studies",
+          "en": {
+            "text": "Added a Discord message-storage case study."
+          },
+          "vi": {
+            "text": "Thêm case study về cách Discord lưu trữ tin nhắn."
+          }
+        },
+        {
+          "kind": "content",
+          "target": "case-studies",
+          "en": {
+            "text": "Added a small-business cloud-cost case study."
+          },
+          "vi": {
+            "text": "Thêm case study về cú sốc chi phí cloud của doanh nghiệp nhỏ."
+          }
+        },
+        {
+          "kind": "feature",
+          "target": "case-studies",
+          "en": {
+            "text": "Marked rewritten external articles as Editorial synthesis."
+          },
+          "vi": {
+            "text": "Đánh dấu các bài viết bên ngoài đã biên soạn lại là Editorial synthesis."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-18",
+      "en": {
+        "title": "Caching end to end: patterns, Redis, and PostgreSQL's buffer cache"
+      },
+      "vi": {
+        "title": "Cache từ đầu tới cuối: pattern, Redis và bộ đệm cache của PostgreSQL"
+      },
+      "changes": [
+        {
+          "kind": "topic",
+          "target": "25-microservice",
+          "en": {
+            "text": "Added end-to-end cache patterns and cache-layer guidance to Topic 25."
+          },
+          "vi": {
+            "text": "Bổ sung các cache pattern end-to-end và hướng dẫn cache layer vào Topic 25."
+          }
+        },
+        {
+          "kind": "feature",
+          "target": "all-topics",
+          "en": {
+            "text": "Updated Study Track and library question counts."
+          },
+          "vi": {
+            "text": "Cập nhật số lượng câu hỏi của Study Track và toàn bộ thư viện."
+          }
+        },
+        {
+          "kind": "topic",
+          "target": "18-query-optimization",
+          "en": {
+            "text": "Added PostgreSQL buffer-cache guidance to Topic 18."
+          },
+          "vi": {
+            "text": "Thêm nội dung về PostgreSQL buffer cache vào Topic 18."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-18",
+      "en": {
+        "title": "Case Studies opens to first-party incident write-ups"
+      },
+      "vi": {
+        "title": "Case Studies mở cho bài viết sự cố first-party"
+      },
+      "changes": [
+        {
+          "kind": "content",
+          "target": "case-studies",
+          "en": {
+            "text": "Added a first-party case study about fixing a booking race condition."
+          },
+          "vi": {
+            "text": "Thêm case study first-party về việc sửa race condition trong booking."
+          }
+        },
+        {
+          "kind": "feature",
+          "target": "case-studies",
+          "en": {
+            "text": "Added the Production Incidents case-study collection."
+          },
+          "vi": {
+            "text": "Thêm collection case study Production Incidents."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-17",
+      "en": {
+        "title": "Six new questions: class identity, HashMap keys, UUID keys, volatile counters, concurrency vocabulary"
+      },
+      "vi": {
+        "title": "Sáu câu hỏi mới: class identity, key của HashMap, khoá UUID, counter volatile, từ vựng concurrency"
+      },
+      "changes": [
+        {
+          "kind": "topic",
+          "target": "01-java-core-jvm",
+          "en": {
+            "text": "Added Java class-loader identity and type-casting guidance to Topic 01."
+          },
+          "vi": {
+            "text": "Thêm nội dung về class-loader identity và type casting vào Topic 01."
+          }
+        },
+        {
+          "kind": "topic",
+          "target": "05-db-core-index-lock",
+          "en": {
+            "text": "Added UUID primary-key performance guidance for InnoDB and PostgreSQL to Topic 05."
+          },
+          "vi": {
+            "text": "Thêm hướng dẫn hiệu năng UUID primary key trên InnoDB và PostgreSQL vào Topic 05."
+          }
+        },
+        {
+          "kind": "topic",
+          "target": "06-db-scaling",
+          "en": {
+            "text": "Added a Cassandra/ScyllaDB missing-data incident walkthrough to Topic 06."
+          },
+          "vi": {
+            "text": "Thêm walkthrough sự cố thiếu dữ liệu Cassandra/ScyllaDB vào Topic 06."
+          }
+        },
+        {
+          "kind": "topic",
+          "target": "23-java-concurrency-coding",
+          "en": {
+            "text": "Added a volatile-counter concurrency drill to Topic 23."
+          },
+          "vi": {
+            "text": "Thêm bài luyện concurrency về volatile counter vào Topic 23."
+          }
+        },
+        {
+          "kind": "feature",
+          "target": "all-topics",
+          "en": {
+            "text": "Updated Study Track and library question counts."
+          },
+          "vi": {
+            "text": "Cập nhật số lượng câu hỏi của Study Track và toàn bộ thư viện."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-13",
+      "en": {
+        "title": "System Design and Case Studies read as lists, and keep your place"
+      },
+      "vi": {
+        "title": "System Design và Case Studies đọc theo dạng list, và giữ đúng vị trí đang đọc"
+      },
+      "changes": [
+        {
+          "kind": "feature",
+          "target": "system-design",
+          "en": {
+            "text": "Preserved authored lists in System Design prose."
+          },
+          "vi": {
+            "text": "Giữ đúng các danh sách được viết trong prose System Design."
+          }
+        },
+        {
+          "kind": "feature",
+          "target": "case-studies",
+          "en": {
+            "text": "Added sticky section navigation to System Design and Case Studies."
+          },
+          "vi": {
+            "text": "Thêm điều hướng section sticky cho System Design và Case Studies."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-12",
+      "en": {
+        "title": "Blueprint 16 now follows a real e-commerce Saga + Outbox path"
+      },
+      "vi": {
+        "title": "Blueprint 16 giờ đi theo một luồng e-commerce Saga + Outbox thật"
+      },
+      "changes": [
+        {
+          "kind": "content",
+          "target": "system-design",
+          "en": {
+            "text": "Expanded Blueprint 16 with an e-commerce Saga and Outbox architecture."
+          },
+          "vi": {
+            "text": "Mở rộng Blueprint 16 với kiến trúc e-commerce Saga và Outbox."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-12",
+      "en": {
+        "title": "One search bar across every surface"
+      },
+      "vi": {
+        "title": "Một thanh tìm kiếm cho mọi surface"
+      },
+      "changes": [
+        {
+          "kind": "feature",
+          "target": "search",
+          "en": {
+            "text": "Added global search across Study Track, System Design and Case Studies."
+          },
+          "vi": {
+            "text": "Thêm global search cho Study Track, System Design và Case Studies."
+          }
+        },
+        {
+          "kind": "feature",
+          "target": "search",
+          "en": {
+            "text": "Added signed-in and signed-out recent-search history controls."
+          },
+          "vi": {
+            "text": "Thêm quản lý lịch sử search gần đây cho cả signed-in và signed-out."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-12",
+      "en": {
+        "title": "Blueprint 19: API Gateway and Identity Edge"
+      },
+      "vi": {
+        "title": "Blueprint 19: API Gateway và Identity Edge"
+      },
+      "changes": [
+        {
+          "kind": "feature",
+          "target": "system-design",
+          "en": {
+            "text": "Added Blueprint 19 for API Gateway and Identity Edge."
+          },
+          "vi": {
+            "text": "Thêm Blueprint 19 về API Gateway và Identity Edge."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-12",
+      "en": {
+        "title": "A cross-reference is now a link, not a 45-character id"
+      },
+      "vi": {
+        "title": "Cross-reference giờ là link, không còn là chuỗi id 45 ký tự"
+      },
+      "changes": [
+        {
+          "kind": "feature",
+          "target": "all-topics",
+          "en": {
+            "text": "Turned written cross-references into navigable links."
+          },
+          "vi": {
+            "text": "Biến cross-reference trong nội dung thành liên kết điều hướng."
+          }
+        },
+        {
+          "kind": "fix",
+          "target": "05-db-core-index-lock",
+          "en": {
+            "text": "Fixed a broken Vietnamese cross-reference and expanded reference validation."
+          },
+          "vi": {
+            "text": "Sửa một cross-reference tiếng Việt bị hỏng và mở rộng validation tham chiếu."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-11",
+      "en": {
+        "title": "The Vietnamese material keeps the words an interview actually uses"
+      },
+      "vi": {
+        "title": "Bản tiếng Việt giữ đúng thuật ngữ dùng khi phỏng vấn"
+      },
+      "changes": [
+        {
+          "kind": "content",
+          "target": "language",
+          "en": {
+            "text": "Standardized technical vocabulary across Vietnamese study content."
+          },
+          "vi": {
+            "text": "Chuẩn hóa technical vocabulary trong nội dung học tiếng Việt."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-11",
+      "en": {
+        "title": "Blueprint 18's failure review comes with answers"
+      },
+      "vi": {
+        "title": "Failure review của Blueprint 18 giờ có câu trả lời"
+      },
+      "changes": [
+        {
+          "kind": "feature",
+          "target": "system-design",
+          "en": {
+            "text": "Added complete answers to the failure-review lenses for Blueprint 18."
+          },
+          "vi": {
+            "text": "Bổ sung câu trả lời đầy đủ cho các failure-review lens của Blueprint 18."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-10",
+      "en": {
+        "title": "Flash-sale inventory gets a capacity-first failure analysis"
+      },
+      "vi": {
+        "title": "Inventory mùa flash sale có bài phân tích lỗi theo capacity"
+      },
+      "changes": [
+        {
+          "kind": "feature",
+          "target": "system-design",
+          "en": {
+            "text": "Added a capacity-first failure analysis for flash-sale inventory."
+          },
+          "vi": {
+            "text": "Thêm phân tích failure theo capacity cho flash-sale inventory."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-10",
+      "en": {
+        "title": "Two blueprints on designing for load, and diagrams that render"
+      },
+      "vi": {
+        "title": "Hai blueprint về thiết kế theo tải, cùng sơ đồ đã hiển thị được"
+      },
+      "changes": [
+        {
+          "kind": "feature",
+          "target": "system-design",
+          "en": {
+            "text": "Added Blueprint 15 for a booking and search platform."
+          },
+          "vi": {
+            "text": "Thêm Blueprint 15 về nền tảng booking và search."
+          }
+        },
+        {
+          "kind": "feature",
+          "target": "system-design",
+          "en": {
+            "text": "Expanded Blueprint 16 across 1M, 10M and 100M requests per day."
+          },
+          "vi": {
+            "text": "Mở rộng Blueprint 16 theo các mốc 1M, 10M và 100M request mỗi ngày."
+          }
+        },
+        {
+          "kind": "feature",
+          "target": "system-design",
+          "en": {
+            "text": "Added Blueprint 17 as a scale and resilience technique catalogue."
+          },
+          "vi": {
+            "text": "Thêm Blueprint 17 làm catalogue kỹ thuật scale và resilience."
+          }
+        },
+        {
+          "kind": "fix",
+          "target": "system-design",
+          "en": {
+            "text": "Fixed missing Mermaid layout dependencies and empty diagrams."
+          },
+          "vi": {
+            "text": "Sửa dependency layout Mermaid bị thiếu và diagram bị trống."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-10",
+      "en": {
+        "title": "System Design becomes a dedicated Experience library"
+      },
+      "vi": {
+        "title": "System Design thành thư viện Experience riêng"
+      },
+      "changes": [
+        {
+          "kind": "feature",
+          "target": "system-design",
+          "en": {
+            "text": "Added the System Design blueprint library."
+          },
+          "vi": {
+            "text": "Thêm thư viện blueprint System Design."
+          }
+        },
+        {
+          "kind": "content",
+          "target": "case-studies",
+          "en": {
+            "text": "Moved selected deep dives and production cases into System Design."
+          },
+          "vi": {
+            "text": "Chuyển các deep dive và production case phù hợp vào System Design."
+          }
+        },
+        {
+          "kind": "change",
+          "target": "all-topics",
+          "en": {
+            "text": "Updated Study Track progress after moving 33 questions to System Design."
+          },
+          "vi": {
+            "text": "Cập nhật tiến độ Study Track sau khi chuyển 33 câu hỏi sang System Design."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-10",
+      "items_added": 21,
+      "en": {
+        "title": "Testing gets its own topic, and security grows past OAuth2"
+      },
+      "vi": {
+        "title": "Testing thành một topic riêng, và Security vượt ra ngoài OAuth2"
+      },
+      "changes": [
+        {
+          "kind": "topic",
+          "target": "26-testing-strategy",
+          "count": 4,
+          "en": {
+            "section": "What a test is for",
+            "text": "Added Topic 26 on testing strategy."
+          },
+          "vi": {
+            "section": "Test để làm gì",
+            "text": "Thêm Topic 26 về testing strategy."
+          }
+        },
+        {
+          "kind": "topic",
+          "target": "26-testing-strategy",
+          "count": 4,
+          "en": {
+            "section": "Integration tests that tell the truth",
+            "text": "Added integration-testing guidance for real engines, transactions and context caching."
+          },
+          "vi": {
+            "section": "Integration test nói thật",
+            "text": "Thêm hướng dẫn integration testing với engine thật, transaction và context cache."
+          }
+        },
+        {
+          "kind": "topic",
+          "target": "26-testing-strategy",
+          "count": 5,
+          "en": {
+            "section": "Testing what usually breaks",
+            "text": "Added failure, time, race and load-testing guidance to Topic 26."
+          },
+          "vi": {
+            "section": "Test đúng chỗ hay hỏng",
+            "text": "Thêm hướng dẫn test failure, time, race và load vào Topic 26."
+          }
+        },
+        {
+          "kind": "topic",
+          "target": "13-security-oauth2",
+          "count": 4,
+          "en": {
+            "section": "Secure coding at the boundary",
+            "text": "Added secure-coding guidance beyond OAuth2 to Topic 13."
+          },
+          "vi": {
+            "section": "Viết code an toàn ở biên",
+            "text": "Thêm hướng dẫn secure coding ngoài OAuth2 vào Topic 13."
+          }
+        },
+        {
+          "kind": "topic",
+          "target": "13-security-oauth2",
+          "count": 4,
+          "en": {
+            "section": "Protecting the data you store",
+            "text": "Added data-protection and dependency-security guidance to Topic 13."
+          },
+          "vi": {
+            "section": "Bảo vệ dữ liệu đã lưu",
+            "text": "Thêm hướng dẫn bảo vệ dữ liệu và dependency security vào Topic 13."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-10",
+      "items_added": 17,
+      "en": {
+        "title": "Filling the gaps the roadmap exposed"
+      },
+      "vi": {
+        "title": "Lấp những khoảng trống mà roadmap chỉ ra"
+      },
+      "changes": [
+        {
+          "kind": "topic",
+          "target": "01-java-core-jvm",
+          "count": 2,
+          "en": {
+            "section": "Language fundamentals",
+            "text": "Added production time and clock guidance to Topic 01."
+          },
+          "vi": {
+            "section": "Nền tảng ngôn ngữ",
+            "text": "Thêm hướng dẫn time và clock trong production vào Topic 01."
+          }
+        },
+        {
+          "kind": "topic",
+          "target": "03-spring-boot-deep-build",
+          "count": 2,
+          "en": {
+            "section": "IoC container & transactions",
+            "text": "Added Spring transaction-event and multi-pod cache guidance to Topic 03."
+          },
+          "vi": {
+            "section": "IoC container & transaction",
+            "text": "Thêm hướng dẫn transaction event của Spring và cache nhiều pod vào Topic 03."
+          }
+        },
+        {
+          "kind": "topic",
+          "target": "03-spring-boot-deep-build",
+          "count": 1,
+          "en": {
+            "section": "Bean lifecycle & request flow",
+            "text": "Added JSON-boundary and JPA serialization guidance to Topic 03."
+          },
+          "vi": {
+            "section": "Vòng đời bean & request flow",
+            "text": "Thêm hướng dẫn JSON boundary và serialize JPA vào Topic 03."
+          }
+        },
+        {
+          "kind": "topic",
+          "target": "05-db-core-index-lock",
+          "count": 2,
+          "en": {
+            "section": "Modelling the schema",
+            "text": "Added schema-modelling guidance to Topic 05."
+          },
+          "vi": {
+            "section": "Thiết kế schema",
+            "text": "Thêm hướng dẫn modelling schema vào Topic 05."
+          }
+        },
+        {
+          "kind": "topic",
+          "target": "18-query-optimization",
+          "count": 1,
+          "en": {
+            "section": "Rewriting the query & reshaping the model",
+            "text": "Added batch-writing and `FOR UPDATE SKIP LOCKED` guidance to Topic 18."
+          },
+          "vi": {
+            "section": "Viết lại query & chỉnh mô hình",
+            "text": "Thêm hướng dẫn batch write và `FOR UPDATE SKIP LOCKED` vào Topic 18."
+          }
+        },
+        {
+          "kind": "topic",
+          "target": "08-message-queue",
+          "count": 2,
+          "en": {
+            "section": "Reliability & delivery semantics",
+            "text": "Added consumer-liveness and evolvable-event guidance to Topic 08."
+          },
+          "vi": {
+            "section": "Độ tin cậy & ngữ nghĩa",
+            "text": "Thêm hướng dẫn consumer liveness và event có thể evolve vào Topic 08."
+          }
+        },
+        {
+          "kind": "topic",
+          "target": "10-system-design-rate-limit",
+          "count": 1,
+          "en": {
+            "section": "Framework & building blocks",
+            "text": "Added local and distributed cache guidance for rolling deploys to Topic 10."
+          },
+          "vi": {
+            "section": "Khung & building blocks",
+            "text": "Thêm hướng dẫn local và distributed cache khi rolling deploy vào Topic 10."
+          }
+        },
+        {
+          "kind": "topic",
+          "target": "17-rest-api-design",
+          "count": 2,
+          "en": {
+            "section": "Contracts, errors & lifecycle",
+            "text": "Added inbound and outbound webhook contracts to Topic 17."
+          },
+          "vi": {
+            "section": "Hợp đồng, lỗi & vòng đời",
+            "text": "Thêm contract cho webhook inbound và outbound vào Topic 17."
+          }
+        },
+        {
+          "kind": "topic",
+          "target": "25-microservice",
+          "count": 1,
+          "en": {
+            "section": "08 · Operational Concerns",
+            "text": "Added distributed scheduler and lease guidance to Topic 25."
+          },
+          "vi": {
+            "section": "08 · Operational Concerns",
+            "text": "Thêm hướng dẫn distributed scheduler và lease vào Topic 25."
+          }
+        },
+        {
+          "kind": "topic",
+          "target": "07-sql-nosql-db-engines",
+          "count": 1,
+          "en": {
+            "section": "Engine by engine",
+            "text": "Added search-engine ownership and indexing guidance to Topic 07."
+          },
+          "vi": {
+            "section": "So sánh các engine",
+            "text": "Thêm hướng dẫn ownership và indexing của search engine vào Topic 07."
+          }
+        },
+        {
+          "kind": "topic",
+          "target": "16-project-concurrency-whiteboard",
+          "count": 2,
+          "en": {
+            "section": "Technical storytelling & fundamentals",
+            "text": "Added design-document and ADR guidance to Topic 16."
+          },
+          "vi": {
+            "section": "Kể chuyện kỹ thuật & nền tảng",
+            "text": "Thêm hướng dẫn design document và ADR vào Topic 16."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-09",
+      "en": {
+        "title": "The 15 DSA patterns now animate"
+      },
+      "vi": {
+        "title": "15 dạng bài DSA giờ có animation"
+      },
+      "changes": [
+        {
+          "kind": "feature",
+          "target": "19-dsa-leetcode",
+          "count": 15,
+          "en": {
+            "section": "The 15 patterns, traced step by step",
+            "text": "Added interactive animations for all 15 DSA patterns."
+          },
+          "vi": {
+            "section": "15 dạng bài, lần theo từng bước",
+            "text": "Thêm animation tương tác cho toàn bộ 15 pattern DSA."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-09",
+      "en": {
+        "title": "Release notes became bilingual, and group by day"
+      },
+      "vi": {
+        "title": "Release note thành song ngữ, và gom theo ngày"
+      },
+      "changes": [
+        {
+          "kind": "feature",
+          "target": "release-notes",
+          "en": {
+            "text": "Added bilingual release notes with date grouping."
+          },
+          "vi": {
+            "text": "Thêm release note song ngữ và gom theo ngày."
+          }
+        },
+        {
+          "kind": "feature",
+          "target": "release-notes",
+          "en": {
+            "text": "Grouped same-day releases under one date heading."
+          },
+          "vi": {
+            "text": "Gom các release cùng ngày dưới một tiêu đề ngày."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-08",
+      "items_added": 21,
+      "en": {
+        "title": "Keycloak, and the 15 patterns traced step by step"
+      },
+      "vi": {
+        "title": "Keycloak, và 15 dạng bài được lần theo từng bước"
+      },
+      "changes": [
+        {
+          "kind": "topic",
+          "target": "13-security-oauth2",
+          "count": 6,
+          "en": {
+            "section": "Keycloak in practice",
+            "text": "Added a practical Keycloak section to Topic 13."
+          },
+          "vi": {
+            "section": "Keycloak trong thực tế",
+            "text": "Thêm section Keycloak thực hành vào Topic 13."
+          }
+        },
+        {
+          "kind": "topic",
+          "target": "19-dsa-leetcode",
+          "count": 15,
+          "en": {
+            "section": "The 15 patterns, traced step by step",
+            "text": "Added step-by-step diagrams for all 15 DSA patterns."
+          },
+          "vi": {
+            "section": "15 dạng bài, lần theo từng bước",
+            "text": "Thêm diagram từng bước cho toàn bộ 15 pattern DSA."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-05",
+      "en": {
+        "title": "Case Studies library and versioned assets"
+      },
+      "vi": {
+        "title": "Thư viện Case Study và asset có version"
+      },
+      "changes": [
+        {
+          "kind": "feature",
+          "target": "case-studies",
+          "count": 11,
+          "en": {
+            "text": "Added the bilingual Case Studies library."
+          },
+          "vi": {
+            "text": "Thêm thư viện Case Studies song ngữ."
+          }
+        },
+        {
+          "kind": "feature",
+          "target": "boot",
+          "en": {
+            "text": "Added immutable asset versioning to every deployment."
+          },
+          "vi": {
+            "text": "Thêm version asset bất biến cho mỗi lần deploy."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-04",
+      "en": {
+        "title": "Editorial pass over every topic"
+      },
+      "vi": {
+        "title": "Rà soát biên tập toàn bộ topic"
+      },
+      "changes": [
+        {
+          "kind": "content",
+          "target": "all-topics",
+          "en": {
+            "text": "Reworked all topic answers for clearer, denser reading."
+          },
+          "vi": {
+            "text": "Viết lại câu trả lời của toàn bộ topic để dễ đọc và cô đọng hơn."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-03",
+      "items_added": 3,
+      "en": {
+        "title": "SQL vs NoSQL depth, and a concurrency deep dive"
+      },
+      "vi": {
+        "title": "Đào sâu SQL vs NoSQL, và một deep dive concurrency"
+      },
+      "changes": [
+        {
+          "kind": "topic",
+          "target": "07-sql-nosql-db-engines",
+          "count": 2,
+          "en": {
+            "text": "Added engine-level SQL and NoSQL comparisons to Topic 07."
+          },
+          "vi": {
+            "text": "Thêm so sánh SQL và NoSQL theo engine vào Topic 07."
+          }
+        },
+        {
+          "kind": "topic",
+          "target": "01-java-core-jvm",
+          "count": 1,
+          "en": {
+            "text": "Added a HashMap versus ConcurrentHashMap deep dive to Topic 01."
+          },
+          "vi": {
+            "text": "Thêm deep dive HashMap và ConcurrentHashMap vào Topic 01."
+          }
+        }
+      ]
+    },
+    {
+      "date": "2026-08-01",
+      "en": {
+        "title": "Content language switch moved to the header"
+      },
+      "vi": {
+        "title": "Chuyển công tắc ngôn ngữ lên header"
+      },
+      "changes": [
+        {
+          "kind": "feature",
+          "target": "language",
+          "en": {
+            "text": "Moved the study-language switch into the header."
+          },
+          "vi": {
+            "text": "Đưa công tắc ngôn ngữ học tập lên header."
+          }
+        }
+      ]
+    }
+  ]
+}

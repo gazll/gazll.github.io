@@ -1,0 +1,156 @@
+{
+  "version": 1,
+  "topics": [
+    {
+      "n": 1,
+      "file": "topics/01-java-core-jvm.json",
+      "topic_type": "core"
+    },
+    {
+      "n": 2,
+      "file": "topics/02-java-8-25-java-vs-go.json",
+      "topic_type": "core"
+    },
+    {
+      "n": 3,
+      "file": "topics/03-spring-boot-deep-build.json",
+      "topic_type": "core"
+    },
+    {
+      "n": 4,
+      "file": "topics/04-rest-grpc-webflux.json",
+      "topic_type": "design"
+    },
+    {
+      "n": 5,
+      "file": "topics/05-db-core-index-lock.json",
+      "topic_type": "data"
+    },
+    {
+      "n": 6,
+      "file": "topics/06-db-scaling.json",
+      "topic_type": "data"
+    },
+    {
+      "n": 7,
+      "file": "topics/07-sql-nosql-db-engines.json",
+      "topic_type": "data"
+    },
+    {
+      "n": 8,
+      "file": "topics/08-message-queue.json",
+      "topic_type": "data"
+    },
+    {
+      "n": 9,
+      "file": "topics/09-distributed-tx-fintech.json",
+      "topic_type": "design"
+    },
+    {
+      "n": 10,
+      "file": "topics/10-system-design-rate-limit.json",
+      "topic_type": "design",
+      "surface": "system-design"
+    },
+    {
+      "n": 11,
+      "file": "topics/11-system-design-cases.json",
+      "topic_type": "design",
+      "surface": "system-design"
+    },
+    {
+      "n": 12,
+      "file": "topics/12-architecture-patterns.json",
+      "topic_type": "design"
+    },
+    {
+      "n": 13,
+      "file": "topics/13-security-oauth2.json",
+      "topic_type": "platform"
+    },
+    {
+      "n": 14,
+      "file": "topics/14-devops-k8s-best-practices.json",
+      "topic_type": "platform"
+    },
+    {
+      "n": 15,
+      "file": "topics/15-network-i-o-models.json",
+      "topic_type": "core"
+    },
+    {
+      "n": 16,
+      "file": "topics/16-project-concurrency-whiteboard.json",
+      "topic_type": "algorithm",
+      "system_design_items": [
+        "16-project-concurrency-whiteboard.presenting-dissecting-the-ota-project.q1",
+        "16-project-concurrency-whiteboard.presenting-dissecting-the-ota-project.q2",
+        "16-project-concurrency-whiteboard.presenting-dissecting-the-ota-project.q3",
+        "16-project-concurrency-whiteboard.presenting-dissecting-the-ota-project.q4",
+        "16-project-concurrency-whiteboard.presenting-dissecting-the-ota-project.q5",
+        "16-project-concurrency-whiteboard.whiteboard-dsa.q1"
+      ]
+    },
+    {
+      "n": 17,
+      "file": "topics/17-rest-api-design.json",
+      "topic_type": "design"
+    },
+    {
+      "n": 18,
+      "file": "topics/18-query-optimization.json",
+      "topic_type": "data"
+    },
+    {
+      "n": 19,
+      "file": "topics/19-dsa-leetcode.json",
+      "topic_type": "algorithm"
+    },
+    {
+      "n": 20,
+      "file": "topics/20-observability-sre.json",
+      "topic_type": "platform"
+    },
+    {
+      "n": 21,
+      "file": "topics/21-linux-production-debug.json",
+      "topic_type": "platform"
+    },
+    {
+      "n": 22,
+      "file": "topics/22-low-level-design-ood.json",
+      "topic_type": "algorithm"
+    },
+    {
+      "n": 23,
+      "file": "topics/23-java-concurrency-coding.json",
+      "topic_type": "algorithm"
+    },
+    {
+      "n": 24,
+      "file": "topics/24-domain-driven-design.json",
+      "topic_type": "design"
+    },
+    {
+      "n": 25,
+      "topic_type": "microservice",
+      "file": "topics/25-microservice.json"
+    },
+    {
+      "n": 26,
+      "file": "topics/26-testing-strategy.json",
+      "topic_type": "core"
+    },
+    {
+      "n": 27,
+      "file": "topics/27-api-gateway-identity-edge.json",
+      "topic_type": "design",
+      "surface": "system-design"
+    },
+    {
+      "n": 28,
+      "file": "topics/28-distributed-lock-lease.json",
+      "topic_type": "design"
+    }
+  ]
+}

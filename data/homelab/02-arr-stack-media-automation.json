@@ -1,0 +1,15 @@
+{
+  "body_file": "data/homelab/articles/02-arr-stack-media-automation.html",
+  "guide": {
+    "title": "The stack is nine containers doing three jobs. Two configuration details decide whether it actually works, and both fail silently.",
+    "summary": "A request portal turns \"I want to watch this\" into a wanted entry; an indexer manager and a download client turn that into a file; a subtitle service finds text that matches the exact release; and the control layer files the result into a library the media server reads. Everything is open-source and containerised, so it runs on a NAS or an old desktop equally well. What separates a setup that works from one that merely appears to is a single-root mount and an honest quality target.",
+    "points": [
+      "Three layers: control decides what should exist, processing fetches it, data stores and plays it. Nothing crosses a layer except through those handoffs.",
+      "A hardlink is a second directory entry pointing at the same inode, so the seeding copy and the library copy occupy disk once — but only within one filesystem.",
+      "Mount the single parent directory into every container. Two separate volume mounts look identical on the host and are two filesystems inside the container, so the hardlink fails and the import silently becomes a copy.",
+      "Subtitle timing belongs to a release, not a title. A non-matching subtitle is not a near-miss worth offering; it would desynchronise, so rejecting it is correct.",
+      "Expose only the request portal and the media server. Radarr, Sonarr, Prowlarr, Bazarr and the download client are admin access to your filesystem.",
+      "Machine translation cannot see the scene, so it cannot choose Vietnamese pronouns reliably — batch about twenty lines and keep the prompt short to avoid timeouts."
+    ]
+  }
+}
